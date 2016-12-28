@@ -1,0 +1,63 @@
+@import '../../Styles/mixins';
+@import '../../Styles/variables';
+
+
+.welcome-component-wrapper {
+  @include full-screen-absolute();
+
+  .welcome-component {
+    @include absolutely-centered-min-box();
+    background-color: $color1;
+    border-radius: 5px;
+    border: 2px solid $color2;
+
+    text-align: center;
+
+    .welcome-form {
+
+      $form-width: 270px;
+
+      input {
+        border: 1px solid $color3;
+        background-color: $color1;
+        display: block;
+        text-align: center;
+        margin: auto;
+        width: $form-width;
+        height: 53px;
+        border-radius: 5px;
+        margin-bottom: 10px;
+      }
+
+      button {
+        display: block;
+        height: 30px;
+        width: $form-width;
+        margin: auto;
+        color: $color1;
+        background-color: $color2;
+        border: none;
+
+        &:disabled {
+            cursor: not-allowed;
+        }
+      }
+
+      .welcome-error-box {
+        width: $form-width;
+        height: 30px;
+        border: 2px solid $error-color1;
+        margin: auto;
+        border-radius: 5px;
+        color: $error-color2;
+        margin-bottom: 10px;
+        padding-top: 10px;
+        text-align: center;
+      }
+    }
+
+    a {
+      color: $link-color1;
+    }
+  }
+}

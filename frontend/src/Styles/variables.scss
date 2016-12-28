@@ -1,0 +1,15 @@
+// Avoid naming variables "main-grey", "or light-grey", it's best to not have
+// the color in the variable name, that way it's easier to change color schemes
+// without having your "light-grey" be blue...
+$color1: white;
+$color2: black;
+$color3: grey;
+$link-color1: blue;
+
+$error-color1: red;
+$error-color2: #ec437d;
+
+// At what point should your website stop adjusting to the size and start
+// becoming "scrolly".
+$min-width-supported: 320px;
+$min-height-supported: 540px;

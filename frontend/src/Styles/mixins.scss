@@ -1,0 +1,60 @@
+@import "variables";
+
+
+//Absolutely centering sometimes needs to be shifted a bit vertically.
+@mixin absolutely-centered-pick-y($top-distance) {
+
+  position: absolute;
+
+  @media screen and (min-width: $min-width-supported) and (min-height: $min-height-supported) {
+    top: $top-distance;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
+
+  @media screen and (max-width: $min-width-supported) {
+    top: $top-distance;
+    left: 0;
+    transform: translate(0, -50%);
+  }
+
+  @media screen and (max-height: $min-height-supported) {
+    top: 0;
+    left: 50%;
+    transform: translate(-50%, 0);
+  }
+
+  @media screen and (max-height: $min-height-supported) and (max-width: $min-width-supported) {
+    top: 0;
+    left: 0;
+    transform: none;
+  }
+}
+
+// Great for centering things (like the welcome form)
+@mixin absolutely-centered() {
+  @include absolutely-centered-pick-y(50%);
+}
+
+
+// Sets the box height and width to be the minimum we support before it gets
+// scrolly.
+@mixin absolutely-centered-min-box() {
+  height: $min-height-supported;
+  width: $min-width-supported;
+  @include absolutely-centered();
+}
+
+
+// Takes the full screen with an absolutely positioned element.
+@mixin full-screen-absolute() {
+  height: 100vh;
+  width: 100vw;
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  margin: 0;
+  padding: 0;
+}

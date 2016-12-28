@@ -1,0 +1,18 @@
+@import "mixins";
+@import "variables";
+
+html, body, #main {
+  @include full-screen-absolute();
+}
+
+.input-error-highlight {
+  border: 2px solid $error-color1 !important;
+}
+
+.left {
+    float: left;
+}
+
+.right {
+    float: right;
+}

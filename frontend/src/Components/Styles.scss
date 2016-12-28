@@ -1,0 +1,11 @@
+@import '../Styles/mixins';
+
+
+.base-component-wrapper {
+
+    @include full-screen-absolute();
+
+    .base-component {
+        @include full-screen-absolute();
+    }
+}
