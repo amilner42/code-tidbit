@@ -87,7 +87,7 @@ update msg model shared =
                 newShared =
                     { shared
                         | user = Just newUser
-                        , route = Route.HomeComponentMain
+                        , route = Route.HomeComponentBrowse
                     }
             in
                 ( model, newShared, Router.navigateTo newShared.route )
@@ -109,7 +109,7 @@ update msg model shared =
                 newShared =
                     { shared
                         | user = Just newUser
-                        , route = Route.HomeComponentMain
+                        , route = Route.HomeComponentBrowse
                     }
             in
                 ( model, newShared, Router.navigateTo newShared.route )

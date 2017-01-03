@@ -19,8 +19,9 @@ import UrlParser exposing (Parser, s, (</>), oneOf, map, top)
 {-| All of the app routes.
 -}
 type Route
-    = HomeComponentProfile
-    | HomeComponentMain
+    = HomeComponentBrowse
+    | HomeComponentCreate
+    | HomeComponentProfile
     | WelcomeComponentLogin
     | WelcomeComponentRegister
 
@@ -30,7 +31,8 @@ type Route
 matchers : Parser (Route -> a) a
 matchers =
     oneOf
-        [ map HomeComponentMain (top)
+        [ map HomeComponentBrowse (top)
+        , map HomeComponentCreate (s "create")
         , map HomeComponentProfile (s "profile")
         , map WelcomeComponentRegister (s "welcome" </> s "register")
         , map WelcomeComponentLogin (s "welcome" </> s "login")
@@ -50,7 +52,7 @@ routesNotNeedingAuth =
 -}
 defaultAuthRoute : Route
 defaultAuthRoute =
-    HomeComponentMain
+    HomeComponentBrowse
 
 
 {-| The default route if unauthenticated.
@@ -65,8 +67,11 @@ defaultUnauthRoute =
 toUrl : Route -> String
 toUrl route =
     case route of
-        HomeComponentMain ->
+        HomeComponentBrowse ->
             Config.baseUrl ++ "#"
+
+        HomeComponentCreate ->
+            Config.baseUrl ++ "#create"
 
         HomeComponentProfile ->
             Config.baseUrl ++ "#profile"
@@ -92,11 +97,14 @@ cacheDecoder =
     let
         fromStringDecoder encodedRouteString =
             case encodedRouteString of
+                "HomeComponentBrowse" ->
+                    Decode.succeed HomeComponentBrowse
+
+                "HomeComponentCreate" ->
+                    Decode.succeed HomeComponentCreate
+
                 "HomeComponentProfile" ->
                     Decode.succeed HomeComponentProfile
-
-                "HomeComponentMain" ->
-                    Decode.succeed HomeComponentMain
 
                 "WelcomeComponentLogin" ->
                     Decode.succeed WelcomeComponentLogin

@@ -31,15 +31,18 @@ view model shared =
 displayViewForRoute : Model -> Shared -> Html Msg
 displayViewForRoute model shared =
     case shared.route of
-        Route.HomeComponentMain ->
-            mainView model
+        Route.HomeComponentBrowse ->
+            browseView model
+
+        Route.HomeComponentCreate ->
+            createView model
 
         Route.HomeComponentProfile ->
             profileView model
 
         -- This should never happen.
         _ ->
-            mainView model
+            browseView model
 
 
 {-| Horizontal navbar to go above the views.
@@ -47,21 +50,32 @@ displayViewForRoute model shared =
 navbar : Shared -> Html Msg
 navbar shared =
     let
+        browseViewSelected =
+            shared.route == Route.HomeComponentBrowse
+
         profileViewSelected =
             shared.route == Route.HomeComponentProfile
 
-        mainViewSelected =
-            shared.route == Route.HomeComponentMain
+        createViewSelected =
+            shared.route == Route.HomeComponentCreate
     in
         div [ class "nav" ]
             [ div
                 [ classList
                     [ ( "nav-btn left", True )
-                    , ( "selected", mainViewSelected )
+                    , ( "selected", browseViewSelected )
                     ]
-                , onClick GoToMainView
+                , onClick GoToBrowseView
                 ]
-                [ text "Home" ]
+                [ text "Browse" ]
+            , div
+                [ classList
+                    [ ( "nav-btn left", True )
+                    , ( "selected", createViewSelected )
+                    ]
+                , onClick GoToCreateView
+                ]
+                [ text "Create" ]
             , div
                 [ classList
                     [ ( "nav-btn right", True )
@@ -73,15 +87,12 @@ navbar shared =
             ]
 
 
-{-| The Profile view.
+{-| The profile view.
 -}
 profileView : Model -> Html Msg
 profileView model =
     div []
-        [ h1
-            []
-            [ text "Profile View" ]
-        , button
+        [ button
             [ onClick LogOut ]
             [ text "Log out" ]
         , div
@@ -90,9 +101,18 @@ profileView model =
         ]
 
 
-{-| The Main view.
+{-| The browse view.
 -}
-mainView : Model -> Html Msg
-mainView model =
+browseView : Model -> Html Msg
+browseView model =
     div []
+        []
+
+
+{-| The create view.
+-}
+createView : Model -> Html Msg
+createView model =
+    div
+        []
         []

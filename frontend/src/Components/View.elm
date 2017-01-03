@@ -36,7 +36,10 @@ viewForRoute model =
             Route.WelcomeComponentLogin ->
                 renderedWelcomeView
 
-            Route.HomeComponentMain ->
+            Route.HomeComponentBrowse ->
+                renderedHomeView
+
+            Route.HomeComponentCreate ->
                 renderedHomeView
 
             Route.HomeComponentProfile ->

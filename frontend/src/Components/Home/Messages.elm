@@ -7,7 +7,8 @@ import Models.BasicResponse as BasicResponse
 {-| Home Component Msg.
 -}
 type Msg
-    = GoToMainView
+    = GoToBrowseView
+    | GoToCreateView
     | GoToProfileView
     | LogOut
     | OnLogOutFailure ApiError.ApiError

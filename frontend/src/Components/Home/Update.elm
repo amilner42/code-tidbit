@@ -16,19 +16,23 @@ import Ports
 update : Msg -> Model -> Shared -> ( Model, Shared, Cmd Msg )
 update msg model shared =
     case msg of
-        GoToMainView ->
-            let
-                newShared =
-                    { shared | route = Route.HomeComponentMain }
-            in
-                ( model, newShared, Router.navigateTo newShared.route )
+        GoToBrowseView ->
+            ( model
+            , shared
+            , Router.navigateTo Route.HomeComponentBrowse
+            )
+
+        GoToCreateView ->
+            ( model
+            , shared
+            , Router.navigateTo Route.HomeComponentCreate
+            )
 
         GoToProfileView ->
-            let
-                newShared =
-                    { shared | route = Route.HomeComponentProfile }
-            in
-                ( model, newShared, Router.navigateTo newShared.route )
+            ( model
+            , shared
+            , Router.navigateTo Route.HomeComponentProfile
+            )
 
         LogOut ->
             ( model, shared, Api.getLogOut OnLogOutFailure OnLogOutSuccess )
