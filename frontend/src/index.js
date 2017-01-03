@@ -45,3 +45,11 @@ app.ports.setCodeEditorLanguage.subscribe(function(langLocation) {
     aceCodeEditor.getSession().setMode(langLocation);
   }
 });
+
+// If a code editor exists, set it's theme to the given themeLocation. Use
+// helper provided in `Editor.elm` to turn a Theme into a themeLocation.
+app.ports.setCodeEditorTheme.subscribe(function(themeLocation) {
+  if(aceCodeEditor) {
+    aceCodeEditor.setTheme(themeLocation);
+  }
+});

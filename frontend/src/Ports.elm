@@ -27,3 +27,8 @@ port createCodeEditor : String -> Cmd msg
 {-| Sets the language for the current editor.
 -}
 port setCodeEditorLanguage : String -> Cmd msg
+
+
+{-| Sets the theme for the current editor.
+-}
+port setCodeEditorTheme : String -> Cmd msg

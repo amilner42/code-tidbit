@@ -1,4 +1,11 @@
-module Elements.Editor exposing (aceLanguageLocation, editor, Language(..))
+module Elements.Editor
+    exposing
+        ( aceLanguageLocation
+        , aceThemeLocation
+        , editor
+        , Language(..)
+        , Theme(..)
+        )
 
 import Html exposing (Html, div)
 import Html.Attributes exposing (class, id)
@@ -56,6 +63,32 @@ type Language
     | Swift
     | TypeScript
     | XML
+
+
+{-| Themes supported by the ACE editor.
+-}
+type Theme
+    = Chaos
+    | Chrome
+    | CloudsMidnight
+    | Clouds
+    | Cobalt
+    | CrimsonEditor
+    | Dawn
+    | Dreamweaver
+    | Eclipse
+    | Github
+    | IdleFingers
+    | IPlastic
+    | Kuroir
+    | MerbivoreSoft
+    | Monokai
+    | PastelOnDark
+    | SolarizedDark
+    | SolarizedLight
+    | Tomorrow
+    | Twilight
+    | XCode
 
 
 {-| Given a language, returns the ACE location which can be used with the ACE
@@ -217,6 +250,83 @@ aceLanguageLocation lang =
                     "xml"
     in
         baseLocation ++ languagePath
+
+
+{-| Given a theme, returns the location which can be used with the ACE API to
+set the theme.
+-}
+aceThemeLocation : Theme -> String
+aceThemeLocation theme =
+    let
+        baseLocation =
+            "ace/theme/"
+
+        themeLocation =
+            case theme of
+                Chaos ->
+                    "chaos"
+
+                Chrome ->
+                    "chrome"
+
+                CloudsMidnight ->
+                    "clouds_midnight"
+
+                Clouds ->
+                    "clouds"
+
+                Cobalt ->
+                    "cobalt"
+
+                CrimsonEditor ->
+                    "crimson_editor"
+
+                Dawn ->
+                    "dawn"
+
+                Dreamweaver ->
+                    "dreamweaver"
+
+                Eclipse ->
+                    "eclipse"
+
+                Github ->
+                    "github"
+
+                IdleFingers ->
+                    "idle_fingers"
+
+                IPlastic ->
+                    "iplastic"
+
+                Kuroir ->
+                    "kuroir"
+
+                MerbivoreSoft ->
+                    "merbivore_soft"
+
+                Monokai ->
+                    "monokai"
+
+                PastelOnDark ->
+                    "pastel_on_dark"
+
+                SolarizedDark ->
+                    "solarized_dark"
+
+                SolarizedLight ->
+                    "solarized_light"
+
+                Tomorrow ->
+                    "tomorrow"
+
+                Twilight ->
+                    "twilight"
+
+                XCode ->
+                    "xcode"
+    in
+        baseLocation ++ themeLocation
 
 
 {-| The editor, has special classes attached for styling and a special ID
