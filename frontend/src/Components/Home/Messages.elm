@@ -14,3 +14,4 @@ type Msg
     | LogOut
     | OnLogOutFailure ApiError.ApiError
     | OnLogOutSuccess BasicResponse.BasicResponse
+    | CreateEditor String

@@ -8,6 +8,7 @@ import Components.Model exposing (Shared)
 import DefaultModel exposing (defaultShared)
 import Models.Route as Route
 import Router
+import Ports
 
 
 {-| Home Component Update.
@@ -63,4 +64,10 @@ update msg model shared =
             ( HomeInit.init
             , defaultShared
             , Router.navigateTo Route.WelcomeComponentLogin
+            )
+
+        CreateEditor idName ->
+            ( model
+            , shared
+            , Ports.createCodeEditor idName
             )
