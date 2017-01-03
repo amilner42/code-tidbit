@@ -7,7 +7,5 @@ import Components.Home.Model exposing (Model)
 -}
 init : Model
 init =
-    { dataOne = ""
-    , dataTwo = ""
-    , logOutError = Nothing
+    { logOutError = Nothing
     }

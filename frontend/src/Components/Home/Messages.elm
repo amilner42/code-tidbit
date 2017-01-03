@@ -9,8 +9,6 @@ import Models.BasicResponse as BasicResponse
 type Msg
     = GoToMainView
     | GoToProfileView
-    | OnDataOneChange String
-    | OnDataTwoChange String
     | LogOut
     | OnLogOutFailure ApiError.ApiError
     | OnLogOutSuccess BasicResponse.BasicResponse

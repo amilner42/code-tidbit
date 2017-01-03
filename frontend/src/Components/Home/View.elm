@@ -81,12 +81,6 @@ profileView model =
         [ h1
             []
             [ text "Profile View" ]
-        , h3
-            []
-            [ text <|
-                "Notice going back and forth (navigation) works between the"
-                    ++ " home view and the profile view."
-            ]
         , button
             [ onClick LogOut ]
             [ text "Log out" ]
@@ -101,25 +95,4 @@ profileView model =
 mainView : Model -> Html Msg
 mainView model =
     div []
-        [ h1
-            []
-            [ text "Main View" ]
-        , h3
-            []
-            [ text <|
-                "Check out cacheing by entering data and closing/reopening"
-                    ++ " browser"
-            ]
-        , input
-            [ onInput OnDataOneChange
-            , placeholder "Random data 1"
-            , value model.dataOne
-            ]
-            []
-        , input
-            [ onInput OnDataTwoChange
-            , placeholder "Random data 2"
-            , value model.dataTwo
-            ]
-            []
-        ]
+        []

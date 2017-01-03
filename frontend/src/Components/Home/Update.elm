@@ -30,24 +30,6 @@ update msg model shared =
             in
                 ( model, newShared, Router.navigateTo newShared.route )
 
-        OnDataOneChange newDataOne ->
-            let
-                newModel =
-                    { model
-                        | dataOne = newDataOne
-                    }
-            in
-                ( newModel, shared, Cmd.none )
-
-        OnDataTwoChange newDataTwo ->
-            let
-                newModel =
-                    { model
-                        | dataTwo = newDataTwo
-                    }
-            in
-                ( newModel, shared, Cmd.none )
-
         LogOut ->
             ( model, shared, Api.getLogOut OnLogOutFailure OnLogOutSuccess )
 
