@@ -4,11 +4,15 @@ module Elements.Editor
         , aceThemeLocation
         , editor
         , Language(..)
+        , languageCacheDecoder
+        , languageCacheEncoder
         , Theme(..)
         )
 
 import Html exposing (Html, div)
 import Html.Attributes exposing (class, id)
+import Json.Encode as Encode
+import Json.Decode as Decode
 
 
 {-| The languages the Ace Editor supports.
@@ -250,6 +254,174 @@ aceLanguageLocation lang =
                     "xml"
     in
         baseLocation ++ languagePath
+
+
+{-| Language `cacheEncoder`.
+-}
+languageCacheEncoder : Language -> Encode.Value
+languageCacheEncoder language =
+    Encode.string (toString language)
+
+
+{-| Language `cacheDecoder`.
+-}
+languageCacheDecoder : Decode.Decoder Language
+languageCacheDecoder =
+    let
+        fromStringDecoder : String -> Decode.Decoder Language
+        fromStringDecoder encodedLanguage =
+            case encodedLanguage of
+                "ActionScript" ->
+                    Decode.succeed ActionScript
+
+                "Ada" ->
+                    Decode.succeed Ada
+
+                "AppleScript" ->
+                    Decode.succeed AppleScript
+
+                "AssemblyX86" ->
+                    Decode.succeed AssemblyX86
+
+                "CPlusPlus" ->
+                    Decode.succeed CPlusPlus
+
+                "Clojure" ->
+                    Decode.succeed Clojure
+
+                "Cobol" ->
+                    Decode.succeed Cobol
+
+                "CoffeeScript" ->
+                    Decode.succeed CoffeeScript
+
+                "CSharp" ->
+                    Decode.succeed CSharp
+
+                "CSS" ->
+                    Decode.succeed CSS
+
+                "D" ->
+                    Decode.succeed D
+
+                "Dart" ->
+                    Decode.succeed Dart
+
+                "DockerFile" ->
+                    Decode.succeed DockerFile
+
+                "Elixir" ->
+                    Decode.succeed Elixir
+
+                "Elm" ->
+                    Decode.succeed Elm
+
+                "Erlang" ->
+                    Decode.succeed Erlang
+
+                "Fortran" ->
+                    Decode.succeed Fortran
+
+                "GoLang" ->
+                    Decode.succeed GoLang
+
+                "Groovy" ->
+                    Decode.succeed Groovy
+
+                "Haml" ->
+                    Decode.succeed Haml
+
+                "Haskell" ->
+                    Decode.succeed Haskell
+
+                "Java" ->
+                    Decode.succeed Java
+
+                "JavaScript" ->
+                    Decode.succeed JavaScript
+
+                "JSON" ->
+                    Decode.succeed JSON
+
+                "Latex" ->
+                    Decode.succeed Latex
+
+                "Less" ->
+                    Decode.succeed Less
+
+                "LiveScript" ->
+                    Decode.succeed LiveScript
+
+                "Lua" ->
+                    Decode.succeed Lua
+
+                "Makefile" ->
+                    Decode.succeed Makefile
+
+                "Matlab" ->
+                    Decode.succeed Matlab
+
+                "MySQL" ->
+                    Decode.succeed MySQL
+
+                "ObjectiveC" ->
+                    Decode.succeed ObjectiveC
+
+                "OCaml" ->
+                    Decode.succeed OCaml
+
+                "Pascal" ->
+                    Decode.succeed Pascal
+
+                "Perl" ->
+                    Decode.succeed Perl
+
+                "PGSQL" ->
+                    Decode.succeed PGSQL
+
+                "PHP" ->
+                    Decode.succeed PHP
+
+                "PowerShell" ->
+                    Decode.succeed PowerShell
+
+                "Prolog" ->
+                    Decode.succeed Prolog
+
+                "Python" ->
+                    Decode.succeed Python
+
+                "R" ->
+                    Decode.succeed R
+
+                "Ruby" ->
+                    Decode.succeed Ruby
+
+                "Rust" ->
+                    Decode.succeed Rust
+
+                "Sass" ->
+                    Decode.succeed Sass
+
+                "SQL" ->
+                    Decode.succeed SQL
+
+                "SQLServer" ->
+                    Decode.succeed SQLServer
+
+                "Swift" ->
+                    Decode.succeed Swift
+
+                "TypeScript" ->
+                    Decode.succeed TypeScript
+
+                "XML" ->
+                    Decode.succeed XML
+
+                _ ->
+                    Decode.fail <| encodedLanguage ++ " is not a valid encoded string."
+    in
+        Decode.andThen fromStringDecoder Decode.string
 
 
 {-| Given a theme, returns the location which can be used with the ACE API to

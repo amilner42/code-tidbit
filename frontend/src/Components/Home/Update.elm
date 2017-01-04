@@ -57,3 +57,10 @@ update msg model shared =
             , shared
             , Ports.createCodeEditor idName
             )
+
+        SelectTidbitTypeForCreate tidbitType ->
+            let
+                newModel =
+                    { model | creatingTidbitType = tidbitType }
+            in
+                ( newModel, shared, Cmd.none )

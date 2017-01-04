@@ -8,4 +8,8 @@ import Components.Home.Model exposing (Model)
 init : Model
 init =
     { logOutError = Nothing
+    , creatingTidbitType = Nothing
+    , creatingBasicTidbitData =
+        { language = Nothing
+        }
     }

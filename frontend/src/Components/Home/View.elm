@@ -8,6 +8,7 @@ import Html exposing (Html, div, text, button, input, h1, h3)
 import Html.Attributes exposing (class, classList, placeholder, value, hidden)
 import Html.Events exposing (onClick, onInput)
 import Models.Route as Route
+import Models.TidbitType as TidbitType
 
 
 {-| Home Component View.
@@ -113,6 +114,41 @@ browseView model =
 -}
 createView : Model -> Html Msg
 createView model =
+    let
+        createSubView =
+            case model.creatingTidbitType of
+                Nothing ->
+                    div
+                        []
+                        [ h1
+                            []
+                            [ text "Select Tidbit Type" ]
+                        , button
+                            [ onClick <|
+                                SelectTidbitTypeForCreate
+                                    (Just TidbitType.Basic)
+                            ]
+                            [ text "Basic Tidbit" ]
+                        ]
+
+                Just tidbitType ->
+                    case tidbitType of
+                        TidbitType.Basic ->
+                            createBasicTidbitView model
+    in
+        div
+            []
+            [ createSubView
+            ]
+
+
+{-| View for creating a basic tidbit.
+-}
+createBasicTidbitView : Model -> Html Msg
+createBasicTidbitView model =
     div
         []
-        []
+        [ h1
+            []
+            [ text "Creating Basic Tidbit" ]
+        ]
