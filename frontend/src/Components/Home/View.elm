@@ -12,6 +12,7 @@ import Html.Attributes exposing (class, classList, placeholder, value, hidden)
 import Html.Events exposing (onClick, onInput)
 import Models.Route as Route
 import Models.TidbitType as TidbitType
+import Models.BasicTidbit as BasicTidbit
 
 
 {-| Home Component View.
@@ -150,6 +151,10 @@ createView model shared =
 createBasicTidbitView : Model -> Shared -> Html Msg
 createBasicTidbitView model shared =
     let
+        currentStage : BasicTidbit.BasicTidbitCreateStage
+        currentStage =
+            model.creatingBasicTidbitData.createStage
+
         viewMenu : Html Msg
         viewMenu =
             div
@@ -185,16 +190,79 @@ createBasicTidbitView model shared =
                     , ul = [ class "lang-select-ac" ]
                     , li = customizedLi
                     }
-    in
-        div
-            []
-            [ h1
-                []
-                [ text "Creating Basic Tidbit" ]
-            , div
-                [ classList
-                    [ ( "hidden", Util.isNotNothing model.creatingBasicTidbitData.language ) ]
+
+        createBasicTidbitNavbar : Html Msg
+        createBasicTidbitNavbar =
+            div
+                [ classList [ ( "create-basic-tidbit-navbar", True ) ] ]
+                [ div
+                    [ classList
+                        [ ( "create-basic-tidbit-tab", True )
+                        , ( "create-basic-tidbit-selected-tab"
+                          , currentStage == BasicTidbit.Name
+                          )
+                        ]
+                    , onClick <| BasicTidbitSelectTab BasicTidbit.Name
+                    ]
+                    [ text "Name" ]
+                , div
+                    [ classList
+                        [ ( "create-basic-tidbit-tab", True )
+                        , ( "create-basic-tidbit-selected-tab"
+                          , currentStage == BasicTidbit.Description
+                          )
+                        ]
+                    , onClick <| BasicTidbitSelectTab BasicTidbit.Description
+                    ]
+                    [ text "Description" ]
+                , div
+                    [ classList
+                        [ ( "create-basic-tidbit-tab", True )
+                        , ( "create-basic-tidbit-selected-tab"
+                          , currentStage == BasicTidbit.Language
+                          )
+                        ]
+                    , onClick <| BasicTidbitSelectTab BasicTidbit.Language
+                    ]
+                    [ text "Language" ]
+                , div
+                    [ classList
+                        [ ( "create-basic-tidbit-tab", True )
+                        , ( "create-basic-tidbit-selected-tab"
+                          , currentStage == BasicTidbit.Tags
+                          )
+                        ]
+                    , onClick <| BasicTidbitSelectTab BasicTidbit.Tags
+                    ]
+                    [ text "Tags" ]
+                , div
+                    [ classList
+                        [ ( "create-basic-tidbit-tab", True )
+                        , ( "create-basic-tidbit-selected-tab"
+                          , currentStage == BasicTidbit.Tidbit
+                          )
+                        ]
+                    , onClick <| BasicTidbitSelectTab BasicTidbit.Tidbit
+                    ]
+                    [ text "Tidbit" ]
                 ]
+
+        nameView : Html Msg
+        nameView =
+            div
+                [ classList [ ( "hidden", currentStage /= BasicTidbit.Name ) ] ]
+                []
+
+        descriptionView : Html Msg
+        descriptionView =
+            div
+                [ classList [ ( "hidden", currentStage /= BasicTidbit.Description ) ] ]
+                []
+
+        languageView : Html Msg
+        languageView =
+            div
+                [ classList [ ( "hidden", currentStage /= BasicTidbit.Language ) ] ]
                 [ input
                     [ placeholder "language"
                     , onInput BasicTidbitUpdateLanguageQuery
@@ -202,5 +270,32 @@ createBasicTidbitView model shared =
                     ]
                     []
                 , viewMenu
+                ]
+
+        tagView : Html Msg
+        tagView =
+            div
+                [ classList [ ( "hidden", currentStage /= BasicTidbit.Tags ) ] ]
+                []
+
+        tidbitView : Html Msg
+        tidbitView =
+            div
+                [ classList [ ( "hidden", currentStage /= BasicTidbit.Tidbit ) ] ]
+                []
+    in
+        div
+            []
+            [ h1
+                []
+                [ text "Creating Basic Tidbit" ]
+            , div
+                []
+                [ createBasicTidbitNavbar
+                , nameView
+                , descriptionView
+                , languageView
+                , tagView
+                , tidbitView
                 ]
             ]

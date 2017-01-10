@@ -3,6 +3,7 @@ module Components.Home.Messages exposing (Msg(..))
 import Autocomplete as AC
 import Models.ApiError as ApiError
 import Models.BasicResponse as BasicResponse
+import Models.BasicTidbit as BasicTidbit
 import Models.TidbitType as TidbitType
 
 
@@ -20,3 +21,4 @@ type Msg
     | BasicTidbitUpdateLanguageQuery String
     | BasicTidbitUpdateACState AC.Msg
     | BasicTidbitSelectLanguage String
+    | BasicTidbitSelectTab BasicTidbit.BasicTidbitCreateStage

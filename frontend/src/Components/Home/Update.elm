@@ -168,6 +168,18 @@ update msg model shared =
                 in
                     ( newModel, shared, Cmd.none )
 
+            BasicTidbitSelectTab newStageSelected ->
+                let
+                    newCreatingBasicTidbitData =
+                        { currentCreatingBasicTidbitData
+                            | createStage = newStageSelected
+                        }
+
+                    newModel =
+                        updateBasicTidbitCreateData newCreatingBasicTidbitData
+                in
+                    ( newModel, shared, Cmd.none )
+
 
 {-| Filters the languages based on `query`.
 -}

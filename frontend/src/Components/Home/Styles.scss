@@ -46,5 +46,27 @@
                 }
             }
         }
+
+        .create-basic-tidbit-navbar {
+            @include no-select();
+
+            width: 500px;
+            height: 50px;
+            position: relative;
+            display: block;
+
+            .create-basic-tidbit-tab {
+                box-sizing: border-box;
+                width: 100px;
+                position: relative;
+                display: inline-block;
+                cursor: pointer;
+                border: 2px solid grey;
+
+                &.create-basic-tidbit-selected-tab {
+                    color: blue;
+                }
+            }
+        }
     }
 }
