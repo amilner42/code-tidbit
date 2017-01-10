@@ -26,5 +26,25 @@
                 }
             }
         }
+
+        .lang-select-ac {
+
+            .lang-select-ac-item {
+                @include no-select();
+                list-style-type: none;
+                color: black;
+                border: 2px solid #DDD;
+                width: 100px;
+                margin-bottom: 2px;
+
+                &.key-selected {
+                    background-color: #AAA;
+                }
+
+                &:hover {
+                    cursor: pointer;
+                }
+            }
+        }
     }
 }

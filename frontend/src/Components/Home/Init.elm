@@ -1,5 +1,6 @@
 module Components.Home.Init exposing (init)
 
+import Autocomplete as AC
 import Components.Home.Model exposing (Model)
 
 
@@ -11,5 +12,7 @@ init =
     , creatingTidbitType = Nothing
     , creatingBasicTidbitData =
         { language = Nothing
+        , languageQueryACState = AC.empty
+        , languageQuery = ""
         }
     }

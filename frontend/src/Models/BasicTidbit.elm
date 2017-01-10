@@ -1,5 +1,6 @@
 module Models.BasicTidbit exposing (..)
 
+import Autocomplete as AC
 import DefaultServices.Util as Util
 import Json.Encode as Encode
 import Json.Decode as Decode
@@ -10,6 +11,8 @@ import Elements.Editor exposing (Language, languageCacheDecoder, languageCacheEn
 -}
 type alias BasicTidbitCreateData =
     { language : Maybe Language
+    , languageQueryACState : AC.State
+    , languageQuery : String
     }
 
 
@@ -23,6 +26,8 @@ createDataCacheEncoder basicTidbitCreateData =
                 languageCacheEncoder
                 basicTidbitCreateData.language
           )
+        , ( "languageQueryACState", Encode.null )
+        , ( "languageQuery", Encode.string basicTidbitCreateData.languageQuery )
         ]
 
 
@@ -30,5 +35,7 @@ createDataCacheEncoder basicTidbitCreateData =
 -}
 createDataCacheDecoder : Decode.Decoder BasicTidbitCreateData
 createDataCacheDecoder =
-    Decode.map BasicTidbitCreateData
+    Decode.map3 BasicTidbitCreateData
         (Decode.field "language" (Decode.maybe languageCacheDecoder))
+        (Decode.field "languageQueryACState" (Decode.succeed AC.empty))
+        (Decode.field "languageQuery" Decode.string)

@@ -3,6 +3,7 @@ module Elements.Editor
         ( aceLanguageLocation
         , aceThemeLocation
         , editor
+        , humanReadableListOfLanguages
         , Language(..)
         , languageCacheDecoder
         , languageCacheEncoder
@@ -95,6 +96,62 @@ type Theme
     | XCode
 
 
+{-| Human readable list of langauges.
+-}
+humanReadableListOfLanguages : List ( Language, String )
+humanReadableListOfLanguages =
+    [ ( ActionScript, "actionscript" )
+    , ( Ada, "ada" )
+    , ( AppleScript, "applescript" )
+    , ( AssemblyX86, "assembly_x86" )
+    , ( CPlusPlus, "c++" )
+    , ( Clojure, "clojure" )
+    , ( Cobol, "cobol" )
+    , ( CoffeeScript, "coffeescript" )
+    , ( CSharp, "c#" )
+    , ( CSS, "css" )
+    , ( D, "d" )
+    , ( Dart, "dart" )
+    , ( DockerFile, "dockerfile" )
+    , ( Elixir, "elixir" )
+    , ( Elm, "elm" )
+    , ( Erlang, "erlang" )
+    , ( Fortran, "fortran" )
+    , ( GoLang, "go" )
+    , ( Groovy, "groovy" )
+    , ( Haml, "haml" )
+    , ( Haskell, "haskell" )
+    , ( Java, "java" )
+    , ( JavaScript, "javascript" )
+    , ( JSON, "json" )
+    , ( Latex, "latex" )
+    , ( Less, "less" )
+    , ( LiveScript, "livescript" )
+    , ( Lua, "lua" )
+    , ( Makefile, "makefile" )
+    , ( Matlab, "matlab" )
+    , ( MySQL, "mysql" )
+    , ( ObjectiveC, "objectivec" )
+    , ( OCaml, "ocaml" )
+    , ( Pascal, "pascal" )
+    , ( Perl, "perl" )
+    , ( PGSQL, "pgsql" )
+    , ( PHP, "php" )
+    , ( PowerShell, "powershell" )
+    , ( Prolog, "prolog" )
+    , ( Python, "python" )
+    , ( R, "r" )
+    , ( Ruby, "ruby" )
+    , ( Rust, "rust" )
+    , ( Sass, "sass" )
+    , ( SQL, "sql" )
+    , ( SQLServer, "sqlserver" )
+    , ( Swift, "swift" )
+    , ( TypeScript, "typescript" )
+    , ( XML, "xml" )
+    ]
+
+
 {-| Given a language, returns the ACE location which can be used with the ACE
 API to set the language.
 -}
@@ -158,7 +215,7 @@ aceLanguageLocation lang =
                     "fortran"
 
                 GoLang ->
-                    "golong"
+                    "golang"
 
                 Groovy ->
                     "groovy"

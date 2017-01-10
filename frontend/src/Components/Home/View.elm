@@ -1,9 +1,12 @@
 module Components.Home.View exposing (..)
 
+import Autocomplete as AC
 import Components.Home.Messages exposing (Msg(..))
 import Components.Home.Model exposing (Model)
+import Components.Home.Update exposing (filterLanguagesByQuery)
 import Components.Model exposing (Shared)
 import DefaultServices.Util as Util
+import Elements.Editor as Editor
 import Html exposing (Html, div, text, button, input, h1, h3)
 import Html.Attributes exposing (class, classList, placeholder, value, hidden)
 import Html.Events exposing (onClick, onInput)
@@ -36,7 +39,7 @@ displayViewForRoute model shared =
             browseView model
 
         Route.HomeComponentCreate ->
-            createView model
+            createView model shared
 
         Route.HomeComponentProfile ->
             profileView model
@@ -112,8 +115,8 @@ browseView model =
 
 {-| The create view.
 -}
-createView : Model -> Html Msg
-createView model =
+createView : Model -> Shared -> Html Msg
+createView model shared =
     let
         createSubView =
             case model.creatingTidbitType of
@@ -134,7 +137,7 @@ createView model =
                 Just tidbitType ->
                     case tidbitType of
                         TidbitType.Basic ->
-                            createBasicTidbitView model
+                            createBasicTidbitView model shared
     in
         div
             []
@@ -144,11 +147,60 @@ createView model =
 
 {-| View for creating a basic tidbit.
 -}
-createBasicTidbitView : Model -> Html Msg
-createBasicTidbitView model =
-    div
-        []
-        [ h1
+createBasicTidbitView : Model -> Shared -> Html Msg
+createBasicTidbitView model shared =
+    let
+        viewMenu : Html Msg
+        viewMenu =
+            div
+                []
+                [ Html.map
+                    BasicTidbitUpdateACState
+                    (AC.view
+                        acViewConfig
+                        8
+                        model.creatingBasicTidbitData.languageQueryACState
+                        (filterLanguagesByQuery
+                            model.creatingBasicTidbitData.languageQuery
+                            shared.languages
+                        )
+                    )
+                ]
+
+        acViewConfig : AC.ViewConfig ( Editor.Language, String )
+        acViewConfig =
+            let
+                customizedLi keySelected mouseSelected languagePair =
+                    { attributes =
+                        [ classList
+                            [ ( "lang-select-ac-item", True )
+                            , ( "key-selected", keySelected || mouseSelected )
+                            ]
+                        ]
+                    , children = [ Html.text (Tuple.second languagePair) ]
+                    }
+            in
+                AC.viewConfig
+                    { toId = (toString << Tuple.first)
+                    , ul = [ class "lang-select-ac" ]
+                    , li = customizedLi
+                    }
+    in
+        div
             []
-            [ text "Creating Basic Tidbit" ]
-        ]
+            [ h1
+                []
+                [ text "Creating Basic Tidbit" ]
+            , div
+                [ classList
+                    [ ( "hidden", Util.isNotNothing model.creatingBasicTidbitData.language ) ]
+                ]
+                [ input
+                    [ placeholder "language"
+                    , onInput BasicTidbitUpdateLanguageQuery
+                    , value model.creatingBasicTidbitData.languageQuery
+                    ]
+                    []
+                , viewMenu
+                ]
+            ]

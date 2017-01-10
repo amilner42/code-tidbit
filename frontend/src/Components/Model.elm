@@ -3,6 +3,7 @@ module Components.Model exposing (Model, Shared, cacheDecoder, cacheEncoder)
 import Components.Home.Model as HomeModel
 import Components.Welcome.Model as WelcomeModel
 import DefaultServices.Util exposing (justValueOrNull)
+import Elements.Editor as Editor
 import Json.Decode as Decode exposing (field)
 import Json.Encode as Encode
 import Models.Route as Route
@@ -27,6 +28,7 @@ type alias Model =
 type alias Shared =
     { user : Maybe (User.User)
     , route : Route.Route
+    , languages : List ( Editor.Language, String )
     }
 
 
@@ -55,9 +57,10 @@ cacheEncoder model =
 -}
 sharedCacheDecoder : Decode.Decoder Shared
 sharedCacheDecoder =
-    Decode.map2 Shared
+    Decode.map3 Shared
         (field "user" (Decode.maybe (User.cacheDecoder)))
         (field "route" Route.cacheDecoder)
+        (field "languages" (Decode.succeed Editor.humanReadableListOfLanguages))
 
 
 {-| Shared `cacheEncoder`.
@@ -67,4 +70,5 @@ sharedCacheEncoder shared =
     Encode.object
         [ ( "user", justValueOrNull User.cacheEncoder shared.user )
         , ( "route", Route.cacheEncoder shared.route )
+        , ( "languages", Encode.null )
         ]

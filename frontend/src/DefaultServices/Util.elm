@@ -60,3 +60,10 @@ fromJsonString decoder encodedString =
 toJsonString : (a -> Encode.Value) -> a -> String
 toJsonString encoder record =
     Encode.encode 0 (encoder record)
+
+
+{-| Wraps a string in "quotes".
+-}
+quote : String -> String
+quote word =
+    "\"" ++ word ++ "\""
