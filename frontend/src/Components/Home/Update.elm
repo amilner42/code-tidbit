@@ -180,6 +180,13 @@ update msg model shared =
                 in
                     ( newModel, shared, Cmd.none )
 
+            ResetCreateBasicTidbit ->
+                let
+                    newModel =
+                        updateBasicTidbitCreateData <| .creatingBasicTidbitData HomeInit.init
+                in
+                    ( newModel, shared, Cmd.none )
+
 
 {-| Filters the languages based on `query`.
 -}

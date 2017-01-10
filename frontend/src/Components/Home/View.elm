@@ -286,9 +286,20 @@ createBasicTidbitView model shared =
     in
         div
             []
-            [ h1
+            [ div
                 []
-                [ text "Creating Basic Tidbit" ]
+                [ h1 [] [ text "Creating Basic Tidbit" ]
+                , button
+                    [ class "create-basic-tidbit-back-button"
+                    , onClick <| SelectTidbitTypeForCreate Nothing
+                    ]
+                    [ text "Back" ]
+                , button
+                    [ class "create-basic-tidbit-reset-button"
+                    , onClick <| ResetCreateBasicTidbit
+                    ]
+                    [ text "Reset" ]
+                ]
             , div
                 []
                 [ createBasicTidbitNavbar

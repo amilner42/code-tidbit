@@ -22,3 +22,4 @@ type Msg
     | BasicTidbitUpdateACState AC.Msg
     | BasicTidbitSelectLanguage String
     | BasicTidbitSelectTab BasicTidbit.BasicTidbitCreateStage
+    | ResetCreateBasicTidbit
