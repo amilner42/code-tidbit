@@ -7,7 +7,7 @@ import Components.Home.Update exposing (filterLanguagesByQuery)
 import Components.Model exposing (Shared)
 import DefaultServices.Util as Util
 import Elements.Editor as Editor
-import Html exposing (Html, div, text, button, input, h1, h3)
+import Html exposing (Html, div, text, textarea, button, input, h1, h3)
 import Html.Attributes exposing (class, classList, placeholder, value, hidden)
 import Html.Events exposing (onClick, onInput)
 import Models.Route as Route
@@ -263,7 +263,14 @@ createBasicTidbitView model shared =
         descriptionView =
             div
                 [ classList [ ( "hidden", currentStage /= BasicTidbit.Description ) ] ]
-                []
+                [ textarea
+                    [ placeholder "description"
+                    , onInput BasicTidbitUpdateDescription
+                    , value model.creatingBasicTidbitData.description
+                    , class "create-basic-tidbit-description-box"
+                    ]
+                    []
+                ]
 
         languageView : Html Msg
         languageView =

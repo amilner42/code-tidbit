@@ -15,6 +15,7 @@ type alias BasicTidbitCreateData =
     , languageQuery : String
     , createStage : BasicTidbitCreateStage
     , name : String
+    , description : String
     }
 
 
@@ -44,6 +45,7 @@ createDataCacheEncoder basicTidbitCreateData =
           , basicTidbitCreateStageCacheEncoder basicTidbitCreateData.createStage
           )
         , ( "name", Encode.string basicTidbitCreateData.name )
+        , ( "description", Encode.string basicTidbitCreateData.description )
         ]
 
 
@@ -51,12 +53,13 @@ createDataCacheEncoder basicTidbitCreateData =
 -}
 createDataCacheDecoder : Decode.Decoder BasicTidbitCreateData
 createDataCacheDecoder =
-    Decode.map5 BasicTidbitCreateData
+    Decode.map6 BasicTidbitCreateData
         (Decode.field "language" (Decode.maybe languageCacheDecoder))
         (Decode.field "languageQueryACState" (Decode.succeed AC.empty))
         (Decode.field "languageQuery" Decode.string)
         (Decode.field "createStage" basicTidbitCreateStageCacheDecoder)
         (Decode.field "name" Decode.string)
+        (Decode.field "description" Decode.string)
 
 
 {-| BasicTidbitCreateStage `cacheEncoder`.

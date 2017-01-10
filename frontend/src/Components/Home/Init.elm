@@ -17,5 +17,6 @@ init =
         , languageQuery = ""
         , createStage = BasicTidbit.Name
         , name = ""
+        , description = ""
         }
     }

@@ -24,3 +24,4 @@ type Msg
     | BasicTidbitSelectTab BasicTidbit.BasicTidbitCreateStage
     | ResetCreateBasicTidbit
     | BasicTidbitUpdateName String
+    | BasicTidbitUpdateDescription String
