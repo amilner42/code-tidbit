@@ -251,7 +251,13 @@ createBasicTidbitView model shared =
         nameView =
             div
                 [ classList [ ( "hidden", currentStage /= BasicTidbit.Name ) ] ]
-                []
+                [ input
+                    [ placeholder "name"
+                    , onInput BasicTidbitUpdateName
+                    , value model.creatingBasicTidbitData.name
+                    ]
+                    []
+                ]
 
         descriptionView : Html Msg
         descriptionView =

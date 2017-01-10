@@ -16,5 +16,6 @@ init =
         , languageQueryACState = AC.empty
         , languageQuery = ""
         , createStage = BasicTidbit.Name
+        , name = ""
         }
     }
