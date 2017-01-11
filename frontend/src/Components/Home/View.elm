@@ -8,7 +8,7 @@ import Components.Model exposing (Shared)
 import DefaultServices.Util as Util
 import Elements.Editor as Editor
 import Html exposing (Html, div, text, textarea, button, input, h1, h3)
-import Html.Attributes exposing (class, classList, placeholder, value, hidden)
+import Html.Attributes exposing (class, classList, disabled, placeholder, value, hidden)
 import Html.Events exposing (onClick, onInput)
 import Models.Route as Route
 import Models.TidbitType as TidbitType
@@ -158,7 +158,14 @@ createBasicTidbitView model shared =
         viewMenu : Html Msg
         viewMenu =
             div
-                []
+                [ classList
+                    [ ( "hidden"
+                      , model.creatingBasicTidbitData.languageQuery
+                            == ""
+                            || Util.isNotNothing model.creatingBasicTidbitData.language
+                      )
+                    ]
+                ]
                 [ Html.map
                     BasicTidbitUpdateACState
                     (AC.view
@@ -280,9 +287,22 @@ createBasicTidbitView model shared =
                     [ placeholder "language"
                     , onInput BasicTidbitUpdateLanguageQuery
                     , value model.creatingBasicTidbitData.languageQuery
+                    , disabled <|
+                        Util.isNotNothing
+                            model.creatingBasicTidbitData.language
                     ]
                     []
                 , viewMenu
+                , button
+                    [ onClick <| BasicTidbitSelectLanguage Nothing
+                    , classList
+                        [ ( "hidden"
+                          , Util.isNothing
+                                model.creatingBasicTidbitData.language
+                          )
+                        ]
+                    ]
+                    [ text "change language" ]
                 ]
 
         tagView : Html Msg

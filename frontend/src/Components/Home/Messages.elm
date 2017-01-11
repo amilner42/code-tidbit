@@ -20,7 +20,7 @@ type Msg
     | SelectTidbitTypeForCreate (Maybe TidbitType.TidbitType)
     | BasicTidbitUpdateLanguageQuery String
     | BasicTidbitUpdateACState AC.Msg
-    | BasicTidbitSelectLanguage String
+    | BasicTidbitSelectLanguage (Maybe String)
     | BasicTidbitSelectTab BasicTidbit.BasicTidbitCreateStage
     | ResetCreateBasicTidbit
     | BasicTidbitUpdateName String

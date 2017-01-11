@@ -113,14 +113,17 @@ update msg model shared =
                                     if keyCode == downKeyCode || keyCode == upKeyCode then
                                         Nothing
                                     else if keyCode == enterKeyCode then
-                                        Maybe.map BasicTidbitSelectLanguage maybeID
+                                        if Util.isNothing maybeID then
+                                            Nothing
+                                        else
+                                            Just <| BasicTidbitSelectLanguage maybeID
                                     else
                                         Nothing
                             , onTooLow = Nothing
                             , onTooHigh = Nothing
                             , onMouseClick =
                                 \id ->
-                                    Just <| BasicTidbitSelectLanguage id
+                                    Just <| BasicTidbitSelectLanguage <| Just id
                             , onMouseLeave = \_ -> Nothing
                             , onMouseEnter = \_ -> Nothing
                             , separateSelections = False
@@ -150,17 +153,34 @@ update msg model shared =
                         Just updateMsg ->
                             update updateMsg newModel shared
 
-            BasicTidbitSelectLanguage encodedLang ->
+            BasicTidbitSelectLanguage maybeEncodedLang ->
                 let
                     language =
-                        Result.toMaybe <|
-                            Decode.decodeString
-                                Editor.languageCacheDecoder
-                                (Util.quote encodedLang)
+                        case maybeEncodedLang of
+                            -- Erasing the selected language.
+                            Nothing ->
+                                Nothing
+
+                            -- Selecting a language.
+                            Just encodedLang ->
+                                Util.quote
+                                    >> Decode.decodeString Editor.languageCacheDecoder
+                                    >> Result.toMaybe
+                                <|
+                                    encodedLang
+
+                    newLanguageQuery =
+                        case language of
+                            Nothing ->
+                                ""
+
+                            Just aLanguage ->
+                                toString aLanguage
 
                     newCreatingBasicTidbitData =
                         { currentCreatingBasicTidbitData
                             | language = language
+                            , languageQuery = newLanguageQuery
                         }
 
                     newModel =
