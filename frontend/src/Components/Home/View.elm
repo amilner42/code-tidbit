@@ -160,9 +160,9 @@ createBasicTidbitView model shared =
             div
                 [ classList
                     [ ( "hidden"
-                      , model.creatingBasicTidbitData.languageQuery
-                            == ""
-                            || Util.isNotNothing model.creatingBasicTidbitData.language
+                      , String.isEmpty model.creatingBasicTidbitData.languageQuery
+                            || Util.isNotNothing
+                                model.creatingBasicTidbitData.language
                       )
                     ]
                 ]
@@ -307,9 +307,36 @@ createBasicTidbitView model shared =
 
         tagView : Html Msg
         tagView =
-            div
-                [ classList [ ( "hidden", currentStage /= BasicTidbit.Tags ) ] ]
-                []
+            let
+                currentTags =
+                    div
+                        []
+                        (List.map
+                            (\tagName ->
+                                div
+                                    []
+                                    [ text tagName
+                                    , button
+                                        [ onClick <| BasicTidbitRemoveTag tagName ]
+                                        [ text "X" ]
+                                    ]
+                            )
+                            model.creatingBasicTidbitData.tags
+                        )
+            in
+                div
+                    [ classList [ ( "hidden", currentStage /= BasicTidbit.Tags ) ] ]
+                    [ input
+                        [ placeholder "tags"
+                        , onInput BasicTidbitUpdateTagInput
+                        , value model.creatingBasicTidbitData.tagInput
+                        , Util.onEnter <|
+                            BasicTidbitAddTag
+                                model.creatingBasicTidbitData.tagInput
+                        ]
+                        []
+                    , currentTags
+                    ]
 
         tidbitView : Html Msg
         tidbitView =

@@ -25,3 +25,6 @@ type Msg
     | ResetCreateBasicTidbit
     | BasicTidbitUpdateName String
     | BasicTidbitUpdateDescription String
+    | BasicTidbitUpdateTagInput String
+    | BasicTidbitRemoveTag String
+    | BasicTidbitAddTag String

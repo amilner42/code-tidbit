@@ -18,5 +18,7 @@ init =
         , createStage = BasicTidbit.Name
         , name = ""
         , description = ""
+        , tags = []
+        , tagInput = ""
         }
     }

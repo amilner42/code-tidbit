@@ -231,6 +231,86 @@ update msg model shared =
                 in
                     ( newModel, shared, Cmd.none )
 
+            BasicTidbitUpdateTagInput newTagInput ->
+                if String.endsWith " " newTagInput then
+                    let
+                        newTag =
+                            String.dropRight 1 newTagInput
+
+                        newTags =
+                            if
+                                String.isEmpty newTag
+                                    || List.member
+                                        newTag
+                                        currentCreatingBasicTidbitData.tags
+                            then
+                                currentCreatingBasicTidbitData.tags
+                            else
+                                currentCreatingBasicTidbitData.tags ++ [ newTag ]
+
+                        newCreatingBasicTidbitData =
+                            { currentCreatingBasicTidbitData
+                                | tagInput = ""
+                                , tags = newTags
+                            }
+
+                        newModel =
+                            updateBasicTidbitCreateData newCreatingBasicTidbitData
+                    in
+                        ( newModel, shared, Cmd.none )
+                else
+                    let
+                        newCreatingBasicTidbitData =
+                            { currentCreatingBasicTidbitData
+                                | tagInput = newTagInput
+                            }
+
+                        newModel =
+                            updateBasicTidbitCreateData newCreatingBasicTidbitData
+                    in
+                        ( newModel, shared, Cmd.none )
+
+            BasicTidbitRemoveTag tagName ->
+                let
+                    newTags =
+                        List.filter
+                            (\aTag -> aTag /= tagName)
+                            currentCreatingBasicTidbitData.tags
+
+                    newCreatingBasicTidbitData =
+                        { currentCreatingBasicTidbitData
+                            | tags = newTags
+                        }
+
+                    newModel =
+                        updateBasicTidbitCreateData newCreatingBasicTidbitData
+                in
+                    ( newModel, shared, Cmd.none )
+
+            BasicTidbitAddTag tagName ->
+                let
+                    newTags =
+                        if
+                            String.isEmpty tagName
+                                || List.member
+                                    tagName
+                                    currentCreatingBasicTidbitData.tags
+                        then
+                            currentCreatingBasicTidbitData.tags
+                        else
+                            currentCreatingBasicTidbitData.tags ++ [ tagName ]
+
+                    newCreatingBasicTidbitData =
+                        { currentCreatingBasicTidbitData
+                            | tags = newTags
+                            , tagInput = ""
+                        }
+
+                    newModel =
+                        updateBasicTidbitCreateData newCreatingBasicTidbitData
+                in
+                    ( newModel, shared, Cmd.none )
+
 
 {-| Filters the languages based on `query`.
 -}
