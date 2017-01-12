@@ -21,3 +21,4 @@ type Msg
     | OnGetUserFailure ApiError.ApiError
     | HomeMessage HomeMessages.Msg
     | WelcomeMessage WelcomeMessages.Msg
+    | CodeEditorUpdated { id : String, value : String }

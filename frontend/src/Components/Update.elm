@@ -107,6 +107,35 @@ updateCacheIf msg model shouldCache =
                             }
                     in
                         ( newModel, Cmd.map WelcomeMessage newSubMsg )
+
+                CodeEditorUpdated ({ id, value } as updateInfo) ->
+                    case id of
+                        "basic-tidbit-code-editor" ->
+                            let
+                                currentHomeComponent =
+                                    model.homeComponent
+
+                                currentCreatingBasicTidbitData =
+                                    currentHomeComponent.creatingBasicTidbitData
+
+                                newCreatingBasicTidbitData =
+                                    { currentCreatingBasicTidbitData
+                                        | code = value
+                                    }
+
+                                newModel =
+                                    { model
+                                        | homeComponent =
+                                            { currentHomeComponent
+                                                | creatingBasicTidbitData =
+                                                    newCreatingBasicTidbitData
+                                            }
+                                    }
+                            in
+                                ( newModel, Cmd.none )
+
+                        _ ->
+                            ( model, Cmd.none )
     in
         case shouldCache of
             True ->
@@ -222,6 +251,9 @@ handleLocationChange maybeRoute model =
                             -- TODO Get theme from `shared.user`.
                             aceTheme =
                                 ""
+
+                            aceValue =
+                                model.homeComponent.creatingBasicTidbitData.code
                         in
                             ( newModel
                             , Cmd.batch
@@ -230,6 +262,7 @@ handleLocationChange maybeRoute model =
                                     { id = "basic-tidbit-code-editor"
                                     , lang = aceLang
                                     , theme = aceTheme
+                                    , value = aceValue
                                     }
                                 ]
                             )

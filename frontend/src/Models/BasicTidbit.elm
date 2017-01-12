@@ -17,6 +17,7 @@ type alias BasicTidbitCreateData =
     , description : String
     , tags : List String
     , tagInput : String
+    , code : String
     }
 
 
@@ -38,6 +39,7 @@ createDataCacheEncoder basicTidbitCreateData =
           , Encode.list <| List.map Encode.string basicTidbitCreateData.tags
           )
         , ( "tagInput", Encode.string basicTidbitCreateData.tagInput )
+        , ( "code", Encode.string basicTidbitCreateData.code )
         ]
 
 
@@ -45,7 +47,7 @@ createDataCacheEncoder basicTidbitCreateData =
 -}
 createDataCacheDecoder : Decode.Decoder BasicTidbitCreateData
 createDataCacheDecoder =
-    Decode.map7 BasicTidbitCreateData
+    Decode.map8 BasicTidbitCreateData
         (Decode.field "language" (Decode.maybe languageCacheDecoder))
         (Decode.field "languageQueryACState" (Decode.succeed AC.empty))
         (Decode.field "languageQuery" Decode.string)
@@ -53,3 +55,4 @@ createDataCacheDecoder =
         (Decode.field "description" Decode.string)
         (Decode.field "tags" <| Decode.list Decode.string)
         (Decode.field "tagInput" Decode.string)
+        (Decode.field "code" Decode.string)

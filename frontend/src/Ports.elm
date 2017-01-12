@@ -21,14 +21,15 @@ port onLoadModelFromLocalStorage : (String -> msg) -> Sub msg
 {-| Finds the dom element with the given class name and replaces it with the
 ace code editor.
 -}
-port createCodeEditor : { id : String, lang : String, theme : String } -> Cmd msg
+port createCodeEditor :
+    { id : String
+    , lang : String
+    , theme : String
+    , value : String
+    }
+    -> Cmd msg
 
 
-{-| Sets the language for the current editor.
+{-| Called when a code editor being used (with id `id`) has been updated.
 -}
-port setCodeEditorLanguage : String -> Cmd msg
-
-
-{-| Sets the theme for the current editor.
--}
-port setCodeEditorTheme : String -> Cmd msg
+port onCodeEditorUpdated : ({ id : String, value : String } -> msg) -> Sub msg

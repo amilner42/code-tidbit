@@ -47,24 +47,22 @@ app.ports.createCodeEditor.subscribe(function(editorConfig) {
       aceCodeEditor.getSession().setMode(editorConfig.lang || "ace/mode/text");
       aceCodeEditor.setTheme(editorConfig.theme || "ace/theme/monokai");
 
+      // Set the value of the editor the last saved value. `-1` here sets the
+      // cursor to the first line...yes the API is undocumented...
+      aceCodeEditor.setValue(editorConfig.value, -1);
+
+      // Focus the editor.
+      aceCodeEditor.focus();
+
+      aceCodeEditor.on("change", (someObject) => {
+        app.ports.onCodeEditorUpdated.send({
+          id: editorConfig.id,
+          value: aceCodeEditor.getValue()
+        });
+      });
+
       // We save the editor in case future interaction with the editor is required.
       aceCodeEditors[editorConfig.id] = aceCodeEditor;
     }
   }, 50);
-});
-
-// If a code editor exists, set it's language to the given langLocation. Use
-// helper provided in `Editor.elm` to turn a Language into a langLocation.
-app.ports.setCodeEditorLanguage.subscribe(function(langLocation) {
-  if(aceCodeEditor) {
-    aceCodeEditor.getSession().setMode(langLocation);
-  }
-});
-
-// If a code editor exists, set it's theme to the given themeLocation. Use
-// helper provided in `Editor.elm` to turn a Theme into a themeLocation.
-app.ports.setCodeEditorTheme.subscribe(function(themeLocation) {
-  if(aceCodeEditor) {
-    aceCodeEditor.setTheme(themeLocation);
-  }
 });

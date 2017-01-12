@@ -18,5 +18,6 @@ init =
         , description = ""
         , tags = []
         , tagInput = ""
+        , code = ""
         }
     }
