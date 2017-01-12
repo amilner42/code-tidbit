@@ -32,22 +32,10 @@ update msg model shared =
             model.creatingBasicTidbitData
     in
         case msg of
-            GoToBrowseView ->
+            GoTo route ->
                 ( model
                 , shared
-                , Router.navigateTo Route.HomeComponentBrowse
-                )
-
-            GoToCreateView ->
-                ( model
-                , shared
-                , Router.navigateTo Route.HomeComponentCreate
-                )
-
-            GoToProfileView ->
-                ( model
-                , shared
-                , Router.navigateTo Route.HomeComponentProfile
+                , Router.navigateTo route
                 )
 
             LogOut ->
@@ -67,19 +55,6 @@ update msg model shared =
                 , defaultShared
                 , Router.navigateTo Route.WelcomeComponentLogin
                 )
-
-            CreateEditor idName ->
-                ( model
-                , shared
-                , Ports.createCodeEditor idName
-                )
-
-            SelectTidbitTypeForCreate tidbitType ->
-                let
-                    newModel =
-                        { model | creatingTidbitType = tidbitType }
-                in
-                    ( newModel, shared, Cmd.none )
 
             BasicTidbitUpdateLanguageQuery newLanguageQuery ->
                 let
@@ -181,18 +156,6 @@ update msg model shared =
                         { currentCreatingBasicTidbitData
                             | language = language
                             , languageQuery = newLanguageQuery
-                        }
-
-                    newModel =
-                        updateBasicTidbitCreateData newCreatingBasicTidbitData
-                in
-                    ( newModel, shared, Cmd.none )
-
-            BasicTidbitSelectTab newStageSelected ->
-                let
-                    newCreatingBasicTidbitData =
-                        { currentCreatingBasicTidbitData
-                            | createStage = newStageSelected
                         }
 
                     newModel =

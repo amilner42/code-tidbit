@@ -9,6 +9,7 @@ import DefaultServices.LocalStorage as LocalStorage
 import DefaultServices.Util as Util
 import Models.Route as Route
 import Navigation
+import Ports
 import Router
 
 
@@ -154,52 +155,70 @@ handleLocationChange maybeRoute model =
                     { model
                         | shared = { shared | route = route }
                     }
+
+                -- Handle authentication logic here.
+                ( newModel, newCmd ) =
+                    case loggedIn of
+                        False ->
+                            case routeNeedsAuth of
+                                -- not logged in, route doesn't need auth, good
+                                False ->
+                                    let
+                                        newModel =
+                                            modelWithRoute route
+                                    in
+                                        ( newModel, LocalStorage.saveModel newModel )
+
+                                -- not logged in, route needs auth, bad - redirect.
+                                True ->
+                                    let
+                                        newModel =
+                                            modelWithRoute Route.defaultUnauthRoute
+
+                                        newCmd =
+                                            Cmd.batch
+                                                [ Router.navigateTo newModel.shared.route
+                                                , LocalStorage.saveModel newModel
+                                                ]
+                                    in
+                                        ( newModel, newCmd )
+
+                        True ->
+                            case routeNeedsAuth of
+                                -- logged in, route doesn't need auth, bad - redirect.
+                                False ->
+                                    let
+                                        newModel =
+                                            modelWithRoute Route.defaultAuthRoute
+
+                                        newCmd =
+                                            Cmd.batch
+                                                [ Router.navigateTo newModel.shared.route
+                                                , LocalStorage.saveModel newModel
+                                                ]
+                                    in
+                                        ( newModel, newCmd )
+
+                                -- logged in, route needs auth, good.
+                                True ->
+                                    let
+                                        newModel =
+                                            modelWithRoute route
+                                    in
+                                        ( newModel, LocalStorage.saveModel newModel )
             in
-                case loggedIn of
-                    False ->
-                        case routeNeedsAuth of
-                            -- not logged in, route doesn't need auth, good
-                            False ->
-                                let
-                                    newModel =
-                                        modelWithRoute route
-                                in
-                                    ( newModel, LocalStorage.saveModel newModel )
+                case newModel.shared.route of
+                    Route.HomeComponentCreateBasicTidbit ->
+                        ( newModel
+                        , Cmd.batch
+                            [ newCmd
+                            , Ports.createCodeEditor
+                                { id = "basic-tidbit-code-editor"
+                                , lang = ""
+                                , theme = ""
+                                }
+                            ]
+                        )
 
-                            -- not logged in, route needs auth, bad - redirect.
-                            True ->
-                                let
-                                    newModel =
-                                        modelWithRoute Route.defaultUnauthRoute
-
-                                    newCmd =
-                                        Cmd.batch
-                                            [ Router.navigateTo newModel.shared.route
-                                            , LocalStorage.saveModel newModel
-                                            ]
-                                in
-                                    ( newModel, newCmd )
-
-                    True ->
-                        case routeNeedsAuth of
-                            -- logged in, route doesn't need auth, bad - redirect.
-                            False ->
-                                let
-                                    newModel =
-                                        modelWithRoute Route.defaultAuthRoute
-
-                                    newCmd =
-                                        Cmd.batch
-                                            [ Router.navigateTo newModel.shared.route
-                                            , LocalStorage.saveModel newModel
-                                            ]
-                                in
-                                    ( newModel, newCmd )
-
-                            -- logged in, route needs auth, good.
-                            True ->
-                                let
-                                    newModel =
-                                        modelWithRoute route
-                                in
-                                    ( newModel, LocalStorage.saveModel newModel )
+                    _ ->
+                        ( newModel, newCmd )

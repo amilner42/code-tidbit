@@ -8,11 +8,11 @@ import Components.Model exposing (Shared)
 import DefaultServices.Util as Util
 import Elements.Editor as Editor
 import Html exposing (Html, div, text, textarea, button, input, h1, h3)
-import Html.Attributes exposing (class, classList, disabled, placeholder, value, hidden)
+import Html.Attributes exposing (class, classList, disabled, placeholder, value, hidden, id)
 import Html.Events exposing (onClick, onInput)
 import Models.Route as Route
-import Models.TidbitType as TidbitType
 import Models.BasicTidbit as BasicTidbit
+import Router
 
 
 {-| Home Component View.
@@ -42,6 +42,21 @@ displayViewForRoute model shared =
         Route.HomeComponentCreate ->
             createView model shared
 
+        Route.HomeComponentCreateBasicName ->
+            createBasicTidbitView model shared
+
+        Route.HomeComponentCreateBasicDescription ->
+            createBasicTidbitView model shared
+
+        Route.HomeComponentCreateBasicLanguage ->
+            createBasicTidbitView model shared
+
+        Route.HomeComponentCreateBasicTags ->
+            createBasicTidbitView model shared
+
+        Route.HomeComponentCreateBasicTidbit ->
+            createBasicTidbitView model shared
+
         Route.HomeComponentProfile ->
             profileView model
 
@@ -62,7 +77,15 @@ navbar shared =
             shared.route == Route.HomeComponentProfile
 
         createViewSelected =
-            shared.route == Route.HomeComponentCreate
+            List.member
+                shared.route
+                [ Route.HomeComponentCreate
+                , Route.HomeComponentCreateBasicName
+                , Route.HomeComponentCreateBasicDescription
+                , Route.HomeComponentCreateBasicLanguage
+                , Route.HomeComponentCreateBasicTags
+                , Route.HomeComponentCreateBasicTidbit
+                ]
     in
         div [ class "nav" ]
             [ div
@@ -70,7 +93,7 @@ navbar shared =
                     [ ( "nav-btn left", True )
                     , ( "selected", browseViewSelected )
                     ]
-                , onClick GoToBrowseView
+                , onClick <| GoTo Route.HomeComponentBrowse
                 ]
                 [ text "Browse" ]
             , div
@@ -78,7 +101,7 @@ navbar shared =
                     [ ( "nav-btn left", True )
                     , ( "selected", createViewSelected )
                     ]
-                , onClick GoToCreateView
+                , onClick <| GoTo Route.HomeComponentCreate
                 ]
                 [ text "Create" ]
             , div
@@ -86,7 +109,7 @@ navbar shared =
                     [ ( "nav-btn right", True )
                     , ( "selected", profileViewSelected )
                     ]
-                , onClick GoToProfileView
+                , onClick <| GoTo Route.HomeComponentProfile
                 ]
                 [ text "Profile" ]
             ]
@@ -118,32 +141,18 @@ browseView model =
 -}
 createView : Model -> Shared -> Html Msg
 createView model shared =
-    let
-        createSubView =
-            case model.creatingTidbitType of
-                Nothing ->
-                    div
-                        []
-                        [ h1
-                            []
-                            [ text "Select Tidbit Type" ]
-                        , button
-                            [ onClick <|
-                                SelectTidbitTypeForCreate
-                                    (Just TidbitType.Basic)
-                            ]
-                            [ text "Basic Tidbit" ]
-                        ]
-
-                Just tidbitType ->
-                    case tidbitType of
-                        TidbitType.Basic ->
-                            createBasicTidbitView model shared
-    in
-        div
+    div
+        []
+        [ div
             []
-            [ createSubView
+            [ h1
+                []
+                [ text "Select Tidbit Type" ]
+            , button
+                [ onClick <| GoTo Route.HomeComponentCreateBasicName ]
+                [ text "Basic Tidbit" ]
             ]
+        ]
 
 
 {-| View for creating a basic tidbit.
@@ -151,9 +160,9 @@ createView model shared =
 createBasicTidbitView : Model -> Shared -> Html Msg
 createBasicTidbitView model shared =
     let
-        currentStage : BasicTidbit.BasicTidbitCreateStage
-        currentStage =
-            model.creatingBasicTidbitData.createStage
+        currentRoute : Route.Route
+        currentRoute =
+            shared.route
 
         viewMenu : Html Msg
         viewMenu =
@@ -206,50 +215,50 @@ createBasicTidbitView model shared =
                     [ classList
                         [ ( "create-basic-tidbit-tab", True )
                         , ( "create-basic-tidbit-selected-tab"
-                          , currentStage == BasicTidbit.Name
+                          , currentRoute == Route.HomeComponentCreateBasicName
                           )
                         ]
-                    , onClick <| BasicTidbitSelectTab BasicTidbit.Name
+                    , onClick <| GoTo Route.HomeComponentCreateBasicName
                     ]
                     [ text "Name" ]
                 , div
                     [ classList
                         [ ( "create-basic-tidbit-tab", True )
                         , ( "create-basic-tidbit-selected-tab"
-                          , currentStage == BasicTidbit.Description
+                          , currentRoute == Route.HomeComponentCreateBasicDescription
                           )
                         ]
-                    , onClick <| BasicTidbitSelectTab BasicTidbit.Description
+                    , onClick <| GoTo Route.HomeComponentCreateBasicDescription
                     ]
                     [ text "Description" ]
                 , div
                     [ classList
                         [ ( "create-basic-tidbit-tab", True )
                         , ( "create-basic-tidbit-selected-tab"
-                          , currentStage == BasicTidbit.Language
+                          , currentRoute == Route.HomeComponentCreateBasicLanguage
                           )
                         ]
-                    , onClick <| BasicTidbitSelectTab BasicTidbit.Language
+                    , onClick <| GoTo Route.HomeComponentCreateBasicLanguage
                     ]
                     [ text "Language" ]
                 , div
                     [ classList
                         [ ( "create-basic-tidbit-tab", True )
                         , ( "create-basic-tidbit-selected-tab"
-                          , currentStage == BasicTidbit.Tags
+                          , currentRoute == Route.HomeComponentCreateBasicTags
                           )
                         ]
-                    , onClick <| BasicTidbitSelectTab BasicTidbit.Tags
+                    , onClick <| GoTo Route.HomeComponentCreateBasicTags
                     ]
                     [ text "Tags" ]
                 , div
                     [ classList
                         [ ( "create-basic-tidbit-tab", True )
                         , ( "create-basic-tidbit-selected-tab"
-                          , currentStage == BasicTidbit.Tidbit
+                          , currentRoute == Route.HomeComponentCreateBasicTidbit
                           )
                         ]
-                    , onClick <| BasicTidbitSelectTab BasicTidbit.Tidbit
+                    , onClick <| GoTo Route.HomeComponentCreateBasicTidbit
                     ]
                     [ text "Tidbit" ]
                 ]
@@ -257,7 +266,7 @@ createBasicTidbitView model shared =
         nameView : Html Msg
         nameView =
             div
-                [ classList [ ( "hidden", currentStage /= BasicTidbit.Name ) ] ]
+                []
                 [ input
                     [ placeholder "name"
                     , onInput BasicTidbitUpdateName
@@ -269,7 +278,7 @@ createBasicTidbitView model shared =
         descriptionView : Html Msg
         descriptionView =
             div
-                [ classList [ ( "hidden", currentStage /= BasicTidbit.Description ) ] ]
+                []
                 [ textarea
                     [ placeholder "description"
                     , onInput BasicTidbitUpdateDescription
@@ -282,7 +291,7 @@ createBasicTidbitView model shared =
         languageView : Html Msg
         languageView =
             div
-                [ classList [ ( "hidden", currentStage /= BasicTidbit.Language ) ] ]
+                []
                 [ input
                     [ placeholder "language"
                     , onInput BasicTidbitUpdateLanguageQuery
@@ -305,8 +314,8 @@ createBasicTidbitView model shared =
                     [ text "change language" ]
                 ]
 
-        tagView : Html Msg
-        tagView =
+        tagsView : Html Msg
+        tagsView =
             let
                 currentTags =
                     div
@@ -325,7 +334,7 @@ createBasicTidbitView model shared =
                         )
             in
                 div
-                    [ classList [ ( "hidden", currentStage /= BasicTidbit.Tags ) ] ]
+                    []
                     [ input
                         [ placeholder "tags"
                         , onInput BasicTidbitUpdateTagInput
@@ -341,8 +350,35 @@ createBasicTidbitView model shared =
         tidbitView : Html Msg
         tidbitView =
             div
-                [ classList [ ( "hidden", currentStage /= BasicTidbit.Tidbit ) ] ]
                 []
+                [ div
+                    [ classList [ ( "code-editor", True ) ]
+                    , id "basic-tidbit-code-editor"
+                    ]
+                    []
+                ]
+
+        viewForTab : Html Msg
+        viewForTab =
+            case currentRoute of
+                Route.HomeComponentCreateBasicName ->
+                    nameView
+
+                Route.HomeComponentCreateBasicDescription ->
+                    descriptionView
+
+                Route.HomeComponentCreateBasicLanguage ->
+                    languageView
+
+                Route.HomeComponentCreateBasicTags ->
+                    tagsView
+
+                Route.HomeComponentCreateBasicTidbit ->
+                    tidbitView
+
+                -- Default to name view.
+                _ ->
+                    nameView
     in
         div
             []
@@ -351,7 +387,7 @@ createBasicTidbitView model shared =
                 [ h1 [] [ text "Creating Basic Tidbit" ]
                 , button
                     [ class "create-basic-tidbit-back-button"
-                    , onClick <| SelectTidbitTypeForCreate Nothing
+                    , onClick <| GoTo Route.HomeComponentCreate
                     ]
                     [ text "Back" ]
                 , button
@@ -363,10 +399,6 @@ createBasicTidbitView model shared =
             , div
                 []
                 [ createBasicTidbitNavbar
-                , nameView
-                , descriptionView
-                , languageView
-                , tagView
-                , tidbitView
+                , viewForTab
                 ]
             ]

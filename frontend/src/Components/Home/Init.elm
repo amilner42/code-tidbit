@@ -10,12 +10,10 @@ import Models.BasicTidbit as BasicTidbit
 init : Model
 init =
     { logOutError = Nothing
-    , creatingTidbitType = Nothing
     , creatingBasicTidbitData =
         { language = Nothing
         , languageQueryACState = AC.empty
         , languageQuery = ""
-        , createStage = BasicTidbit.Name
         , name = ""
         , description = ""
         , tags = []

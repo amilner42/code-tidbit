@@ -21,6 +21,11 @@ import UrlParser exposing (Parser, s, (</>), oneOf, map, top)
 type Route
     = HomeComponentBrowse
     | HomeComponentCreate
+    | HomeComponentCreateBasicName
+    | HomeComponentCreateBasicDescription
+    | HomeComponentCreateBasicLanguage
+    | HomeComponentCreateBasicTags
+    | HomeComponentCreateBasicTidbit
     | HomeComponentProfile
     | WelcomeComponentLogin
     | WelcomeComponentRegister
@@ -30,13 +35,54 @@ type Route
 -}
 matchers : Parser (Route -> a) a
 matchers =
-    oneOf
-        [ map HomeComponentBrowse (top)
-        , map HomeComponentCreate (s "create")
-        , map HomeComponentProfile (s "profile")
-        , map WelcomeComponentRegister (s "welcome" </> s "register")
-        , map WelcomeComponentLogin (s "welcome" </> s "login")
-        ]
+    let
+        create =
+            s "create"
+
+        -- Abstract.
+        createBasic =
+            create </> s "basic"
+
+        createBasicName =
+            createBasic </> s "name"
+
+        createBasicDescription =
+            createBasic </> s "description"
+
+        createBasicLanguage =
+            createBasic </> s "language"
+
+        createBasicTags =
+            createBasic </> s "tags"
+
+        createBasicTidbit =
+            createBasic </> s "tidbit"
+
+        profile =
+            s "profile"
+
+        -- Abstract.
+        welcome =
+            s "welcome"
+
+        welcomeRegister =
+            welcome </> s "register"
+
+        welcomeLogin =
+            welcome </> s "login"
+    in
+        oneOf
+            [ map HomeComponentBrowse (top)
+            , map HomeComponentCreate (create)
+            , map HomeComponentCreateBasicName (createBasicName)
+            , map HomeComponentCreateBasicDescription (createBasicDescription)
+            , map HomeComponentCreateBasicLanguage (createBasicLanguage)
+            , map HomeComponentCreateBasicTags (createBasicTags)
+            , map HomeComponentCreateBasicTidbit (createBasicTidbit)
+            , map HomeComponentProfile (profile)
+            , map WelcomeComponentRegister (welcomeRegister)
+            , map WelcomeComponentLogin (welcomeLogin)
+            ]
 
 
 {-| All the routes that don't require authentication. By default it will be
@@ -73,6 +119,21 @@ toUrl route =
         HomeComponentCreate ->
             Config.baseUrl ++ "#create"
 
+        HomeComponentCreateBasicName ->
+            Config.baseUrl ++ "#create/basic/name"
+
+        HomeComponentCreateBasicDescription ->
+            Config.baseUrl ++ "#create/basic/description"
+
+        HomeComponentCreateBasicLanguage ->
+            Config.baseUrl ++ "#create/basic/language"
+
+        HomeComponentCreateBasicTags ->
+            Config.baseUrl ++ "#create/basic/tags"
+
+        HomeComponentCreateBasicTidbit ->
+            Config.baseUrl ++ "#create/basic/tidbit"
+
         HomeComponentProfile ->
             Config.baseUrl ++ "#profile"
 
@@ -102,6 +163,21 @@ cacheDecoder =
 
                 "HomeComponentCreate" ->
                     Decode.succeed HomeComponentCreate
+
+                "HomeComponentCreateBasicName" ->
+                    Decode.succeed HomeComponentCreateBasicName
+
+                "HomeComponentCreateBasicDescription" ->
+                    Decode.succeed HomeComponentCreateBasicDescription
+
+                "HomeComponentCreateBasicLanguage" ->
+                    Decode.succeed HomeComponentCreateBasicLanguage
+
+                "HomeComponentCreateBasicTags" ->
+                    Decode.succeed HomeComponentCreateBasicTags
+
+                "HomeComponentCreateBasicTidbit" ->
+                    Decode.succeed HomeComponentCreateBasicTidbit
 
                 "HomeComponentProfile" ->
                     Decode.succeed HomeComponentProfile

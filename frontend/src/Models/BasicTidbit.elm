@@ -13,22 +13,11 @@ type alias BasicTidbitCreateData =
     { language : Maybe Language
     , languageQueryACState : AC.State
     , languageQuery : String
-    , createStage : BasicTidbitCreateStage
     , name : String
     , description : String
     , tags : List String
     , tagInput : String
     }
-
-
-{-| The stages of creating a tidbit.
--}
-type BasicTidbitCreateStage
-    = Name
-    | Description
-    | Language
-    | Tags
-    | Tidbit
 
 
 {-| BasicTidbitCreateData `cacheEncoder`.
@@ -43,9 +32,6 @@ createDataCacheEncoder basicTidbitCreateData =
           )
         , ( "languageQueryACState", Encode.null )
         , ( "languageQuery", Encode.string basicTidbitCreateData.languageQuery )
-        , ( "createStage"
-          , basicTidbitCreateStageCacheEncoder basicTidbitCreateData.createStage
-          )
         , ( "name", Encode.string basicTidbitCreateData.name )
         , ( "description", Encode.string basicTidbitCreateData.description )
         , ( "tags"
@@ -59,49 +45,11 @@ createDataCacheEncoder basicTidbitCreateData =
 -}
 createDataCacheDecoder : Decode.Decoder BasicTidbitCreateData
 createDataCacheDecoder =
-    Decode.map8 BasicTidbitCreateData
+    Decode.map7 BasicTidbitCreateData
         (Decode.field "language" (Decode.maybe languageCacheDecoder))
         (Decode.field "languageQueryACState" (Decode.succeed AC.empty))
         (Decode.field "languageQuery" Decode.string)
-        (Decode.field "createStage" basicTidbitCreateStageCacheDecoder)
         (Decode.field "name" Decode.string)
         (Decode.field "description" Decode.string)
         (Decode.field "tags" <| Decode.list Decode.string)
         (Decode.field "tagInput" Decode.string)
-
-
-{-| BasicTidbitCreateStage `cacheEncoder`.
--}
-basicTidbitCreateStageCacheEncoder : BasicTidbitCreateStage -> Encode.Value
-basicTidbitCreateStageCacheEncoder basicTidbitCreateStage =
-    Encode.string (toString basicTidbitCreateStage)
-
-
-{-| BasicTidbitCreateStage `cacheDecoder`.
--}
-basicTidbitCreateStageCacheDecoder : Decode.Decoder BasicTidbitCreateStage
-basicTidbitCreateStageCacheDecoder =
-    let
-        fromStringDecoder encodedCreateStage =
-            case encodedCreateStage of
-                "Name" ->
-                    Decode.succeed Name
-
-                "Description" ->
-                    Decode.succeed Description
-
-                "Language" ->
-                    Decode.succeed Language
-
-                "Tags" ->
-                    Decode.succeed Tags
-
-                "Tidbit" ->
-                    Decode.succeed Tidbit
-
-                _ ->
-                    Decode.fail <|
-                        encodedCreateStage
-                            ++ " is not a valid encoded basic tidbit create stage."
-    in
-        Decode.andThen fromStringDecoder Decode.string

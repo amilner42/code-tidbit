@@ -18,7 +18,8 @@ var Elm = require('./Main.elm');
 var mountNode = document.getElementById('main');
 var app = Elm.Main.embed(mountNode); // The third value on embed are the initial values for incomming ports into Elm
 var modelKey = "model"; // The key for the model in localStorage.
-var aceCodeEditor;
+var aceCodeEditors = {}; // Dictionary, id names mapped to ace editors.
+
 
 // Saves the model to local storage.
 app.ports.saveModelToLocalStorage.subscribe(function(model) {
@@ -33,9 +34,23 @@ app.ports.loadModelFromLocalStorage.subscribe(function() {
   app.ports.onLoadModelFromLocalStorage.send(localStorage.getItem(modelKey) || "")
 });
 
-// Creates the code edtior by embedding into the element with id `idName`.
-app.ports.createCodeEditor.subscribe(function(idName) {
-  aceCodeEditor = ace.edit(idName);
+// Creates the code edtior by embedding into the element with the correct id.
+//
+// @refer Ports.elm
+app.ports.createCodeEditor.subscribe(function(editorConfig) {
+  setTimeout(() => {
+    // We only create the editor if that DOM element exists.
+    if(document.getElementById(editorConfig.id) !== null) {
+      const aceCodeEditor = ace.edit(editorConfig.id);
+
+      // Set theme and language.
+      aceCodeEditor.getSession().setMode(editorConfig.lang || "ace/mode/text");
+      aceCodeEditor.setTheme(editorConfig.theme || "ace/theme/monokai");
+
+      // We save the editor in case future interaction with the editor is required.
+      aceCodeEditors[editorConfig.id] = aceCodeEditor;
+    }
+  }, 50);
 });
 
 // If a code editor exists, set it's language to the given langLocation. Use

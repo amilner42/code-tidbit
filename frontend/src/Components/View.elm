@@ -42,6 +42,21 @@ viewForRoute model =
             Route.HomeComponentCreate ->
                 renderedHomeView
 
+            Route.HomeComponentCreateBasicName ->
+                renderedHomeView
+
+            Route.HomeComponentCreateBasicDescription ->
+                renderedHomeView
+
+            Route.HomeComponentCreateBasicLanguage ->
+                renderedHomeView
+
+            Route.HomeComponentCreateBasicTags ->
+                renderedHomeView
+
+            Route.HomeComponentCreateBasicTidbit ->
+                renderedHomeView
+
             Route.HomeComponentProfile ->
                 renderedHomeView
 

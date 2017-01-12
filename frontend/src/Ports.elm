@@ -21,7 +21,7 @@ port onLoadModelFromLocalStorage : (String -> msg) -> Sub msg
 {-| Finds the dom element with the given class name and replaces it with the
 ace code editor.
 -}
-port createCodeEditor : String -> Cmd msg
+port createCodeEditor : { id : String, lang : String, theme : String } -> Cmd msg
 
 
 {-| Sets the language for the current editor.

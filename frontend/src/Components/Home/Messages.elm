@@ -4,24 +4,19 @@ import Autocomplete as AC
 import Models.ApiError as ApiError
 import Models.BasicResponse as BasicResponse
 import Models.BasicTidbit as BasicTidbit
-import Models.TidbitType as TidbitType
+import Models.Route as Route
 
 
 {-| Home Component Msg.
 -}
 type Msg
-    = GoToBrowseView
-    | GoToCreateView
-    | GoToProfileView
+    = GoTo Route.Route
     | LogOut
     | OnLogOutFailure ApiError.ApiError
     | OnLogOutSuccess BasicResponse.BasicResponse
-    | CreateEditor String
-    | SelectTidbitTypeForCreate (Maybe TidbitType.TidbitType)
     | BasicTidbitUpdateLanguageQuery String
     | BasicTidbitUpdateACState AC.Msg
     | BasicTidbitSelectLanguage (Maybe String)
-    | BasicTidbitSelectTab BasicTidbit.BasicTidbitCreateStage
     | ResetCreateBasicTidbit
     | BasicTidbitUpdateName String
     | BasicTidbitUpdateDescription String
