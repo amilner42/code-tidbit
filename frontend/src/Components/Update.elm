@@ -7,6 +7,7 @@ import Components.Model exposing (Model)
 import Components.Welcome.Update as WelcomeUpdate
 import DefaultServices.LocalStorage as LocalStorage
 import DefaultServices.Util as Util
+import Elements.Editor as Editor
 import Models.Route as Route
 import Navigation
 import Ports
@@ -209,16 +210,29 @@ handleLocationChange maybeRoute model =
             in
                 case newModel.shared.route of
                     Route.HomeComponentCreateBasicTidbit ->
-                        ( newModel
-                        , Cmd.batch
-                            [ newCmd
-                            , Ports.createCodeEditor
-                                { id = "basic-tidbit-code-editor"
-                                , lang = ""
-                                , theme = ""
-                                }
-                            ]
-                        )
+                        let
+                            aceLang =
+                                case model.homeComponent.creatingBasicTidbitData.language of
+                                    Nothing ->
+                                        ""
+
+                                    Just aLanguage ->
+                                        Editor.aceLanguageLocation aLanguage
+
+                            -- TODO Get theme from `shared.user`.
+                            aceTheme =
+                                ""
+                        in
+                            ( newModel
+                            , Cmd.batch
+                                [ newCmd
+                                , Ports.createCodeEditor
+                                    { id = "basic-tidbit-code-editor"
+                                    , lang = aceLang
+                                    , theme = aceTheme
+                                    }
+                                ]
+                            )
 
                     _ ->
                         ( newModel, newCmd )
