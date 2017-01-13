@@ -2,10 +2,11 @@
 
 
 .base-component-wrapper {
-
-    @include full-screen-absolute();
+    width: 100%;
+    height: 100%;
 
     .base-component {
-        @include full-screen-absolute();
+      width: 100%;
+      height: 100%;
     }
 }

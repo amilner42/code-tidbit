@@ -1,8 +1,17 @@
 @import "mixins";
 @import "variables";
 
+html {
+  min-width: $min-width-supported;
+  min-height: $min-height-supported;
+}
+
 html, body, #main {
-  @include full-screen-absolute();
+  position: relative;
+  height: 100%;
+  width: 100%;
+  padding: 0;
+  margin: 0;
 }
 
 .input-error-highlight {

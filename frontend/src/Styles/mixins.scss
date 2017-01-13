@@ -37,15 +37,6 @@
 }
 
 
-// Sets the box height and width to be the minimum we support before it gets
-// scrolly.
-@mixin absolutely-centered-min-box() {
-  height: $min-height-supported;
-  width: $min-width-supported;
-  @include absolutely-centered();
-}
-
-
 // Takes the full screen with an absolutely positioned element.
 @mixin full-screen-absolute() {
   height: 100vh;
