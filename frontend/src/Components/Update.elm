@@ -31,6 +31,21 @@ updateCacheIf msg model shouldCache =
         shared =
             model.shared
 
+        currentHomeComponent =
+            model.homeComponent
+
+        currentCreatingBasicTidbitData =
+            currentHomeComponent.creatingBasicTidbitData
+
+        newModelWithUpdatedBasicTidbitData newCreatingBasicTidbitData =
+            { model
+                | homeComponent =
+                    { currentHomeComponent
+                        | creatingBasicTidbitData =
+                            newCreatingBasicTidbitData
+                    }
+            }
+
         ( newModel, newCmd ) =
             case msg of
                 NoOp ->
@@ -108,29 +123,36 @@ updateCacheIf msg model shouldCache =
                     in
                         ( newModel, Cmd.map WelcomeMessage newSubMsg )
 
-                CodeEditorUpdated ({ id, value } as updateInfo) ->
+                CodeEditorUpdate { id, value } ->
                     case id of
                         "basic-tidbit-code-editor" ->
                             let
-                                currentHomeComponent =
-                                    model.homeComponent
-
-                                currentCreatingBasicTidbitData =
-                                    currentHomeComponent.creatingBasicTidbitData
-
                                 newCreatingBasicTidbitData =
                                     { currentCreatingBasicTidbitData
                                         | code = value
                                     }
 
                                 newModel =
-                                    { model
-                                        | homeComponent =
-                                            { currentHomeComponent
-                                                | creatingBasicTidbitData =
-                                                    newCreatingBasicTidbitData
-                                            }
+                                    newModelWithUpdatedBasicTidbitData
+                                        newCreatingBasicTidbitData
+                            in
+                                ( newModel, Cmd.none )
+
+                        _ ->
+                            ( model, Cmd.none )
+
+                CodeEditorSelectionUpdate { id, range } ->
+                    case id of
+                        "basic-tidbit-code-editor" ->
+                            let
+                                newCreatingBasicTidbitData =
+                                    { currentCreatingBasicTidbitData
+                                        | currentRange = Just range
                                     }
+
+                                newModel =
+                                    newModelWithUpdatedBasicTidbitData
+                                        newCreatingBasicTidbitData
                             in
                                 ( newModel, Cmd.none )
 

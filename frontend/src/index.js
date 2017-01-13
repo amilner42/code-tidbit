@@ -42,6 +42,7 @@ app.ports.createCodeEditor.subscribe(function(editorConfig) {
     // We only create the editor if that DOM element exists.
     if(document.getElementById(editorConfig.id) !== null) {
       const aceCodeEditor = ace.edit(editorConfig.id);
+      const editorSelection = aceCodeEditor.getSelection();
 
       // Set theme and language.
       aceCodeEditor.getSession().setMode(editorConfig.lang || "ace/mode/text");
@@ -54,8 +55,28 @@ app.ports.createCodeEditor.subscribe(function(editorConfig) {
       // Focus the editor.
       aceCodeEditor.focus();
 
+      // Watch for selection changes.
+      editorSelection.on("changeSelection", () => {
+        // Directly from the ACE api.
+        const aceSelectionRange = aceCodeEditor.getSelectionRange();
+
+        // Set to match the elm port.
+        const elmSelectedRange = {
+          startRow : aceSelectionRange.start.row,
+          startCol : aceSelectionRange.start.column,
+          endRow : aceSelectionRange.end.row,
+          endCol : aceSelectionRange.end.column
+        };
+
+        // Update the port with the new selection.
+        app.ports.onCodeEditorSelectionUpdate.send({
+          id: editorConfig.id,
+          range: elmSelectedRange
+        });
+      });
+
       aceCodeEditor.on("change", (someObject) => {
-        app.ports.onCodeEditorUpdated.send({
+        app.ports.onCodeEditorUpdate.send({
           id: editorConfig.id,
           value: aceCodeEditor.getValue()
         });

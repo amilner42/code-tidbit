@@ -19,5 +19,8 @@ init =
         , tags = []
         , tagInput = ""
         , code = ""
+        , highlightedComments = []
+        , currentComment = ""
+        , currentRange = Nothing
         }
     }

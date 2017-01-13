@@ -4,7 +4,10 @@ import Autocomplete as AC
 import DefaultServices.Util as Util
 import Json.Encode as Encode
 import Json.Decode as Decode
+import Json.Decode.Pipeline exposing (decode, required, optional, hardcoded)
 import Elements.Editor exposing (Language, languageCacheDecoder, languageCacheEncoder)
+import Models.HighlightedComment as HighlightedComment
+import Models.Range as Range
 
 
 {-| The data for a basic tidbit being created.
@@ -18,6 +21,9 @@ type alias BasicTidbitCreateData =
     , tags : List String
     , tagInput : String
     , code : String
+    , highlightedComments : List HighlightedComment.HighlightedComment
+    , currentComment : String
+    , currentRange : Maybe Range.Range
     }
 
 
@@ -40,6 +46,20 @@ createDataCacheEncoder basicTidbitCreateData =
           )
         , ( "tagInput", Encode.string basicTidbitCreateData.tagInput )
         , ( "code", Encode.string basicTidbitCreateData.code )
+        , ( "highlightedComments"
+          , Encode.list <|
+                List.map
+                    HighlightedComment.highlightedCommentCacheEncoder
+                    basicTidbitCreateData.highlightedComments
+          )
+        , ( "currentComment"
+          , Encode.string basicTidbitCreateData.currentComment
+          )
+        , ( "currentRange"
+          , Util.justValueOrNull
+                Range.rangeCacheEncoder
+                basicTidbitCreateData.currentRange
+          )
         ]
 
 
@@ -47,12 +67,17 @@ createDataCacheEncoder basicTidbitCreateData =
 -}
 createDataCacheDecoder : Decode.Decoder BasicTidbitCreateData
 createDataCacheDecoder =
-    Decode.map8 BasicTidbitCreateData
-        (Decode.field "language" (Decode.maybe languageCacheDecoder))
-        (Decode.field "languageQueryACState" (Decode.succeed AC.empty))
-        (Decode.field "languageQuery" Decode.string)
-        (Decode.field "name" Decode.string)
-        (Decode.field "description" Decode.string)
-        (Decode.field "tags" <| Decode.list Decode.string)
-        (Decode.field "tagInput" Decode.string)
-        (Decode.field "code" Decode.string)
+    decode BasicTidbitCreateData
+        |> required "language" (Decode.maybe languageCacheDecoder)
+        |> required "languageQueryACState" (Decode.succeed AC.empty)
+        |> required "languageQuery" Decode.string
+        |> required "name" Decode.string
+        |> required "description" Decode.string
+        |> required "tags" (Decode.list Decode.string)
+        |> required "tagInput" Decode.string
+        |> required "code" Decode.string
+        |> required
+            "highlightedComments"
+            (Decode.list HighlightedComment.highlightedCommentCacheDecoder)
+        |> required "currentComment" Decode.string
+        |> required "currentRange" (Decode.maybe Range.rangeCacheDecoder)

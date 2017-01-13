@@ -1,6 +1,7 @@
 port module Ports exposing (..)
 
 import Json.Encode as Encode
+import Models.Range exposing (Range)
 
 
 {-| Saves the model to localstorage.
@@ -32,4 +33,15 @@ port createCodeEditor :
 
 {-| Called when a code editor being used (with id `id`) has been updated.
 -}
-port onCodeEditorUpdated : ({ id : String, value : String } -> msg) -> Sub msg
+port onCodeEditorUpdate :
+    ({ id : String, value : String } -> msg)
+    -> Sub msg
+
+
+{-| Called when a code editor being used (with id `id`) has a new
+selection, it will not be called if the selection has no range (the start
+is the end).
+-}
+port onCodeEditorSelectionUpdate :
+    ({ id : String, range : Range } -> msg)
+    -> Sub msg
