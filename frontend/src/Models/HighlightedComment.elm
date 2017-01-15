@@ -1,32 +1,42 @@
 module Models.HighlightedComment exposing (..)
 
+import DefaultServices.Util as Util
 import Json.Encode as Encode
 import Json.Decode as Decode
 import Models.Range as Range
 
 
-{-| A highlighted comment, currently used in basic tidbits.
+{-| A maybe highlighted comment, currently used in basic tidbits for the
+creation of highlighted comments.
 -}
-type alias HighlightedComment =
-    { range : Range.Range
-    , comment : String
+type alias MaybeHighlightedComment =
+    { range : Maybe Range.Range
+    , comment : Maybe String
     }
 
 
-{-| HighlightedComment `cacheEncoder`.
+{-| MaybeHighlightedComment `cacheEncoder`.
 -}
-highlightedCommentCacheEncoder : HighlightedComment -> Encode.Value
-highlightedCommentCacheEncoder highlightedComment =
+maybeHighlightedCommentCacheEncoder : MaybeHighlightedComment -> Encode.Value
+maybeHighlightedCommentCacheEncoder maybeHighlightedComment =
     Encode.object
-        [ ( "range", Range.rangeCacheEncoder highlightedComment.range )
-        , ( "comment", Encode.string highlightedComment.comment )
+        [ ( "range"
+          , Util.justValueOrNull
+                Range.rangeCacheEncoder
+                maybeHighlightedComment.range
+          )
+        , ( "comment"
+          , Util.justValueOrNull
+                Encode.string
+                maybeHighlightedComment.comment
+          )
         ]
 
 
-{-| HighlightedComment `cacheDecoder`.
+{-| MaybeHighlightedComment `cacheDecoder`.
 -}
-highlightedCommentCacheDecoder : Decode.Decoder HighlightedComment
-highlightedCommentCacheDecoder =
-    Decode.map2 HighlightedComment
-        (Decode.field "range" Range.rangeCacheDecoder)
-        (Decode.field "comment" Decode.string)
+maybeHighlightedCommentCacheDecoder : Decode.Decoder MaybeHighlightedComment
+maybeHighlightedCommentCacheDecoder =
+    Decode.map2 MaybeHighlightedComment
+        (Decode.field "range" (Decode.maybe Range.rangeCacheDecoder))
+        (Decode.field "comment" (Decode.maybe Decode.string))

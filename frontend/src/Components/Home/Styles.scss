@@ -87,8 +87,20 @@
             height: 200px;
         }
 
-        #basic-tidbit-code-editor {
-            position: absolute;
+        .comment-creator {
+            box-sizing: border-box;
+            position: relative;
+            display: inline-block;
+            margin: 0 5px 0 5px;
+            width: 369px;
+            height: 600px;
+            border: 2px solid grey;
+            padding: 5px;
+
+            textarea {
+              width: 349px;
+              height: 200px;
+            }
         }
     }
 }

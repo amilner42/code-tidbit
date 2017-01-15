@@ -1,5 +1,13 @@
+.code-editor-wrapper {
+  position: relative;
+  display: inline-block;
+  float: left;
+  width: 645px;
+  height: 600px;
+}
+
 .code-editor {
   font-family: 'Inconsolata', monospace;
-  width: 680px;
+  width: 645px;
   height: 600px;
 }

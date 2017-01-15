@@ -4,6 +4,7 @@ import Autocomplete as AC
 import Models.ApiError as ApiError
 import Models.BasicResponse as BasicResponse
 import Models.BasicTidbit as BasicTidbit
+import Models.Range as Range
 import Models.Route as Route
 
 
@@ -23,3 +24,10 @@ type Msg
     | BasicTidbitUpdateTagInput String
     | BasicTidbitRemoveTag String
     | BasicTidbitAddTag String
+    | BasicTidbitGoToCommentTab BasicTidbit.CommentTab
+    | BasicTidbitNewRangeSelected Range.Range
+    | BasicTidbitAddFrame
+    | BasicTidbitRemoveFrame
+    | BasicTidbitUpdateFrameComment Int String
+    | BasicTidbitUpdateIntroduction String
+    | BasicTidbitUpdateConclusion String

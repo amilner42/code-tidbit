@@ -1,5 +1,6 @@
 module Components.Home.Update exposing (update, filterLanguagesByQuery)
 
+import Array
 import Api
 import Autocomplete as AC
 import Components.Home.Init as HomeInit
@@ -21,6 +22,9 @@ import Ports
 update : Msg -> Model -> Shared -> ( Model, Shared, Cmd Msg )
 update msg model shared =
     let
+        doNothing =
+            ( model, shared, Cmd.none )
+
         updateBasicTidbitCreateData : BasicTidbit.BasicTidbitCreateData -> Model
         updateBasicTidbitCreateData newCreatingBasicTidbitData =
             { model
@@ -30,6 +34,9 @@ update msg model shared =
         currentCreatingBasicTidbitData : BasicTidbit.BasicTidbitCreateData
         currentCreatingBasicTidbitData =
             model.creatingBasicTidbitData
+
+        currentHighlightedComments =
+            currentCreatingBasicTidbitData.highlightedComments
     in
         case msg of
             GoTo route ->
@@ -267,6 +274,172 @@ update msg model shared =
                         { currentCreatingBasicTidbitData
                             | tags = newTags
                             , tagInput = ""
+                        }
+
+                    newModel =
+                        updateBasicTidbitCreateData newCreatingBasicTidbitData
+                in
+                    ( newModel, shared, Cmd.none )
+
+            BasicTidbitGoToCommentTab commentTab ->
+                let
+                    newCreatingBasicTidbitData =
+                        { currentCreatingBasicTidbitData
+                            | currentCommentTab = commentTab
+                        }
+
+                    newModel =
+                        updateBasicTidbitCreateData newCreatingBasicTidbitData
+                in
+                    ( newModel, shared, Cmd.none )
+
+            BasicTidbitNewRangeSelected newRange ->
+                case currentCreatingBasicTidbitData.currentCommentTab of
+                    BasicTidbit.Introduction ->
+                        doNothing
+
+                    BasicTidbit.Conclusion ->
+                        doNothing
+
+                    BasicTidbit.Frame frameNumber ->
+                        case (Array.get frameNumber currentHighlightedComments) of
+                            Nothing ->
+                                doNothing
+
+                            Just currentFrameHighlightedComment ->
+                                let
+                                    newFrame =
+                                        { currentFrameHighlightedComment
+                                            | range = Just newRange
+                                        }
+
+                                    newHighlightedComments =
+                                        Array.set
+                                            frameNumber
+                                            newFrame
+                                            currentHighlightedComments
+
+                                    newCreatingBasicTidbitData =
+                                        { currentCreatingBasicTidbitData
+                                            | highlightedComments = newHighlightedComments
+                                        }
+
+                                    newModel =
+                                        updateBasicTidbitCreateData
+                                            newCreatingBasicTidbitData
+                                in
+                                    ( newModel, shared, Cmd.none )
+
+            BasicTidbitAddFrame ->
+                let
+                    newCreatingBasicTidbitData =
+                        { currentCreatingBasicTidbitData
+                            | highlightedComments =
+                                (Array.push
+                                    { range = Nothing, comment = Nothing }
+                                    currentHighlightedComments
+                                )
+                        }
+
+                    newModel =
+                        updateBasicTidbitCreateData newCreatingBasicTidbitData
+
+                    newMsg =
+                        BasicTidbitGoToCommentTab <|
+                            BasicTidbit.Frame <|
+                                Array.length
+                                    newModel.creatingBasicTidbitData.highlightedComments
+                                    - 1
+                in
+                    update newMsg newModel shared
+
+            BasicTidbitRemoveFrame ->
+                let
+                    newHighlightedComments =
+                        Array.slice
+                            0
+                            (Array.length currentHighlightedComments - 1)
+                            currentHighlightedComments
+
+                    newCreatingBasicTidbitData =
+                        { currentCreatingBasicTidbitData
+                            | highlightedComments =
+                                newHighlightedComments
+                        }
+
+                    newModel =
+                        updateBasicTidbitCreateData newCreatingBasicTidbitData
+
+                    result =
+                        ( newModel, shared, Cmd.none )
+                in
+                    case currentCreatingBasicTidbitData.currentCommentTab of
+                        BasicTidbit.Introduction ->
+                            result
+
+                        BasicTidbit.Conclusion ->
+                            result
+
+                        -- We need to go "down" a tab if the user was on the
+                        -- last tab and they removed a tab.
+                        BasicTidbit.Frame frameIndex ->
+                            if frameIndex >= (Array.length newHighlightedComments) then
+                                update
+                                    (BasicTidbitGoToCommentTab <|
+                                        BasicTidbit.Frame <|
+                                            Array.length newHighlightedComments
+                                                - 1
+                                    )
+                                    newModel
+                                    shared
+                            else
+                                result
+
+            BasicTidbitUpdateFrameComment index newComment ->
+                case Array.get index currentHighlightedComments of
+                    Nothing ->
+                        doNothing
+
+                    Just highlightComment ->
+                        let
+                            newHighlightComment =
+                                { highlightComment
+                                    | comment = Just newComment
+                                }
+
+                            newHighlightedComments =
+                                Array.set
+                                    index
+                                    newHighlightComment
+                                    currentHighlightedComments
+
+                            newCreatingBasicTidbitData =
+                                { currentCreatingBasicTidbitData
+                                    | highlightedComments = newHighlightedComments
+                                }
+
+                            newModel =
+                                updateBasicTidbitCreateData newCreatingBasicTidbitData
+                        in
+                            ( newModel, shared, Cmd.none )
+
+            BasicTidbitUpdateIntroduction newIntro ->
+                let
+                    newCreatingBasicTidbitData =
+                        { currentCreatingBasicTidbitData
+                            | introduction = newIntro
+                        }
+
+                    newModel =
+                        updateBasicTidbitCreateData newCreatingBasicTidbitData
+                in
+                    ( newModel, shared, Cmd.none )
+
+            BasicTidbitUpdateConclusion newConclusion ->
+                let
+                    newCreatingBasicTidbitData =
+                        { currentCreatingBasicTidbitData
+                            | conclusion = newConclusion
                         }
 
                     newModel =

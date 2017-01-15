@@ -1,5 +1,6 @@
 module Components.Home.View exposing (..)
 
+import Array
 import Autocomplete as AC
 import Components.Home.Messages exposing (Msg(..))
 import Components.Home.Model exposing (Model)
@@ -349,14 +350,125 @@ createBasicTidbitView model shared =
 
         tidbitView : Html Msg
         tidbitView =
-            div
-                []
-                [ div
-                    [ classList [ ( "code-editor", True ) ]
-                    , id "basic-tidbit-code-editor"
-                    ]
+            let
+                body =
+                    case model.creatingBasicTidbitData.currentCommentTab of
+                        BasicTidbit.Introduction ->
+                            div
+                                []
+                                [ textarea
+                                    [ placeholder "Introduction"
+                                    , onInput <| BasicTidbitUpdateIntroduction
+                                    , value model.creatingBasicTidbitData.introduction
+                                    ]
+                                    []
+                                ]
+
+                        BasicTidbit.Frame frameIndex ->
+                            div
+                                []
+                                [ textarea
+                                    [ placeholder <|
+                                        "Frame "
+                                            ++ (toString <| frameIndex + 1)
+                                    , onInput <|
+                                        BasicTidbitUpdateFrameComment frameIndex
+                                    , value <|
+                                        case
+                                            (Array.get
+                                                frameIndex
+                                                model.creatingBasicTidbitData.highlightedComments
+                                            )
+                                        of
+                                            Nothing ->
+                                                ""
+
+                                            Just maybeHC ->
+                                                case maybeHC.comment of
+                                                    Nothing ->
+                                                        ""
+
+                                                    Just comment ->
+                                                        comment
+                                    ]
+                                    []
+                                ]
+
+                        BasicTidbit.Conclusion ->
+                            div
+                                []
+                                [ textarea
+                                    [ placeholder "Conclusion"
+                                    , onInput <| BasicTidbitUpdateConclusion
+                                    , value model.creatingBasicTidbitData.conclusion
+                                    ]
+                                    []
+                                ]
+
+                tabBar =
+                    let
+                        dynamicFrameButtons =
+                            (Array.toList <|
+                                Array.indexedMap
+                                    (\index maybeHighlightedComment ->
+                                        button
+                                            [ onClick <|
+                                                BasicTidbitGoToCommentTab <|
+                                                    BasicTidbit.Frame index
+                                            ]
+                                            [ text <| toString <| index + 1 ]
+                                    )
+                                    model.creatingBasicTidbitData.highlightedComments
+                            )
+                    in
+                        div
+                            []
+                            (List.concat
+                                [ [ button
+                                        [ onClick <| BasicTidbitRemoveFrame
+                                        , disabled <|
+                                            Array.length
+                                                model.creatingBasicTidbitData.highlightedComments
+                                                <= 1
+                                        ]
+                                        [ text "-" ]
+                                  , button
+                                        [ onClick <|
+                                            BasicTidbitGoToCommentTab
+                                                BasicTidbit.Introduction
+                                        ]
+                                        [ text "Introduction" ]
+                                  ]
+                                , dynamicFrameButtons
+                                , [ button
+                                        [ onClick <|
+                                            BasicTidbitGoToCommentTab
+                                                BasicTidbit.Conclusion
+                                        ]
+                                        [ text "Conclusion" ]
+                                  , button
+                                        [ onClick <| BasicTidbitAddFrame ]
+                                        [ text "+" ]
+                                  ]
+                                ]
+                            )
+            in
+                div
                     []
-                ]
+                    [ div
+                        [ class "code-editor-wrapper" ]
+                        [ div
+                            [ classList [ ( "code-editor", True ) ]
+                            , id "basic-tidbit-code-editor"
+                            ]
+                            []
+                        ]
+                    , div
+                        [ class "comment-creator" ]
+                        [ body
+                        , tabBar
+                        ]
+                    ]
 
         viewForTab : Html Msg
         viewForTab =

@@ -1,5 +1,6 @@
 module Components.Home.Init exposing (init)
 
+import Array
 import Autocomplete as AC
 import Components.Home.Model exposing (Model)
 import Models.BasicTidbit as BasicTidbit
@@ -19,8 +20,12 @@ init =
         , tags = []
         , tagInput = ""
         , code = ""
-        , highlightedComments = []
-        , currentComment = ""
-        , currentRange = Nothing
+        , highlightedComments =
+            Array.fromList
+                [ { comment = Nothing, range = Nothing }
+                ]
+        , introduction = ""
+        , conclusion = ""
+        , currentCommentTab = BasicTidbit.Introduction
         }
     }

@@ -2,6 +2,7 @@ module Components.Update exposing (update, updateCacheIf)
 
 import Api
 import Components.Home.Update as HomeUpdate
+import Components.Home.Messages as HomeMessages
 import Components.Messages exposing (Msg(..))
 import Components.Model exposing (Model)
 import Components.Welcome.Update as WelcomeUpdate
@@ -144,17 +145,15 @@ updateCacheIf msg model shouldCache =
                 CodeEditorSelectionUpdate { id, range } ->
                     case id of
                         "basic-tidbit-code-editor" ->
-                            let
-                                newCreatingBasicTidbitData =
-                                    { currentCreatingBasicTidbitData
-                                        | currentRange = Just range
-                                    }
-
-                                newModel =
-                                    newModelWithUpdatedBasicTidbitData
-                                        newCreatingBasicTidbitData
-                            in
-                                ( newModel, Cmd.none )
+                            (updateCacheIf
+                                (HomeMessage
+                                    (HomeMessages.BasicTidbitNewRangeSelected
+                                        range
+                                    )
+                                )
+                                model
+                                shouldCache
+                            )
 
                         _ ->
                             ( model, Cmd.none )
