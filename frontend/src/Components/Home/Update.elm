@@ -447,6 +447,18 @@ update msg model shared =
                 in
                     ( newModel, shared, Cmd.none )
 
+            BasicTidbitUpdateCode newCode ->
+                let
+                    newCreatingBasicTidbitData =
+                        { currentCreatingBasicTidbitData
+                            | code = newCode
+                        }
+
+                    newModel =
+                        updateBasicTidbitCreateData newCreatingBasicTidbitData
+                in
+                    ( newModel, shared, Cmd.none )
+
 
 {-| Filters the languages based on `query`.
 -}

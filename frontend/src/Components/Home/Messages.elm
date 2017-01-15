@@ -31,3 +31,4 @@ type Msg
     | BasicTidbitUpdateFrameComment Int String
     | BasicTidbitUpdateIntroduction String
     | BasicTidbitUpdateConclusion String
+    | BasicTidbitUpdateCode String

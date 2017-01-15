@@ -35,22 +35,13 @@ updateCacheIf msg model shouldCache =
         currentHomeComponent =
             model.homeComponent
 
-        currentCreatingBasicTidbitData =
-            currentHomeComponent.creatingBasicTidbitData
-
-        newModelWithUpdatedBasicTidbitData newCreatingBasicTidbitData =
-            { model
-                | homeComponent =
-                    { currentHomeComponent
-                        | creatingBasicTidbitData =
-                            newCreatingBasicTidbitData
-                    }
-            }
+        doNothing =
+            ( model, Cmd.none )
 
         ( newModel, newCmd ) =
             case msg of
                 NoOp ->
-                    ( model, Cmd.none )
+                    doNothing
 
                 OnLocationChange location ->
                     let
@@ -127,36 +118,31 @@ updateCacheIf msg model shouldCache =
                 CodeEditorUpdate { id, value } ->
                     case id of
                         "basic-tidbit-code-editor" ->
-                            let
-                                newCreatingBasicTidbitData =
-                                    { currentCreatingBasicTidbitData
-                                        | code = value
-                                    }
-
-                                newModel =
-                                    newModelWithUpdatedBasicTidbitData
-                                        newCreatingBasicTidbitData
-                            in
-                                ( newModel, Cmd.none )
-
-                        _ ->
-                            ( model, Cmd.none )
-
-                CodeEditorSelectionUpdate { id, range } ->
-                    case id of
-                        "basic-tidbit-code-editor" ->
                             (updateCacheIf
-                                (HomeMessage
-                                    (HomeMessages.BasicTidbitNewRangeSelected
-                                        range
-                                    )
+                                (HomeMessage <|
+                                    HomeMessages.BasicTidbitUpdateCode value
                                 )
                                 model
                                 shouldCache
                             )
 
                         _ ->
-                            ( model, Cmd.none )
+                            doNothing
+
+                CodeEditorSelectionUpdate { id, range } ->
+                    case id of
+                        "basic-tidbit-code-editor" ->
+                            (updateCacheIf
+                                (HomeMessage <|
+                                    HomeMessages.BasicTidbitNewRangeSelected
+                                        range
+                                )
+                                model
+                                shouldCache
+                            )
+
+                        _ ->
+                            doNothing
     in
         case shouldCache of
             True ->
