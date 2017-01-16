@@ -27,6 +27,7 @@ port createCodeEditor :
     , lang : String
     , theme : String
     , value : String
+    , range : Maybe Range
     }
     -> Cmd msg
 

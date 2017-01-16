@@ -489,7 +489,7 @@ createBasicTidbitView model shared =
                 div
                     []
                     [ div
-                        [ class "code-editor-wrapper" ]
+                        [ id "code-editor-wrapper" ]
                         [ div
                             [ classList [ ( "code-editor", True ) ]
                             , id "basic-tidbit-code-editor"

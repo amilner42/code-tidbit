@@ -450,11 +450,78 @@ update msg model shared =
                 in
                     ( newModel, shared, Cmd.none )
 
+            -- On top of updating the code, we need to check that no highlights
+            -- are now out of range. If highlights are now out of range we
+            -- minimize them to the greatest size they can be whilst still being
+            -- in range.
             BasicTidbitUpdateCode newCode ->
                 let
+                    rowsOfCode =
+                        String.split "\n" newCode
+
+                    maxRow =
+                        List.length rowsOfCode - 1
+
+                    lastRow =
+                        Util.lastElem rowsOfCode
+
+                    maxCol =
+                        case lastRow of
+                            Nothing ->
+                                0
+
+                            Just lastRowString ->
+                                String.length lastRowString
+
+                    getNewColAndRow : Int -> Int -> Int -> Int -> ( Int, Int )
+                    getNewColAndRow currentRow currentCol lastRow lastCol =
+                        if currentRow < lastRow then
+                            ( currentRow, currentCol )
+                        else if currentRow == maxRow then
+                            ( currentRow, min currentCol lastCol )
+                        else
+                            ( lastRow, lastCol )
+
+                    newHighlightedComments =
+                        Array.map
+                            (\comment ->
+                                case comment.range of
+                                    Nothing ->
+                                        comment
+
+                                    Just aRange ->
+                                        let
+                                            ( newStartRow, newStartCol ) =
+                                                getNewColAndRow
+                                                    aRange.startRow
+                                                    aRange.startCol
+                                                    maxRow
+                                                    maxCol
+
+                                            ( newEndRow, newEndCol ) =
+                                                getNewColAndRow
+                                                    aRange.endRow
+                                                    aRange.endCol
+                                                    maxRow
+                                                    maxCol
+
+                                            newRange =
+                                                { startRow = newStartRow
+                                                , startCol = newStartCol
+                                                , endRow = newEndRow
+                                                , endCol = newEndCol
+                                                }
+                                        in
+                                            { comment
+                                                | range = Just newRange
+                                            }
+                            )
+                            currentHighlightedComments
+
                     newCreatingBasicTidbitData =
                         { currentCreatingBasicTidbitData
                             | code = newCode
+                            , highlightedComments = newHighlightedComments
                         }
 
                     newModel =

@@ -1,4 +1,4 @@
-.code-editor-wrapper {
+#code-editor-wrapper {
   position: relative;
   display: inline-block;
   float: left;
@@ -6,7 +6,8 @@
   height: 600px;
 }
 
-.code-editor {
+// Ace places this class on the editor.
+.ace_editor {
   font-family: 'Inconsolata', monospace;
   width: 645px;
   height: 600px;

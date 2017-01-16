@@ -82,3 +82,10 @@ onEnter msg =
                 Decode.fail "not ENTER"
     in
         on "keydown" (Decode.andThen isEnter keyCode)
+
+
+{-| Gets the last element of a list, if list is empty then Nothing.
+-}
+lastElem : List a -> Maybe a
+lastElem =
+    List.foldl (Just >> always) Nothing

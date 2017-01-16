@@ -260,7 +260,7 @@ handleLocationChange maybeRoute model =
                                     in
                                         ( newModel, LocalStorage.saveModel newModel )
 
-                newCmdBatchedWithCreateBasicTidbitEditor =
+                newCmdBatchedWithCreateBasicTidbitEditor aceRange =
                     Cmd.batch
                         [ newCmd
                         , Ports.createCodeEditor
@@ -268,6 +268,7 @@ handleLocationChange maybeRoute model =
                             , lang = aceLang
                             , theme = aceTheme
                             , value = aceValue
+                            , range = aceRange
                             }
                         ]
             in
@@ -277,13 +278,13 @@ handleLocationChange maybeRoute model =
                     -- Init the editor.
                     Route.HomeComponentCreateBasicTidbitIntroduction ->
                         ( newModel
-                        , newCmdBatchedWithCreateBasicTidbitEditor
+                        , newCmdBatchedWithCreateBasicTidbitEditor Nothing
                         )
 
                     -- Init the editor.
                     Route.HomeComponentCreateBasicTidbitConclusion ->
                         ( newModel
-                        , newCmdBatchedWithCreateBasicTidbitEditor
+                        , newCmdBatchedWithCreateBasicTidbitEditor Nothing
                         )
 
                     Route.HomeComponentCreateBasicTidbitFrame frameNumber ->
@@ -308,7 +309,13 @@ handleLocationChange maybeRoute model =
                                 )
                             else
                                 ( newModel
-                                , newCmdBatchedWithCreateBasicTidbitEditor
+                                , newCmdBatchedWithCreateBasicTidbitEditor <|
+                                    Maybe.andThen
+                                        .range
+                                        (Array.get
+                                            frameIndex
+                                            model.homeComponent.creatingBasicTidbitData.highlightedComments
+                                        )
                                 )
 
                     _ ->
