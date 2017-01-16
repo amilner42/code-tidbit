@@ -1,5 +1,6 @@
 module Components.Update exposing (update, updateCacheIf)
 
+import Array
 import Api
 import Components.Home.Update as HomeUpdate
 import Components.Home.Messages as HomeMessages
@@ -193,6 +194,21 @@ handleLocationChange maybeRoute model =
                         | shared = { shared | route = route }
                     }
 
+                aceLang =
+                    case model.homeComponent.creatingBasicTidbitData.language of
+                        Nothing ->
+                            ""
+
+                        Just aLanguage ->
+                            Editor.aceLanguageLocation aLanguage
+
+                -- TODO Get theme from `shared.user`.
+                aceTheme =
+                    ""
+
+                aceValue =
+                    model.homeComponent.creatingBasicTidbitData.code
+
                 -- Handle authentication logic here.
                 ( newModel, newCmd ) =
                     case loggedIn of
@@ -243,36 +259,57 @@ handleLocationChange maybeRoute model =
                                             modelWithRoute route
                                     in
                                         ( newModel, LocalStorage.saveModel newModel )
+
+                newCmdBatchedWithCreateBasicTidbitEditor =
+                    Cmd.batch
+                        [ newCmd
+                        , Ports.createCodeEditor
+                            { id = "basic-tidbit-code-editor"
+                            , lang = aceLang
+                            , theme = aceTheme
+                            , value = aceValue
+                            }
+                        ]
             in
-                case newModel.shared.route of
-                    Route.HomeComponentCreateBasicTidbit ->
+                -- Handle general route-logic here, routes are a great way to be
+                -- able to trigger certain things (hooks).
+                case route of
+                    -- Init the editor.
+                    Route.HomeComponentCreateBasicTidbitIntroduction ->
+                        ( newModel
+                        , newCmdBatchedWithCreateBasicTidbitEditor
+                        )
+
+                    -- Init the editor.
+                    Route.HomeComponentCreateBasicTidbitConclusion ->
+                        ( newModel
+                        , newCmdBatchedWithCreateBasicTidbitEditor
+                        )
+
+                    Route.HomeComponentCreateBasicTidbitFrame frameNumber ->
                         let
-                            aceLang =
-                                case model.homeComponent.creatingBasicTidbitData.language of
-                                    Nothing ->
-                                        ""
+                            -- 0 based indexing.
+                            frameIndex =
+                                frameNumber - 1
 
-                                    Just aLanguage ->
-                                        Editor.aceLanguageLocation aLanguage
+                            frameIndexTooHigh =
+                                frameIndex >= (Array.length model.homeComponent.creatingBasicTidbitData.highlightedComments)
 
-                            -- TODO Get theme from `shared.user`.
-                            aceTheme =
-                                ""
-
-                            aceValue =
-                                model.homeComponent.creatingBasicTidbitData.code
+                            frameIndexTooLow =
+                                frameIndex < 0
                         in
-                            ( newModel
-                            , Cmd.batch
-                                [ newCmd
-                                , Ports.createCodeEditor
-                                    { id = "basic-tidbit-code-editor"
-                                    , lang = aceLang
-                                    , theme = aceTheme
-                                    , value = aceValue
-                                    }
-                                ]
-                            )
+                            if frameIndexTooHigh || frameIndexTooLow then
+                                ( newModel
+                                , Cmd.batch
+                                    [ newCmd
+                                    , Router.navigateTo
+                                        Route.HomeComponentCreateBasicTidbitIntroduction
+                                    ]
+                                )
+                            else
+                                ( newModel
+                                , newCmdBatchedWithCreateBasicTidbitEditor
+                                )
 
                     _ ->
                         ( newModel, newCmd )

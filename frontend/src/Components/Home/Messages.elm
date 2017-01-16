@@ -24,7 +24,6 @@ type Msg
     | BasicTidbitUpdateTagInput String
     | BasicTidbitRemoveTag String
     | BasicTidbitAddTag String
-    | BasicTidbitGoToCommentTab BasicTidbit.CommentTab
     | BasicTidbitNewRangeSelected Range.Range
     | BasicTidbitAddFrame
     | BasicTidbitRemoveFrame

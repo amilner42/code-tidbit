@@ -54,7 +54,13 @@ viewForRoute model =
             Route.HomeComponentCreateBasicTags ->
                 renderedHomeView
 
-            Route.HomeComponentCreateBasicTidbit ->
+            Route.HomeComponentCreateBasicTidbitIntroduction ->
+                renderedHomeView
+
+            Route.HomeComponentCreateBasicTidbitFrame _ ->
+                renderedHomeView
+
+            Route.HomeComponentCreateBasicTidbitConclusion ->
                 renderedHomeView
 
             Route.HomeComponentProfile ->

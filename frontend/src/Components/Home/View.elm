@@ -55,7 +55,13 @@ displayViewForRoute model shared =
         Route.HomeComponentCreateBasicTags ->
             createBasicTidbitView model shared
 
-        Route.HomeComponentCreateBasicTidbit ->
+        Route.HomeComponentCreateBasicTidbitIntroduction ->
+            createBasicTidbitView model shared
+
+        Route.HomeComponentCreateBasicTidbitFrame _ ->
+            createBasicTidbitView model shared
+
+        Route.HomeComponentCreateBasicTidbitConclusion ->
             createBasicTidbitView model shared
 
         Route.HomeComponentProfile ->
@@ -78,15 +84,22 @@ navbar shared =
             shared.route == Route.HomeComponentProfile
 
         createViewSelected =
-            List.member
-                shared.route
-                [ Route.HomeComponentCreate
-                , Route.HomeComponentCreateBasicName
-                , Route.HomeComponentCreateBasicDescription
-                , Route.HomeComponentCreateBasicLanguage
-                , Route.HomeComponentCreateBasicTags
-                , Route.HomeComponentCreateBasicTidbit
-                ]
+            case shared.route of
+                Route.HomeComponentCreateBasicTidbitFrame _ ->
+                    True
+
+                _ ->
+                    (List.member
+                        shared.route
+                        [ Route.HomeComponentCreate
+                        , Route.HomeComponentCreateBasicName
+                        , Route.HomeComponentCreateBasicDescription
+                        , Route.HomeComponentCreateBasicLanguage
+                        , Route.HomeComponentCreateBasicTags
+                        , Route.HomeComponentCreateBasicTidbitIntroduction
+                        , Route.HomeComponentCreateBasicTidbitConclusion
+                        ]
+                    )
     in
         div [ class "nav" ]
             [ div
@@ -256,10 +269,21 @@ createBasicTidbitView model shared =
                     [ classList
                         [ ( "create-basic-tidbit-tab", True )
                         , ( "create-basic-tidbit-selected-tab"
-                          , currentRoute == Route.HomeComponentCreateBasicTidbit
+                          , case currentRoute of
+                                Route.HomeComponentCreateBasicTidbitIntroduction ->
+                                    True
+
+                                Route.HomeComponentCreateBasicTidbitConclusion ->
+                                    True
+
+                                Route.HomeComponentCreateBasicTidbitFrame _ ->
+                                    True
+
+                                _ ->
+                                    False
                           )
                         ]
-                    , onClick <| GoTo Route.HomeComponentCreateBasicTidbit
+                    , onClick <| GoTo Route.HomeComponentCreateBasicTidbitIntroduction
                     ]
                     [ text "Tidbit" ]
                 ]
@@ -352,8 +376,8 @@ createBasicTidbitView model shared =
         tidbitView =
             let
                 body =
-                    case model.creatingBasicTidbitData.currentCommentTab of
-                        BasicTidbit.Introduction ->
+                    case shared.route of
+                        Route.HomeComponentCreateBasicTidbitIntroduction ->
                             div
                                 []
                                 [ textarea
@@ -364,37 +388,41 @@ createBasicTidbitView model shared =
                                     []
                                 ]
 
-                        BasicTidbit.Frame frameIndex ->
-                            div
-                                []
-                                [ textarea
-                                    [ placeholder <|
-                                        "Frame "
-                                            ++ (toString <| frameIndex + 1)
-                                    , onInput <|
-                                        BasicTidbitUpdateFrameComment frameIndex
-                                    , value <|
-                                        case
-                                            (Array.get
-                                                frameIndex
-                                                model.creatingBasicTidbitData.highlightedComments
-                                            )
-                                        of
-                                            Nothing ->
-                                                ""
-
-                                            Just maybeHC ->
-                                                case maybeHC.comment of
-                                                    Nothing ->
-                                                        ""
-
-                                                    Just comment ->
-                                                        comment
-                                    ]
+                        Route.HomeComponentCreateBasicTidbitFrame frameNumber ->
+                            let
+                                frameIndex =
+                                    frameNumber - 1
+                            in
+                                div
                                     []
-                                ]
+                                    [ textarea
+                                        [ placeholder <|
+                                            "Frame "
+                                                ++ (toString <| frameNumber)
+                                        , onInput <|
+                                            BasicTidbitUpdateFrameComment frameIndex
+                                        , value <|
+                                            case
+                                                (Array.get
+                                                    frameIndex
+                                                    model.creatingBasicTidbitData.highlightedComments
+                                                )
+                                            of
+                                                Nothing ->
+                                                    ""
 
-                        BasicTidbit.Conclusion ->
+                                                Just maybeHC ->
+                                                    case maybeHC.comment of
+                                                        Nothing ->
+                                                            ""
+
+                                                        Just comment ->
+                                                            comment
+                                        ]
+                                        []
+                                    ]
+
+                        Route.HomeComponentCreateBasicTidbitConclusion ->
                             div
                                 []
                                 [ textarea
@@ -405,6 +433,12 @@ createBasicTidbitView model shared =
                                     []
                                 ]
 
+                        -- Should never happen.
+                        _ ->
+                            div
+                                []
+                                []
+
                 tabBar =
                     let
                         dynamicFrameButtons =
@@ -413,8 +447,9 @@ createBasicTidbitView model shared =
                                     (\index maybeHighlightedComment ->
                                         button
                                             [ onClick <|
-                                                BasicTidbitGoToCommentTab <|
-                                                    BasicTidbit.Frame index
+                                                GoTo <|
+                                                    Route.HomeComponentCreateBasicTidbitFrame
+                                                        (index + 1)
                                             ]
                                             [ text <| toString <| index + 1 ]
                                     )
@@ -434,16 +469,14 @@ createBasicTidbitView model shared =
                                         [ text "-" ]
                                   , button
                                         [ onClick <|
-                                            BasicTidbitGoToCommentTab
-                                                BasicTidbit.Introduction
+                                            GoTo Route.HomeComponentCreateBasicTidbitIntroduction
                                         ]
                                         [ text "Introduction" ]
                                   ]
                                 , dynamicFrameButtons
                                 , [ button
                                         [ onClick <|
-                                            BasicTidbitGoToCommentTab
-                                                BasicTidbit.Conclusion
+                                            GoTo Route.HomeComponentCreateBasicTidbitConclusion
                                         ]
                                         [ text "Conclusion" ]
                                   , button
@@ -485,7 +518,13 @@ createBasicTidbitView model shared =
                 Route.HomeComponentCreateBasicTags ->
                     tagsView
 
-                Route.HomeComponentCreateBasicTidbit ->
+                Route.HomeComponentCreateBasicTidbitIntroduction ->
+                    tidbitView
+
+                Route.HomeComponentCreateBasicTidbitConclusion ->
+                    tidbitView
+
+                Route.HomeComponentCreateBasicTidbitFrame _ ->
                     tidbitView
 
                 -- Default to name view.

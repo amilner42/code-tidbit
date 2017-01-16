@@ -25,58 +25,7 @@ type alias BasicTidbitCreateData =
     , highlightedComments : Array.Array MaybeHighlightedComment
     , introduction : String
     , conclusion : String
-    , currentCommentTab : CommentTab
     }
-
-
-{-| The comment tab box
--}
-type CommentTab
-    = Introduction
-    | Frame Int
-    | Conclusion
-
-
-{-| The commentTab `cacheEncoder`.
--}
-commentTabCacheEncoder : CommentTab -> Encode.Value
-commentTabCacheEncoder commentTab =
-    Encode.string <| toString commentTab
-
-
-{-| The commentTab `cacheDecoder`.
--}
-commentTabCacheDecoder : Decode.Decoder CommentTab
-commentTabCacheDecoder =
-    let
-        fromStringDecoder : String -> Decode.Decoder CommentTab
-        fromStringDecoder encodedCommentTab =
-            case encodedCommentTab of
-                "Introduction" ->
-                    Decode.succeed Introduction
-
-                "Conclusion" ->
-                    Decode.succeed Conclusion
-
-                _ ->
-                    if String.startsWith "Frame " encodedCommentTab then
-                        let
-                            frameString =
-                                String.dropLeft 6 encodedCommentTab
-
-                            frameInteger =
-                                String.toInt frameString
-                        in
-                            case frameInteger of
-                                Ok int ->
-                                    Decode.succeed <| Frame int
-
-                                Err err ->
-                                    Decode.fail err
-                    else
-                        Decode.fail <| encodedCommentTab ++ " is not a valid encoded comment tab"
-    in
-        Decode.andThen fromStringDecoder Decode.string
 
 
 {-| BasicTidbitCreateData `cacheEncoder`.
@@ -106,9 +55,6 @@ createDataCacheEncoder basicTidbitCreateData =
           )
         , ( "introduction", Encode.string basicTidbitCreateData.introduction )
         , ( "conclusion", Encode.string basicTidbitCreateData.conclusion )
-        , ( "currentCommentTab"
-          , commentTabCacheEncoder basicTidbitCreateData.currentCommentTab
-          )
         ]
 
 
@@ -130,4 +76,3 @@ createDataCacheDecoder =
             (Decode.array maybeHighlightedCommentCacheDecoder)
         |> required "introduction" Decode.string
         |> required "conclusion" Decode.string
-        |> required "currentCommentTab" commentTabCacheDecoder

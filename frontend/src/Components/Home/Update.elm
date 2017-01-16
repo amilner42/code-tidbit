@@ -281,54 +281,51 @@ update msg model shared =
                 in
                     ( newModel, shared, Cmd.none )
 
-            BasicTidbitGoToCommentTab commentTab ->
-                let
-                    newCreatingBasicTidbitData =
-                        { currentCreatingBasicTidbitData
-                            | currentCommentTab = commentTab
-                        }
-
-                    newModel =
-                        updateBasicTidbitCreateData newCreatingBasicTidbitData
-                in
-                    ( newModel, shared, Cmd.none )
-
             BasicTidbitNewRangeSelected newRange ->
-                case currentCreatingBasicTidbitData.currentCommentTab of
-                    BasicTidbit.Introduction ->
+                case shared.route of
+                    Route.HomeComponentCreateBasicTidbitIntroduction ->
                         doNothing
 
-                    BasicTidbit.Conclusion ->
+                    Route.HomeComponentCreateBasicTidbitConclusion ->
                         doNothing
 
-                    BasicTidbit.Frame frameNumber ->
-                        case (Array.get frameNumber currentHighlightedComments) of
-                            Nothing ->
-                                doNothing
+                    Route.HomeComponentCreateBasicTidbitFrame frameNumber ->
+                        let
+                            frameIndex =
+                                frameNumber - 1
+                        in
+                            case (Array.get frameIndex currentHighlightedComments) of
+                                Nothing ->
+                                    doNothing
 
-                            Just currentFrameHighlightedComment ->
-                                let
-                                    newFrame =
-                                        { currentFrameHighlightedComment
-                                            | range = Just newRange
-                                        }
+                                Just currentFrameHighlightedComment ->
+                                    let
+                                        newFrame =
+                                            { currentFrameHighlightedComment
+                                                | range = Just newRange
+                                            }
 
-                                    newHighlightedComments =
-                                        Array.set
-                                            frameNumber
-                                            newFrame
-                                            currentHighlightedComments
+                                        newHighlightedComments =
+                                            Array.set
+                                                frameIndex
+                                                newFrame
+                                                currentHighlightedComments
 
-                                    newCreatingBasicTidbitData =
-                                        { currentCreatingBasicTidbitData
-                                            | highlightedComments = newHighlightedComments
-                                        }
+                                        newCreatingBasicTidbitData =
+                                            { currentCreatingBasicTidbitData
+                                                | highlightedComments = newHighlightedComments
+                                            }
 
-                                    newModel =
-                                        updateBasicTidbitCreateData
-                                            newCreatingBasicTidbitData
-                                in
-                                    ( newModel, shared, Cmd.none )
+                                        newModel =
+                                            updateBasicTidbitCreateData
+                                                newCreatingBasicTidbitData
+                                    in
+                                        ( newModel, shared, Cmd.none )
+
+                    -- Should never really happen (highlighting when not on
+                    -- the editor pages).
+                    _ ->
+                        doNothing
 
             BasicTidbitAddFrame ->
                 let
@@ -345,11 +342,10 @@ update msg model shared =
                         updateBasicTidbitCreateData newCreatingBasicTidbitData
 
                     newMsg =
-                        BasicTidbitGoToCommentTab <|
-                            BasicTidbit.Frame <|
+                        GoTo <|
+                            Route.HomeComponentCreateBasicTidbitFrame <|
                                 Array.length
                                     newModel.creatingBasicTidbitData.highlightedComments
-                                    - 1
                 in
                     update newMsg newModel shared
 
@@ -373,27 +369,34 @@ update msg model shared =
                     result =
                         ( newModel, shared, Cmd.none )
                 in
-                    case currentCreatingBasicTidbitData.currentCommentTab of
-                        BasicTidbit.Introduction ->
+                    case shared.route of
+                        Route.HomeComponentCreateBasicTidbitIntroduction ->
                             result
 
-                        BasicTidbit.Conclusion ->
+                        Route.HomeComponentCreateBasicTidbitConclusion ->
                             result
 
                         -- We need to go "down" a tab if the user was on the
                         -- last tab and they removed a tab.
-                        BasicTidbit.Frame frameIndex ->
-                            if frameIndex >= (Array.length newHighlightedComments) then
-                                update
-                                    (BasicTidbitGoToCommentTab <|
-                                        BasicTidbit.Frame <|
-                                            Array.length newHighlightedComments
-                                                - 1
-                                    )
-                                    newModel
-                                    shared
-                            else
-                                result
+                        Route.HomeComponentCreateBasicTidbitFrame frameNumber ->
+                            let
+                                frameIndex =
+                                    frameNumber - 1
+                            in
+                                if frameIndex >= (Array.length newHighlightedComments) then
+                                    update
+                                        (GoTo <|
+                                            Route.HomeComponentCreateBasicTidbitFrame <|
+                                                Array.length newHighlightedComments
+                                        )
+                                        newModel
+                                        shared
+                                else
+                                    result
+
+                        -- Should never happen.
+                        _ ->
+                            result
 
             BasicTidbitUpdateFrameComment index newComment ->
                 case Array.get index currentHighlightedComments of

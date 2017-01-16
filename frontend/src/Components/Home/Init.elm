@@ -26,6 +26,5 @@ init =
                 ]
         , introduction = ""
         , conclusion = ""
-        , currentCommentTab = BasicTidbit.Introduction
         }
     }
