@@ -175,7 +175,7 @@ update msg model shared =
                     newModel =
                         updateBasicTidbitCreateData <| .creatingBasicTidbitData HomeInit.init
                 in
-                    ( newModel, shared, Cmd.none )
+                    ( newModel, shared, Router.navigateTo Route.HomeComponentCreateBasicName )
 
             BasicTidbitUpdateName newName ->
                 let
