@@ -6,27 +6,22 @@ import { Handler } from "express";
 /**
  * Format of the application's routes.
  */
-export interface appRoutes {
+export interface AppRoutes {
   [routeUrl: string]: {
     [methodType: string]: Handler;
   }
 }
 
 /**
- * A `user`.
+ * A mongo ID.
  */
-export interface user {
-  _id?: string;
-  email: string;
-  password?: string;
-}
-
+export type MongoID = string;
 
 /**
  * All models (in `/models`) should export an implementation of this
  * interface.
  */
-export interface model<T> {
+export interface Model<T> {
 
   /**
    * Unique name, should be identical to the name of interface `T`.
@@ -42,12 +37,12 @@ export interface model<T> {
 }
 
 /**
- * All errorCodes for simpler programmatic communication between the client and
- * server.
+ * All ErrorCode are used for simpler programmatic communication between the
+ * client and server.
  *
  * NOTE An identical enum should be kept on the frontend/backend.
  */
-export enum errorCodes {
+export enum ErrorCode {
   youAreUnauthorized = 1,
   emailAddressAlreadyRegistered,
   noAccountExistsForEmail,

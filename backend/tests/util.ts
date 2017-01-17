@@ -2,7 +2,7 @@
 
 import Bluebird from 'bluebird';
 
-import { errorCodes } from '../src/types';
+import { ErrorCode } from '../src/types';
 
 
 /**
@@ -56,14 +56,14 @@ export const assertPromiseDoesError = (
  */
 export const assertPromiseErrorsWithCode = (
     promise: Promise<any> | Bluebird<any>,
-    errorCode: errorCodes, done: mochaDone)
+    errorCode: ErrorCode, done: mochaDone)
     : void => {
 
   (promise as Promise<any>)
   .then((result) => {
     done("Promise should have errored");
   })
-  .catch((error: { errorCode: errorCodes }) => {
+  .catch((error: { errorCode: ErrorCode }) => {
     if(error.errorCode == errorCode) {
       done();
     } else {

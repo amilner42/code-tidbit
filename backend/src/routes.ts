@@ -6,7 +6,7 @@ import R from 'ramda';
 
 import { APP_CONFIG } from '../app-config';
 import { userModel } from './models/user.model';
-import { appRoutes } from './types';
+import { AppRoutes } from './types';
 
 
 /**
@@ -22,7 +22,7 @@ export const apiAuthlessRoutes = [
 /**
  * The routes for the API.
  */
-export const routes: appRoutes = {
+export const routes: AppRoutes = {
 
   '/register': {
     /**
