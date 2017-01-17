@@ -35,3 +35,11 @@ rangeCacheEncoder record =
         , ( "startCol", Encode.int <| record.startCol )
         , ( "endCol", Encode.int <| record.endCol )
         ]
+
+
+{-| Checks if a range is empty.
+-}
+isEmptyRange : Range -> Bool
+isEmptyRange range =
+    (range.startRow == range.endRow)
+        && (range.startCol == range.endCol)

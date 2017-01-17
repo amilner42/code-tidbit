@@ -31,3 +31,4 @@ type Msg
     | BasicTidbitUpdateIntroduction String
     | BasicTidbitUpdateConclusion String
     | BasicTidbitUpdateCode String
+    | BasicTidbitPublish BasicTidbit.BasicTidbit

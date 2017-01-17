@@ -11,6 +11,7 @@ import Elements.Editor as Editor
 import Html exposing (Html, div, text, textarea, button, input, h1, h3)
 import Html.Attributes exposing (class, classList, disabled, placeholder, value, hidden, id)
 import Html.Events exposing (onClick, onInput)
+import Models.Range as Range
 import Models.Route as Route
 import Models.BasicTidbit as BasicTidbit
 import Router
@@ -464,6 +465,86 @@ createBasicTidbitView model shared =
                                     )
                                     model.creatingBasicTidbitData.highlightedComments
                             )
+
+                        -- Disabled publish button.
+                        disabledPublishButton =
+                            button
+                                [ classList [ ( "publish-button", True ) ]
+                                , disabled True
+                                ]
+                                [ text "Publish" ]
+
+                        {- It should be `disabledPublishButton` unless
+                           everything is filled out in which case it should be
+                           the publish button with the info filled for an
+                           event handler to call the API.
+                        -}
+                        currentPublishButton =
+                            let
+                                tidbitData =
+                                    model.creatingBasicTidbitData
+                            in
+                                case tidbitData.language of
+                                    Nothing ->
+                                        disabledPublishButton
+
+                                    Just theLanguage ->
+                                        if
+                                            (tidbitData.name /= "")
+                                                && (tidbitData.description /= "")
+                                                && (List.length tidbitData.tags > 0)
+                                                && (tidbitData.code /= "")
+                                                && (tidbitData.introduction /= "")
+                                                && (tidbitData.conclusion /= "")
+                                        then
+                                            let
+                                                filledHighlightedComments =
+                                                    Array.foldr
+                                                        (\maybeHC previousHC ->
+                                                            case ( maybeHC.range, maybeHC.comment ) of
+                                                                ( Just aRange, Just aComment ) ->
+                                                                    if
+                                                                        (String.length aComment > 0)
+                                                                            && (not <| Range.isEmptyRange aRange)
+                                                                    then
+                                                                        { range = aRange
+                                                                        , comment = aComment
+                                                                        }
+                                                                            :: previousHC
+                                                                    else
+                                                                        previousHC
+
+                                                                _ ->
+                                                                    previousHC
+                                                        )
+                                                        []
+                                                        tidbitData.highlightedComments
+                                            in
+                                                if
+                                                    (List.length filledHighlightedComments)
+                                                        == (Array.length tidbitData.highlightedComments)
+                                                then
+                                                    button
+                                                        [ classList
+                                                            [ ( "publish-button", True )
+                                                            ]
+                                                        , onClick <|
+                                                            BasicTidbitPublish
+                                                                { language = theLanguage
+                                                                , name = tidbitData.name
+                                                                , description = tidbitData.description
+                                                                , tags = tidbitData.tags
+                                                                , code = tidbitData.code
+                                                                , introduction = tidbitData.introduction
+                                                                , conclusion = tidbitData.conclusion
+                                                                , highlightedComments = Array.fromList filledHighlightedComments
+                                                                }
+                                                        ]
+                                                        [ text "Publish" ]
+                                                else
+                                                    disabledPublishButton
+                                        else
+                                            disabledPublishButton
                     in
                         div
                             []
@@ -503,6 +584,7 @@ createBasicTidbitView model shared =
                                   , button
                                         [ onClick <| BasicTidbitAddFrame ]
                                         [ text "+" ]
+                                  , currentPublishButton
                                   ]
                                 ]
                             )

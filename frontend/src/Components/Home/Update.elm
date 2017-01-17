@@ -529,6 +529,10 @@ update msg model shared =
                 in
                     ( newModel, shared, Cmd.none )
 
+            BasicTidbitPublish basicTidbit ->
+                -- TODO query API to add basic tidbit.
+                doNothing
+
 
 {-| Filters the languages based on `query`.
 -}

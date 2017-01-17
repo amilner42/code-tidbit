@@ -7,8 +7,22 @@ import Json.Encode as Encode
 import Json.Decode as Decode
 import Json.Decode.Pipeline exposing (decode, required, optional, hardcoded)
 import Elements.Editor exposing (Language, languageCacheDecoder, languageCacheEncoder)
-import Models.HighlightedComment exposing (MaybeHighlightedComment, maybeHighlightedCommentCacheEncoder, maybeHighlightedCommentCacheDecoder)
+import Models.HighlightedComment exposing (MaybeHighlightedComment, HighlightedComment, maybeHighlightedCommentCacheEncoder, maybeHighlightedCommentCacheDecoder, highlightedCommentEncoder, highlightedCommentDecoder)
 import Models.Range as Range
+
+
+{-| A full BasicTidbit ready for publication.
+-}
+type alias BasicTidbit =
+    { language : Language
+    , name : String
+    , description : String
+    , tags : List String
+    , code : String
+    , introduction : String
+    , conclusion : String
+    , highlightedComments : Array.Array HighlightedComment
+    }
 
 
 {-| The data for a basic tidbit being created.
@@ -26,6 +40,42 @@ type alias BasicTidbitCreateData =
     , introduction : String
     , conclusion : String
     }
+
+
+{-| BasicTidbit `encoder`.
+-}
+basicTidbitEncoder : BasicTidbit -> Encode.Value
+basicTidbitEncoder basicTidbit =
+    Encode.object
+        [ ( "language", languageCacheEncoder basicTidbit.language )
+        , ( "name", Encode.string basicTidbit.name )
+        , ( "description", Encode.string basicTidbit.description )
+        , ( "tags", Encode.list <| List.map Encode.string basicTidbit.tags )
+        , ( "code", Encode.string basicTidbit.code )
+        , ( "introduction", Encode.string basicTidbit.introduction )
+        , ( "conclusion", Encode.string basicTidbit.conclusion )
+        , ( "highlightedComments"
+          , Encode.array <|
+                Array.map
+                    highlightedCommentEncoder
+                    basicTidbit.highlightedComments
+          )
+        ]
+
+
+{-| BasicTidbit `decoder`.
+-}
+basicTidbitDecoder : Decode.Decoder BasicTidbit
+basicTidbitDecoder =
+    decode BasicTidbit
+        |> required "language" languageCacheDecoder
+        |> required "name" Decode.string
+        |> required "description" Decode.string
+        |> required "tags" (Decode.list Decode.string)
+        |> required "code" Decode.string
+        |> required "introduction" Decode.string
+        |> required "conclusion" Decode.string
+        |> required "highlightedComments" (Decode.array highlightedCommentDecoder)
 
 
 {-| BasicTidbitCreateData `cacheEncoder`.
