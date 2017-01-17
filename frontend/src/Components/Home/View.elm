@@ -450,6 +450,15 @@ createBasicTidbitView model shared =
                                                 GoTo <|
                                                     Route.HomeComponentCreateBasicTidbitFrame
                                                         (index + 1)
+                                            , classList
+                                                [ ( "selected-frame"
+                                                  , shared.route
+                                                        == (Route.HomeComponentCreateBasicTidbitFrame <|
+                                                                index
+                                                                    + 1
+                                                           )
+                                                  )
+                                                ]
                                             ]
                                             [ text <| toString <| index + 1 ]
                                     )
@@ -470,6 +479,12 @@ createBasicTidbitView model shared =
                                   , button
                                         [ onClick <|
                                             GoTo Route.HomeComponentCreateBasicTidbitIntroduction
+                                        , classList
+                                            [ ( "selected-frame"
+                                              , shared.route
+                                                    == Route.HomeComponentCreateBasicTidbitIntroduction
+                                              )
+                                            ]
                                         ]
                                         [ text "Introduction" ]
                                   ]
@@ -477,6 +492,12 @@ createBasicTidbitView model shared =
                                 , [ button
                                         [ onClick <|
                                             GoTo Route.HomeComponentCreateBasicTidbitConclusion
+                                        , classList
+                                            [ ( "selected-frame"
+                                              , shared.route
+                                                    == Route.HomeComponentCreateBasicTidbitConclusion
+                                              )
+                                            ]
                                         ]
                                         [ text "Conclusion" ]
                                   , button
