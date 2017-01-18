@@ -530,7 +530,19 @@ update msg model shared =
                     ( newModel, shared, Cmd.none )
 
             BasicTidbitPublish basicTidbit ->
-                -- TODO query API to add basic tidbit.
+                ( model
+                , shared
+                , Api.postBasicCodeTidbit
+                    basicTidbit
+                    OnBasicTidbitPublishFailure
+                    OnBasicTidbitPublishSuccess
+                )
+
+            OnBasicTidbitPublishSuccess basicResponse ->
+                update ResetCreateBasicTidbit model shared
+
+            OnBasicTidbitPublishFailure apiError ->
+                -- TODO Handle Publish Failures.
                 doNothing
 
 

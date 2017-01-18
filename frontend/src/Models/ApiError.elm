@@ -36,6 +36,18 @@ type ApiError
     | InvalidPassword
     | InternalError
     | PasswordDoesNotMatchConfirmPassword
+    | BasicTidbitEmptyRange
+    | BasicTidbitEmptyComment
+    | BasicTidbitNoHighlightedComments
+    | BasicTidbitEmptyConclusion
+    | BasicTidbitEmptyIntroduction
+    | BasicTidbitEmptyCode
+    | BasicTidbitNoTags
+    | BasicTidbitEmptyTag
+    | BasicTidbitEmptyDescription
+    | BasicTidbitEmptyName
+    | BasicTidbitNameTooLong
+    | BasicTidbitInvalidLanguage
 
 
 {-| An error from the backend still in Json form.
@@ -93,6 +105,42 @@ humanReadable apiError =
         PasswordDoesNotMatchConfirmPassword ->
             "Passwords do not match!"
 
+        BasicTidbitEmptyRange ->
+            "You must have a range selected for each frame!"
+
+        BasicTidbitEmptyComment ->
+            "You must have an explanatory comment on each frame!"
+
+        BasicTidbitNoHighlightedComments ->
+            "You must have at least one explanatory frame!"
+
+        BasicTidbitEmptyConclusion ->
+            "You must have a conclusion!"
+
+        BasicTidbitEmptyIntroduction ->
+            "You must have a introduction!"
+
+        BasicTidbitEmptyCode ->
+            "You must have code!"
+
+        BasicTidbitNoTags ->
+            "You must have at least one tag!"
+
+        BasicTidbitEmptyTag ->
+            "You must have no empty tags!"
+
+        BasicTidbitEmptyDescription ->
+            "You must have a description!"
+
+        BasicTidbitEmptyName ->
+            "You must have a name!"
+
+        BasicTidbitNameTooLong ->
+            "Name entered is too long! "
+
+        BasicTidbitInvalidLanguage ->
+            "Language selected was not valid!"
+
 
 {-| Turns an errorCode integer from the backend to it's respective ApiError.
 -}
@@ -128,6 +176,42 @@ fromErrorCode errorCode =
 
         10 ->
             PasswordDoesNotMatchConfirmPassword
+
+        11 ->
+            BasicTidbitEmptyRange
+
+        12 ->
+            BasicTidbitEmptyComment
+
+        13 ->
+            BasicTidbitNoHighlightedComments
+
+        14 ->
+            BasicTidbitEmptyConclusion
+
+        15 ->
+            BasicTidbitEmptyIntroduction
+
+        16 ->
+            BasicTidbitEmptyCode
+
+        17 ->
+            BasicTidbitNoTags
+
+        18 ->
+            BasicTidbitEmptyTag
+
+        19 ->
+            BasicTidbitEmptyDescription
+
+        20 ->
+            BasicTidbitEmptyName
+
+        21 ->
+            BasicTidbitNameTooLong
+
+        22 ->
+            BasicTidbitInvalidLanguage
 
         _ ->
             InternalError

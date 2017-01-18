@@ -13,6 +13,23 @@ export interface AppRoutes {
 }
 
 /**
+ * The error format that the frontend expects.
+ */
+export interface FrontendError {
+  errorCode: number;
+  message: string;
+}
+
+/**
+ * A language from the database.
+ */
+export interface Language {
+  _id?: MongoID;
+  // The encoded language from the frontend type union, eg. "Javascript".
+  encodedName: string;
+}
+
+/**
  * A mongo ID.
  */
 export type MongoID = string;
@@ -52,5 +69,17 @@ export enum ErrorCode {
   invalidEmail,
   invalidPassword,
   internalError,                    // For errors that are not handleable
-  passwordDoesNotMatchConfirmPassword
+  passwordDoesNotMatchConfirmPassword,
+  basicTidbitEmptyRange,
+  basicTidbitEmptyComment,
+  basicTidbitNoHighlightedComments,
+  basicTidbitEmptyConclusion,
+  basicTidbitEmptyIntroduction,
+  basicTidbitEmptyCode,
+  basicTidbitNoTags,
+  basicTidbitEmptyTag,
+  basicTidbitEmptyDescription,
+  basicTidbitEmptyName,
+  basicTidbitNameTooLong,
+  basicTidbitInvalidLanguage
 }

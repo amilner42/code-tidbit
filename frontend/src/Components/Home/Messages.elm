@@ -32,3 +32,5 @@ type Msg
     | BasicTidbitUpdateConclusion String
     | BasicTidbitUpdateCode String
     | BasicTidbitPublish BasicTidbit.BasicTidbit
+    | OnBasicTidbitPublishSuccess BasicResponse.BasicResponse
+    | OnBasicTidbitPublishFailure ApiError.ApiError
