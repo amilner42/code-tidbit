@@ -1,6 +1,7 @@
 module DefaultServices.Util exposing (..)
 
-import Html exposing (Html)
+import Html exposing (Html, Attribute)
+import Html.Events exposing (on, keyCode)
 import Json.Decode as Decode
 import Json.Encode as Encode
 
@@ -60,3 +61,31 @@ fromJsonString decoder encodedString =
 toJsonString : (a -> Encode.Value) -> a -> String
 toJsonString encoder record =
     Encode.encode 0 (encoder record)
+
+
+{-| Wraps a string in "quotes".
+-}
+quote : String -> String
+quote word =
+    "\"" ++ word ++ "\""
+
+
+{-| Event handler for enter clicks.
+-}
+onEnter : msg -> Attribute msg
+onEnter msg =
+    let
+        isEnter code =
+            if code == 13 then
+                Decode.succeed msg
+            else
+                Decode.fail "not ENTER"
+    in
+        on "keydown" (Decode.andThen isEnter keyCode)
+
+
+{-| Gets the last element of a list, if list is empty then Nothing.
+-}
+lastElem : List a -> Maybe a
+lastElem =
+    List.foldl (Just >> always) Nothing

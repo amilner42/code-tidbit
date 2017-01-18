@@ -3,6 +3,7 @@ module DefaultModel exposing (defaultModel, defaultShared)
 import Components.Home.Init as HomeInit
 import Components.Model as Model
 import Components.Welcome.Init as WelcomeInit
+import Elements.Editor as Editor
 import Models.Route as Route
 
 
@@ -22,4 +23,5 @@ defaultShared : Model.Shared
 defaultShared =
     { user = Nothing
     , route = Route.WelcomeComponentLogin
+    , languages = Editor.humanReadableListOfLanguages
     }

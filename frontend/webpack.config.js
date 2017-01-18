@@ -1,5 +1,6 @@
 var path = require("path");
 var ExtractTextPlugin = require("extract-text-webpack-plugin");
+var CopyWebpackPlugin = require('copy-webpack-plugin');
 
 
 module.exports = {
@@ -44,7 +45,10 @@ module.exports = {
   },
 
   plugins: [
-    new ExtractTextPlugin("[name].css")
+    new ExtractTextPlugin("[name].css"),
+    new CopyWebpackPlugin([
+       { from: 'node_modules/ace-builds/src-min-noconflict/', to: 'ace-build/' }
+    ])
   ],
 
   devServer: {

@@ -1,14 +1,18 @@
 module Components.Update exposing (update, updateCacheIf)
 
+import Array
 import Api
 import Components.Home.Update as HomeUpdate
+import Components.Home.Messages as HomeMessages
 import Components.Messages exposing (Msg(..))
 import Components.Model exposing (Model)
 import Components.Welcome.Update as WelcomeUpdate
 import DefaultServices.LocalStorage as LocalStorage
 import DefaultServices.Util as Util
+import Elements.Editor as Editor
 import Models.Route as Route
 import Navigation
+import Ports
 import Router
 
 
@@ -29,10 +33,16 @@ updateCacheIf msg model shouldCache =
         shared =
             model.shared
 
+        currentHomeComponent =
+            model.homeComponent
+
+        doNothing =
+            ( model, Cmd.none )
+
         ( newModel, newCmd ) =
             case msg of
                 NoOp ->
-                    ( model, Cmd.none )
+                    doNothing
 
                 OnLocationChange location ->
                     let
@@ -105,6 +115,35 @@ updateCacheIf msg model shouldCache =
                             }
                     in
                         ( newModel, Cmd.map WelcomeMessage newSubMsg )
+
+                CodeEditorUpdate { id, value } ->
+                    case id of
+                        "basic-tidbit-code-editor" ->
+                            (updateCacheIf
+                                (HomeMessage <|
+                                    HomeMessages.BasicTidbitUpdateCode value
+                                )
+                                model
+                                shouldCache
+                            )
+
+                        _ ->
+                            doNothing
+
+                CodeEditorSelectionUpdate { id, range } ->
+                    case id of
+                        "basic-tidbit-code-editor" ->
+                            (updateCacheIf
+                                (HomeMessage <|
+                                    HomeMessages.BasicTidbitNewRangeSelected
+                                        range
+                                )
+                                model
+                                shouldCache
+                            )
+
+                        _ ->
+                            doNothing
     in
         case shouldCache of
             True ->
@@ -154,52 +193,130 @@ handleLocationChange maybeRoute model =
                     { model
                         | shared = { shared | route = route }
                     }
+
+                aceLang =
+                    case model.homeComponent.creatingBasicTidbitData.language of
+                        Nothing ->
+                            ""
+
+                        Just aLanguage ->
+                            Editor.aceLanguageLocation aLanguage
+
+                -- TODO Get theme from `shared.user`.
+                aceTheme =
+                    ""
+
+                aceValue =
+                    model.homeComponent.creatingBasicTidbitData.code
+
+                -- Handle authentication logic here.
+                ( newModel, newCmd ) =
+                    case loggedIn of
+                        False ->
+                            case routeNeedsAuth of
+                                -- not logged in, route doesn't need auth, good
+                                False ->
+                                    let
+                                        newModel =
+                                            modelWithRoute route
+                                    in
+                                        ( newModel, LocalStorage.saveModel newModel )
+
+                                -- not logged in, route needs auth, bad - redirect.
+                                True ->
+                                    let
+                                        newModel =
+                                            modelWithRoute Route.defaultUnauthRoute
+
+                                        newCmd =
+                                            Cmd.batch
+                                                [ Router.navigateTo newModel.shared.route
+                                                , LocalStorage.saveModel newModel
+                                                ]
+                                    in
+                                        ( newModel, newCmd )
+
+                        True ->
+                            case routeNeedsAuth of
+                                -- logged in, route doesn't need auth, bad - redirect.
+                                False ->
+                                    let
+                                        newModel =
+                                            modelWithRoute Route.defaultAuthRoute
+
+                                        newCmd =
+                                            Cmd.batch
+                                                [ Router.navigateTo newModel.shared.route
+                                                , LocalStorage.saveModel newModel
+                                                ]
+                                    in
+                                        ( newModel, newCmd )
+
+                                -- logged in, route needs auth, good.
+                                True ->
+                                    let
+                                        newModel =
+                                            modelWithRoute route
+                                    in
+                                        ( newModel, LocalStorage.saveModel newModel )
+
+                newCmdBatchedWithCreateBasicTidbitEditor aceRange =
+                    Cmd.batch
+                        [ newCmd
+                        , Ports.createCodeEditor
+                            { id = "basic-tidbit-code-editor"
+                            , lang = aceLang
+                            , theme = aceTheme
+                            , value = aceValue
+                            , range = aceRange
+                            }
+                        ]
             in
-                case loggedIn of
-                    False ->
-                        case routeNeedsAuth of
-                            -- not logged in, route doesn't need auth, good
-                            False ->
-                                let
-                                    newModel =
-                                        modelWithRoute route
-                                in
-                                    ( newModel, LocalStorage.saveModel newModel )
+                -- Handle general route-logic here, routes are a great way to be
+                -- able to trigger certain things (hooks).
+                case route of
+                    -- Init the editor.
+                    Route.HomeComponentCreateBasicTidbitIntroduction ->
+                        ( newModel
+                        , newCmdBatchedWithCreateBasicTidbitEditor Nothing
+                        )
 
-                            -- not logged in, route needs auth, bad - redirect.
-                            True ->
-                                let
-                                    newModel =
-                                        modelWithRoute Route.defaultUnauthRoute
+                    -- Init the editor.
+                    Route.HomeComponentCreateBasicTidbitConclusion ->
+                        ( newModel
+                        , newCmdBatchedWithCreateBasicTidbitEditor Nothing
+                        )
 
-                                    newCmd =
-                                        Cmd.batch
-                                            [ Router.navigateTo newModel.shared.route
-                                            , LocalStorage.saveModel newModel
-                                            ]
-                                in
-                                    ( newModel, newCmd )
+                    Route.HomeComponentCreateBasicTidbitFrame frameNumber ->
+                        let
+                            -- 0 based indexing.
+                            frameIndex =
+                                frameNumber - 1
 
-                    True ->
-                        case routeNeedsAuth of
-                            -- logged in, route doesn't need auth, bad - redirect.
-                            False ->
-                                let
-                                    newModel =
-                                        modelWithRoute Route.defaultAuthRoute
+                            frameIndexTooHigh =
+                                frameIndex >= (Array.length model.homeComponent.creatingBasicTidbitData.highlightedComments)
 
-                                    newCmd =
-                                        Cmd.batch
-                                            [ Router.navigateTo newModel.shared.route
-                                            , LocalStorage.saveModel newModel
-                                            ]
-                                in
-                                    ( newModel, newCmd )
+                            frameIndexTooLow =
+                                frameIndex < 0
+                        in
+                            if frameIndexTooHigh || frameIndexTooLow then
+                                ( newModel
+                                , Cmd.batch
+                                    [ newCmd
+                                    , Router.navigateTo
+                                        Route.HomeComponentCreateBasicTidbitIntroduction
+                                    ]
+                                )
+                            else
+                                ( newModel
+                                , newCmdBatchedWithCreateBasicTidbitEditor <|
+                                    Maybe.andThen
+                                        .range
+                                        (Array.get
+                                            frameIndex
+                                            model.homeComponent.creatingBasicTidbitData.highlightedComments
+                                        )
+                                )
 
-                            -- logged in, route needs auth, good.
-                            True ->
-                                let
-                                    newModel =
-                                        modelWithRoute route
-                                in
-                                    ( newModel, LocalStorage.saveModel newModel )
+                    _ ->
+                        ( newModel, newCmd )

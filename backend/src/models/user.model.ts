@@ -2,13 +2,22 @@
 
 import { omit } from "ramda";
 
-import { model, user } from '../types';
+import { Model, MongoID } from '../types';
 
 
 /**
- * The `user` model.
+ * A `User`.
  */
-export const userModel: model<user> = {
+export interface User {
+  _id?: MongoID;
+  email: string;
+  password?: string;
+}
+
+/**
+ * The `User` model.
+ */
+export const userModel: Model<User> = {
   name: "user",
   stripSensitiveDataForResponse: omit(['password', '_id'])
 };

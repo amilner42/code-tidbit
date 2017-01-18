@@ -6,27 +6,39 @@ import { Handler } from "express";
 /**
  * Format of the application's routes.
  */
-export interface appRoutes {
+export interface AppRoutes {
   [routeUrl: string]: {
     [methodType: string]: Handler;
   }
 }
 
 /**
- * A `user`.
+ * The error format that the frontend expects.
  */
-export interface user {
-  _id?: string;
-  email: string;
-  password?: string;
+export interface FrontendError {
+  errorCode: number;
+  message: string;
 }
 
+/**
+ * A language from the database.
+ */
+export interface Language {
+  _id?: MongoID;
+  // The encoded language from the frontend type union, eg. "Javascript".
+  encodedName: string;
+}
+
+/**
+ * A mongo ID.
+ */
+export type MongoID = string;
 
 /**
  * All models (in `/models`) should export an implementation of this
  * interface.
  */
-export interface model<T> {
+export interface Model<T> {
 
   /**
    * Unique name, should be identical to the name of interface `T`.
@@ -42,12 +54,12 @@ export interface model<T> {
 }
 
 /**
- * All errorCodes for simpler programmatic communication between the client and
- * server.
+ * All ErrorCode are used for simpler programmatic communication between the
+ * client and server.
  *
  * NOTE An identical enum should be kept on the frontend/backend.
  */
-export enum errorCodes {
+export enum ErrorCode {
   youAreUnauthorized = 1,
   emailAddressAlreadyRegistered,
   noAccountExistsForEmail,
@@ -57,5 +69,17 @@ export enum errorCodes {
   invalidEmail,
   invalidPassword,
   internalError,                    // For errors that are not handleable
-  passwordDoesNotMatchConfirmPassword
+  passwordDoesNotMatchConfirmPassword,
+  basicTidbitEmptyRange,
+  basicTidbitEmptyComment,
+  basicTidbitNoHighlightedComments,
+  basicTidbitEmptyConclusion,
+  basicTidbitEmptyIntroduction,
+  basicTidbitEmptyCode,
+  basicTidbitNoTags,
+  basicTidbitEmptyTag,
+  basicTidbitEmptyDescription,
+  basicTidbitEmptyName,
+  basicTidbitNameTooLong,
+  basicTidbitInvalidLanguage
 }

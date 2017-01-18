@@ -3,8 +3,8 @@
 
 
 .home-component-wrapper {
-
-    @include full-screen-absolute();
+    width: 100%;
+    height: 100%;
 
     .home-component {
 
@@ -19,11 +19,91 @@
                 height: 30px;
                 margin: 10px;
                 font-size: 26px;
+                cursor: pointer;
 
                 &.selected {
                     border-bottom: 5px solid blue;
                     color: blue;
                 }
+            }
+        }
+
+        .lang-select-ac {
+
+            .lang-select-ac-item {
+                @include no-select();
+                list-style-type: none;
+                color: black;
+                border: 2px solid #DDD;
+                width: 100px;
+                margin-bottom: 2px;
+
+                &.key-selected {
+                    background-color: #AAA;
+                }
+
+                &:hover {
+                    cursor: pointer;
+                }
+            }
+        }
+
+        .create-basic-tidbit-navbar {
+            @include no-select();
+
+            width: 500px;
+            height: 50px;
+            position: relative;
+            display: block;
+
+            .create-basic-tidbit-tab {
+                box-sizing: border-box;
+                width: 100px;
+                position: relative;
+                display: inline-block;
+                cursor: pointer;
+                border: 2px solid grey;
+
+                &.create-basic-tidbit-selected-tab {
+                    color: blue;
+                }
+            }
+        }
+
+        .create-basic-tidbit-back-button {
+          position: absolute;
+          top: 80px;
+          left: 450px;
+        }
+
+        .create-basic-tidbit-reset-button {
+            position: absolute;
+            top: 100px;
+            left: 450px;
+        }
+
+        .create-basic-tidbit-description-box {
+            width: 300px;
+            height: 200px;
+        }
+
+        .comment-creator {
+            box-sizing: border-box;
+            position: relative;
+            display: inline-block;
+            margin: 0 5px 0 5px;
+            width: 369px;
+            height: 600px;
+            border: 2px solid grey;
+            padding: 5px;
+
+            textarea {
+              width: 349px;
+              height: 200px;
+            }
+
+            .selected-frame {
+              background-color: #AAA;
             }
         }
     }

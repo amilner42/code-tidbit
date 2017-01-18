@@ -13,14 +13,22 @@ module Models.Route
 import Config
 import Json.Decode as Decode
 import Json.Encode as Encode
-import UrlParser exposing (Parser, s, (</>), oneOf, map, top)
+import UrlParser exposing (Parser, s, (</>), oneOf, map, top, int)
 
 
 {-| All of the app routes.
 -}
 type Route
-    = HomeComponentProfile
-    | HomeComponentMain
+    = HomeComponentBrowse
+    | HomeComponentCreate
+    | HomeComponentCreateBasicName
+    | HomeComponentCreateBasicDescription
+    | HomeComponentCreateBasicLanguage
+    | HomeComponentCreateBasicTags
+    | HomeComponentCreateBasicTidbitIntroduction
+    | HomeComponentCreateBasicTidbitFrame Int
+    | HomeComponentCreateBasicTidbitConclusion
+    | HomeComponentProfile
     | WelcomeComponentLogin
     | WelcomeComponentRegister
 
@@ -29,12 +37,66 @@ type Route
 -}
 matchers : Parser (Route -> a) a
 matchers =
-    oneOf
-        [ map HomeComponentMain (top)
-        , map HomeComponentProfile (s "profile")
-        , map WelcomeComponentRegister (s "welcome" </> s "register")
-        , map WelcomeComponentLogin (s "welcome" </> s "login")
-        ]
+    let
+        create =
+            s "create"
+
+        -- Abstract.
+        createBasic =
+            create </> s "basic"
+
+        createBasicName =
+            createBasic </> s "name"
+
+        createBasicDescription =
+            createBasic </> s "description"
+
+        createBasicLanguage =
+            createBasic </> s "language"
+
+        createBasicTags =
+            createBasic </> s "tags"
+
+        -- Abstract.
+        createBasicTidbit =
+            createBasic </> s "tidbit"
+
+        createBasicTidbitIntroduction =
+            createBasicTidbit </> s "introduction"
+
+        createBasicTidbitFrame =
+            createBasicTidbit </> s "frame" </> int
+
+        createBasicTidbitConclusion =
+            createBasicTidbit </> s "conclusion"
+
+        profile =
+            s "profile"
+
+        -- Abstract.
+        welcome =
+            s "welcome"
+
+        welcomeRegister =
+            welcome </> s "register"
+
+        welcomeLogin =
+            welcome </> s "login"
+    in
+        oneOf
+            [ map HomeComponentBrowse (top)
+            , map HomeComponentCreate (create)
+            , map HomeComponentCreateBasicName (createBasicName)
+            , map HomeComponentCreateBasicDescription (createBasicDescription)
+            , map HomeComponentCreateBasicLanguage (createBasicLanguage)
+            , map HomeComponentCreateBasicTags (createBasicTags)
+            , map HomeComponentCreateBasicTidbitIntroduction (createBasicTidbitIntroduction)
+            , map HomeComponentCreateBasicTidbitFrame (createBasicTidbitFrame)
+            , map HomeComponentCreateBasicTidbitConclusion (createBasicTidbitConclusion)
+            , map HomeComponentProfile (profile)
+            , map WelcomeComponentRegister (welcomeRegister)
+            , map WelcomeComponentLogin (welcomeLogin)
+            ]
 
 
 {-| All the routes that don't require authentication. By default it will be
@@ -50,7 +112,7 @@ routesNotNeedingAuth =
 -}
 defaultAuthRoute : Route
 defaultAuthRoute =
-    HomeComponentMain
+    HomeComponentBrowse
 
 
 {-| The default route if unauthenticated.
@@ -64,18 +126,44 @@ defaultUnauthRoute =
 -}
 toUrl : Route -> String
 toUrl route =
-    case route of
-        HomeComponentMain ->
-            Config.baseUrl ++ "#"
+    Config.baseUrl
+        ++ "#"
+        ++ case route of
+            HomeComponentBrowse ->
+                ""
 
-        HomeComponentProfile ->
-            Config.baseUrl ++ "#profile"
+            HomeComponentCreate ->
+                "create"
 
-        WelcomeComponentLogin ->
-            Config.baseUrl ++ "#welcome/login"
+            HomeComponentCreateBasicName ->
+                "create/basic/name"
 
-        WelcomeComponentRegister ->
-            Config.baseUrl ++ "#welcome/register"
+            HomeComponentCreateBasicDescription ->
+                "create/basic/description"
+
+            HomeComponentCreateBasicLanguage ->
+                "create/basic/language"
+
+            HomeComponentCreateBasicTags ->
+                "create/basic/tags"
+
+            HomeComponentCreateBasicTidbitIntroduction ->
+                "create/basic/tidbit/introduction"
+
+            HomeComponentCreateBasicTidbitFrame frameNumber ->
+                "create/basic/tidbit/frame/" ++ (toString frameNumber)
+
+            HomeComponentCreateBasicTidbitConclusion ->
+                "create/basic/tidbit/conclusion"
+
+            HomeComponentProfile ->
+                "profile"
+
+            WelcomeComponentLogin ->
+                "welcome/login"
+
+            WelcomeComponentRegister ->
+                "welcome/register"
 
 
 {-| The Route `cacheEncoder`.
@@ -91,23 +179,65 @@ cacheDecoder : Decode.Decoder Route
 cacheDecoder =
     let
         fromStringDecoder encodedRouteString =
-            case encodedRouteString of
-                "HomeComponentProfile" ->
-                    Decode.succeed HomeComponentProfile
-
-                "HomeComponentMain" ->
-                    Decode.succeed HomeComponentMain
-
-                "WelcomeComponentLogin" ->
-                    Decode.succeed WelcomeComponentLogin
-
-                "WelcomeComponentRegister" ->
-                    Decode.succeed WelcomeComponentRegister
-
-                {- Technically string could be anything in local storage, `_` is a
-                   wildcard.
-                -}
-                _ ->
+            let
+                failure =
                     Decode.fail <| encodedRouteString ++ " is not a valid route encoding!"
+            in
+                case encodedRouteString of
+                    "HomeComponentBrowse" ->
+                        Decode.succeed HomeComponentBrowse
+
+                    "HomeComponentCreate" ->
+                        Decode.succeed HomeComponentCreate
+
+                    "HomeComponentCreateBasicName" ->
+                        Decode.succeed HomeComponentCreateBasicName
+
+                    "HomeComponentCreateBasicDescription" ->
+                        Decode.succeed HomeComponentCreateBasicDescription
+
+                    "HomeComponentCreateBasicLanguage" ->
+                        Decode.succeed HomeComponentCreateBasicLanguage
+
+                    "HomeComponentCreateBasicTags" ->
+                        Decode.succeed HomeComponentCreateBasicTags
+
+                    "HomeComponentCreateBasicTidbitIntroduction" ->
+                        Decode.succeed HomeComponentCreateBasicTidbitIntroduction
+
+                    "HomeComponentCreateBasicTidbitConclusion" ->
+                        Decode.succeed HomeComponentCreateBasicTidbitConclusion
+
+                    "HomeComponentProfile" ->
+                        Decode.succeed HomeComponentProfile
+
+                    "WelcomeComponentLogin" ->
+                        Decode.succeed WelcomeComponentLogin
+
+                    "WelcomeComponentRegister" ->
+                        Decode.succeed WelcomeComponentRegister
+
+                    {- Here we check if it's any route that had parameters, if not
+                       then it's just not a valid route.
+                    -}
+                    _ ->
+                        if
+                            String.startsWith "HomeComponentCreateBasicTidbitFrame "
+                                encodedRouteString
+                        then
+                            let
+                                frameNumberAsString =
+                                    String.dropLeft 36 encodedRouteString
+                            in
+                                case String.toInt frameNumberAsString of
+                                    Err err ->
+                                        failure
+
+                                    Ok frameNumber ->
+                                        Decode.succeed <|
+                                            HomeComponentCreateBasicTidbitFrame
+                                                frameNumber
+                        else
+                            failure
     in
         Decode.andThen fromStringDecoder Decode.string

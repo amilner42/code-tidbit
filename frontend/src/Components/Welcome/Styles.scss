@@ -3,14 +3,13 @@
 
 
 .welcome-component-wrapper {
-  @include full-screen-absolute();
+  height: 100%;
+  width: 100%;
 
   .welcome-component {
-    @include absolutely-centered-min-box();
+    margin-top: 200px;
     background-color: $color1;
     border-radius: 5px;
-    border: 2px solid $color2;
-
     text-align: center;
 
     .welcome-form {

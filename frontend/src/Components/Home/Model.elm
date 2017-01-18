@@ -1,17 +1,17 @@
 module Components.Home.Model exposing (Model, cacheEncoder, cacheDecoder)
 
+import DefaultServices.Util as Util
 import Json.Decode as Decode exposing (field)
 import Json.Encode as Encode
 import Models.ApiError as ApiError
+import Models.BasicTidbit as BasicTidbit
 
 
-{-| Home Component Model. Currently contains no meaningful information, just
-random data (strings) to display the cacheing.
+{-| Home Component Model.
 -}
 type alias Model =
-    { dataOne : String
-    , dataTwo : String
-    , logOutError : Maybe ApiError.ApiError
+    { logOutError : Maybe ApiError.ApiError
+    , creatingBasicTidbitData : BasicTidbit.BasicTidbitCreateData
     }
 
 
@@ -20,9 +20,10 @@ type alias Model =
 cacheEncoder : Model -> Encode.Value
 cacheEncoder model =
     Encode.object
-        [ ( "dataOne", Encode.string model.dataOne )
-        , ( "dataTwo", Encode.string model.dataTwo )
-        , ( "logOutError", Encode.null )
+        [ ( "logOutError", Encode.null )
+        , ( "creatingBasicTidbitData"
+          , BasicTidbit.createDataCacheEncoder model.creatingBasicTidbitData
+          )
         ]
 
 
@@ -30,7 +31,6 @@ cacheEncoder model =
 -}
 cacheDecoder : Decode.Decoder Model
 cacheDecoder =
-    Decode.map3 Model
-        (field "dataOne" Decode.string)
-        (field "dataTwo" Decode.string)
+    Decode.map2 Model
         (field "logOutError" (Decode.null Nothing))
+        (field "creatingBasicTidbitData" (BasicTidbit.createDataCacheDecoder))

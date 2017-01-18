@@ -36,7 +36,31 @@ viewForRoute model =
             Route.WelcomeComponentLogin ->
                 renderedWelcomeView
 
-            Route.HomeComponentMain ->
+            Route.HomeComponentBrowse ->
+                renderedHomeView
+
+            Route.HomeComponentCreate ->
+                renderedHomeView
+
+            Route.HomeComponentCreateBasicName ->
+                renderedHomeView
+
+            Route.HomeComponentCreateBasicDescription ->
+                renderedHomeView
+
+            Route.HomeComponentCreateBasicLanguage ->
+                renderedHomeView
+
+            Route.HomeComponentCreateBasicTags ->
+                renderedHomeView
+
+            Route.HomeComponentCreateBasicTidbitIntroduction ->
+                renderedHomeView
+
+            Route.HomeComponentCreateBasicTidbitFrame _ ->
+                renderedHomeView
+
+            Route.HomeComponentCreateBasicTidbitConclusion ->
                 renderedHomeView
 
             Route.HomeComponentProfile ->
