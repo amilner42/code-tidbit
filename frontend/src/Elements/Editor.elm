@@ -558,15 +558,16 @@ aceThemeLocation theme =
         baseLocation ++ themeLocation
 
 
-{-| The editor, has special classes attached for styling and a special ID
-attached so that the js knows which div to replace with the ace-editor.
+{-| Use this to create a code editor with id `editorID`.
 
 NOTE: You should only ever have one editor at a time.
 -}
-editor : Html msg
-editor =
+editor : String -> Html msg
+editor editorID =
     div
-        [ class "code-editor"
-        , id "ace-code-editor"
+        [ id "code-editor-wrapper"
         ]
-        []
+        [ div
+            [ id editorID ]
+            []
+        ]
