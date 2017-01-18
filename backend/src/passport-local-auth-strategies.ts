@@ -4,6 +4,7 @@ import { compareSync, genSaltSync, hashSync } from 'bcryptjs';
 import { Strategy } from 'passport-local';
 import * as kleen from "kleen";
 
+import { internalError } from './util';
 import { collection } from './db';
 import { validEmail, validPassword } from './validifier';
 import { ErrorCode } from './types';
@@ -62,17 +63,11 @@ export const loginStrategy: Strategy = new Strategy({ usernameField }, (email, p
     objectProperties: {
       email: {
         primitiveType: kleen.kindOfPrimitive.string,
-        typeFailureError: {
-          message: "Email must be a string!",
-          errorCode: ErrorCode.internalError
-        }
+        typeFailureError: internalError("Email must be a string!")
       },
       password: {
         primitiveType: kleen.kindOfPrimitive.string,
-        typeFailureError: {
-          message: "Password must be a string",
-          errorCode: ErrorCode.internalError
-        }
+        typeFailureError: internalError("Password must be a string")
       }
     },
     restriction: (user: {email: string, password: string}) => {
@@ -107,10 +102,7 @@ export const loginStrategy: Strategy = new Strategy({ usernameField }, (email, p
         });
       });
     },
-    typeFailureError: {
-      message: "User object must have a email and password.",
-      errorCode: ErrorCode.internalError
-    }
+    typeFailureError: internalError("User object must have a email and password.")
   };
 
   kleen.validModel(userLoginStructure)({email, password})
@@ -193,10 +185,7 @@ export const signUpStrategy: Strategy = new Strategy({ usernameField }, (email, 
         }
       }
     },
-    typeFailureError: {
-      message: "User object must have an email and password",
-      errorCode: ErrorCode.internalError
-    }
+    typeFailureError: internalError("User object must have an email and password")
   };
 
   return kleen.validModel(userSignUpStructure)({ email, password })
