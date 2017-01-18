@@ -126,42 +126,44 @@ defaultUnauthRoute =
 -}
 toUrl : Route -> String
 toUrl route =
-    case route of
-        HomeComponentBrowse ->
-            Config.baseUrl ++ "#"
+    Config.baseUrl
+        ++ "#"
+        ++ case route of
+            HomeComponentBrowse ->
+                ""
 
-        HomeComponentCreate ->
-            Config.baseUrl ++ "#create"
+            HomeComponentCreate ->
+                "create"
 
-        HomeComponentCreateBasicName ->
-            Config.baseUrl ++ "#create/basic/name"
+            HomeComponentCreateBasicName ->
+                "create/basic/name"
 
-        HomeComponentCreateBasicDescription ->
-            Config.baseUrl ++ "#create/basic/description"
+            HomeComponentCreateBasicDescription ->
+                "create/basic/description"
 
-        HomeComponentCreateBasicLanguage ->
-            Config.baseUrl ++ "#create/basic/language"
+            HomeComponentCreateBasicLanguage ->
+                "create/basic/language"
 
-        HomeComponentCreateBasicTags ->
-            Config.baseUrl ++ "#create/basic/tags"
+            HomeComponentCreateBasicTags ->
+                "create/basic/tags"
 
-        HomeComponentCreateBasicTidbitIntroduction ->
-            Config.baseUrl ++ "#create/basic/tidbit/introduction"
+            HomeComponentCreateBasicTidbitIntroduction ->
+                "create/basic/tidbit/introduction"
 
-        HomeComponentCreateBasicTidbitFrame frameNumber ->
-            Config.baseUrl ++ "#create/basic/tidbit/frame/" ++ (toString frameNumber)
+            HomeComponentCreateBasicTidbitFrame frameNumber ->
+                "create/basic/tidbit/frame/" ++ (toString frameNumber)
 
-        HomeComponentCreateBasicTidbitConclusion ->
-            Config.baseUrl ++ "#create/basic/tidbit/conclusion"
+            HomeComponentCreateBasicTidbitConclusion ->
+                "create/basic/tidbit/conclusion"
 
-        HomeComponentProfile ->
-            Config.baseUrl ++ "#profile"
+            HomeComponentProfile ->
+                "profile"
 
-        WelcomeComponentLogin ->
-            Config.baseUrl ++ "#welcome/login"
+            WelcomeComponentLogin ->
+                "welcome/login"
 
-        WelcomeComponentRegister ->
-            Config.baseUrl ++ "#welcome/register"
+            WelcomeComponentRegister ->
+                "welcome/register"
 
 
 {-| The Route `cacheEncoder`.
