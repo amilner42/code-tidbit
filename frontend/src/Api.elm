@@ -48,16 +48,16 @@ getLogOut =
 
 {-| Logs user in and returns the user, unless invalid credentials.
 -}
-postLogin : User.AuthUser -> (ApiError.ApiError -> b) -> (User.User -> b) -> Cmd b
+postLogin : User.UserForLogin -> (ApiError.ApiError -> b) -> (User.User -> b) -> Cmd b
 postLogin user =
-    apiPost "login" User.decoder (User.authEncoder user)
+    apiPost "login" User.decoder (User.userLoginEncoder user)
 
 
 {-| Registers the user and returns the user, unless invalid new credentials.
 -}
-postRegister : User.AuthUser -> (ApiError.ApiError -> b) -> (User.User -> b) -> Cmd b
+postRegister : User.UserForRegistration -> (ApiError.ApiError -> b) -> (User.User -> b) -> Cmd b
 postRegister user =
-    apiPost "register" User.decoder (User.authEncoder user)
+    apiPost "register" User.decoder (User.userRegisterEncoder user)
 
 
 {-| Creates a new basic tidbit.

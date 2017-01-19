@@ -8,7 +8,7 @@ import { internalError } from './util';
 import { collection } from './db';
 import { validEmail, validPassword } from './validifier';
 import { ErrorCode } from './types';
-import { User } from "./models/user.model";
+import { User, UserForLogin, UserForRegistration } from "./models/user.model";
 
 
 /**
@@ -19,29 +19,23 @@ const usernameField = "email";
 /**
  * Check if a password is correct for a user.
  *
- * @param user User in database
- * @param password Password for user (string)
+ * @param user User from database
+ * @param password Password for user
  * @return boolean, true if correct
  */
-const correctPassword = (user, password) => {
+const correctPassword = (user: User, password: string) => {
   return compareSync(password, user.password);
 };
 
 /**
  * Register a new user.
  *
- * @required email Email does not exist
- * @param email Unique email for user
- * @param password Password for user
- * @return Promise for the user
+ * @required Email does not exist, this function doesn't check that.
  */
-const register = (email, password): Promise<User> => {
+const register = (user: UserForRegistration): Promise<User> => {
   const salt = genSaltSync(10);
-  const passwordAsHash = hashSync(password, salt);
-  const user = {
-    email: email,
-    password: passwordAsHash
-  };
+  // Bcrypt user's password.
+  user.password = hashSync(user.password, salt);
 
   return collection('users')
   .then((Users) => Users.save(user))
@@ -70,7 +64,7 @@ export const loginStrategy: Strategy = new Strategy({ usernameField }, (email, p
         typeFailureError: internalError("Password must be a string")
       }
     },
-    restriction: (user: {email: string, password: string}) => {
+    restriction: (user: UserForLogin) => {
 
       return new Promise<void>((resolve, reject) => {
 
@@ -86,6 +80,7 @@ export const loginStrategy: Strategy = new Strategy({ usernameField }, (email, p
               message: "No account exists for that email address",
               errorCode: ErrorCode.noAccountExistsForEmail
             });
+            return;
           }
 
           return userInDB;
@@ -123,84 +118,107 @@ export const loginStrategy: Strategy = new Strategy({ usernameField }, (email, p
 /**
  * Standard sign-up strategy, rejects with approprite error code if needed.
  */
-export const signUpStrategy: Strategy = new Strategy({ usernameField }, (email, password, next) => {
-
-  /**
-   * The user signup structure.
-   */
-  const userSignUpStructure: kleen.objectSchema = {
-    objectProperties: {
-      email: {
-        primitiveType: kleen.kindOfPrimitive.string,
-        typeFailureError: {
-          message: "Email must be a string",
-          errorCode: ErrorCode.invalidEmail
-        },
-        restriction: (email: string) => {
-
-          return new Promise<void>((resolve, reject) => {
-
-            email = email.toLowerCase();
-
-            if(!validEmail(email)) {
-              reject({
-                message: "Invalid email",
-                errorCode: ErrorCode.invalidEmail
+export const signUpStrategy: Strategy = new Strategy(
+  { usernameField, passReqToCallback: true },
+  (req, email, password, next) => {
+    /**
+     * The user signup structure.
+     */
+    const userSignUpStructure: kleen.objectSchema = {
+      objectProperties: {
+        name: {
+          primitiveType: kleen.kindOfPrimitive.string,
+          typeFailureError: {
+            message: "Name must be a string!",
+            errorCode: ErrorCode.invalidName
+          },
+          restriction: (name: string) => {
+            if(name === "") {
+              return Promise.reject({
+                message: "Name cannot be empty!",
+                errorCode: ErrorCode.invalidName
               });
-              return;
             }
+          }
+        },
+        email: {
+          primitiveType: kleen.kindOfPrimitive.string,
+          typeFailureError: {
+            message: "Email must be a string",
+            errorCode: ErrorCode.invalidEmail
+          },
+          restriction: (email: string) => {
 
-            return collection('users')
-            .then((Users) => {
-              return Users.findOne({ email });
-            })
-            .then((user) => {
-              if(user) {
+            return new Promise<void>((resolve, reject) => {
+
+              email = email.toLowerCase();
+
+              if(!validEmail(email)) {
                 reject({
-                  message: "Email address already registered",
-                  errorCode: ErrorCode.emailAddressAlreadyRegistered
+                  message: "Invalid email",
+                  errorCode: ErrorCode.invalidEmail
                 });
                 return;
               }
 
-              resolve();
-              return;
-            });
-          });
-        }
-      },
-      password: {
-        primitiveType: kleen.kindOfPrimitive.string,
-        typeFailureError: {
-          message: "Password must be a string",
-          errorCode: ErrorCode.invalidPassword
-        },
-        restriction: (password: string) => {
-          if(!validPassword(password)) {
-            return Promise.reject({
-              message: 'Password not strong enough',
-              errorCode: ErrorCode.invalidPassword
+              return collection('users')
+              .then((Users) => {
+                return Users.findOne({ email });
+              })
+              .then((user) => {
+                if(user) {
+                  reject({
+                    message: "Email address already registered",
+                    errorCode: ErrorCode.emailAddressAlreadyRegistered
+                  });
+                  return;
+                }
+
+                resolve();
+                return;
+              });
             });
           }
+        },
+        password: {
+          primitiveType: kleen.kindOfPrimitive.string,
+          typeFailureError: {
+            message: "Password must be a string",
+            errorCode: ErrorCode.invalidPassword
+          },
+          restriction: (password: string) => {
+            if(!validPassword(password)) {
+              return Promise.reject({
+                message: 'Password not strong enough',
+                errorCode: ErrorCode.invalidPassword
+              });
+            }
+          }
         }
-      }
-    },
-    typeFailureError: internalError("User object must have an email and password")
-  };
+      },
+      typeFailureError: internalError("User object must have an email and password")
+    };
 
-  return kleen.validModel(userSignUpStructure)({ email, password })
-  .then(() => {
-    return register(email, password);
-  })
-  .then((user) => {
-    return next(null, user);
-  })
-  .catch((err) => {
-    // custom error.
-    if(err.errorCode) {
-      return next(null, false, err);
-    }
-    // internal error
-    return next(err);
-  });
-});
+    const newUser: UserForRegistration = {
+      name: req.body.name,
+      email,
+      password
+    };
+
+    return kleen.validModel(userSignUpStructure)(newUser)
+    .then(() => {
+      return register(newUser);
+    })
+    .then((user) => {
+      return next(null, user);
+    })
+    .catch((err) => {
+      // custom error.
+      if(err.errorCode) {
+        return next(null, false, err);
+      }
+      // internal error
+      return next(err);
+    });
+  }
+);

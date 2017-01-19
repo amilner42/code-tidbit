@@ -3,39 +3,113 @@
 
 
 .welcome-component-wrapper {
+  position: relative;
   height: 100%;
   width: 100%;
+  background-color: white;
+
+  .logo {
+    position: absolute;
+    left: 15px;
+    top: 15px;
+  }
+
+  .logo-title-1 {
+    position: absolute;
+    font-size: 68px;
+    left: 136px;
+    top: 8px;
+    font-weight: bold;
+    width: 250px;
+    font-family: 'Raleway', sans-serif;
+  }
+
+  .logo-title-2 {
+    position: absolute;
+    font-size: 68px;
+    left: 135px;
+    top: 62px;
+    font-weight: bold;
+    width: 250px;
+    font-family: 'Raleway', sans-serif;
+  }
+
+  .welcome-component-change-tab-button {
+    position: absolute;
+    right: 23px;
+    top: 23px;
+    color: white;
+    background-color: lightgrey;
+    border: 3px solid lightgrey;
+    border-radius: 5px;
+    width: 150px;
+    height: 45px;
+    font-size: 24px;
+
+    &:hover {
+      background-color: $color1;
+      border-color:  $color1;
+    }
+  }
 
   .welcome-component {
-    margin-top: 200px;
-    background-color: $color1;
-    border-radius: 5px;
+    @include strong-box-shadow();
+
+    position: absolute;
+    width: 600px;
+    height: 377px;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
     text-align: center;
+    font-size: 12px;
 
-    .welcome-form {
+    .welcome-component-motto {
+      font-size: 32px;
+      color: white;
+    }
 
-      $form-width: 270px;
+    .welcome-box {
+
+      .welcome-box-text {
+        font-size: 32px;
+        font-weight: 700;
+        color: $color1;
+        height: 55px;
+        display: block;
+        padding: 25px 10px 0 10px;
+      }
+
+      .welcome-box-sub-text {
+        font-size: 18px;
+        display: block;
+        color: #222;
+        height: 45px;
+      }
 
       input {
-        border: 1px solid $color3;
-        background-color: $color1;
-        display: block;
+        position: relative;
+        border: 1px solid #DDD;
+        display: inline-block;
         text-align: center;
         margin: auto;
-        width: $form-width;
-        height: 53px;
+        width: 270px;
+        height: 59px;
         border-radius: 5px;
-        margin-bottom: 10px;
+        margin-bottom: 15px;
       }
 
       button {
         display: block;
-        height: 30px;
-        width: $form-width;
+        height: 60px;
+        border-radius: 5px;
+        width: 560px;
         margin: auto;
-        color: $color1;
-        background-color: $color2;
+        color: white;
+        background-color: $color1;
+        font-size: 26px;
         border: none;
+        margin-top: 5px;
 
         &:disabled {
             cursor: not-allowed;
@@ -43,20 +117,26 @@
       }
 
       .welcome-error-box {
-        width: $form-width;
-        height: 30px;
-        border: 2px solid $error-color1;
+        width: 270px;
+        height: 20px;
         margin: auto;
         border-radius: 5px;
         color: $error-color2;
         margin-bottom: 10px;
-        padding-top: 10px;
         text-align: center;
       }
     }
+  }
 
-    a {
-      color: $link-color1;
-    }
+  .small-box {
+    height: 298px !important;
+  }
+
+  .small-box-error {
+    height: 323px !important;
+  }
+
+  .big-box-error {
+    height: 402px !important;
   }
 }

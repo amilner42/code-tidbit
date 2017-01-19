@@ -3,24 +3,10 @@ module Models.ApiError exposing (ApiError(..), decoder, humanReadable)
 import Json.Decode as Decode exposing (field)
 
 
-{- COPIED from the backend, needs to stay up to date with the backend!
-
-   export enum errorCodes {
-     youAreUnauthorized = 1,
-     emailAddressAlreadyRegistered,
-     noAccountExistsForEmail,
-     incorrectPasswordForEmail,
-     phoneNumberAlreadyTaken,
-     invalidMongoID,
-     invalidEmail,
-     invalidPassword,
-     internalError,                    // For errors that are not handleable
-     passwordDoesNotMatchConfirmPassword
-   }
--}
-
-
 {-| An error from the backend converted to a union.
+
+NOTE: This must stay up to date with the backend, refer to types.ts to see
+backend errors.
 -}
 type ApiError
     = UnexpectedPayload
@@ -48,6 +34,7 @@ type ApiError
     | BasicTidbitEmptyName
     | BasicTidbitNameTooLong
     | BasicTidbitInvalidLanguage
+    | InvalidName
 
 
 {-| An error from the backend still in Json form.
@@ -141,6 +128,9 @@ humanReadable apiError =
         BasicTidbitInvalidLanguage ->
             "Language selected was not valid!"
 
+        InvalidName ->
+            "Please enter your preffered name"
+
 
 {-| Turns an errorCode integer from the backend to it's respective ApiError.
 -}
@@ -212,6 +202,9 @@ fromErrorCode errorCode =
 
         22 ->
             BasicTidbitInvalidLanguage
+
+        23 ->
+            InvalidName
 
         _ ->
             InternalError

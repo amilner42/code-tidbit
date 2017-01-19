@@ -1,12 +1,13 @@
 module Models.User
     exposing
         ( User
-        , encoder
-        , decoder
+        , UserForRegistration
+        , UserForLogin
         , cacheDecoder
         , cacheEncoder
-        , AuthUser
-        , authEncoder
+        , decoder
+        , userLoginEncoder
+        , userRegisterEncoder
         )
 
 import DefaultServices.Util exposing (justValueOrNull)
@@ -17,8 +18,26 @@ import Json.Encode as Encode
 {-| The User type.
 -}
 type alias User =
-    { email : String
+    { name : String
+    , email : String
     , password : Maybe (String)
+    }
+
+
+{-| For registration we only send an email, password, and name.
+-}
+type alias UserForRegistration =
+    { name : String
+    , email : String
+    , password : String
+    }
+
+
+{-| For login we only send an email and password.
+-}
+type alias UserForLogin =
+    { email : String
+    , password : String
     }
 
 
@@ -26,26 +45,17 @@ type alias User =
 -}
 decoder : Decode.Decoder User
 decoder =
-    Decode.map2 User
-        (field "email" Decode.string)
-        (Decode.maybe (field "password" Decode.string))
+    cacheDecoder
 
 
 {-| The User `cacheDecoder`.
 -}
 cacheDecoder : Decode.Decoder User
 cacheDecoder =
-    decoder
-
-
-{-| The user `encoder`.
--}
-encoder : User -> Encode.Value
-encoder user =
-    Encode.object
-        [ ( "email", Encode.string user.email )
-        , ( "password", justValueOrNull Encode.string user.password )
-        ]
+    Decode.map3 User
+        (field "name" Decode.string)
+        (field "email" Decode.string)
+        (Decode.maybe (field "password" Decode.string))
 
 
 {-| The User `cacheEncoder`.
@@ -53,24 +63,28 @@ encoder user =
 cacheEncoder : User -> Encode.Value
 cacheEncoder user =
     Encode.object
-        [ ( "email", Encode.string user.email )
+        [ ( "name", Encode.string user.name )
+        , ( "email", Encode.string user.email )
         , ( "password", Encode.null )
         ]
 
 
-{-| For authentication we only send an email and password.
+{-| Encodes the user for registration request.
 -}
-type alias AuthUser =
-    { email : String
-    , password : String
-    }
-
-
-{-| Encodes the user for the initial authentication request (login/register).
--}
-authEncoder : AuthUser -> Encode.Value
-authEncoder authUser =
+userRegisterEncoder : UserForRegistration -> Encode.Value
+userRegisterEncoder registerUser =
     Encode.object
-        [ ( "email", Encode.string authUser.email )
-        , ( "password", Encode.string authUser.password )
+        [ ( "name", Encode.string registerUser.name )
+        , ( "email", Encode.string registerUser.email )
+        , ( "password", Encode.string registerUser.password )
+        ]
+
+
+{-| Encodes the user for a login request.
+-}
+userLoginEncoder : UserForLogin -> Encode.Value
+userLoginEncoder loginUser =
+    Encode.object
+        [ ( "email", Encode.string loginUser.email )
+        , ( "password", Encode.string loginUser.password )
         ]

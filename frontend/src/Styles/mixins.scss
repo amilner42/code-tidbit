@@ -61,3 +61,23 @@
             user-select: none; /* Non-prefixed version, currently
                                   not supported by any browser */
 }
+
+// The standard box shadow used all over the place.
+// Check out this codepen: https://codepen.io/sdthornton/pen/wBZdXq
+@mixin strong-box-shadow() {
+  box-shadow: 0 1px 3px rgba(0,0,0,0.15), 0 1px 2px rgba(0,0,0,0.30);
+}
+
+
+// The standard box shadow used all over the place.
+// Check out this codepen: https://codepen.io/sdthornton/pen/wBZdXq
+@mixin standard-box-shadow() {
+  box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+}
+
+
+// A lighter box shadow used for less effect.
+// Check out this codepen: https://codepen.io/sdthornton/pen/wBZdXq
+@mixin light-box-shadow() {
+  box-shadow: 0 1px 3px rgba(0,0,0,0.02), 0 1px 2px rgba(0,0,0,0.04);
+}

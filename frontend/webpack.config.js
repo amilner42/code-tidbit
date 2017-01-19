@@ -47,8 +47,9 @@ module.exports = {
   plugins: [
     new ExtractTextPlugin("[name].css"),
     new CopyWebpackPlugin([
-       { from: 'node_modules/ace-builds/src-min-noconflict/', to: 'ace-build/' }
-    ])
+       { from: 'node_modules/ace-builds/src-min-noconflict/', to: 'ace-build/' },
+       { from: 'assets/', to: 'assets/'}
+    ]),
   ],
 
   devServer: {

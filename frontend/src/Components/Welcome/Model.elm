@@ -8,7 +8,8 @@ import Models.ApiError as ApiError
 {-| Welcome Component Model.
 -}
 type alias Model =
-    { email : String
+    { name : String
+    , email : String
     , password : String
     , confirmPassword : String
     , apiError : Maybe (ApiError.ApiError)
@@ -20,7 +21,8 @@ type alias Model =
 cacheEncoder : Model -> Encode.Value
 cacheEncoder model =
     Encode.object
-        [ ( "email", Encode.string model.email )
+        [ ( "name", Encode.string model.name )
+        , ( "email", Encode.string model.email )
           -- we don't want to save the password to localStorage
         , ( "password", Encode.string "" )
         , ( "confirmPassword", Encode.string "" )
@@ -33,7 +35,8 @@ cacheEncoder model =
 -}
 cacheDecoder : Decode.Decoder Model
 cacheDecoder =
-    Decode.map4 Model
+    Decode.map5 Model
+        (field "name" Decode.string)
         (field "email" Decode.string)
         (field "password" Decode.string)
         (field "confirmPassword" Decode.string)
