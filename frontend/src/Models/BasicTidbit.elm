@@ -30,6 +30,7 @@ type alias BasicTidbit =
 type alias BasicTidbitCreateData =
     { language : Maybe Language
     , languageQueryACState : AC.State
+    , languageListHowManyToShow : Int
     , languageQuery : String
     , name : String
     , description : String
@@ -89,6 +90,7 @@ createDataCacheEncoder basicTidbitCreateData =
                 basicTidbitCreateData.language
           )
         , ( "languageQueryACState", Encode.null )
+        , ( "languageListHowManyToShow", Encode.int basicTidbitCreateData.languageListHowManyToShow )
         , ( "languageQuery", Encode.string basicTidbitCreateData.languageQuery )
         , ( "name", Encode.string basicTidbitCreateData.name )
         , ( "description", Encode.string basicTidbitCreateData.description )
@@ -115,6 +117,7 @@ createDataCacheDecoder =
     decode BasicTidbitCreateData
         |> required "language" (Decode.maybe languageCacheDecoder)
         |> required "languageQueryACState" (Decode.succeed AC.empty)
+        |> required "languageListHowManyToShow" (Decode.int)
         |> required "languageQuery" Decode.string
         |> required "name" Decode.string
         |> required "description" Decode.string

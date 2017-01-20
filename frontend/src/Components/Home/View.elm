@@ -194,7 +194,7 @@ createBasicTidbitView model shared =
                     BasicTidbitUpdateACState
                     (AC.view
                         acViewConfig
-                        8
+                        model.creatingBasicTidbitData.languageListHowManyToShow
                         model.creatingBasicTidbitData.languageQueryACState
                         (filterLanguagesByQuery
                             model.creatingBasicTidbitData.languageQuery
@@ -320,6 +320,7 @@ createBasicTidbitView model shared =
                 []
                 [ input
                     [ placeholder "language"
+                    , id "language-query-input"
                     , onInput BasicTidbitUpdateLanguageQuery
                     , value model.creatingBasicTidbitData.languageQuery
                     , disabled <|
