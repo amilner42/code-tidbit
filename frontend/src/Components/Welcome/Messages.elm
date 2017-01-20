@@ -18,3 +18,4 @@ type Msg
     | OnPasswordInput String
     | OnConfirmPasswordInput String
     | OnEmailInput String
+    | OnNameInput String

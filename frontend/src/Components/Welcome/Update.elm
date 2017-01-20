@@ -2,6 +2,7 @@ module Components.Welcome.Update exposing (update)
 
 import Api
 import Components.Model exposing (Shared)
+import Components.Welcome.Init as WelcomeInit
 import Components.Welcome.Messages exposing (Msg(..))
 import Components.Welcome.Model exposing (Model)
 import Models.ApiError as ApiError
@@ -44,13 +45,24 @@ update msg model shared =
             in
                 ( newModel, shared, Cmd.none )
 
+        OnNameInput newName ->
+            let
+                newModel =
+                    wipeError
+                        { model
+                            | name = newName
+                        }
+            in
+                ( newModel, shared, Cmd.none )
+
         Register ->
             let
                 passwordsMatch =
                     model.password == model.confirmPassword
 
                 user =
-                    { email = model.email
+                    { name = model.name
+                    , email = model.email
                     , password = model.password
                     }
 
@@ -90,7 +102,7 @@ update msg model shared =
                         , route = Route.HomeComponentBrowse
                     }
             in
-                ( model, newShared, Router.navigateTo newShared.route )
+                ( WelcomeInit.init, newShared, Router.navigateTo newShared.route )
 
         Login ->
             let
@@ -112,7 +124,7 @@ update msg model shared =
                         , route = Route.HomeComponentBrowse
                     }
             in
-                ( model, newShared, Router.navigateTo newShared.route )
+                ( WelcomeInit.init, newShared, Router.navigateTo newShared.route )
 
         OnLoginFailure newApiError ->
             let

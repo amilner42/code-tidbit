@@ -7,7 +7,8 @@ import Components.Welcome.Model exposing (Model)
 -}
 init : Model
 init =
-    { email = ""
+    { name = ""
+    , email = ""
     , password = ""
     , confirmPassword = ""
     , apiError = Nothing

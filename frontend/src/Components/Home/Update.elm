@@ -60,7 +60,7 @@ update msg model shared =
             OnLogOutSuccess basicResponse ->
                 ( HomeInit.init
                 , defaultShared
-                , Router.navigateTo Route.WelcomeComponentLogin
+                , Router.navigateTo Route.WelcomeComponentRegister
                 )
 
             BasicTidbitUpdateLanguageQuery newLanguageQuery ->

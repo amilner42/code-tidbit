@@ -58,6 +58,8 @@ export interface Model<T> {
  * client and server.
  *
  * NOTE An identical enum should be kept on the frontend/backend.
+ *
+ * NOTE Always add new errors to the bottom of the list.
  */
 export enum ErrorCode {
   youAreUnauthorized = 1,
@@ -81,5 +83,6 @@ export enum ErrorCode {
   basicTidbitEmptyDescription,
   basicTidbitEmptyName,
   basicTidbitNameTooLong,
-  basicTidbitInvalidLanguage
+  basicTidbitInvalidLanguage,
+  invalidName
 }

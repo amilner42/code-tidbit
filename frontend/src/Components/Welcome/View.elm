@@ -4,8 +4,8 @@ import Components.Model exposing (Shared)
 import Components.Welcome.Messages exposing (Msg(..))
 import Components.Welcome.Model exposing (Model)
 import DefaultServices.Util as Util
-import Html exposing (Html, div, text, button, h1, input, a)
-import Html.Attributes exposing (class, placeholder, type_, value, hidden, disabled, classList)
+import Html exposing (Html, div, text, button, h1, input, a, img)
+import Html.Attributes exposing (class, placeholder, type_, value, hidden, disabled, classList, src)
 import Html.Events exposing (onClick, onInput)
 import Models.ApiError as ApiError
 import Models.Route as Route
@@ -17,8 +17,54 @@ view : Model -> Shared -> Html Msg
 view model shared =
     div
         [ class "welcome-component-wrapper" ]
-        [ div
-            [ class "welcome-component" ]
+        [ img
+            [ class "logo"
+            , src "assets/ct-logo.png"
+            ]
+            []
+        , div
+            [ class "logo-title-1" ]
+            [ text "CODE" ]
+        , div
+            [ class "logo-title-2" ]
+            [ text "TIDBIT" ]
+        , case shared.route of
+            Route.WelcomeComponentRegister ->
+                button
+                    [ class "welcome-component-change-tab-button"
+                    , onClick <| GoToLoginView
+                    ]
+                    [ text "Login"
+                    ]
+
+            Route.WelcomeComponentLogin ->
+                button
+                    [ class "welcome-component-change-tab-button"
+                    , onClick <| GoToRegisterView
+                    ]
+                    [ text "Register"
+                    ]
+
+            -- Should never happen
+            _ ->
+                div [] []
+        , div
+            [ classList
+                [ ( "welcome-component", True )
+                , ( "small-box-error"
+                  , (shared.route == Route.WelcomeComponentLogin)
+                        && (Util.isNotNothing model.apiError)
+                  )
+                , ( "small-box"
+                  , (shared.route == Route.WelcomeComponentLogin)
+                        && (Util.isNothing model.apiError)
+                  )
+                , ( "big-box-error"
+                  , (shared.route == Route.WelcomeComponentRegister)
+                        && (Util.isNotNothing model.apiError)
+                  )
+                ]
+            ]
             [ div
                 []
                 [ displayViewForRoute model shared
@@ -75,17 +121,23 @@ loginView model =
     in
         div
             []
-            [ h1
-                [ class "title" ]
-                [ text "Login" ]
-            , div
-                [ class "welcome-form" ]
-                [ input
+            [ div
+                [ class "welcome-box" ]
+                [ div
+                    [ class "welcome-box-text" ]
+                    [ text "It's good to have you back" ]
+                , div
+                    [ class "welcome-box-sub-text" ]
+                    [ text "We missed you" ]
+                , input
                     [ classList [ ( "input-error-highlight", highlightEmail ) ]
                     , placeholder "Email"
                     , onInput OnEmailInput
                     , value model.email
                     ]
+                    []
+                , div
+                    [ class "gap-15" ]
                     []
                 , input
                     [ classList [ ( "input-error-highlight", hightlightPassword ) ]
@@ -102,9 +154,6 @@ loginView model =
                     ]
                     [ text "Login" ]
                 ]
-            , a
-                [ onClick GoToRegisterView ]
-                [ text "Don't have an account?" ]
             ]
 
 
@@ -136,51 +185,62 @@ registerView model =
                 [ model.email
                 , model.password
                 , model.confirmPassword
+                , model.name
                 ]
 
         invalidForm =
             incompleteForm || Util.isNotNothing currentError
     in
         div
-            []
-            [ h1
-                [ class "title" ]
-                [ text "Register" ]
+            [ class "welcome-box" ]
+            [ div
+                [ class "welcome-box-text" ]
+                [ text "Your friendly code learning platform" ]
             , div
-                [ class "welcome-form" ]
-                [ input
-                    [ classList [ ( "input-error-highlight", highlightEmail ) ]
-                    , placeholder "Email"
-                    , onInput OnEmailInput
-                    , value model.email
-                    ]
-                    []
-                , input
-                    [ classList [ ( "input-error-highlight", hightlightPassword ) ]
-                    , placeholder "Password"
-                    , type_ "password"
-                    , onInput OnPasswordInput
-                    , value model.password
-                    ]
-                    []
-                , input
-                    [ classList [ ( "input-error-highlight", hightlightPassword ) ]
-                    , placeholder "Confirm Password"
-                    , type_ "password"
-                    , onInput OnConfirmPasswordInput
-                    , value model.confirmPassword
-                    ]
-                    []
-                , errorBox currentError
-                , button
-                    [ onClick Register
-                    , disabled invalidForm
-                    ]
-                    [ text "Register" ]
+                [ class "welcome-box-sub-text" ]
+                [ text "Use CodeTidbit and all its features free, forever!" ]
+            , input
+                [ classList [ ( "input-error-highlight", False ) ]
+                , placeholder "Preferred Name"
+                , onInput OnNameInput
+                , value model.name
                 ]
-            , a
-                [ onClick GoToLoginView ]
-                [ text "Already have an account?" ]
+                []
+            , div
+                [ class "gap-15" ]
+                []
+            , input
+                [ classList [ ( "input-error-highlight", highlightEmail ) ]
+                , placeholder "Email"
+                , onInput OnEmailInput
+                , value model.email
+                ]
+                []
+            , input
+                [ classList [ ( "input-error-highlight", hightlightPassword ) ]
+                , placeholder "Password"
+                , type_ "password"
+                , onInput OnPasswordInput
+                , value model.password
+                ]
+                []
+            , div
+                [ class "gap-15" ]
+                []
+            , input
+                [ classList [ ( "input-error-highlight", hightlightPassword ) ]
+                , placeholder "Confirm Password"
+                , type_ "password"
+                , onInput OnConfirmPasswordInput
+                , value model.confirmPassword
+                ]
+                []
+            , errorBox currentError
+            , button
+                [ onClick Register
+                , disabled invalidForm
+                ]
+                [ text "Start learning" ]
             ]
 
 
