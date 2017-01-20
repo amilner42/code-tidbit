@@ -7,6 +7,7 @@ import Components.Home.Init as HomeInit
 import Components.Home.Messages exposing (Msg(..))
 import Components.Home.Model exposing (Model)
 import Components.Model exposing (Shared)
+import Dom
 import DefaultModel exposing (defaultShared)
 import DefaultServices.Util as Util
 import Elements.Editor as Editor
@@ -14,6 +15,7 @@ import Json.Decode as Decode
 import Models.BasicTidbit as BasicTidbit
 import Models.Route as Route
 import Router
+import Task
 import Ports
 
 
@@ -39,6 +41,9 @@ update msg model shared =
             currentCreatingBasicTidbitData.highlightedComments
     in
         case msg of
+            NoOp ->
+                doNothing
+
             GoTo route ->
                 ( model
                 , shared
@@ -77,45 +82,11 @@ update msg model shared =
 
             BasicTidbitUpdateACState acMsg ->
                 let
-                    downKeyCode =
-                        38
-
-                    upKeyCode =
-                        40
-
-                    enterKeyCode =
-                        13
-
-                    acUpdateConfig : AC.UpdateConfig Msg ( Editor.Language, String )
-                    acUpdateConfig =
-                        AC.updateConfig
-                            { toId = (toString << Tuple.first)
-                            , onKeyDown =
-                                \keyCode maybeID ->
-                                    if keyCode == downKeyCode || keyCode == upKeyCode then
-                                        Nothing
-                                    else if keyCode == enterKeyCode then
-                                        if Util.isNothing maybeID then
-                                            Nothing
-                                        else
-                                            Just <| BasicTidbitSelectLanguage maybeID
-                                    else
-                                        Nothing
-                            , onTooLow = Nothing
-                            , onTooHigh = Nothing
-                            , onMouseClick =
-                                \id ->
-                                    Just <| BasicTidbitSelectLanguage <| Just id
-                            , onMouseLeave = \_ -> Nothing
-                            , onMouseEnter = \_ -> Nothing
-                            , separateSelections = False
-                            }
-
                     ( newACState, maybeMsg ) =
                         AC.update
                             acUpdateConfig
                             acMsg
-                            8
+                            currentCreatingBasicTidbitData.languageListHowManyToShow
                             currentCreatingBasicTidbitData.languageQueryACState
                             (filterLanguagesByQuery
                                 currentCreatingBasicTidbitData.languageQuery
@@ -135,6 +106,30 @@ update msg model shared =
                         Just updateMsg ->
                             update updateMsg newModel shared
 
+            BasicTidbitUpdateACWrap toTop ->
+                let
+                    newCreatingBasicTidbitData =
+                        { currentCreatingBasicTidbitData
+                            | languageQueryACState =
+                                (if toTop then
+                                    AC.resetToLastItem
+                                 else
+                                    AC.resetToFirstItem
+                                )
+                                    acUpdateConfig
+                                    (filterLanguagesByQuery
+                                        model.creatingBasicTidbitData.languageQuery
+                                        shared.languages
+                                    )
+                                    currentCreatingBasicTidbitData.languageListHowManyToShow
+                                    currentCreatingBasicTidbitData.languageQueryACState
+                        }
+
+                    newModel =
+                        updateBasicTidbitCreateData newCreatingBasicTidbitData
+                in
+                    ( newModel, shared, Cmd.none )
+
             BasicTidbitSelectLanguage maybeEncodedLang ->
                 let
                     language =
@@ -150,6 +145,14 @@ update msg model shared =
                                     >> Result.toMaybe
                                 <|
                                     encodedLang
+
+                    -- If the user wants to select a new language, we help them
+                    -- by focussing the input box.
+                    newCmd =
+                        if Util.isNothing language then
+                            Task.attempt (\_ -> NoOp) (Dom.focus "language-query-input")
+                        else
+                            Cmd.none
 
                     newLanguageQuery =
                         case language of
@@ -168,7 +171,7 @@ update msg model shared =
                     newModel =
                         updateBasicTidbitCreateData newCreatingBasicTidbitData
                 in
-                    ( newModel, shared, Cmd.none )
+                    ( newModel, shared, newCmd )
 
             ResetCreateBasicTidbit ->
                 let
@@ -553,3 +556,41 @@ filterLanguagesByQuery query languages =
     List.filter
         (String.contains (String.toLower query) << Tuple.second)
         languages
+
+
+{-| Config for language-list auto-complete (used in basic tidbit creation).
+-}
+acUpdateConfig : AC.UpdateConfig Msg ( Editor.Language, String )
+acUpdateConfig =
+    let
+        downKeyCode =
+            38
+
+        upKeyCode =
+            40
+
+        enterKeyCode =
+            13
+    in
+        AC.updateConfig
+            { toId = (toString << Tuple.first)
+            , onKeyDown =
+                \keyCode maybeID ->
+                    if keyCode == downKeyCode || keyCode == upKeyCode then
+                        Nothing
+                    else if keyCode == enterKeyCode then
+                        if Util.isNothing maybeID then
+                            Nothing
+                        else
+                            Just <| BasicTidbitSelectLanguage maybeID
+                    else
+                        Nothing
+            , onTooLow = Just <| BasicTidbitUpdateACWrap False
+            , onTooHigh = Just <| BasicTidbitUpdateACWrap True
+            , onMouseClick =
+                \id ->
+                    Just <| BasicTidbitSelectLanguage <| Just id
+            , onMouseLeave = \_ -> Nothing
+            , onMouseEnter = \_ -> Nothing
+            , separateSelections = False
+            }

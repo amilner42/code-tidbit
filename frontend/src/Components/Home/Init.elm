@@ -3,6 +3,7 @@ module Components.Home.Init exposing (init)
 import Array
 import Autocomplete as AC
 import Components.Home.Model exposing (Model)
+import Elements.Editor as Editor
 import Models.BasicTidbit as BasicTidbit
 
 
@@ -14,6 +15,7 @@ init =
     , creatingBasicTidbitData =
         { language = Nothing
         , languageQueryACState = AC.empty
+        , languageListHowManyToShow = (List.length Editor.humanReadableListOfLanguages)
         , languageQuery = ""
         , name = ""
         , description = ""

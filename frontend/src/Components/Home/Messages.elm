@@ -11,12 +11,14 @@ import Models.Route as Route
 {-| Home Component Msg.
 -}
 type Msg
-    = GoTo Route.Route
+    = NoOp
+    | GoTo Route.Route
     | LogOut
     | OnLogOutFailure ApiError.ApiError
     | OnLogOutSuccess BasicResponse.BasicResponse
     | BasicTidbitUpdateLanguageQuery String
     | BasicTidbitUpdateACState AC.Msg
+    | BasicTidbitUpdateACWrap Bool
     | BasicTidbitSelectLanguage (Maybe String)
     | ResetCreateBasicTidbit
     | BasicTidbitUpdateName String
