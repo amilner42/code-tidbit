@@ -22,7 +22,7 @@
             margin: auto;
 
             .create-select-tidbit-type-coming-soon {
-                @include standard-box-shadow();
+                @include light-box-shadow();
                 position: relative;
                 box-sizing: border-box;
                 // border: 3px solid $color2;
@@ -67,6 +67,25 @@
                 font-weight: 700;
                 color: $color5;
                 float: left;
+
+                .description-title {
+                    font-size: 22px;
+                    width: 300px;
+                    padding: 10px;
+                }
+
+                .description-text {
+                  font-size: 16px;
+                  width: 300px;
+                  padding: 10px;
+                  font-weight: normal;
+                }
+
+                .back-button {
+                    position: absolute;
+                    bottom: 10px;
+                    right: 10px;
+                }
 
                 .create-select-tidbit-type-title {
                     position: absolute;

@@ -12,6 +12,7 @@ import Models.BasicTidbit as BasicTidbit
 init : Model
 init =
     { logOutError = Nothing
+    , showInfoFor = Nothing
     , creatingBasicTidbitData =
         { language = Nothing
         , languageQueryACState = AC.empty

@@ -3,7 +3,7 @@ module Components.Home.View exposing (..)
 import Array
 import Autocomplete as AC
 import Components.Home.Messages exposing (Msg(..))
-import Components.Home.Model exposing (Model)
+import Components.Home.Model exposing (Model, TidbitType(..))
 import Components.Home.Update exposing (filterLanguagesByQuery)
 import Components.Model exposing (Shared)
 import DefaultServices.Util as Util
@@ -162,26 +162,57 @@ browseView model =
 createView : Model -> Shared -> Html Msg
 createView model shared =
     let
-        makeTidbitTypeBox : String -> String -> String -> Msg -> Html Msg
-        makeTidbitTypeBox title subTitle description onClickMsg =
+        snipBitDescription : String
+        snipBitDescription =
+            """SnipBits are uni-language snippets of code that are
+            targetted at explaining simple individual concepts or
+            answering questions.
+
+            You highlight chunks of the code with attached comments,
+            taking your viewers through your code explaining everything
+            one step at a time.
+            """
+
+        bigBitInfo : String
+        bigBitInfo =
+            "TODO"
+
+        makeTidbitTypeBox : String -> String -> String -> Msg -> TidbitType -> Html Msg
+        makeTidbitTypeBox title subTitle description onClickMsg tidbitType =
             div
-                [ class "create-select-tidbit-type"
-                ]
-                [ div
-                    [ class "create-select-tidbit-type-title" ]
-                    [ text title ]
-                , div
-                    [ class "create-select-tidbit-type-sub-title" ]
-                    [ text subTitle ]
-                , button
-                    [ class "info-button" ]
-                    [ text "more info" ]
-                , button
-                    [ class "select-button"
-                    , onClick onClickMsg
+                [ class "create-select-tidbit-type" ]
+                (if model.showInfoFor == (Just tidbitType) then
+                    [ div
+                        [ class "description-title" ]
+                        [ text <| toString tidbitType ++ " Info" ]
+                    , div
+                        [ class "description-text" ]
+                        [ text description ]
+                    , button
+                        [ class "back-button"
+                        , onClick <| ShowInfoFor Nothing
+                        ]
+                        [ text "back" ]
                     ]
-                    [ text "select" ]
-                ]
+                 else
+                    [ div
+                        [ class "create-select-tidbit-type-title" ]
+                        [ text title ]
+                    , div
+                        [ class "create-select-tidbit-type-sub-title" ]
+                        [ text subTitle ]
+                    , button
+                        [ class "info-button"
+                        , onClick <| ShowInfoFor <| Just tidbitType
+                        ]
+                        [ text "more info" ]
+                    , button
+                        [ class "select-button"
+                        , onClick onClickMsg
+                        ]
+                        [ text "select" ]
+                    ]
+                )
     in
         div
             []
@@ -195,13 +226,15 @@ createView model shared =
                     [ makeTidbitTypeBox
                         "SnipBit"
                         "Excellent for answering questions"
-                        "Extra Info"
+                        snipBitDescription
                         (GoTo Route.HomeComponentCreateBasicName)
+                        SnipBit
                     , makeTidbitTypeBox
                         "BigBit"
                         "Designed for larger tutorials"
-                        "Extra Info"
+                        bigBitInfo
                         (NoOp)
+                        BigBit
                     , div
                         [ class "create-select-tidbit-type-coming-soon" ]
                         [ div

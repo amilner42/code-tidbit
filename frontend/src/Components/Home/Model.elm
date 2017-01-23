@@ -1,4 +1,4 @@
-module Components.Home.Model exposing (Model, cacheEncoder, cacheDecoder)
+module Components.Home.Model exposing (..)
 
 import DefaultServices.Util as Util
 import Json.Decode as Decode exposing (field)
@@ -11,8 +11,42 @@ import Models.BasicTidbit as BasicTidbit
 -}
 type alias Model =
     { logOutError : Maybe ApiError.ApiError
+    , showInfoFor : Maybe TidbitType
     , creatingBasicTidbitData : BasicTidbit.BasicTidbitCreateData
     }
+
+
+{-| Basic union to keep track of tidbit types.
+-}
+type TidbitType
+    = SnipBit
+    | BigBit
+
+
+{-| TidbitType `cacheEncoder`.
+-}
+tidbitTypeCacheEncoder : TidbitType -> Encode.Value
+tidbitTypeCacheEncoder tidbitType =
+    Encode.string <| toString tidbitType
+
+
+{-| TidbitType `cacheDecoder`.
+-}
+tidbitTypeCacheDecoder : Decode.Decoder TidbitType
+tidbitTypeCacheDecoder =
+    let
+        fromStringDecoder encodedTidbitType =
+            case encodedTidbitType of
+                "SnipBit" ->
+                    Decode.succeed SnipBit
+
+                "BigBit" ->
+                    Decode.succeed BigBit
+
+                _ ->
+                    Decode.fail <| encodedTidbitType ++ " is not a valid encoded tidbit type."
+    in
+        Decode.andThen fromStringDecoder Decode.string
 
 
 {-| Home Component `cacheEncoder`.
@@ -21,6 +55,7 @@ cacheEncoder : Model -> Encode.Value
 cacheEncoder model =
     Encode.object
         [ ( "logOutError", Encode.null )
+        , ( "showInfoFor", Util.justValueOrNull tidbitTypeCacheEncoder model.showInfoFor )
         , ( "creatingBasicTidbitData"
           , BasicTidbit.createDataCacheEncoder model.creatingBasicTidbitData
           )
@@ -31,6 +66,7 @@ cacheEncoder model =
 -}
 cacheDecoder : Decode.Decoder Model
 cacheDecoder =
-    Decode.map2 Model
+    Decode.map3 Model
         (field "logOutError" (Decode.null Nothing))
+        (field "showInfoFor" (Decode.maybe tidbitTypeCacheDecoder))
         (field "creatingBasicTidbitData" (BasicTidbit.createDataCacheDecoder))
