@@ -8,8 +8,8 @@ import Components.Home.Update exposing (filterLanguagesByQuery)
 import Components.Model exposing (Shared)
 import DefaultServices.Util as Util
 import Elements.Editor as Editor
-import Html exposing (Html, div, text, textarea, button, input, h1, h3)
-import Html.Attributes exposing (class, classList, disabled, placeholder, value, hidden, id)
+import Html exposing (Html, div, text, textarea, button, input, h1, h3, img)
+import Html.Attributes exposing (class, classList, disabled, placeholder, value, hidden, id, src)
 import Html.Events exposing (onClick, onInput)
 import Models.Range as Range
 import Models.Route as Route
@@ -103,7 +103,12 @@ navbar shared =
                     )
     in
         div [ class "nav" ]
-            [ div
+            [ img
+                [ class "logo"
+                , src "assets/ct-logo.png"
+                ]
+                []
+            , div
                 [ classList
                     [ ( "nav-btn left", True )
                     , ( "selected", browseViewSelected )
@@ -156,18 +161,59 @@ browseView model =
 -}
 createView : Model -> Shared -> Html Msg
 createView model shared =
-    div
-        []
-        [ div
+    let
+        makeTidbitTypeBox : String -> String -> String -> Msg -> Html Msg
+        makeTidbitTypeBox title subTitle description onClickMsg =
+            div
+                [ class "create-select-tidbit-type"
+                ]
+                [ div
+                    [ class "create-select-tidbit-type-title" ]
+                    [ text title ]
+                , div
+                    [ class "create-select-tidbit-type-sub-title" ]
+                    [ text subTitle ]
+                , button
+                    [ class "info-button" ]
+                    [ text "more info" ]
+                , button
+                    [ class "select-button"
+                    , onClick onClickMsg
+                    ]
+                    [ text "select" ]
+                ]
+    in
+        div
             []
-            [ h1
+            [ div
                 []
-                [ text "Select Tidbit Type" ]
-            , button
-                [ onClick <| GoTo Route.HomeComponentCreateBasicName ]
-                [ text "Basic Tidbit" ]
+                [ h1
+                    [ class "create-select-tidbit-title" ]
+                    [ text "Select Tidbit Type" ]
+                , div
+                    [ class "create-select-tidbit-box" ]
+                    [ makeTidbitTypeBox
+                        "SnipBit"
+                        "Excellent for answering questions"
+                        "Extra Info"
+                        (GoTo Route.HomeComponentCreateBasicName)
+                    , makeTidbitTypeBox
+                        "BigBit"
+                        "Designed for larger tutorials"
+                        "Extra Info"
+                        (NoOp)
+                    , div
+                        [ class "create-select-tidbit-type-coming-soon" ]
+                        [ div
+                            [ class "coming-soon-text" ]
+                            [ text "More Coming Soon" ]
+                        , div
+                            [ class "coming-soon-sub-text" ]
+                            [ text "We are working on it" ]
+                        ]
+                    ]
+                ]
             ]
-        ]
 
 
 {-| View for creating a basic tidbit.

@@ -8,22 +8,138 @@
 
     .home-component {
 
+        .create-select-tidbit-title {
+            color: $color6;
+            font-size: 52px;
+            text-align: center;
+        }
+
+        .create-select-tidbit-box {
+            width: $min-width-supported;
+            height: 100%;
+            position: relative;
+            display: block;
+            margin: auto;
+
+            .create-select-tidbit-type-coming-soon {
+                @include standard-box-shadow();
+                position: relative;
+                box-sizing: border-box;
+                // border: 3px solid $color2;
+                display: inline-block;
+                width: 324px;
+                height: 324px;
+                float: left;
+
+                .coming-soon-text {
+                    position: absolute;
+                    top: 40%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    font-size: 28px;
+                    color: $color4;
+                    width: 100%;
+                    text-align: center;
+                }
+
+                .coming-soon-sub-text {
+                    position: absolute;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    font-size: 16px;
+                    color: $color4;
+                }
+            }
+
+            .create-select-tidbit-type {
+                @include strong-box-shadow();
+                box-sizing: border-box;
+
+                position: relative;
+                display: inline-block;
+                width: 324px;
+                height: 324px;
+                margin-right: 25px;
+                background-color: white;
+                border: none;
+                font-size: 28px;
+                font-weight: 700;
+                color: $color5;
+                float: left;
+
+                .create-select-tidbit-type-title {
+                    position: absolute;
+                    top: 40%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                }
+
+                .create-select-tidbit-type-sub-title {
+                    position: absolute;
+                    top: 50%;
+                    left: 50%;
+                    font-size: 16px;
+                    width: 300px;
+                    text-align: center;
+                    transform: translate(-50%, -50%);
+                }
+
+                button {
+                    border: 2px solid $color1;
+                    border-radius: 15px;
+                    background-color: white;
+                    color: $color1;
+
+                    &:hover {
+                        color: white;
+                        background-color: $color1;
+                    }
+                }
+
+                .info-button {
+                    position: absolute;
+                    bottom: 10px;
+                    right: 60px;
+                }
+
+                .select-button {
+                    position: absolute;
+                    bottom: 10px;
+                    right: 10px;
+                }
+            }
+        }
+
         .nav {
             width: 100%;
             height: 50px;
-            border-bottom: 2px solid $color3;
+            background-color: $color1;
+            border-bottom: 2px solid $color6;
+
+            .logo {
+              height: 44px;
+              padding: 3px;
+              background-color: white;
+              border-bottom: 2px solid $color6;
+              display: inline-block;
+              float: left;
+
+            }
 
             .nav-btn {
+                @include no-select();
+
                 display: inline-block;
                 box-sizing: border-box;
+                color: white;
                 height: 30px;
                 margin: 10px;
                 font-size: 26px;
-                cursor: pointer;
+                cursor: default;
 
                 &.selected {
-                    border-bottom: 5px solid blue;
-                    color: blue;
+                    border-bottom: 1px solid white;
                 }
             }
         }
