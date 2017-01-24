@@ -1,3 +1,4 @@
+@import '../../Styles/global';
 @import '../../Styles/mixins';
 @import '../../Styles/variables';
 
@@ -7,6 +8,8 @@
     height: 100%;
 
     .home-component {
+
+        height: 100%;
 
         .create-select-tidbit-title {
             color: $color6;
@@ -25,7 +28,6 @@
                 @include light-box-shadow();
                 position: relative;
                 box-sizing: border-box;
-                // border: 3px solid $color2;
                 display: inline-block;
                 width: 324px;
                 height: 324px;
@@ -163,82 +165,256 @@
             }
         }
 
-        .lang-select-ac {
+        .create-basic-tidbit {
 
-            .lang-select-ac-item {
+            height: 100%;
+
+            .create-basic-tidbit-navbar {
                 @include no-select();
-                list-style-type: none;
-                color: black;
-                border: 2px solid #DDD;
-                width: 100px;
-                margin-bottom: 2px;
 
-                &.key-selected {
-                    background-color: #AAA;
-                }
+                width: 510px;
+                margin: 20px auto 10px auto;
+                position: relative;
+                display: block;
+                color: $color4;
 
-                &:hover {
+                .create-basic-tidbit-tab {
+                    box-sizing: border-box;
+                    width: 100px;
+                    height: 30px;
+                    position: relative;
+                    display: inline-block;
                     cursor: pointer;
+                    border: 1px solid $color2;
+                    margin: 1px;
+                    font-size: 16px;
+                    line-height: 30px;
+                    text-align: center;
+
+                    &.create-basic-tidbit-selected-tab {
+                        color: $color1;
+                    }
                 }
             }
-        }
 
-        .create-basic-tidbit-navbar {
-            @include no-select();
+            .create-basic-tidbit-x {
+                position: relative;
+                display: block;
+                margin-top: 40px;
+                width: 100%;
+                height: 100%;
 
-            width: 500px;
-            height: 50px;
-            position: relative;
-            display: block;
+                input, textarea {
+                    position: relative;
+                    display: block;
+                    margin: 20px auto 20px auto;
+                    border: 1px solid $color2;
+                    border-radius: 5px;
+                    font-size: 26px;
+                    color: $color5;
+                }
 
-            .create-basic-tidbit-tab {
-                box-sizing: border-box;
-                width: 100px;
+                input {
+                    text-align: center;
+                }
+
+                textarea {
+                    padding: 20px;
+                }
+            }
+
+            .create-basic-tidbit-name {
+                @extend .create-basic-tidbit-x;
+
+                input {
+                    height: 73px;
+                    width: 800px;
+                }
+            }
+
+            .create-basic-tidbit-description {
+                @extend .create-basic-tidbit-x;
+
+                .create-basic-tidbit-description-box {
+                    height: 400px;
+                    width: 600px;
+                }
+            }
+
+            .create-basic-tidbit-language {
+                @extend .create-basic-tidbit-x;
+
+                input {
+                    height: 53px;
+                    width: 300px;
+                }
+
+                button {
+                    position: relative;
+                    display: block;
+                    width: 300px;
+                    height: 30px;
+                    border-radius: 5px;
+                    border: none;
+                    margin: -15px auto 0 auto;
+                    background-color: $color4;
+                    color: white;
+                    font-size: 14px;
+                }
+
+                ul.lang-select-ac {
+                    list-style-type: none;
+                    padding: 0;
+                }
+
+                .lang-select-ac {
+                    box-sizing: border-box;
+                    position: relative;
+                    height: 390px;
+                    overflow-y: scroll;
+                    width: 300px;
+                    display: block;
+                    margin: -15px auto 0 auto;
+                    z-index: 1000;
+
+                    .lang-select-ac-item {
+                        @include no-select();
+                        box-sizing: border-box;
+                        z-index: 1000;
+                        list-style-type: none;
+                        color: $color4;
+                        border: 2px solid $color2;
+                        width: 300px;
+                        height: 33px;
+                        margin-bottom: 2px;
+                        text-align: center;
+                        line-height: 33px;
+                        font-size: 18px;
+                        border-radius: 3px;
+                        margin-left: 0;
+                        padding-left: 0;
+
+                        &.key-selected {
+                            background-color: #AAA;
+                            color: $color5;
+                        }
+
+                        &:hover {
+                            cursor: pointer;
+                        }
+                    }
+                }
+            }
+
+            .create-basic-tidbit-tags {
+                @extend .create-basic-tidbit-x;
+
+                input {
+                    width: 500px;
+                    height: 53px;
+                }
+
+                .current-tags {
+                    width: 500px;
+                    display: block;
+                    margin: -13px auto 0 auto;
+
+                    .tag {
+                        @include no-select();
+
+                        border: 2px solid $color3;
+                        border-radius: 5px;
+                        display: inline-block;
+                        position: relative;
+                        float: left;
+                        padding: 5px;
+                        margin: 0 5px 5px 0;
+
+                        button {
+                            color: white;
+                            background-color: $color5;
+                            border: none;
+                            border-radius: 10px;
+                            margin-left: 5px;
+                            cursor: pointer;
+                        }
+                    }
+                }
+            }
+
+            .sub-bar {
                 position: relative;
                 display: inline-block;
-                cursor: pointer;
-                border: 2px solid grey;
+                width: 100%;
+                background-color: $color2;
+                margin-bottom: 10px;
+                height: 40px;
+                padding-top: 10px;
 
-                &.create-basic-tidbit-selected-tab {
-                    color: blue;
+                .create-basic-tidbit-title {
+                    color: $color1;
+                    font-size: 44px;
+                    margin: 20px 10px 0 5px;
+                    text-align: left;
+                    padding-left: 10px;
+                    display: inline-block;
+                }
+
+                .sub-bar-button {
+                    position: relative;
+                    display: inline-block;
+                    height: 30px;
+                    width: 100px;
+                    border: none;
+                    border-radius: 5px;
+                    color: white;
+
+                    &:hover {
+                        color: $color6;
+                    }
+                }
+
+                .create-basic-tidbit-back-button {
+                    @extend .sub-bar-button;
+
+                    background-color: $color8;
+                    margin: 0 10px 0 10px;
+                }
+
+                .create-basic-tidbit-reset-button {
+                    @extend .sub-bar-button;
+
+                    background-color: $color8;
+                    margin-right: 10px;
+                }
+
+                .create-basic-tidbit-publish-button {
+                    @extend .sub-bar-button;
+
+                    float: right;
+                    margin-right: 10px;
+                    background-color: $color7;
                 }
             }
-        }
 
-        .create-basic-tidbit-back-button {
-          position: absolute;
-          top: 80px;
-          left: 450px;
-        }
+            .comment-creator {
+                box-sizing: border-box;
+                position: relative;
+                display: inline-block;
+                margin: 0 5px 0 5px;
+                width: 369px;
+                height: 600px;
+                border: 2px solid grey;
+                padding: 5px;
 
-        .create-basic-tidbit-reset-button {
-            position: absolute;
-            top: 100px;
-            left: 450px;
-        }
+                textarea {
+                  width: 349px;
+                  height: 200px;
+                }
 
-        .create-basic-tidbit-description-box {
-            width: 300px;
-            height: 200px;
-        }
-
-        .comment-creator {
-            box-sizing: border-box;
-            position: relative;
-            display: inline-block;
-            margin: 0 5px 0 5px;
-            width: 369px;
-            height: 600px;
-            border: 2px solid grey;
-            padding: 5px;
-
-            textarea {
-              width: 349px;
-              height: 200px;
-            }
-
-            .selected-frame {
-              background-color: #AAA;
+                .selected-frame {
+                  background-color: #AAA;
+                }
             }
         }
     }

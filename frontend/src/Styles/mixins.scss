@@ -60,6 +60,7 @@
         -ms-user-select: none; /* Internet Explorer/Edge */
             user-select: none; /* Non-prefixed version, currently
                                   not supported by any browser */
+  cursor: default;
 }
 
 // A stronger box shadow used for more effect.
