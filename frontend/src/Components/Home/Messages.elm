@@ -4,7 +4,7 @@ import Autocomplete as AC
 import Components.Home.Model exposing (TidbitType)
 import Models.ApiError as ApiError
 import Models.BasicResponse as BasicResponse
-import Models.BasicTidbit as BasicTidbit
+import Models.Snipbit as Snipbit
 import Models.Range as Range
 import Models.Route as Route
 
@@ -18,23 +18,23 @@ type Msg
     | OnLogOutFailure ApiError.ApiError
     | OnLogOutSuccess BasicResponse.BasicResponse
     | ShowInfoFor (Maybe TidbitType)
-    | BasicTidbitUpdateLanguageQuery String
-    | BasicTidbitUpdateACState AC.Msg
-    | BasicTidbitUpdateACWrap Bool
-    | BasicTidbitSelectLanguage (Maybe String)
-    | ResetCreateBasicTidbit
-    | BasicTidbitUpdateName String
-    | BasicTidbitUpdateDescription String
-    | BasicTidbitUpdateTagInput String
-    | BasicTidbitRemoveTag String
-    | BasicTidbitAddTag String
-    | BasicTidbitNewRangeSelected Range.Range
-    | BasicTidbitAddFrame
-    | BasicTidbitRemoveFrame
-    | BasicTidbitUpdateFrameComment Int String
-    | BasicTidbitUpdateIntroduction String
-    | BasicTidbitUpdateConclusion String
-    | BasicTidbitUpdateCode String
-    | BasicTidbitPublish BasicTidbit.BasicTidbit
-    | OnBasicTidbitPublishSuccess BasicResponse.BasicResponse
-    | OnBasicTidbitPublishFailure ApiError.ApiError
+    | SnipbitUpdateLanguageQuery String
+    | SnipbitUpdateACState AC.Msg
+    | SnipbitUpdateACWrap Bool
+    | SnipbitSelectLanguage (Maybe String)
+    | SnipbitReset
+    | SnipbitUpdateName String
+    | SnipbitUpdateDescription String
+    | SnipbitUpdateTagInput String
+    | SnipbitRemoveTag String
+    | SnipbitAddTag String
+    | SnipbitNewRangeSelected Range.Range
+    | SnipbitAddFrame
+    | SnipbitRemoveFrame
+    | SnipbitUpdateFrameComment Int String
+    | SnipbitUpdateIntroduction String
+    | SnipbitUpdateConclusion String
+    | SnipbitUpdateCode String
+    | SnipbitPublish Snipbit.Snipbit
+    | OnSnipbitPublishSuccess BasicResponse.BasicResponse
+    | OnSnipbitPublishFailure ApiError.ApiError

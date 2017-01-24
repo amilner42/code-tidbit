@@ -4,7 +4,7 @@ module Api
         , getLogOut
         , postLogin
         , postRegister
-        , postBasicCodeTidbit
+        , postCreateSnipbit
         )
 
 import Config exposing (apiBaseUrl)
@@ -13,7 +13,7 @@ import Json.Decode as Decode
 import Json.Encode as Encode
 import Models.ApiError as ApiError
 import Models.BasicResponse as BasicResponse
-import Models.BasicTidbit as BasicTidbit
+import Models.Snipbit as Snipbit
 import Models.User as User
 
 
@@ -60,11 +60,11 @@ postRegister user =
     apiPost "register" User.decoder (User.userRegisterEncoder user)
 
 
-{-| Creates a new basic tidbit.
+{-| Creates a new snipbit.
 -}
-postBasicCodeTidbit : BasicTidbit.BasicTidbit -> (ApiError.ApiError -> b) -> (BasicResponse.BasicResponse -> b) -> Cmd b
-postBasicCodeTidbit basicTidbit =
+postCreateSnipbit : Snipbit.Snipbit -> (ApiError.ApiError -> b) -> (BasicResponse.BasicResponse -> b) -> Cmd b
+postCreateSnipbit snipbit =
     apiPost
-        "create/basicTidbit"
+        "create/snipbit"
         BasicResponse.decoder
-        (BasicTidbit.basicTidbitEncoder basicTidbit)
+        (Snipbit.snipbitEncoder snipbit)

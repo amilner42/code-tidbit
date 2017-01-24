@@ -165,11 +165,11 @@
             }
         }
 
-        .create-basic-tidbit {
+        .create-snipbit {
 
             height: 100%;
 
-            .create-basic-tidbit-navbar {
+            .create-snipbit-navbar {
                 @include no-select();
 
                 width: 510px;
@@ -178,7 +178,7 @@
                 display: block;
                 color: $color4;
 
-                .create-basic-tidbit-tab {
+                .create-snipbit-tab {
                     box-sizing: border-box;
                     width: 100px;
                     height: 30px;
@@ -191,13 +191,13 @@
                     line-height: 30px;
                     text-align: center;
 
-                    &.create-basic-tidbit-selected-tab {
+                    &.create-snipbit-selected-tab {
                         color: $color1;
                     }
                 }
             }
 
-            .create-basic-tidbit-x {
+            .create-snipbit-x {
                 position: relative;
                 display: block;
                 margin-top: 40px;
@@ -223,8 +223,8 @@
                 }
             }
 
-            .create-basic-tidbit-name {
-                @extend .create-basic-tidbit-x;
+            .create-snipbit-name {
+                @extend .create-snipbit-x;
 
                 input {
                     height: 73px;
@@ -232,17 +232,17 @@
                 }
             }
 
-            .create-basic-tidbit-description {
-                @extend .create-basic-tidbit-x;
+            .create-snipbit-description {
+                @extend .create-snipbit-x;
 
-                .create-basic-tidbit-description-box {
+                .create-snipbit-description-box {
                     height: 400px;
                     width: 600px;
                 }
             }
 
-            .create-basic-tidbit-language {
-                @extend .create-basic-tidbit-x;
+            .create-snipbit-language {
+                @extend .create-snipbit-x;
 
                 input {
                     height: 53px;
@@ -306,8 +306,8 @@
                 }
             }
 
-            .create-basic-tidbit-tags {
-                @extend .create-basic-tidbit-x;
+            .create-snipbit-tags {
+                @extend .create-snipbit-x;
 
                 input {
                     width: 500px;
@@ -342,7 +342,7 @@
                 }
             }
 
-            .create-basic-tidbit-code {
+            .create-snipbit-code {
 
                 width: $min-width-supported;
                 display: block;
@@ -415,15 +415,6 @@
                 height: 40px;
                 padding-top: 10px;
 
-                .create-basic-tidbit-title {
-                    color: $color1;
-                    font-size: 44px;
-                    margin: 20px 10px 0 5px;
-                    text-align: left;
-                    padding-left: 10px;
-                    display: inline-block;
-                }
-
                 .sub-bar-button {
                     position: relative;
                     display: inline-block;
@@ -438,21 +429,21 @@
                     }
                 }
 
-                .create-basic-tidbit-back-button {
+                .create-snipbit-back-button {
                     @extend .sub-bar-button;
 
                     background-color: $color8;
                     margin: 0 10px 0 10px;
                 }
 
-                .create-basic-tidbit-reset-button {
+                .create-snipbit-reset-button {
                     @extend .sub-bar-button;
 
                     background-color: $color8;
                     margin-right: 10px;
                 }
 
-                .create-basic-tidbit-publish-button {
+                .create-snipbit-publish-button {
                     @extend .sub-bar-button;
 
                     float: right;
@@ -460,7 +451,7 @@
                     background-color: $color7;
                 }
 
-                .create-basic-tidbit-disabled-publish-button {
+                .create-snipbit-publish-button {
                     @extend .sub-bar-button;
 
                     float: right;

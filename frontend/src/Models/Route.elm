@@ -21,13 +21,13 @@ import UrlParser exposing (Parser, s, (</>), oneOf, map, top, int)
 type Route
     = HomeComponentBrowse
     | HomeComponentCreate
-    | HomeComponentCreateBasicName
-    | HomeComponentCreateBasicDescription
-    | HomeComponentCreateBasicLanguage
-    | HomeComponentCreateBasicTags
-    | HomeComponentCreateBasicTidbitIntroduction
-    | HomeComponentCreateBasicTidbitFrame Int
-    | HomeComponentCreateBasicTidbitConclusion
+    | HomeComponentCreateSnipbitName
+    | HomeComponentCreateSnipbitDescription
+    | HomeComponentCreateSnipbitLanguage
+    | HomeComponentCreateSnipbitTags
+    | HomeComponentCreateSnipbitCodeIntroduction
+    | HomeComponentCreateSnipbitCodeFrame Int
+    | HomeComponentCreateSnipbitCodeConclusion
     | HomeComponentProfile
     | WelcomeComponentLogin
     | WelcomeComponentRegister
@@ -42,33 +42,33 @@ matchers =
             s "create"
 
         -- Abstract.
-        createBasic =
-            create </> s "basic"
+        createSnipbit =
+            create </> s "snipbit"
 
-        createBasicName =
-            createBasic </> s "name"
+        createSnipbitName =
+            createSnipbit </> s "name"
 
-        createBasicDescription =
-            createBasic </> s "description"
+        createSnipbitDescription =
+            createSnipbit </> s "description"
 
-        createBasicLanguage =
-            createBasic </> s "language"
+        createSnipbitLanguage =
+            createSnipbit </> s "language"
 
-        createBasicTags =
-            createBasic </> s "tags"
+        createSnipbitTags =
+            createSnipbit </> s "tags"
 
         -- Abstract.
-        createBasicTidbit =
-            createBasic </> s "tidbit"
+        createSnipbitCode =
+            createSnipbit </> s "code"
 
-        createBasicTidbitIntroduction =
-            createBasicTidbit </> s "introduction"
+        createSnipbitCodeIntroduction =
+            createSnipbitCode </> s "introduction"
 
-        createBasicTidbitFrame =
-            createBasicTidbit </> s "frame" </> int
+        createSnipbitCodeFrame =
+            createSnipbitCode </> s "frame" </> int
 
-        createBasicTidbitConclusion =
-            createBasicTidbit </> s "conclusion"
+        createSnipbitCodeConclusion =
+            createSnipbitCode </> s "conclusion"
 
         profile =
             s "profile"
@@ -86,13 +86,13 @@ matchers =
         oneOf
             [ map HomeComponentBrowse (top)
             , map HomeComponentCreate (create)
-            , map HomeComponentCreateBasicName (createBasicName)
-            , map HomeComponentCreateBasicDescription (createBasicDescription)
-            , map HomeComponentCreateBasicLanguage (createBasicLanguage)
-            , map HomeComponentCreateBasicTags (createBasicTags)
-            , map HomeComponentCreateBasicTidbitIntroduction (createBasicTidbitIntroduction)
-            , map HomeComponentCreateBasicTidbitFrame (createBasicTidbitFrame)
-            , map HomeComponentCreateBasicTidbitConclusion (createBasicTidbitConclusion)
+            , map HomeComponentCreateSnipbitName (createSnipbitName)
+            , map HomeComponentCreateSnipbitDescription (createSnipbitDescription)
+            , map HomeComponentCreateSnipbitLanguage (createSnipbitLanguage)
+            , map HomeComponentCreateSnipbitTags (createSnipbitTags)
+            , map HomeComponentCreateSnipbitCodeIntroduction (createSnipbitCodeIntroduction)
+            , map HomeComponentCreateSnipbitCodeFrame (createSnipbitCodeFrame)
+            , map HomeComponentCreateSnipbitCodeConclusion (createSnipbitCodeConclusion)
             , map HomeComponentProfile (profile)
             , map WelcomeComponentRegister (welcomeRegister)
             , map WelcomeComponentLogin (welcomeLogin)
@@ -135,26 +135,26 @@ toUrl route =
             HomeComponentCreate ->
                 "create"
 
-            HomeComponentCreateBasicName ->
-                "create/basic/name"
+            HomeComponentCreateSnipbitName ->
+                "create/snipbit/name"
 
-            HomeComponentCreateBasicDescription ->
-                "create/basic/description"
+            HomeComponentCreateSnipbitDescription ->
+                "create/snipbit/description"
 
-            HomeComponentCreateBasicLanguage ->
-                "create/basic/language"
+            HomeComponentCreateSnipbitLanguage ->
+                "create/snipbit/language"
 
-            HomeComponentCreateBasicTags ->
-                "create/basic/tags"
+            HomeComponentCreateSnipbitTags ->
+                "create/snipbit/tags"
 
-            HomeComponentCreateBasicTidbitIntroduction ->
-                "create/basic/tidbit/introduction"
+            HomeComponentCreateSnipbitCodeIntroduction ->
+                "create/snipbit/code/introduction"
 
-            HomeComponentCreateBasicTidbitFrame frameNumber ->
-                "create/basic/tidbit/frame/" ++ (toString frameNumber)
+            HomeComponentCreateSnipbitCodeFrame frameNumber ->
+                "create/snipbit/code/frame/" ++ (toString frameNumber)
 
-            HomeComponentCreateBasicTidbitConclusion ->
-                "create/basic/tidbit/conclusion"
+            HomeComponentCreateSnipbitCodeConclusion ->
+                "create/snipbit/code/conclusion"
 
             HomeComponentProfile ->
                 "profile"
@@ -190,23 +190,23 @@ cacheDecoder =
                     "HomeComponentCreate" ->
                         Decode.succeed HomeComponentCreate
 
-                    "HomeComponentCreateBasicName" ->
-                        Decode.succeed HomeComponentCreateBasicName
+                    "HomeComponentCreateSnipbitName" ->
+                        Decode.succeed HomeComponentCreateSnipbitName
 
-                    "HomeComponentCreateBasicDescription" ->
-                        Decode.succeed HomeComponentCreateBasicDescription
+                    "HomeComponentCreateSnipbitDescription" ->
+                        Decode.succeed HomeComponentCreateSnipbitDescription
 
-                    "HomeComponentCreateBasicLanguage" ->
-                        Decode.succeed HomeComponentCreateBasicLanguage
+                    "HomeComponentCreateSnipbitLanguage" ->
+                        Decode.succeed HomeComponentCreateSnipbitLanguage
 
-                    "HomeComponentCreateBasicTags" ->
-                        Decode.succeed HomeComponentCreateBasicTags
+                    "HomeComponentCreateSnipbitTags" ->
+                        Decode.succeed HomeComponentCreateSnipbitTags
 
-                    "HomeComponentCreateBasicTidbitIntroduction" ->
-                        Decode.succeed HomeComponentCreateBasicTidbitIntroduction
+                    "HomeComponentCreateSnipbitCodeIntroduction" ->
+                        Decode.succeed HomeComponentCreateSnipbitCodeIntroduction
 
-                    "HomeComponentCreateBasicTidbitConclusion" ->
-                        Decode.succeed HomeComponentCreateBasicTidbitConclusion
+                    "HomeComponentCreateSnipbitCodeConclusion" ->
+                        Decode.succeed HomeComponentCreateSnipbitCodeConclusion
 
                     "HomeComponentProfile" ->
                         Decode.succeed HomeComponentProfile
@@ -222,7 +222,7 @@ cacheDecoder =
                     -}
                     _ ->
                         if
-                            String.startsWith "HomeComponentCreateBasicTidbitFrame "
+                            String.startsWith "HomeComponentCreateSnipbitCodeFrame "
                                 encodedRouteString
                         then
                             let
@@ -235,7 +235,7 @@ cacheDecoder =
 
                                     Ok frameNumber ->
                                         Decode.succeed <|
-                                            HomeComponentCreateBasicTidbitFrame
+                                            HomeComponentCreateSnipbitCodeFrame
                                                 frameNumber
                         else
                             failure

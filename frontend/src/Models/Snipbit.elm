@@ -1,4 +1,4 @@
-module Models.BasicTidbit exposing (..)
+module Models.Snipbit exposing (..)
 
 import Array
 import Autocomplete as AC
@@ -11,9 +11,9 @@ import Models.HighlightedComment exposing (MaybeHighlightedComment, HighlightedC
 import Models.Range as Range
 
 
-{-| A full BasicTidbit ready for publication.
+{-| A full Snipbit ready for publication.
 -}
-type alias BasicTidbit =
+type alias Snipbit =
     { language : Language
     , name : String
     , description : String
@@ -25,9 +25,9 @@ type alias BasicTidbit =
     }
 
 
-{-| The data for a basic tidbit being created.
+{-| The data for a snipbit being created.
 -}
-type alias BasicTidbitCreateData =
+type alias SnipbitCreateData =
     { language : Maybe Language
     , languageQueryACState : AC.State
     , languageListHowManyToShow : Int
@@ -43,32 +43,32 @@ type alias BasicTidbitCreateData =
     }
 
 
-{-| BasicTidbit `encoder`.
+{-| Snipbit `encoder`.
 -}
-basicTidbitEncoder : BasicTidbit -> Encode.Value
-basicTidbitEncoder basicTidbit =
+snipbitEncoder : Snipbit -> Encode.Value
+snipbitEncoder snipbit =
     Encode.object
-        [ ( "language", languageCacheEncoder basicTidbit.language )
-        , ( "name", Encode.string basicTidbit.name )
-        , ( "description", Encode.string basicTidbit.description )
-        , ( "tags", Encode.list <| List.map Encode.string basicTidbit.tags )
-        , ( "code", Encode.string basicTidbit.code )
-        , ( "introduction", Encode.string basicTidbit.introduction )
-        , ( "conclusion", Encode.string basicTidbit.conclusion )
+        [ ( "language", languageCacheEncoder snipbit.language )
+        , ( "name", Encode.string snipbit.name )
+        , ( "description", Encode.string snipbit.description )
+        , ( "tags", Encode.list <| List.map Encode.string snipbit.tags )
+        , ( "code", Encode.string snipbit.code )
+        , ( "introduction", Encode.string snipbit.introduction )
+        , ( "conclusion", Encode.string snipbit.conclusion )
         , ( "highlightedComments"
           , Encode.array <|
                 Array.map
                     highlightedCommentEncoder
-                    basicTidbit.highlightedComments
+                    snipbit.highlightedComments
           )
         ]
 
 
-{-| BasicTidbit `decoder`.
+{-| Snipbit `decoder`.
 -}
-basicTidbitDecoder : Decode.Decoder BasicTidbit
-basicTidbitDecoder =
-    decode BasicTidbit
+snipbitDecoder : Decode.Decoder Snipbit
+snipbitDecoder =
+    decode Snipbit
         |> required "language" languageCacheDecoder
         |> required "name" Decode.string
         |> required "description" Decode.string
@@ -79,42 +79,42 @@ basicTidbitDecoder =
         |> required "highlightedComments" (Decode.array highlightedCommentDecoder)
 
 
-{-| BasicTidbitCreateData `cacheEncoder`.
+{-| SnipbitCreateData `cacheEncoder`.
 -}
-createDataCacheEncoder : BasicTidbitCreateData -> Encode.Value
-createDataCacheEncoder basicTidbitCreateData =
+createDataCacheEncoder : SnipbitCreateData -> Encode.Value
+createDataCacheEncoder snipbitCreateData =
     Encode.object
         [ ( "language"
           , Util.justValueOrNull
                 languageCacheEncoder
-                basicTidbitCreateData.language
+                snipbitCreateData.language
           )
         , ( "languageQueryACState", Encode.null )
-        , ( "languageListHowManyToShow", Encode.int basicTidbitCreateData.languageListHowManyToShow )
-        , ( "languageQuery", Encode.string basicTidbitCreateData.languageQuery )
-        , ( "name", Encode.string basicTidbitCreateData.name )
-        , ( "description", Encode.string basicTidbitCreateData.description )
+        , ( "languageListHowManyToShow", Encode.int snipbitCreateData.languageListHowManyToShow )
+        , ( "languageQuery", Encode.string snipbitCreateData.languageQuery )
+        , ( "name", Encode.string snipbitCreateData.name )
+        , ( "description", Encode.string snipbitCreateData.description )
         , ( "tags"
-          , Encode.list <| List.map Encode.string basicTidbitCreateData.tags
+          , Encode.list <| List.map Encode.string snipbitCreateData.tags
           )
-        , ( "tagInput", Encode.string basicTidbitCreateData.tagInput )
-        , ( "code", Encode.string basicTidbitCreateData.code )
+        , ( "tagInput", Encode.string snipbitCreateData.tagInput )
+        , ( "code", Encode.string snipbitCreateData.code )
         , ( "highlightedComments"
           , Encode.array <|
                 Array.map
                     maybeHighlightedCommentCacheEncoder
-                    basicTidbitCreateData.highlightedComments
+                    snipbitCreateData.highlightedComments
           )
-        , ( "introduction", Encode.string basicTidbitCreateData.introduction )
-        , ( "conclusion", Encode.string basicTidbitCreateData.conclusion )
+        , ( "introduction", Encode.string snipbitCreateData.introduction )
+        , ( "conclusion", Encode.string snipbitCreateData.conclusion )
         ]
 
 
-{-| BasicTidbitCreateData `cacheDecoder`.
+{-| SnipbitCreateData `cacheDecoder`.
 -}
-createDataCacheDecoder : Decode.Decoder BasicTidbitCreateData
+createDataCacheDecoder : Decode.Decoder SnipbitCreateData
 createDataCacheDecoder =
-    decode BasicTidbitCreateData
+    decode SnipbitCreateData
         |> required "language" (Decode.maybe languageCacheDecoder)
         |> required "languageQueryACState" (Decode.succeed AC.empty)
         |> required "languageListHowManyToShow" (Decode.int)

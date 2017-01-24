@@ -12,7 +12,7 @@ import DefaultModel exposing (defaultShared)
 import DefaultServices.Util as Util
 import Elements.Editor as Editor
 import Json.Decode as Decode
-import Models.BasicTidbit as BasicTidbit
+import Models.Snipbit as Snipbit
 import Models.Route as Route
 import Router
 import Task
@@ -27,18 +27,18 @@ update msg model shared =
         doNothing =
             ( model, shared, Cmd.none )
 
-        updateBasicTidbitCreateData : BasicTidbit.BasicTidbitCreateData -> Model
-        updateBasicTidbitCreateData newCreatingBasicTidbitData =
+        updateSnipbitCreateData : Snipbit.SnipbitCreateData -> Model
+        updateSnipbitCreateData newCreatingSnipbitData =
             { model
-                | creatingBasicTidbitData = newCreatingBasicTidbitData
+                | creatingSnipbitData = newCreatingSnipbitData
             }
 
-        currentCreatingBasicTidbitData : BasicTidbit.BasicTidbitCreateData
-        currentCreatingBasicTidbitData =
-            model.creatingBasicTidbitData
+        currentCreatingSnipbitData : Snipbit.SnipbitCreateData
+        currentCreatingSnipbitData =
+            model.creatingSnipbitData
 
         currentHighlightedComments =
-            currentCreatingBasicTidbitData.highlightedComments
+            currentCreatingSnipbitData.highlightedComments
     in
         case msg of
             NoOp ->
@@ -71,34 +71,34 @@ update msg model shared =
             ShowInfoFor maybeTidbitType ->
                 ( { model | showInfoFor = maybeTidbitType }, shared, Cmd.none )
 
-            BasicTidbitUpdateLanguageQuery newLanguageQuery ->
+            SnipbitUpdateLanguageQuery newLanguageQuery ->
                 let
-                    newCreatingBasicTidbitData =
-                        { currentCreatingBasicTidbitData
+                    newCreatingSnipbitData =
+                        { currentCreatingSnipbitData
                             | languageQuery = newLanguageQuery
                         }
                 in
-                    ( updateBasicTidbitCreateData newCreatingBasicTidbitData
+                    ( updateSnipbitCreateData newCreatingSnipbitData
                     , shared
                     , Cmd.none
                     )
 
-            BasicTidbitUpdateACState acMsg ->
+            SnipbitUpdateACState acMsg ->
                 let
                     ( newACState, maybeMsg ) =
                         AC.update
                             acUpdateConfig
                             acMsg
-                            currentCreatingBasicTidbitData.languageListHowManyToShow
-                            currentCreatingBasicTidbitData.languageQueryACState
+                            currentCreatingSnipbitData.languageListHowManyToShow
+                            currentCreatingSnipbitData.languageQueryACState
                             (filterLanguagesByQuery
-                                currentCreatingBasicTidbitData.languageQuery
+                                currentCreatingSnipbitData.languageQuery
                                 shared.languages
                             )
 
                     newModel =
-                        updateBasicTidbitCreateData
-                            { currentCreatingBasicTidbitData
+                        updateSnipbitCreateData
+                            { currentCreatingSnipbitData
                                 | languageQueryACState = newACState
                             }
                 in
@@ -109,10 +109,10 @@ update msg model shared =
                         Just updateMsg ->
                             update updateMsg newModel shared
 
-            BasicTidbitUpdateACWrap toTop ->
+            SnipbitUpdateACWrap toTop ->
                 let
-                    newCreatingBasicTidbitData =
-                        { currentCreatingBasicTidbitData
+                    newCreatingSnipbitData =
+                        { currentCreatingSnipbitData
                             | languageQueryACState =
                                 (if toTop then
                                     AC.resetToLastItem
@@ -121,19 +121,19 @@ update msg model shared =
                                 )
                                     acUpdateConfig
                                     (filterLanguagesByQuery
-                                        model.creatingBasicTidbitData.languageQuery
+                                        model.creatingSnipbitData.languageQuery
                                         shared.languages
                                     )
-                                    currentCreatingBasicTidbitData.languageListHowManyToShow
-                                    currentCreatingBasicTidbitData.languageQueryACState
+                                    currentCreatingSnipbitData.languageListHowManyToShow
+                                    currentCreatingSnipbitData.languageQueryACState
                         }
 
                     newModel =
-                        updateBasicTidbitCreateData newCreatingBasicTidbitData
+                        updateSnipbitCreateData newCreatingSnipbitData
                 in
                     ( newModel, shared, Cmd.none )
 
-            BasicTidbitSelectLanguage maybeEncodedLang ->
+            SnipbitSelectLanguage maybeEncodedLang ->
                 let
                     language =
                         case maybeEncodedLang of
@@ -165,49 +165,49 @@ update msg model shared =
                             Just aLanguage ->
                                 toString aLanguage
 
-                    newCreatingBasicTidbitData =
-                        { currentCreatingBasicTidbitData
+                    newCreatingSnipbitData =
+                        { currentCreatingSnipbitData
                             | language = language
                             , languageQuery = newLanguageQuery
                         }
 
                     newModel =
-                        updateBasicTidbitCreateData newCreatingBasicTidbitData
+                        updateSnipbitCreateData newCreatingSnipbitData
                 in
                     ( newModel, shared, newCmd )
 
-            ResetCreateBasicTidbit ->
+            SnipbitReset ->
                 let
                     newModel =
-                        updateBasicTidbitCreateData <| .creatingBasicTidbitData HomeInit.init
+                        updateSnipbitCreateData <| .creatingSnipbitData HomeInit.init
                 in
-                    ( newModel, shared, Router.navigateTo Route.HomeComponentCreateBasicName )
+                    ( newModel, shared, Router.navigateTo Route.HomeComponentCreateSnipbitName )
 
-            BasicTidbitUpdateName newName ->
+            SnipbitUpdateName newName ->
                 let
-                    newCreatingBasicTidbitData =
-                        { currentCreatingBasicTidbitData
+                    newCreatingSnipbitData =
+                        { currentCreatingSnipbitData
                             | name = newName
                         }
 
                     newModel =
-                        updateBasicTidbitCreateData newCreatingBasicTidbitData
+                        updateSnipbitCreateData newCreatingSnipbitData
                 in
                     ( newModel, shared, Cmd.none )
 
-            BasicTidbitUpdateDescription newDescription ->
+            SnipbitUpdateDescription newDescription ->
                 let
-                    newCreatingBasicTidbitData =
-                        { currentCreatingBasicTidbitData
+                    newCreatingSnipbitData =
+                        { currentCreatingSnipbitData
                             | description = newDescription
                         }
 
                     newModel =
-                        updateBasicTidbitCreateData newCreatingBasicTidbitData
+                        updateSnipbitCreateData newCreatingSnipbitData
                 in
                     ( newModel, shared, Cmd.none )
 
-            BasicTidbitUpdateTagInput newTagInput ->
+            SnipbitUpdateTagInput newTagInput ->
                 if String.endsWith " " newTagInput then
                     let
                         newTag =
@@ -218,84 +218,84 @@ update msg model shared =
                                 String.isEmpty newTag
                                     || List.member
                                         newTag
-                                        currentCreatingBasicTidbitData.tags
+                                        currentCreatingSnipbitData.tags
                             then
-                                currentCreatingBasicTidbitData.tags
+                                currentCreatingSnipbitData.tags
                             else
-                                currentCreatingBasicTidbitData.tags ++ [ newTag ]
+                                currentCreatingSnipbitData.tags ++ [ newTag ]
 
-                        newCreatingBasicTidbitData =
-                            { currentCreatingBasicTidbitData
+                        newCreatingSnipbitData =
+                            { currentCreatingSnipbitData
                                 | tagInput = ""
                                 , tags = newTags
                             }
 
                         newModel =
-                            updateBasicTidbitCreateData newCreatingBasicTidbitData
+                            updateSnipbitCreateData newCreatingSnipbitData
                     in
                         ( newModel, shared, Cmd.none )
                 else
                     let
-                        newCreatingBasicTidbitData =
-                            { currentCreatingBasicTidbitData
+                        newCreatingSnipbitData =
+                            { currentCreatingSnipbitData
                                 | tagInput = newTagInput
                             }
 
                         newModel =
-                            updateBasicTidbitCreateData newCreatingBasicTidbitData
+                            updateSnipbitCreateData newCreatingSnipbitData
                     in
                         ( newModel, shared, Cmd.none )
 
-            BasicTidbitRemoveTag tagName ->
+            SnipbitRemoveTag tagName ->
                 let
                     newTags =
                         List.filter
                             (\aTag -> aTag /= tagName)
-                            currentCreatingBasicTidbitData.tags
+                            currentCreatingSnipbitData.tags
 
-                    newCreatingBasicTidbitData =
-                        { currentCreatingBasicTidbitData
+                    newCreatingSnipbitData =
+                        { currentCreatingSnipbitData
                             | tags = newTags
                         }
 
                     newModel =
-                        updateBasicTidbitCreateData newCreatingBasicTidbitData
+                        updateSnipbitCreateData newCreatingSnipbitData
                 in
                     ( newModel, shared, Cmd.none )
 
-            BasicTidbitAddTag tagName ->
+            SnipbitAddTag tagName ->
                 let
                     newTags =
                         if
                             String.isEmpty tagName
                                 || List.member
                                     tagName
-                                    currentCreatingBasicTidbitData.tags
+                                    currentCreatingSnipbitData.tags
                         then
-                            currentCreatingBasicTidbitData.tags
+                            currentCreatingSnipbitData.tags
                         else
-                            currentCreatingBasicTidbitData.tags ++ [ tagName ]
+                            currentCreatingSnipbitData.tags ++ [ tagName ]
 
-                    newCreatingBasicTidbitData =
-                        { currentCreatingBasicTidbitData
+                    newCreatingSnipbitData =
+                        { currentCreatingSnipbitData
                             | tags = newTags
                             , tagInput = ""
                         }
 
                     newModel =
-                        updateBasicTidbitCreateData newCreatingBasicTidbitData
+                        updateSnipbitCreateData newCreatingSnipbitData
                 in
                     ( newModel, shared, Cmd.none )
 
-            BasicTidbitNewRangeSelected newRange ->
+            SnipbitNewRangeSelected newRange ->
                 case shared.route of
-                    Route.HomeComponentCreateBasicTidbitIntroduction ->
+                    Route.HomeComponentCreateSnipbitCodeIntroduction ->
                         doNothing
 
-                    Route.HomeComponentCreateBasicTidbitConclusion ->
+                    Route.HomeComponentCreateSnipbitCodeConclusion ->
                         doNothing
 
-                    Route.HomeComponentCreateBasicTidbitFrame frameNumber ->
+                    Route.HomeComponentCreateSnipbitCodeFrame frameNumber ->
                         let
                             frameIndex =
                                 frameNumber - 1
@@ -317,14 +317,14 @@ update msg model shared =
                                                 newFrame
                                                 currentHighlightedComments
 
-                                        newCreatingBasicTidbitData =
-                                            { currentCreatingBasicTidbitData
+                                        newCreatingSnipbitData =
+                                            { currentCreatingSnipbitData
                                                 | highlightedComments = newHighlightedComments
                                             }
 
                                         newModel =
-                                            updateBasicTidbitCreateData
-                                                newCreatingBasicTidbitData
+                                            updateSnipbitCreateData
+                                                newCreatingSnipbitData
                                     in
                                         ( newModel, shared, Cmd.none )
 
@@ -333,10 +333,10 @@ update msg model shared =
                     _ ->
                         doNothing
 
-            BasicTidbitAddFrame ->
+            SnipbitAddFrame ->
                 let
-                    newCreatingBasicTidbitData =
-                        { currentCreatingBasicTidbitData
+                    newCreatingSnipbitData =
+                        { currentCreatingSnipbitData
                             | highlightedComments =
                                 (Array.push
                                     { range = Nothing, comment = Nothing }
@@ -345,17 +345,17 @@ update msg model shared =
                         }
 
                     newModel =
-                        updateBasicTidbitCreateData newCreatingBasicTidbitData
+                        updateSnipbitCreateData newCreatingSnipbitData
 
                     newMsg =
                         GoTo <|
-                            Route.HomeComponentCreateBasicTidbitFrame <|
+                            Route.HomeComponentCreateSnipbitCodeFrame <|
                                 Array.length
-                                    newModel.creatingBasicTidbitData.highlightedComments
+                                    newModel.creatingSnipbitData.highlightedComments
                 in
                     update newMsg newModel shared
 
-            BasicTidbitRemoveFrame ->
+            SnipbitRemoveFrame ->
                 let
                     newHighlightedComments =
                         Array.slice
@@ -363,28 +363,28 @@ update msg model shared =
                             (Array.length currentHighlightedComments - 1)
                             currentHighlightedComments
 
-                    newCreatingBasicTidbitData =
-                        { currentCreatingBasicTidbitData
+                    newCreatingSnipbitData =
+                        { currentCreatingSnipbitData
                             | highlightedComments =
                                 newHighlightedComments
                         }
 
                     newModel =
-                        updateBasicTidbitCreateData newCreatingBasicTidbitData
+                        updateSnipbitCreateData newCreatingSnipbitData
 
                     result =
                         ( newModel, shared, Cmd.none )
                 in
                     case shared.route of
-                        Route.HomeComponentCreateBasicTidbitIntroduction ->
+                        Route.HomeComponentCreateSnipbitCodeIntroduction ->
                             result
 
-                        Route.HomeComponentCreateBasicTidbitConclusion ->
+                        Route.HomeComponentCreateSnipbitCodeConclusion ->
                             result
 
                         -- We need to go "down" a tab if the user was on the
                         -- last tab and they removed a tab.
-                        Route.HomeComponentCreateBasicTidbitFrame frameNumber ->
+                        Route.HomeComponentCreateSnipbitCodeFrame frameNumber ->
                             let
                                 frameIndex =
                                     frameNumber - 1
@@ -392,7 +392,7 @@ update msg model shared =
                                 if frameIndex >= (Array.length newHighlightedComments) then
                                     update
                                         (GoTo <|
-                                            Route.HomeComponentCreateBasicTidbitFrame <|
+                                            Route.HomeComponentCreateSnipbitCodeFrame <|
                                                 Array.length newHighlightedComments
                                         )
                                         newModel
@@ -404,7 +404,7 @@ update msg model shared =
                         _ ->
                             result
 
-            BasicTidbitUpdateFrameComment index newComment ->
+            SnipbitUpdateFrameComment index newComment ->
                 case Array.get index currentHighlightedComments of
                     Nothing ->
                         doNothing
@@ -422,37 +422,37 @@ update msg model shared =
                                     newHighlightComment
                                     currentHighlightedComments
 
-                            newCreatingBasicTidbitData =
-                                { currentCreatingBasicTidbitData
+                            newCreatingSnipbitData =
+                                { currentCreatingSnipbitData
                                     | highlightedComments = newHighlightedComments
                                 }
 
                             newModel =
-                                updateBasicTidbitCreateData newCreatingBasicTidbitData
+                                updateSnipbitCreateData newCreatingSnipbitData
                         in
                             ( newModel, shared, Cmd.none )
 
-            BasicTidbitUpdateIntroduction newIntro ->
+            SnipbitUpdateIntroduction newIntro ->
                 let
-                    newCreatingBasicTidbitData =
-                        { currentCreatingBasicTidbitData
+                    newCreatingSnipbitData =
+                        { currentCreatingSnipbitData
                             | introduction = newIntro
                         }
 
                     newModel =
-                        updateBasicTidbitCreateData newCreatingBasicTidbitData
+                        updateSnipbitCreateData newCreatingSnipbitData
                 in
                     ( newModel, shared, Cmd.none )
 
-            BasicTidbitUpdateConclusion newConclusion ->
+            SnipbitUpdateConclusion newConclusion ->
                 let
-                    newCreatingBasicTidbitData =
-                        { currentCreatingBasicTidbitData
+                    newCreatingSnipbitData =
+                        { currentCreatingSnipbitData
                             | conclusion = newConclusion
                         }
 
                     newModel =
-                        updateBasicTidbitCreateData newCreatingBasicTidbitData
+                        updateSnipbitCreateData newCreatingSnipbitData
                 in
                     ( newModel, shared, Cmd.none )
 
@@ -460,7 +460,7 @@ update msg model shared =
             -- are now out of range. If highlights are now out of range we
             -- minimize them to the greatest size they can be whilst still being
             -- in range.
-            BasicTidbitUpdateCode newCode ->
+            SnipbitUpdateCode newCode ->
                 let
                     rowsOfCode =
                         String.split "\n" newCode
@@ -524,30 +524,30 @@ update msg model shared =
                             )
                             currentHighlightedComments
 
-                    newCreatingBasicTidbitData =
-                        { currentCreatingBasicTidbitData
+                    newCreatingSnipbitData =
+                        { currentCreatingSnipbitData
                             | code = newCode
                             , highlightedComments = newHighlightedComments
                         }
 
                     newModel =
-                        updateBasicTidbitCreateData newCreatingBasicTidbitData
+                        updateSnipbitCreateData newCreatingSnipbitData
                 in
                     ( newModel, shared, Cmd.none )
 
-            BasicTidbitPublish basicTidbit ->
+            SnipbitPublish snipbit ->
                 ( model
                 , shared
-                , Api.postBasicCodeTidbit
-                    basicTidbit
-                    OnBasicTidbitPublishFailure
-                    OnBasicTidbitPublishSuccess
+                , Api.postCreateSnipbit
+                    snipbit
+                    OnSnipbitPublishFailure
+                    OnSnipbitPublishSuccess
                 )
 
-            OnBasicTidbitPublishSuccess basicResponse ->
-                update ResetCreateBasicTidbit model shared
+            OnSnipbitPublishSuccess basicResponse ->
+                update SnipbitReset model shared
 
-            OnBasicTidbitPublishFailure apiError ->
+            OnSnipbitPublishFailure apiError ->
                 -- TODO Handle Publish Failures.
                 doNothing
 
@@ -561,7 +561,7 @@ filterLanguagesByQuery query languages =
         languages
 
 
-{-| Config for language-list auto-complete (used in basic tidbit creation).
+{-| Config for language-list auto-complete (used in snipbit creation).
 -}
 acUpdateConfig : AC.UpdateConfig Msg ( Editor.Language, String )
 acUpdateConfig =
@@ -585,14 +585,14 @@ acUpdateConfig =
                         if Util.isNothing maybeID then
                             Nothing
                         else
-                            Just <| BasicTidbitSelectLanguage maybeID
+                            Just <| SnipbitSelectLanguage maybeID
                     else
                         Nothing
-            , onTooLow = Just <| BasicTidbitUpdateACWrap False
-            , onTooHigh = Just <| BasicTidbitUpdateACWrap True
+            , onTooLow = Just <| SnipbitUpdateACWrap False
+            , onTooHigh = Just <| SnipbitUpdateACWrap True
             , onMouseClick =
                 \id ->
-                    Just <| BasicTidbitSelectLanguage <| Just id
+                    Just <| SnipbitSelectLanguage <| Just id
             , onMouseLeave = \_ -> Nothing
             , onMouseEnter = \_ -> Nothing
             , separateSelections = False

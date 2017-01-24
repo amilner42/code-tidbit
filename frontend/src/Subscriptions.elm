@@ -1,7 +1,7 @@
 module Subscriptions exposing (subscriptions)
 
 import Autocomplete as AC
-import Components.Home.Messages exposing (Msg(BasicTidbitUpdateACState))
+import Components.Home.Messages exposing (Msg(SnipbitUpdateACState))
 import Components.Messages exposing (Msg(HomeMessage, CodeEditorUpdate, CodeEditorSelectionUpdate))
 import Components.Model exposing (Model)
 import DefaultServices.LocalStorage as LocalStorage
@@ -16,5 +16,5 @@ subscriptions model =
         [ Ports.onLoadModelFromLocalStorage LocalStorage.onLoadModel
         , Ports.onCodeEditorUpdate CodeEditorUpdate
         , Ports.onCodeEditorSelectionUpdate CodeEditorSelectionUpdate
-        , Sub.map (HomeMessage << BasicTidbitUpdateACState) AC.subscription
+        , Sub.map (HomeMessage << SnipbitUpdateACState) AC.subscription
         ]
