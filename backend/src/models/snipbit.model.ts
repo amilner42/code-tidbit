@@ -1,4 +1,4 @@
-/// Module for encapsulating helper functions for the BasicTidbit model.
+/// Module for encapsulating helper functions for the Snipbit model.
 
 import * as kleen from "kleen";
 
@@ -8,9 +8,9 @@ import { MongoID, ErrorCode, Language } from '../types';
 
 
 /**
- * A BasicTidbit is one of the possible tidbit types.
+ * A Snipbit is one of the tidbits.
  */
-export interface BasicTidbit {
+export interface Snipbit {
   language: MongoID;
   name: string;
   description: string;
@@ -26,7 +26,7 @@ export interface BasicTidbit {
 }
 
 /**
- * A highlighted comment in a BasicTidbit.
+ * A highlighted comment in a Snipbit.
  */
 export interface HighlightedComment {
   comment: string;
@@ -43,7 +43,7 @@ export interface Range {
   endCol: number;
 }
 
-// Name's of basic tidbits shouldn't be more than 60 chars.
+// Name's of snipbits shouldn't be more than 60 chars.
 const MAX_NAME_LENGTH = 60;
 
 /**
@@ -69,7 +69,7 @@ const highlightedCommentSchema: kleen.typeSchema = {
       restriction: (comment: string) => {
         if(comment === "") {
           return Promise.reject({
-            errorCode: ErrorCode.basicTidbitEmptyComment,
+            errorCode: ErrorCode.snipbitEmptyComment,
             message: "Comments cannot be empty"
           });
         }
@@ -98,7 +98,7 @@ const highlightedCommentSchema: kleen.typeSchema = {
       restriction: (range: Range) => {
         if(emptyRange(range)) {
           return Promise.reject({
-            errorCode: ErrorCode.basicTidbitEmptyRange,
+            errorCode: ErrorCode.snipbitEmptyRange,
             message: "Ranges on highlighted comments can not be empty!"
           });
         }
@@ -109,16 +109,16 @@ const highlightedCommentSchema: kleen.typeSchema = {
 };
 
 /**
-* Kleen schema for a BasicTidbit.
+* Kleen schema for a Snipbit.
 */
-const basicTidbitSchema: kleen.typeSchema = {
+const snipbitSchema: kleen.typeSchema = {
   objectProperties: {
     "language": {
       primitiveType: kleen.kindOfPrimitive.string,
       restriction: (language: string) => {
         if(language === "") {
           return Promise.reject({
-            errorCode: ErrorCode.basicTidbitInvalidLanguage,
+            errorCode: ErrorCode.snipbitInvalidLanguage,
             message: "Empty language is not a valid language."
           });
         }
@@ -130,12 +130,12 @@ const basicTidbitSchema: kleen.typeSchema = {
       restriction: (name: string) => {
         if(name === "") {
           return Promise.reject({
-            errorCode: ErrorCode.basicTidbitEmptyName,
+            errorCode: ErrorCode.snipbitEmptyName,
             message: "Name cannot be empty."
           });
         } else if(name.length > MAX_NAME_LENGTH) {
           return Promise.reject({
-            errorCode: ErrorCode.basicTidbitNameTooLong,
+            errorCode: ErrorCode.snipbitNameTooLong,
             message: "Name cannot be more than 60 chars."
           });
         }
@@ -147,7 +147,7 @@ const basicTidbitSchema: kleen.typeSchema = {
       restriction: (description: string) => {
         if(description === "") {
           return Promise.reject({
-            errorCode: ErrorCode.basicTidbitEmptyDescription,
+            errorCode: ErrorCode.snipbitEmptyDescription,
             message: "Description cannot be empty."
           });
         }
@@ -160,7 +160,7 @@ const basicTidbitSchema: kleen.typeSchema = {
         restriction: (tag: string) => {
           if(tag === "") {
             return Promise.reject({
-              errorCode: ErrorCode.basicTidbitEmptyTag,
+              errorCode: ErrorCode.snipbitEmptyTag,
               message: "Tags cannot be empty!"
             });
           }
@@ -170,7 +170,7 @@ const basicTidbitSchema: kleen.typeSchema = {
       restriction: (tags: string[]) => {
         if(tags.length === 0) {
           return Promise.reject({
-            errorCode: ErrorCode.basicTidbitNoTags,
+            errorCode: ErrorCode.snipbitNoTags,
             message: "You must add at least one tag"
           });
         }
@@ -182,7 +182,7 @@ const basicTidbitSchema: kleen.typeSchema = {
       restriction: (code: string) => {
         if(code === "") {
           return Promise.reject({
-            errorCode: ErrorCode.basicTidbitEmptyCode,
+            errorCode: ErrorCode.snipbitEmptyCode,
             message: "You must have some code!"
           });
         }
@@ -194,7 +194,7 @@ const basicTidbitSchema: kleen.typeSchema = {
       restriction: (introduction: string) => {
         if(introduction === "") {
           return Promise.reject({
-            errorCode: ErrorCode.basicTidbitEmptyIntroduction,
+            errorCode: ErrorCode.snipbitEmptyIntroduction,
             message: "You must have a non-empty introduction."
           });
         }
@@ -206,7 +206,7 @@ const basicTidbitSchema: kleen.typeSchema = {
       restriction: (conclusion: string) => {
         if(conclusion === "") {
           return Promise.reject({
-            errorCode: ErrorCode.basicTidbitEmptyConclusion,
+            errorCode: ErrorCode.snipbitEmptyConclusion,
             message: "You must have a non-empty conclusion."
           });
         }
@@ -218,7 +218,7 @@ const basicTidbitSchema: kleen.typeSchema = {
       restriction: (highlightedComments: HighlightedComment[]) => {
         if(highlightedComments.length === 0) {
           return Promise.reject({
-            errorCode: ErrorCode.basicTidbitNoHighlightedComments,
+            errorCode: ErrorCode.snipbitNoHighlightedComments,
             message: "You must have at least one highlighted comment."
           });
         }
@@ -226,38 +226,38 @@ const basicTidbitSchema: kleen.typeSchema = {
       typeFailureError: internalError("HighlightedComments must be an array of HighlightedComment, refer to API.")
     }
   },
-  typeFailureError: internalError("Basic Tidbit is malformed, refer to API for proper format.")
+  typeFailureError: internalError("Snipbit is malformed, refer to API for proper format.")
 };
 
 /**
- * Validates a basic tidbit coming in from the frontend, and
+ * Validates a snipbit coming in from the frontend, and
  * updates it to the structure stored on the backend (the language
  * must be switched to the MongoID).
  *
  * NOTE: This function does not attach an author.
  */
-export const validifyAndUpdateBasicTidbit = (basicTidbit: BasicTidbit): Promise<BasicTidbit> => {
+export const validifyAndUpdateSnipbit = (snipbit: Snipbit): Promise<Snipbit> => {
 
-  return new Promise<BasicTidbit>((resolve, reject) => {
+  return new Promise<Snipbit>((resolve, reject) => {
 
-    kleen.validModel(basicTidbitSchema)(basicTidbit)
+    kleen.validModel(snipbitSchema)(snipbit)
     .then(() => {
       return collection("languages");
     })
     .then((languagesCollection) => {
-      return (languagesCollection.findOne({ encodedName: basicTidbit.language }) as Promise<Language>);
+      return (languagesCollection.findOne({ encodedName: snipbit.language }) as Promise<Language>);
     })
     .then((language: Language) => {
       if(!language) {
         reject({
-          errorCode: ErrorCode.basicTidbitInvalidLanguage,
+          errorCode: ErrorCode.snipbitInvalidLanguage,
           message: `Language ${language} is not a valid encoded language.`
         });
         return;
       }
 
-      basicTidbit.language = language._id;
-      resolve(basicTidbit);
+      snipbit.language = language._id;
+      resolve(snipbit);
       return;
     })
     .catch(reject);

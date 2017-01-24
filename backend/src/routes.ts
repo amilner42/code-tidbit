@@ -7,8 +7,7 @@ import passport from 'passport';
 import R from 'ramda';
 
 import { APP_CONFIG } from '../app-config';
-import { User, userModel } from './models/user.model';
-import { BasicTidbit, validifyAndUpdateBasicTidbit } from './models/basic-tidbit.model';
+import { User, userModel, Snipbit, validifyAndUpdateSnipbit } from './models/';
 import { AppRoutes, ErrorCode, FrontendError } from './types';
 import { collection } from './db';
 import { internalError } from './util';
@@ -158,24 +157,24 @@ export const routes: AppRoutes = {
     }
   },
 
-  '/create/basicTidbit': {
+  '/create/snipbit': {
     /**
-     * Creates a new basic tidbit for a user.
+     * Creates a new snipbit for the logged-in user.
      */
     post: (req, res) => {
       const user: User = req.user;
-      const basicTidbit = req.body;
+      const snipbit = req.body;
 
-      validifyAndUpdateBasicTidbit(basicTidbit)
-      .then((updatedBasicTidbit: BasicTidbit) => {
-        updatedBasicTidbit.author = user._id;
+      validifyAndUpdateSnipbit(snipbit)
+      .then((updatedSnipbit: Snipbit) => {
+        updatedSnipbit.author = user._id;
 
-        collection("basicTidbits")
-        .then((basicTidbitCollection) => {
-          return basicTidbitCollection.save(updatedBasicTidbit);
+        collection("snipbits")
+        .then((snipbitCollection) => {
+          return snipbitCollection.save(updatedSnipbit);
         })
         .then(() => {
-          res.status(200).json({ message: "Tidbit created successfully."});
+          res.status(200).json({ message: "Snipbit created successfully."});
           return;
         });
       })
