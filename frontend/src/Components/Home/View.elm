@@ -8,7 +8,7 @@ import Components.Home.Update exposing (filterLanguagesByQuery)
 import Components.Model exposing (Shared)
 import DefaultServices.Util as Util
 import Elements.Editor as Editor
-import Html exposing (Html, div, text, textarea, button, input, h1, h3, img)
+import Html exposing (Html, div, text, textarea, button, input, h1, h3, img, hr)
 import Html.Attributes exposing (class, classList, disabled, placeholder, value, hidden, id, src)
 import Html.Events exposing (onClick, onInput)
 import Models.Range as Range
@@ -463,7 +463,7 @@ createBasicTidbitView model shared =
                     case shared.route of
                         Route.HomeComponentCreateBasicTidbitIntroduction ->
                             div
-                                []
+                                [ class "comment-body" ]
                                 [ textarea
                                     [ placeholder "Introduction"
                                     , onInput <| BasicTidbitUpdateIntroduction
@@ -478,7 +478,7 @@ createBasicTidbitView model shared =
                                     frameNumber - 1
                             in
                                 div
-                                    []
+                                    [ class "comment-body" ]
                                     [ textarea
                                         [ placeholder <|
                                             "Frame "
@@ -508,7 +508,7 @@ createBasicTidbitView model shared =
 
                         Route.HomeComponentCreateBasicTidbitConclusion ->
                             div
-                                []
+                                [ class "comment-body" ]
                                 [ textarea
                                     [ placeholder "Conclusion"
                                     , onInput <| BasicTidbitUpdateConclusion
@@ -553,14 +553,6 @@ createBasicTidbitView model shared =
                             []
                             (List.concat
                                 [ [ button
-                                        [ onClick <| BasicTidbitRemoveFrame
-                                        , disabled <|
-                                            Array.length
-                                                model.creatingBasicTidbitData.highlightedComments
-                                                <= 1
-                                        ]
-                                        [ text "-" ]
-                                  , button
                                         [ onClick <|
                                             GoTo Route.HomeComponentCreateBasicTidbitIntroduction
                                         , classList
@@ -571,9 +563,7 @@ createBasicTidbitView model shared =
                                             ]
                                         ]
                                         [ text "Introduction" ]
-                                  ]
-                                , dynamicFrameButtons
-                                , [ button
+                                  , button
                                         [ onClick <|
                                             GoTo Route.HomeComponentCreateBasicTidbitConclusion
                                         , classList
@@ -585,14 +575,27 @@ createBasicTidbitView model shared =
                                         ]
                                         [ text "Conclusion" ]
                                   , button
-                                        [ onClick <| BasicTidbitAddFrame ]
+                                        [ class "action-button plus-button"
+                                        , onClick <| BasicTidbitAddFrame
+                                        ]
                                         [ text "+" ]
+                                  , button
+                                        [ class "action-button"
+                                        , onClick <| BasicTidbitRemoveFrame
+                                        , disabled <|
+                                            Array.length
+                                                model.creatingBasicTidbitData.highlightedComments
+                                                <= 1
+                                        ]
+                                        [ text "-" ]
+                                  , hr [] []
                                   ]
+                                , dynamicFrameButtons
                                 ]
                             )
             in
                 div
-                    []
+                    [ class "create-basic-tidbit-code" ]
                     [ Editor.editor "basic-tidbit-code-editor"
                     , div
                         [ class "comment-creator" ]
@@ -632,7 +635,7 @@ createBasicTidbitView model shared =
         -- Disabled publish button.
         disabledPublishButton =
             button
-                [ class "create-basic-tidbit-publish-button"
+                [ class "create-basic-tidbit-disabled-publish-button"
                 , disabled True
                 ]
                 [ text "Publish" ]

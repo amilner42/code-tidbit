@@ -2,13 +2,14 @@
   position: relative;
   display: inline-block;
   float: left;
-  width: 645px;
+  width: 625px;
   height: 600px;
+  padding: 0 10px 0 10px;
 }
 
 // Ace places this class on the editor.
 .ace_editor {
   font-family: 'Inconsolata', monospace;
-  width: 645px;
+  width: 635px;
   height: 600px;
 }

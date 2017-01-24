@@ -342,6 +342,70 @@
                 }
             }
 
+            .create-basic-tidbit-code {
+
+                width: $min-width-supported;
+                display: block;
+                margin: 50px auto 0 auto;
+
+                .comment-creator {
+                    box-sizing: border-box;
+                    position: relative;
+                    display: inline-block;
+                    margin: 0 0 0 10px;
+                    width: 366px;
+                    height: 600px;
+                    border-radius: 5px;
+
+                    button {
+                        @include no-select();
+                        color: $color4;
+                        border: 1px solid $color2;
+                        margin: 1px;
+                        font-size: 16px;
+                        line-height: 30px;
+                        text-align: center;
+                        background-color: white;
+                        cursor: pointer;
+                    }
+
+                    .comment-body {
+                        width: 100%;
+
+                        textarea {
+                          width: 354px;
+                          height: 200px;
+                          border: 1px solid $color2;
+                        }
+                    }
+
+                    .action-button {
+                        background-color: $color5;
+                        color: white;
+                        width: 35px;
+                        height: 35px;
+                        float: right;
+                        border: none;
+                    }
+
+                    .plus-button {
+                        margin-right: 6px;
+                    }
+
+                    hr {
+                        color: $color2;
+                        background-color: $color2;
+                        height: 0px;
+                        width: 0px;
+                        margin: 0px;
+                    }
+
+                    .selected-frame {
+                      color: $color1;
+                    }
+                }
+            }
+
             .sub-bar {
                 position: relative;
                 display: inline-block;
@@ -395,25 +459,19 @@
                     margin-right: 10px;
                     background-color: $color7;
                 }
-            }
 
-            .comment-creator {
-                box-sizing: border-box;
-                position: relative;
-                display: inline-block;
-                margin: 0 5px 0 5px;
-                width: 369px;
-                height: 600px;
-                border: 2px solid grey;
-                padding: 5px;
+                .create-basic-tidbit-disabled-publish-button {
+                    @extend .sub-bar-button;
 
-                textarea {
-                  width: 349px;
-                  height: 200px;
-                }
+                    float: right;
+                    margin-right: 10px;
+                    background-color: white;
+                    color: $color7;
+                    cursor: not-allowed;
 
-                .selected-frame {
-                  background-color: #AAA;
+                    &:hover {
+                        color: $color7;
+                    }
                 }
             }
         }
