@@ -635,7 +635,7 @@ createSnipbitView model shared =
         -- Disabled publish button.
         disabledPublishButton =
             button
-                [ class "create-snipbit-publish-button"
+                [ class "create-snipbit-disabled-publish-button"
                 , disabled True
                 ]
                 [ text "Publish" ]

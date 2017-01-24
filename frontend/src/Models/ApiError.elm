@@ -22,18 +22,18 @@ type ApiError
     | InvalidPassword
     | InternalError
     | PasswordDoesNotMatchConfirmPassword
-    | BasicTidbitEmptyRange
-    | BasicTidbitEmptyComment
-    | BasicTidbitNoHighlightedComments
-    | BasicTidbitEmptyConclusion
-    | BasicTidbitEmptyIntroduction
-    | BasicTidbitEmptyCode
-    | BasicTidbitNoTags
-    | BasicTidbitEmptyTag
-    | BasicTidbitEmptyDescription
-    | BasicTidbitEmptyName
-    | BasicTidbitNameTooLong
-    | BasicTidbitInvalidLanguage
+    | SnipbitEmptyRange
+    | SnipbitEmptyComment
+    | SnipbitNoHighlightedComments
+    | SnipbitEmptyConclusion
+    | SnipbitEmptyIntroduction
+    | SnipbitEmptyCode
+    | SnipbitNoTags
+    | SnipbitEmptyTag
+    | SnipbitEmptyDescription
+    | SnipbitEmptyName
+    | SnipbitNameTooLong
+    | SnipbitInvalidLanguage
     | InvalidName
 
 
@@ -92,40 +92,40 @@ humanReadable apiError =
         PasswordDoesNotMatchConfirmPassword ->
             "Passwords do not match!"
 
-        BasicTidbitEmptyRange ->
+        SnipbitEmptyRange ->
             "You must have a range selected for each frame!"
 
-        BasicTidbitEmptyComment ->
+        SnipbitEmptyComment ->
             "You must have an explanatory comment on each frame!"
 
-        BasicTidbitNoHighlightedComments ->
+        SnipbitNoHighlightedComments ->
             "You must have at least one explanatory frame!"
 
-        BasicTidbitEmptyConclusion ->
+        SnipbitEmptyConclusion ->
             "You must have a conclusion!"
 
-        BasicTidbitEmptyIntroduction ->
+        SnipbitEmptyIntroduction ->
             "You must have a introduction!"
 
-        BasicTidbitEmptyCode ->
+        SnipbitEmptyCode ->
             "You must have code!"
 
-        BasicTidbitNoTags ->
+        SnipbitNoTags ->
             "You must have at least one tag!"
 
-        BasicTidbitEmptyTag ->
+        SnipbitEmptyTag ->
             "You must have no empty tags!"
 
-        BasicTidbitEmptyDescription ->
+        SnipbitEmptyDescription ->
             "You must have a description!"
 
-        BasicTidbitEmptyName ->
+        SnipbitEmptyName ->
             "You must have a name!"
 
-        BasicTidbitNameTooLong ->
+        SnipbitNameTooLong ->
             "Name entered is too long! "
 
-        BasicTidbitInvalidLanguage ->
+        SnipbitInvalidLanguage ->
             "Language selected was not valid!"
 
         InvalidName ->
@@ -168,40 +168,40 @@ fromErrorCode errorCode =
             PasswordDoesNotMatchConfirmPassword
 
         11 ->
-            BasicTidbitEmptyRange
+            SnipbitEmptyRange
 
         12 ->
-            BasicTidbitEmptyComment
+            SnipbitEmptyComment
 
         13 ->
-            BasicTidbitNoHighlightedComments
+            SnipbitNoHighlightedComments
 
         14 ->
-            BasicTidbitEmptyConclusion
+            SnipbitEmptyConclusion
 
         15 ->
-            BasicTidbitEmptyIntroduction
+            SnipbitEmptyIntroduction
 
         16 ->
-            BasicTidbitEmptyCode
+            SnipbitEmptyCode
 
         17 ->
-            BasicTidbitNoTags
+            SnipbitNoTags
 
         18 ->
-            BasicTidbitEmptyTag
+            SnipbitEmptyTag
 
         19 ->
-            BasicTidbitEmptyDescription
+            SnipbitEmptyDescription
 
         20 ->
-            BasicTidbitEmptyName
+            SnipbitEmptyName
 
         21 ->
-            BasicTidbitNameTooLong
+            SnipbitNameTooLong
 
         22 ->
-            BasicTidbitInvalidLanguage
+            SnipbitInvalidLanguage
 
         23 ->
             InvalidName
