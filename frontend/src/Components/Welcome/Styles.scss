@@ -1,3 +1,4 @@
+@import '../../Styles/global';
 @import '../../Styles/mixins';
 @import '../../Styles/variables';
 
@@ -35,21 +36,10 @@
   }
 
   .welcome-component-change-tab-button {
+    @extend .gray-button;
     position: absolute;
     right: 23px;
     top: 23px;
-    color: white;
-    background-color: lightgrey;
-    border: 3px solid lightgrey;
-    border-radius: 5px;
-    width: 150px;
-    height: 45px;
-    font-size: 24px;
-
-    &:hover {
-      background-color: $color1;
-      border-color:  $color1;
-    }
   }
 
   .welcome-component {

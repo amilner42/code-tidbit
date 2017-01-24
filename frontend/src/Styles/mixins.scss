@@ -60,6 +60,7 @@
         -ms-user-select: none; /* Internet Explorer/Edge */
             user-select: none; /* Non-prefixed version, currently
                                   not supported by any browser */
+  cursor: default;
 }
 
 // A stronger box shadow used for more effect.
@@ -79,5 +80,5 @@
 // A lighter box shadow used for less effect.
 // Check out this codepen: https://codepen.io/sdthornton/pen/wBZdXq
 @mixin light-box-shadow() {
-  box-shadow: 0 1px 3px rgba(0,0,0,0.02), 0 1px 2px rgba(0,0,0,0.04);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.12);
 }

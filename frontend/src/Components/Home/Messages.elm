@@ -1,6 +1,7 @@
 module Components.Home.Messages exposing (Msg(..))
 
 import Autocomplete as AC
+import Components.Home.Model exposing (TidbitType)
 import Models.ApiError as ApiError
 import Models.BasicResponse as BasicResponse
 import Models.BasicTidbit as BasicTidbit
@@ -16,6 +17,7 @@ type Msg
     | LogOut
     | OnLogOutFailure ApiError.ApiError
     | OnLogOutSuccess BasicResponse.BasicResponse
+    | ShowInfoFor (Maybe TidbitType)
     | BasicTidbitUpdateLanguageQuery String
     | BasicTidbitUpdateACState AC.Msg
     | BasicTidbitUpdateACWrap Bool

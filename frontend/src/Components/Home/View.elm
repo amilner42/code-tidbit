@@ -3,13 +3,13 @@ module Components.Home.View exposing (..)
 import Array
 import Autocomplete as AC
 import Components.Home.Messages exposing (Msg(..))
-import Components.Home.Model exposing (Model)
+import Components.Home.Model exposing (Model, TidbitType(..))
 import Components.Home.Update exposing (filterLanguagesByQuery)
 import Components.Model exposing (Shared)
 import DefaultServices.Util as Util
 import Elements.Editor as Editor
-import Html exposing (Html, div, text, textarea, button, input, h1, h3)
-import Html.Attributes exposing (class, classList, disabled, placeholder, value, hidden, id)
+import Html exposing (Html, div, text, textarea, button, input, h1, h3, img, hr)
+import Html.Attributes exposing (class, classList, disabled, placeholder, value, hidden, id, src)
 import Html.Events exposing (onClick, onInput)
 import Models.Range as Range
 import Models.Route as Route
@@ -25,10 +25,8 @@ view model shared =
         [ class "home-component-wrapper" ]
         [ div
             [ class "home-component" ]
-            [ div []
-                [ navbar shared
-                , displayViewForRoute model shared
-                ]
+            [ navbar shared
+            , displayViewForRoute model shared
             ]
         ]
 
@@ -103,7 +101,12 @@ navbar shared =
                     )
     in
         div [ class "nav" ]
-            [ div
+            [ img
+                [ class "logo"
+                , src "assets/ct-logo.png"
+                ]
+                []
+            , div
                 [ classList
                     [ ( "nav-btn left", True )
                     , ( "selected", browseViewSelected )
@@ -156,18 +159,92 @@ browseView model =
 -}
 createView : Model -> Shared -> Html Msg
 createView model shared =
-    div
-        []
-        [ div
+    let
+        snipBitDescription : String
+        snipBitDescription =
+            """SnipBits are uni-language snippets of code that are
+            targetted at explaining simple individual concepts or
+            answering questions.
+
+            You highlight chunks of the code with attached comments,
+            taking your viewers through your code explaining everything
+            one step at a time.
+            """
+
+        bigBitInfo : String
+        bigBitInfo =
+            "TODO"
+
+        makeTidbitTypeBox : String -> String -> String -> Msg -> TidbitType -> Html Msg
+        makeTidbitTypeBox title subTitle description onClickMsg tidbitType =
+            div
+                [ class "create-select-tidbit-type" ]
+                (if model.showInfoFor == (Just tidbitType) then
+                    [ div
+                        [ class "description-title" ]
+                        [ text <| toString tidbitType ++ " Info" ]
+                    , div
+                        [ class "description-text" ]
+                        [ text description ]
+                    , button
+                        [ class "back-button"
+                        , onClick <| ShowInfoFor Nothing
+                        ]
+                        [ text "back" ]
+                    ]
+                 else
+                    [ div
+                        [ class "create-select-tidbit-type-title" ]
+                        [ text title ]
+                    , div
+                        [ class "create-select-tidbit-type-sub-title" ]
+                        [ text subTitle ]
+                    , button
+                        [ class "info-button"
+                        , onClick <| ShowInfoFor <| Just tidbitType
+                        ]
+                        [ text "more info" ]
+                    , button
+                        [ class "select-button"
+                        , onClick onClickMsg
+                        ]
+                        [ text "select" ]
+                    ]
+                )
+    in
+        div
             []
-            [ h1
+            [ div
                 []
-                [ text "Select Tidbit Type" ]
-            , button
-                [ onClick <| GoTo Route.HomeComponentCreateBasicName ]
-                [ text "Basic Tidbit" ]
+                [ h1
+                    [ class "create-select-tidbit-title" ]
+                    [ text "Select Tidbit Type" ]
+                , div
+                    [ class "create-select-tidbit-box" ]
+                    [ makeTidbitTypeBox
+                        "SnipBit"
+                        "Excellent for answering questions"
+                        snipBitDescription
+                        (GoTo Route.HomeComponentCreateBasicName)
+                        SnipBit
+                    , makeTidbitTypeBox
+                        "BigBit"
+                        "Designed for larger tutorials"
+                        bigBitInfo
+                        (NoOp)
+                        BigBit
+                    , div
+                        [ class "create-select-tidbit-type-coming-soon" ]
+                        [ div
+                            [ class "coming-soon-text" ]
+                            [ text "More Coming Soon" ]
+                        , div
+                            [ class "coming-soon-sub-text" ]
+                            [ text "We are working on it" ]
+                        ]
+                    ]
+                ]
             ]
-        ]
 
 
 {-| View for creating a basic tidbit.
@@ -292,11 +369,16 @@ createBasicTidbitView model shared =
         nameView : Html Msg
         nameView =
             div
-                []
+                [ class "create-basic-tidbit-name" ]
                 [ input
-                    [ placeholder "name"
+                    [ placeholder "Name"
                     , onInput BasicTidbitUpdateName
                     , value model.creatingBasicTidbitData.name
+                    , Util.onEnter <|
+                        if String.isEmpty model.creatingBasicTidbitData.name then
+                            NoOp
+                        else
+                            GoTo Route.HomeComponentCreateBasicDescription
                     ]
                     []
                 ]
@@ -304,12 +386,12 @@ createBasicTidbitView model shared =
         descriptionView : Html Msg
         descriptionView =
             div
-                []
+                [ class "create-basic-tidbit-description" ]
                 [ textarea
-                    [ placeholder "description"
+                    [ class "create-basic-tidbit-description-box"
+                    , placeholder "Description"
                     , onInput BasicTidbitUpdateDescription
                     , value model.creatingBasicTidbitData.description
-                    , class "create-basic-tidbit-description-box"
                     ]
                     []
                 ]
@@ -317,9 +399,9 @@ createBasicTidbitView model shared =
         languageView : Html Msg
         languageView =
             div
-                []
+                [ class "create-basic-tidbit-language" ]
                 [ input
-                    [ placeholder "language"
+                    [ placeholder "Language"
                     , id "language-query-input"
                     , onInput BasicTidbitUpdateLanguageQuery
                     , value model.creatingBasicTidbitData.languageQuery
@@ -346,11 +428,11 @@ createBasicTidbitView model shared =
             let
                 currentTags =
                     div
-                        []
+                        [ class "current-tags" ]
                         (List.map
                             (\tagName ->
                                 div
-                                    []
+                                    [ class "tag" ]
                                     [ text tagName
                                     , button
                                         [ onClick <| BasicTidbitRemoveTag tagName ]
@@ -361,9 +443,9 @@ createBasicTidbitView model shared =
                         )
             in
                 div
-                    []
+                    [ class "create-basic-tidbit-tags" ]
                     [ input
-                        [ placeholder "tags"
+                        [ placeholder "Tags"
                         , onInput BasicTidbitUpdateTagInput
                         , value model.creatingBasicTidbitData.tagInput
                         , Util.onEnter <|
@@ -381,7 +463,7 @@ createBasicTidbitView model shared =
                     case shared.route of
                         Route.HomeComponentCreateBasicTidbitIntroduction ->
                             div
-                                []
+                                [ class "comment-body" ]
                                 [ textarea
                                     [ placeholder "Introduction"
                                     , onInput <| BasicTidbitUpdateIntroduction
@@ -396,7 +478,7 @@ createBasicTidbitView model shared =
                                     frameNumber - 1
                             in
                                 div
-                                    []
+                                    [ class "comment-body" ]
                                     [ textarea
                                         [ placeholder <|
                                             "Frame "
@@ -426,7 +508,7 @@ createBasicTidbitView model shared =
 
                         Route.HomeComponentCreateBasicTidbitConclusion ->
                             div
-                                []
+                                [ class "comment-body" ]
                                 [ textarea
                                     [ placeholder "Conclusion"
                                     , onInput <| BasicTidbitUpdateConclusion
@@ -466,99 +548,11 @@ createBasicTidbitView model shared =
                                     )
                                     model.creatingBasicTidbitData.highlightedComments
                             )
-
-                        -- Disabled publish button.
-                        disabledPublishButton =
-                            button
-                                [ classList [ ( "publish-button", True ) ]
-                                , disabled True
-                                ]
-                                [ text "Publish" ]
-
-                        {- It should be `disabledPublishButton` unless
-                           everything is filled out in which case it should be
-                           the publish button with the info filled for an
-                           event handler to call the API.
-                        -}
-                        currentPublishButton =
-                            let
-                                tidbitData =
-                                    model.creatingBasicTidbitData
-                            in
-                                case tidbitData.language of
-                                    Nothing ->
-                                        disabledPublishButton
-
-                                    Just theLanguage ->
-                                        if
-                                            (tidbitData.name /= "")
-                                                && (tidbitData.description /= "")
-                                                && (List.length tidbitData.tags > 0)
-                                                && (tidbitData.code /= "")
-                                                && (tidbitData.introduction /= "")
-                                                && (tidbitData.conclusion /= "")
-                                        then
-                                            let
-                                                filledHighlightedComments =
-                                                    Array.foldr
-                                                        (\maybeHC previousHC ->
-                                                            case ( maybeHC.range, maybeHC.comment ) of
-                                                                ( Just aRange, Just aComment ) ->
-                                                                    if
-                                                                        (String.length aComment > 0)
-                                                                            && (not <| Range.isEmptyRange aRange)
-                                                                    then
-                                                                        { range = aRange
-                                                                        , comment = aComment
-                                                                        }
-                                                                            :: previousHC
-                                                                    else
-                                                                        previousHC
-
-                                                                _ ->
-                                                                    previousHC
-                                                        )
-                                                        []
-                                                        tidbitData.highlightedComments
-                                            in
-                                                if
-                                                    (List.length filledHighlightedComments)
-                                                        == (Array.length tidbitData.highlightedComments)
-                                                then
-                                                    button
-                                                        [ classList
-                                                            [ ( "publish-button", True )
-                                                            ]
-                                                        , onClick <|
-                                                            BasicTidbitPublish
-                                                                { language = theLanguage
-                                                                , name = tidbitData.name
-                                                                , description = tidbitData.description
-                                                                , tags = tidbitData.tags
-                                                                , code = tidbitData.code
-                                                                , introduction = tidbitData.introduction
-                                                                , conclusion = tidbitData.conclusion
-                                                                , highlightedComments = Array.fromList filledHighlightedComments
-                                                                }
-                                                        ]
-                                                        [ text "Publish" ]
-                                                else
-                                                    disabledPublishButton
-                                        else
-                                            disabledPublishButton
                     in
                         div
                             []
                             (List.concat
                                 [ [ button
-                                        [ onClick <| BasicTidbitRemoveFrame
-                                        , disabled <|
-                                            Array.length
-                                                model.creatingBasicTidbitData.highlightedComments
-                                                <= 1
-                                        ]
-                                        [ text "-" ]
-                                  , button
                                         [ onClick <|
                                             GoTo Route.HomeComponentCreateBasicTidbitIntroduction
                                         , classList
@@ -569,9 +563,7 @@ createBasicTidbitView model shared =
                                             ]
                                         ]
                                         [ text "Introduction" ]
-                                  ]
-                                , dynamicFrameButtons
-                                , [ button
+                                  , button
                                         [ onClick <|
                                             GoTo Route.HomeComponentCreateBasicTidbitConclusion
                                         , classList
@@ -583,15 +575,27 @@ createBasicTidbitView model shared =
                                         ]
                                         [ text "Conclusion" ]
                                   , button
-                                        [ onClick <| BasicTidbitAddFrame ]
+                                        [ class "action-button plus-button"
+                                        , onClick <| BasicTidbitAddFrame
+                                        ]
                                         [ text "+" ]
-                                  , currentPublishButton
+                                  , button
+                                        [ class "action-button"
+                                        , onClick <| BasicTidbitRemoveFrame
+                                        , disabled <|
+                                            Array.length
+                                                model.creatingBasicTidbitData.highlightedComments
+                                                <= 1
+                                        ]
+                                        [ text "-" ]
+                                  , hr [] []
                                   ]
+                                , dynamicFrameButtons
                                 ]
                             )
             in
                 div
-                    []
+                    [ class "create-basic-tidbit-code" ]
                     [ Editor.editor "basic-tidbit-code-editor"
                     , div
                         [ class "comment-creator" ]
@@ -627,13 +631,92 @@ createBasicTidbitView model shared =
                 -- Default to name view.
                 _ ->
                     nameView
+
+        -- Disabled publish button.
+        disabledPublishButton =
+            button
+                [ class "create-basic-tidbit-disabled-publish-button"
+                , disabled True
+                ]
+                [ text "Publish" ]
+
+        {- It should be `disabledPublishButton` unless
+           everything is filled out in which case it should be
+           the publish button with the info filled for an
+           event handler to call the API.
+        -}
+        currentPublishButton =
+            let
+                tidbitData =
+                    model.creatingBasicTidbitData
+            in
+                case tidbitData.language of
+                    Nothing ->
+                        disabledPublishButton
+
+                    Just theLanguage ->
+                        if
+                            (tidbitData.name /= "")
+                                && (tidbitData.description /= "")
+                                && (List.length tidbitData.tags > 0)
+                                && (tidbitData.code /= "")
+                                && (tidbitData.introduction /= "")
+                                && (tidbitData.conclusion /= "")
+                        then
+                            let
+                                filledHighlightedComments =
+                                    Array.foldr
+                                        (\maybeHC previousHC ->
+                                            case ( maybeHC.range, maybeHC.comment ) of
+                                                ( Just aRange, Just aComment ) ->
+                                                    if
+                                                        (String.length aComment > 0)
+                                                            && (not <| Range.isEmptyRange aRange)
+                                                    then
+                                                        { range = aRange
+                                                        , comment = aComment
+                                                        }
+                                                            :: previousHC
+                                                    else
+                                                        previousHC
+
+                                                _ ->
+                                                    previousHC
+                                        )
+                                        []
+                                        tidbitData.highlightedComments
+                            in
+                                if
+                                    (List.length filledHighlightedComments)
+                                        == (Array.length tidbitData.highlightedComments)
+                                then
+                                    button
+                                        [ classList
+                                            [ ( "create-basic-tidbit-publish-button", True )
+                                            ]
+                                        , onClick <|
+                                            BasicTidbitPublish
+                                                { language = theLanguage
+                                                , name = tidbitData.name
+                                                , description = tidbitData.description
+                                                , tags = tidbitData.tags
+                                                , code = tidbitData.code
+                                                , introduction = tidbitData.introduction
+                                                , conclusion = tidbitData.conclusion
+                                                , highlightedComments = Array.fromList filledHighlightedComments
+                                                }
+                                        ]
+                                        [ text "Publish" ]
+                                else
+                                    disabledPublishButton
+                        else
+                            disabledPublishButton
     in
         div
-            []
+            [ class "create-basic-tidbit" ]
             [ div
-                []
-                [ h1 [] [ text "Creating Basic Tidbit" ]
-                , button
+                [ class "sub-bar" ]
+                [ button
                     [ class "create-basic-tidbit-back-button"
                     , onClick <| GoTo Route.HomeComponentCreate
                     ]
@@ -643,6 +726,7 @@ createBasicTidbitView model shared =
                     , onClick <| ResetCreateBasicTidbit
                     ]
                     [ text "Reset" ]
+                , currentPublishButton
                 ]
             , div
                 []

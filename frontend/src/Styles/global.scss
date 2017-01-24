@@ -19,6 +19,12 @@ button {
   outline: none;
 }
 
+input:focus, textarea:focus {
+  outline: none;
+  border: none;
+  box-shadow: 0 0 0 1pt $color3;
+}
+
 .gap-10 {
   width: 10px;
   display: inline-block;
@@ -42,5 +48,20 @@ button {
 }
 
 .hidden {
-  display: none;
+  display: none !important;
+}
+
+.gray-button {
+  color: white;
+  background-color: lightgrey;
+  border: 3px solid lightgrey;
+  border-radius: 5px;
+  width: 150px;
+  height: 45px;
+  font-size: 24px;
+
+  &:hover {
+    background-color: $color1;
+    border-color:  $color1;
+  }
 }

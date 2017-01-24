@@ -68,6 +68,9 @@ update msg model shared =
                 , Router.navigateTo Route.WelcomeComponentRegister
                 )
 
+            ShowInfoFor maybeTidbitType ->
+                ( { model | showInfoFor = maybeTidbitType }, shared, Cmd.none )
+
             BasicTidbitUpdateLanguageQuery newLanguageQuery ->
                 let
                     newCreatingBasicTidbitData =
