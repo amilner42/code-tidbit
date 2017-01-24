@@ -42,25 +42,25 @@ viewForRoute model =
             Route.HomeComponentCreate ->
                 renderedHomeView
 
-            Route.HomeComponentCreateBasicName ->
+            Route.HomeComponentCreateSnipbitName ->
                 renderedHomeView
 
-            Route.HomeComponentCreateBasicDescription ->
+            Route.HomeComponentCreateSnipbitDescription ->
                 renderedHomeView
 
-            Route.HomeComponentCreateBasicLanguage ->
+            Route.HomeComponentCreateSnipbitLanguage ->
                 renderedHomeView
 
-            Route.HomeComponentCreateBasicTags ->
+            Route.HomeComponentCreateSnipbitTags ->
                 renderedHomeView
 
-            Route.HomeComponentCreateBasicTidbitIntroduction ->
+            Route.HomeComponentCreateSnipbitCodeIntroduction ->
                 renderedHomeView
 
-            Route.HomeComponentCreateBasicTidbitFrame _ ->
+            Route.HomeComponentCreateSnipbitCodeFrame _ ->
                 renderedHomeView
 
-            Route.HomeComponentCreateBasicTidbitConclusion ->
+            Route.HomeComponentCreateSnipbitCodeConclusion ->
                 renderedHomeView
 
             Route.HomeComponentProfile ->

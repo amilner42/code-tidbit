@@ -118,10 +118,10 @@ updateCacheIf msg model shouldCache =
 
                 CodeEditorUpdate { id, value } ->
                     case id of
-                        "basic-tidbit-code-editor" ->
+                        "create-snipbit-code-editor" ->
                             (updateCacheIf
                                 (HomeMessage <|
-                                    HomeMessages.BasicTidbitUpdateCode value
+                                    HomeMessages.SnipbitUpdateCode value
                                 )
                                 model
                                 shouldCache
@@ -132,10 +132,10 @@ updateCacheIf msg model shouldCache =
 
                 CodeEditorSelectionUpdate { id, range } ->
                     case id of
-                        "basic-tidbit-code-editor" ->
+                        "create-snipbit-code-editor" ->
                             (updateCacheIf
                                 (HomeMessage <|
-                                    HomeMessages.BasicTidbitNewRangeSelected
+                                    HomeMessages.SnipbitNewRangeSelected
                                         range
                                 )
                                 model
@@ -195,7 +195,7 @@ handleLocationChange maybeRoute model =
                     }
 
                 aceLang =
-                    case model.homeComponent.creatingBasicTidbitData.language of
+                    case model.homeComponent.creatingSnipbitData.language of
                         Nothing ->
                             ""
 
@@ -207,7 +207,7 @@ handleLocationChange maybeRoute model =
                     ""
 
                 aceValue =
-                    model.homeComponent.creatingBasicTidbitData.code
+                    model.homeComponent.creatingSnipbitData.code
 
                 -- Handle authentication logic here.
                 ( newModel, newCmd ) =
@@ -260,11 +260,11 @@ handleLocationChange maybeRoute model =
                                     in
                                         ( newModel, LocalStorage.saveModel newModel )
 
-                newCmdBatchedWithCreateBasicTidbitEditor aceRange =
+                newCmdBatchedWithCreateSnipbitEditor aceRange =
                     Cmd.batch
                         [ newCmd
                         , Ports.createCodeEditor
-                            { id = "basic-tidbit-code-editor"
+                            { id = "create-snipbit-code-editor"
                             , lang = aceLang
                             , theme = aceTheme
                             , value = aceValue
@@ -276,25 +276,25 @@ handleLocationChange maybeRoute model =
                 -- able to trigger certain things (hooks).
                 case route of
                     -- Init the editor.
-                    Route.HomeComponentCreateBasicTidbitIntroduction ->
+                    Route.HomeComponentCreateSnipbitCodeIntroduction ->
                         ( newModel
-                        , newCmdBatchedWithCreateBasicTidbitEditor Nothing
+                        , newCmdBatchedWithCreateSnipbitEditor Nothing
                         )
 
                     -- Init the editor.
-                    Route.HomeComponentCreateBasicTidbitConclusion ->
+                    Route.HomeComponentCreateSnipbitCodeConclusion ->
                         ( newModel
-                        , newCmdBatchedWithCreateBasicTidbitEditor Nothing
+                        , newCmdBatchedWithCreateSnipbitEditor Nothing
                         )
 
-                    Route.HomeComponentCreateBasicTidbitFrame frameNumber ->
+                    Route.HomeComponentCreateSnipbitCodeFrame frameNumber ->
                         let
                             -- 0 based indexing.
                             frameIndex =
                                 frameNumber - 1
 
                             frameIndexTooHigh =
-                                frameIndex >= (Array.length model.homeComponent.creatingBasicTidbitData.highlightedComments)
+                                frameIndex >= (Array.length model.homeComponent.creatingSnipbitData.highlightedComments)
 
                             frameIndexTooLow =
                                 frameIndex < 0
@@ -304,17 +304,17 @@ handleLocationChange maybeRoute model =
                                 , Cmd.batch
                                     [ newCmd
                                     , Router.navigateTo
-                                        Route.HomeComponentCreateBasicTidbitIntroduction
+                                        Route.HomeComponentCreateSnipbitCodeIntroduction
                                     ]
                                 )
                             else
                                 ( newModel
-                                , newCmdBatchedWithCreateBasicTidbitEditor <|
+                                , newCmdBatchedWithCreateSnipbitEditor <|
                                     Maybe.andThen
                                         .range
                                         (Array.get
                                             frameIndex
-                                            model.homeComponent.creatingBasicTidbitData.highlightedComments
+                                            model.homeComponent.creatingSnipbitData.highlightedComments
                                         )
                                 )
 

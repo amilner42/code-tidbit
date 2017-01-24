@@ -4,7 +4,7 @@ import DefaultServices.Util as Util
 import Json.Decode as Decode exposing (field)
 import Json.Encode as Encode
 import Models.ApiError as ApiError
-import Models.BasicTidbit as BasicTidbit
+import Models.Snipbit as Snipbit
 
 
 {-| Home Component Model.
@@ -12,7 +12,7 @@ import Models.BasicTidbit as BasicTidbit
 type alias Model =
     { logOutError : Maybe ApiError.ApiError
     , showInfoFor : Maybe TidbitType
-    , creatingBasicTidbitData : BasicTidbit.BasicTidbitCreateData
+    , creatingSnipbitData : Snipbit.SnipbitCreateData
     }
 
 
@@ -56,8 +56,8 @@ cacheEncoder model =
     Encode.object
         [ ( "logOutError", Encode.null )
         , ( "showInfoFor", Util.justValueOrNull tidbitTypeCacheEncoder model.showInfoFor )
-        , ( "creatingBasicTidbitData"
-          , BasicTidbit.createDataCacheEncoder model.creatingBasicTidbitData
+        , ( "creatingSnipbitData"
+          , Snipbit.createDataCacheEncoder model.creatingSnipbitData
           )
         ]
 
@@ -69,4 +69,4 @@ cacheDecoder =
     Decode.map3 Model
         (field "logOutError" (Decode.null Nothing))
         (field "showInfoFor" (Decode.maybe tidbitTypeCacheDecoder))
-        (field "creatingBasicTidbitData" (BasicTidbit.createDataCacheDecoder))
+        (field "creatingSnipbitData" (Snipbit.createDataCacheDecoder))

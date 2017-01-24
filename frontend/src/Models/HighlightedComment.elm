@@ -6,7 +6,7 @@ import Json.Decode as Decode
 import Models.Range as Range
 
 
-{-| A highlighted comment used in published basic tidbit.
+{-| A highlighted comment used in published snipbits.
 -}
 type alias HighlightedComment =
     { range : Range.Range
@@ -33,8 +33,8 @@ highlightedCommentDecoder =
         (Decode.field "comment" Decode.string)
 
 
-{-| A maybe highlighted comment, currently used in basic tidbits for the
-creation of highlighted comments.
+{-| A maybe highlighted comment, currently used for the creation of highlighted
+comments in snipbits.
 -}
 type alias MaybeHighlightedComment =
     { range : Maybe Range.Range

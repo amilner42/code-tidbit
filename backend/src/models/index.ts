@@ -1,2 +1,2 @@
 export * from './user.model';
-export * from './basic-tidbit.model';
+export * from './snipbit.model';

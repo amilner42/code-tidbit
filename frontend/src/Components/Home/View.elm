@@ -13,7 +13,7 @@ import Html.Attributes exposing (class, classList, disabled, placeholder, value,
 import Html.Events exposing (onClick, onInput)
 import Models.Range as Range
 import Models.Route as Route
-import Models.BasicTidbit as BasicTidbit
+import Models.Snipbit as Snipbit
 import Router
 
 
@@ -42,26 +42,26 @@ displayViewForRoute model shared =
         Route.HomeComponentCreate ->
             createView model shared
 
-        Route.HomeComponentCreateBasicName ->
-            createBasicTidbitView model shared
+        Route.HomeComponentCreateSnipbitName ->
+            createSnipbitView model shared
 
-        Route.HomeComponentCreateBasicDescription ->
-            createBasicTidbitView model shared
+        Route.HomeComponentCreateSnipbitDescription ->
+            createSnipbitView model shared
 
-        Route.HomeComponentCreateBasicLanguage ->
-            createBasicTidbitView model shared
+        Route.HomeComponentCreateSnipbitLanguage ->
+            createSnipbitView model shared
 
-        Route.HomeComponentCreateBasicTags ->
-            createBasicTidbitView model shared
+        Route.HomeComponentCreateSnipbitTags ->
+            createSnipbitView model shared
 
-        Route.HomeComponentCreateBasicTidbitIntroduction ->
-            createBasicTidbitView model shared
+        Route.HomeComponentCreateSnipbitCodeIntroduction ->
+            createSnipbitView model shared
 
-        Route.HomeComponentCreateBasicTidbitFrame _ ->
-            createBasicTidbitView model shared
+        Route.HomeComponentCreateSnipbitCodeFrame _ ->
+            createSnipbitView model shared
 
-        Route.HomeComponentCreateBasicTidbitConclusion ->
-            createBasicTidbitView model shared
+        Route.HomeComponentCreateSnipbitCodeConclusion ->
+            createSnipbitView model shared
 
         Route.HomeComponentProfile ->
             profileView model
@@ -84,19 +84,19 @@ navbar shared =
 
         createViewSelected =
             case shared.route of
-                Route.HomeComponentCreateBasicTidbitFrame _ ->
+                Route.HomeComponentCreateSnipbitCodeFrame _ ->
                     True
 
                 _ ->
                     (List.member
                         shared.route
                         [ Route.HomeComponentCreate
-                        , Route.HomeComponentCreateBasicName
-                        , Route.HomeComponentCreateBasicDescription
-                        , Route.HomeComponentCreateBasicLanguage
-                        , Route.HomeComponentCreateBasicTags
-                        , Route.HomeComponentCreateBasicTidbitIntroduction
-                        , Route.HomeComponentCreateBasicTidbitConclusion
+                        , Route.HomeComponentCreateSnipbitName
+                        , Route.HomeComponentCreateSnipbitDescription
+                        , Route.HomeComponentCreateSnipbitLanguage
+                        , Route.HomeComponentCreateSnipbitTags
+                        , Route.HomeComponentCreateSnipbitCodeIntroduction
+                        , Route.HomeComponentCreateSnipbitCodeConclusion
                         ]
                     )
     in
@@ -225,7 +225,7 @@ createView model shared =
                         "SnipBit"
                         "Excellent for answering questions"
                         snipBitDescription
-                        (GoTo Route.HomeComponentCreateBasicName)
+                        (GoTo Route.HomeComponentCreateSnipbitName)
                         SnipBit
                     , makeTidbitTypeBox
                         "BigBit"
@@ -247,10 +247,10 @@ createView model shared =
             ]
 
 
-{-| View for creating a basic tidbit.
+{-| View for creating a snipbit.
 -}
-createBasicTidbitView : Model -> Shared -> Html Msg
-createBasicTidbitView model shared =
+createSnipbitView : Model -> Shared -> Html Msg
+createSnipbitView model shared =
     let
         currentRoute : Route.Route
         currentRoute =
@@ -261,20 +261,20 @@ createBasicTidbitView model shared =
             div
                 [ classList
                     [ ( "hidden"
-                      , String.isEmpty model.creatingBasicTidbitData.languageQuery
+                      , String.isEmpty model.creatingSnipbitData.languageQuery
                             || Util.isNotNothing
-                                model.creatingBasicTidbitData.language
+                                model.creatingSnipbitData.language
                       )
                     ]
                 ]
                 [ Html.map
-                    BasicTidbitUpdateACState
+                    SnipbitUpdateACState
                     (AC.view
                         acViewConfig
-                        model.creatingBasicTidbitData.languageListHowManyToShow
-                        model.creatingBasicTidbitData.languageQueryACState
+                        model.creatingSnipbitData.languageListHowManyToShow
+                        model.creatingSnipbitData.languageQueryACState
                         (filterLanguagesByQuery
-                            model.creatingBasicTidbitData.languageQuery
+                            model.creatingSnipbitData.languageQuery
                             shared.languages
                         )
                     )
@@ -299,86 +299,86 @@ createBasicTidbitView model shared =
                     , li = customizedLi
                     }
 
-        createBasicTidbitNavbar : Html Msg
-        createBasicTidbitNavbar =
+        createSnipbitNavbar : Html Msg
+        createSnipbitNavbar =
             div
-                [ classList [ ( "create-basic-tidbit-navbar", True ) ] ]
+                [ classList [ ( "create-snipbit-navbar", True ) ] ]
                 [ div
                     [ classList
-                        [ ( "create-basic-tidbit-tab", True )
-                        , ( "create-basic-tidbit-selected-tab"
-                          , currentRoute == Route.HomeComponentCreateBasicName
+                        [ ( "create-snipbit-tab", True )
+                        , ( "create-snipbit-selected-tab"
+                          , currentRoute == Route.HomeComponentCreateSnipbitName
                           )
                         ]
-                    , onClick <| GoTo Route.HomeComponentCreateBasicName
+                    , onClick <| GoTo Route.HomeComponentCreateSnipbitName
                     ]
                     [ text "Name" ]
                 , div
                     [ classList
-                        [ ( "create-basic-tidbit-tab", True )
-                        , ( "create-basic-tidbit-selected-tab"
-                          , currentRoute == Route.HomeComponentCreateBasicDescription
+                        [ ( "create-snipbit-tab", True )
+                        , ( "create-snipbit-selected-tab"
+                          , currentRoute == Route.HomeComponentCreateSnipbitDescription
                           )
                         ]
-                    , onClick <| GoTo Route.HomeComponentCreateBasicDescription
+                    , onClick <| GoTo Route.HomeComponentCreateSnipbitDescription
                     ]
                     [ text "Description" ]
                 , div
                     [ classList
-                        [ ( "create-basic-tidbit-tab", True )
-                        , ( "create-basic-tidbit-selected-tab"
-                          , currentRoute == Route.HomeComponentCreateBasicLanguage
+                        [ ( "create-snipbit-tab", True )
+                        , ( "create-snipbit-selected-tab"
+                          , currentRoute == Route.HomeComponentCreateSnipbitLanguage
                           )
                         ]
-                    , onClick <| GoTo Route.HomeComponentCreateBasicLanguage
+                    , onClick <| GoTo Route.HomeComponentCreateSnipbitLanguage
                     ]
                     [ text "Language" ]
                 , div
                     [ classList
-                        [ ( "create-basic-tidbit-tab", True )
-                        , ( "create-basic-tidbit-selected-tab"
-                          , currentRoute == Route.HomeComponentCreateBasicTags
+                        [ ( "create-snipbit-tab", True )
+                        , ( "create-snipbit-selected-tab"
+                          , currentRoute == Route.HomeComponentCreateSnipbitTags
                           )
                         ]
-                    , onClick <| GoTo Route.HomeComponentCreateBasicTags
+                    , onClick <| GoTo Route.HomeComponentCreateSnipbitTags
                     ]
                     [ text "Tags" ]
                 , div
                     [ classList
-                        [ ( "create-basic-tidbit-tab", True )
-                        , ( "create-basic-tidbit-selected-tab"
+                        [ ( "create-snipbit-tab", True )
+                        , ( "create-snipbit-selected-tab"
                           , case currentRoute of
-                                Route.HomeComponentCreateBasicTidbitIntroduction ->
+                                Route.HomeComponentCreateSnipbitCodeIntroduction ->
                                     True
 
-                                Route.HomeComponentCreateBasicTidbitConclusion ->
+                                Route.HomeComponentCreateSnipbitCodeConclusion ->
                                     True
 
-                                Route.HomeComponentCreateBasicTidbitFrame _ ->
+                                Route.HomeComponentCreateSnipbitCodeFrame _ ->
                                     True
 
                                 _ ->
                                     False
                           )
                         ]
-                    , onClick <| GoTo Route.HomeComponentCreateBasicTidbitIntroduction
+                    , onClick <| GoTo Route.HomeComponentCreateSnipbitCodeIntroduction
                     ]
-                    [ text "Tidbit" ]
+                    [ text "Code" ]
                 ]
 
         nameView : Html Msg
         nameView =
             div
-                [ class "create-basic-tidbit-name" ]
+                [ class "create-snipbit-name" ]
                 [ input
                     [ placeholder "Name"
-                    , onInput BasicTidbitUpdateName
-                    , value model.creatingBasicTidbitData.name
+                    , onInput SnipbitUpdateName
+                    , value model.creatingSnipbitData.name
                     , Util.onEnter <|
-                        if String.isEmpty model.creatingBasicTidbitData.name then
+                        if String.isEmpty model.creatingSnipbitData.name then
                             NoOp
                         else
-                            GoTo Route.HomeComponentCreateBasicDescription
+                            GoTo Route.HomeComponentCreateSnipbitDescription
                     ]
                     []
                 ]
@@ -386,12 +386,12 @@ createBasicTidbitView model shared =
         descriptionView : Html Msg
         descriptionView =
             div
-                [ class "create-basic-tidbit-description" ]
+                [ class "create-snipbit-description" ]
                 [ textarea
-                    [ class "create-basic-tidbit-description-box"
+                    [ class "create-snipbit-description-box"
                     , placeholder "Description"
-                    , onInput BasicTidbitUpdateDescription
-                    , value model.creatingBasicTidbitData.description
+                    , onInput SnipbitUpdateDescription
+                    , value model.creatingSnipbitData.description
                     ]
                     []
                 ]
@@ -399,24 +399,24 @@ createBasicTidbitView model shared =
         languageView : Html Msg
         languageView =
             div
-                [ class "create-basic-tidbit-language" ]
+                [ class "create-snipbit-language" ]
                 [ input
                     [ placeholder "Language"
                     , id "language-query-input"
-                    , onInput BasicTidbitUpdateLanguageQuery
-                    , value model.creatingBasicTidbitData.languageQuery
+                    , onInput SnipbitUpdateLanguageQuery
+                    , value model.creatingSnipbitData.languageQuery
                     , disabled <|
                         Util.isNotNothing
-                            model.creatingBasicTidbitData.language
+                            model.creatingSnipbitData.language
                     ]
                     []
                 , viewMenu
                 , button
-                    [ onClick <| BasicTidbitSelectLanguage Nothing
+                    [ onClick <| SnipbitSelectLanguage Nothing
                     , classList
                         [ ( "hidden"
                           , Util.isNothing
-                                model.creatingBasicTidbitData.language
+                                model.creatingSnipbitData.language
                           )
                         ]
                     ]
@@ -435,22 +435,22 @@ createBasicTidbitView model shared =
                                     [ class "tag" ]
                                     [ text tagName
                                     , button
-                                        [ onClick <| BasicTidbitRemoveTag tagName ]
+                                        [ onClick <| SnipbitRemoveTag tagName ]
                                         [ text "X" ]
                                     ]
                             )
-                            model.creatingBasicTidbitData.tags
+                            model.creatingSnipbitData.tags
                         )
             in
                 div
-                    [ class "create-basic-tidbit-tags" ]
+                    [ class "create-snipbit-tags" ]
                     [ input
                         [ placeholder "Tags"
-                        , onInput BasicTidbitUpdateTagInput
-                        , value model.creatingBasicTidbitData.tagInput
+                        , onInput SnipbitUpdateTagInput
+                        , value model.creatingSnipbitData.tagInput
                         , Util.onEnter <|
-                            BasicTidbitAddTag
-                                model.creatingBasicTidbitData.tagInput
+                            SnipbitAddTag
+                                model.creatingSnipbitData.tagInput
                         ]
                         []
                     , currentTags
@@ -461,18 +461,18 @@ createBasicTidbitView model shared =
             let
                 body =
                     case shared.route of
-                        Route.HomeComponentCreateBasicTidbitIntroduction ->
+                        Route.HomeComponentCreateSnipbitCodeIntroduction ->
                             div
                                 [ class "comment-body" ]
                                 [ textarea
                                     [ placeholder "Introduction"
-                                    , onInput <| BasicTidbitUpdateIntroduction
-                                    , value model.creatingBasicTidbitData.introduction
+                                    , onInput <| SnipbitUpdateIntroduction
+                                    , value model.creatingSnipbitData.introduction
                                     ]
                                     []
                                 ]
 
-                        Route.HomeComponentCreateBasicTidbitFrame frameNumber ->
+                        Route.HomeComponentCreateSnipbitCodeFrame frameNumber ->
                             let
                                 frameIndex =
                                     frameNumber - 1
@@ -484,12 +484,12 @@ createBasicTidbitView model shared =
                                             "Frame "
                                                 ++ (toString <| frameNumber)
                                         , onInput <|
-                                            BasicTidbitUpdateFrameComment frameIndex
+                                            SnipbitUpdateFrameComment frameIndex
                                         , value <|
                                             case
                                                 (Array.get
                                                     frameIndex
-                                                    model.creatingBasicTidbitData.highlightedComments
+                                                    model.creatingSnipbitData.highlightedComments
                                                 )
                                             of
                                                 Nothing ->
@@ -506,13 +506,13 @@ createBasicTidbitView model shared =
                                         []
                                     ]
 
-                        Route.HomeComponentCreateBasicTidbitConclusion ->
+                        Route.HomeComponentCreateSnipbitCodeConclusion ->
                             div
                                 [ class "comment-body" ]
                                 [ textarea
                                     [ placeholder "Conclusion"
-                                    , onInput <| BasicTidbitUpdateConclusion
-                                    , value model.creatingBasicTidbitData.conclusion
+                                    , onInput <| SnipbitUpdateConclusion
+                                    , value model.creatingSnipbitData.conclusion
                                     ]
                                     []
                                 ]
@@ -532,12 +532,12 @@ createBasicTidbitView model shared =
                                         button
                                             [ onClick <|
                                                 GoTo <|
-                                                    Route.HomeComponentCreateBasicTidbitFrame
+                                                    Route.HomeComponentCreateSnipbitCodeFrame
                                                         (index + 1)
                                             , classList
                                                 [ ( "selected-frame"
                                                   , shared.route
-                                                        == (Route.HomeComponentCreateBasicTidbitFrame <|
+                                                        == (Route.HomeComponentCreateSnipbitCodeFrame <|
                                                                 index
                                                                     + 1
                                                            )
@@ -546,7 +546,7 @@ createBasicTidbitView model shared =
                                             ]
                                             [ text <| toString <| index + 1 ]
                                     )
-                                    model.creatingBasicTidbitData.highlightedComments
+                                    model.creatingSnipbitData.highlightedComments
                             )
                     in
                         div
@@ -554,37 +554,37 @@ createBasicTidbitView model shared =
                             (List.concat
                                 [ [ button
                                         [ onClick <|
-                                            GoTo Route.HomeComponentCreateBasicTidbitIntroduction
+                                            GoTo Route.HomeComponentCreateSnipbitCodeIntroduction
                                         , classList
                                             [ ( "selected-frame"
                                               , shared.route
-                                                    == Route.HomeComponentCreateBasicTidbitIntroduction
+                                                    == Route.HomeComponentCreateSnipbitCodeIntroduction
                                               )
                                             ]
                                         ]
                                         [ text "Introduction" ]
                                   , button
                                         [ onClick <|
-                                            GoTo Route.HomeComponentCreateBasicTidbitConclusion
+                                            GoTo Route.HomeComponentCreateSnipbitCodeConclusion
                                         , classList
                                             [ ( "selected-frame"
                                               , shared.route
-                                                    == Route.HomeComponentCreateBasicTidbitConclusion
+                                                    == Route.HomeComponentCreateSnipbitCodeConclusion
                                               )
                                             ]
                                         ]
                                         [ text "Conclusion" ]
                                   , button
                                         [ class "action-button plus-button"
-                                        , onClick <| BasicTidbitAddFrame
+                                        , onClick <| SnipbitAddFrame
                                         ]
                                         [ text "+" ]
                                   , button
                                         [ class "action-button"
-                                        , onClick <| BasicTidbitRemoveFrame
+                                        , onClick <| SnipbitRemoveFrame
                                         , disabled <|
                                             Array.length
-                                                model.creatingBasicTidbitData.highlightedComments
+                                                model.creatingSnipbitData.highlightedComments
                                                 <= 1
                                         ]
                                         [ text "-" ]
@@ -595,8 +595,8 @@ createBasicTidbitView model shared =
                             )
             in
                 div
-                    [ class "create-basic-tidbit-code" ]
-                    [ Editor.editor "basic-tidbit-code-editor"
+                    [ class "create-snipbit-code" ]
+                    [ Editor.editor "create-snipbit-code-editor"
                     , div
                         [ class "comment-creator" ]
                         [ body
@@ -607,25 +607,25 @@ createBasicTidbitView model shared =
         viewForTab : Html Msg
         viewForTab =
             case currentRoute of
-                Route.HomeComponentCreateBasicName ->
+                Route.HomeComponentCreateSnipbitName ->
                     nameView
 
-                Route.HomeComponentCreateBasicDescription ->
+                Route.HomeComponentCreateSnipbitDescription ->
                     descriptionView
 
-                Route.HomeComponentCreateBasicLanguage ->
+                Route.HomeComponentCreateSnipbitLanguage ->
                     languageView
 
-                Route.HomeComponentCreateBasicTags ->
+                Route.HomeComponentCreateSnipbitTags ->
                     tagsView
 
-                Route.HomeComponentCreateBasicTidbitIntroduction ->
+                Route.HomeComponentCreateSnipbitCodeIntroduction ->
                     tidbitView
 
-                Route.HomeComponentCreateBasicTidbitConclusion ->
+                Route.HomeComponentCreateSnipbitCodeConclusion ->
                     tidbitView
 
-                Route.HomeComponentCreateBasicTidbitFrame _ ->
+                Route.HomeComponentCreateSnipbitCodeFrame _ ->
                     tidbitView
 
                 -- Default to name view.
@@ -635,7 +635,7 @@ createBasicTidbitView model shared =
         -- Disabled publish button.
         disabledPublishButton =
             button
-                [ class "create-basic-tidbit-disabled-publish-button"
+                [ class "create-snipbit-disabled-publish-button"
                 , disabled True
                 ]
                 [ text "Publish" ]
@@ -648,7 +648,7 @@ createBasicTidbitView model shared =
         currentPublishButton =
             let
                 tidbitData =
-                    model.creatingBasicTidbitData
+                    model.creatingSnipbitData
             in
                 case tidbitData.language of
                     Nothing ->
@@ -692,10 +692,10 @@ createBasicTidbitView model shared =
                                 then
                                     button
                                         [ classList
-                                            [ ( "create-basic-tidbit-publish-button", True )
+                                            [ ( "create-snipbit-publish-button", True )
                                             ]
                                         , onClick <|
-                                            BasicTidbitPublish
+                                            SnipbitPublish
                                                 { language = theLanguage
                                                 , name = tidbitData.name
                                                 , description = tidbitData.description
@@ -713,24 +713,24 @@ createBasicTidbitView model shared =
                             disabledPublishButton
     in
         div
-            [ class "create-basic-tidbit" ]
+            [ class "create-snipbit" ]
             [ div
                 [ class "sub-bar" ]
                 [ button
-                    [ class "create-basic-tidbit-back-button"
+                    [ class "create-snipbit-back-button"
                     , onClick <| GoTo Route.HomeComponentCreate
                     ]
                     [ text "Back" ]
                 , button
-                    [ class "create-basic-tidbit-reset-button"
-                    , onClick <| ResetCreateBasicTidbit
+                    [ class "create-snipbit-reset-button"
+                    , onClick <| SnipbitReset
                     ]
                     [ text "Reset" ]
                 , currentPublishButton
                 ]
             , div
                 []
-                [ createBasicTidbitNavbar
+                [ createSnipbitNavbar
                 , viewForTab
                 ]
             ]
