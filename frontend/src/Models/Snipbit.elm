@@ -43,6 +43,18 @@ type alias SnipbitCreateData =
     }
 
 
+{-| Identical to the encoder, but used to follow naming conventions.
+-}
+snipbitCacheEncoder =
+    snipbitEncoder
+
+
+{-| Identical to the decoder, but used to follow naming conventions.
+-}
+snipbitCacheDecoder =
+    snipbitDecoder
+
+
 {-| Snipbit `encoder`.
 -}
 snipbitEncoder : Snipbit -> Encode.Value

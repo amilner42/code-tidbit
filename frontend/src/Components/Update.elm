@@ -172,7 +172,7 @@ need to specify `routesNotNeedingAuth`, `defaultUnauthRoute`, and
 `defaultAuthRoute` in your `Routes` model. It also handles users going to
 routes that don't exist (just goes `back` to the route they were on before).
 -}
-handleLocationChange : Maybe Route.Route -> Model -> ( Model, Cmd msg )
+handleLocationChange : Maybe Route.Route -> Model -> ( Model, Cmd Msg )
 handleLocationChange maybeRoute model =
     case maybeRoute of
         Nothing ->
@@ -317,6 +317,17 @@ handleLocationChange maybeRoute model =
                                             model.homeComponent.creatingSnipbitData.highlightedComments
                                         )
                                 )
+
+                    Route.HomeComponentViewSnipbit snipbitID ->
+                        ( newModel
+                        , Cmd.batch
+                            [ newCmd
+                            , Api.getSnipbit
+                                snipbitID
+                                (HomeMessage << HomeMessages.OnGetSnipbitFailure)
+                                (HomeMessage << HomeMessages.OnGetSnipbitSuccess)
+                            ]
+                        )
 
                     _ ->
                         ( newModel, newCmd )

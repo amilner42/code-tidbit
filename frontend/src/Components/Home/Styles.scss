@@ -139,6 +139,8 @@
             border-bottom: 2px solid $color6;
 
             .logo {
+              @include no-select();
+
               height: 44px;
               padding: 3px;
               background-color: white;

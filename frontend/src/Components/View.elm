@@ -39,6 +39,9 @@ viewForRoute model =
             Route.HomeComponentBrowse ->
                 renderedHomeView
 
+            Route.HomeComponentViewSnipbit _ ->
+                renderedHomeView
+
             Route.HomeComponentCreate ->
                 renderedHomeView
 

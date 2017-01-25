@@ -2,6 +2,7 @@ module Api
     exposing
         ( getAccount
         , getLogOut
+        , getSnipbit
         , postLogin
         , postRegister
         , postCreateSnipbit
@@ -44,6 +45,13 @@ the cookies.
 getLogOut : (ApiError.ApiError -> b) -> (BasicResponse.BasicResponse -> b) -> Cmd b
 getLogOut =
     apiGet "logOut" BasicResponse.decoder
+
+
+{-| Get's a snipbit.
+-}
+getSnipbit : String -> (ApiError.ApiError -> b) -> (Snipbit.Snipbit -> b) -> Cmd b
+getSnipbit snipbitID =
+    apiGet ("snipbit/" ++ snipbitID) Snipbit.snipbitDecoder
 
 
 {-| Logs user in and returns the user, unless invalid credentials.

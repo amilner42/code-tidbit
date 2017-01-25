@@ -31,6 +31,15 @@ view model shared =
         ]
 
 
+{-| The view for viewing a snipbit.
+-}
+viewSnipbitView : Model -> Shared -> Html Msg
+viewSnipbitView model shared =
+    div
+        []
+        [ text "TODO" ]
+
+
 {-| Displays the correct view based on the model.
 -}
 displayViewForRoute : Model -> Shared -> Html Msg
@@ -38,6 +47,9 @@ displayViewForRoute model shared =
     case shared.route of
         Route.HomeComponentBrowse ->
             browseView model
+
+        Route.HomeComponentViewSnipbit _ ->
+            viewSnipbitView model shared
 
         Route.HomeComponentCreate ->
             createView model shared
@@ -77,7 +89,15 @@ navbar : Shared -> Html Msg
 navbar shared =
     let
         browseViewSelected =
-            shared.route == Route.HomeComponentBrowse
+            case shared.route of
+                Route.HomeComponentBrowse ->
+                    True
+
+                Route.HomeComponentViewSnipbit _ ->
+                    True
+
+                _ ->
+                    False
 
         profileViewSelected =
             shared.route == Route.HomeComponentProfile

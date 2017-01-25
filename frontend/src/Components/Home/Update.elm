@@ -551,6 +551,18 @@ update msg model shared =
                 -- TODO Handle Publish Failures.
                 doNothing
 
+            OnGetSnipbitFailure apiFailure ->
+                -- TODO Handle get snipbit failure.
+                doNothing
+
+            OnGetSnipbitSuccess snipbit ->
+                ( { model
+                    | viewingSnipbit = Just snipbit
+                  }
+                , shared
+                , Cmd.none
+                )
+
 
 {-| Filters the languages based on `query`.
 -}

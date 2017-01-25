@@ -13,13 +13,20 @@ module Models.Route
 import Config
 import Json.Decode as Decode
 import Json.Encode as Encode
-import UrlParser exposing (Parser, s, (</>), oneOf, map, top, int)
+import UrlParser exposing (Parser, s, (</>), oneOf, map, top, int, string)
+
+
+{-| For clarity in `Route`.
+-}
+type alias MongoID =
+    String
 
 
 {-| All of the app routes.
 -}
 type Route
     = HomeComponentBrowse
+    | HomeComponentViewSnipbit MongoID
     | HomeComponentCreate
     | HomeComponentCreateSnipbitName
     | HomeComponentCreateSnipbitDescription
@@ -40,6 +47,13 @@ matchers =
     let
         create =
             s "create"
+
+        -- Abstract.
+        view =
+            s "view"
+
+        viewSnipbit =
+            view </> s "snipbit" </> string
 
         -- Abstract.
         createSnipbit =
@@ -85,6 +99,7 @@ matchers =
     in
         oneOf
             [ map HomeComponentBrowse (top)
+            , map HomeComponentViewSnipbit (viewSnipbit)
             , map HomeComponentCreate (create)
             , map HomeComponentCreateSnipbitName (createSnipbitName)
             , map HomeComponentCreateSnipbitDescription (createSnipbitDescription)
@@ -134,6 +149,9 @@ toUrl route =
 
             HomeComponentCreate ->
                 "create"
+
+            HomeComponentViewSnipbit mongoID ->
+                "view/snipbit/" ++ mongoID
 
             HomeComponentCreateSnipbitName ->
                 "create/snipbit/name"
@@ -221,23 +239,43 @@ cacheDecoder =
                        then it's just not a valid route.
                     -}
                     _ ->
-                        if
-                            String.startsWith "HomeComponentCreateSnipbitCodeFrame "
-                                encodedRouteString
-                        then
-                            let
-                                frameNumberAsString =
-                                    String.dropLeft 36 encodedRouteString
-                            in
-                                case String.toInt frameNumberAsString of
-                                    Err err ->
-                                        failure
+                        let
+                            snipbitCodeFrameStartingString =
+                                "HomeComponentCreateSnipbitCodeFrame "
 
-                                    Ok frameNumber ->
-                                        Decode.succeed <|
-                                            HomeComponentCreateSnipbitCodeFrame
-                                                frameNumber
-                        else
-                            failure
+                            viewSnipbitIDStartingString =
+                                "HomeComponentViewSnipbit "
+                        in
+                            if
+                                String.startsWith snipbitCodeFrameStartingString
+                                    encodedRouteString
+                            then
+                                let
+                                    frameNumberAsString =
+                                        String.dropLeft
+                                            (String.length snipbitCodeFrameStartingString)
+                                            encodedRouteString
+                                in
+                                    case String.toInt frameNumberAsString of
+                                        Err err ->
+                                            failure
+
+                                        Ok frameNumber ->
+                                            Decode.succeed <|
+                                                HomeComponentCreateSnipbitCodeFrame
+                                                    frameNumber
+                            else if
+                                String.startsWith viewSnipbitIDStartingString
+                                    encodedRouteString
+                            then
+                                let
+                                    snipbitIDAsString =
+                                        String.dropLeft
+                                            (String.length viewSnipbitIDStartingString)
+                                            encodedRouteString
+                                in
+                                    Decode.succeed <| HomeComponentViewSnipbit snipbitIDAsString
+                            else
+                                failure
     in
         Decode.andThen fromStringDecoder Decode.string

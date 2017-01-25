@@ -13,6 +13,7 @@ init : Model
 init =
     { logOutError = Nothing
     , showInfoFor = Nothing
+    , viewingSnipbit = Nothing
     , creatingSnipbitData =
         { language = Nothing
         , languageQueryACState = AC.empty

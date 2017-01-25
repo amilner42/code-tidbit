@@ -38,3 +38,5 @@ type Msg
     | SnipbitPublish Snipbit.Snipbit
     | OnSnipbitPublishSuccess BasicResponse.BasicResponse
     | OnSnipbitPublishFailure ApiError.ApiError
+    | OnGetSnipbitFailure ApiError.ApiError
+    | OnGetSnipbitSuccess Snipbit.Snipbit
