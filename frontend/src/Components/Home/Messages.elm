@@ -35,7 +35,7 @@ type Msg
     | SnipbitUpdateIntroduction String
     | SnipbitUpdateConclusion String
     | SnipbitUpdateCode String
-    | SnipbitPublish Snipbit.Snipbit
+    | SnipbitPublish Snipbit.SnipbitForPublication
     | OnSnipbitPublishSuccess BasicResponse.BasicResponse
     | OnSnipbitPublishFailure ApiError.ApiError
     | OnGetSnipbitFailure ApiError.ApiError

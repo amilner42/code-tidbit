@@ -8,8 +8,8 @@ import R from 'ramda';
 
 import { APP_CONFIG } from '../app-config';
 import { User, userModel, Snipbit, validifyAndUpdateSnipbit } from './models/';
-import { AppRoutes, ErrorCode, FrontendError } from './types';
-import { collection } from './db';
+import { AppRoutes, ErrorCode, FrontendError, Language } from './types';
+import { collection, ID } from './db';
 import { internalError } from './util';
 
 
@@ -157,7 +157,7 @@ export const routes: AppRoutes = {
     }
   },
 
-  '/create/snipbit': {
+  '/snipbits': {
     /**
      * Creates a new snipbit for the logged-in user.
      */
@@ -180,5 +180,54 @@ export const routes: AppRoutes = {
       })
       .catch(handleError(res));
     }
+  },
+
+  '/snipbits/:id': {
+    /**
+     * Gets a snipbit.
+     */
+     get: (req, res) => {
+      const params = req.params;
+      const snipbitID = params["id"];
+
+      collection("snipbits")
+      .then((snipbitCollection) => {
+        return snipbitCollection.findOne({ _id: ID(snipbitID)}) as Promise<Snipbit>;
+      })
+      .then((snipbit) => {
+
+        if(!snipbit) {
+          res.status(400).json({
+            errorCode: ErrorCode.snipbitDoesNotExist,
+            message: `ID ${snipbitID} does not point to a snipbit.`
+          });
+          return;
+        }
+
+        // Rename `_id` field.
+        snipbit.id = snipbit._id;
+        delete snipbit._id;
+
+        // Update `language` to encoded language name.
+        return collection("languages")
+        .then((languageCollection) => {
+          return languageCollection.findOne({ _id: snipbit.language }) as Promise<Language>;
+        })
+        .then((language) => {
+
+          if(!language) {
+            res.status(400).json({
+              errorCode: ErrorCode.internalError,
+              message: `Language ID ${snipbit.language} was invalid`
+            });
+          }
+
+          // Update language to encoded language name.
+          snipbit.language = language.encodedName;
+          res.status(200).json(snipbit);
+        });
+      })
+      .catch(handleError(res));
+     }
   }
 }
