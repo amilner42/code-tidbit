@@ -36,8 +36,21 @@ view model shared =
 viewSnipbitView : Model -> Shared -> Html Msg
 viewSnipbitView model shared =
     div
-        []
-        [ text "TODO" ]
+        [ class "view-snipbit" ]
+        (case model.viewingSnipbit of
+            Nothing ->
+                [ text "LOADING" ]
+
+            Just snipbit ->
+                [ div
+                    [ class "viewer" ]
+                    [ Editor.editor "view-snipbit-code-editor"
+                    , div
+                        []
+                        []
+                    ]
+                ]
+        )
 
 
 {-| Displays the correct view based on the model.
@@ -48,7 +61,13 @@ displayViewForRoute model shared =
         Route.HomeComponentBrowse ->
             browseView model
 
-        Route.HomeComponentViewSnipbit _ ->
+        Route.HomeComponentViewSnipbitIntroduction _ ->
+            viewSnipbitView model shared
+
+        Route.HomeComponentViewSnipbitConclusion _ ->
+            viewSnipbitView model shared
+
+        Route.HomeComponentViewSnipbitFrame _ _ ->
             viewSnipbitView model shared
 
         Route.HomeComponentCreate ->
@@ -93,7 +112,13 @@ navbar shared =
                 Route.HomeComponentBrowse ->
                     True
 
-                Route.HomeComponentViewSnipbit _ ->
+                Route.HomeComponentViewSnipbitIntroduction _ ->
+                    True
+
+                Route.HomeComponentViewSnipbitFrame _ _ ->
+                    True
+
+                Route.HomeComponentViewSnipbitConclusion _ ->
                     True
 
                 _ ->

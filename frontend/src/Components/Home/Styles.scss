@@ -11,6 +11,21 @@
 
         height: 100%;
 
+        .view-snipbit {
+          width: 100%;
+          height: 100%;
+
+          color: black;
+          padding-top: 20px;
+
+          .viewer {
+              display: block;
+              margin: auto;
+              width: $min-width-supported;
+              padding: 0 10px 0 10px;
+          }
+        }
+
         .create-select-tidbit-title {
             color: $color6;
             font-size: 52px;

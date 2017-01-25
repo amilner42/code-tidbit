@@ -4,6 +4,7 @@ import Html exposing (Html, Attribute)
 import Html.Events exposing (on, keyCode)
 import Json.Decode as Decode
 import Json.Encode as Encode
+import Task
 
 
 {-| Useful for encoding, turns maybes into nulls / there actual value.
@@ -89,3 +90,12 @@ onEnter msg =
 lastElem : List a -> Maybe a
 lastElem =
     List.foldl (Just >> always) Nothing
+
+
+{-| For turning a msg into a command.
+-}
+cmdFromMsg : msg -> Cmd msg
+cmdFromMsg msg =
+    Task.perform
+        (\_ -> msg)
+        (Task.succeed "")

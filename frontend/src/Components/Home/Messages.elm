@@ -13,6 +13,7 @@ import Models.Route as Route
 -}
 type Msg
     = NoOp
+    | OnRouteHit
     | GoTo Route.Route
     | LogOut
     | OnLogOutFailure ApiError.ApiError

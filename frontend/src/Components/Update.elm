@@ -14,6 +14,7 @@ import Models.Route as Route
 import Navigation
 import Ports
 import Router
+import Task
 
 
 {-| Base Component Update.
@@ -271,6 +272,14 @@ handleLocationChange maybeRoute model =
                             , range = aceRange
                             }
                         ]
+
+                triggerRouteHookOnHomeComponent =
+                    ( newModel
+                    , Cmd.batch
+                        [ newCmd
+                        , Util.cmdFromMsg <| HomeMessage HomeMessages.OnRouteHit
+                        ]
+                    )
             in
                 -- Handle general route-logic here, routes are a great way to be
                 -- able to trigger certain things (hooks).
@@ -318,16 +327,14 @@ handleLocationChange maybeRoute model =
                                         )
                                 )
 
-                    Route.HomeComponentViewSnipbit snipbitID ->
-                        ( newModel
-                        , Cmd.batch
-                            [ newCmd
-                            , Api.getSnipbit
-                                snipbitID
-                                (HomeMessage << HomeMessages.OnGetSnipbitFailure)
-                                (HomeMessage << HomeMessages.OnGetSnipbitSuccess)
-                            ]
-                        )
+                    Route.HomeComponentViewSnipbitIntroduction _ ->
+                        triggerRouteHookOnHomeComponent
+
+                    Route.HomeComponentViewSnipbitConclusion _ ->
+                        triggerRouteHookOnHomeComponent
+
+                    Route.HomeComponentViewSnipbitFrame _ _ ->
+                        triggerRouteHookOnHomeComponent
 
                     _ ->
                         ( newModel, newCmd )

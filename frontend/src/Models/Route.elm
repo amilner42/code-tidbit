@@ -26,7 +26,9 @@ type alias MongoID =
 -}
 type Route
     = HomeComponentBrowse
-    | HomeComponentViewSnipbit MongoID
+    | HomeComponentViewSnipbitIntroduction MongoID
+    | HomeComponentViewSnipbitConclusion MongoID
+    | HomeComponentViewSnipbitFrame MongoID Int
     | HomeComponentCreate
     | HomeComponentCreateSnipbitName
     | HomeComponentCreateSnipbitDescription
@@ -52,8 +54,18 @@ matchers =
         view =
             s "view"
 
+        -- Abstract
         viewSnipbit =
             view </> s "snipbit" </> string
+
+        viewSnipbitIntroduction =
+            viewSnipbit </> s "introduction"
+
+        viewSnipbitConclusion =
+            viewSnipbit </> s "conclusion"
+
+        viewSnipbitFrame =
+            viewSnipbit </> s "frame" </> int
 
         -- Abstract.
         createSnipbit =
@@ -99,7 +111,9 @@ matchers =
     in
         oneOf
             [ map HomeComponentBrowse (top)
-            , map HomeComponentViewSnipbit (viewSnipbit)
+            , map HomeComponentViewSnipbitIntroduction (viewSnipbitIntroduction)
+            , map HomeComponentViewSnipbitConclusion (viewSnipbitConclusion)
+            , map HomeComponentViewSnipbitFrame (viewSnipbitFrame)
             , map HomeComponentCreate (create)
             , map HomeComponentCreateSnipbitName (createSnipbitName)
             , map HomeComponentCreateSnipbitDescription (createSnipbitDescription)
@@ -141,8 +155,14 @@ defaultUnauthRoute =
 -}
 toUrl : Route -> String
 toUrl route =
-    Config.baseUrl
-        ++ "#"
+    Config.baseUrl ++ (toHashUrl route)
+
+
+{-| Converts a route to just the part of the url after (and including) the hash.
+-}
+toHashUrl : Route -> String
+toHashUrl route =
+    "#"
         ++ case route of
             HomeComponentBrowse ->
                 ""
@@ -150,8 +170,14 @@ toUrl route =
             HomeComponentCreate ->
                 "create"
 
-            HomeComponentViewSnipbit mongoID ->
-                "view/snipbit/" ++ mongoID
+            HomeComponentViewSnipbitIntroduction mongoID ->
+                "view/snipbit/" ++ mongoID ++ "/introduction"
+
+            HomeComponentViewSnipbitConclusion mongoID ->
+                "view/snipbit/" ++ mongoID ++ "/conclusion"
+
+            HomeComponentViewSnipbitFrame mongoID frameNumber ->
+                "view/snipbit/" ++ mongoID ++ "/frame/" ++ (toString frameNumber)
 
             HomeComponentCreateSnipbitName ->
                 "create/snipbit/name"
@@ -188,7 +214,7 @@ toUrl route =
 -}
 cacheEncoder : Route -> Encode.Value
 cacheEncoder route =
-    Encode.string (toString route)
+    Encode.string (toHashUrl route)
 
 
 {-| The Route `cacheDecoder`.
@@ -196,86 +222,36 @@ cacheEncoder route =
 cacheDecoder : Decode.Decoder Route
 cacheDecoder =
     let
-        fromStringDecoder encodedRouteString =
+        {- Creates a fake location ignoring everything except the hash so we can
+           use `parseHash` from the urlParser library to do the route parsing
+           for us.
+        -}
+        fakeLocation hash =
+            { href = ""
+            , protocol = ""
+            , host = ""
+            , hostname = ""
+            , port_ = ""
+            , pathname = ""
+            , search = ""
+            , hash = hash
+            , origin = ""
+            , password = ""
+            , username = ""
+            }
+
+        fromStringDecoder encodedHash =
             let
-                failure =
-                    Decode.fail <| encodedRouteString ++ " is not a valid route encoding!"
+                maybeRoute =
+                    UrlParser.parseHash
+                        matchers
+                        (fakeLocation encodedHash)
             in
-                case encodedRouteString of
-                    "HomeComponentBrowse" ->
-                        Decode.succeed HomeComponentBrowse
+                case maybeRoute of
+                    Nothing ->
+                        Decode.fail <| encodedHash ++ " is not a valid encoded hash!"
 
-                    "HomeComponentCreate" ->
-                        Decode.succeed HomeComponentCreate
-
-                    "HomeComponentCreateSnipbitName" ->
-                        Decode.succeed HomeComponentCreateSnipbitName
-
-                    "HomeComponentCreateSnipbitDescription" ->
-                        Decode.succeed HomeComponentCreateSnipbitDescription
-
-                    "HomeComponentCreateSnipbitLanguage" ->
-                        Decode.succeed HomeComponentCreateSnipbitLanguage
-
-                    "HomeComponentCreateSnipbitTags" ->
-                        Decode.succeed HomeComponentCreateSnipbitTags
-
-                    "HomeComponentCreateSnipbitCodeIntroduction" ->
-                        Decode.succeed HomeComponentCreateSnipbitCodeIntroduction
-
-                    "HomeComponentCreateSnipbitCodeConclusion" ->
-                        Decode.succeed HomeComponentCreateSnipbitCodeConclusion
-
-                    "HomeComponentProfile" ->
-                        Decode.succeed HomeComponentProfile
-
-                    "WelcomeComponentLogin" ->
-                        Decode.succeed WelcomeComponentLogin
-
-                    "WelcomeComponentRegister" ->
-                        Decode.succeed WelcomeComponentRegister
-
-                    {- Here we check if it's any route that had parameters, if not
-                       then it's just not a valid route.
-                    -}
-                    _ ->
-                        let
-                            snipbitCodeFrameStartingString =
-                                "HomeComponentCreateSnipbitCodeFrame "
-
-                            viewSnipbitIDStartingString =
-                                "HomeComponentViewSnipbit "
-                        in
-                            if
-                                String.startsWith snipbitCodeFrameStartingString
-                                    encodedRouteString
-                            then
-                                let
-                                    frameNumberAsString =
-                                        String.dropLeft
-                                            (String.length snipbitCodeFrameStartingString)
-                                            encodedRouteString
-                                in
-                                    case String.toInt frameNumberAsString of
-                                        Err err ->
-                                            failure
-
-                                        Ok frameNumber ->
-                                            Decode.succeed <|
-                                                HomeComponentCreateSnipbitCodeFrame
-                                                    frameNumber
-                            else if
-                                String.startsWith viewSnipbitIDStartingString
-                                    encodedRouteString
-                            then
-                                let
-                                    snipbitIDAsString =
-                                        String.dropLeft
-                                            (String.length viewSnipbitIDStartingString)
-                                            encodedRouteString
-                                in
-                                    Decode.succeed <| HomeComponentViewSnipbit snipbitIDAsString
-                            else
-                                failure
+                    Just aRoute ->
+                        Decode.succeed aRoute
     in
         Decode.andThen fromStringDecoder Decode.string
