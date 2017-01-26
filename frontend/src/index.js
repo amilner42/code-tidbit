@@ -89,7 +89,7 @@ app.ports.createCodeEditor.subscribe(function(editorConfig) {
         // new selection, if it's not readOnly then the user is creating it and
         // we just use selections so they can change what they wanna highlight.
         if(editorConfig.readOnly) {
-          aceCodeEditor.session.addMarker(aceRange, "highlight-marker", "background");
+          aceCodeEditor.session.addMarker(aceRange, "highlight-marker", "background", true);
         } else {
           aceCodeEditor.getSelection().setSelectionRange(aceRange, false);
         }
