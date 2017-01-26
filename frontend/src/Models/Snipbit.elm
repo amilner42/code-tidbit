@@ -61,7 +61,7 @@ type alias SnipbitCreateData =
 
 {-| For DRY code to create encoders for `Snipbit` and `SnipbitForPublication`.
 -}
-createSnippetEncoder model extraFields =
+createSnipbitEncoder model extraFields =
     Encode.object <|
         List.concat
             [ [ ( "language", languageCacheEncoder model.language )
@@ -100,7 +100,7 @@ snipbitCacheEncoder =
 -}
 snipbitEncoder : Snipbit -> Encode.Value
 snipbitEncoder snipbit =
-    createSnippetEncoder
+    createSnipbitEncoder
         snipbit
         [ ( "id", Encode.string snipbit.id )
         , ( "author", Encode.string snipbit.author )
@@ -140,7 +140,7 @@ snipbitForPublicationCacheDecoder =
 -}
 snipbitForPublicationEncoder : SnipbitForPublication -> Encode.Value
 snipbitForPublicationEncoder snipbitForPublication =
-    createSnippetEncoder snipbitForPublication []
+    createSnipbitEncoder snipbitForPublication []
 
 
 {-| SnipbitForPublication `decoder`.
