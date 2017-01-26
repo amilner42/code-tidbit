@@ -270,6 +270,7 @@ handleLocationChange maybeRoute model =
                             , theme = aceTheme
                             , value = aceValue
                             , range = aceRange
+                            , readOnly = False
                             }
                         ]
 

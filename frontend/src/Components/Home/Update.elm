@@ -80,6 +80,7 @@ update msg model shared =
                                             , theme = userTheme
                                             , value = aSnipbit.code
                                             , range = Nothing
+                                            , readOnly = True
                                             }
                                     else
                                         getSnipbit mongoID
@@ -112,6 +113,7 @@ update msg model shared =
                                                         (frameNumber - 1)
                                                         aSnipbit.highlightedComments
                                                         |> Maybe.map .range
+                                                , readOnly = True
                                                 }
                                     else
                                         getSnipbit mongoID
@@ -129,6 +131,7 @@ update msg model shared =
                                             , theme = userTheme
                                             , value = aSnipbit.code
                                             , range = Nothing
+                                            , readOnly = True
                                             }
                                     else
                                         getSnipbit mongoID
@@ -673,6 +676,7 @@ update msg model shared =
 
                                 _ ->
                                     Nothing
+                        , readOnly = True
                         }
                     )
 

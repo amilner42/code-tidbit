@@ -10,6 +10,7 @@ type alias CreateCodeEditorConfig =
     , theme : String
     , value : String
     , range : Maybe Range
+    , readOnly : Bool
     }
 
 
