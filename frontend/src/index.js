@@ -64,6 +64,8 @@ app.ports.createCodeEditor.subscribe(function(editorConfig) {
 
       // Create new editor.
       const aceCodeEditor = ace.edit(editorConfig.id);
+      // Due to bug in the editor, you have to call resize upon creation.
+      aceCodeEditor.resize(true);
       const editorSelection = aceCodeEditor.getSelection();
 
       // Set theme and language.
@@ -93,6 +95,9 @@ app.ports.createCodeEditor.subscribe(function(editorConfig) {
         } else {
           aceCodeEditor.getSelection().setSelectionRange(aceRange, false);
         }
+
+        // scrollToLine(Number line, Boolean center, Boolean animate, Function callback)
+        aceCodeEditor.scrollToLine(editorConfig.range.endRow, true, true);
       }
 
       // Focus the editor.
