@@ -93,14 +93,19 @@ update msg model shared =
                                 Just aSnipbit ->
                                     if aSnipbit.id == mongoID then
                                         -- Make sure frame is in range, if not
-                                        -- redirect to first frame.
-                                        if
-                                            (frameNumber - 1 >= Array.length aSnipbit.highlightedComments)
-                                                || (frameNumber < 1)
-                                        then
+                                        -- redirect to intro/conclusion depending
+                                        -- on if it's beneath/above range respectively.
+                                        if frameNumber - 1 >= Array.length aSnipbit.highlightedComments then
                                             ( model
                                             , shared
-                                            , Router.navigateTo <| Route.HomeComponentViewSnipbitFrame mongoID 1
+                                            , Router.navigateTo <|
+                                                Route.HomeComponentViewSnipbitConclusion mongoID
+                                            )
+                                        else if frameNumber < 1 then
+                                            ( model
+                                            , shared
+                                            , Router.navigateTo <|
+                                                Route.HomeComponentViewSnipbitIntroduction mongoID
                                             )
                                         else
                                             renderSnipbit

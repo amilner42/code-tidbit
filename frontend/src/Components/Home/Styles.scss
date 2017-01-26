@@ -16,13 +16,72 @@
           height: 100%;
 
           color: black;
-          padding-top: 20px;
 
           .viewer {
               display: block;
               margin: auto;
               width: $min-width-supported;
-              padding: 0 10px 0 10px;
+
+              .snipbit-navbar {
+                display: block;
+                height: 70px;
+                padding-top: 30px;
+                margin: auto;
+                width: 100%;
+                text-align: center;
+
+                .snipbit-navbar-item {
+                    @include no-select();
+
+                    position: relative;
+                    display: inline-block;
+                    color: $color4;
+                    border: 1px solid $color2;
+                    height: 30px;
+                    line-height: 30px;
+                    margin: 1px;
+                    padding: 5px;
+                    cursor: pointer;
+
+                    &.selected {
+                        color: $color1;
+                    }
+                }
+
+                i {
+                    @include no-select();
+
+                    position: relative;
+                    color: $color5;
+                    height: 30px;
+                    width: 30px;
+                    font-size: 30px;
+                    cursor: pointer;
+                }
+
+                .action-button {
+                    top: 10px;
+                    margin: 0 5px 0 5px;
+                }
+
+                .blank-icon {
+                    color: white;
+                    cursor: default;
+                }
+              }
+
+              .comment-block {
+                  display: inline-block;
+                  width: 354px;
+                  height: 600px;
+                  margin-left: 10px;
+
+                  textarea {
+                      width: 100%;
+                      height: 50%;
+                      border: 1px solid $color2;
+                  }
+              }
           }
         }
 
