@@ -84,5 +84,6 @@ export enum ErrorCode {
   snipbitEmptyName,
   snipbitNameTooLong,
   snipbitInvalidLanguage,
-  invalidName
+  invalidName,
+  snipbitDoesNotExist
 }

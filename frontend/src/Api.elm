@@ -2,6 +2,7 @@ module Api
     exposing
         ( getAccount
         , getLogOut
+        , getSnipbit
         , postLogin
         , postRegister
         , postCreateSnipbit
@@ -46,6 +47,20 @@ getLogOut =
     apiGet "logOut" BasicResponse.decoder
 
 
+{-| For adding a slash in a URL.
+-}
+(:/:) : String -> String -> String
+(:/:) str1 str2 =
+    str1 ++ "/" ++ str2
+
+
+{-| Get's a snipbit.
+-}
+getSnipbit : String -> (ApiError.ApiError -> b) -> (Snipbit.Snipbit -> b) -> Cmd b
+getSnipbit snipbitID =
+    apiGet ("snipbits" :/: snipbitID) Snipbit.snipbitDecoder
+
+
 {-| Logs user in and returns the user, unless invalid credentials.
 -}
 postLogin : User.UserForLogin -> (ApiError.ApiError -> b) -> (User.User -> b) -> Cmd b
@@ -62,9 +77,9 @@ postRegister user =
 
 {-| Creates a new snipbit.
 -}
-postCreateSnipbit : Snipbit.Snipbit -> (ApiError.ApiError -> b) -> (BasicResponse.BasicResponse -> b) -> Cmd b
+postCreateSnipbit : Snipbit.SnipbitForPublication -> (ApiError.ApiError -> b) -> (BasicResponse.BasicResponse -> b) -> Cmd b
 postCreateSnipbit snipbit =
     apiPost
-        "create/snipbit"
+        "snipbits"
         BasicResponse.decoder
-        (Snipbit.snipbitEncoder snipbit)
+        (Snipbit.snipbitForPublicationEncoder snipbit)

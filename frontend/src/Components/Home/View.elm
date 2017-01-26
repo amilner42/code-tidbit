@@ -8,7 +8,7 @@ import Components.Home.Update exposing (filterLanguagesByQuery)
 import Components.Model exposing (Shared)
 import DefaultServices.Util as Util
 import Elements.Editor as Editor
-import Html exposing (Html, div, text, textarea, button, input, h1, h3, img, hr)
+import Html exposing (Html, div, text, textarea, button, input, h1, h3, img, hr, i)
 import Html.Attributes exposing (class, classList, disabled, placeholder, value, hidden, id, src)
 import Html.Events exposing (onClick, onInput)
 import Models.Range as Range
@@ -31,6 +31,154 @@ view model shared =
         ]
 
 
+{-| The view for viewing a snipbit.
+-}
+viewSnipbitView : Model -> Shared -> Html Msg
+viewSnipbitView model shared =
+    div
+        [ class "view-snipbit" ]
+        (case model.viewingSnipbit of
+            Nothing ->
+                [ text "LOADING" ]
+
+            Just snipbit ->
+                [ div
+                    [ class "viewer" ]
+                    [ div
+                        [ class "snipbit-navbar" ]
+                        ([ i
+                            [ classList
+                                [ ( "material-icons action-button", True )
+                                , ( "blank-icon"
+                                  , case shared.route of
+                                        Route.HomeComponentViewSnipbitIntroduction _ ->
+                                            True
+
+                                        _ ->
+                                            False
+                                  )
+                                ]
+                            , onClick <|
+                                case shared.route of
+                                    Route.HomeComponentViewSnipbitConclusion mongoID ->
+                                        GoTo <| Route.HomeComponentViewSnipbitFrame mongoID (Array.length snipbit.highlightedComments)
+
+                                    Route.HomeComponentViewSnipbitFrame mongoID frameNumber ->
+                                        GoTo <| Route.HomeComponentViewSnipbitFrame mongoID (frameNumber - 1)
+
+                                    _ ->
+                                        NoOp
+                            ]
+                            [ text "arrow_back" ]
+                         , div
+                            [ onClick <| GoTo <| Route.HomeComponentViewSnipbitIntroduction snipbit.id
+                            , classList
+                                [ ( "snipbit-navbar-item", True )
+                                , ( "selected"
+                                  , case shared.route of
+                                        Route.HomeComponentViewSnipbitIntroduction _ ->
+                                            True
+
+                                        _ ->
+                                            False
+                                  )
+                                ]
+                            ]
+                            [ text "Introduction" ]
+                         ]
+                            ++ (Array.toList
+                                    (Array.indexedMap
+                                        (\index _ ->
+                                            div
+                                                [ onClick <| GoTo <| Route.HomeComponentViewSnipbitFrame snipbit.id (index + 1)
+                                                , classList
+                                                    [ ( "snipbit-navbar-item", True )
+                                                    , ( "selected"
+                                                      , case shared.route of
+                                                            Route.HomeComponentViewSnipbitFrame _ frameNumber ->
+                                                                frameNumber == index + 1
+
+                                                            _ ->
+                                                                False
+                                                      )
+                                                    ]
+                                                ]
+                                                [ text <| toString <| index + 1 ]
+                                        )
+                                        snipbit.highlightedComments
+                                    )
+                               )
+                            ++ [ div
+                                    [ onClick <| GoTo <| Route.HomeComponentViewSnipbitConclusion snipbit.id
+                                    , classList
+                                        [ ( "snipbit-navbar-item", True )
+                                        , ( "selected"
+                                          , case shared.route of
+                                                Route.HomeComponentViewSnipbitConclusion _ ->
+                                                    True
+
+                                                _ ->
+                                                    False
+                                          )
+                                        ]
+                                    ]
+                                    [ text "Conclusion" ]
+                               , i
+                                    [ classList
+                                        [ ( "material-icons action-button", True )
+                                        , ( "blank-icon"
+                                          , case shared.route of
+                                                Route.HomeComponentViewSnipbitConclusion _ ->
+                                                    True
+
+                                                _ ->
+                                                    False
+                                          )
+                                        ]
+                                    , onClick <|
+                                        case shared.route of
+                                            Route.HomeComponentViewSnipbitIntroduction mongoID ->
+                                                GoTo <| Route.HomeComponentViewSnipbitFrame mongoID 1
+
+                                            Route.HomeComponentViewSnipbitFrame mongoID frameNumber ->
+                                                GoTo <| Route.HomeComponentViewSnipbitFrame mongoID (frameNumber + 1)
+
+                                            _ ->
+                                                NoOp
+                                    ]
+                                    [ text "arrow_forward" ]
+                               ]
+                        )
+                    , Editor.editor "view-snipbit-code-editor"
+                    , div
+                        [ class "comment-block" ]
+                        [ textarea
+                            [ value <|
+                                case shared.route of
+                                    Route.HomeComponentViewSnipbitIntroduction _ ->
+                                        snipbit.introduction
+
+                                    Route.HomeComponentViewSnipbitConclusion _ ->
+                                        snipbit.conclusion
+
+                                    Route.HomeComponentViewSnipbitFrame _ frameNumber ->
+                                        (Array.get
+                                            (frameNumber - 1)
+                                            snipbit.highlightedComments
+                                        )
+                                            |> Maybe.map .comment
+                                            |> Maybe.withDefault ""
+
+                                    _ ->
+                                        ""
+                            ]
+                            []
+                        ]
+                    ]
+                ]
+        )
+
+
 {-| Displays the correct view based on the model.
 -}
 displayViewForRoute : Model -> Shared -> Html Msg
@@ -38,6 +186,15 @@ displayViewForRoute model shared =
     case shared.route of
         Route.HomeComponentBrowse ->
             browseView model
+
+        Route.HomeComponentViewSnipbitIntroduction _ ->
+            viewSnipbitView model shared
+
+        Route.HomeComponentViewSnipbitConclusion _ ->
+            viewSnipbitView model shared
+
+        Route.HomeComponentViewSnipbitFrame _ _ ->
+            viewSnipbitView model shared
 
         Route.HomeComponentCreate ->
             createView model shared
@@ -77,7 +234,21 @@ navbar : Shared -> Html Msg
 navbar shared =
     let
         browseViewSelected =
-            shared.route == Route.HomeComponentBrowse
+            case shared.route of
+                Route.HomeComponentBrowse ->
+                    True
+
+                Route.HomeComponentViewSnipbitIntroduction _ ->
+                    True
+
+                Route.HomeComponentViewSnipbitFrame _ _ ->
+                    True
+
+                Route.HomeComponentViewSnipbitConclusion _ ->
+                    True
+
+                _ ->
+                    False
 
         profileViewSelected =
             shared.route == Route.HomeComponentProfile

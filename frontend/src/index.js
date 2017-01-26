@@ -13,6 +13,7 @@ require("./Elements/Editor.scss")
 
 // Require index.html so it gets copied to dist
 require('./index.html');
+var AceRange = ace.require('ace/range').Range;
 
 var Elm = require('./Main.elm');
 var mountNode = document.getElementById('main');
@@ -77,22 +78,27 @@ app.ports.createCodeEditor.subscribe(function(editorConfig) {
       if(editorConfig.range) {
 
         // Range converted to ace format.
-        const aceRange = {
-          start: {
-            row: editorConfig.range.startRow,
-            column: editorConfig.range.startCol
-          },
-          end: {
-            row: editorConfig.range.endRow,
-            column: editorConfig.range.endCol
-          }
-        };
+        const aceRange = new AceRange(
+          editorConfig.range.startRow,
+          editorConfig.range.startCol,
+          editorConfig.range.endRow,
+          editorConfig.range.endCol
+        );
 
-        aceCodeEditor.getSelection().setSelectionRange(aceRange, false);
+        // If it's readOnly we add a marker, that way it doesn't dissapear on a
+        // new selection, if it's not readOnly then the user is creating it and
+        // we just use selections so they can change what they wanna highlight.
+        if(editorConfig.readOnly) {
+          aceCodeEditor.session.addMarker(aceRange, "highlight-marker", "background", true);
+        } else {
+          aceCodeEditor.getSelection().setSelectionRange(aceRange, false);
+        }
       }
 
       // Focus the editor.
       aceCodeEditor.focus();
+
+      aceCodeEditor.setReadOnly(editorConfig.readOnly);
 
       // Watch for selection changes.
       editorSelection.on("changeSelection", () => {

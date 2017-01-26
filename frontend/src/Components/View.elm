@@ -39,6 +39,15 @@ viewForRoute model =
             Route.HomeComponentBrowse ->
                 renderedHomeView
 
+            Route.HomeComponentViewSnipbitIntroduction _ ->
+                renderedHomeView
+
+            Route.HomeComponentViewSnipbitConclusion _ ->
+                renderedHomeView
+
+            Route.HomeComponentViewSnipbitFrame _ _ ->
+                renderedHomeView
+
             Route.HomeComponentCreate ->
                 renderedHomeView
 

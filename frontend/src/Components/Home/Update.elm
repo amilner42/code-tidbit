@@ -44,6 +44,106 @@ update msg model shared =
             NoOp ->
                 doNothing
 
+            -- Recieves route hits from the router and handles the logic of the
+            -- route hooks.
+            OnRouteHit ->
+                let
+                    getSnipbit mongoID =
+                        ( { model
+                            | viewingSnipbit = Nothing
+                          }
+                        , shared
+                        , Api.getSnipbit mongoID OnGetSnipbitFailure OnGetSnipbitSuccess
+                        )
+
+                    renderSnipbit codeEditorConfig =
+                        ( model
+                        , shared
+                        , Ports.createCodeEditor codeEditorConfig
+                        )
+
+                    -- TODO get user theme.
+                    userTheme =
+                        ""
+                in
+                    case shared.route of
+                        Route.HomeComponentViewSnipbitIntroduction mongoID ->
+                            case model.viewingSnipbit of
+                                Nothing ->
+                                    getSnipbit mongoID
+
+                                Just aSnipbit ->
+                                    if aSnipbit.id == mongoID then
+                                        renderSnipbit
+                                            { id = "view-snipbit-code-editor"
+                                            , lang = Editor.aceLanguageLocation aSnipbit.language
+                                            , theme = userTheme
+                                            , value = aSnipbit.code
+                                            , range = Nothing
+                                            , readOnly = True
+                                            }
+                                    else
+                                        getSnipbit mongoID
+
+                        Route.HomeComponentViewSnipbitFrame mongoID frameNumber ->
+                            case model.viewingSnipbit of
+                                Nothing ->
+                                    getSnipbit mongoID
+
+                                Just aSnipbit ->
+                                    if aSnipbit.id == mongoID then
+                                        -- Make sure frame is in range, if not
+                                        -- redirect to intro/conclusion depending
+                                        -- on if it's beneath/above range respectively.
+                                        if frameNumber - 1 >= Array.length aSnipbit.highlightedComments then
+                                            ( model
+                                            , shared
+                                            , Router.navigateTo <|
+                                                Route.HomeComponentViewSnipbitConclusion mongoID
+                                            )
+                                        else if frameNumber < 1 then
+                                            ( model
+                                            , shared
+                                            , Router.navigateTo <|
+                                                Route.HomeComponentViewSnipbitIntroduction mongoID
+                                            )
+                                        else
+                                            renderSnipbit
+                                                { id = "view-snipbit-code-editor"
+                                                , lang = Editor.aceLanguageLocation aSnipbit.language
+                                                , theme = userTheme
+                                                , value = aSnipbit.code
+                                                , range =
+                                                    Array.get
+                                                        (frameNumber - 1)
+                                                        aSnipbit.highlightedComments
+                                                        |> Maybe.map .range
+                                                , readOnly = True
+                                                }
+                                    else
+                                        getSnipbit mongoID
+
+                        Route.HomeComponentViewSnipbitConclusion mongoID ->
+                            case model.viewingSnipbit of
+                                Nothing ->
+                                    getSnipbit mongoID
+
+                                Just aSnipbit ->
+                                    if aSnipbit.id == mongoID then
+                                        renderSnipbit
+                                            { id = "view-snipbit-code-editor"
+                                            , lang = Editor.aceLanguageLocation aSnipbit.language
+                                            , theme = userTheme
+                                            , value = aSnipbit.code
+                                            , range = Nothing
+                                            , readOnly = True
+                                            }
+                                    else
+                                        getSnipbit mongoID
+
+                        _ ->
+                            doNothing
+
             GoTo route ->
                 ( model
                 , shared
@@ -550,6 +650,40 @@ update msg model shared =
             OnSnipbitPublishFailure apiError ->
                 -- TODO Handle Publish Failures.
                 doNothing
+
+            OnGetSnipbitFailure apiFailure ->
+                -- TODO Handle get snipbit failure.
+                doNothing
+
+            OnGetSnipbitSuccess snipbit ->
+                let
+                    -- TODO get user theme.
+                    userTheme =
+                        ""
+                in
+                    ( { model
+                        | viewingSnipbit = Just snipbit
+                      }
+                    , shared
+                    , Ports.createCodeEditor
+                        { id = "view-snipbit-code-editor"
+                        , lang = Editor.aceLanguageLocation snipbit.language
+                        , theme = userTheme
+                        , value = snipbit.code
+                        , range =
+                            case shared.route of
+                                Route.HomeComponentViewSnipbitFrame _ frameNumber ->
+                                    (Array.get
+                                        (frameNumber - 1)
+                                        snipbit.highlightedComments
+                                    )
+                                        |> Maybe.map .range
+
+                                _ ->
+                                    Nothing
+                        , readOnly = True
+                        }
+                    )
 
 
 {-| Filters the languages based on `query`.

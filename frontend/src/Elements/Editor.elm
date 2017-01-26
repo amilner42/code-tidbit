@@ -12,6 +12,7 @@ module Elements.Editor
 
 import Html exposing (Html, div)
 import Html.Attributes exposing (class, id)
+import Html.Keyed as Keyed
 import Json.Encode as Encode
 import Json.Decode as Decode
 
@@ -567,7 +568,8 @@ editor editorID =
     div
         [ id "code-editor-wrapper"
         ]
-        [ div
+        [ Keyed.node
+            "div"
             [ id editorID ]
             []
         ]

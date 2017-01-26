@@ -11,9 +11,25 @@ import Models.HighlightedComment exposing (MaybeHighlightedComment, HighlightedC
 import Models.Range as Range
 
 
-{-| A full Snipbit ready for publication.
+{-| A snipbit as seen in the db.
 -}
 type alias Snipbit =
+    { id : String
+    , language : Language
+    , name : String
+    , description : String
+    , tags : List String
+    , code : String
+    , introduction : String
+    , conclusion : String
+    , highlightedComments : Array.Array HighlightedComment
+    , author : String
+    }
+
+
+{-| A full SnipbitForPublication ready for publication.
+-}
+type alias SnipbitForPublication =
     { language : Language
     , name : String
     , description : String
@@ -43,24 +59,51 @@ type alias SnipbitCreateData =
     }
 
 
+{-| For DRY code to create encoders for `Snipbit` and `SnipbitForPublication`.
+-}
+createSnipbitEncoder model extraFields =
+    Encode.object <|
+        List.concat
+            [ [ ( "language", languageCacheEncoder model.language )
+              , ( "name", Encode.string model.name )
+              , ( "description", Encode.string model.description )
+              , ( "tags", Encode.list <| List.map Encode.string model.tags )
+              , ( "code", Encode.string model.code )
+              , ( "introduction", Encode.string model.introduction )
+              , ( "conclusion", Encode.string model.conclusion )
+              , ( "highlightedComments"
+                , Encode.array <|
+                    Array.map
+                        highlightedCommentEncoder
+                        model.highlightedComments
+                )
+              ]
+            , extraFields
+            ]
+
+
+{-| Snipbit `cacheDecoder`.
+-}
+snipbitCacheDecoder : Decode.Decoder Snipbit
+snipbitCacheDecoder =
+    snipbitDecoder
+
+
+{-| Snipbit `cacheEncoder`.
+-}
+snipbitCacheEncoder : Snipbit -> Encode.Value
+snipbitCacheEncoder =
+    snipbitEncoder
+
+
 {-| Snipbit `encoder`.
 -}
 snipbitEncoder : Snipbit -> Encode.Value
 snipbitEncoder snipbit =
-    Encode.object
-        [ ( "language", languageCacheEncoder snipbit.language )
-        , ( "name", Encode.string snipbit.name )
-        , ( "description", Encode.string snipbit.description )
-        , ( "tags", Encode.list <| List.map Encode.string snipbit.tags )
-        , ( "code", Encode.string snipbit.code )
-        , ( "introduction", Encode.string snipbit.introduction )
-        , ( "conclusion", Encode.string snipbit.conclusion )
-        , ( "highlightedComments"
-          , Encode.array <|
-                Array.map
-                    highlightedCommentEncoder
-                    snipbit.highlightedComments
-          )
+    createSnipbitEncoder
+        snipbit
+        [ ( "id", Encode.string snipbit.id )
+        , ( "author", Encode.string snipbit.author )
         ]
 
 
@@ -69,6 +112,42 @@ snipbitEncoder snipbit =
 snipbitDecoder : Decode.Decoder Snipbit
 snipbitDecoder =
     decode Snipbit
+        |> required "id" Decode.string
+        |> required "language" languageCacheDecoder
+        |> required "name" Decode.string
+        |> required "description" Decode.string
+        |> required "tags" (Decode.list Decode.string)
+        |> required "code" Decode.string
+        |> required "introduction" Decode.string
+        |> required "conclusion" Decode.string
+        |> required "highlightedComments" (Decode.array highlightedCommentDecoder)
+        |> required "author" Decode.string
+
+
+{-| Identical to the encoder, but used to follow naming conventions.
+-}
+snipbitForPublicationCacheEncoder =
+    snipbitForPublicationEncoder
+
+
+{-| Identical to the decoder, but used to follow naming conventions.
+-}
+snipbitForPublicationCacheDecoder =
+    snipbitForSymbolDecoder
+
+
+{-| SnipbitForPublication `encoder`.
+-}
+snipbitForPublicationEncoder : SnipbitForPublication -> Encode.Value
+snipbitForPublicationEncoder snipbitForPublication =
+    createSnipbitEncoder snipbitForPublication []
+
+
+{-| SnipbitForPublication `decoder`.
+-}
+snipbitForSymbolDecoder : Decode.Decoder SnipbitForPublication
+snipbitForSymbolDecoder =
+    decode SnipbitForPublication
         |> required "language" languageCacheDecoder
         |> required "name" Decode.string
         |> required "description" Decode.string

@@ -21,6 +21,7 @@ export interface Snipbit {
   highlightedComments: HighlightedComment[];
 
   // Added by the backend.
+  id?: MongoID; // When sending to the frontend, we switch `_id` to `id`.
   _id?: MongoID;
   author?: MongoID;
 }

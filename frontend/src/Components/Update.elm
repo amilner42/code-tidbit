@@ -14,6 +14,7 @@ import Models.Route as Route
 import Navigation
 import Ports
 import Router
+import Task
 
 
 {-| Base Component Update.
@@ -172,7 +173,7 @@ need to specify `routesNotNeedingAuth`, `defaultUnauthRoute`, and
 `defaultAuthRoute` in your `Routes` model. It also handles users going to
 routes that don't exist (just goes `back` to the route they were on before).
 -}
-handleLocationChange : Maybe Route.Route -> Model -> ( Model, Cmd msg )
+handleLocationChange : Maybe Route.Route -> Model -> ( Model, Cmd Msg )
 handleLocationChange maybeRoute model =
     case maybeRoute of
         Nothing ->
@@ -269,8 +270,17 @@ handleLocationChange maybeRoute model =
                             , theme = aceTheme
                             , value = aceValue
                             , range = aceRange
+                            , readOnly = False
                             }
                         ]
+
+                triggerRouteHookOnHomeComponent =
+                    ( newModel
+                    , Cmd.batch
+                        [ newCmd
+                        , Util.cmdFromMsg <| HomeMessage HomeMessages.OnRouteHit
+                        ]
+                    )
             in
                 -- Handle general route-logic here, routes are a great way to be
                 -- able to trigger certain things (hooks).
@@ -317,6 +327,15 @@ handleLocationChange maybeRoute model =
                                             model.homeComponent.creatingSnipbitData.highlightedComments
                                         )
                                 )
+
+                    Route.HomeComponentViewSnipbitIntroduction _ ->
+                        triggerRouteHookOnHomeComponent
+
+                    Route.HomeComponentViewSnipbitConclusion _ ->
+                        triggerRouteHookOnHomeComponent
+
+                    Route.HomeComponentViewSnipbitFrame _ _ ->
+                        triggerRouteHookOnHomeComponent
 
                     _ ->
                         ( newModel, newCmd )

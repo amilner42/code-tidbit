@@ -4,6 +4,16 @@ import Json.Encode as Encode
 import Models.Range exposing (Range)
 
 
+type alias CreateCodeEditorConfig =
+    { id : String
+    , lang : String
+    , theme : String
+    , value : String
+    , range : Maybe Range
+    , readOnly : Bool
+    }
+
+
 {-| Saves the model to localstorage.
 -}
 port saveModelToLocalStorage : Encode.Value -> Cmd msg
@@ -22,14 +32,7 @@ port onLoadModelFromLocalStorage : (String -> msg) -> Sub msg
 {-| Finds the dom element with the given class name and replaces it with the
 ace code editor.
 -}
-port createCodeEditor :
-    { id : String
-    , lang : String
-    , theme : String
-    , value : String
-    , range : Maybe Range
-    }
-    -> Cmd msg
+port createCodeEditor : CreateCodeEditorConfig -> Cmd msg
 
 
 {-| Called when a code editor being used (with id `id`) has been updated.
