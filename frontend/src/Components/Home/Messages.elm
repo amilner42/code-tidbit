@@ -4,9 +4,10 @@ import Autocomplete as AC
 import Components.Home.Model exposing (TidbitType)
 import Models.ApiError as ApiError
 import Models.BasicResponse as BasicResponse
-import Models.Snipbit as Snipbit
+import Models.CreateSnipbitResponse exposing (CreateSnipbitResponse)
 import Models.Range as Range
 import Models.Route as Route
+import Models.Snipbit as Snipbit
 
 
 {-| Home Component Msg.
@@ -37,7 +38,7 @@ type Msg
     | SnipbitUpdateConclusion String
     | SnipbitUpdateCode String
     | SnipbitPublish Snipbit.SnipbitForPublication
-    | OnSnipbitPublishSuccess BasicResponse.BasicResponse
+    | OnSnipbitPublishSuccess CreateSnipbitResponse
     | OnSnipbitPublishFailure ApiError.ApiError
     | OnGetSnipbitFailure ApiError.ApiError
     | OnGetSnipbitSuccess Snipbit.Snipbit

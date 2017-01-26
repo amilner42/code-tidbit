@@ -14,6 +14,7 @@ import Json.Decode as Decode
 import Json.Encode as Encode
 import Models.ApiError as ApiError
 import Models.BasicResponse as BasicResponse
+import Models.CreateSnipbitResponse as CreateSnipbitResponse
 import Models.Snipbit as Snipbit
 import Models.User as User
 
@@ -77,9 +78,9 @@ postRegister user =
 
 {-| Creates a new snipbit.
 -}
-postCreateSnipbit : Snipbit.SnipbitForPublication -> (ApiError.ApiError -> b) -> (BasicResponse.BasicResponse -> b) -> Cmd b
+postCreateSnipbit : Snipbit.SnipbitForPublication -> (ApiError.ApiError -> b) -> (CreateSnipbitResponse.CreateSnipbitResponse -> b) -> Cmd b
 postCreateSnipbit snipbit =
     apiPost
         "snipbits"
-        BasicResponse.decoder
+        CreateSnipbitResponse.createSnipbitResponseDecoder
         (Snipbit.snipbitForPublicationEncoder snipbit)

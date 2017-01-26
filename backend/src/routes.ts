@@ -171,10 +171,10 @@ export const routes: AppRoutes = {
 
         collection("snipbits")
         .then((snipbitCollection) => {
-          return snipbitCollection.save(updatedSnipbit);
+          return snipbitCollection.insertOne(updatedSnipbit);
         })
-        .then(() => {
-          res.status(200).json({ message: "Snipbit created successfully."});
+        .then((snipbit) => {
+          res.status(200).json({ newID: snipbit.insertedId });
           return;
         });
       })

@@ -644,8 +644,13 @@ update msg model shared =
                     OnSnipbitPublishSuccess
                 )
 
-            OnSnipbitPublishSuccess basicResponse ->
-                update SnipbitReset model shared
+            OnSnipbitPublishSuccess createSnipbitResponse ->
+                ( { model
+                    | creatingSnipbitData = .creatingSnipbitData HomeInit.init
+                  }
+                , shared
+                , Router.navigateTo <| Route.HomeComponentViewSnipbitIntroduction createSnipbitResponse.newID
+                )
 
             OnSnipbitPublishFailure apiError ->
                 -- TODO Handle Publish Failures.
