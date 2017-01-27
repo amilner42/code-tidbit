@@ -31,6 +31,27 @@ view model shared =
         ]
 
 
+{-| Helper function for creating the HTML tags in the tag-tab. Currently used
+in both snipbits and bigbits.
+-}
+makeHTMLTags : (String -> Msg) -> List String -> Html Msg
+makeHTMLTags closeTagMsg tags =
+    div
+        [ class "current-tags" ]
+        (List.map
+            (\tagName ->
+                div
+                    [ class "tag" ]
+                    [ text tagName
+                    , button
+                        [ onClick <| closeTagMsg tagName ]
+                        [ text "X" ]
+                    ]
+            )
+            tags
+        )
+
+
 {-| The view for viewing a snipbit.
 -}
 viewSnipbitView : Model -> Shared -> Html Msg
@@ -505,6 +526,51 @@ createBigbitView model shared =
                     [ text "Reset" ]
                 ]
             , createBigbitNavbar
+            , case shared.route of
+                Route.HomeComponentCreateBigbitName ->
+                    div
+                        [ class "create-bigbit-name" ]
+                        [ input
+                            [ placeholder "Name"
+                            , onInput BigbitUpdateName
+                            , value model.bigbitCreateData.name
+                            , Util.onEnter <|
+                                if String.isEmpty model.bigbitCreateData.name then
+                                    NoOp
+                                else
+                                    GoTo Route.HomeComponentCreateBigbitDescription
+                            ]
+                            []
+                        ]
+
+                Route.HomeComponentCreateBigbitDescription ->
+                    div
+                        [ class "create-bigbit-description" ]
+                        [ textarea
+                            [ placeholder "Description"
+                            , onInput BigbitUpdateDescription
+                            , value model.bigbitCreateData.description
+                            ]
+                            []
+                        ]
+
+                Route.HomeComponentCreateBigbitTags ->
+                    div
+                        [ class "create-tidbit-tags" ]
+                        [ input
+                            [ placeholder "Tags"
+                            , onInput BigbitUpdateTagInput
+                            , value model.bigbitCreateData.tagInput
+                            , Util.onEnter <|
+                                BigbitAddTag model.bigbitCreateData.tagInput
+                            ]
+                            []
+                        , makeHTMLTags BigbitRemoveTag model.bigbitCreateData.tags
+                        ]
+
+                -- Should never happen
+                _ ->
+                    div [] []
             ]
 
 
@@ -686,36 +752,19 @@ createSnipbitView model shared =
 
         tagsView : Html Msg
         tagsView =
-            let
-                currentTags =
-                    div
-                        [ class "current-tags" ]
-                        (List.map
-                            (\tagName ->
-                                div
-                                    [ class "tag" ]
-                                    [ text tagName
-                                    , button
-                                        [ onClick <| SnipbitRemoveTag tagName ]
-                                        [ text "X" ]
-                                    ]
-                            )
-                            model.creatingSnipbitData.tags
-                        )
-            in
-                div
-                    [ class "create-snipbit-tags" ]
-                    [ input
-                        [ placeholder "Tags"
-                        , onInput SnipbitUpdateTagInput
-                        , value model.creatingSnipbitData.tagInput
-                        , Util.onEnter <|
-                            SnipbitAddTag
-                                model.creatingSnipbitData.tagInput
-                        ]
-                        []
-                    , currentTags
+            div
+                [ class "create-tidbit-tags" ]
+                [ input
+                    [ placeholder "Tags"
+                    , onInput SnipbitUpdateTagInput
+                    , value model.creatingSnipbitData.tagInput
+                    , Util.onEnter <|
+                        SnipbitAddTag
+                            model.creatingSnipbitData.tagInput
                     ]
+                    []
+                , makeHTMLTags SnipbitRemoveTag model.creatingSnipbitData.tags
+                ]
 
         tidbitView : Html Msg
         tidbitView =

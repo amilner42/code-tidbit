@@ -43,3 +43,8 @@ type Msg
     | OnGetSnipbitFailure ApiError.ApiError
     | OnGetSnipbitSuccess Snipbit.Snipbit
     | BigbitReset
+    | BigbitUpdateName String
+    | BigbitUpdateDescription String
+    | BigbitUpdateTagInput String
+    | BigbitAddTag String
+    | BigbitRemoveTag String

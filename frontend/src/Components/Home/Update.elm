@@ -12,6 +12,7 @@ import DefaultModel exposing (defaultShared)
 import DefaultServices.Util as Util
 import Elements.Editor as Editor
 import Json.Decode as Decode
+import Models.Bigbit as Bigbit
 import Models.Snipbit as Snipbit
 import Models.Route as Route
 import Router
@@ -39,6 +40,16 @@ update msg model shared =
 
         currentHighlightedComments =
             currentCreatingSnipbitData.highlightedComments
+
+        updateBigbitCreateData : Bigbit.BigbitCreateData -> Model
+        updateBigbitCreateData newBigbitCreateData =
+            { model
+                | bigbitCreateData = newBigbitCreateData
+            }
+
+        currentBigbitCreateData : Bigbit.BigbitCreateData
+        currentBigbitCreateData =
+            model.bigbitCreateData
     in
         case msg of
             NoOp ->
@@ -691,7 +702,99 @@ update msg model shared =
                     )
 
             BigbitReset ->
-                doNothing
+                ( updateBigbitCreateData <| .bigbitCreateData HomeInit.init
+                , shared
+                , Router.navigateTo Route.HomeComponentCreateBigbitName
+                )
+
+            BigbitUpdateName newName ->
+                ( updateBigbitCreateData <|
+                    { currentBigbitCreateData
+                        | name = newName
+                    }
+                , shared
+                , Cmd.none
+                )
+
+            BigbitUpdateDescription newDescription ->
+                ( updateBigbitCreateData <|
+                    { currentBigbitCreateData
+                        | description = newDescription
+                    }
+                , shared
+                , Cmd.none
+                )
+
+            BigbitUpdateTagInput newTagInput ->
+                if String.endsWith " " newTagInput then
+                    let
+                        newTag =
+                            String.dropRight 1 newTagInput
+
+                        newTags =
+                            if
+                                String.isEmpty newTag
+                                    || List.member
+                                        newTag
+                                        currentBigbitCreateData.tags
+                            then
+                                currentBigbitCreateData.tags
+                            else
+                                currentBigbitCreateData.tags ++ [ newTag ]
+                    in
+                        ( updateBigbitCreateData
+                            { currentBigbitCreateData
+                                | tags = newTags
+                                , tagInput = ""
+                            }
+                        , shared
+                        , Cmd.none
+                        )
+                else
+                    ( updateBigbitCreateData
+                        { currentBigbitCreateData
+                            | tagInput = newTagInput
+                        }
+                    , shared
+                    , Cmd.none
+                    )
+
+            BigbitAddTag tagName ->
+                let
+                    newTags =
+                        if
+                            String.isEmpty tagName
+                                || List.member
+                                    tagName
+                                    currentBigbitCreateData.tags
+                        then
+                            currentBigbitCreateData.tags
+                        else
+                            currentBigbitCreateData.tags ++ [ tagName ]
+                in
+                    ( updateBigbitCreateData
+                        { currentBigbitCreateData
+                            | tags = newTags
+                            , tagInput = ""
+                        }
+                    , shared
+                    , Cmd.none
+                    )
+
+            BigbitRemoveTag tagName ->
+                let
+                    newTags =
+                        List.filter
+                            (\tag -> tag /= tagName)
+                            currentBigbitCreateData.tags
+                in
+                    ( updateBigbitCreateData
+                        { currentBigbitCreateData
+                            | tags = newTags
+                        }
+                    , shared
+                    , Cmd.none
+                    )
 
 
 {-| Filters the languages based on `query`.

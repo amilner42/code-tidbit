@@ -31,4 +31,10 @@ init =
         , introduction = ""
         , conclusion = ""
         }
+    , bigbitCreateData =
+        { name = ""
+        , description = ""
+        , tags = []
+        , tagInput = ""
+        }
     }
