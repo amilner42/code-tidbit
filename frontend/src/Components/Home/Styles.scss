@@ -241,36 +241,76 @@
             }
         }
 
+        .create-tidbit-navbar {
+            @include no-select();
+
+            margin: 20px auto 10px auto;
+            position: relative;
+            display: block;
+            color: $color4;
+
+            .create-tidbit-tab {
+                box-sizing: border-box;
+                width: 100px;
+                height: 30px;
+                position: relative;
+                display: inline-block;
+                cursor: pointer;
+                border: 1px solid $color2;
+                margin: 1px;
+                font-size: 16px;
+                line-height: 30px;
+                text-align: center;
+
+                &.create-tidbit-selected-tab {
+                    color: $color1;
+                }
+            }
+        }
+
+        .create-tidbit-sub-bar {
+            position: relative;
+            display: inline-block;
+            width: 100%;
+            background-color: $color2;
+            margin-bottom: 10px;
+            height: 40px;
+            padding-top: 10px;
+
+            .sub-bar-button {
+                position: relative;
+                display: inline-block;
+                height: 30px;
+                width: 100px;
+                border: none;
+                border-radius: 5px;
+                color: white;
+
+                &:hover {
+                    color: $color6;
+                }
+            }
+        }
+
+        .create-bigbit {
+
+            .create-tidbit-navbar {
+                width: 410px;
+            }
+
+            .create-tidbit-sub-bar {
+                .sub-bar-button {
+                    margin-left: 10px;
+                }
+            }
+        }
+
         .create-snipbit {
 
             height: 100%;
 
-            .create-snipbit-navbar {
-                @include no-select();
-
+            .create-tidbit-navbar {
                 width: 510px;
-                margin: 20px auto 10px auto;
-                position: relative;
-                display: block;
-                color: $color4;
-
-                .create-snipbit-tab {
-                    box-sizing: border-box;
-                    width: 100px;
-                    height: 30px;
-                    position: relative;
-                    display: inline-block;
-                    cursor: pointer;
-                    border: 1px solid $color2;
-                    margin: 1px;
-                    font-size: 16px;
-                    line-height: 30px;
-                    text-align: center;
-
-                    &.create-snipbit-selected-tab {
-                        color: $color1;
-                    }
-                }
             }
 
             .create-snipbit-x {
@@ -482,28 +522,7 @@
                 }
             }
 
-            .sub-bar {
-                position: relative;
-                display: inline-block;
-                width: 100%;
-                background-color: $color2;
-                margin-bottom: 10px;
-                height: 40px;
-                padding-top: 10px;
-
-                .sub-bar-button {
-                    position: relative;
-                    display: inline-block;
-                    height: 30px;
-                    width: 100px;
-                    border: none;
-                    border-radius: 5px;
-                    color: white;
-
-                    &:hover {
-                        color: $color6;
-                    }
-                }
+            .create-tidbit-sub-bar {
 
                 .create-snipbit-back-button {
                     @extend .sub-bar-button;

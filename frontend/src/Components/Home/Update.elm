@@ -690,6 +690,9 @@ update msg model shared =
                         }
                     )
 
+            BigbitReset ->
+                doNothing
+
 
 {-| Filters the languages based on `query`.
 -}

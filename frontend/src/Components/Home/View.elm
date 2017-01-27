@@ -220,6 +220,15 @@ displayViewForRoute model shared =
         Route.HomeComponentCreateSnipbitCodeConclusion ->
             createSnipbitView model shared
 
+        Route.HomeComponentCreateBigbitName ->
+            createBigbitView model shared
+
+        Route.HomeComponentCreateBigbitDescription ->
+            createBigbitView model shared
+
+        Route.HomeComponentCreateBigbitTags ->
+            createBigbitView model shared
+
         Route.HomeComponentProfile ->
             profileView model
 
@@ -268,6 +277,9 @@ navbar shared =
                         , Route.HomeComponentCreateSnipbitTags
                         , Route.HomeComponentCreateSnipbitCodeIntroduction
                         , Route.HomeComponentCreateSnipbitCodeConclusion
+                        , Route.HomeComponentCreateBigbitName
+                        , Route.HomeComponentCreateBigbitDescription
+                        , Route.HomeComponentCreateBigbitTags
                         ]
                     )
     in
@@ -344,7 +356,13 @@ createView model shared =
 
         bigBitInfo : String
         bigBitInfo =
-            "TODO"
+            """BigBits are multi-language projects of code targetted at
+            simplifying larger tutorials which require their own file structure.
+
+            You highlight chunks of code and attach comments automatically
+            taking your user through all the files and folders in a directed
+            fashion while still letting them explore themselves.
+            """
 
         makeTidbitTypeBox : String -> String -> String -> Msg -> TidbitType -> Html Msg
         makeTidbitTypeBox title subTitle description onClickMsg tidbitType =
@@ -402,7 +420,7 @@ createView model shared =
                         "BigBit"
                         "Designed for larger tutorials"
                         bigBitInfo
-                        (NoOp)
+                        (GoTo Route.HomeComponentCreateBigbitName)
                         BigBit
                     , div
                         [ class "create-select-tidbit-type-coming-soon" ]
@@ -415,6 +433,78 @@ createView model shared =
                         ]
                     ]
                 ]
+            ]
+
+
+{-| View for creating a bigbit.
+-}
+createBigbitView : Model -> Shared -> Html Msg
+createBigbitView model shared =
+    let
+        currentRoute =
+            shared.route
+
+        createBigbitNavbar : Html Msg
+        createBigbitNavbar =
+            div
+                [ classList [ ( "create-tidbit-navbar", True ) ] ]
+                [ div
+                    [ classList
+                        [ ( "create-tidbit-tab", True )
+                        , ( "create-tidbit-selected-tab"
+                          , currentRoute == Route.HomeComponentCreateBigbitName
+                          )
+                        ]
+                    , onClick <| GoTo Route.HomeComponentCreateBigbitName
+                    ]
+                    [ text "Name" ]
+                , div
+                    [ classList
+                        [ ( "create-tidbit-tab", True )
+                        , ( "create-tidbit-selected-tab"
+                          , currentRoute == Route.HomeComponentCreateBigbitDescription
+                          )
+                        ]
+                    , onClick <| GoTo Route.HomeComponentCreateBigbitDescription
+                    ]
+                    [ text "Description" ]
+                , div
+                    [ classList
+                        [ ( "create-tidbit-tab", True )
+                        , ( "create-tidbit-selected-tab"
+                          , currentRoute == Route.HomeComponentCreateBigbitTags
+                          )
+                        ]
+                    , onClick <| GoTo Route.HomeComponentCreateBigbitTags
+                    ]
+                    [ text "Tags" ]
+                , div
+                    [ classList
+                        [ ( "create-tidbit-tab", True )
+                        , ( "create-tidbit-selected-tab"
+                          , False
+                          )
+                        ]
+                    ]
+                    [ text "Code" ]
+                ]
+    in
+        div
+            [ class "create-bigbit" ]
+            [ div
+                [ class "create-tidbit-sub-bar" ]
+                [ button
+                    [ class "sub-bar-button"
+                    , onClick <| GoTo Route.HomeComponentCreate
+                    ]
+                    [ text "Back" ]
+                , button
+                    [ class "sub-bar-button"
+                    , onClick <| BigbitReset
+                    ]
+                    [ text "Reset" ]
+                ]
+            , createBigbitNavbar
             ]
 
 
@@ -473,11 +563,11 @@ createSnipbitView model shared =
         createSnipbitNavbar : Html Msg
         createSnipbitNavbar =
             div
-                [ classList [ ( "create-snipbit-navbar", True ) ] ]
+                [ classList [ ( "create-tidbit-navbar", True ) ] ]
                 [ div
                     [ classList
-                        [ ( "create-snipbit-tab", True )
-                        , ( "create-snipbit-selected-tab"
+                        [ ( "create-tidbit-tab", True )
+                        , ( "create-tidbit-selected-tab"
                           , currentRoute == Route.HomeComponentCreateSnipbitName
                           )
                         ]
@@ -486,8 +576,8 @@ createSnipbitView model shared =
                     [ text "Name" ]
                 , div
                     [ classList
-                        [ ( "create-snipbit-tab", True )
-                        , ( "create-snipbit-selected-tab"
+                        [ ( "create-tidbit-tab", True )
+                        , ( "create-tidbit-selected-tab"
                           , currentRoute == Route.HomeComponentCreateSnipbitDescription
                           )
                         ]
@@ -496,8 +586,8 @@ createSnipbitView model shared =
                     [ text "Description" ]
                 , div
                     [ classList
-                        [ ( "create-snipbit-tab", True )
-                        , ( "create-snipbit-selected-tab"
+                        [ ( "create-tidbit-tab", True )
+                        , ( "create-tidbit-selected-tab"
                           , currentRoute == Route.HomeComponentCreateSnipbitLanguage
                           )
                         ]
@@ -506,8 +596,8 @@ createSnipbitView model shared =
                     [ text "Language" ]
                 , div
                     [ classList
-                        [ ( "create-snipbit-tab", True )
-                        , ( "create-snipbit-selected-tab"
+                        [ ( "create-tidbit-tab", True )
+                        , ( "create-tidbit-selected-tab"
                           , currentRoute == Route.HomeComponentCreateSnipbitTags
                           )
                         ]
@@ -516,8 +606,8 @@ createSnipbitView model shared =
                     [ text "Tags" ]
                 , div
                     [ classList
-                        [ ( "create-snipbit-tab", True )
-                        , ( "create-snipbit-selected-tab"
+                        [ ( "create-tidbit-tab", True )
+                        , ( "create-tidbit-selected-tab"
                           , case currentRoute of
                                 Route.HomeComponentCreateSnipbitCodeIntroduction ->
                                     True
@@ -886,7 +976,7 @@ createSnipbitView model shared =
         div
             [ class "create-snipbit" ]
             [ div
-                [ class "sub-bar" ]
+                [ class "create-tidbit-sub-bar" ]
                 [ button
                     [ class "create-snipbit-back-button"
                     , onClick <| GoTo Route.HomeComponentCreate
