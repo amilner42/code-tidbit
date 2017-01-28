@@ -196,7 +196,7 @@ handleLocationChange maybeRoute model =
                     }
 
                 aceLang =
-                    case model.homeComponent.creatingSnipbitData.language of
+                    case model.homeComponent.snipbitCreateData.language of
                         Nothing ->
                             ""
 
@@ -208,7 +208,7 @@ handleLocationChange maybeRoute model =
                     ""
 
                 aceValue =
-                    model.homeComponent.creatingSnipbitData.code
+                    model.homeComponent.snipbitCreateData.code
 
                 -- Handle authentication logic here.
                 ( newModel, newCmd ) =
@@ -304,7 +304,7 @@ handleLocationChange maybeRoute model =
                                 frameNumber - 1
 
                             frameIndexTooHigh =
-                                frameIndex >= (Array.length model.homeComponent.creatingSnipbitData.highlightedComments)
+                                frameIndex >= (Array.length model.homeComponent.snipbitCreateData.highlightedComments)
 
                             frameIndexTooLow =
                                 frameIndex < 0
@@ -324,7 +324,7 @@ handleLocationChange maybeRoute model =
                                         .range
                                         (Array.get
                                             frameIndex
-                                            model.homeComponent.creatingSnipbitData.highlightedComments
+                                            model.homeComponent.snipbitCreateData.highlightedComments
                                         )
                                 )
 

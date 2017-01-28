@@ -588,9 +588,9 @@ createSnipbitView model shared =
             div
                 [ classList
                     [ ( "hidden"
-                      , String.isEmpty model.creatingSnipbitData.languageQuery
+                      , String.isEmpty model.snipbitCreateData.languageQuery
                             || Util.isNotNothing
-                                model.creatingSnipbitData.language
+                                model.snipbitCreateData.language
                       )
                     ]
                 ]
@@ -598,10 +598,10 @@ createSnipbitView model shared =
                     SnipbitUpdateACState
                     (AC.view
                         acViewConfig
-                        model.creatingSnipbitData.languageListHowManyToShow
-                        model.creatingSnipbitData.languageQueryACState
+                        model.snipbitCreateData.languageListHowManyToShow
+                        model.snipbitCreateData.languageQueryACState
                         (filterLanguagesByQuery
-                            model.creatingSnipbitData.languageQuery
+                            model.snipbitCreateData.languageQuery
                             shared.languages
                         )
                     )
@@ -700,9 +700,9 @@ createSnipbitView model shared =
                 [ input
                     [ placeholder "Name"
                     , onInput SnipbitUpdateName
-                    , value model.creatingSnipbitData.name
+                    , value model.snipbitCreateData.name
                     , Util.onEnter <|
-                        if String.isEmpty model.creatingSnipbitData.name then
+                        if String.isEmpty model.snipbitCreateData.name then
                             NoOp
                         else
                             GoTo Route.HomeComponentCreateSnipbitDescription
@@ -718,7 +718,7 @@ createSnipbitView model shared =
                     [ class "create-snipbit-description-box"
                     , placeholder "Description"
                     , onInput SnipbitUpdateDescription
-                    , value model.creatingSnipbitData.description
+                    , value model.snipbitCreateData.description
                     ]
                     []
                 ]
@@ -731,10 +731,10 @@ createSnipbitView model shared =
                     [ placeholder "Language"
                     , id "language-query-input"
                     , onInput SnipbitUpdateLanguageQuery
-                    , value model.creatingSnipbitData.languageQuery
+                    , value model.snipbitCreateData.languageQuery
                     , disabled <|
                         Util.isNotNothing
-                            model.creatingSnipbitData.language
+                            model.snipbitCreateData.language
                     ]
                     []
                 , viewMenu
@@ -743,7 +743,7 @@ createSnipbitView model shared =
                     , classList
                         [ ( "hidden"
                           , Util.isNothing
-                                model.creatingSnipbitData.language
+                                model.snipbitCreateData.language
                           )
                         ]
                     ]
@@ -757,13 +757,13 @@ createSnipbitView model shared =
                 [ input
                     [ placeholder "Tags"
                     , onInput SnipbitUpdateTagInput
-                    , value model.creatingSnipbitData.tagInput
+                    , value model.snipbitCreateData.tagInput
                     , Util.onEnter <|
                         SnipbitAddTag
-                            model.creatingSnipbitData.tagInput
+                            model.snipbitCreateData.tagInput
                     ]
                     []
-                , makeHTMLTags SnipbitRemoveTag model.creatingSnipbitData.tags
+                , makeHTMLTags SnipbitRemoveTag model.snipbitCreateData.tags
                 ]
 
         tidbitView : Html Msg
@@ -777,7 +777,7 @@ createSnipbitView model shared =
                                 [ textarea
                                     [ placeholder "Introduction"
                                     , onInput <| SnipbitUpdateIntroduction
-                                    , value model.creatingSnipbitData.introduction
+                                    , value model.snipbitCreateData.introduction
                                     ]
                                     []
                                 ]
@@ -799,7 +799,7 @@ createSnipbitView model shared =
                                             case
                                                 (Array.get
                                                     frameIndex
-                                                    model.creatingSnipbitData.highlightedComments
+                                                    model.snipbitCreateData.highlightedComments
                                                 )
                                             of
                                                 Nothing ->
@@ -822,7 +822,7 @@ createSnipbitView model shared =
                                 [ textarea
                                     [ placeholder "Conclusion"
                                     , onInput <| SnipbitUpdateConclusion
-                                    , value model.creatingSnipbitData.conclusion
+                                    , value model.snipbitCreateData.conclusion
                                     ]
                                     []
                                 ]
@@ -856,7 +856,7 @@ createSnipbitView model shared =
                                             ]
                                             [ text <| toString <| index + 1 ]
                                     )
-                                    model.creatingSnipbitData.highlightedComments
+                                    model.snipbitCreateData.highlightedComments
                             )
                     in
                         div
@@ -894,7 +894,7 @@ createSnipbitView model shared =
                                         , onClick <| SnipbitRemoveFrame
                                         , disabled <|
                                             Array.length
-                                                model.creatingSnipbitData.highlightedComments
+                                                model.snipbitCreateData.highlightedComments
                                                 <= 1
                                         ]
                                         [ text "-" ]
@@ -958,7 +958,7 @@ createSnipbitView model shared =
         currentPublishButton =
             let
                 tidbitData =
-                    model.creatingSnipbitData
+                    model.snipbitCreateData
             in
                 case tidbitData.language of
                     Nothing ->
