@@ -31,6 +31,27 @@ view model shared =
         ]
 
 
+{-| Helper function for creating the HTML tags in the tag-tab. Currently used
+in both snipbits and bigbits.
+-}
+makeHTMLTags : (String -> Msg) -> List String -> Html Msg
+makeHTMLTags closeTagMsg tags =
+    div
+        [ class "current-tags" ]
+        (List.map
+            (\tagName ->
+                div
+                    [ class "tag" ]
+                    [ text tagName
+                    , button
+                        [ onClick <| closeTagMsg tagName ]
+                        [ text "X" ]
+                    ]
+            )
+            tags
+        )
+
+
 {-| The view for viewing a snipbit.
 -}
 viewSnipbitView : Model -> Shared -> Html Msg
@@ -220,6 +241,15 @@ displayViewForRoute model shared =
         Route.HomeComponentCreateSnipbitCodeConclusion ->
             createSnipbitView model shared
 
+        Route.HomeComponentCreateBigbitName ->
+            createBigbitView model shared
+
+        Route.HomeComponentCreateBigbitDescription ->
+            createBigbitView model shared
+
+        Route.HomeComponentCreateBigbitTags ->
+            createBigbitView model shared
+
         Route.HomeComponentProfile ->
             profileView model
 
@@ -268,6 +298,9 @@ navbar shared =
                         , Route.HomeComponentCreateSnipbitTags
                         , Route.HomeComponentCreateSnipbitCodeIntroduction
                         , Route.HomeComponentCreateSnipbitCodeConclusion
+                        , Route.HomeComponentCreateBigbitName
+                        , Route.HomeComponentCreateBigbitDescription
+                        , Route.HomeComponentCreateBigbitTags
                         ]
                     )
     in
@@ -344,7 +377,13 @@ createView model shared =
 
         bigBitInfo : String
         bigBitInfo =
-            "TODO"
+            """BigBits are multi-language projects of code targetted at
+            simplifying larger tutorials which require their own file structure.
+
+            You highlight chunks of code and attach comments automatically
+            taking your user through all the files and folders in a directed
+            fashion while still letting them explore themselves.
+            """
 
         makeTidbitTypeBox : String -> String -> String -> Msg -> TidbitType -> Html Msg
         makeTidbitTypeBox title subTitle description onClickMsg tidbitType =
@@ -402,7 +441,7 @@ createView model shared =
                         "BigBit"
                         "Designed for larger tutorials"
                         bigBitInfo
-                        (NoOp)
+                        (GoTo Route.HomeComponentCreateBigbitName)
                         BigBit
                     , div
                         [ class "create-select-tidbit-type-coming-soon" ]
@@ -415,6 +454,123 @@ createView model shared =
                         ]
                     ]
                 ]
+            ]
+
+
+{-| View for creating a bigbit.
+-}
+createBigbitView : Model -> Shared -> Html Msg
+createBigbitView model shared =
+    let
+        currentRoute =
+            shared.route
+
+        createBigbitNavbar : Html Msg
+        createBigbitNavbar =
+            div
+                [ classList [ ( "create-tidbit-navbar", True ) ] ]
+                [ div
+                    [ classList
+                        [ ( "create-tidbit-tab", True )
+                        , ( "create-tidbit-selected-tab"
+                          , currentRoute == Route.HomeComponentCreateBigbitName
+                          )
+                        ]
+                    , onClick <| GoTo Route.HomeComponentCreateBigbitName
+                    ]
+                    [ text "Name" ]
+                , div
+                    [ classList
+                        [ ( "create-tidbit-tab", True )
+                        , ( "create-tidbit-selected-tab"
+                          , currentRoute == Route.HomeComponentCreateBigbitDescription
+                          )
+                        ]
+                    , onClick <| GoTo Route.HomeComponentCreateBigbitDescription
+                    ]
+                    [ text "Description" ]
+                , div
+                    [ classList
+                        [ ( "create-tidbit-tab", True )
+                        , ( "create-tidbit-selected-tab"
+                          , currentRoute == Route.HomeComponentCreateBigbitTags
+                          )
+                        ]
+                    , onClick <| GoTo Route.HomeComponentCreateBigbitTags
+                    ]
+                    [ text "Tags" ]
+                , div
+                    [ classList
+                        [ ( "create-tidbit-tab", True )
+                        , ( "create-tidbit-selected-tab"
+                          , False
+                          )
+                        ]
+                    ]
+                    [ text "Code" ]
+                ]
+    in
+        div
+            [ class "create-bigbit" ]
+            [ div
+                [ class "create-tidbit-sub-bar" ]
+                [ button
+                    [ class "sub-bar-button"
+                    , onClick <| GoTo Route.HomeComponentCreate
+                    ]
+                    [ text "Back" ]
+                , button
+                    [ class "sub-bar-button"
+                    , onClick <| BigbitReset
+                    ]
+                    [ text "Reset" ]
+                ]
+            , createBigbitNavbar
+            , case shared.route of
+                Route.HomeComponentCreateBigbitName ->
+                    div
+                        [ class "create-bigbit-name" ]
+                        [ input
+                            [ placeholder "Name"
+                            , onInput BigbitUpdateName
+                            , value model.bigbitCreateData.name
+                            , Util.onEnter <|
+                                if String.isEmpty model.bigbitCreateData.name then
+                                    NoOp
+                                else
+                                    GoTo Route.HomeComponentCreateBigbitDescription
+                            ]
+                            []
+                        ]
+
+                Route.HomeComponentCreateBigbitDescription ->
+                    div
+                        [ class "create-bigbit-description" ]
+                        [ textarea
+                            [ placeholder "Description"
+                            , onInput BigbitUpdateDescription
+                            , value model.bigbitCreateData.description
+                            ]
+                            []
+                        ]
+
+                Route.HomeComponentCreateBigbitTags ->
+                    div
+                        [ class "create-tidbit-tags" ]
+                        [ input
+                            [ placeholder "Tags"
+                            , onInput BigbitUpdateTagInput
+                            , value model.bigbitCreateData.tagInput
+                            , Util.onEnter <|
+                                BigbitAddTag model.bigbitCreateData.tagInput
+                            ]
+                            []
+                        , makeHTMLTags BigbitRemoveTag model.bigbitCreateData.tags
+                        ]
+
+                -- Should never happen
+                _ ->
+                    div [] []
             ]
 
 
@@ -432,9 +588,9 @@ createSnipbitView model shared =
             div
                 [ classList
                     [ ( "hidden"
-                      , String.isEmpty model.creatingSnipbitData.languageQuery
+                      , String.isEmpty model.snipbitCreateData.languageQuery
                             || Util.isNotNothing
-                                model.creatingSnipbitData.language
+                                model.snipbitCreateData.language
                       )
                     ]
                 ]
@@ -442,10 +598,10 @@ createSnipbitView model shared =
                     SnipbitUpdateACState
                     (AC.view
                         acViewConfig
-                        model.creatingSnipbitData.languageListHowManyToShow
-                        model.creatingSnipbitData.languageQueryACState
+                        model.snipbitCreateData.languageListHowManyToShow
+                        model.snipbitCreateData.languageQueryACState
                         (filterLanguagesByQuery
-                            model.creatingSnipbitData.languageQuery
+                            model.snipbitCreateData.languageQuery
                             shared.languages
                         )
                     )
@@ -473,11 +629,11 @@ createSnipbitView model shared =
         createSnipbitNavbar : Html Msg
         createSnipbitNavbar =
             div
-                [ classList [ ( "create-snipbit-navbar", True ) ] ]
+                [ classList [ ( "create-tidbit-navbar", True ) ] ]
                 [ div
                     [ classList
-                        [ ( "create-snipbit-tab", True )
-                        , ( "create-snipbit-selected-tab"
+                        [ ( "create-tidbit-tab", True )
+                        , ( "create-tidbit-selected-tab"
                           , currentRoute == Route.HomeComponentCreateSnipbitName
                           )
                         ]
@@ -486,8 +642,8 @@ createSnipbitView model shared =
                     [ text "Name" ]
                 , div
                     [ classList
-                        [ ( "create-snipbit-tab", True )
-                        , ( "create-snipbit-selected-tab"
+                        [ ( "create-tidbit-tab", True )
+                        , ( "create-tidbit-selected-tab"
                           , currentRoute == Route.HomeComponentCreateSnipbitDescription
                           )
                         ]
@@ -496,8 +652,8 @@ createSnipbitView model shared =
                     [ text "Description" ]
                 , div
                     [ classList
-                        [ ( "create-snipbit-tab", True )
-                        , ( "create-snipbit-selected-tab"
+                        [ ( "create-tidbit-tab", True )
+                        , ( "create-tidbit-selected-tab"
                           , currentRoute == Route.HomeComponentCreateSnipbitLanguage
                           )
                         ]
@@ -506,8 +662,8 @@ createSnipbitView model shared =
                     [ text "Language" ]
                 , div
                     [ classList
-                        [ ( "create-snipbit-tab", True )
-                        , ( "create-snipbit-selected-tab"
+                        [ ( "create-tidbit-tab", True )
+                        , ( "create-tidbit-selected-tab"
                           , currentRoute == Route.HomeComponentCreateSnipbitTags
                           )
                         ]
@@ -516,8 +672,8 @@ createSnipbitView model shared =
                     [ text "Tags" ]
                 , div
                     [ classList
-                        [ ( "create-snipbit-tab", True )
-                        , ( "create-snipbit-selected-tab"
+                        [ ( "create-tidbit-tab", True )
+                        , ( "create-tidbit-selected-tab"
                           , case currentRoute of
                                 Route.HomeComponentCreateSnipbitCodeIntroduction ->
                                     True
@@ -544,9 +700,9 @@ createSnipbitView model shared =
                 [ input
                     [ placeholder "Name"
                     , onInput SnipbitUpdateName
-                    , value model.creatingSnipbitData.name
+                    , value model.snipbitCreateData.name
                     , Util.onEnter <|
-                        if String.isEmpty model.creatingSnipbitData.name then
+                        if String.isEmpty model.snipbitCreateData.name then
                             NoOp
                         else
                             GoTo Route.HomeComponentCreateSnipbitDescription
@@ -562,7 +718,7 @@ createSnipbitView model shared =
                     [ class "create-snipbit-description-box"
                     , placeholder "Description"
                     , onInput SnipbitUpdateDescription
-                    , value model.creatingSnipbitData.description
+                    , value model.snipbitCreateData.description
                     ]
                     []
                 ]
@@ -575,10 +731,10 @@ createSnipbitView model shared =
                     [ placeholder "Language"
                     , id "language-query-input"
                     , onInput SnipbitUpdateLanguageQuery
-                    , value model.creatingSnipbitData.languageQuery
+                    , value model.snipbitCreateData.languageQuery
                     , disabled <|
                         Util.isNotNothing
-                            model.creatingSnipbitData.language
+                            model.snipbitCreateData.language
                     ]
                     []
                 , viewMenu
@@ -587,7 +743,7 @@ createSnipbitView model shared =
                     , classList
                         [ ( "hidden"
                           , Util.isNothing
-                                model.creatingSnipbitData.language
+                                model.snipbitCreateData.language
                           )
                         ]
                     ]
@@ -596,36 +752,19 @@ createSnipbitView model shared =
 
         tagsView : Html Msg
         tagsView =
-            let
-                currentTags =
-                    div
-                        [ class "current-tags" ]
-                        (List.map
-                            (\tagName ->
-                                div
-                                    [ class "tag" ]
-                                    [ text tagName
-                                    , button
-                                        [ onClick <| SnipbitRemoveTag tagName ]
-                                        [ text "X" ]
-                                    ]
-                            )
-                            model.creatingSnipbitData.tags
-                        )
-            in
-                div
-                    [ class "create-snipbit-tags" ]
-                    [ input
-                        [ placeholder "Tags"
-                        , onInput SnipbitUpdateTagInput
-                        , value model.creatingSnipbitData.tagInput
-                        , Util.onEnter <|
-                            SnipbitAddTag
-                                model.creatingSnipbitData.tagInput
-                        ]
-                        []
-                    , currentTags
+            div
+                [ class "create-tidbit-tags" ]
+                [ input
+                    [ placeholder "Tags"
+                    , onInput SnipbitUpdateTagInput
+                    , value model.snipbitCreateData.tagInput
+                    , Util.onEnter <|
+                        SnipbitAddTag
+                            model.snipbitCreateData.tagInput
                     ]
+                    []
+                , makeHTMLTags SnipbitRemoveTag model.snipbitCreateData.tags
+                ]
 
         tidbitView : Html Msg
         tidbitView =
@@ -638,7 +777,7 @@ createSnipbitView model shared =
                                 [ textarea
                                     [ placeholder "Introduction"
                                     , onInput <| SnipbitUpdateIntroduction
-                                    , value model.creatingSnipbitData.introduction
+                                    , value model.snipbitCreateData.introduction
                                     ]
                                     []
                                 ]
@@ -660,7 +799,7 @@ createSnipbitView model shared =
                                             case
                                                 (Array.get
                                                     frameIndex
-                                                    model.creatingSnipbitData.highlightedComments
+                                                    model.snipbitCreateData.highlightedComments
                                                 )
                                             of
                                                 Nothing ->
@@ -683,7 +822,7 @@ createSnipbitView model shared =
                                 [ textarea
                                     [ placeholder "Conclusion"
                                     , onInput <| SnipbitUpdateConclusion
-                                    , value model.creatingSnipbitData.conclusion
+                                    , value model.snipbitCreateData.conclusion
                                     ]
                                     []
                                 ]
@@ -717,7 +856,7 @@ createSnipbitView model shared =
                                             ]
                                             [ text <| toString <| index + 1 ]
                                     )
-                                    model.creatingSnipbitData.highlightedComments
+                                    model.snipbitCreateData.highlightedComments
                             )
                     in
                         div
@@ -755,7 +894,7 @@ createSnipbitView model shared =
                                         , onClick <| SnipbitRemoveFrame
                                         , disabled <|
                                             Array.length
-                                                model.creatingSnipbitData.highlightedComments
+                                                model.snipbitCreateData.highlightedComments
                                                 <= 1
                                         ]
                                         [ text "-" ]
@@ -819,7 +958,7 @@ createSnipbitView model shared =
         currentPublishButton =
             let
                 tidbitData =
-                    model.creatingSnipbitData
+                    model.snipbitCreateData
             in
                 case tidbitData.language of
                     Nothing ->
@@ -886,7 +1025,7 @@ createSnipbitView model shared =
         div
             [ class "create-snipbit" ]
             [ div
-                [ class "sub-bar" ]
+                [ class "create-tidbit-sub-bar" ]
                 [ button
                     [ class "create-snipbit-back-button"
                     , onClick <| GoTo Route.HomeComponentCreate

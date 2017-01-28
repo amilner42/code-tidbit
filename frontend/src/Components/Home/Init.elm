@@ -14,7 +14,7 @@ init =
     { logOutError = Nothing
     , showInfoFor = Nothing
     , viewingSnipbit = Nothing
-    , creatingSnipbitData =
+    , snipbitCreateData =
         { language = Nothing
         , languageQueryACState = AC.empty
         , languageListHowManyToShow = (List.length Editor.humanReadableListOfLanguages)
@@ -30,5 +30,11 @@ init =
                 ]
         , introduction = ""
         , conclusion = ""
+        }
+    , bigbitCreateData =
+        { name = ""
+        , description = ""
+        , tags = []
+        , tagInput = ""
         }
     }

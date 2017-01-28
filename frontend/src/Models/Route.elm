@@ -37,6 +37,9 @@ type Route
     | HomeComponentCreateSnipbitCodeIntroduction
     | HomeComponentCreateSnipbitCodeFrame Int
     | HomeComponentCreateSnipbitCodeConclusion
+    | HomeComponentCreateBigbitName
+    | HomeComponentCreateBigbitDescription
+    | HomeComponentCreateBigbitTags
     | HomeComponentProfile
     | WelcomeComponentLogin
     | WelcomeComponentRegister
@@ -96,6 +99,19 @@ matchers =
         createSnipbitCodeConclusion =
             createSnipbitCode </> s "conclusion"
 
+        -- Abstract.
+        createBigbit =
+            create </> s "bigbit"
+
+        createBigbitName =
+            createBigbit </> s "name"
+
+        createBigbitDescription =
+            createBigbit </> s "description"
+
+        createBigbitTags =
+            createBigbit </> s "tags"
+
         profile =
             s "profile"
 
@@ -122,6 +138,9 @@ matchers =
             , map HomeComponentCreateSnipbitCodeIntroduction (createSnipbitCodeIntroduction)
             , map HomeComponentCreateSnipbitCodeFrame (createSnipbitCodeFrame)
             , map HomeComponentCreateSnipbitCodeConclusion (createSnipbitCodeConclusion)
+            , map HomeComponentCreateBigbitName (createBigbitName)
+            , map HomeComponentCreateBigbitDescription (createBigbitDescription)
+            , map HomeComponentCreateBigbitTags (createBigbitTags)
             , map HomeComponentProfile (profile)
             , map WelcomeComponentRegister (welcomeRegister)
             , map WelcomeComponentLogin (welcomeLogin)
@@ -199,6 +218,15 @@ toHashUrl route =
 
             HomeComponentCreateSnipbitCodeConclusion ->
                 "create/snipbit/code/conclusion"
+
+            HomeComponentCreateBigbitName ->
+                "create/bigbit/name"
+
+            HomeComponentCreateBigbitDescription ->
+                "create/bigbit/description"
+
+            HomeComponentCreateBigbitTags ->
+                "create/bigbit/tags"
 
             HomeComponentProfile ->
                 "profile"

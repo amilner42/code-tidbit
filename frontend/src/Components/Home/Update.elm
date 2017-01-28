@@ -12,6 +12,7 @@ import DefaultModel exposing (defaultShared)
 import DefaultServices.Util as Util
 import Elements.Editor as Editor
 import Json.Decode as Decode
+import Models.Bigbit as Bigbit
 import Models.Snipbit as Snipbit
 import Models.Route as Route
 import Router
@@ -28,17 +29,27 @@ update msg model shared =
             ( model, shared, Cmd.none )
 
         updateSnipbitCreateData : Snipbit.SnipbitCreateData -> Model
-        updateSnipbitCreateData newCreatingSnipbitData =
+        updateSnipbitCreateData newSnipbitCreateData =
             { model
-                | creatingSnipbitData = newCreatingSnipbitData
+                | snipbitCreateData = newSnipbitCreateData
             }
 
-        currentCreatingSnipbitData : Snipbit.SnipbitCreateData
-        currentCreatingSnipbitData =
-            model.creatingSnipbitData
+        currentSnipbitCreateData : Snipbit.SnipbitCreateData
+        currentSnipbitCreateData =
+            model.snipbitCreateData
 
         currentHighlightedComments =
-            currentCreatingSnipbitData.highlightedComments
+            currentSnipbitCreateData.highlightedComments
+
+        updateBigbitCreateData : Bigbit.BigbitCreateData -> Model
+        updateBigbitCreateData newBigbitCreateData =
+            { model
+                | bigbitCreateData = newBigbitCreateData
+            }
+
+        currentBigbitCreateData : Bigbit.BigbitCreateData
+        currentBigbitCreateData =
+            model.bigbitCreateData
     in
         case msg of
             NoOp ->
@@ -173,12 +184,12 @@ update msg model shared =
 
             SnipbitUpdateLanguageQuery newLanguageQuery ->
                 let
-                    newCreatingSnipbitData =
-                        { currentCreatingSnipbitData
+                    newSnipbitCreateData =
+                        { currentSnipbitCreateData
                             | languageQuery = newLanguageQuery
                         }
                 in
-                    ( updateSnipbitCreateData newCreatingSnipbitData
+                    ( updateSnipbitCreateData newSnipbitCreateData
                     , shared
                     , Cmd.none
                     )
@@ -189,16 +200,16 @@ update msg model shared =
                         AC.update
                             acUpdateConfig
                             acMsg
-                            currentCreatingSnipbitData.languageListHowManyToShow
-                            currentCreatingSnipbitData.languageQueryACState
+                            currentSnipbitCreateData.languageListHowManyToShow
+                            currentSnipbitCreateData.languageQueryACState
                             (filterLanguagesByQuery
-                                currentCreatingSnipbitData.languageQuery
+                                currentSnipbitCreateData.languageQuery
                                 shared.languages
                             )
 
                     newModel =
                         updateSnipbitCreateData
-                            { currentCreatingSnipbitData
+                            { currentSnipbitCreateData
                                 | languageQueryACState = newACState
                             }
                 in
@@ -211,8 +222,8 @@ update msg model shared =
 
             SnipbitUpdateACWrap toTop ->
                 let
-                    newCreatingSnipbitData =
-                        { currentCreatingSnipbitData
+                    newSnipbitCreateData =
+                        { currentSnipbitCreateData
                             | languageQueryACState =
                                 (if toTop then
                                     AC.resetToLastItem
@@ -221,15 +232,15 @@ update msg model shared =
                                 )
                                     acUpdateConfig
                                     (filterLanguagesByQuery
-                                        model.creatingSnipbitData.languageQuery
+                                        model.snipbitCreateData.languageQuery
                                         shared.languages
                                     )
-                                    currentCreatingSnipbitData.languageListHowManyToShow
-                                    currentCreatingSnipbitData.languageQueryACState
+                                    currentSnipbitCreateData.languageListHowManyToShow
+                                    currentSnipbitCreateData.languageQueryACState
                         }
 
                     newModel =
-                        updateSnipbitCreateData newCreatingSnipbitData
+                        updateSnipbitCreateData newSnipbitCreateData
                 in
                     ( newModel, shared, Cmd.none )
 
@@ -265,45 +276,45 @@ update msg model shared =
                             Just aLanguage ->
                                 toString aLanguage
 
-                    newCreatingSnipbitData =
-                        { currentCreatingSnipbitData
+                    newSnipbitCreateData =
+                        { currentSnipbitCreateData
                             | language = language
                             , languageQuery = newLanguageQuery
                         }
 
                     newModel =
-                        updateSnipbitCreateData newCreatingSnipbitData
+                        updateSnipbitCreateData newSnipbitCreateData
                 in
                     ( newModel, shared, newCmd )
 
             SnipbitReset ->
                 let
                     newModel =
-                        updateSnipbitCreateData <| .creatingSnipbitData HomeInit.init
+                        updateSnipbitCreateData <| .snipbitCreateData HomeInit.init
                 in
                     ( newModel, shared, Router.navigateTo Route.HomeComponentCreateSnipbitName )
 
             SnipbitUpdateName newName ->
                 let
-                    newCreatingSnipbitData =
-                        { currentCreatingSnipbitData
+                    newSnipbitCreateData =
+                        { currentSnipbitCreateData
                             | name = newName
                         }
 
                     newModel =
-                        updateSnipbitCreateData newCreatingSnipbitData
+                        updateSnipbitCreateData newSnipbitCreateData
                 in
                     ( newModel, shared, Cmd.none )
 
             SnipbitUpdateDescription newDescription ->
                 let
-                    newCreatingSnipbitData =
-                        { currentCreatingSnipbitData
+                    newSnipbitCreateData =
+                        { currentSnipbitCreateData
                             | description = newDescription
                         }
 
                     newModel =
-                        updateSnipbitCreateData newCreatingSnipbitData
+                        updateSnipbitCreateData newSnipbitCreateData
                 in
                     ( newModel, shared, Cmd.none )
 
@@ -318,31 +329,31 @@ update msg model shared =
                                 String.isEmpty newTag
                                     || List.member
                                         newTag
-                                        currentCreatingSnipbitData.tags
+                                        currentSnipbitCreateData.tags
                             then
-                                currentCreatingSnipbitData.tags
+                                currentSnipbitCreateData.tags
                             else
-                                currentCreatingSnipbitData.tags ++ [ newTag ]
+                                currentSnipbitCreateData.tags ++ [ newTag ]
 
-                        newCreatingSnipbitData =
-                            { currentCreatingSnipbitData
+                        newSnipbitCreateData =
+                            { currentSnipbitCreateData
                                 | tagInput = ""
                                 , tags = newTags
                             }
 
                         newModel =
-                            updateSnipbitCreateData newCreatingSnipbitData
+                            updateSnipbitCreateData newSnipbitCreateData
                     in
                         ( newModel, shared, Cmd.none )
                 else
                     let
-                        newCreatingSnipbitData =
-                            { currentCreatingSnipbitData
+                        newSnipbitCreateData =
+                            { currentSnipbitCreateData
                                 | tagInput = newTagInput
                             }
 
                         newModel =
-                            updateSnipbitCreateData newCreatingSnipbitData
+                            updateSnipbitCreateData newSnipbitCreateData
                     in
                         ( newModel, shared, Cmd.none )
 
@@ -351,15 +362,15 @@ update msg model shared =
                     newTags =
                         List.filter
                             (\aTag -> aTag /= tagName)
-                            currentCreatingSnipbitData.tags
+                            currentSnipbitCreateData.tags
 
-                    newCreatingSnipbitData =
-                        { currentCreatingSnipbitData
+                    newSnipbitCreateData =
+                        { currentSnipbitCreateData
                             | tags = newTags
                         }
 
                     newModel =
-                        updateSnipbitCreateData newCreatingSnipbitData
+                        updateSnipbitCreateData newSnipbitCreateData
                 in
                     ( newModel, shared, Cmd.none )
 
@@ -370,20 +381,20 @@ update msg model shared =
                             String.isEmpty tagName
                                 || List.member
                                     tagName
-                                    currentCreatingSnipbitData.tags
+                                    currentSnipbitCreateData.tags
                         then
-                            currentCreatingSnipbitData.tags
+                            currentSnipbitCreateData.tags
                         else
-                            currentCreatingSnipbitData.tags ++ [ tagName ]
+                            currentSnipbitCreateData.tags ++ [ tagName ]
 
-                    newCreatingSnipbitData =
-                        { currentCreatingSnipbitData
+                    newSnipbitCreateData =
+                        { currentSnipbitCreateData
                             | tags = newTags
                             , tagInput = ""
                         }
 
                     newModel =
-                        updateSnipbitCreateData newCreatingSnipbitData
+                        updateSnipbitCreateData newSnipbitCreateData
                 in
                     ( newModel, shared, Cmd.none )
 
@@ -417,14 +428,14 @@ update msg model shared =
                                                 newFrame
                                                 currentHighlightedComments
 
-                                        newCreatingSnipbitData =
-                                            { currentCreatingSnipbitData
+                                        newSnipbitCreateData =
+                                            { currentSnipbitCreateData
                                                 | highlightedComments = newHighlightedComments
                                             }
 
                                         newModel =
                                             updateSnipbitCreateData
-                                                newCreatingSnipbitData
+                                                newSnipbitCreateData
                                     in
                                         ( newModel, shared, Cmd.none )
 
@@ -435,8 +446,8 @@ update msg model shared =
 
             SnipbitAddFrame ->
                 let
-                    newCreatingSnipbitData =
-                        { currentCreatingSnipbitData
+                    newSnipbitCreateData =
+                        { currentSnipbitCreateData
                             | highlightedComments =
                                 (Array.push
                                     { range = Nothing, comment = Nothing }
@@ -445,13 +456,13 @@ update msg model shared =
                         }
 
                     newModel =
-                        updateSnipbitCreateData newCreatingSnipbitData
+                        updateSnipbitCreateData newSnipbitCreateData
 
                     newMsg =
                         GoTo <|
                             Route.HomeComponentCreateSnipbitCodeFrame <|
                                 Array.length
-                                    newModel.creatingSnipbitData.highlightedComments
+                                    newModel.snipbitCreateData.highlightedComments
                 in
                     update newMsg newModel shared
 
@@ -463,14 +474,14 @@ update msg model shared =
                             (Array.length currentHighlightedComments - 1)
                             currentHighlightedComments
 
-                    newCreatingSnipbitData =
-                        { currentCreatingSnipbitData
+                    newSnipbitCreateData =
+                        { currentSnipbitCreateData
                             | highlightedComments =
                                 newHighlightedComments
                         }
 
                     newModel =
-                        updateSnipbitCreateData newCreatingSnipbitData
+                        updateSnipbitCreateData newSnipbitCreateData
 
                     result =
                         ( newModel, shared, Cmd.none )
@@ -522,37 +533,37 @@ update msg model shared =
                                     newHighlightComment
                                     currentHighlightedComments
 
-                            newCreatingSnipbitData =
-                                { currentCreatingSnipbitData
+                            newSnipbitCreateData =
+                                { currentSnipbitCreateData
                                     | highlightedComments = newHighlightedComments
                                 }
 
                             newModel =
-                                updateSnipbitCreateData newCreatingSnipbitData
+                                updateSnipbitCreateData newSnipbitCreateData
                         in
                             ( newModel, shared, Cmd.none )
 
             SnipbitUpdateIntroduction newIntro ->
                 let
-                    newCreatingSnipbitData =
-                        { currentCreatingSnipbitData
+                    newSnipbitCreateData =
+                        { currentSnipbitCreateData
                             | introduction = newIntro
                         }
 
                     newModel =
-                        updateSnipbitCreateData newCreatingSnipbitData
+                        updateSnipbitCreateData newSnipbitCreateData
                 in
                     ( newModel, shared, Cmd.none )
 
             SnipbitUpdateConclusion newConclusion ->
                 let
-                    newCreatingSnipbitData =
-                        { currentCreatingSnipbitData
+                    newSnipbitCreateData =
+                        { currentSnipbitCreateData
                             | conclusion = newConclusion
                         }
 
                     newModel =
-                        updateSnipbitCreateData newCreatingSnipbitData
+                        updateSnipbitCreateData newSnipbitCreateData
                 in
                     ( newModel, shared, Cmd.none )
 
@@ -624,14 +635,14 @@ update msg model shared =
                             )
                             currentHighlightedComments
 
-                    newCreatingSnipbitData =
-                        { currentCreatingSnipbitData
+                    newSnipbitCreateData =
+                        { currentSnipbitCreateData
                             | code = newCode
                             , highlightedComments = newHighlightedComments
                         }
 
                     newModel =
-                        updateSnipbitCreateData newCreatingSnipbitData
+                        updateSnipbitCreateData newSnipbitCreateData
                 in
                     ( newModel, shared, Cmd.none )
 
@@ -646,7 +657,7 @@ update msg model shared =
 
             OnSnipbitPublishSuccess createSnipbitResponse ->
                 ( { model
-                    | creatingSnipbitData = .creatingSnipbitData HomeInit.init
+                    | snipbitCreateData = .snipbitCreateData HomeInit.init
                   }
                 , shared
                 , Router.navigateTo <| Route.HomeComponentViewSnipbitIntroduction createSnipbitResponse.newID
@@ -688,6 +699,101 @@ update msg model shared =
                                     Nothing
                         , readOnly = True
                         }
+                    )
+
+            BigbitReset ->
+                ( updateBigbitCreateData <| .bigbitCreateData HomeInit.init
+                , shared
+                , Router.navigateTo Route.HomeComponentCreateBigbitName
+                )
+
+            BigbitUpdateName newName ->
+                ( updateBigbitCreateData <|
+                    { currentBigbitCreateData
+                        | name = newName
+                    }
+                , shared
+                , Cmd.none
+                )
+
+            BigbitUpdateDescription newDescription ->
+                ( updateBigbitCreateData <|
+                    { currentBigbitCreateData
+                        | description = newDescription
+                    }
+                , shared
+                , Cmd.none
+                )
+
+            BigbitUpdateTagInput newTagInput ->
+                if String.endsWith " " newTagInput then
+                    let
+                        newTag =
+                            String.dropRight 1 newTagInput
+
+                        newTags =
+                            if
+                                String.isEmpty newTag
+                                    || List.member
+                                        newTag
+                                        currentBigbitCreateData.tags
+                            then
+                                currentBigbitCreateData.tags
+                            else
+                                currentBigbitCreateData.tags ++ [ newTag ]
+                    in
+                        ( updateBigbitCreateData
+                            { currentBigbitCreateData
+                                | tags = newTags
+                                , tagInput = ""
+                            }
+                        , shared
+                        , Cmd.none
+                        )
+                else
+                    ( updateBigbitCreateData
+                        { currentBigbitCreateData
+                            | tagInput = newTagInput
+                        }
+                    , shared
+                    , Cmd.none
+                    )
+
+            BigbitAddTag tagName ->
+                let
+                    newTags =
+                        if
+                            String.isEmpty tagName
+                                || List.member
+                                    tagName
+                                    currentBigbitCreateData.tags
+                        then
+                            currentBigbitCreateData.tags
+                        else
+                            currentBigbitCreateData.tags ++ [ tagName ]
+                in
+                    ( updateBigbitCreateData
+                        { currentBigbitCreateData
+                            | tags = newTags
+                            , tagInput = ""
+                        }
+                    , shared
+                    , Cmd.none
+                    )
+
+            BigbitRemoveTag tagName ->
+                let
+                    newTags =
+                        List.filter
+                            (\tag -> tag /= tagName)
+                            currentBigbitCreateData.tags
+                in
+                    ( updateBigbitCreateData
+                        { currentBigbitCreateData
+                            | tags = newTags
+                        }
+                    , shared
+                    , Cmd.none
                     )
 
 
