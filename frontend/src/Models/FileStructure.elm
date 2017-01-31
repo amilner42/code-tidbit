@@ -327,6 +327,81 @@ updateFolder (FileStructure rootFolder metadata) absolutePath folderUpdater =
             |> ((flip FileStructure) metadata)
 
 
+{-| The options for adding a folder.
+
+@param forceCreateDirectories A function for creating blank directories given
+                              a folderName, for force-creating directories.
+@param overwriteExisting Will only overwrite an existing folder if this is set
+                         to true.
+-}
+type alias AddFolderOptions b c =
+    { forceCreateDirectories : Maybe (String -> Folder b c)
+    , overwriteExisting : Bool
+    }
+
+
+{-| Adds a folder, refer to `AddFolderOptions` to see the options.
+-}
+addFolder : AddFolderOptions b c -> FileStructure a b c -> Path -> Folder b c -> FileStructure a b c
+addFolder addFolderOptions (FileStructure rootFolder fsMetadata) absolutePath newFolder =
+    let
+        {- @param folder The current folder
+           @param listPath the remaining path
+        -}
+        createFolder : Folder b c -> List String -> Folder b c
+        createFolder ((Folder files folders folderMetadata) as folder) listPath =
+            case listPath of
+                [] ->
+                    folder
+
+                [ folderName ] ->
+                    if (Dict.member folderName folders) && not addFolderOptions.overwriteExisting then
+                        folder
+                    else
+                        Folder
+                            files
+                            (Dict.insert
+                                folderName
+                                newFolder
+                                folders
+                            )
+                            folderMetadata
+
+                folderName :: restOfPath ->
+                    case Dict.get folderName folders of
+                        Nothing ->
+                            case addFolderOptions.forceCreateDirectories of
+                                Nothing ->
+                                    folder
+
+                                Just createEmptyFolder ->
+                                    let
+                                        newForceCreatedFolder =
+                                            createFolder (createEmptyFolder folderName) restOfPath
+                                    in
+                                        Folder
+                                            files
+                                            (Dict.insert folderName newForceCreatedFolder folders)
+                                            folderMetadata
+
+                        Just aFolder ->
+                            Folder
+                                files
+                                (Dict.insert
+                                    folderName
+                                    (createFolder aFolder restOfPath)
+                                    folders
+                                )
+                                folderMetadata
+    in
+        absolutePath
+            |> dropOptionalLeftSlash
+            |> dropOptionalRightSlash
+            |> String.split "/"
+            |> createFolder rootFolder
+            |> ((flip FileStructure) fsMetadata)
+
+
 {-| Encodes the FS given the metadata encoders.
 -}
 encodeFS :
