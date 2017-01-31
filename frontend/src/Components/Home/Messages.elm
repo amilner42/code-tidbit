@@ -48,3 +48,6 @@ type Msg
     | BigbitUpdateTagInput String
     | BigbitAddTag String
     | BigbitRemoveTag String
+    | BigbitUpdateIntroduction String
+    | BigbitUpdateConclusion String
+    | BigbitToggleFS

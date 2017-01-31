@@ -4,6 +4,7 @@ import Array
 import Autocomplete as AC
 import Components.Home.Model exposing (Model)
 import Elements.Editor as Editor
+import Models.FileStructure as FS
 import Models.Snipbit as Snipbit
 
 
@@ -36,5 +37,12 @@ init =
         , description = ""
         , tags = []
         , tagInput = ""
+        , introduction = ""
+        , conclusion = ""
+        , fs =
+            (FS.emptyFS
+                { activeFile = Nothing, openFS = True }
+                { isExpanded = True }
+            )
         }
     }

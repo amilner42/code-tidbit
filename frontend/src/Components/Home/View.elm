@@ -11,6 +11,7 @@ import Elements.Editor as Editor
 import Html exposing (Html, div, text, textarea, button, input, h1, h3, img, hr, i)
 import Html.Attributes exposing (class, classList, disabled, placeholder, value, hidden, id, src)
 import Html.Events exposing (onClick, onInput)
+import Models.FileStructure as FS
 import Models.Range as Range
 import Models.Route as Route
 import Models.Snipbit as Snipbit
@@ -250,6 +251,15 @@ displayViewForRoute model shared =
         Route.HomeComponentCreateBigbitTags ->
             createBigbitView model shared
 
+        Route.HomeComponentCreateBigbitCodeIntroduction ->
+            createBigbitView model shared
+
+        Route.HomeComponentCreateBigbitCodeFrame _ ->
+            createBigbitView model shared
+
+        Route.HomeComponentCreateBigbitCodeConclusion ->
+            createBigbitView model shared
+
         Route.HomeComponentProfile ->
             profileView model
 
@@ -288,6 +298,9 @@ navbar shared =
                 Route.HomeComponentCreateSnipbitCodeFrame _ ->
                     True
 
+                Route.HomeComponentCreateBigbitCodeFrame _ ->
+                    True
+
                 _ ->
                     (List.member
                         shared.route
@@ -301,6 +314,8 @@ navbar shared =
                         , Route.HomeComponentCreateBigbitName
                         , Route.HomeComponentCreateBigbitDescription
                         , Route.HomeComponentCreateBigbitTags
+                        , Route.HomeComponentCreateBigbitCodeIntroduction
+                        , Route.HomeComponentCreateBigbitCodeConclusion
                         ]
                     )
     in
@@ -503,12 +518,110 @@ createBigbitView model shared =
                     [ classList
                         [ ( "create-tidbit-tab", True )
                         , ( "create-tidbit-selected-tab"
-                          , False
+                          , case currentRoute of
+                                Route.HomeComponentCreateBigbitCodeFrame _ ->
+                                    True
+
+                                Route.HomeComponentCreateBigbitCodeIntroduction ->
+                                    True
+
+                                Route.HomeComponentCreateBigbitCodeConclusion ->
+                                    True
+
+                                _ ->
+                                    False
                           )
                         ]
+                    , onClick <| GoTo Route.HomeComponentCreateBigbitCodeIntroduction
                     ]
                     [ text "Code" ]
                 ]
+
+        bigbitCodeTab =
+            let
+                bigbitEditor =
+                    div
+                        []
+                        [ div
+                            [ class "create-tidbit-code" ]
+                            [ Editor.editor "create-bigbit-code-editor"
+                            ]
+                        ]
+
+                bigbitCommentBox =
+                    let
+                        fs =
+                            if FS.isOpen model.bigbitCreateData.fs then
+                                div
+                                    [ class "file-structure" ]
+                                    [ i
+                                        [ class "material-icons toggle-fs-icon close-fs-icon"
+                                        , onClick BigbitToggleFS
+                                        ]
+                                        [ text "close" ]
+                                    , text "File Structure"
+                                    ]
+                            else
+                                i
+                                    [ class "material-icons toggle-fs-icon"
+                                    , onClick BigbitToggleFS
+                                    ]
+                                    [ text "view_list" ]
+
+                        body =
+                            case shared.route of
+                                Route.HomeComponentCreateBigbitCodeIntroduction ->
+                                    div
+                                        [ class "comment-body" ]
+                                        [ fs
+                                        , textarea
+                                            [ placeholder "Introduction"
+                                            , onInput <| BigbitUpdateIntroduction
+                                            , value model.bigbitCreateData.introduction
+                                            ]
+                                            []
+                                        ]
+
+                                Route.HomeComponentCreateBigbitCodeFrame frameNumber ->
+                                    div
+                                        []
+                                        []
+
+                                Route.HomeComponentCreateBigbitCodeConclusion ->
+                                    div
+                                        [ class "comment-body" ]
+                                        [ fs
+                                        , textarea
+                                            [ placeholder "Conclusion"
+                                            , onInput BigbitUpdateConclusion
+                                            , value model.bigbitCreateData.conclusion
+                                            ]
+                                            []
+                                        ]
+
+                                -- Should never happen.
+                                _ ->
+                                    div [] []
+
+                        tabBar =
+                            div
+                                []
+                                []
+                    in
+                        div
+                            []
+                            [ div
+                                [ class "comment-creator" ]
+                                [ body
+                                , tabBar
+                                ]
+                            ]
+            in
+                div
+                    [ class "create-bigbit-code" ]
+                    [ bigbitEditor
+                    , bigbitCommentBox
+                    ]
     in
         div
             [ class "create-bigbit" ]
@@ -567,6 +680,15 @@ createBigbitView model shared =
                             []
                         , makeHTMLTags BigbitRemoveTag model.bigbitCreateData.tags
                         ]
+
+                Route.HomeComponentCreateBigbitCodeIntroduction ->
+                    bigbitCodeTab
+
+                Route.HomeComponentCreateBigbitCodeFrame frameNumber ->
+                    bigbitCodeTab
+
+                Route.HomeComponentCreateBigbitCodeConclusion ->
+                    bigbitCodeTab
 
                 -- Should never happen
                 _ ->

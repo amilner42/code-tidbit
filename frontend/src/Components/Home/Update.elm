@@ -13,6 +13,7 @@ import DefaultServices.Util as Util
 import Elements.Editor as Editor
 import Json.Decode as Decode
 import Models.Bigbit as Bigbit
+import Models.FileStructure as FS
 import Models.Snipbit as Snipbit
 import Models.Route as Route
 import Router
@@ -76,6 +77,23 @@ update msg model shared =
                     -- TODO get user theme.
                     userTheme =
                         ""
+
+                    createBigbitEditorForCurrentFile =
+                        case model.bigbitCreateData.fs of
+                            FS.FileStructure _ fsMetadata ->
+                                case fsMetadata.activeFile of
+                                    Nothing ->
+                                        Ports.createCodeEditor
+                                            { id = "create-bigbit-code-editor"
+                                            , lang = ""
+                                            , theme = userTheme
+                                            , value = ""
+                                            , range = Nothing
+                                            , readOnly = True
+                                            }
+
+                                    Just activeFilePath ->
+                                        Cmd.none
                 in
                     case shared.route of
                         Route.HomeComponentViewSnipbitIntroduction mongoID ->
@@ -151,6 +169,24 @@ update msg model shared =
                                             }
                                     else
                                         getSnipbit mongoID
+
+                        Route.HomeComponentCreateBigbitCodeIntroduction ->
+                            ( model
+                            , shared
+                            , createBigbitEditorForCurrentFile
+                            )
+
+                        Route.HomeComponentCreateBigbitCodeFrame _ ->
+                            ( model
+                            , shared
+                            , createBigbitEditorForCurrentFile
+                            )
+
+                        Route.HomeComponentCreateBigbitCodeConclusion ->
+                            ( model
+                            , shared
+                            , createBigbitEditorForCurrentFile
+                            )
 
                         _ ->
                             doNothing
@@ -795,6 +831,33 @@ update msg model shared =
                     , shared
                     , Cmd.none
                     )
+
+            BigbitUpdateIntroduction newIntro ->
+                ( updateBigbitCreateData
+                    { currentBigbitCreateData
+                        | introduction = newIntro
+                    }
+                , shared
+                , Cmd.none
+                )
+
+            BigbitUpdateConclusion newConclusion ->
+                ( updateBigbitCreateData
+                    { currentBigbitCreateData
+                        | conclusion = newConclusion
+                    }
+                , shared
+                , Cmd.none
+                )
+
+            BigbitToggleFS ->
+                ( updateBigbitCreateData
+                    { currentBigbitCreateData
+                        | fs = FS.toggleFS currentBigbitCreateData.fs
+                    }
+                , shared
+                , Cmd.none
+                )
 
 
 {-| Filters the languages based on `query`.
