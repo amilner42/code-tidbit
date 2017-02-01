@@ -1,6 +1,8 @@
 module Models.FileStructure exposing (..)
 
 import Dict
+import Html exposing (div, text)
+import Html.Attributes exposing (class, hidden)
 import Json.Encode as Encode
 import Json.Decode as Decode
 import Json.Decode.Pipeline exposing (decode, required, optional, hardcoded)
@@ -466,6 +468,65 @@ addFile addFileOptions (FileStructure rootFolder fsMetadata) absolutePath newFil
             |> String.split "/"
             |> createFile rootFolder
             |> ((flip FileStructure) fsMetadata)
+
+
+{-| All the config for rendering a file structure.
+-}
+type alias RenderConfig b c msg =
+    { fileStructureClassName : String
+    , folderClassName : String
+    , subContentBoxClassName : String
+    , subFoldersBoxClassName : String
+    , subFilesBoxClassName : String
+    , renderFile : Name -> Path -> c -> Html.Html msg
+    , renderFolder : Name -> Path -> b -> Html.Html msg
+    , expandFolderIf : b -> Bool
+    }
+
+
+{-| For rendering a FileStructure.
+-}
+render :
+    RenderConfig b c msg
+    -> FileStructure a b c
+    -> Html.Html msg
+render renderConfig (FileStructure rootFolder fsMetadata) =
+    let
+        renderFolder : Name -> Path -> Folder b c -> Html.Html msg
+        renderFolder name absolutePath (Folder files folders folderMetadata) =
+            div
+                [ class renderConfig.folderClassName ]
+                [ renderConfig.renderFolder name absolutePath folderMetadata
+                , div
+                    [ class renderConfig.subContentBoxClassName
+                    , hidden <| not <| renderConfig.expandFolderIf folderMetadata
+                    ]
+                    [ div
+                        [ class renderConfig.subFoldersBoxClassName ]
+                        (List.map Tuple.second <|
+                            Dict.toList <|
+                                Dict.map
+                                    (\folderName folder ->
+                                        renderFolder folderName (absolutePath ++ folderName ++ "/") folder
+                                    )
+                                    folders
+                        )
+                    , div
+                        [ class renderConfig.subFilesBoxClassName ]
+                        (List.map Tuple.second <|
+                            Dict.toList <|
+                                Dict.map
+                                    (\fileName (File content fileMetadata) ->
+                                        renderConfig.renderFile fileName (absolutePath ++ fileName) fileMetadata
+                                    )
+                                    files
+                        )
+                    ]
+                ]
+    in
+        div
+            [ class renderConfig.fileStructureClassName ]
+            [ (renderFolder "" "/" rootFolder) ]
 
 
 {-| Encodes the FS given the metadata encoders.
