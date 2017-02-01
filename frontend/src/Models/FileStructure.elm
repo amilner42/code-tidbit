@@ -221,11 +221,14 @@ getFolder (FileStructure rootFolder metadata) absolutePath =
                     Dict.get a folders
                         |> Maybe.andThen ((flip followPath) rest)
     in
-        absolutePath
-            |> dropOptionalLeftSlash
-            |> dropOptionalRightSlash
-            |> String.split "/"
-            |> followPath rootFolder
+        if absolutePath == "/" then
+            Just rootFolder
+        else
+            absolutePath
+                |> dropOptionalLeftSlash
+                |> dropOptionalRightSlash
+                |> String.split "/"
+                |> followPath rootFolder
 
 
 {-| Gets a specific file from the tree if it exists in the tree, otherwise
@@ -300,7 +303,7 @@ updateFile absolutePath fileUpdater (FileStructure rootFolder metadata) =
 {-| Updates a specific folder if it exists.
 -}
 updateFolder : Path -> (Folder b c -> Folder b c) -> FileStructure a b c -> FileStructure a b c
-updateFolder absolutePath folderUpdater (FileStructure rootFolder metadata) =
+updateFolder absolutePath folderUpdater (FileStructure rootFolder fsMetadata) =
     let
         followAndUpdate : Folder b c -> List String -> Folder b c
         followAndUpdate ((Folder files folders metadata) as folder) listPath =
@@ -338,12 +341,17 @@ updateFolder absolutePath folderUpdater (FileStructure rootFolder metadata) =
                                 )
                                 metadata
     in
-        absolutePath
-            |> dropOptionalLeftSlash
-            |> dropOptionalRightSlash
-            |> String.split "/"
-            |> followAndUpdate rootFolder
-            |> ((flip FileStructure) metadata)
+        if absolutePath == "/" then
+            FileStructure
+                (folderUpdater rootFolder)
+                fsMetadata
+        else
+            absolutePath
+                |> dropOptionalLeftSlash
+                |> dropOptionalRightSlash
+                |> String.split "/"
+                |> followAndUpdate rootFolder
+                |> ((flip FileStructure) fsMetadata)
 
 
 {-| The options for adding a folder.
