@@ -7,6 +7,7 @@ import Components.Home.Model exposing (Model, TidbitType(..))
 import Components.Home.Update exposing (filterLanguagesByQuery)
 import Components.Model exposing (Shared)
 import DefaultServices.Util as Util
+import Dict
 import Elements.Editor as Editor
 import Html exposing (Html, div, text, textarea, button, input, h1, h3, img, hr, i)
 import Html.Attributes exposing (class, classList, disabled, placeholder, value, hidden, id, src)
@@ -560,6 +561,28 @@ createBigbitView model shared =
                                         ]
                                         [ text "close" ]
                                     , text "File Structure"
+                                    , FS.render
+                                        { fileStructureClassName = "create-bigbit-fs"
+                                        , folderClassName = "create-bigbit-fs-folder"
+                                        , subContentBoxClassName = "create-bigbit-fs-sub-content"
+                                        , subFoldersBoxClassName = "create-bigbit-fs-sub-folders"
+                                        , subFilesBoxClassName = "create-bigbit-fs-sub-files"
+                                        , renderFile =
+                                            (\name absolutePath fileMetadata ->
+                                                div
+                                                    []
+                                                    [ text name ]
+                                            )
+                                        , renderFolder =
+                                            (\name absolutePath folderMetadata ->
+                                                div
+                                                    [ onClick <| BigbitFSToggleFolder absolutePath ]
+                                                    [ text <| absolutePath
+                                                    ]
+                                            )
+                                        , expandFolderIf = .isExpanded
+                                        }
+                                        model.bigbitCreateData.fs
                                     ]
                             else
                                 i
@@ -577,6 +600,7 @@ createBigbitView model shared =
                                         , textarea
                                             [ placeholder "Introduction"
                                             , onInput <| BigbitUpdateIntroduction
+                                            , hidden <| FS.isOpen model.bigbitCreateData.fs
                                             , value model.bigbitCreateData.introduction
                                             ]
                                             []
@@ -594,6 +618,7 @@ createBigbitView model shared =
                                         , textarea
                                             [ placeholder "Conclusion"
                                             , onInput BigbitUpdateConclusion
+                                            , hidden <| FS.isOpen model.bigbitCreateData.fs
                                             , value model.bigbitCreateData.conclusion
                                             ]
                                             []

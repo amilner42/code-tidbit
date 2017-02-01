@@ -169,6 +169,23 @@ toggleFS (FileStructure tree fsMetadata) =
         }
 
 
+{-| Toggles whether a specific folder is expanded or not.
+-}
+toggleFSFolder : Path -> FileStructure a { b | isExpanded : Bool } c -> FileStructure a { b | isExpanded : Bool } c
+toggleFSFolder absolutePath fs =
+    updateFolder
+        absolutePath
+        (\(Folder files folders folderMetadata) ->
+            Folder
+                files
+                folders
+                { folderMetadata
+                    | isExpanded = not folderMetadata.isExpanded
+                }
+        )
+        fs
+
+
 {-| Drops the first char from a string if it starts with a slash.
 -}
 dropOptionalLeftSlash : String -> String
@@ -238,8 +255,8 @@ getFile (FileStructure rootFolder metadata) absolutePath =
 
 {-| Updates a specific file if it exists.
 -}
-updateFile : FileStructure a b c -> Path -> (File c -> File c) -> FileStructure a b c
-updateFile (FileStructure rootFolder metadata) absolutePath fileUpdater =
+updateFile : Path -> (File c -> File c) -> FileStructure a b c -> FileStructure a b c
+updateFile absolutePath fileUpdater (FileStructure rootFolder metadata) =
     let
         followAndUpdate : Folder b c -> List String -> Folder b c
         followAndUpdate ((Folder files folders metadata) as folder) listPath =
@@ -282,8 +299,8 @@ updateFile (FileStructure rootFolder metadata) absolutePath fileUpdater =
 
 {-| Updates a specific folder if it exists.
 -}
-updateFolder : FileStructure a b c -> Path -> (Folder b c -> Folder b c) -> FileStructure a b c
-updateFolder (FileStructure rootFolder metadata) absolutePath folderUpdater =
+updateFolder : Path -> (Folder b c -> Folder b c) -> FileStructure a b c -> FileStructure a b c
+updateFolder absolutePath folderUpdater (FileStructure rootFolder metadata) =
     let
         followAndUpdate : Folder b c -> List String -> Folder b c
         followAndUpdate ((Folder files folders metadata) as folder) listPath =
@@ -344,8 +361,8 @@ type alias AddFolderOptions b c =
 
 {-| Adds a folder, refer to `AddFolderOptions` to see the options.
 -}
-addFolder : AddFolderOptions b c -> FileStructure a b c -> Path -> Folder b c -> FileStructure a b c
-addFolder addFolderOptions (FileStructure rootFolder fsMetadata) absolutePath newFolder =
+addFolder : AddFolderOptions b c -> Path -> Folder b c -> FileStructure a b c -> FileStructure a b c
+addFolder addFolderOptions absolutePath newFolder (FileStructure rootFolder fsMetadata) =
     let
         {- @param folder The current folder
            @param listPath the remaining path
@@ -419,8 +436,8 @@ type alias AddFileOptions b c =
 
 {-| Adds a file, refer to `AddFileOptions` to see options.
 -}
-addFile : AddFileOptions b c -> FileStructure a b c -> Path -> File c -> FileStructure a b c
-addFile addFileOptions (FileStructure rootFolder fsMetadata) absolutePath newFile =
+addFile : AddFileOptions b c -> Path -> File c -> FileStructure a b c -> FileStructure a b c
+addFile addFileOptions absolutePath newFile (FileStructure rootFolder fsMetadata) =
     let
         createFile ((Folder files folders folderMetadata) as folder) listPath =
             case listPath of

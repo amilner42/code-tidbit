@@ -859,6 +859,15 @@ update msg model shared =
                 , Cmd.none
                 )
 
+            BigbitFSToggleFolder folderPath ->
+                ( updateBigbitCreateData
+                    { currentBigbitCreateData
+                        | fs = FS.toggleFSFolder folderPath currentBigbitCreateData.fs
+                    }
+                , shared
+                , Cmd.none
+                )
+
 
 {-| Filters the languages based on `query`.
 -}
