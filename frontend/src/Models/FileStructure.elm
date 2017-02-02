@@ -263,7 +263,7 @@ getFile (FileStructure rootFolder metadata) absolutePath =
 updateFile : Path -> (File c -> File c) -> FileStructure a b c -> FileStructure a b c
 updateFile absolutePath fileUpdater (FileStructure rootFolder metadata) =
     let
-        followAndUpdate : Folder b c -> List String -> Folder b c
+        followAndUpdate : Folder b c -> List Name -> Folder b c
         followAndUpdate ((Folder files folders metadata) as folder) listPath =
             case listPath of
                 -- File must have a name.
@@ -307,7 +307,7 @@ updateFile absolutePath fileUpdater (FileStructure rootFolder metadata) =
 updateFolder : Path -> (Folder b c -> Folder b c) -> FileStructure a b c -> FileStructure a b c
 updateFolder absolutePath folderUpdater (FileStructure rootFolder fsMetadata) =
     let
-        followAndUpdate : Folder b c -> List String -> Folder b c
+        followAndUpdate : Folder b c -> List Name -> Folder b c
         followAndUpdate ((Folder files folders metadata) as folder) listPath =
             case listPath of
                 [] ->
@@ -377,7 +377,7 @@ addFolder addFolderOptions absolutePath newFolder (FileStructure rootFolder fsMe
         {- @param folder The current folder
            @param listPath the remaining path
         -}
-        createFolder : Folder b c -> List String -> Folder b c
+        createFolder : Folder b c -> List Name -> Folder b c
         createFolder ((Folder files folders folderMetadata) as folder) listPath =
             case listPath of
                 [] ->
