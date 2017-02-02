@@ -8,8 +8,10 @@ import Json.Decode as Decode
 import Json.Decode.Pipeline exposing (decode, required, optional, hardcoded)
 
 
--- TODO Test and publish as solution to handling files/folders.
--- TODO metamap
+-- TODO Encoders/Decoders (top priority)
+-- TODO Test and publish as solution to handling files/folders. (not a priority)
+-- TODO metamap on all 3 levels of metadata (not a priority)
+-- TODO Get rid of ridiculous duplicate code (not a priority).
 
 
 {-| For clarity.
@@ -495,6 +497,80 @@ addFile addFileOptions absolutePath newFile (FileStructure rootFolder fsMetadata
             |> ((flip FileStructure) fsMetadata)
 
 
+{-| Removes a file if it exsits, otherwise returns the same FS.
+-}
+removeFile : Path -> FileStructure a b c -> FileStructure a b c
+removeFile absolutePath (FileStructure rootFolder fsMetadata) =
+    let
+        removeFile : Folder b c -> List Name -> Folder b c
+        removeFile ((Folder files folders folderMetadata) as folder) listPath =
+            case listPath of
+                [] ->
+                    folder
+
+                [ fileName ] ->
+                    Folder
+                        (Dict.remove fileName files)
+                        folders
+                        folderMetadata
+
+                folderName :: restOfPath ->
+                    case Dict.get folderName folders of
+                        Nothing ->
+                            folder
+
+                        Just subFolder ->
+                            Folder
+                                files
+                                (Dict.insert folderName (removeFile subFolder restOfPath) folders)
+                                folderMetadata
+    in
+        absolutePath
+            |> dropOptionalLeftSlash
+            |> String.split "/"
+            |> removeFile rootFolder
+            |> ((flip FileStructure) fsMetadata)
+
+
+{-| Removes a folder if it exists, otherwise returns the same FS.
+
+NOTE: You cannot delete the root of the entire tree, calling
+    `removeFolder "/" someFS` will return `someFS`.
+-}
+removeFolder : Path -> FileStructure a b c -> FileStructure a b c
+removeFolder absolutePath (FileStructure rootFolder fsMetadata) =
+    let
+        removeFolder : Folder b c -> List Name -> Folder b c
+        removeFolder ((Folder files folders folderMetadata) as folder) listPath =
+            case listPath of
+                [] ->
+                    folder
+
+                [ folderName ] ->
+                    Folder
+                        files
+                        (Dict.remove folderName folders)
+                        folderMetadata
+
+                folderName :: restOfPath ->
+                    case Dict.get folderName folders of
+                        Nothing ->
+                            folder
+
+                        Just subFolder ->
+                            Folder
+                                files
+                                (Dict.insert folderName (removeFolder subFolder restOfPath) folders)
+                                folderMetadata
+    in
+        absolutePath
+            |> dropOptionalLeftSlash
+            |> dropOptionalRightSlash
+            |> String.split "/"
+            |> removeFolder rootFolder
+            |> ((flip FileStructure) fsMetadata)
+
+
 {-| All the config for rendering a file structure.
 -}
 type alias RenderConfig b c msg =
@@ -580,7 +656,3 @@ encodeFS :
     -> Encode.Value
 encodeFS (FileStructure rootFolder metadata) fsMetadataDecoder folderMetadataDecoder fileMetadataDecoder =
     Encode.string "TODO"
-
-
-
--- TODO decodeFS
