@@ -44,6 +44,7 @@ init =
                 { activeFile = Nothing
                 , openFS = True
                 , actionButtonState = Nothing
+                , actionButtonInput = ""
                 }
                 { isExpanded = True }
             )

@@ -416,9 +416,42 @@
 
                   .create-bigbit-fs {
                       margin-top: 10px;
+                      color: $color4;
+                      font-size: 16px;
+
+                      .create-bigbit-fs-sub-content {
+                          margin-left: 10px;
+                      }
 
                       .create-bigbit-fs-folder {
-                          margin-left: 10px;
+                          cursor: pointer;
+                          position: relative;
+
+                          .folder-icon {
+                              display: inline-block;
+                          }
+
+                          .folder-name {
+                              position: relative;
+                              display: inline-block;
+                              top: -5px;
+                              left: 3px;
+                          }
+                      }
+
+                      .create-bigbit-fs-file {
+                          cursor: pointer;
+
+                          .file-icon {
+                              display: inline-block;
+                          }
+
+                          .file-name {
+                              position: relative;
+                              display: inline-block;
+                              top: -5px;
+                              left: 3px;
+                          }
                       }
                   }
               }

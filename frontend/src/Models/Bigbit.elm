@@ -50,6 +50,7 @@ type alias BigbitCreateData =
             { activeFile : Maybe FS.Path
             , openFS : Bool
             , actionButtonState : Maybe FSActionButtonState
+            , actionButtonInput : String
             }
             { isExpanded : Bool
             }
@@ -93,6 +94,7 @@ bigbitCreateDataCacheDecoder =
                 { activeFile = Nothing
                 , openFS = True
                 , actionButtonState = Nothing
+                , actionButtonInput = ""
                 }
                 { isExpanded = True }
             )

@@ -563,22 +563,39 @@ createBigbitView model shared =
                                         [ text "close" ]
                                     , text "File Structure"
                                     , FS.render
-                                        { fileStructureClassName = "create-bigbit-fs"
-                                        , folderClassName = "create-bigbit-fs-folder"
-                                        , subContentBoxClassName = "create-bigbit-fs-sub-content"
-                                        , subFoldersBoxClassName = "create-bigbit-fs-sub-folders"
-                                        , subFilesBoxClassName = "create-bigbit-fs-sub-files"
+                                        { fileStructureClass = "create-bigbit-fs"
+                                        , folderAndSubContentClass = "create-bigbit-fs-folder-and-sub-content"
+                                        , subContentClass = "create-bigbit-fs-sub-content"
+                                        , subFoldersClass = "create-bigbit-fs-sub-folders"
+                                        , subFilesClass = "create-bigbit-fs-sub-files"
                                         , renderFile =
                                             (\name absolutePath fileMetadata ->
                                                 div
-                                                    []
-                                                    [ text name ]
+                                                    [ class "create-bigbit-fs-file" ]
+                                                    [ i
+                                                        [ class "material-icons file-icon" ]
+                                                        [ text "insert_drive_file" ]
+                                                    , div
+                                                        [ class "file-name" ]
+                                                        [ text name ]
+                                                    ]
                                             )
                                         , renderFolder =
                                             (\name absolutePath folderMetadata ->
                                                 div
-                                                    [ onClick <| BigbitFSToggleFolder absolutePath ]
-                                                    [ text <| absolutePath
+                                                    [ class "create-bigbit-fs-folder"
+                                                    , onClick <| BigbitFSToggleFolder absolutePath
+                                                    ]
+                                                    [ i
+                                                        [ class "material-icons folder-icon" ]
+                                                        [ if folderMetadata.isExpanded then
+                                                            text "folder_open"
+                                                          else
+                                                            text "folder"
+                                                        ]
+                                                    , div
+                                                        [ class "folder-name" ]
+                                                        [ text <| name ++ "/" ]
                                                     ]
                                             )
                                         , expandFolderIf = .isExpanded
@@ -594,34 +611,18 @@ createBigbitView model shared =
                                                 div [] []
 
                                             Just actionState ->
-                                                case actionState of
-                                                    Bigbit.AddingFile ->
-                                                        input
-                                                            [ id "fs-action-input-box"
-                                                            , placeholder "Absolute Path"
-                                                            ]
-                                                            []
-
-                                                    Bigbit.AddingFolder ->
-                                                        input
-                                                            [ id "fs-action-input-box"
-                                                            , placeholder "Absolute Path"
-                                                            ]
-                                                            []
-
-                                                    Bigbit.RemovingFile ->
-                                                        input
-                                                            [ id "fs-action-input-box"
-                                                            , placeholder "Absolute Path"
-                                                            ]
-                                                            []
-
-                                                    Bigbit.RemovingFolder ->
-                                                        input
-                                                            [ id "fs-action-input-box"
-                                                            , placeholder "Absolute Path"
-                                                            ]
-                                                            []
+                                                input
+                                                    [ id "fs-action-input-box"
+                                                    , placeholder "Absolute Path"
+                                                    , onInput BigbitUpdateActionInput
+                                                    , Util.onEnter <| BigbitSubmitActionInput
+                                                    , value
+                                                        (model.bigbitCreateData.fs
+                                                            |> FS.getFSMetadata
+                                                            |> .actionButtonInput
+                                                        )
+                                                    ]
+                                                    []
                                         ]
                                     , button
                                         [ classList

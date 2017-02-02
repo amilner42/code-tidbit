@@ -8,6 +8,7 @@ import Components.Home.Messages exposing (Msg(..))
 import Components.Home.Model exposing (Model)
 import Components.Model exposing (Shared)
 import Dom
+import Dict
 import DefaultModel exposing (defaultShared)
 import DefaultServices.Util as Util
 import Elements.Editor as Editor
@@ -887,6 +888,95 @@ update msg model shared =
                 , shared
                 , Util.domFocus (always NoOp) "fs-action-input-box"
                 )
+
+            BigbitUpdateActionInput newActionButtonInput ->
+                ( updateBigbitCreateData
+                    { currentBigbitCreateData
+                        | fs =
+                            currentBigbitCreateData.fs
+                                |> FS.updateFSMetadata
+                                    (\currentMetadata ->
+                                        { currentMetadata
+                                            | actionButtonInput = newActionButtonInput
+                                        }
+                                    )
+                    }
+                , shared
+                , Cmd.none
+                )
+
+            BigbitSubmitActionInput ->
+                let
+                    fs =
+                        model.bigbitCreateData.fs
+
+                    absolutePath =
+                        fs
+                            |> FS.getFSMetadata
+                            |> .actionButtonInput
+
+                    maybeCurrentActionState =
+                        fs
+                            |> FS.getFSMetadata
+                            |> .actionButtonState
+                in
+                    if String.length absolutePath < 2 then
+                        doNothing
+                    else
+                        ( case maybeCurrentActionState of
+                            -- Should never happen.
+                            Nothing ->
+                                model
+
+                            Just currentActionState ->
+                                case currentActionState of
+                                    Bigbit.AddingFile ->
+                                        updateBigbitCreateData
+                                            { currentBigbitCreateData
+                                                | fs =
+                                                    fs
+                                                        |> (FS.addFile
+                                                                { overwriteExisting = False
+                                                                , forceCreateDirectories = Nothing
+                                                                }
+                                                                absolutePath
+                                                                (FS.File "" {})
+                                                           )
+                                                        |> FS.updateFSMetadata
+                                                            (\fsMetadata ->
+                                                                { fsMetadata
+                                                                    | actionButtonInput = ""
+                                                                }
+                                                            )
+                                            }
+
+                                    Bigbit.AddingFolder ->
+                                        updateBigbitCreateData
+                                            { currentBigbitCreateData
+                                                | fs =
+                                                    fs
+                                                        |> FS.addFolder
+                                                            { overwriteExisting = False
+                                                            , forceCreateDirectories = Nothing
+                                                            }
+                                                            absolutePath
+                                                            (FS.Folder Dict.empty Dict.empty { isExpanded = True })
+                                                        |> FS.updateFSMetadata
+                                                            (\fsMetadata ->
+                                                                { fsMetadata
+                                                                    | actionButtonInput = ""
+                                                                }
+                                                            )
+                                            }
+
+                                    Bigbit.RemovingFile ->
+                                        model
+
+                                    Bigbit.RemovingFolder ->
+                                        model
+                        , shared
+                        , Cmd.none
+                        )
 
 
 {-| Filters the languages based on `query`.

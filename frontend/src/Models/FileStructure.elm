@@ -498,11 +498,11 @@ addFile addFileOptions absolutePath newFile (FileStructure rootFolder fsMetadata
 {-| All the config for rendering a file structure.
 -}
 type alias RenderConfig b c msg =
-    { fileStructureClassName : String
-    , folderClassName : String
-    , subContentBoxClassName : String
-    , subFoldersBoxClassName : String
-    , subFilesBoxClassName : String
+    { fileStructureClass : String
+    , folderAndSubContentClass : String
+    , subContentClass : String
+    , subFoldersClass : String
+    , subFilesClass : String
     , renderFile : Name -> Path -> c -> Html.Html msg
     , renderFolder : Name -> Path -> b -> Html.Html msg
     , expandFolderIf : b -> Bool
@@ -520,14 +520,14 @@ render renderConfig (FileStructure rootFolder fsMetadata) =
         renderFolder : Name -> Path -> Folder b c -> Html.Html msg
         renderFolder name absolutePath (Folder files folders folderMetadata) =
             div
-                [ class renderConfig.folderClassName ]
+                [ class renderConfig.folderAndSubContentClass ]
                 [ renderConfig.renderFolder name absolutePath folderMetadata
                 , div
-                    [ class renderConfig.subContentBoxClassName
+                    [ class renderConfig.subContentClass
                     , hidden <| not <| renderConfig.expandFolderIf folderMetadata
                     ]
                     [ div
-                        [ class renderConfig.subFoldersBoxClassName ]
+                        [ class renderConfig.subFoldersClass ]
                         (List.map Tuple.second <|
                             Dict.toList <|
                                 Dict.map
@@ -537,7 +537,7 @@ render renderConfig (FileStructure rootFolder fsMetadata) =
                                     folders
                         )
                     , div
-                        [ class renderConfig.subFilesBoxClassName ]
+                        [ class renderConfig.subFilesClass ]
                         (List.map Tuple.second <|
                             Dict.toList <|
                                 Dict.map
@@ -550,7 +550,7 @@ render renderConfig (FileStructure rootFolder fsMetadata) =
                 ]
     in
         div
-            [ class renderConfig.fileStructureClassName ]
+            [ class renderConfig.fileStructureClass ]
             [ (renderFolder "" "/" rootFolder) ]
 
 

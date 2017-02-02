@@ -55,3 +55,5 @@ type Msg
     | BigbitToggleFS
     | BigbitFSToggleFolder FS.Path
     | BigbitUpdateActionButtonState (Maybe Bigbit.FSActionButtonState)
+    | BigbitUpdateActionInput String
+    | BigbitSubmitActionInput
