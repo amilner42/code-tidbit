@@ -41,7 +41,10 @@ init =
         , conclusion = ""
         , fs =
             (FS.emptyFS
-                { activeFile = Nothing, openFS = True }
+                { activeFile = Nothing
+                , openFS = True
+                , actionButtonState = Nothing
+                }
                 { isExpanded = True }
             )
         }

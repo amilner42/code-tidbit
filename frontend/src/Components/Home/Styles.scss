@@ -361,6 +361,66 @@
                   border: 1px solid $color2;
                   margin-bottom: 10px;
                   padding: 10px;
+
+                  .add-file, .add-folder, .remove-file, .remove-folder {
+                    width: 165px;
+                  }
+
+                  .selected-action-button {
+                      background-color: $color2;
+                      color: $color5;
+                  }
+
+                  .add-file {
+                    position: absolute;
+                    bottom: 10px;
+                  }
+
+                  .add-folder {
+                    position: absolute;
+                    bottom: 10px;
+                    right: 15px;
+                  }
+
+                  .remove-file {
+                    position: absolute;
+                    bottom: 56px;
+                  }
+
+                  .remove-folder {
+                    position: absolute;
+                    bottom: 56px;
+                    right: 15px;
+                  }
+
+                  .fs-action-input {
+                      position: absolute;
+                      width: 330px;
+                      height: 53px;
+                      bottom: 110px;
+                      left: 12px;
+                      text-align: center;
+
+                      input {
+                          text-align: center;
+                          width: 100%;
+                          height: 100%;
+                      }
+                  }
+
+                  .close-action-input {
+                      position: absolute;
+                      bottom: 25px;
+                      font-size: 32px;
+                  }
+
+                  .create-bigbit-fs {
+                      margin-top: 10px;
+
+                      .create-bigbit-fs-folder {
+                          margin-left: 10px;
+                      }
+                  }
               }
             }
         }

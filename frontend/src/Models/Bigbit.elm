@@ -17,6 +17,16 @@ type alias Bigbit =
     }
 
 
+{-| Basic union to keep track of the current state of the action buttons in
+the file structure.
+-}
+type FSActionButtonState
+    = AddingFolder
+    | AddingFile
+    | RemovingFolder
+    | RemovingFile
+
+
 {-| A full bigbit ready for publication.
 -}
 type alias BigbitForPublication =
@@ -39,6 +49,7 @@ type alias BigbitCreateData =
         FS.FileStructure
             { activeFile : Maybe FS.Path
             , openFS : Bool
+            , actionButtonState : Maybe FSActionButtonState
             }
             { isExpanded : Bool
             }
@@ -79,6 +90,9 @@ bigbitCreateDataCacheDecoder =
         |> required "conclusion" Decode.string
         |> hardcoded
             (FS.emptyFS
-                { activeFile = Nothing, openFS = True }
+                { activeFile = Nothing
+                , openFS = True
+                , actionButtonState = Nothing
+                }
                 { isExpanded = True }
             )

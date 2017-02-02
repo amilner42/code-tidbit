@@ -300,7 +300,7 @@ update msg model shared =
                     -- by focussing the input box.
                     newCmd =
                         if Util.isNothing language then
-                            Task.attempt (\_ -> NoOp) (Dom.focus "language-query-input")
+                            Util.domFocus (always NoOp) "language-query-input"
                         else
                             Cmd.none
 
@@ -866,6 +866,26 @@ update msg model shared =
                     }
                 , shared
                 , Cmd.none
+                )
+
+            BigbitUpdateActionButtonState newActionState ->
+                ( updateBigbitCreateData
+                    { currentBigbitCreateData
+                        | fs =
+                            currentBigbitCreateData.fs
+                                |> FS.updateFSMetadata
+                                    (\currentMetadata ->
+                                        { currentMetadata
+                                            | actionButtonState =
+                                                if currentMetadata.actionButtonState == newActionState then
+                                                    Nothing
+                                                else
+                                                    newActionState
+                                        }
+                                    )
+                    }
+                , shared
+                , Util.domFocus (always NoOp) "fs-action-input-box"
                 )
 
 

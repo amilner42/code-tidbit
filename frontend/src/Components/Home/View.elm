@@ -12,6 +12,7 @@ import Elements.Editor as Editor
 import Html exposing (Html, div, text, textarea, button, input, h1, h3, img, hr, i)
 import Html.Attributes exposing (class, classList, disabled, placeholder, value, hidden, id, src)
 import Html.Events exposing (onClick, onInput)
+import Models.Bigbit as Bigbit
 import Models.FileStructure as FS
 import Models.Range as Range
 import Models.Route as Route
@@ -583,6 +584,93 @@ createBigbitView model shared =
                                         , expandFolderIf = .isExpanded
                                         }
                                         model.bigbitCreateData.fs
+                                    , div
+                                        [ class "fs-action-input"
+                                        , hidden <| Util.isNothing <| .actionButtonState <| FS.getFSMetadata <| model.bigbitCreateData.fs
+                                        ]
+                                        [ case .actionButtonState <| FS.getFSMetadata <| model.bigbitCreateData.fs of
+                                            -- Will be hidden`
+                                            Nothing ->
+                                                div [] []
+
+                                            Just actionState ->
+                                                case actionState of
+                                                    Bigbit.AddingFile ->
+                                                        input
+                                                            [ id "fs-action-input-box"
+                                                            , placeholder "Absolute Path"
+                                                            ]
+                                                            []
+
+                                                    Bigbit.AddingFolder ->
+                                                        input
+                                                            [ id "fs-action-input-box"
+                                                            , placeholder "Absolute Path"
+                                                            ]
+                                                            []
+
+                                                    Bigbit.RemovingFile ->
+                                                        input
+                                                            [ id "fs-action-input-box"
+                                                            , placeholder "Absolute Path"
+                                                            ]
+                                                            []
+
+                                                    Bigbit.RemovingFolder ->
+                                                        input
+                                                            [ id "fs-action-input-box"
+                                                            , placeholder "Absolute Path"
+                                                            ]
+                                                            []
+                                        ]
+                                    , button
+                                        [ classList
+                                            [ ( "add-file", True )
+                                            , ( "selected-action-button"
+                                              , FS.getFSMetadata model.bigbitCreateData.fs
+                                                    |> .actionButtonState
+                                                    |> (==) (Just Bigbit.AddingFile)
+                                              )
+                                            ]
+                                        , onClick <| BigbitUpdateActionButtonState <| Just Bigbit.AddingFile
+                                        ]
+                                        [ text "Add File" ]
+                                    , button
+                                        [ classList
+                                            [ ( "add-folder", True )
+                                            , ( "selected-action-button"
+                                              , FS.getFSMetadata model.bigbitCreateData.fs
+                                                    |> .actionButtonState
+                                                    |> (==) (Just Bigbit.AddingFolder)
+                                              )
+                                            ]
+                                        , onClick <| BigbitUpdateActionButtonState <| Just Bigbit.AddingFolder
+                                        ]
+                                        [ text "Add Folder" ]
+                                    , button
+                                        [ classList
+                                            [ ( "remove-file", True )
+                                            , ( "selected-action-button"
+                                              , FS.getFSMetadata model.bigbitCreateData.fs
+                                                    |> .actionButtonState
+                                                    |> (==) (Just Bigbit.RemovingFile)
+                                              )
+                                            ]
+                                        , onClick <| BigbitUpdateActionButtonState <| Just Bigbit.RemovingFile
+                                        ]
+                                        [ text "Remove File" ]
+                                    , button
+                                        [ classList
+                                            [ ( "remove-folder", True )
+                                            , ( "selected-action-button"
+                                              , FS.getFSMetadata model.bigbitCreateData.fs
+                                                    |> .actionButtonState
+                                                    |> (==) (Just Bigbit.RemovingFolder)
+                                              )
+                                            ]
+                                        , onClick <| BigbitUpdateActionButtonState <| Just Bigbit.RemovingFolder
+                                        ]
+                                        [ text "Remove Folder" ]
                                     ]
                             else
                                 i

@@ -1,5 +1,6 @@
 module DefaultServices.Util exposing (..)
 
+import Dom
 import Html exposing (Html, Attribute)
 import Html.Events exposing (on, keyCode)
 import Json.Decode as Decode
@@ -99,3 +100,10 @@ cmdFromMsg msg =
     Task.perform
         (\_ -> msg)
         (Task.succeed "")
+
+
+{-| Focus on a DOM element.
+-}
+domFocus : (Result.Result Dom.Error () -> msg) -> String -> Cmd msg
+domFocus onFocus domElement =
+    Task.attempt onFocus (Dom.focus domElement)

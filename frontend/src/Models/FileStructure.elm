@@ -554,6 +554,22 @@ render renderConfig (FileStructure rootFolder fsMetadata) =
             [ (renderFolder "" "/" rootFolder) ]
 
 
+{-| Updates the fs metadata.
+-}
+updateFSMetadata : (a -> a2) -> FileStructure a b c -> FileStructure a2 b c
+updateFSMetadata fsMetadataUpdater (FileStructure rootFolder fsMetadata) =
+    FileStructure
+        rootFolder
+        (fsMetadataUpdater fsMetadata)
+
+
+{-| Basic helper for getting the fsMetadata from a FS.
+-}
+getFSMetadata : FileStructure a b c -> a
+getFSMetadata (FileStructure _ fsMetadata) =
+    fsMetadata
+
+
 {-| Encodes the FS given the metadata encoders.
 -}
 encodeFS :
