@@ -919,6 +919,14 @@ update msg model shared =
                         fs
                             |> FS.getFSMetadata
                             |> .actionButtonState
+
+                    clearActionButtonInput =
+                        FS.updateFSMetadata
+                            (\fsMetadata ->
+                                { fsMetadata
+                                    | actionButtonInput = ""
+                                }
+                            )
                 in
                     if String.length absolutePath < 2 then
                         doNothing
@@ -942,12 +950,7 @@ update msg model shared =
                                                                 absolutePath
                                                                 (FS.File "" {})
                                                            )
-                                                        |> FS.updateFSMetadata
-                                                            (\fsMetadata ->
-                                                                { fsMetadata
-                                                                    | actionButtonInput = ""
-                                                                }
-                                                            )
+                                                        |> clearActionButtonInput
                                             }
 
                                     Bigbit.AddingFolder ->
@@ -961,12 +964,7 @@ update msg model shared =
                                                             }
                                                             absolutePath
                                                             (FS.Folder Dict.empty Dict.empty { isExpanded = True })
-                                                        |> FS.updateFSMetadata
-                                                            (\fsMetadata ->
-                                                                { fsMetadata
-                                                                    | actionButtonInput = ""
-                                                                }
-                                                            )
+                                                        |> clearActionButtonInput
                                             }
 
                                     Bigbit.RemovingFile ->
@@ -975,12 +973,7 @@ update msg model shared =
                                                 | fs =
                                                     fs
                                                         |> FS.removeFile absolutePath
-                                                        |> FS.updateFSMetadata
-                                                            (\fsMetadata ->
-                                                                { fsMetadata
-                                                                    | actionButtonInput = ""
-                                                                }
-                                                            )
+                                                        |> clearActionButtonInput
                                             }
 
                                     Bigbit.RemovingFolder ->
@@ -989,12 +982,7 @@ update msg model shared =
                                                 | fs =
                                                     fs
                                                         |> FS.removeFolder absolutePath
-                                                        |> FS.updateFSMetadata
-                                                            (\fsMetadata ->
-                                                                { fsMetadata
-                                                                    | actionButtonInput = ""
-                                                                }
-                                                            )
+                                                        |> clearActionButtonInput
                                             }
                         , shared
                         , Cmd.none
