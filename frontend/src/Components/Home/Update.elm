@@ -970,10 +970,32 @@ update msg model shared =
                                             }
 
                                     Bigbit.RemovingFile ->
-                                        model
+                                        updateBigbitCreateData
+                                            { currentBigbitCreateData
+                                                | fs =
+                                                    fs
+                                                        |> FS.removeFile absolutePath
+                                                        |> FS.updateFSMetadata
+                                                            (\fsMetadata ->
+                                                                { fsMetadata
+                                                                    | actionButtonInput = ""
+                                                                }
+                                                            )
+                                            }
 
                                     Bigbit.RemovingFolder ->
-                                        model
+                                        updateBigbitCreateData
+                                            { currentBigbitCreateData
+                                                | fs =
+                                                    fs
+                                                        |> FS.removeFolder absolutePath
+                                                        |> FS.updateFSMetadata
+                                                            (\fsMetadata ->
+                                                                { fsMetadata
+                                                                    | actionButtonInput = ""
+                                                                }
+                                                            )
+                                            }
                         , shared
                         , Cmd.none
                         )
