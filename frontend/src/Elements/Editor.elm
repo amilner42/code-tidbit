@@ -4,12 +4,14 @@ module Elements.Editor
         , aceThemeLocation
         , editor
         , humanReadableListOfLanguages
+        , languagesFromFileName
         , Language(..)
         , languageCacheDecoder
         , languageCacheEncoder
         , Theme(..)
         )
 
+import DefaultServices.Util as Util
 import Html exposing (Html, div)
 import Html.Attributes exposing (class, id)
 import Html.Keyed as Keyed
@@ -151,6 +153,208 @@ humanReadableListOfLanguages =
     , ( TypeScript, "typescript" )
     , ( XML, "xml" )
     ]
+
+
+{-| Given a file name, like `bla.py`, returns the appropriate language [python].
+
+NOTE: Due to ambiguity in certain file extensions (.sql), we return a list of
+the possible languages it could be. An empty list means it's an unsupported file
+extension.
+
+NOTE: This is the fileName, not the absolute path.
+-}
+languagesFromFileName : String -> List Language
+languagesFromFileName fileName =
+    let
+        maybeSuffix =
+            ((String.split ".") >> Util.lastElem) fileName
+    in
+        -- Fucking docker...
+        if fileName == "Dockerfile" then
+            [ DockerFile ]
+        else
+            case maybeSuffix of
+                Nothing ->
+                    []
+
+                Just suffix ->
+                    case suffix of
+                        "as" ->
+                            [ ActionScript ]
+
+                        "a" ->
+                            [ Ada ]
+
+                        "scpt" ->
+                            [ AppleScript ]
+
+                        "asm" ->
+                            [ AssemblyX86 ]
+
+                        "cc" ->
+                            [ CPlusPlus ]
+
+                        "cpp" ->
+                            [ CPlusPlus ]
+
+                        "h" ->
+                            [ CPlusPlus ]
+
+                        "clj" ->
+                            [ Clojure ]
+
+                        "cljs" ->
+                            [ Clojure ]
+
+                        "cljc" ->
+                            [ Clojure ]
+
+                        "edn" ->
+                            [ Clojure ]
+
+                        "cbl" ->
+                            [ Cobol ]
+
+                        "cob" ->
+                            [ Cobol ]
+
+                        "coffee" ->
+                            [ CoffeeScript ]
+
+                        "cs" ->
+                            [ CSharp ]
+
+                        "css" ->
+                            [ CSS ]
+
+                        "d" ->
+                            [ D ]
+
+                        "dart" ->
+                            [ Dart ]
+
+                        "ex" ->
+                            [ Elixir ]
+
+                        "exs" ->
+                            [ Elixir ]
+
+                        "elm" ->
+                            [ Elm ]
+
+                        "erl" ->
+                            [ Erlang ]
+
+                        "hrl" ->
+                            [ Erlang ]
+
+                        "f" ->
+                            [ Fortran ]
+
+                        "for" ->
+                            [ Fortran ]
+
+                        "go" ->
+                            [ GoLang ]
+
+                        "groovy" ->
+                            [ Groovy ]
+
+                        "haml" ->
+                            [ Haml ]
+
+                        "hs" ->
+                            [ Haskell ]
+
+                        "java" ->
+                            [ Java ]
+
+                        "js" ->
+                            [ JavaScript ]
+
+                        "json" ->
+                            [ JSON ]
+
+                        "dtx" ->
+                            [ Latex ]
+
+                        "lpx" ->
+                            [ Latex ]
+
+                        "less" ->
+                            [ Less ]
+
+                        "ls" ->
+                            [ LiveScript ]
+
+                        "lua" ->
+                            [ Lua ]
+
+                        "mak" ->
+                            [ Makefile ]
+
+                        "matlab" ->
+                            [ Matlab ]
+
+                        "sql" ->
+                            [ MySQL, PGSQL, SQL, SQLServer ]
+
+                        "m" ->
+                            [ ObjectiveC ]
+
+                        "ml" ->
+                            [ OCaml ]
+
+                        "mli" ->
+                            [ OCaml ]
+
+                        "pas" ->
+                            [ Pascal ]
+
+                        "pascal" ->
+                            [ Pascal ]
+
+                        "pl" ->
+                            [ Perl ]
+
+                        "php" ->
+                            [ PHP ]
+
+                        "ps1" ->
+                            [ PowerShell ]
+
+                        "pro" ->
+                            [ Prolog ]
+
+                        "py" ->
+                            [ Python ]
+
+                        "r" ->
+                            [ R ]
+
+                        "rb" ->
+                            [ Ruby ]
+
+                        "rs" ->
+                            [ Rust ]
+
+                        "scss" ->
+                            [ Sass ]
+
+                        "sass" ->
+                            [ Sass ]
+
+                        "swift" ->
+                            [ Swift ]
+
+                        "ts" ->
+                            [ TypeScript ]
+
+                        "xml" ->
+                            [ XML ]
+
+                        _ ->
+                            []
 
 
 {-| Given a language, returns the ACE location which can be used with the ACE

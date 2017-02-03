@@ -1,7 +1,9 @@
 module Models.Bigbit exposing (..)
 
+import Char
 import DefaultServices.Util as Util
 import Dict
+import Elements.Editor as Editor
 import Json.Encode as Encode
 import Json.Decode as Decode
 import Json.Decode.Pipeline exposing (decode, required, optional, hardcoded)
@@ -164,6 +166,56 @@ bigbitCreateDataCacheDecoder =
             |> required "introduction" Decode.string
             |> required "conclusion" Decode.string
             |> required "fs" decodeFS
+
+
+{-| Checks that all the characters are any combination of: a-Z 1-9 - _ .
+
+NOTE: We restrict the characters because:
+  - It'll keep it cleaner, I don't want funky ascii chars.
+  - We'll need to encode them for the url params, prevent weird bugs.
+-}
+validChars : String -> Bool
+validChars =
+    String.toList
+        >> List.all
+            (\char ->
+                Char.isDigit char
+                    || Char.isUpper char
+                    || Char.isLower char
+                    || (List.member char [ '_', '-', '.' ])
+            )
+
+
+{-| Checks that the characters are valid and that there are no "//".
+-}
+validName : FS.Path -> Bool
+validName absolutePath =
+    validChars absolutePath && (not <| String.contains "//" absolutePath)
+
+
+{-| Checks that the folder path is valid.
+-}
+isValidAddFolderInput : FS.Path -> FS.FileStructure a b c -> Bool
+isValidAddFolderInput absolutePath fs =
+    validName absolutePath && (not <| FS.hasFolder absolutePath fs)
+
+
+{-| Checks that a file path is valid and returns the possible languages of the
+file.
+
+NOTE: For the most part that'll be one language, but due to ambiguities like
+`.sql` it can return more than one. An invalid file name of any sort will
+have an empty list returned.
+-}
+getLanguagesForFileInput : FS.Path -> FS.FileStructure a b c -> List Editor.Language
+getLanguagesForFileInput absolutePath fs =
+    if FS.hasFile absolutePath fs || (not <| validName absolutePath) || (String.endsWith "/" absolutePath) then
+        []
+    else
+        String.split "/" absolutePath
+            |> Util.lastElem
+            |> Maybe.map Editor.languagesFromFileName
+            |> Maybe.withDefault []
 
 
 

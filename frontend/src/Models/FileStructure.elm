@@ -462,6 +462,20 @@ addFile addFileOptions absolutePath newFile (FileStructure rootFolder fsMetadata
             |> ((flip FileStructure) fsMetadata)
 
 
+{-| Returns true if the fs already has that file.
+-}
+hasFile : Path -> FileStructure a b c -> Bool
+hasFile absolutePath fs =
+    Util.isNotNothing <| getFile fs absolutePath
+
+
+{-| Returns true if the fs already has that folder.
+-}
+hasFolder : Path -> FileStructure a b c -> Bool
+hasFolder absolutePath fs =
+    Util.isNotNothing <| getFolder fs absolutePath
+
+
 {-| Removes a file if it exsits, otherwise returns the same FS.
 -}
 removeFile : Path -> FileStructure a b c -> FileStructure a b c
