@@ -7,7 +7,9 @@ import Models.BasicResponse as BasicResponse
 import Models.CreateSnipbitResponse exposing (CreateSnipbitResponse)
 import Models.Range as Range
 import Models.Route as Route
+import Models.Bigbit as Bigbit
 import Models.Snipbit as Snipbit
+import Models.FileStructure as FS
 
 
 {-| Home Component Msg.
@@ -48,3 +50,10 @@ type Msg
     | BigbitUpdateTagInput String
     | BigbitAddTag String
     | BigbitRemoveTag String
+    | BigbitUpdateIntroduction String
+    | BigbitUpdateConclusion String
+    | BigbitToggleFS
+    | BigbitFSToggleFolder FS.Path
+    | BigbitUpdateActionButtonState (Maybe Bigbit.FSActionButtonState)
+    | BigbitUpdateActionInput String
+    | BigbitSubmitActionInput

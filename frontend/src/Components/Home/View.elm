@@ -7,10 +7,13 @@ import Components.Home.Model exposing (Model, TidbitType(..))
 import Components.Home.Update exposing (filterLanguagesByQuery)
 import Components.Model exposing (Shared)
 import DefaultServices.Util as Util
+import Dict
 import Elements.Editor as Editor
 import Html exposing (Html, div, text, textarea, button, input, h1, h3, img, hr, i)
 import Html.Attributes exposing (class, classList, disabled, placeholder, value, hidden, id, src)
 import Html.Events exposing (onClick, onInput)
+import Models.Bigbit as Bigbit
+import Models.FileStructure as FS
 import Models.Range as Range
 import Models.Route as Route
 import Models.Snipbit as Snipbit
@@ -250,6 +253,15 @@ displayViewForRoute model shared =
         Route.HomeComponentCreateBigbitTags ->
             createBigbitView model shared
 
+        Route.HomeComponentCreateBigbitCodeIntroduction ->
+            createBigbitView model shared
+
+        Route.HomeComponentCreateBigbitCodeFrame _ ->
+            createBigbitView model shared
+
+        Route.HomeComponentCreateBigbitCodeConclusion ->
+            createBigbitView model shared
+
         Route.HomeComponentProfile ->
             profileView model
 
@@ -288,6 +300,9 @@ navbar shared =
                 Route.HomeComponentCreateSnipbitCodeFrame _ ->
                     True
 
+                Route.HomeComponentCreateBigbitCodeFrame _ ->
+                    True
+
                 _ ->
                     (List.member
                         shared.route
@@ -301,6 +316,8 @@ navbar shared =
                         , Route.HomeComponentCreateBigbitName
                         , Route.HomeComponentCreateBigbitDescription
                         , Route.HomeComponentCreateBigbitTags
+                        , Route.HomeComponentCreateBigbitCodeIntroduction
+                        , Route.HomeComponentCreateBigbitCodeConclusion
                         ]
                     )
     in
@@ -503,12 +520,217 @@ createBigbitView model shared =
                     [ classList
                         [ ( "create-tidbit-tab", True )
                         , ( "create-tidbit-selected-tab"
-                          , False
+                          , case currentRoute of
+                                Route.HomeComponentCreateBigbitCodeFrame _ ->
+                                    True
+
+                                Route.HomeComponentCreateBigbitCodeIntroduction ->
+                                    True
+
+                                Route.HomeComponentCreateBigbitCodeConclusion ->
+                                    True
+
+                                _ ->
+                                    False
                           )
                         ]
+                    , onClick <| GoTo Route.HomeComponentCreateBigbitCodeIntroduction
                     ]
                     [ text "Code" ]
                 ]
+
+        bigbitCodeTab =
+            let
+                bigbitEditor =
+                    div
+                        []
+                        [ div
+                            [ class "create-tidbit-code" ]
+                            [ Editor.editor "create-bigbit-code-editor"
+                            ]
+                        ]
+
+                bigbitCommentBox =
+                    let
+                        fs =
+                            if Bigbit.isFSOpen model.bigbitCreateData.fs then
+                                div
+                                    [ class "file-structure" ]
+                                    [ i
+                                        [ class "material-icons toggle-fs-icon close-fs-icon"
+                                        , onClick BigbitToggleFS
+                                        ]
+                                        [ text "close" ]
+                                    , text "File Structure"
+                                    , FS.render
+                                        { fileStructureClass = "create-bigbit-fs"
+                                        , folderAndSubContentClass = "create-bigbit-fs-folder-and-sub-content"
+                                        , subContentClass = "create-bigbit-fs-sub-content"
+                                        , subFoldersClass = "create-bigbit-fs-sub-folders"
+                                        , subFilesClass = "create-bigbit-fs-sub-files"
+                                        , renderFile =
+                                            (\name absolutePath fileMetadata ->
+                                                div
+                                                    [ class "create-bigbit-fs-file" ]
+                                                    [ i
+                                                        [ class "material-icons file-icon" ]
+                                                        [ text "insert_drive_file" ]
+                                                    , div
+                                                        [ class "file-name" ]
+                                                        [ text name ]
+                                                    ]
+                                            )
+                                        , renderFolder =
+                                            (\name absolutePath folderMetadata ->
+                                                div
+                                                    [ class "create-bigbit-fs-folder"
+                                                    ]
+                                                    [ i
+                                                        [ class "material-icons folder-icon"
+                                                        , onClick <| BigbitFSToggleFolder absolutePath
+                                                        ]
+                                                        [ if folderMetadata.isExpanded then
+                                                            text "folder_open"
+                                                          else
+                                                            text "folder"
+                                                        ]
+                                                    , div
+                                                        [ class "folder-name"
+                                                        , onClick <| BigbitFSToggleFolder absolutePath
+                                                        ]
+                                                        [ text <| name ++ "/" ]
+                                                    ]
+                                            )
+                                        , expandFolderIf = .isExpanded
+                                        }
+                                        model.bigbitCreateData.fs
+                                    , div
+                                        [ class "fs-action-input"
+                                        , hidden <| Util.isNothing <| .actionButtonState <| FS.getFSMetadata <| model.bigbitCreateData.fs
+                                        ]
+                                        [ case .actionButtonState <| FS.getFSMetadata <| model.bigbitCreateData.fs of
+                                            -- Will be hidden`
+                                            Nothing ->
+                                                div [] []
+
+                                            Just actionState ->
+                                                input
+                                                    [ id "fs-action-input-box"
+                                                    , placeholder "Absolute Path"
+                                                    , onInput BigbitUpdateActionInput
+                                                    , Util.onEnter <| BigbitSubmitActionInput
+                                                    , value
+                                                        (model.bigbitCreateData.fs
+                                                            |> FS.getFSMetadata
+                                                            |> .actionButtonInput
+                                                        )
+                                                    ]
+                                                    []
+                                        ]
+                                    , button
+                                        [ classList
+                                            [ ( "add-file", True )
+                                            , ( "selected-action-button"
+                                              , Bigbit.fsActionStateEquals (Just Bigbit.AddingFile) model.bigbitCreateData.fs
+                                              )
+                                            ]
+                                        , onClick <| BigbitUpdateActionButtonState <| Just Bigbit.AddingFile
+                                        ]
+                                        [ text "Add File" ]
+                                    , button
+                                        [ classList
+                                            [ ( "add-folder", True )
+                                            , ( "selected-action-button"
+                                              , Bigbit.fsActionStateEquals (Just Bigbit.AddingFolder) model.bigbitCreateData.fs
+                                              )
+                                            ]
+                                        , onClick <| BigbitUpdateActionButtonState <| Just Bigbit.AddingFolder
+                                        ]
+                                        [ text "Add Folder" ]
+                                    , button
+                                        [ classList
+                                            [ ( "remove-file", True )
+                                            , ( "selected-action-button"
+                                              , Bigbit.fsActionStateEquals (Just Bigbit.RemovingFile) model.bigbitCreateData.fs
+                                              )
+                                            ]
+                                        , onClick <| BigbitUpdateActionButtonState <| Just Bigbit.RemovingFile
+                                        ]
+                                        [ text "Remove File" ]
+                                    , button
+                                        [ classList
+                                            [ ( "remove-folder", True )
+                                            , ( "selected-action-button"
+                                              , Bigbit.fsActionStateEquals (Just Bigbit.RemovingFolder) model.bigbitCreateData.fs
+                                              )
+                                            ]
+                                        , onClick <| BigbitUpdateActionButtonState <| Just Bigbit.RemovingFolder
+                                        ]
+                                        [ text "Remove Folder" ]
+                                    ]
+                            else
+                                i
+                                    [ class "material-icons toggle-fs-icon"
+                                    , onClick BigbitToggleFS
+                                    ]
+                                    [ text "view_list" ]
+
+                        body =
+                            case shared.route of
+                                Route.HomeComponentCreateBigbitCodeIntroduction ->
+                                    div
+                                        [ class "comment-body" ]
+                                        [ fs
+                                        , textarea
+                                            [ placeholder "Introduction"
+                                            , onInput <| BigbitUpdateIntroduction
+                                            , hidden <| Bigbit.isFSOpen model.bigbitCreateData.fs
+                                            , value model.bigbitCreateData.introduction
+                                            ]
+                                            []
+                                        ]
+
+                                Route.HomeComponentCreateBigbitCodeFrame frameNumber ->
+                                    div
+                                        []
+                                        []
+
+                                Route.HomeComponentCreateBigbitCodeConclusion ->
+                                    div
+                                        [ class "comment-body" ]
+                                        [ fs
+                                        , textarea
+                                            [ placeholder "Conclusion"
+                                            , onInput BigbitUpdateConclusion
+                                            , hidden <| Bigbit.isFSOpen model.bigbitCreateData.fs
+                                            , value model.bigbitCreateData.conclusion
+                                            ]
+                                            []
+                                        ]
+
+                                -- Should never happen.
+                                _ ->
+                                    div [] []
+
+                        tabBar =
+                            div
+                                []
+                                []
+                    in
+                        div
+                            []
+                            [ div
+                                [ class "comment-creator" ]
+                                [ body
+                                , tabBar
+                                ]
+                            ]
+            in
+                div
+                    [ class "create-bigbit-code" ]
+                    [ bigbitEditor
+                    , bigbitCommentBox
+                    ]
     in
         div
             [ class "create-bigbit" ]
@@ -567,6 +789,15 @@ createBigbitView model shared =
                             []
                         , makeHTMLTags BigbitRemoveTag model.bigbitCreateData.tags
                         ]
+
+                Route.HomeComponentCreateBigbitCodeIntroduction ->
+                    bigbitCodeTab
+
+                Route.HomeComponentCreateBigbitCodeFrame frameNumber ->
+                    bigbitCodeTab
+
+                Route.HomeComponentCreateBigbitCodeConclusion ->
+                    bigbitCodeTab
 
                 -- Should never happen
                 _ ->

@@ -8,11 +8,13 @@ import Components.Home.Messages exposing (Msg(..))
 import Components.Home.Model exposing (Model)
 import Components.Model exposing (Shared)
 import Dom
+import Dict
 import DefaultModel exposing (defaultShared)
 import DefaultServices.Util as Util
 import Elements.Editor as Editor
 import Json.Decode as Decode
 import Models.Bigbit as Bigbit
+import Models.FileStructure as FS
 import Models.Snipbit as Snipbit
 import Models.Route as Route
 import Router
@@ -76,6 +78,23 @@ update msg model shared =
                     -- TODO get user theme.
                     userTheme =
                         ""
+
+                    createBigbitEditorForCurrentFile =
+                        case model.bigbitCreateData.fs of
+                            FS.FileStructure _ fsMetadata ->
+                                case fsMetadata.activeFile of
+                                    Nothing ->
+                                        Ports.createCodeEditor
+                                            { id = "create-bigbit-code-editor"
+                                            , lang = ""
+                                            , theme = userTheme
+                                            , value = ""
+                                            , range = Nothing
+                                            , readOnly = True
+                                            }
+
+                                    Just activeFilePath ->
+                                        Cmd.none
                 in
                     case shared.route of
                         Route.HomeComponentViewSnipbitIntroduction mongoID ->
@@ -151,6 +170,24 @@ update msg model shared =
                                             }
                                     else
                                         getSnipbit mongoID
+
+                        Route.HomeComponentCreateBigbitCodeIntroduction ->
+                            ( model
+                            , shared
+                            , createBigbitEditorForCurrentFile
+                            )
+
+                        Route.HomeComponentCreateBigbitCodeFrame _ ->
+                            ( model
+                            , shared
+                            , createBigbitEditorForCurrentFile
+                            )
+
+                        Route.HomeComponentCreateBigbitCodeConclusion ->
+                            ( model
+                            , shared
+                            , createBigbitEditorForCurrentFile
+                            )
 
                         _ ->
                             doNothing
@@ -264,7 +301,7 @@ update msg model shared =
                     -- by focussing the input box.
                     newCmd =
                         if Util.isNothing language then
-                            Task.attempt (\_ -> NoOp) (Dom.focus "language-query-input")
+                            Util.domFocus (always NoOp) "language-query-input"
                         else
                             Cmd.none
 
@@ -795,6 +832,161 @@ update msg model shared =
                     , shared
                     , Cmd.none
                     )
+
+            BigbitUpdateIntroduction newIntro ->
+                ( updateBigbitCreateData
+                    { currentBigbitCreateData
+                        | introduction = newIntro
+                    }
+                , shared
+                , Cmd.none
+                )
+
+            BigbitUpdateConclusion newConclusion ->
+                ( updateBigbitCreateData
+                    { currentBigbitCreateData
+                        | conclusion = newConclusion
+                    }
+                , shared
+                , Cmd.none
+                )
+
+            BigbitToggleFS ->
+                ( updateBigbitCreateData
+                    { currentBigbitCreateData
+                        | fs = Bigbit.toggleFS currentBigbitCreateData.fs
+                    }
+                , shared
+                , Cmd.none
+                )
+
+            BigbitFSToggleFolder folderPath ->
+                ( updateBigbitCreateData
+                    { currentBigbitCreateData
+                        | fs = Bigbit.toggleFSFolder folderPath currentBigbitCreateData.fs
+                    }
+                , shared
+                , Cmd.none
+                )
+
+            BigbitUpdateActionButtonState newActionState ->
+                ( updateBigbitCreateData
+                    { currentBigbitCreateData
+                        | fs =
+                            currentBigbitCreateData.fs
+                                |> FS.updateFSMetadata
+                                    (\currentMetadata ->
+                                        { currentMetadata
+                                            | actionButtonState =
+                                                if currentMetadata.actionButtonState == newActionState then
+                                                    Nothing
+                                                else
+                                                    newActionState
+                                        }
+                                    )
+                    }
+                , shared
+                , Util.domFocus (always NoOp) "fs-action-input-box"
+                )
+
+            BigbitUpdateActionInput newActionButtonInput ->
+                ( updateBigbitCreateData
+                    { currentBigbitCreateData
+                        | fs =
+                            currentBigbitCreateData.fs
+                                |> FS.updateFSMetadata
+                                    (\currentMetadata ->
+                                        { currentMetadata
+                                            | actionButtonInput = newActionButtonInput
+                                        }
+                                    )
+                    }
+                , shared
+                , Cmd.none
+                )
+
+            BigbitSubmitActionInput ->
+                let
+                    fs =
+                        model.bigbitCreateData.fs
+
+                    absolutePath =
+                        fs
+                            |> FS.getFSMetadata
+                            |> .actionButtonInput
+
+                    maybeCurrentActionState =
+                        fs
+                            |> FS.getFSMetadata
+                            |> .actionButtonState
+
+                    clearActionButtonInput =
+                        FS.updateFSMetadata
+                            (\fsMetadata ->
+                                { fsMetadata
+                                    | actionButtonInput = ""
+                                }
+                            )
+                in
+                    if String.length absolutePath < 2 then
+                        doNothing
+                    else
+                        ( case maybeCurrentActionState of
+                            -- Should never happen.
+                            Nothing ->
+                                model
+
+                            Just currentActionState ->
+                                case currentActionState of
+                                    Bigbit.AddingFile ->
+                                        updateBigbitCreateData
+                                            { currentBigbitCreateData
+                                                | fs =
+                                                    fs
+                                                        |> (FS.addFile
+                                                                { overwriteExisting = False
+                                                                , forceCreateDirectories = Nothing
+                                                                }
+                                                                absolutePath
+                                                                (FS.File "" {})
+                                                           )
+                                                        |> clearActionButtonInput
+                                            }
+
+                                    Bigbit.AddingFolder ->
+                                        updateBigbitCreateData
+                                            { currentBigbitCreateData
+                                                | fs =
+                                                    fs
+                                                        |> FS.addFolder
+                                                            { overwriteExisting = False
+                                                            , forceCreateDirectories = Nothing
+                                                            }
+                                                            absolutePath
+                                                            (FS.Folder Dict.empty Dict.empty { isExpanded = True })
+                                                        |> clearActionButtonInput
+                                            }
+
+                                    Bigbit.RemovingFile ->
+                                        updateBigbitCreateData
+                                            { currentBigbitCreateData
+                                                | fs =
+                                                    fs
+                                                        |> FS.removeFile absolutePath
+                                                        |> clearActionButtonInput
+                                            }
+
+                                    Bigbit.RemovingFolder ->
+                                        updateBigbitCreateData
+                                            { currentBigbitCreateData
+                                                | fs =
+                                                    fs
+                                                        |> FS.removeFolder absolutePath
+                                                        |> clearActionButtonInput
+                                            }
+                        , shared
+                        , Cmd.none
+                        )
 
 
 {-| Filters the languages based on `query`.

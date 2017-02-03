@@ -81,6 +81,15 @@ viewForRoute model =
             Route.HomeComponentCreateBigbitTags ->
                 renderedHomeView
 
+            Route.HomeComponentCreateBigbitCodeIntroduction ->
+                renderedHomeView
+
+            Route.HomeComponentCreateBigbitCodeFrame frameNumber ->
+                renderedHomeView
+
+            Route.HomeComponentCreateBigbitCodeConclusion ->
+                renderedHomeView
+
             Route.HomeComponentProfile ->
                 renderedHomeView
 

@@ -40,6 +40,9 @@ type Route
     | HomeComponentCreateBigbitName
     | HomeComponentCreateBigbitDescription
     | HomeComponentCreateBigbitTags
+    | HomeComponentCreateBigbitCodeIntroduction
+    | HomeComponentCreateBigbitCodeFrame Int
+    | HomeComponentCreateBigbitCodeConclusion
     | HomeComponentProfile
     | WelcomeComponentLogin
     | WelcomeComponentRegister
@@ -112,6 +115,19 @@ matchers =
         createBigbitTags =
             createBigbit </> s "tags"
 
+        -- Abstract.
+        createBigbitCode =
+            createBigbit </> s "code"
+
+        createBigbitCodeIntroduction =
+            createBigbitCode </> s "introduction"
+
+        createBigbitCodeFrame =
+            createBigbitCode </> s "frame" </> int
+
+        createBigbitCodeConclusion =
+            createBigbitCode </> s "conclusion"
+
         profile =
             s "profile"
 
@@ -141,6 +157,9 @@ matchers =
             , map HomeComponentCreateBigbitName (createBigbitName)
             , map HomeComponentCreateBigbitDescription (createBigbitDescription)
             , map HomeComponentCreateBigbitTags (createBigbitTags)
+            , map HomeComponentCreateBigbitCodeIntroduction (createBigbitCodeIntroduction)
+            , map HomeComponentCreateBigbitCodeFrame (createBigbitCodeFrame)
+            , map HomeComponentCreateBigbitCodeConclusion (createBigbitCodeConclusion)
             , map HomeComponentProfile (profile)
             , map WelcomeComponentRegister (welcomeRegister)
             , map WelcomeComponentLogin (welcomeLogin)
@@ -227,6 +246,15 @@ toHashUrl route =
 
             HomeComponentCreateBigbitTags ->
                 "create/bigbit/tags"
+
+            HomeComponentCreateBigbitCodeIntroduction ->
+                "create/bigbit/code/introduction"
+
+            HomeComponentCreateBigbitCodeFrame frameNumber ->
+                "create/bigbit/code/frame/" ++ (toString frameNumber)
+
+            HomeComponentCreateBigbitCodeConclusion ->
+                "create/bigbit/code/conclusion"
 
             HomeComponentProfile ->
                 "profile"
