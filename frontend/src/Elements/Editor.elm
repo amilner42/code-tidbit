@@ -521,8 +521,8 @@ aceLanguageLocation lang =
 {-| Language `cacheEncoder`.
 -}
 languageCacheEncoder : Language -> Encode.Value
-languageCacheEncoder language =
-    Encode.string (toString language)
+languageCacheEncoder =
+    toString >> Encode.string
 
 
 {-| Language `cacheDecoder`.

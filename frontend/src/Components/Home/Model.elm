@@ -29,8 +29,8 @@ type TidbitType
 {-| TidbitType `cacheEncoder`.
 -}
 tidbitTypeCacheEncoder : TidbitType -> Encode.Value
-tidbitTypeCacheEncoder tidbitType =
-    Encode.string <| toString tidbitType
+tidbitTypeCacheEncoder =
+    toString >> Encode.string
 
 
 {-| TidbitType `cacheDecoder`.
