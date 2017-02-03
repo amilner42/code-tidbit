@@ -584,17 +584,20 @@ createBigbitView model shared =
                                             (\name absolutePath folderMetadata ->
                                                 div
                                                     [ class "create-bigbit-fs-folder"
-                                                    , onClick <| BigbitFSToggleFolder absolutePath
                                                     ]
                                                     [ i
-                                                        [ class "material-icons folder-icon" ]
+                                                        [ class "material-icons folder-icon"
+                                                        , onClick <| BigbitFSToggleFolder absolutePath
+                                                        ]
                                                         [ if folderMetadata.isExpanded then
                                                             text "folder_open"
                                                           else
                                                             text "folder"
                                                         ]
                                                     , div
-                                                        [ class "folder-name" ]
+                                                        [ class "folder-name"
+                                                        , onClick <| BigbitFSToggleFolder absolutePath
+                                                        ]
                                                         [ text <| name ++ "/" ]
                                                     ]
                                             )
