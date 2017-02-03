@@ -854,7 +854,7 @@ update msg model shared =
             BigbitToggleFS ->
                 ( updateBigbitCreateData
                     { currentBigbitCreateData
-                        | fs = FS.toggleFS currentBigbitCreateData.fs
+                        | fs = Bigbit.toggleFS currentBigbitCreateData.fs
                     }
                 , shared
                 , Cmd.none
@@ -863,7 +863,7 @@ update msg model shared =
             BigbitFSToggleFolder folderPath ->
                 ( updateBigbitCreateData
                     { currentBigbitCreateData
-                        | fs = FS.toggleFSFolder folderPath currentBigbitCreateData.fs
+                        | fs = Bigbit.toggleFSFolder folderPath currentBigbitCreateData.fs
                     }
                 , shared
                 , Cmd.none

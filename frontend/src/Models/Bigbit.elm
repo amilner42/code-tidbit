@@ -164,3 +164,42 @@ bigbitCreateDataCacheDecoder =
             |> required "introduction" Decode.string
             |> required "conclusion" Decode.string
             |> required "fs" decodeFS
+
+
+
+-- FS helpers below (refer to examples below to use row-polymorphism).
+
+
+{-| Checks if an entire fs is open.
+-}
+isFSOpen : FS.FileStructure { a | openFS : Bool } b c -> Bool
+isFSOpen (FS.FileStructure _ { openFS }) =
+    openFS
+
+
+{-| Toggles whether the FS is open.
+-}
+toggleFS : FS.FileStructure { a | openFS : Bool } b c -> FS.FileStructure { a | openFS : Bool } b c
+toggleFS (FS.FileStructure tree fsMetadata) =
+    FS.FileStructure
+        tree
+        { fsMetadata
+            | openFS = (not fsMetadata.openFS)
+        }
+
+
+{-| Toggles whether a specific folder is expanded or not.
+-}
+toggleFSFolder : FS.Path -> FS.FileStructure a { b | isExpanded : Bool } c -> FS.FileStructure a { b | isExpanded : Bool } c
+toggleFSFolder absolutePath fs =
+    FS.updateFolder
+        absolutePath
+        (\(FS.Folder files folders folderMetadata) ->
+            FS.Folder
+                files
+                folders
+                { folderMetadata
+                    | isExpanded = not folderMetadata.isExpanded
+                }
+        )
+        fs

@@ -553,7 +553,7 @@ createBigbitView model shared =
                 bigbitCommentBox =
                     let
                         fs =
-                            if FS.isOpen model.bigbitCreateData.fs then
+                            if Bigbit.isFSOpen model.bigbitCreateData.fs then
                                 div
                                     [ class "file-structure" ]
                                     [ i
@@ -692,7 +692,7 @@ createBigbitView model shared =
                                         , textarea
                                             [ placeholder "Introduction"
                                             , onInput <| BigbitUpdateIntroduction
-                                            , hidden <| FS.isOpen model.bigbitCreateData.fs
+                                            , hidden <| Bigbit.isFSOpen model.bigbitCreateData.fs
                                             , value model.bigbitCreateData.introduction
                                             ]
                                             []
@@ -710,7 +710,7 @@ createBigbitView model shared =
                                         , textarea
                                             [ placeholder "Conclusion"
                                             , onInput BigbitUpdateConclusion
-                                            , hidden <| FS.isOpen model.bigbitCreateData.fs
+                                            , hidden <| Bigbit.isFSOpen model.bigbitCreateData.fs
                                             , value model.bigbitCreateData.conclusion
                                             ]
                                             []

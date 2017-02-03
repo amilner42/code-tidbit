@@ -68,13 +68,6 @@ isEmpty (FileStructure (Folder files subFolders metadata) fsMetaData) =
     Dict.isEmpty subFolders && Dict.isEmpty files
 
 
-{-| Checks if an entire fs is oepn, requires fsMetadata have `openFS`.
--}
-isOpen : FileStructure { a | openFS : Bool } b c -> Bool
-isOpen (FileStructure _ { openFS }) =
-    openFS
-
-
 {-| Similar to a `map`, but does not allow to change the type, only the value.
 
 It will run the map on the folders fist, then on the files, then on the
@@ -158,34 +151,6 @@ valueMap ((FileStructure rootFolder metadata) as fs) folderFunc fileFunc fsFunc 
             |> folderMap
             |> fileMap
             |> fsMap
-
-
-{-| Toggles whether the FS is open.
--}
-toggleFS : FileStructure { a | openFS : Bool } b c -> FileStructure { a | openFS : Bool } b c
-toggleFS (FileStructure tree fsMetadata) =
-    FileStructure
-        tree
-        { fsMetadata
-            | openFS = (not fsMetadata.openFS)
-        }
-
-
-{-| Toggles whether a specific folder is expanded or not.
--}
-toggleFSFolder : Path -> FileStructure a { b | isExpanded : Bool } c -> FileStructure a { b | isExpanded : Bool } c
-toggleFSFolder absolutePath fs =
-    updateFolder
-        absolutePath
-        (\(Folder files folders folderMetadata) ->
-            Folder
-                files
-                folders
-                { folderMetadata
-                    | isExpanded = not folderMetadata.isExpanded
-                }
-        )
-        fs
 
 
 {-| Drops the first char from a string if it starts with a slash.
