@@ -1,5 +1,6 @@
 module Models.Bigbit exposing (..)
 
+import DefaultServices.Util as Util
 import Dict
 import Json.Encode as Encode
 import Json.Decode as Decode
@@ -27,6 +28,39 @@ type FSActionButtonState
     | RemovingFile
 
 
+{-| FSActionButtonState `cacheEncoder`.
+-}
+fsActionButtonStateCacheEncoder : FSActionButtonState -> Encode.Value
+fsActionButtonStateCacheEncoder =
+    toString >> Encode.string
+
+
+{-| FSActionButtonState `cacheDecoder`.
+-}
+fsActionButtonStateCacheDecoder : Decode.Decoder FSActionButtonState
+fsActionButtonStateCacheDecoder =
+    let
+        fromStringDecoder encodedActionState =
+            case encodedActionState of
+                "AddingFile" ->
+                    Decode.succeed AddingFile
+
+                "AddingFolder" ->
+                    Decode.succeed AddingFolder
+
+                "RemovingFile" ->
+                    Decode.succeed RemovingFile
+
+                "RemovingFolder" ->
+                    Decode.succeed RemovingFolder
+
+                _ ->
+                    Decode.fail <| "Not a valid encoded action state: " ++ encodedActionState
+    in
+        Decode.string
+            |> Decode.andThen fromStringDecoder
+
+
 {-| A full bigbit ready for publication.
 -}
 type alias BigbitForPublication =
@@ -34,6 +68,29 @@ type alias BigbitForPublication =
     , description : String
     , tags : List String
     }
+
+
+{-| The metadata connected to the FS.
+-}
+type alias BigbitCreateDataFSMetadata =
+    { activeFile : Maybe FS.Path
+    , openFS : Bool
+    , actionButtonState : Maybe FSActionButtonState
+    , actionButtonInput : String
+    }
+
+
+{-| The metadata connected to every folder in the FS.
+-}
+type alias BigbitCreateDataFolderMetadata =
+    { isExpanded : Bool
+    }
+
+
+{-| The metadata connected to every file in the FS.
+-}
+type alias BigbitCreateDataFileMetadata =
+    {}
 
 
 {-| The data being stored for a bigbit being created.
@@ -45,16 +102,7 @@ type alias BigbitCreateData =
     , tagInput : String
     , introduction : String
     , conclusion : String
-    , fs :
-        FS.FileStructure
-            { activeFile : Maybe FS.Path
-            , openFS : Bool
-            , actionButtonState : Maybe FSActionButtonState
-            , actionButtonInput : String
-            }
-            { isExpanded : Bool
-            }
-            {}
+    , fs : FS.FileStructure BigbitCreateDataFSMetadata BigbitCreateDataFolderMetadata BigbitCreateDataFileMetadata
     }
 
 
@@ -63,9 +111,21 @@ type alias BigbitCreateData =
 bigbitCreateDataCacheEncoder : BigbitCreateData -> Encode.Value
 bigbitCreateDataCacheEncoder bigbitCreateData =
     let
-        -- TODO make encoder for code.
-        encodeCode code =
-            Encode.null
+        encodeFS =
+            FS.encodeFS
+                (\fsMetadata ->
+                    Encode.object
+                        [ ( "activeFile", Util.justValueOrNull Encode.string fsMetadata.activeFile )
+                        , ( "openFS", Encode.bool fsMetadata.openFS )
+                        , ( "actionButtonState", Util.justValueOrNull fsActionButtonStateCacheEncoder fsMetadata.actionButtonState )
+                        , ( "actionButtonInput", Encode.string fsMetadata.actionButtonInput )
+                        ]
+                )
+                (\folderMetadata ->
+                    Encode.object
+                        [ ( "isExpanded", Encode.bool folderMetadata.isExpanded ) ]
+                )
+                (\fileMetadata -> Encode.object [])
     in
         Encode.object
             [ ( "name", Encode.string bigbitCreateData.name )
@@ -74,7 +134,7 @@ bigbitCreateDataCacheEncoder bigbitCreateData =
             , ( "tagInput", Encode.string bigbitCreateData.tagInput )
             , ( "introduction", Encode.string bigbitCreateData.introduction )
             , ( "conclusion", Encode.string bigbitCreateData.conclusion )
-            , ( "fs", encodeCode bigbitCreateData.fs )
+            , ( "fs", encodeFS bigbitCreateData.fs )
             ]
 
 
@@ -82,19 +142,25 @@ bigbitCreateDataCacheEncoder bigbitCreateData =
 -}
 bigbitCreateDataCacheDecoder : Decode.Decoder BigbitCreateData
 bigbitCreateDataCacheDecoder =
-    decode BigbitCreateData
-        |> required "name" Decode.string
-        |> required "description" Decode.string
-        |> required "tags" (Decode.list Decode.string)
-        |> required "tagInput" Decode.string
-        |> required "introduction" Decode.string
-        |> required "conclusion" Decode.string
-        |> hardcoded
-            (FS.emptyFS
-                { activeFile = Nothing
-                , openFS = True
-                , actionButtonState = Nothing
-                , actionButtonInput = ""
-                }
-                { isExpanded = True }
-            )
+    let
+        decodeFS =
+            FS.decodeFS
+                (decode BigbitCreateDataFSMetadata
+                    |> required "activeFile" (Decode.maybe Decode.string)
+                    |> required "openFS" Decode.bool
+                    |> required "actionButtonState" (Decode.maybe fsActionButtonStateCacheDecoder)
+                    |> required "actionButtonInput" Decode.string
+                )
+                (decode BigbitCreateDataFolderMetadata
+                    |> required "isExpanded" Decode.bool
+                )
+                (decode BigbitCreateDataFileMetadata)
+    in
+        decode BigbitCreateData
+            |> required "name" Decode.string
+            |> required "description" Decode.string
+            |> required "tags" (Decode.list Decode.string)
+            |> required "tagInput" Decode.string
+            |> required "introduction" Decode.string
+            |> required "conclusion" Decode.string
+            |> required "fs" decodeFS

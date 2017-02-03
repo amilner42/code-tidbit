@@ -1,5 +1,6 @@
 module DefaultServices.Util exposing (..)
 
+import Dict
 import Dom
 import Html exposing (Html, Attribute)
 import Html.Events exposing (on, keyCode)
@@ -107,3 +108,20 @@ cmdFromMsg msg =
 domFocus : (Result.Result Dom.Error () -> msg) -> String -> Cmd msg
 domFocus onFocus domElement =
     Task.attempt onFocus (Dom.focus domElement)
+
+
+{-| Helper for encoding dictionaries which use strings as keys.
+-}
+encodeStringDict : (v -> Encode.Value) -> Dict.Dict String v -> Encode.Value
+encodeStringDict valueEncoder dict =
+    Dict.toList dict
+        |> List.map (\( k, v ) -> ( k, valueEncoder v ))
+        |> Encode.object
+
+
+{-| Helper for decoding dictionaries which use strings as keys.
+-}
+decodeStringDict : Decode.Decoder v -> Decode.Decoder (Dict.Dict String v)
+decodeStringDict decodeValue =
+    Decode.keyValuePairs decodeValue
+        |> Decode.map Dict.fromList
