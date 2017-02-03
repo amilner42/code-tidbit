@@ -631,9 +631,7 @@ createBigbitView model shared =
                                         [ classList
                                             [ ( "add-file", True )
                                             , ( "selected-action-button"
-                                              , FS.getFSMetadata model.bigbitCreateData.fs
-                                                    |> .actionButtonState
-                                                    |> (==) (Just Bigbit.AddingFile)
+                                              , Bigbit.fsActionStateEquals (Just Bigbit.AddingFile) model.bigbitCreateData.fs
                                               )
                                             ]
                                         , onClick <| BigbitUpdateActionButtonState <| Just Bigbit.AddingFile
@@ -643,9 +641,7 @@ createBigbitView model shared =
                                         [ classList
                                             [ ( "add-folder", True )
                                             , ( "selected-action-button"
-                                              , FS.getFSMetadata model.bigbitCreateData.fs
-                                                    |> .actionButtonState
-                                                    |> (==) (Just Bigbit.AddingFolder)
+                                              , Bigbit.fsActionStateEquals (Just Bigbit.AddingFolder) model.bigbitCreateData.fs
                                               )
                                             ]
                                         , onClick <| BigbitUpdateActionButtonState <| Just Bigbit.AddingFolder
@@ -655,9 +651,7 @@ createBigbitView model shared =
                                         [ classList
                                             [ ( "remove-file", True )
                                             , ( "selected-action-button"
-                                              , FS.getFSMetadata model.bigbitCreateData.fs
-                                                    |> .actionButtonState
-                                                    |> (==) (Just Bigbit.RemovingFile)
+                                              , Bigbit.fsActionStateEquals (Just Bigbit.RemovingFile) model.bigbitCreateData.fs
                                               )
                                             ]
                                         , onClick <| BigbitUpdateActionButtonState <| Just Bigbit.RemovingFile
@@ -667,9 +661,7 @@ createBigbitView model shared =
                                         [ classList
                                             [ ( "remove-folder", True )
                                             , ( "selected-action-button"
-                                              , FS.getFSMetadata model.bigbitCreateData.fs
-                                                    |> .actionButtonState
-                                                    |> (==) (Just Bigbit.RemovingFolder)
+                                              , Bigbit.fsActionStateEquals (Just Bigbit.RemovingFolder) model.bigbitCreateData.fs
                                               )
                                             ]
                                         , onClick <| BigbitUpdateActionButtonState <| Just Bigbit.RemovingFolder

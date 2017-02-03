@@ -203,3 +203,10 @@ toggleFSFolder absolutePath fs =
                 }
         )
         fs
+
+
+{-| Checks equality against the current state of `actionButtonState`.
+-}
+fsActionStateEquals : Maybe FSActionButtonState -> FS.FileStructure { a | actionButtonState : Maybe FSActionButtonState } b c -> Bool
+fsActionStateEquals maybeActionState =
+    FS.getFSMetadata >> .actionButtonState >> (==) maybeActionState
