@@ -172,6 +172,8 @@ languagesFromFileName fileName =
         -- Fucking docker...
         if fileName == "Dockerfile" then
             [ DockerFile ]
+        else if not <| String.contains "." fileName then
+            []
         else
             case maybeSuffix of
                 Nothing ->

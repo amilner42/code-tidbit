@@ -3,6 +3,7 @@ module DefaultServices.Util exposing (..)
 import Dict
 import Dom
 import Html exposing (Html, Attribute)
+import Html.Attributes exposing (hidden)
 import Html.Events exposing (on, keyCode)
 import Json.Decode as Decode
 import Json.Encode as Encode
@@ -125,3 +126,10 @@ decodeStringDict : Decode.Decoder v -> Decode.Decoder (Dict.Dict String v)
 decodeStringDict decodeValue =
     Decode.keyValuePairs decodeValue
         |> Decode.map Dict.fromList
+
+
+{-| Creates a basic hidden div.
+-}
+hiddenDiv : Html.Html msg
+hiddenDiv =
+    Html.div [ hidden True ] []

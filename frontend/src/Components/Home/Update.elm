@@ -928,17 +928,15 @@ update msg model shared =
                                 }
                             )
                 in
-                    if String.length absolutePath < 2 then
-                        doNothing
-                    else
-                        ( case maybeCurrentActionState of
-                            -- Should never happen.
-                            Nothing ->
-                                model
+                    ( case maybeCurrentActionState of
+                        -- Should never happen.
+                        Nothing ->
+                            model
 
-                            Just currentActionState ->
-                                case currentActionState of
-                                    Bigbit.AddingFile ->
+                        Just currentActionState ->
+                            case currentActionState of
+                                Bigbit.AddingFile ->
+                                    if Bigbit.isValidAddFileInput absolutePath fs then
                                         updateBigbitCreateData
                                             { currentBigbitCreateData
                                                 | fs =
@@ -952,8 +950,11 @@ update msg model shared =
                                                            )
                                                         |> clearActionButtonInput
                                             }
+                                    else
+                                        model
 
-                                    Bigbit.AddingFolder ->
+                                Bigbit.AddingFolder ->
+                                    if Bigbit.isValidAddFolderInput absolutePath fs then
                                         updateBigbitCreateData
                                             { currentBigbitCreateData
                                                 | fs =
@@ -966,27 +967,29 @@ update msg model shared =
                                                             (FS.Folder Dict.empty Dict.empty { isExpanded = True })
                                                         |> clearActionButtonInput
                                             }
+                                    else
+                                        model
 
-                                    Bigbit.RemovingFile ->
-                                        updateBigbitCreateData
-                                            { currentBigbitCreateData
-                                                | fs =
-                                                    fs
-                                                        |> FS.removeFile absolutePath
-                                                        |> clearActionButtonInput
-                                            }
+                                Bigbit.RemovingFile ->
+                                    updateBigbitCreateData
+                                        { currentBigbitCreateData
+                                            | fs =
+                                                fs
+                                                    |> FS.removeFile absolutePath
+                                                    |> clearActionButtonInput
+                                        }
 
-                                    Bigbit.RemovingFolder ->
-                                        updateBigbitCreateData
-                                            { currentBigbitCreateData
-                                                | fs =
-                                                    fs
-                                                        |> FS.removeFolder absolutePath
-                                                        |> clearActionButtonInput
-                                            }
-                        , shared
-                        , Cmd.none
-                        )
+                                Bigbit.RemovingFolder ->
+                                    updateBigbitCreateData
+                                        { currentBigbitCreateData
+                                            | fs =
+                                                fs
+                                                    |> FS.removeFolder absolutePath
+                                                    |> clearActionButtonInput
+                                        }
+                    , shared
+                    , Cmd.none
+                    )
 
 
 {-| Filters the languages based on `query`.

@@ -168,36 +168,45 @@ bigbitCreateDataCacheDecoder =
             |> required "fs" decodeFS
 
 
-{-| Checks that all the characters are any combination of: a-Z 1-9 - _ .
+{-| Checks that all the characters are any combination of: a-Z 1-9 - _ . /
 
 NOTE: We restrict the characters because:
   - It'll keep it cleaner, I don't want funky ascii chars.
   - We'll need to encode them for the url params, prevent weird bugs.
 -}
-validChars : String -> Bool
-validChars =
+validPathChars : FS.Path -> Bool
+validPathChars =
     String.toList
         >> List.all
             (\char ->
                 Char.isDigit char
                     || Char.isUpper char
                     || Char.isLower char
-                    || (List.member char [ '_', '-', '.' ])
+                    || (List.member char [ '_', '-', '.', '/' ])
             )
 
 
-{-| Checks that the characters are valid and that there are no "//".
+{-| Checks that the path is valid.
 -}
-validName : FS.Path -> Bool
-validName absolutePath =
-    validChars absolutePath && (not <| String.contains "//" absolutePath)
+validPath : FS.Path -> Bool
+validPath absolutePath =
+    validPathChars absolutePath
+        && (not <| String.contains "//" absolutePath)
+        && (String.length absolutePath /= 0)
 
 
 {-| Checks that the folder path is valid.
 -}
 isValidAddFolderInput : FS.Path -> FS.FileStructure a b c -> Bool
 isValidAddFolderInput absolutePath fs =
-    validName absolutePath && (not <| FS.hasFolder absolutePath fs)
+    validPath absolutePath && (not <| FS.hasFolder absolutePath fs)
+
+
+{-| Checks that the file path is valid.
+-}
+isValidAddFileInput : FS.Path -> FS.FileStructure a b c -> Bool
+isValidAddFileInput absolutePath =
+    getLanguagesForFileInput absolutePath >> List.length >> (/=) 0
 
 
 {-| Checks that a file path is valid and returns the possible languages of the
@@ -209,7 +218,7 @@ have an empty list returned.
 -}
 getLanguagesForFileInput : FS.Path -> FS.FileStructure a b c -> List Editor.Language
 getLanguagesForFileInput absolutePath fs =
-    if FS.hasFile absolutePath fs || (not <| validName absolutePath) || (String.endsWith "/" absolutePath) then
+    if FS.hasFile absolutePath fs || (not <| validPath absolutePath) || (String.endsWith "/" absolutePath) then
         []
     else
         String.split "/" absolutePath

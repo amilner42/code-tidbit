@@ -19,8 +19,12 @@ button {
     outline: none;
 }
 
-input:focus, textarea:focus {
+input:focus {
     outline: none;
+    border: 1px solid $color3;
+}
+
+textarea:focus {
     border: none;
     box-shadow: 0 0 0 1pt $color3;
 }

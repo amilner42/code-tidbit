@@ -608,24 +608,52 @@ createBigbitView model shared =
                                         [ class "fs-action-input"
                                         , hidden <| Util.isNothing <| .actionButtonState <| FS.getFSMetadata <| model.bigbitCreateData.fs
                                         ]
-                                        [ case .actionButtonState <| FS.getFSMetadata <| model.bigbitCreateData.fs of
-                                            -- Will be hidden`
+                                        [ input
+                                            [ id "fs-action-input-box"
+                                            , placeholder "Absolute Path"
+                                            , onInput BigbitUpdateActionInput
+                                            , Util.onEnter <| BigbitSubmitActionInput
+                                            , value
+                                                (model.bigbitCreateData.fs
+                                                    |> FS.getFSMetadata
+                                                    |> .actionButtonInput
+                                                )
+                                            ]
+                                            []
+                                        , case .actionButtonState <| FS.getFSMetadata <| model.bigbitCreateData.fs of
                                             Nothing ->
-                                                div [] []
+                                                Util.hiddenDiv
 
                                             Just actionState ->
-                                                input
-                                                    [ id "fs-action-input-box"
-                                                    , placeholder "Absolute Path"
-                                                    , onInput BigbitUpdateActionInput
-                                                    , Util.onEnter <| BigbitSubmitActionInput
-                                                    , value
-                                                        (model.bigbitCreateData.fs
-                                                            |> FS.getFSMetadata
-                                                            |> .actionButtonInput
-                                                        )
-                                                    ]
-                                                    []
+                                                let
+                                                    showArrowIf condition =
+                                                        if condition then
+                                                            i
+                                                                [ class "material-icons action-button-arrow"
+                                                                , onClick <| BigbitSubmitActionInput
+                                                                ]
+                                                                [ text "add_box" ]
+                                                        else
+                                                            Util.hiddenDiv
+                                                in
+                                                    case actionState of
+                                                        Bigbit.AddingFile ->
+                                                            showArrowIf <|
+                                                                Bigbit.isValidAddFileInput
+                                                                    (FS.getFSMetadata model.bigbitCreateData.fs |> .actionButtonInput)
+                                                                    model.bigbitCreateData.fs
+
+                                                        Bigbit.AddingFolder ->
+                                                            showArrowIf <|
+                                                                Bigbit.isValidAddFolderInput
+                                                                    (FS.getFSMetadata model.bigbitCreateData.fs |> .actionButtonInput)
+                                                                    model.bigbitCreateData.fs
+
+                                                        Bigbit.RemovingFile ->
+                                                            div [] []
+
+                                                        Bigbit.RemovingFolder ->
+                                                            div [] []
                                         ]
                                     , button
                                         [ classList
