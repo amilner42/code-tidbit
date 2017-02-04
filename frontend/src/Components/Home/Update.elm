@@ -943,7 +943,7 @@ update msg model shared =
                                                     fs
                                                         |> (FS.addFile
                                                                 { overwriteExisting = False
-                                                                , forceCreateDirectories = Nothing
+                                                                , forceCreateDirectories = Just <| always Bigbit.defaultEmptyFolder
                                                                 }
                                                                 absolutePath
                                                                 (FS.File "" {})
@@ -961,7 +961,7 @@ update msg model shared =
                                                     fs
                                                         |> FS.addFolder
                                                             { overwriteExisting = False
-                                                            , forceCreateDirectories = Nothing
+                                                            , forceCreateDirectories = Just <| always Bigbit.defaultEmptyFolder
                                                             }
                                                             absolutePath
                                                             (FS.Folder Dict.empty Dict.empty { isExpanded = True })

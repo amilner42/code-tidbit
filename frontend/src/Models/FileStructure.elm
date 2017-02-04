@@ -58,7 +58,21 @@ type Folder folderMetadata fileMetadata
 -}
 emptyFS : a -> b -> FileStructure a b c
 emptyFS fsMetadata folderMetadata =
-    FileStructure (Folder Dict.empty Dict.empty folderMetadata) fsMetadata
+    FileStructure (emptyFolder folderMetadata) fsMetadata
+
+
+{-| Creates an empty folder with the given metadata.
+-}
+emptyFolder : b -> Folder b c
+emptyFolder folderMetadata =
+    Folder Dict.empty Dict.empty folderMetadata
+
+
+{-| Creates an empty file with the given metadata.
+-}
+emptyFile : c -> File c
+emptyFile fileMetadata =
+    File "" fileMetadata
 
 
 {-| Returns true if the FileStructure has no sub-folders/files.

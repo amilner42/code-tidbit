@@ -271,3 +271,10 @@ toggleFSFolder absolutePath fs =
 fsActionStateEquals : Maybe FSActionButtonState -> FS.FileStructure { a | actionButtonState : Maybe FSActionButtonState } b c -> Bool
 fsActionStateEquals maybeActionState =
     FS.getFSMetadata >> .actionButtonState >> (==) maybeActionState
+
+
+{-| Creates an empty folder.
+-}
+defaultEmptyFolder : FS.Folder BigbitCreateDataFolderMetadata BigbitCreateDataFileMetadata
+defaultEmptyFolder =
+    FS.emptyFolder { isExpanded = True }
