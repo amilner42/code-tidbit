@@ -552,6 +552,25 @@ createBigbitView model shared =
 
                 bigbitCommentBox =
                     let
+                        fsMetadata =
+                            FS.getFSMetadata <| model.bigbitCreateData.fs
+
+                        maybeActionState =
+                            fsMetadata.actionButtonState
+
+                        actionInput =
+                            fsMetadata.actionButtonInput
+
+                        validFileInput =
+                            Bigbit.isValidAddFileInput
+                                actionInput
+                                model.bigbitCreateData.fs
+
+                        validFolderInput =
+                            Bigbit.isValidAddFolderInput
+                                actionInput
+                                model.bigbitCreateData.fs
+
                         fs =
                             if Bigbit.isFSOpen model.bigbitCreateData.fs then
                                 div
@@ -606,9 +625,36 @@ createBigbitView model shared =
                                         model.bigbitCreateData.fs
                                     , div
                                         [ class "fs-action-input"
-                                        , hidden <| Util.isNothing <| .actionButtonState <| FS.getFSMetadata <| model.bigbitCreateData.fs
+                                        , hidden <| Util.isNothing <| maybeActionState
                                         ]
-                                        [ input
+                                        [ div
+                                            [ class "fs-action-input-text" ]
+                                            [ case maybeActionState of
+                                                Nothing ->
+                                                    Util.hiddenDiv
+
+                                                Just actionState ->
+                                                    case actionState of
+                                                        Bigbit.AddingFolder ->
+                                                            if actionInput == "" then
+                                                                Util.hiddenDiv
+                                                            else if validFolderInput then
+                                                                text "Create folder and parent directories"
+                                                            else
+                                                                text "Cannot create folder"
+
+                                                        Bigbit.AddingFile ->
+                                                            if actionInput == "" then
+                                                                Util.hiddenDiv
+                                                            else if validFileInput then
+                                                                text "Create file"
+                                                            else
+                                                                text "Cannot create file"
+
+                                                        _ ->
+                                                            Util.hiddenDiv
+                                            ]
+                                        , input
                                             [ id "fs-action-input-box"
                                             , placeholder "Absolute Path"
                                             , onInput BigbitUpdateActionInput
@@ -620,7 +666,7 @@ createBigbitView model shared =
                                                 )
                                             ]
                                             []
-                                        , case .actionButtonState <| FS.getFSMetadata <| model.bigbitCreateData.fs of
+                                        , case maybeActionState of
                                             Nothing ->
                                                 Util.hiddenDiv
 
@@ -639,15 +685,11 @@ createBigbitView model shared =
                                                     case actionState of
                                                         Bigbit.AddingFile ->
                                                             showArrowIf <|
-                                                                Bigbit.isValidAddFileInput
-                                                                    (FS.getFSMetadata model.bigbitCreateData.fs |> .actionButtonInput)
-                                                                    model.bigbitCreateData.fs
+                                                                validFileInput
 
                                                         Bigbit.AddingFolder ->
                                                             showArrowIf <|
-                                                                Bigbit.isValidAddFolderInput
-                                                                    (FS.getFSMetadata model.bigbitCreateData.fs |> .actionButtonInput)
-                                                                    model.bigbitCreateData.fs
+                                                                validFolderInput
 
                                                         Bigbit.RemovingFile ->
                                                             div [] []
