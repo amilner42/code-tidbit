@@ -133,3 +133,15 @@ decodeStringDict decodeValue =
 hiddenDiv : Html.Html msg
 hiddenDiv =
     Html.div [ hidden True ] []
+
+
+{-| Helper for converting errors to False and successes to True.
+-}
+resultToBool : Result a b -> Bool
+resultToBool result =
+    case result of
+        Err _ ->
+            False
+
+        Ok _ ->
+            True

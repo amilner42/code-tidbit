@@ -561,15 +561,21 @@ createBigbitView model shared =
                         actionInput =
                             fsMetadata.actionButtonInput
 
-                        validFileInput =
+                        validFileInputResult =
                             Bigbit.isValidAddFileInput
                                 actionInput
                                 model.bigbitCreateData.fs
 
-                        validFolderInput =
+                        validFileInput =
+                            Util.resultToBool validFileInputResult
+
+                        validFolderInputResult =
                             Bigbit.isValidAddFolderInput
                                 actionInput
                                 model.bigbitCreateData.fs
+
+                        validFolderInput =
+                            Util.resultToBool validFolderInputResult
 
                         fs =
                             if Bigbit.isFSOpen model.bigbitCreateData.fs then
@@ -636,20 +642,66 @@ createBigbitView model shared =
                                                 Just actionState ->
                                                     case actionState of
                                                         Bigbit.AddingFolder ->
-                                                            if actionInput == "" then
-                                                                Util.hiddenDiv
-                                                            else if validFolderInput then
-                                                                text "Create folder and parent directories"
-                                                            else
-                                                                text "Cannot create folder"
+                                                            case validFolderInputResult of
+                                                                Ok _ ->
+                                                                    text "Create folder and parent directories"
+
+                                                                Err err ->
+                                                                    text <|
+                                                                        case err of
+                                                                            Bigbit.FolderAlreadyExists ->
+                                                                                "That folder already exists"
+
+                                                                            Bigbit.FolderHasDoubleSlash ->
+                                                                                "You cannot have two slashes in a row"
+
+                                                                            Bigbit.FolderHasInvalidCharacters ->
+                                                                                "You are using invalid characters"
+
+                                                                            Bigbit.FolderIsEmpty ->
+                                                                                ""
 
                                                         Bigbit.AddingFile ->
-                                                            if actionInput == "" then
-                                                                Util.hiddenDiv
-                                                            else if validFileInput then
-                                                                text "Create file"
-                                                            else
-                                                                text "Cannot create file"
+                                                            case validFileInputResult of
+                                                                Ok _ ->
+                                                                    text "Create file"
+
+                                                                Err err ->
+                                                                    case err of
+                                                                        Bigbit.FileAlreadyExists ->
+                                                                            text "That file already exists"
+
+                                                                        Bigbit.FileEndsInSlash ->
+                                                                            text "Files cannot end in a slash"
+
+                                                                        Bigbit.FileHasDoubleSlash ->
+                                                                            text "You cannot have two slashes in a row"
+
+                                                                        Bigbit.FileHasInvalidCharacters ->
+                                                                            text "You are using invalid characters"
+
+                                                                        Bigbit.FileHasInvalidExtension ->
+                                                                            text "You must have a valid file extension"
+
+                                                                        Bigbit.FileIsEmpty ->
+                                                                            text ""
+
+                                                                        Bigbit.FileLanguageIsAmbiguous languages ->
+                                                                            div
+                                                                                [ class "fs-action-input-select-language-text" ]
+                                                                                [ text "Select language to create file: "
+                                                                                , div
+                                                                                    [ class "language-options" ]
+                                                                                    (languages
+                                                                                        |> List.sortBy toString
+                                                                                        |> List.map
+                                                                                            (\language ->
+                                                                                                button
+                                                                                                    []
+                                                                                                    [ text <| toString language ]
+                                                                                            )
+                                                                                    )
+                                                                                ]
 
                                                         _ ->
                                                             Util.hiddenDiv

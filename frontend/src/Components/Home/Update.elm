@@ -936,39 +936,43 @@ update msg model shared =
                         Just currentActionState ->
                             case currentActionState of
                                 Bigbit.AddingFile ->
-                                    if Bigbit.isValidAddFileInput absolutePath fs then
-                                        updateBigbitCreateData
-                                            { currentBigbitCreateData
-                                                | fs =
-                                                    fs
-                                                        |> (FS.addFile
+                                    case Bigbit.isValidAddFileInput absolutePath fs of
+                                        Err err ->
+                                            model
+
+                                        Ok _ ->
+                                            updateBigbitCreateData
+                                                { currentBigbitCreateData
+                                                    | fs =
+                                                        fs
+                                                            |> (FS.addFile
+                                                                    { overwriteExisting = False
+                                                                    , forceCreateDirectories = Just <| always Bigbit.defaultEmptyFolder
+                                                                    }
+                                                                    absolutePath
+                                                                    (FS.File "" {})
+                                                               )
+                                                            |> clearActionButtonInput
+                                                }
+
+                                Bigbit.AddingFolder ->
+                                    case Bigbit.isValidAddFolderInput absolutePath fs of
+                                        Err err ->
+                                            model
+
+                                        Ok _ ->
+                                            updateBigbitCreateData
+                                                { currentBigbitCreateData
+                                                    | fs =
+                                                        fs
+                                                            |> FS.addFolder
                                                                 { overwriteExisting = False
                                                                 , forceCreateDirectories = Just <| always Bigbit.defaultEmptyFolder
                                                                 }
                                                                 absolutePath
-                                                                (FS.File "" {})
-                                                           )
-                                                        |> clearActionButtonInput
-                                            }
-                                    else
-                                        model
-
-                                Bigbit.AddingFolder ->
-                                    if Bigbit.isValidAddFolderInput absolutePath fs then
-                                        updateBigbitCreateData
-                                            { currentBigbitCreateData
-                                                | fs =
-                                                    fs
-                                                        |> FS.addFolder
-                                                            { overwriteExisting = False
-                                                            , forceCreateDirectories = Just <| always Bigbit.defaultEmptyFolder
-                                                            }
-                                                            absolutePath
-                                                            (FS.Folder Dict.empty Dict.empty { isExpanded = True })
-                                                        |> clearActionButtonInput
-                                            }
-                                    else
-                                        model
+                                                                (FS.Folder Dict.empty Dict.empty { isExpanded = True })
+                                                            |> clearActionButtonInput
+                                                }
 
                                 Bigbit.RemovingFile ->
                                     updateBigbitCreateData
