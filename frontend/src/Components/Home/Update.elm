@@ -989,7 +989,7 @@ update msg model shared =
                                         , forceCreateDirectories = Just <| always Bigbit.defaultEmptyFolder
                                         }
                                         absolutePath
-                                        (FS.File "" { language = language })
+                                        (FS.emptyFile { language = language })
                                    )
                                 |> Bigbit.clearActionButtonInput
                     }

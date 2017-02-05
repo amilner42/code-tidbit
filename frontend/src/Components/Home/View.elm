@@ -736,12 +736,10 @@ createBigbitView model shared =
                                                 in
                                                     case actionState of
                                                         Bigbit.AddingFile ->
-                                                            showArrowIf <|
-                                                                validFileInput
+                                                            showArrowIf validFileInput
 
                                                         Bigbit.AddingFolder ->
-                                                            showArrowIf <|
-                                                                validFolderInput
+                                                            showArrowIf validFolderInput
 
                                                         Bigbit.RemovingFile ->
                                                             div [] []
