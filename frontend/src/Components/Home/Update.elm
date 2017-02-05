@@ -919,14 +919,6 @@ update msg model shared =
                         fs
                             |> FS.getFSMetadata
                             |> .actionButtonState
-
-                    clearActionButtonInput =
-                        FS.updateFSMetadata
-                            (\fsMetadata ->
-                                { fsMetadata
-                                    | actionButtonInput = ""
-                                }
-                            )
                 in
                     ( case maybeCurrentActionState of
                         -- Should never happen.
@@ -940,20 +932,12 @@ update msg model shared =
                                         Err err ->
                                             model
 
-                                        Ok _ ->
-                                            updateBigbitCreateData
-                                                { currentBigbitCreateData
-                                                    | fs =
-                                                        fs
-                                                            |> (FS.addFile
-                                                                    { overwriteExisting = False
-                                                                    , forceCreateDirectories = Just <| always Bigbit.defaultEmptyFolder
-                                                                    }
-                                                                    absolutePath
-                                                                    (FS.File "" {})
-                                                               )
-                                                            |> clearActionButtonInput
-                                                }
+                                        Ok language ->
+                                            let
+                                                ( newModel, _, _ ) =
+                                                    update (BigbitAddFile absolutePath language) model shared
+                                            in
+                                                newModel
 
                                 Bigbit.AddingFolder ->
                                     case Bigbit.isValidAddFolderInput absolutePath fs of
@@ -971,7 +955,7 @@ update msg model shared =
                                                                 }
                                                                 absolutePath
                                                                 (FS.Folder Dict.empty Dict.empty { isExpanded = True })
-                                                            |> clearActionButtonInput
+                                                            |> Bigbit.clearActionButtonInput
                                                 }
 
                                 Bigbit.RemovingFile ->
@@ -980,7 +964,7 @@ update msg model shared =
                                             | fs =
                                                 fs
                                                     |> FS.removeFile absolutePath
-                                                    |> clearActionButtonInput
+                                                    |> Bigbit.clearActionButtonInput
                                         }
 
                                 Bigbit.RemovingFolder ->
@@ -989,11 +973,29 @@ update msg model shared =
                                             | fs =
                                                 fs
                                                     |> FS.removeFolder absolutePath
-                                                    |> clearActionButtonInput
+                                                    |> Bigbit.clearActionButtonInput
                                         }
                     , shared
                     , Cmd.none
                     )
+
+            BigbitAddFile absolutePath language ->
+                ( updateBigbitCreateData
+                    { currentBigbitCreateData
+                        | fs =
+                            currentBigbitCreateData.fs
+                                |> (FS.addFile
+                                        { overwriteExisting = False
+                                        , forceCreateDirectories = Just <| always Bigbit.defaultEmptyFolder
+                                        }
+                                        absolutePath
+                                        (FS.File "" { language = language })
+                                   )
+                                |> Bigbit.clearActionButtonInput
+                    }
+                , shared
+                , Cmd.none
+                )
 
 
 {-| Filters the languages based on `query`.

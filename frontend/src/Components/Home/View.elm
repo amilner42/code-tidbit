@@ -697,7 +697,7 @@ createBigbitView model shared =
                                                                                         |> List.map
                                                                                             (\language ->
                                                                                                 button
-                                                                                                    []
+                                                                                                    [ onClick <| BigbitAddFile actionInput language ]
                                                                                                     [ text <| toString language ]
                                                                                             )
                                                                                     )

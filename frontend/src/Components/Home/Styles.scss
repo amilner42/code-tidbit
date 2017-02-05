@@ -430,6 +430,11 @@
                                         font-size: 12px;
                                         margin: 3px 6px 3px -3px;
                                         padding: 3px;
+
+                                        &:hover {
+                                            background-color: $color2;
+                                            color: $color5;
+                                        }
                                     }
                                 }
                             }

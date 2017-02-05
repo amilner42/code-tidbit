@@ -92,7 +92,8 @@ type alias BigbitCreateDataFolderMetadata =
 {-| The metadata connected to every file in the FS.
 -}
 type alias BigbitCreateDataFileMetadata =
-    {}
+    { language : Editor.Language
+    }
 
 
 {-| The data being stored for a bigbit being created.
@@ -127,7 +128,10 @@ bigbitCreateDataCacheEncoder bigbitCreateData =
                     Encode.object
                         [ ( "isExpanded", Encode.bool folderMetadata.isExpanded ) ]
                 )
-                (\fileMetadata -> Encode.object [])
+                (\fileMetadata ->
+                    Encode.object
+                        [ ( "language", Editor.languageCacheEncoder fileMetadata.language ) ]
+                )
     in
         Encode.object
             [ ( "name", Encode.string bigbitCreateData.name )
@@ -156,7 +160,9 @@ bigbitCreateDataCacheDecoder =
                 (decode BigbitCreateDataFolderMetadata
                     |> required "isExpanded" Decode.bool
                 )
-                (decode BigbitCreateDataFileMetadata)
+                (decode BigbitCreateDataFileMetadata
+                    |> required "language" Editor.languageCacheDecoder
+                )
     in
         decode BigbitCreateData
             |> required "name" Decode.string
@@ -330,3 +336,15 @@ fsActionStateEquals maybeActionState =
 defaultEmptyFolder : FS.Folder BigbitCreateDataFolderMetadata BigbitCreateDataFileMetadata
 defaultEmptyFolder =
     FS.emptyFolder { isExpanded = True }
+
+
+{-| Clears the action button input.
+-}
+clearActionButtonInput : FS.FileStructure BigbitCreateDataFSMetadata b c -> FS.FileStructure BigbitCreateDataFSMetadata b c
+clearActionButtonInput =
+    FS.updateFSMetadata
+        (\fsMetadata ->
+            { fsMetadata
+                | actionButtonInput = ""
+            }
+        )
