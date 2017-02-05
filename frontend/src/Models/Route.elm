@@ -8,12 +8,17 @@ module Models.Route
         , routesNotNeedingAuth
         , defaultAuthRoute
         , defaultUnauthRoute
+        , navigateTo
+        , parseLocation
         )
 
 import Config
+import DefaultServices.Util as Util
 import Json.Decode as Decode
 import Json.Encode as Encode
-import UrlParser exposing (Parser, s, (</>), oneOf, map, top, int, string)
+import Models.FileStructure as FS
+import Navigation
+import UrlParser exposing (Parser, s, (</>), (<?>), oneOf, map, top, int, string, stringParam)
 
 
 {-| For clarity in `Route`.
@@ -40,9 +45,9 @@ type Route
     | HomeComponentCreateBigbitName
     | HomeComponentCreateBigbitDescription
     | HomeComponentCreateBigbitTags
-    | HomeComponentCreateBigbitCodeIntroduction
-    | HomeComponentCreateBigbitCodeFrame Int
-    | HomeComponentCreateBigbitCodeConclusion
+    | HomeComponentCreateBigbitCodeIntroduction (Maybe FS.Path)
+    | HomeComponentCreateBigbitCodeFrame Int (Maybe FS.Path)
+    | HomeComponentCreateBigbitCodeConclusion (Maybe FS.Path)
     | HomeComponentProfile
     | WelcomeComponentLogin
     | WelcomeComponentRegister
@@ -120,13 +125,17 @@ matchers =
             createBigbit </> s "code"
 
         createBigbitCodeIntroduction =
-            createBigbitCode </> s "introduction"
+            (createBigbitCode </> s "introduction") <?> qpFile
 
         createBigbitCodeFrame =
-            createBigbitCode </> s "frame" </> int
+            createBigbitCode </> s "frame" </> int <?> qpFile
 
         createBigbitCodeConclusion =
-            createBigbitCode </> s "conclusion"
+            createBigbitCode </> s "conclusion" <?> qpFile
+
+        -- Query Param for the current active file.
+        qpFile =
+            stringParam "file"
 
         profile =
             s "profile"
@@ -247,14 +256,19 @@ toHashUrl route =
             HomeComponentCreateBigbitTags ->
                 "create/bigbit/tags"
 
-            HomeComponentCreateBigbitCodeIntroduction ->
-                "create/bigbit/code/introduction"
+            HomeComponentCreateBigbitCodeIntroduction qpFile ->
+                "create/bigbit/code/introduction/"
+                    ++ (Util.queryParamsToString [ ( "file", qpFile ) ])
 
-            HomeComponentCreateBigbitCodeFrame frameNumber ->
-                "create/bigbit/code/frame/" ++ (toString frameNumber)
+            HomeComponentCreateBigbitCodeFrame frameNumber qpFile ->
+                "create/bigbit/code/frame/"
+                    ++ (toString frameNumber)
+                    ++ "/"
+                    ++ (Util.queryParamsToString [ ( "file", qpFile ) ])
 
-            HomeComponentCreateBigbitCodeConclusion ->
-                "create/bigbit/code/conclusion"
+            HomeComponentCreateBigbitCodeConclusion qpFile ->
+                "create/bigbit/code/conclusion/"
+                    ++ (Util.queryParamsToString [ ( "file", qpFile ) ])
 
             HomeComponentProfile ->
                 "profile"
@@ -299,9 +313,7 @@ cacheDecoder =
         fromStringDecoder encodedHash =
             let
                 maybeRoute =
-                    UrlParser.parseHash
-                        matchers
-                        (fakeLocation encodedHash)
+                    parseLocation <| fakeLocation encodedHash
             in
                 case maybeRoute of
                     Nothing ->
@@ -311,3 +323,35 @@ cacheDecoder =
                         Decode.succeed aRoute
     in
         Decode.andThen fromStringDecoder Decode.string
+
+
+{-| Attempts to parse a location into a route.
+-}
+parseLocation : Navigation.Location -> Maybe Route
+parseLocation location =
+    let
+        -- @refer https://github.com/evancz/url-parser/issues/27
+        fixLocationHashQuery location =
+            let
+                hash =
+                    String.split "?" location.hash
+                        |> List.head
+                        |> Maybe.withDefault ""
+
+                search =
+                    String.split "?" location.hash
+                        |> List.drop 1
+                        |> String.join "?"
+                        |> String.append "?"
+            in
+                { location | hash = hash, search = search }
+    in
+        fixLocationHashQuery location
+            |> UrlParser.parseHash matchers
+
+
+{-| Navigates to a given route.
+-}
+navigateTo : Route -> Cmd msg
+navigateTo route =
+    Navigation.newUrl <| toUrl <| route

@@ -17,7 +17,6 @@ import Models.FileStructure as FS
 import Models.Range as Range
 import Models.Route as Route
 import Models.Snipbit as Snipbit
-import Router
 
 
 {-| Home Component View.
@@ -253,13 +252,13 @@ displayViewForRoute model shared =
         Route.HomeComponentCreateBigbitTags ->
             createBigbitView model shared
 
-        Route.HomeComponentCreateBigbitCodeIntroduction ->
+        Route.HomeComponentCreateBigbitCodeIntroduction _ ->
             createBigbitView model shared
 
-        Route.HomeComponentCreateBigbitCodeFrame _ ->
+        Route.HomeComponentCreateBigbitCodeFrame _ _ ->
             createBigbitView model shared
 
-        Route.HomeComponentCreateBigbitCodeConclusion ->
+        Route.HomeComponentCreateBigbitCodeConclusion _ ->
             createBigbitView model shared
 
         Route.HomeComponentProfile ->
@@ -300,7 +299,13 @@ navbar shared =
                 Route.HomeComponentCreateSnipbitCodeFrame _ ->
                     True
 
-                Route.HomeComponentCreateBigbitCodeFrame _ ->
+                Route.HomeComponentCreateBigbitCodeFrame _ _ ->
+                    True
+
+                Route.HomeComponentCreateBigbitCodeIntroduction _ ->
+                    True
+
+                Route.HomeComponentCreateBigbitCodeConclusion _ ->
                     True
 
                 _ ->
@@ -316,8 +321,6 @@ navbar shared =
                         , Route.HomeComponentCreateBigbitName
                         , Route.HomeComponentCreateBigbitDescription
                         , Route.HomeComponentCreateBigbitTags
-                        , Route.HomeComponentCreateBigbitCodeIntroduction
-                        , Route.HomeComponentCreateBigbitCodeConclusion
                         ]
                     )
     in
@@ -521,20 +524,20 @@ createBigbitView model shared =
                         [ ( "create-tidbit-tab", True )
                         , ( "create-tidbit-selected-tab"
                           , case currentRoute of
-                                Route.HomeComponentCreateBigbitCodeFrame _ ->
+                                Route.HomeComponentCreateBigbitCodeFrame _ _ ->
                                     True
 
-                                Route.HomeComponentCreateBigbitCodeIntroduction ->
+                                Route.HomeComponentCreateBigbitCodeIntroduction _ ->
                                     True
 
-                                Route.HomeComponentCreateBigbitCodeConclusion ->
+                                Route.HomeComponentCreateBigbitCodeConclusion _ ->
                                     True
 
                                 _ ->
                                     False
                           )
                         ]
-                    , onClick <| GoTo Route.HomeComponentCreateBigbitCodeIntroduction
+                    , onClick <| GoTo <| Route.HomeComponentCreateBigbitCodeIntroduction Nothing
                     ]
                     [ text "Code" ]
                 ]
@@ -797,7 +800,7 @@ createBigbitView model shared =
 
                         body =
                             case shared.route of
-                                Route.HomeComponentCreateBigbitCodeIntroduction ->
+                                Route.HomeComponentCreateBigbitCodeIntroduction _ ->
                                     div
                                         [ class "comment-body" ]
                                         [ fs
@@ -810,12 +813,12 @@ createBigbitView model shared =
                                             []
                                         ]
 
-                                Route.HomeComponentCreateBigbitCodeFrame frameNumber ->
+                                Route.HomeComponentCreateBigbitCodeFrame frameNumber _ ->
                                     div
                                         []
                                         []
 
-                                Route.HomeComponentCreateBigbitCodeConclusion ->
+                                Route.HomeComponentCreateBigbitCodeConclusion _ ->
                                     div
                                         [ class "comment-body" ]
                                         [ fs
@@ -910,13 +913,13 @@ createBigbitView model shared =
                         , makeHTMLTags BigbitRemoveTag model.bigbitCreateData.tags
                         ]
 
-                Route.HomeComponentCreateBigbitCodeIntroduction ->
+                Route.HomeComponentCreateBigbitCodeIntroduction _ ->
                     bigbitCodeTab
 
-                Route.HomeComponentCreateBigbitCodeFrame frameNumber ->
+                Route.HomeComponentCreateBigbitCodeFrame frameNumber _ ->
                     bigbitCodeTab
 
-                Route.HomeComponentCreateBigbitCodeConclusion ->
+                Route.HomeComponentCreateBigbitCodeConclusion _ ->
                     bigbitCodeTab
 
                 -- Should never happen

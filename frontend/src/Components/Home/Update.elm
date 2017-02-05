@@ -17,7 +17,6 @@ import Models.Bigbit as Bigbit
 import Models.FileStructure as FS
 import Models.Snipbit as Snipbit
 import Models.Route as Route
-import Router
 import Task
 import Ports
 
@@ -128,13 +127,13 @@ update msg model shared =
                                         if frameNumber - 1 >= Array.length aSnipbit.highlightedComments then
                                             ( model
                                             , shared
-                                            , Router.navigateTo <|
+                                            , Route.navigateTo <|
                                                 Route.HomeComponentViewSnipbitConclusion mongoID
                                             )
                                         else if frameNumber < 1 then
                                             ( model
                                             , shared
-                                            , Router.navigateTo <|
+                                            , Route.navigateTo <|
                                                 Route.HomeComponentViewSnipbitIntroduction mongoID
                                             )
                                         else
@@ -171,19 +170,19 @@ update msg model shared =
                                     else
                                         getSnipbit mongoID
 
-                        Route.HomeComponentCreateBigbitCodeIntroduction ->
+                        Route.HomeComponentCreateBigbitCodeIntroduction _ ->
                             ( model
                             , shared
                             , createBigbitEditorForCurrentFile
                             )
 
-                        Route.HomeComponentCreateBigbitCodeFrame _ ->
+                        Route.HomeComponentCreateBigbitCodeFrame _ _ ->
                             ( model
                             , shared
                             , createBigbitEditorForCurrentFile
                             )
 
-                        Route.HomeComponentCreateBigbitCodeConclusion ->
+                        Route.HomeComponentCreateBigbitCodeConclusion _ ->
                             ( model
                             , shared
                             , createBigbitEditorForCurrentFile
@@ -195,7 +194,7 @@ update msg model shared =
             GoTo route ->
                 ( model
                 , shared
-                , Router.navigateTo route
+                , Route.navigateTo route
                 )
 
             LogOut ->
@@ -213,7 +212,7 @@ update msg model shared =
             OnLogOutSuccess basicResponse ->
                 ( HomeInit.init
                 , defaultShared
-                , Router.navigateTo Route.WelcomeComponentRegister
+                , Route.navigateTo Route.WelcomeComponentRegister
                 )
 
             ShowInfoFor maybeTidbitType ->
@@ -329,7 +328,7 @@ update msg model shared =
                     newModel =
                         updateSnipbitCreateData <| .snipbitCreateData HomeInit.init
                 in
-                    ( newModel, shared, Router.navigateTo Route.HomeComponentCreateSnipbitName )
+                    ( newModel, shared, Route.navigateTo Route.HomeComponentCreateSnipbitName )
 
             SnipbitUpdateName newName ->
                 let
@@ -697,7 +696,7 @@ update msg model shared =
                     | snipbitCreateData = .snipbitCreateData HomeInit.init
                   }
                 , shared
-                , Router.navigateTo <| Route.HomeComponentViewSnipbitIntroduction createSnipbitResponse.newID
+                , Route.navigateTo <| Route.HomeComponentViewSnipbitIntroduction createSnipbitResponse.newID
                 )
 
             OnSnipbitPublishFailure apiError ->
@@ -741,7 +740,7 @@ update msg model shared =
             BigbitReset ->
                 ( updateBigbitCreateData <| .bigbitCreateData HomeInit.init
                 , shared
-                , Router.navigateTo Route.HomeComponentCreateBigbitName
+                , Route.navigateTo Route.HomeComponentCreateBigbitName
                 )
 
             BigbitUpdateName newName ->
