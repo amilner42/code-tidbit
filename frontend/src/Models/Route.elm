@@ -269,8 +269,8 @@ toHashUrl route =
 {-| The Route `cacheEncoder`.
 -}
 cacheEncoder : Route -> Encode.Value
-cacheEncoder route =
-    Encode.string (toHashUrl route)
+cacheEncoder =
+    toHashUrl >> Encode.string
 
 
 {-| The Route `cacheDecoder`.

@@ -552,6 +552,31 @@ createBigbitView model shared =
 
                 bigbitCommentBox =
                     let
+                        fsMetadata =
+                            FS.getFSMetadata <| model.bigbitCreateData.fs
+
+                        maybeActionState =
+                            fsMetadata.actionButtonState
+
+                        actionInput =
+                            fsMetadata.actionButtonInput
+
+                        validFileInputResult =
+                            Bigbit.isValidAddFileInput
+                                actionInput
+                                model.bigbitCreateData.fs
+
+                        validFileInput =
+                            Util.resultToBool validFileInputResult
+
+                        validFolderInputResult =
+                            Bigbit.isValidAddFolderInput
+                                actionInput
+                                model.bigbitCreateData.fs
+
+                        validFolderInput =
+                            Util.resultToBool validFolderInputResult
+
                         fs =
                             if Bigbit.isFSOpen model.bigbitCreateData.fs then
                                 div
@@ -606,26 +631,121 @@ createBigbitView model shared =
                                         model.bigbitCreateData.fs
                                     , div
                                         [ class "fs-action-input"
-                                        , hidden <| Util.isNothing <| .actionButtonState <| FS.getFSMetadata <| model.bigbitCreateData.fs
+                                        , hidden <| Util.isNothing <| maybeActionState
                                         ]
-                                        [ case .actionButtonState <| FS.getFSMetadata <| model.bigbitCreateData.fs of
-                                            -- Will be hidden`
+                                        [ div
+                                            [ class "fs-action-input-text" ]
+                                            [ case maybeActionState of
+                                                Nothing ->
+                                                    Util.hiddenDiv
+
+                                                Just actionState ->
+                                                    case actionState of
+                                                        Bigbit.AddingFolder ->
+                                                            case validFolderInputResult of
+                                                                Ok _ ->
+                                                                    text "Create folder and parent directories"
+
+                                                                Err err ->
+                                                                    text <|
+                                                                        case err of
+                                                                            Bigbit.FolderAlreadyExists ->
+                                                                                "That folder already exists"
+
+                                                                            Bigbit.FolderHasDoubleSlash ->
+                                                                                "You cannot have two slashes in a row"
+
+                                                                            Bigbit.FolderHasInvalidCharacters ->
+                                                                                "You are using invalid characters"
+
+                                                                            Bigbit.FolderIsEmpty ->
+                                                                                ""
+
+                                                        Bigbit.AddingFile ->
+                                                            case validFileInputResult of
+                                                                Ok _ ->
+                                                                    text "Create file"
+
+                                                                Err err ->
+                                                                    case err of
+                                                                        Bigbit.FileAlreadyExists ->
+                                                                            text "That file already exists"
+
+                                                                        Bigbit.FileEndsInSlash ->
+                                                                            text "Files cannot end in a slash"
+
+                                                                        Bigbit.FileHasDoubleSlash ->
+                                                                            text "You cannot have two slashes in a row"
+
+                                                                        Bigbit.FileHasInvalidCharacters ->
+                                                                            text "You are using invalid characters"
+
+                                                                        Bigbit.FileHasInvalidExtension ->
+                                                                            text "You must have a valid file extension"
+
+                                                                        Bigbit.FileIsEmpty ->
+                                                                            text ""
+
+                                                                        Bigbit.FileLanguageIsAmbiguous languages ->
+                                                                            div
+                                                                                [ class "fs-action-input-select-language-text" ]
+                                                                                [ text "Select language to create file: "
+                                                                                , div
+                                                                                    [ class "language-options" ]
+                                                                                    (languages
+                                                                                        |> List.sortBy toString
+                                                                                        |> List.map
+                                                                                            (\language ->
+                                                                                                button
+                                                                                                    [ onClick <| BigbitAddFile actionInput language ]
+                                                                                                    [ text <| toString language ]
+                                                                                            )
+                                                                                    )
+                                                                                ]
+
+                                                        _ ->
+                                                            Util.hiddenDiv
+                                            ]
+                                        , input
+                                            [ id "fs-action-input-box"
+                                            , placeholder "Absolute Path"
+                                            , onInput BigbitUpdateActionInput
+                                            , Util.onEnter <| BigbitSubmitActionInput
+                                            , value
+                                                (model.bigbitCreateData.fs
+                                                    |> FS.getFSMetadata
+                                                    |> .actionButtonInput
+                                                )
+                                            ]
+                                            []
+                                        , case maybeActionState of
                                             Nothing ->
-                                                div [] []
+                                                Util.hiddenDiv
 
                                             Just actionState ->
-                                                input
-                                                    [ id "fs-action-input-box"
-                                                    , placeholder "Absolute Path"
-                                                    , onInput BigbitUpdateActionInput
-                                                    , Util.onEnter <| BigbitSubmitActionInput
-                                                    , value
-                                                        (model.bigbitCreateData.fs
-                                                            |> FS.getFSMetadata
-                                                            |> .actionButtonInput
-                                                        )
-                                                    ]
-                                                    []
+                                                let
+                                                    showArrowIf condition =
+                                                        if condition then
+                                                            i
+                                                                [ class "material-icons action-button-arrow"
+                                                                , onClick <| BigbitSubmitActionInput
+                                                                ]
+                                                                [ text "add_box" ]
+                                                        else
+                                                            Util.hiddenDiv
+                                                in
+                                                    case actionState of
+                                                        Bigbit.AddingFile ->
+                                                            showArrowIf validFileInput
+
+                                                        Bigbit.AddingFolder ->
+                                                            showArrowIf validFolderInput
+
+                                                        Bigbit.RemovingFile ->
+                                                            div [] []
+
+                                                        Bigbit.RemovingFolder ->
+                                                            div [] []
                                         ]
                                     , button
                                         [ classList

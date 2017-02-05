@@ -919,74 +919,83 @@ update msg model shared =
                         fs
                             |> FS.getFSMetadata
                             |> .actionButtonState
-
-                    clearActionButtonInput =
-                        FS.updateFSMetadata
-                            (\fsMetadata ->
-                                { fsMetadata
-                                    | actionButtonInput = ""
-                                }
-                            )
                 in
-                    if String.length absolutePath < 2 then
-                        doNothing
-                    else
-                        ( case maybeCurrentActionState of
-                            -- Should never happen.
-                            Nothing ->
-                                model
+                    ( case maybeCurrentActionState of
+                        -- Should never happen.
+                        Nothing ->
+                            model
 
-                            Just currentActionState ->
-                                case currentActionState of
-                                    Bigbit.AddingFile ->
-                                        updateBigbitCreateData
-                                            { currentBigbitCreateData
-                                                | fs =
-                                                    fs
-                                                        |> (FS.addFile
+                        Just currentActionState ->
+                            case currentActionState of
+                                Bigbit.AddingFile ->
+                                    case Bigbit.isValidAddFileInput absolutePath fs of
+                                        Err err ->
+                                            model
+
+                                        Ok language ->
+                                            let
+                                                ( newModel, _, _ ) =
+                                                    update (BigbitAddFile absolutePath language) model shared
+                                            in
+                                                newModel
+
+                                Bigbit.AddingFolder ->
+                                    case Bigbit.isValidAddFolderInput absolutePath fs of
+                                        Err err ->
+                                            model
+
+                                        Ok _ ->
+                                            updateBigbitCreateData
+                                                { currentBigbitCreateData
+                                                    | fs =
+                                                        fs
+                                                            |> FS.addFolder
                                                                 { overwriteExisting = False
-                                                                , forceCreateDirectories = Nothing
+                                                                , forceCreateDirectories = Just <| always Bigbit.defaultEmptyFolder
                                                                 }
                                                                 absolutePath
-                                                                (FS.File "" {})
-                                                           )
-                                                        |> clearActionButtonInput
-                                            }
+                                                                (FS.Folder Dict.empty Dict.empty { isExpanded = True })
+                                                            |> Bigbit.clearActionButtonInput
+                                                }
 
-                                    Bigbit.AddingFolder ->
-                                        updateBigbitCreateData
-                                            { currentBigbitCreateData
-                                                | fs =
-                                                    fs
-                                                        |> FS.addFolder
-                                                            { overwriteExisting = False
-                                                            , forceCreateDirectories = Nothing
-                                                            }
-                                                            absolutePath
-                                                            (FS.Folder Dict.empty Dict.empty { isExpanded = True })
-                                                        |> clearActionButtonInput
-                                            }
+                                Bigbit.RemovingFile ->
+                                    updateBigbitCreateData
+                                        { currentBigbitCreateData
+                                            | fs =
+                                                fs
+                                                    |> FS.removeFile absolutePath
+                                                    |> Bigbit.clearActionButtonInput
+                                        }
 
-                                    Bigbit.RemovingFile ->
-                                        updateBigbitCreateData
-                                            { currentBigbitCreateData
-                                                | fs =
-                                                    fs
-                                                        |> FS.removeFile absolutePath
-                                                        |> clearActionButtonInput
-                                            }
+                                Bigbit.RemovingFolder ->
+                                    updateBigbitCreateData
+                                        { currentBigbitCreateData
+                                            | fs =
+                                                fs
+                                                    |> FS.removeFolder absolutePath
+                                                    |> Bigbit.clearActionButtonInput
+                                        }
+                    , shared
+                    , Cmd.none
+                    )
 
-                                    Bigbit.RemovingFolder ->
-                                        updateBigbitCreateData
-                                            { currentBigbitCreateData
-                                                | fs =
-                                                    fs
-                                                        |> FS.removeFolder absolutePath
-                                                        |> clearActionButtonInput
-                                            }
-                        , shared
-                        , Cmd.none
-                        )
+            BigbitAddFile absolutePath language ->
+                ( updateBigbitCreateData
+                    { currentBigbitCreateData
+                        | fs =
+                            currentBigbitCreateData.fs
+                                |> (FS.addFile
+                                        { overwriteExisting = False
+                                        , forceCreateDirectories = Just <| always Bigbit.defaultEmptyFolder
+                                        }
+                                        absolutePath
+                                        (FS.emptyFile { language = language })
+                                   )
+                                |> Bigbit.clearActionButtonInput
+                    }
+                , shared
+                , Cmd.none
+                )
 
 
 {-| Filters the languages based on `query`.

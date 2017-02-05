@@ -10,6 +10,7 @@ import Models.Route as Route
 import Models.Bigbit as Bigbit
 import Models.Snipbit as Snipbit
 import Models.FileStructure as FS
+import Elements.Editor as Editor
 
 
 {-| Home Component Msg.
@@ -57,3 +58,4 @@ type Msg
     | BigbitUpdateActionButtonState (Maybe Bigbit.FSActionButtonState)
     | BigbitUpdateActionInput String
     | BigbitSubmitActionInput
+    | BigbitAddFile FS.Path Editor.Language

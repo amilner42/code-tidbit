@@ -1,7 +1,9 @@
 module Models.Bigbit exposing (..)
 
+import Char
 import DefaultServices.Util as Util
 import Dict
+import Elements.Editor as Editor
 import Json.Encode as Encode
 import Json.Decode as Decode
 import Json.Decode.Pipeline exposing (decode, required, optional, hardcoded)
@@ -90,7 +92,8 @@ type alias BigbitCreateDataFolderMetadata =
 {-| The metadata connected to every file in the FS.
 -}
 type alias BigbitCreateDataFileMetadata =
-    {}
+    { language : Editor.Language
+    }
 
 
 {-| The data being stored for a bigbit being created.
@@ -125,7 +128,10 @@ bigbitCreateDataCacheEncoder bigbitCreateData =
                     Encode.object
                         [ ( "isExpanded", Encode.bool folderMetadata.isExpanded ) ]
                 )
-                (\fileMetadata -> Encode.object [])
+                (\fileMetadata ->
+                    Encode.object
+                        [ ( "language", Editor.languageCacheEncoder fileMetadata.language ) ]
+                )
     in
         Encode.object
             [ ( "name", Encode.string bigbitCreateData.name )
@@ -154,7 +160,9 @@ bigbitCreateDataCacheDecoder =
                 (decode BigbitCreateDataFolderMetadata
                     |> required "isExpanded" Decode.bool
                 )
-                (decode BigbitCreateDataFileMetadata)
+                (decode BigbitCreateDataFileMetadata
+                    |> required "language" Editor.languageCacheDecoder
+                )
     in
         decode BigbitCreateData
             |> required "name" Decode.string
@@ -164,6 +172,117 @@ bigbitCreateDataCacheDecoder =
             |> required "introduction" Decode.string
             |> required "conclusion" Decode.string
             |> required "fs" decodeFS
+
+
+{-| Possible errors with input for creating a file.
+-}
+type InvalidFileName
+    = FileHasInvalidCharacters
+    | FileAlreadyExists
+    | FileIsEmpty
+    | FileHasDoubleSlash
+    | FileEndsInSlash
+    | FileHasInvalidExtension
+    | FileLanguageIsAmbiguous (List Editor.Language)
+
+
+{-| Possible errors with input for creating a folder.
+-}
+type InvalidFolderName
+    = FolderHasInvalidCharacters
+    | FolderAlreadyExists
+    | FolderIsEmpty
+    | FolderHasDoubleSlash
+
+
+{-| Checks if the path has invalid characters.
+
+NOTE: Only the following are valid characters: a-Z 1-9 - _ . /
+
+NOTE: We restrict the characters because:
+  - It'll keep it cleaner, I don't want funky ascii chars.
+  - We'll need to encode them for the url params, prevent weird bugs.
+-}
+pathHasInvalidChars : FS.Path -> Bool
+pathHasInvalidChars =
+    String.toList
+        >> List.all
+            (\char ->
+                Char.isDigit char
+                    || Char.isUpper char
+                    || Char.isLower char
+                    || (List.member char [ '_', '-', '.', '/' ])
+            )
+        >> not
+
+
+{-| Checks if the path has any double slashes ("//").
+-}
+pathHasDoubleSlash : FS.Path -> Bool
+pathHasDoubleSlash =
+    String.contains "//"
+
+
+{-| Checks if the path is empty.
+-}
+pathIsEmpty : FS.Path -> Bool
+pathIsEmpty =
+    String.isEmpty
+
+
+{-| Checks if the path ends in a slash.
+-}
+pathEndsInSlash : FS.Path -> Bool
+pathEndsInSlash =
+    String.endsWith "/"
+
+
+{-| Checks that the folder path is valid.
+-}
+isValidAddFolderInput : FS.Path -> FS.FileStructure a b c -> Result InvalidFolderName ()
+isValidAddFolderInput absolutePath fs =
+    if pathIsEmpty absolutePath then
+        Result.Err FolderIsEmpty
+    else if pathHasDoubleSlash absolutePath then
+        Result.Err FolderHasDoubleSlash
+    else if pathHasInvalidChars absolutePath then
+        Result.Err FolderHasInvalidCharacters
+    else if FS.hasFolder absolutePath fs then
+        Result.Err FolderAlreadyExists
+    else
+        Result.Ok ()
+
+
+{-| Checks that a file path is valid and returns it's language.
+-}
+isValidAddFileInput : FS.Path -> FS.FileStructure a b c -> Result InvalidFileName Editor.Language
+isValidAddFileInput absolutePath fs =
+    if pathIsEmpty absolutePath then
+        Result.Err FileIsEmpty
+    else if pathHasDoubleSlash absolutePath then
+        Result.Err FileHasDoubleSlash
+    else if pathHasInvalidChars absolutePath then
+        Result.Err FileHasInvalidCharacters
+    else if pathEndsInSlash absolutePath then
+        Result.Err FileEndsInSlash
+    else if FS.hasFile absolutePath fs then
+        Result.Err FileAlreadyExists
+    else
+        String.split "/" absolutePath
+            |> Util.lastElem
+            |> Maybe.map Editor.languagesFromFileName
+            |> Maybe.withDefault []
+            |> (\listOfLanguages ->
+                    case listOfLanguages of
+                        [] ->
+                            Result.Err FileHasInvalidExtension
+
+                        [ language ] ->
+                            Result.Ok language
+
+                        a ->
+                            Result.Err <| FileLanguageIsAmbiguous a
+               )
 
 
 
@@ -210,3 +329,22 @@ toggleFSFolder absolutePath fs =
 fsActionStateEquals : Maybe FSActionButtonState -> FS.FileStructure { a | actionButtonState : Maybe FSActionButtonState } b c -> Bool
 fsActionStateEquals maybeActionState =
     FS.getFSMetadata >> .actionButtonState >> (==) maybeActionState
+
+
+{-| Creates an empty folder.
+-}
+defaultEmptyFolder : FS.Folder BigbitCreateDataFolderMetadata BigbitCreateDataFileMetadata
+defaultEmptyFolder =
+    FS.emptyFolder { isExpanded = True }
+
+
+{-| Clears the action button input.
+-}
+clearActionButtonInput : FS.FileStructure BigbitCreateDataFSMetadata b c -> FS.FileStructure BigbitCreateDataFSMetadata b c
+clearActionButtonInput =
+    FS.updateFSMetadata
+        (\fsMetadata ->
+            { fsMetadata
+                | actionButtonInput = ""
+            }
+        )

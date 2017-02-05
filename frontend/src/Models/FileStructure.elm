@@ -58,7 +58,21 @@ type Folder folderMetadata fileMetadata
 -}
 emptyFS : a -> b -> FileStructure a b c
 emptyFS fsMetadata folderMetadata =
-    FileStructure (Folder Dict.empty Dict.empty folderMetadata) fsMetadata
+    FileStructure (emptyFolder folderMetadata) fsMetadata
+
+
+{-| Creates an empty folder with the given metadata.
+-}
+emptyFolder : b -> Folder b c
+emptyFolder folderMetadata =
+    Folder Dict.empty Dict.empty folderMetadata
+
+
+{-| Creates an empty file with the given metadata.
+-}
+emptyFile : c -> File c
+emptyFile fileMetadata =
+    File "" fileMetadata
 
 
 {-| Returns true if the FileStructure has no sub-folders/files.
@@ -460,6 +474,20 @@ addFile addFileOptions absolutePath newFile (FileStructure rootFolder fsMetadata
             |> String.split "/"
             |> createFile rootFolder
             |> ((flip FileStructure) fsMetadata)
+
+
+{-| Returns true if the fs already has that file.
+-}
+hasFile : Path -> FileStructure a b c -> Bool
+hasFile absolutePath fs =
+    Util.isNotNothing <| getFile fs absolutePath
+
+
+{-| Returns true if the fs already has that folder.
+-}
+hasFolder : Path -> FileStructure a b c -> Bool
+hasFolder absolutePath fs =
+    Util.isNotNothing <| getFolder fs absolutePath
 
 
 {-| Removes a file if it exsits, otherwise returns the same FS.
