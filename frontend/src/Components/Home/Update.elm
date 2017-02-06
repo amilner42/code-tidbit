@@ -17,7 +17,6 @@ import Models.Bigbit as Bigbit
 import Models.FileStructure as FS
 import Models.Snipbit as Snipbit
 import Models.Route as Route
-import Router
 import Task
 import Ports
 
@@ -79,22 +78,32 @@ update msg model shared =
                     userTheme =
                         ""
 
-                    createBigbitEditorForCurrentFile =
-                        case model.bigbitCreateData.fs of
-                            FS.FileStructure _ fsMetadata ->
-                                case fsMetadata.activeFile of
+                    createBigbitEditorForCurrentFile maybeFilePath backupRoute =
+                        case maybeFilePath of
+                            Nothing ->
+                                Ports.createCodeEditor
+                                    { id = "create-bigbit-code-editor"
+                                    , lang = ""
+                                    , theme = userTheme
+                                    , value = ""
+                                    , range = Nothing
+                                    , readOnly = True
+                                    }
+
+                            Just filePath ->
+                                case FS.getFile currentBigbitCreateData.fs filePath of
                                     Nothing ->
+                                        Route.navigateTo backupRoute
+
+                                    Just (FS.File content { language }) ->
                                         Ports.createCodeEditor
                                             { id = "create-bigbit-code-editor"
-                                            , lang = ""
+                                            , lang = Editor.aceLanguageLocation language
                                             , theme = userTheme
-                                            , value = ""
+                                            , value = content
                                             , range = Nothing
-                                            , readOnly = True
+                                            , readOnly = False
                                             }
-
-                                    Just activeFilePath ->
-                                        Cmd.none
                 in
                     case shared.route of
                         Route.HomeComponentViewSnipbitIntroduction mongoID ->
@@ -128,13 +137,13 @@ update msg model shared =
                                         if frameNumber - 1 >= Array.length aSnipbit.highlightedComments then
                                             ( model
                                             , shared
-                                            , Router.navigateTo <|
+                                            , Route.navigateTo <|
                                                 Route.HomeComponentViewSnipbitConclusion mongoID
                                             )
                                         else if frameNumber < 1 then
                                             ( model
                                             , shared
-                                            , Router.navigateTo <|
+                                            , Route.navigateTo <|
                                                 Route.HomeComponentViewSnipbitIntroduction mongoID
                                             )
                                         else
@@ -171,22 +180,22 @@ update msg model shared =
                                     else
                                         getSnipbit mongoID
 
-                        Route.HomeComponentCreateBigbitCodeIntroduction ->
+                        Route.HomeComponentCreateBigbitCodeIntroduction maybeFilePath ->
                             ( model
                             , shared
-                            , createBigbitEditorForCurrentFile
+                            , createBigbitEditorForCurrentFile maybeFilePath (Route.HomeComponentCreateBigbitCodeIntroduction Nothing)
                             )
 
-                        Route.HomeComponentCreateBigbitCodeFrame _ ->
+                        Route.HomeComponentCreateBigbitCodeFrame frameNumber maybeFilePath ->
                             ( model
                             , shared
-                            , createBigbitEditorForCurrentFile
+                            , createBigbitEditorForCurrentFile maybeFilePath (Route.HomeComponentCreateBigbitCodeFrame frameNumber Nothing)
                             )
 
-                        Route.HomeComponentCreateBigbitCodeConclusion ->
+                        Route.HomeComponentCreateBigbitCodeConclusion maybeFilePath ->
                             ( model
                             , shared
-                            , createBigbitEditorForCurrentFile
+                            , createBigbitEditorForCurrentFile maybeFilePath (Route.HomeComponentCreateBigbitCodeConclusion Nothing)
                             )
 
                         _ ->
@@ -195,7 +204,7 @@ update msg model shared =
             GoTo route ->
                 ( model
                 , shared
-                , Router.navigateTo route
+                , Route.navigateTo route
                 )
 
             LogOut ->
@@ -213,7 +222,7 @@ update msg model shared =
             OnLogOutSuccess basicResponse ->
                 ( HomeInit.init
                 , defaultShared
-                , Router.navigateTo Route.WelcomeComponentRegister
+                , Route.navigateTo Route.WelcomeComponentRegister
                 )
 
             ShowInfoFor maybeTidbitType ->
@@ -329,7 +338,7 @@ update msg model shared =
                     newModel =
                         updateSnipbitCreateData <| .snipbitCreateData HomeInit.init
                 in
-                    ( newModel, shared, Router.navigateTo Route.HomeComponentCreateSnipbitName )
+                    ( newModel, shared, Route.navigateTo Route.HomeComponentCreateSnipbitName )
 
             SnipbitUpdateName newName ->
                 let
@@ -697,7 +706,7 @@ update msg model shared =
                     | snipbitCreateData = .snipbitCreateData HomeInit.init
                   }
                 , shared
-                , Router.navigateTo <| Route.HomeComponentViewSnipbitIntroduction createSnipbitResponse.newID
+                , Route.navigateTo <| Route.HomeComponentViewSnipbitIntroduction createSnipbitResponse.newID
                 )
 
             OnSnipbitPublishFailure apiError ->
@@ -741,7 +750,7 @@ update msg model shared =
             BigbitReset ->
                 ( updateBigbitCreateData <| .bigbitCreateData HomeInit.init
                 , shared
-                , Router.navigateTo Route.HomeComponentCreateBigbitName
+                , Route.navigateTo Route.HomeComponentCreateBigbitName
                 )
 
             BigbitUpdateName newName ->
@@ -995,6 +1004,61 @@ update msg model shared =
                     }
                 , shared
                 , Cmd.none
+                )
+
+            BigbitUpdateCode newCode ->
+                let
+                    updateCodeForFile maybeFilePath =
+                        case maybeFilePath of
+                            Nothing ->
+                                doNothing
+
+                            Just filePath ->
+                                ( updateBigbitCreateData
+                                    { currentBigbitCreateData
+                                        | fs =
+                                            currentBigbitCreateData.fs
+                                                |> FS.updateFile
+                                                    filePath
+                                                    (\(FS.File content fileMetadata) ->
+                                                        FS.File
+                                                            newCode
+                                                            fileMetadata
+                                                    )
+                                    }
+                                , shared
+                                , Cmd.none
+                                )
+                in
+                    case shared.route of
+                        Route.HomeComponentCreateBigbitCodeIntroduction maybePath ->
+                            updateCodeForFile maybePath
+
+                        Route.HomeComponentCreateBigbitCodeFrame _ maybePath ->
+                            updateCodeForFile maybePath
+
+                        Route.HomeComponentCreateBigbitCodeConclusion maybePath ->
+                            updateCodeForFile maybePath
+
+                        -- Should never happen
+                        _ ->
+                            doNothing
+
+            BigbitFileSelected absolutePath ->
+                ( model
+                , shared
+                , case shared.route of
+                    Route.HomeComponentCreateBigbitCodeIntroduction _ ->
+                        Route.navigateTo <| Route.HomeComponentCreateBigbitCodeIntroduction (Just absolutePath)
+
+                    Route.HomeComponentCreateBigbitCodeFrame frameNumber _ ->
+                        Route.navigateTo <| Route.HomeComponentCreateBigbitCodeFrame frameNumber (Just absolutePath)
+
+                    Route.HomeComponentCreateBigbitCodeConclusion _ ->
+                        Route.navigateTo <| Route.HomeComponentCreateBigbitCodeConclusion (Just absolutePath)
+
+                    _ ->
+                        Cmd.none
                 )
 
 

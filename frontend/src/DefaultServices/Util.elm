@@ -145,3 +145,28 @@ resultToBool result =
 
         Ok _ ->
             True
+
+
+{-| Given a bunch of maybe query params, turns it into a string of the query
+params that are actually there.
+
+Eg.
+  []  -> ""
+  [("path", Just "asdf"), ("bla", Nothing)] -> "?path=asdf"
+  [("path", Just "asdf"), ("bla", Just "bla")] -> "?path=asdf&bla=bla"
+
+-}
+queryParamsToString : List ( String, Maybe String ) -> String
+queryParamsToString listOfMaybeQueryParams =
+    listOfMaybeQueryParams
+        |> List.foldl
+            (\( qpName, maybeQPValue ) currentQPString ->
+                case maybeQPValue of
+                    Nothing ->
+                        currentQPString
+
+                    Just qpValue ->
+                        currentQPString ++ (qpName ++ "=" ++ qpValue ++ "&")
+            )
+            "?"
+        |> String.dropRight 1

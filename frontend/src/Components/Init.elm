@@ -6,7 +6,6 @@ import Components.Update exposing (updateCacheIf)
 import DefaultModel exposing (defaultModel, defaultShared)
 import Models.Route as Route
 import Navigation
-import Router
 
 
 {-| Base Component Init.
@@ -17,7 +16,7 @@ init location =
         route =
             Maybe.withDefault
                 Route.HomeComponentBrowse
-                (Router.parseLocation location)
+                (Route.parseLocation location)
 
         defaultModelWithRoute : Model
         defaultModelWithRoute =

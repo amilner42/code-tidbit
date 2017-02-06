@@ -39,7 +39,7 @@ type Msg
     | SnipbitUpdateFrameComment Int String
     | SnipbitUpdateIntroduction String
     | SnipbitUpdateConclusion String
-    | SnipbitUpdateCode String
+    | SnipbitUpdateCode FS.Content
     | SnipbitPublish Snipbit.SnipbitForPublication
     | OnSnipbitPublishSuccess CreateSnipbitResponse
     | OnSnipbitPublishFailure ApiError.ApiError
@@ -59,3 +59,5 @@ type Msg
     | BigbitUpdateActionInput String
     | BigbitSubmitActionInput
     | BigbitAddFile FS.Path Editor.Language
+    | BigbitUpdateCode FS.Content
+    | BigbitFileSelected FS.Path

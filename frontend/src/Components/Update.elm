@@ -13,7 +13,6 @@ import Elements.Editor as Editor
 import Models.Route as Route
 import Navigation
 import Ports
-import Router
 import Task
 
 
@@ -48,7 +47,7 @@ updateCacheIf msg model shouldCache =
                 OnLocationChange location ->
                     let
                         newRoute =
-                            Router.parseLocation location
+                            Route.parseLocation location
                     in
                         handleLocationChange newRoute model
 
@@ -56,7 +55,7 @@ updateCacheIf msg model shouldCache =
                     ( model, LocalStorage.loadModel () )
 
                 OnLoadModelFromLocalStorageSuccess newModel ->
-                    ( newModel, Router.navigateTo shared.route )
+                    ( newModel, Route.navigateTo shared.route )
 
                 OnLoadModelFromLocalStorageFailure err ->
                     ( model, getUser () )
@@ -71,7 +70,7 @@ updateCacheIf msg model shouldCache =
                                 | shared = { shared | user = Just user }
                             }
                     in
-                        ( newModel, Router.navigateTo shared.route )
+                        ( newModel, Route.navigateTo shared.route )
 
                 OnGetUserFailure newApiError ->
                     let
@@ -83,7 +82,7 @@ updateCacheIf msg model shouldCache =
                                     }
                             }
                     in
-                        ( newModel, Router.navigateTo newModel.shared.route )
+                        ( newModel, Route.navigateTo newModel.shared.route )
 
                 HomeMessage subMsg ->
                     let
@@ -123,6 +122,15 @@ updateCacheIf msg model shouldCache =
                             (updateCacheIf
                                 (HomeMessage <|
                                     HomeMessages.SnipbitUpdateCode value
+                                )
+                                model
+                                shouldCache
+                            )
+
+                        "create-bigbit-code-editor" ->
+                            (updateCacheIf
+                                (HomeMessage <|
+                                    HomeMessages.BigbitUpdateCode value
                                 )
                                 model
                                 shouldCache
@@ -231,7 +239,7 @@ handleLocationChange maybeRoute model =
 
                                         newCmd =
                                             Cmd.batch
-                                                [ Router.navigateTo newModel.shared.route
+                                                [ Route.navigateTo newModel.shared.route
                                                 , LocalStorage.saveModel newModel
                                                 ]
                                     in
@@ -247,7 +255,7 @@ handleLocationChange maybeRoute model =
 
                                         newCmd =
                                             Cmd.batch
-                                                [ Router.navigateTo newModel.shared.route
+                                                [ Route.navigateTo newModel.shared.route
                                                 , LocalStorage.saveModel newModel
                                                 ]
                                     in
@@ -313,7 +321,7 @@ handleLocationChange maybeRoute model =
                                 ( newModel
                                 , Cmd.batch
                                     [ newCmd
-                                    , Router.navigateTo
+                                    , Route.navigateTo
                                         Route.HomeComponentCreateSnipbitCodeIntroduction
                                     ]
                                 )
@@ -337,13 +345,13 @@ handleLocationChange maybeRoute model =
                     Route.HomeComponentViewSnipbitFrame _ _ ->
                         triggerRouteHookOnHomeComponent
 
-                    Route.HomeComponentCreateBigbitCodeIntroduction ->
+                    Route.HomeComponentCreateBigbitCodeIntroduction _ ->
                         triggerRouteHookOnHomeComponent
 
-                    Route.HomeComponentCreateBigbitCodeFrame _ ->
+                    Route.HomeComponentCreateBigbitCodeFrame _ _ ->
                         triggerRouteHookOnHomeComponent
 
-                    Route.HomeComponentCreateBigbitCodeConclusion ->
+                    Route.HomeComponentCreateBigbitCodeConclusion _ ->
                         triggerRouteHookOnHomeComponent
 
                     _ ->
