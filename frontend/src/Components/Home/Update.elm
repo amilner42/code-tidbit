@@ -85,7 +85,7 @@ update msg model shared =
                                     { id = "create-bigbit-code-editor"
                                     , lang = ""
                                     , theme = userTheme
-                                    , value = "No File Selected"
+                                    , value = ""
                                     , range = Nothing
                                     , readOnly = True
                                     }

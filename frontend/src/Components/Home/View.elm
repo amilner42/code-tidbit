@@ -544,10 +544,30 @@ createBigbitView model shared =
 
         bigbitCodeTab =
             let
+                currentActiveFile =
+                    case shared.route of
+                        Route.HomeComponentCreateBigbitCodeIntroduction maybePath ->
+                            maybePath
+
+                        Route.HomeComponentCreateBigbitCodeFrame _ maybePath ->
+                            maybePath
+
+                        Route.HomeComponentCreateBigbitCodeConclusion maybePath ->
+                            maybePath
+
+                        _ ->
+                            Nothing
+
+                viewingFile absolutePath =
+                    (Just absolutePath) == currentActiveFile
+
                 bigbitEditor =
                     div
-                        []
+                        [ class "bigbit-editor" ]
                         [ div
+                            [ class "current-file" ]
+                            [ text <| Maybe.withDefault "No File Selected" currentActiveFile ]
+                        , div
                             [ class "create-tidbit-code" ]
                             [ Editor.editor "create-bigbit-code-editor"
                             ]
@@ -601,12 +621,22 @@ createBigbitView model shared =
                                                 div
                                                     [ class "create-bigbit-fs-file" ]
                                                     [ i
-                                                        [ class "material-icons file-icon"
+                                                        [ classList
+                                                            [ ( "material-icons file-icon", True )
+                                                            , ( "selected-file"
+                                                              , viewingFile absolutePath
+                                                              )
+                                                            ]
                                                         , onClick <| BigbitFileSelected absolutePath
                                                         ]
                                                         [ text "insert_drive_file" ]
                                                     , div
-                                                        [ class "file-name"
+                                                        [ classList
+                                                            [ ( "file-name", True )
+                                                            , ( "selected-file"
+                                                              , viewingFile absolutePath
+                                                              )
+                                                            ]
                                                         , onClick <| BigbitFileSelected absolutePath
                                                         ]
                                                         [ text name ]

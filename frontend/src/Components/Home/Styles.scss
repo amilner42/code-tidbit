@@ -347,6 +347,18 @@
                     cursor: pointer;
                 }
 
+                .bigbit-editor {
+                    position: relative;
+
+                    .current-file {
+                        position: absolute;
+                        top: -20px;
+                        left: 10px;
+                        font-size: 12px;
+                        color: $color4;
+                    }
+                }
+
                 .close-fs-icon {
                     margin-top: -5px;
                     margin-left: 320px;
@@ -489,6 +501,10 @@
                             .file-icon {
                                 display: inline-block;
                                 cursor: pointer;
+                            }
+
+                            .selected-file {
+                              color: $color6;
                             }
 
                             .file-name {
