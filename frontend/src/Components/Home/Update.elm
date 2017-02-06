@@ -78,22 +78,39 @@ update msg model shared =
                     userTheme =
                         ""
 
-                    createBigbitEditorForCurrentFile =
-                        case model.bigbitCreateData.fs of
-                            FS.FileStructure _ fsMetadata ->
-                                case fsMetadata.activeFile of
+                    createBigbitEditorForCurrentFile maybeFilePath =
+                        case maybeFilePath of
+                            Nothing ->
+                                Ports.createCodeEditor
+                                    { id = "create-bigbit-code-editor"
+                                    , lang = ""
+                                    , theme = userTheme
+                                    , value = "No File Selected"
+                                    , range = Nothing
+                                    , readOnly = True
+                                    }
+
+                            Just filePath ->
+                                case FS.getFile currentBigbitCreateData.fs filePath of
                                     Nothing ->
                                         Ports.createCodeEditor
                                             { id = "create-bigbit-code-editor"
                                             , lang = ""
                                             , theme = userTheme
-                                            , value = ""
+                                            , value = "No File Selected"
                                             , range = Nothing
                                             , readOnly = True
                                             }
 
-                                    Just activeFilePath ->
-                                        Cmd.none
+                                    Just (FS.File content { language }) ->
+                                        Ports.createCodeEditor
+                                            { id = "create-bigbit-code-editor"
+                                            , lang = Editor.aceLanguageLocation language
+                                            , theme = userTheme
+                                            , value = content
+                                            , range = Nothing
+                                            , readOnly = False
+                                            }
                 in
                     case shared.route of
                         Route.HomeComponentViewSnipbitIntroduction mongoID ->
@@ -170,22 +187,22 @@ update msg model shared =
                                     else
                                         getSnipbit mongoID
 
-                        Route.HomeComponentCreateBigbitCodeIntroduction _ ->
+                        Route.HomeComponentCreateBigbitCodeIntroduction maybeFilePath ->
                             ( model
                             , shared
-                            , createBigbitEditorForCurrentFile
+                            , createBigbitEditorForCurrentFile maybeFilePath
                             )
 
-                        Route.HomeComponentCreateBigbitCodeFrame _ _ ->
+                        Route.HomeComponentCreateBigbitCodeFrame _ maybeFilePath ->
                             ( model
                             , shared
-                            , createBigbitEditorForCurrentFile
+                            , createBigbitEditorForCurrentFile maybeFilePath
                             )
 
-                        Route.HomeComponentCreateBigbitCodeConclusion _ ->
+                        Route.HomeComponentCreateBigbitCodeConclusion maybeFilePath ->
                             ( model
                             , shared
-                            , createBigbitEditorForCurrentFile
+                            , createBigbitEditorForCurrentFile maybeFilePath
                             )
 
                         _ ->
@@ -994,6 +1011,61 @@ update msg model shared =
                     }
                 , shared
                 , Cmd.none
+                )
+
+            BigbitUpdateCode newCode ->
+                let
+                    updateCodeForFile maybeFilePath =
+                        case maybeFilePath of
+                            Nothing ->
+                                doNothing
+
+                            Just filePath ->
+                                ( updateBigbitCreateData
+                                    { currentBigbitCreateData
+                                        | fs =
+                                            currentBigbitCreateData.fs
+                                                |> FS.updateFile
+                                                    filePath
+                                                    (\(FS.File content fileMetadata) ->
+                                                        FS.File
+                                                            newCode
+                                                            fileMetadata
+                                                    )
+                                    }
+                                , shared
+                                , Cmd.none
+                                )
+                in
+                    case shared.route of
+                        Route.HomeComponentCreateBigbitCodeIntroduction maybePath ->
+                            updateCodeForFile maybePath
+
+                        Route.HomeComponentCreateBigbitCodeFrame _ maybePath ->
+                            updateCodeForFile maybePath
+
+                        Route.HomeComponentCreateBigbitCodeConclusion maybePath ->
+                            updateCodeForFile maybePath
+
+                        -- Should never happen
+                        _ ->
+                            doNothing
+
+            BigbitFileSelected absolutePath ->
+                ( model
+                , shared
+                , case shared.route of
+                    Route.HomeComponentCreateBigbitCodeIntroduction _ ->
+                        Route.navigateTo <| Route.HomeComponentCreateBigbitCodeIntroduction (Just absolutePath)
+
+                    Route.HomeComponentCreateBigbitCodeFrame frameNumber _ ->
+                        Route.navigateTo <| Route.HomeComponentCreateBigbitCodeFrame frameNumber (Just absolutePath)
+
+                    Route.HomeComponentCreateBigbitCodeConclusion _ ->
+                        Route.navigateTo <| Route.HomeComponentCreateBigbitCodeConclusion (Just absolutePath)
+
+                    _ ->
+                        Cmd.none
                 )
 
 

@@ -601,10 +601,14 @@ createBigbitView model shared =
                                                 div
                                                     [ class "create-bigbit-fs-file" ]
                                                     [ i
-                                                        [ class "material-icons file-icon" ]
+                                                        [ class "material-icons file-icon"
+                                                        , onClick <| BigbitFileSelected absolutePath
+                                                        ]
                                                         [ text "insert_drive_file" ]
                                                     , div
-                                                        [ class "file-name" ]
+                                                        [ class "file-name"
+                                                        , onClick <| BigbitFileSelected absolutePath
+                                                        ]
                                                         [ text name ]
                                                     ]
                                             )
