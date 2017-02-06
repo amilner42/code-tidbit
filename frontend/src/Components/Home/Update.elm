@@ -78,7 +78,7 @@ update msg model shared =
                     userTheme =
                         ""
 
-                    createBigbitEditorForCurrentFile maybeFilePath =
+                    createBigbitEditorForCurrentFile maybeFilePath backupRoute =
                         case maybeFilePath of
                             Nothing ->
                                 Ports.createCodeEditor
@@ -93,14 +93,7 @@ update msg model shared =
                             Just filePath ->
                                 case FS.getFile currentBigbitCreateData.fs filePath of
                                     Nothing ->
-                                        Ports.createCodeEditor
-                                            { id = "create-bigbit-code-editor"
-                                            , lang = ""
-                                            , theme = userTheme
-                                            , value = "No File Selected"
-                                            , range = Nothing
-                                            , readOnly = True
-                                            }
+                                        Route.navigateTo backupRoute
 
                                     Just (FS.File content { language }) ->
                                         Ports.createCodeEditor
@@ -190,19 +183,19 @@ update msg model shared =
                         Route.HomeComponentCreateBigbitCodeIntroduction maybeFilePath ->
                             ( model
                             , shared
-                            , createBigbitEditorForCurrentFile maybeFilePath
+                            , createBigbitEditorForCurrentFile maybeFilePath (Route.HomeComponentCreateBigbitCodeIntroduction Nothing)
                             )
 
-                        Route.HomeComponentCreateBigbitCodeFrame _ maybeFilePath ->
+                        Route.HomeComponentCreateBigbitCodeFrame frameNumber maybeFilePath ->
                             ( model
                             , shared
-                            , createBigbitEditorForCurrentFile maybeFilePath
+                            , createBigbitEditorForCurrentFile maybeFilePath (Route.HomeComponentCreateBigbitCodeFrame frameNumber Nothing)
                             )
 
                         Route.HomeComponentCreateBigbitCodeConclusion maybeFilePath ->
                             ( model
                             , shared
-                            , createBigbitEditorForCurrentFile maybeFilePath
+                            , createBigbitEditorForCurrentFile maybeFilePath (Route.HomeComponentCreateBigbitCodeConclusion Nothing)
                             )
 
                         _ ->
