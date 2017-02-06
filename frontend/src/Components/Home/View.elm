@@ -561,6 +561,17 @@ createBigbitView model shared =
                 viewingFile absolutePath =
                     (Just absolutePath) == currentActiveFile
 
+                ( introTab, conclusionTab ) =
+                    case shared.route of
+                        Route.HomeComponentCreateBigbitCodeIntroduction _ ->
+                            ( True, False )
+
+                        Route.HomeComponentCreateBigbitCodeConclusion _ ->
+                            ( False, True )
+
+                        _ ->
+                            ( False, False )
+
                 bigbitEditor =
                     div
                         [ class "bigbit-editor" ]
@@ -849,8 +860,14 @@ createBigbitView model shared =
 
                                 Route.HomeComponentCreateBigbitCodeFrame frameNumber _ ->
                                     div
-                                        []
-                                        []
+                                        [ class "comment-body" ]
+                                        [ fs
+                                        , textarea
+                                            [ placeholder <| "Frame " ++ (toString frameNumber)
+                                            , hidden <| Bigbit.isFSOpen model.bigbitCreateData.fs
+                                            ]
+                                            []
+                                        ]
 
                                 Route.HomeComponentCreateBigbitCodeConclusion _ ->
                                     div
@@ -871,8 +888,18 @@ createBigbitView model shared =
 
                         tabBar =
                             div
-                                []
-                                []
+                                [ hidden <| Bigbit.isFSOpen model.bigbitCreateData.fs ]
+                                [ button
+                                    [ onClick <| GoTo <| Route.HomeComponentCreateBigbitCodeIntroduction Nothing
+                                    , classList [ ( "selected-frame", introTab ) ]
+                                    ]
+                                    [ text "Introduction" ]
+                                , button
+                                    [ onClick <| GoTo <| Route.HomeComponentCreateBigbitCodeConclusion Nothing
+                                    , classList [ ( "selected-frame", conclusionTab ) ]
+                                    ]
+                                    [ text "Conclusion" ]
+                                ]
                     in
                         div
                             []
