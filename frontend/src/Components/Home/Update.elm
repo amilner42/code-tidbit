@@ -1026,10 +1026,10 @@ update msg model shared =
 
                                             Ok language ->
                                                 let
-                                                    ( newModel, _, _ ) =
+                                                    ( newModel, _, newCmd ) =
                                                         update (BigbitAddFile absolutePath language) model shared
                                                 in
-                                                    ( newModel, Cmd.none )
+                                                    ( newModel, newCmd )
 
                                     Bigbit.AddingFolder ->
                                         case Bigbit.isValidAddFolderInput absolutePath fs of
