@@ -16,6 +16,7 @@ import Json.Decode as Decode
 import Models.Bigbit as Bigbit
 import Models.FileStructure as FS
 import Models.Snipbit as Snipbit
+import Models.Range as Range
 import Models.Route as Route
 import Task
 import Ports
@@ -684,32 +685,6 @@ update msg model shared =
             -- in range.
             SnipbitUpdateCode newCode ->
                 let
-                    rowsOfCode =
-                        String.split "\n" newCode
-
-                    maxRow =
-                        List.length rowsOfCode - 1
-
-                    lastRow =
-                        Util.lastElem rowsOfCode
-
-                    maxCol =
-                        case lastRow of
-                            Nothing ->
-                                0
-
-                            Just lastRowString ->
-                                String.length lastRowString
-
-                    getNewColAndRow : Int -> Int -> Int -> Int -> ( Int, Int )
-                    getNewColAndRow currentRow currentCol lastRow lastCol =
-                        if currentRow < lastRow then
-                            ( currentRow, currentCol )
-                        else if currentRow == maxRow then
-                            ( currentRow, min currentCol lastCol )
-                        else
-                            ( lastRow, lastCol )
-
                     newHighlightedComments =
                         Array.map
                             (\comment ->
@@ -718,31 +693,11 @@ update msg model shared =
                                         comment
 
                                     Just aRange ->
-                                        let
-                                            ( newStartRow, newStartCol ) =
-                                                getNewColAndRow
-                                                    aRange.startRow
-                                                    aRange.startCol
-                                                    maxRow
-                                                    maxCol
-
-                                            ( newEndRow, newEndCol ) =
-                                                getNewColAndRow
-                                                    aRange.endRow
-                                                    aRange.endCol
-                                                    maxRow
-                                                    maxCol
-
-                                            newRange =
-                                                { startRow = newStartRow
-                                                , startCol = newStartCol
-                                                , endRow = newEndRow
-                                                , endCol = newEndCol
-                                                }
-                                        in
-                                            { comment
-                                                | range = Just newRange
-                                            }
+                                        { comment
+                                            | range =
+                                                Just <|
+                                                    Range.newValidRange aRange newCode
+                                        }
                             )
                             currentHighlightedComments
 
@@ -1071,43 +1026,54 @@ update msg model shared =
                 , Cmd.none
                 )
 
+            -- Update the code and also check if any ranges are out of range
+            -- and update those ranges.
             BigbitUpdateCode newCode ->
-                let
-                    updateCodeForFile maybeFilePath =
-                        case maybeFilePath of
-                            Nothing ->
-                                doNothing
+                case Bigbit.createPageCurrentActiveFile shared.route of
+                    Nothing ->
+                        doNothing
 
-                            Just filePath ->
-                                ( updateBigbitCreateData
-                                    { currentBigbitCreateData
-                                        | fs =
-                                            currentBigbitCreateData.fs
-                                                |> FS.updateFile
-                                                    filePath
-                                                    (\(FS.File content fileMetadata) ->
-                                                        FS.File
-                                                            newCode
-                                                            fileMetadata
-                                                    )
-                                    }
-                                , shared
-                                , Cmd.none
-                                )
-                in
-                    case shared.route of
-                        Route.HomeComponentCreateBigbitCodeIntroduction maybePath ->
-                            updateCodeForFile maybePath
+                    Just filePath ->
+                        ( updateBigbitCreateData
+                            { currentBigbitCreateData
+                                | fs =
+                                    currentBigbitCreateData.fs
+                                        |> FS.updateFile
+                                            filePath
+                                            (\(FS.File content fileMetadata) ->
+                                                FS.File
+                                                    newCode
+                                                    fileMetadata
+                                            )
+                                , highlightedComments =
+                                    Array.map
+                                        (\comment ->
+                                            case comment.fileAndRange of
+                                                Nothing ->
+                                                    comment
 
-                        Route.HomeComponentCreateBigbitCodeFrame _ maybePath ->
-                            updateCodeForFile maybePath
+                                                Just { file, range } ->
+                                                    if FS.isSameFilePath file filePath then
+                                                        case range of
+                                                            Nothing ->
+                                                                comment
 
-                        Route.HomeComponentCreateBigbitCodeConclusion maybePath ->
-                            updateCodeForFile maybePath
-
-                        -- Should never happen
-                        _ ->
-                            doNothing
+                                                            Just aRange ->
+                                                                { comment
+                                                                    | fileAndRange =
+                                                                        Just
+                                                                            { file = file
+                                                                            , range = Just <| Range.newValidRange aRange newCode
+                                                                            }
+                                                                }
+                                                    else
+                                                        comment
+                                        )
+                                        currentBigbitHighlightedComments
+                            }
+                        , shared
+                        , Cmd.none
+                        )
 
             BigbitFileSelected absolutePath ->
                 ( model

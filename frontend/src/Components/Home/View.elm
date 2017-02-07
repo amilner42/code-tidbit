@@ -548,7 +548,8 @@ createBigbitView model shared =
                     Bigbit.createPageCurrentActiveFile shared.route
 
                 viewingFile absolutePath =
-                    (Just absolutePath) == currentActiveFile
+                    Maybe.map (FS.isSameFilePath absolutePath) currentActiveFile
+                        |> Maybe.withDefault False
 
                 ( introTab, conclusionTab, frameTab ) =
                     case shared.route of
