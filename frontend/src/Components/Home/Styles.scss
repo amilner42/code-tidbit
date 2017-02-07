@@ -460,6 +460,10 @@
                           color: $color3;
                           cursor: pointer;
                         }
+
+                        .arrow-confirmed {
+                          color: red;
+                        }
                     }
 
                     .close-action-input {

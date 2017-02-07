@@ -914,6 +914,7 @@ update msg model shared =
                                                     Nothing
                                                 else
                                                     newActionState
+                                            , actionButtonSubmitConfirmed = False
                                         }
                                     )
                     }
@@ -930,6 +931,7 @@ update msg model shared =
                                     (\currentMetadata ->
                                         { currentMetadata
                                             | actionButtonInput = newActionButtonInput
+                                            , actionButtonSubmitConfirmed = False
                                         }
                                     )
                     }
@@ -951,64 +953,174 @@ update msg model shared =
                         fs
                             |> FS.getFSMetadata
                             |> .actionButtonState
+
+                    {- Filters the highlighted comments to make sure non of them
+                       point to non-existant files. Used when removing
+                       files/folders.
+
+                       NOTE: If all comments are filtered out, adds a blank one
+                             because we always want at least one comment.
+                    -}
+                    getNewHighlightedComments hc newFS =
+                        (Array.filter
+                            (\hc ->
+                                case hc.fileAndRange of
+                                    Nothing ->
+                                        True
+
+                                    Just { file, range } ->
+                                        FS.hasFile file newFS
+                            )
+                            currentBigbitHighlightedComments
+                        )
+                            |> (\remainingArray ->
+                                    if Array.length remainingArray == 0 then
+                                        Array.fromList
+                                            [ Bigbit.emptyBigbitHighlightCommentForCreate ]
+                                    else
+                                        remainingArray
+                               )
+
+                    {- After removing files/folders the current URL can become
+                       invalid, this function redirects to intro if needed.
+                    -}
+                    navigateIfRouteNowInvalid newFS newHighlightedComments =
+                        let
+                            redirectToIntro =
+                                Route.navigateTo <| Route.HomeComponentCreateBigbitCodeIntroduction Nothing
+
+                            redirectIfFileRemoved =
+                                case Bigbit.createPageCurrentActiveFile shared.route of
+                                    Nothing ->
+                                        Cmd.none
+
+                                    Just filePath ->
+                                        if FS.hasFile filePath newFS then
+                                            Cmd.none
+                                        else
+                                            Route.navigateTo <|
+                                                Route.HomeComponentCreateBigbitCodeIntroduction Nothing
+                        in
+                            case shared.route of
+                                Route.HomeComponentCreateBigbitCodeFrame frameNumber _ ->
+                                    if frameNumber > (Array.length newHighlightedComments) then
+                                        redirectToIntro
+                                    else
+                                        redirectIfFileRemoved
+
+                                _ ->
+                                    redirectIfFileRemoved
+
+                    ( newModel, newCmd ) =
+                        case maybeCurrentActionState of
+                            -- Should never happen.
+                            Nothing ->
+                                ( model, Cmd.none )
+
+                            Just currentActionState ->
+                                case currentActionState of
+                                    Bigbit.AddingFile ->
+                                        case Bigbit.isValidAddFileInput absolutePath fs of
+                                            Err _ ->
+                                                ( model, Cmd.none )
+
+                                            Ok language ->
+                                                let
+                                                    ( newModel, _, newCmd ) =
+                                                        update (BigbitAddFile absolutePath language) model shared
+                                                in
+                                                    ( newModel, newCmd )
+
+                                    Bigbit.AddingFolder ->
+                                        case Bigbit.isValidAddFolderInput absolutePath fs of
+                                            Err _ ->
+                                                ( model, Cmd.none )
+
+                                            Ok _ ->
+                                                ( updateBigbitCreateData
+                                                    { currentBigbitCreateData
+                                                        | fs =
+                                                            fs
+                                                                |> FS.addFolder
+                                                                    { overwriteExisting = False
+                                                                    , forceCreateDirectories = Just <| always Bigbit.defaultEmptyFolder
+                                                                    }
+                                                                    absolutePath
+                                                                    (FS.Folder Dict.empty Dict.empty { isExpanded = True })
+                                                                |> Bigbit.clearActionButtonInput
+                                                    }
+                                                , Cmd.none
+                                                )
+
+                                    Bigbit.RemovingFile ->
+                                        case Bigbit.isValidRemoveFileInput absolutePath fs of
+                                            Err _ ->
+                                                ( model, Cmd.none )
+
+                                            Ok _ ->
+                                                if .actionButtonSubmitConfirmed <| FS.getFSMetadata fs then
+                                                    let
+                                                        newFS =
+                                                            fs
+                                                                |> FS.removeFile absolutePath
+                                                                |> Bigbit.clearActionButtonInput
+
+                                                        newHighlightedComments =
+                                                            getNewHighlightedComments currentBigbitHighlightedComments newFS
+                                                    in
+                                                        ( updateBigbitCreateData
+                                                            { currentBigbitCreateData
+                                                                | fs = newFS
+                                                                , highlightedComments = newHighlightedComments
+                                                            }
+                                                        , navigateIfRouteNowInvalid newFS newHighlightedComments
+                                                        )
+                                                else
+                                                    ( updateBigbitCreateData
+                                                        { currentBigbitCreateData
+                                                            | fs =
+                                                                fs
+                                                                    |> Bigbit.setActionButtonSubmitConfirmed True
+                                                        }
+                                                    , Cmd.none
+                                                    )
+
+                                    Bigbit.RemovingFolder ->
+                                        case Bigbit.isValidRemoveFolderInput absolutePath fs of
+                                            Err _ ->
+                                                ( model, Cmd.none )
+
+                                            Ok _ ->
+                                                if .actionButtonSubmitConfirmed <| FS.getFSMetadata fs then
+                                                    let
+                                                        newFS =
+                                                            fs
+                                                                |> FS.removeFolder absolutePath
+                                                                |> Bigbit.clearActionButtonInput
+
+                                                        newHighlightedComments =
+                                                            getNewHighlightedComments currentBigbitHighlightedComments newFS
+                                                    in
+                                                        ( updateBigbitCreateData
+                                                            { currentBigbitCreateData
+                                                                | fs = newFS
+                                                                , highlightedComments = newHighlightedComments
+                                                            }
+                                                        , navigateIfRouteNowInvalid newFS newHighlightedComments
+                                                        )
+                                                else
+                                                    ( updateBigbitCreateData
+                                                        { currentBigbitCreateData
+                                                            | fs =
+                                                                fs
+                                                                    |> Bigbit.setActionButtonSubmitConfirmed True
+                                                        }
+                                                    , Cmd.none
+                                                    )
                 in
-                    ( case maybeCurrentActionState of
-                        -- Should never happen.
-                        Nothing ->
-                            model
-
-                        Just currentActionState ->
-                            case currentActionState of
-                                Bigbit.AddingFile ->
-                                    case Bigbit.isValidAddFileInput absolutePath fs of
-                                        Err err ->
-                                            model
-
-                                        Ok language ->
-                                            let
-                                                ( newModel, _, _ ) =
-                                                    update (BigbitAddFile absolutePath language) model shared
-                                            in
-                                                newModel
-
-                                Bigbit.AddingFolder ->
-                                    case Bigbit.isValidAddFolderInput absolutePath fs of
-                                        Err err ->
-                                            model
-
-                                        Ok _ ->
-                                            updateBigbitCreateData
-                                                { currentBigbitCreateData
-                                                    | fs =
-                                                        fs
-                                                            |> FS.addFolder
-                                                                { overwriteExisting = False
-                                                                , forceCreateDirectories = Just <| always Bigbit.defaultEmptyFolder
-                                                                }
-                                                                absolutePath
-                                                                (FS.Folder Dict.empty Dict.empty { isExpanded = True })
-                                                            |> Bigbit.clearActionButtonInput
-                                                }
-
-                                Bigbit.RemovingFile ->
-                                    updateBigbitCreateData
-                                        { currentBigbitCreateData
-                                            | fs =
-                                                fs
-                                                    |> FS.removeFile absolutePath
-                                                    |> Bigbit.clearActionButtonInput
-                                        }
-
-                                Bigbit.RemovingFolder ->
-                                    updateBigbitCreateData
-                                        { currentBigbitCreateData
-                                            | fs =
-                                                fs
-                                                    |> FS.removeFolder absolutePath
-                                                    |> Bigbit.clearActionButtonInput
-                                        }
+                    ( newModel
                     , shared
-                    , Cmd.none
+                    , newCmd
                     )
 
             BigbitAddFile absolutePath language ->
