@@ -63,3 +63,4 @@ type Msg
     | BigbitFileSelected FS.Path
     | BigbitAddFrame
     | BigbitRemoveFrame
+    | BigbitUpdateFrameComment Int String

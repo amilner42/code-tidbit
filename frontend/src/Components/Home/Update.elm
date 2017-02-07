@@ -1128,6 +1128,31 @@ update msg model shared =
                     in
                         ( newModel, shared, newCmd )
 
+            BigbitUpdateFrameComment frameNumber newComment ->
+                case Array.get (frameNumber - 1) currentBigbitHighlightedComments of
+                    Nothing ->
+                        doNothing
+
+                    Just highlightedComment ->
+                        let
+                            newHighlightedComment =
+                                { highlightedComment
+                                    | comment = newComment
+                                }
+
+                            newHighlightedComments =
+                                Array.set (frameNumber - 1)
+                                    newHighlightedComment
+                                    currentBigbitHighlightedComments
+                        in
+                            ( updateBigbitCreateData
+                                { currentBigbitCreateData
+                                    | highlightedComments = newHighlightedComments
+                                }
+                            , shared
+                            , Cmd.none
+                            )
+
 
 {-| Filters the languages based on `query`.
 -}

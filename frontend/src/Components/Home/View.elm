@@ -856,6 +856,15 @@ createBigbitView model shared =
                                         [ fs
                                         , textarea
                                             [ placeholder <| "Frame " ++ (toString frameNumber)
+                                            , onInput <| BigbitUpdateFrameComment frameNumber
+                                            , value <|
+                                                ((Array.get
+                                                    (frameNumber - 1)
+                                                    model.bigbitCreateData.highlightedComments
+                                                 )
+                                                    |> Maybe.map .comment
+                                                    |> Maybe.withDefault ""
+                                                )
                                             , hidden <| Bigbit.isFSOpen model.bigbitCreateData.fs
                                             ]
                                             []
