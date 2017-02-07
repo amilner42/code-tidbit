@@ -640,7 +640,9 @@
                 }
 
                 .selected-frame {
-                    color: $color1;
+                    background-color: $color1;
+                    color: white;
+                    border-color: $color1;
                 }
             }
         }

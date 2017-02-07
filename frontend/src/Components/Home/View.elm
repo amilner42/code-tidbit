@@ -545,32 +545,24 @@ createBigbitView model shared =
         bigbitCodeTab =
             let
                 currentActiveFile =
-                    case shared.route of
-                        Route.HomeComponentCreateBigbitCodeIntroduction maybePath ->
-                            maybePath
-
-                        Route.HomeComponentCreateBigbitCodeFrame _ maybePath ->
-                            maybePath
-
-                        Route.HomeComponentCreateBigbitCodeConclusion maybePath ->
-                            maybePath
-
-                        _ ->
-                            Nothing
+                    Bigbit.createPageCurrentActiveFile shared.route
 
                 viewingFile absolutePath =
                     (Just absolutePath) == currentActiveFile
 
-                ( introTab, conclusionTab ) =
+                ( introTab, conclusionTab, frameTab ) =
                     case shared.route of
                         Route.HomeComponentCreateBigbitCodeIntroduction _ ->
-                            ( True, False )
+                            ( True, False, Nothing )
+
+                        Route.HomeComponentCreateBigbitCodeFrame frameNumber _ ->
+                            ( False, False, Just frameNumber )
 
                         Route.HomeComponentCreateBigbitCodeConclusion _ ->
-                            ( False, True )
+                            ( False, True, Nothing )
 
                         _ ->
-                            ( False, False )
+                            ( False, False, Nothing )
 
                 bigbitEditor =
                     div
@@ -884,22 +876,52 @@ createBigbitView model shared =
 
                                 -- Should never happen.
                                 _ ->
-                                    div [] []
+                                    Util.hiddenDiv
 
                         tabBar =
-                            div
-                                [ hidden <| Bigbit.isFSOpen model.bigbitCreateData.fs ]
-                                [ button
-                                    [ onClick <| GoTo <| Route.HomeComponentCreateBigbitCodeIntroduction Nothing
-                                    , classList [ ( "selected-frame", introTab ) ]
-                                    ]
-                                    [ text "Introduction" ]
-                                , button
-                                    [ onClick <| GoTo <| Route.HomeComponentCreateBigbitCodeConclusion Nothing
-                                    , classList [ ( "selected-frame", conclusionTab ) ]
-                                    ]
-                                    [ text "Conclusion" ]
-                                ]
+                            let
+                                dynamicFrameButtons =
+                                    (Array.indexedMap
+                                        (\index highlightedComment ->
+                                            button
+                                                [ classList [ ( "selected-frame", (Just <| index + 1) == frameTab ) ]
+                                                , onClick <| GoTo <| Route.HomeComponentCreateBigbitCodeFrame (index + 1) Nothing
+                                                ]
+                                                [ text <| toString <| index + 1 ]
+                                        )
+                                        model.bigbitCreateData.highlightedComments
+                                    )
+                                        |> Array.toList
+                            in
+                                div
+                                    [ hidden <| Bigbit.isFSOpen model.bigbitCreateData.fs ]
+                                    ([ button
+                                        [ onClick <| GoTo <| Route.HomeComponentCreateBigbitCodeIntroduction Nothing
+                                        , classList [ ( "selected-frame", introTab ) ]
+                                        ]
+                                        [ text "Introduction" ]
+                                     , button
+                                        [ onClick <| GoTo <| Route.HomeComponentCreateBigbitCodeConclusion Nothing
+                                        , classList [ ( "selected-frame", conclusionTab ) ]
+                                        ]
+                                        [ text "Conclusion" ]
+                                     , button
+                                        [ class "action-button plus-button"
+                                        , onClick <| BigbitAddFrame
+                                        ]
+                                        [ text "+" ]
+                                     , button
+                                        [ class "action-button"
+                                        , onClick <| BigbitRemoveFrame
+                                        , disabled <|
+                                            Array.length model.bigbitCreateData.highlightedComments
+                                                <= 1
+                                        ]
+                                        [ text "-" ]
+                                     , hr [] []
+                                     ]
+                                        ++ dynamicFrameButtons
+                                    )
                     in
                         div
                             []

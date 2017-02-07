@@ -51,6 +51,10 @@ update msg model shared =
         currentBigbitCreateData : Bigbit.BigbitCreateData
         currentBigbitCreateData =
             model.bigbitCreateData
+
+        currentBigbitHighlightedComments : Array.Array Bigbit.BigbitHighlightedCommentForCreate
+        currentBigbitHighlightedComments =
+            currentBigbitCreateData.highlightedComments
     in
         case msg of
             NoOp ->
@@ -1060,6 +1064,69 @@ update msg model shared =
                     _ ->
                         Cmd.none
                 )
+
+            BigbitAddFrame ->
+                let
+                    currentPath =
+                        Bigbit.createPageCurrentActiveFile shared.route
+
+                    newModel =
+                        updateBigbitCreateData
+                            { currentBigbitCreateData
+                                | highlightedComments =
+                                    (Array.push
+                                        Bigbit.emptyBigbitHighlightCommentForCreate
+                                        currentBigbitHighlightedComments
+                                    )
+                            }
+
+                    newCmd =
+                        Route.navigateTo <|
+                            Route.HomeComponentCreateBigbitCodeFrame
+                                (Array.length newModel.bigbitCreateData.highlightedComments)
+                                currentPath
+                in
+                    ( newModel, shared, newCmd )
+
+            BigbitRemoveFrame ->
+                if Array.length currentBigbitHighlightedComments == 1 then
+                    doNothing
+                else
+                    let
+                        newHighlightedComments =
+                            Array.slice
+                                0
+                                (Array.length currentBigbitHighlightedComments - 1)
+                                currentBigbitHighlightedComments
+
+                        newModel =
+                            updateBigbitCreateData
+                                { currentBigbitCreateData
+                                    | highlightedComments = newHighlightedComments
+                                }
+
+                        -- Have to make sure if they are on the last frame it pushes
+                        -- them down one frame.
+                        newRoute =
+                            case shared.route of
+                                Route.HomeComponentCreateBigbitCodeFrame frameNumber filePath ->
+                                    Just <|
+                                        Route.HomeComponentCreateBigbitCodeFrame
+                                            (if frameNumber == (Array.length currentBigbitHighlightedComments) then
+                                                (frameNumber - 1)
+                                             else
+                                                frameNumber
+                                            )
+                                            filePath
+
+                                _ ->
+                                    Nothing
+
+                        newCmd =
+                            Maybe.map Route.navigateTo newRoute
+                                |> Maybe.withDefault Cmd.none
+                    in
+                        ( newModel, shared, newCmd )
 
 
 {-| Filters the languages based on `query`.

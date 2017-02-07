@@ -6,6 +6,7 @@ import Components.Home.Model exposing (Model)
 import Elements.Editor as Editor
 import Models.FileStructure as FS
 import Models.Snipbit as Snipbit
+import Models.Bigbit as Bigbit
 
 
 {-| Home Component Init.
@@ -48,5 +49,8 @@ init =
                 }
                 { isExpanded = True }
             )
+        , highlightedComments =
+            Array.fromList
+                [ Bigbit.emptyBigbitHighlightCommentForCreate ]
         }
     }

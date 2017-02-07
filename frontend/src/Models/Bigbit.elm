@@ -1,5 +1,6 @@
 module Models.Bigbit exposing (..)
 
+import Array
 import Char
 import DefaultServices.Util as Util
 import Dict
@@ -9,6 +10,8 @@ import Json.Decode as Decode
 import Json.Decode.Pipeline exposing (decode, required, optional, hardcoded)
 import Models.HighlightedComment as HighlightedComment
 import Models.FileStructure as FS
+import Models.Range as Range
+import Models.Route as Route
 
 
 {-| A Bigbit as seen in the database.
@@ -96,6 +99,69 @@ type alias BigbitCreateDataFileMetadata =
     }
 
 
+{-| The highlighted comments on bigbits are different than regular highlighted
+comments (`Models/HighlightedComment`) because they also need to point to a
+file.
+-}
+type alias BigbitHighlightedCommentForCreate =
+    { comment : String
+    , fileAndRange : Maybe FileAndRange
+    }
+
+
+{-| A file and a range, used in bigbit highlighted comments.
+-}
+type alias FileAndRange =
+    { range : Maybe Range.Range
+    , file : FS.Path
+    }
+
+
+{-| Creates an empty highlighted comment.
+-}
+emptyBigbitHighlightCommentForCreate : BigbitHighlightedCommentForCreate
+emptyBigbitHighlightCommentForCreate =
+    { comment = ""
+    , fileAndRange = Nothing
+    }
+
+
+{-| BigbitHighlightedCommentForCreate `cacheEncoder`.
+-}
+bigbitHighlightedCommentForCreateCacheEncoder : BigbitHighlightedCommentForCreate -> Encode.Value
+bigbitHighlightedCommentForCreateCacheEncoder hc =
+    Encode.object
+        [ ( "comment", Encode.string hc.comment )
+        , ( "fileAndRange"
+          , Util.justValueOrNull
+                (\fileAndRange ->
+                    Encode.object
+                        [ ( "range", Util.justValueOrNull Range.rangeCacheEncoder fileAndRange.range )
+                        , ( "file", Encode.string fileAndRange.file )
+                        ]
+                )
+                hc.fileAndRange
+          )
+        ]
+
+
+{-| BigbitHighlightedCommentForCreate `cacheDecoder`.
+-}
+bigbitHighlightedCommentForCreateCacheDecoder : Decode.Decoder BigbitHighlightedCommentForCreate
+bigbitHighlightedCommentForCreateCacheDecoder =
+    let
+        decodeFileAndRange =
+            Decode.maybe
+                (decode FileAndRange
+                    |> required "range" (Decode.maybe Range.rangeCacheDecoder)
+                    |> required "file" Decode.string
+                )
+    in
+        decode BigbitHighlightedCommentForCreate
+            |> required "comment" Decode.string
+            |> required "fileAndRange" decodeFileAndRange
+
+
 {-| The data being stored for a bigbit being created.
 -}
 type alias BigbitCreateData =
@@ -106,6 +172,7 @@ type alias BigbitCreateData =
     , introduction : String
     , conclusion : String
     , fs : FS.FileStructure BigbitCreateDataFSMetadata BigbitCreateDataFolderMetadata BigbitCreateDataFileMetadata
+    , highlightedComments : Array.Array BigbitHighlightedCommentForCreate
     }
 
 
@@ -141,6 +208,7 @@ bigbitCreateDataCacheEncoder bigbitCreateData =
             , ( "introduction", Encode.string bigbitCreateData.introduction )
             , ( "conclusion", Encode.string bigbitCreateData.conclusion )
             , ( "fs", encodeFS bigbitCreateData.fs )
+            , ( "highlightedComments", Encode.array <| Array.map bigbitHighlightedCommentForCreateCacheEncoder bigbitCreateData.highlightedComments )
             ]
 
 
@@ -172,6 +240,7 @@ bigbitCreateDataCacheDecoder =
             |> required "introduction" Decode.string
             |> required "conclusion" Decode.string
             |> required "fs" decodeFS
+            |> required "highlightedComments" (Decode.array bigbitHighlightedCommentForCreateCacheDecoder)
 
 
 {-| Possible errors with input for creating a file.
@@ -348,3 +417,21 @@ clearActionButtonInput =
                 | actionButtonInput = ""
             }
         )
+
+
+{-| The current active path determined from the route.
+-}
+createPageCurrentActiveFile : Route.Route -> Maybe FS.Path
+createPageCurrentActiveFile route =
+    case route of
+        Route.HomeComponentCreateBigbitCodeIntroduction maybePath ->
+            maybePath
+
+        Route.HomeComponentCreateBigbitCodeFrame _ maybePath ->
+            maybePath
+
+        Route.HomeComponentCreateBigbitCodeConclusion maybePath ->
+            maybePath
+
+        _ ->
+            Nothing
