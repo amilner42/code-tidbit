@@ -46,6 +46,7 @@ init =
                 , openFS = True
                 , actionButtonState = Nothing
                 , actionButtonInput = ""
+                , actionButtonSubmitConfirmed = False
                 }
                 { isExpanded = True }
             )

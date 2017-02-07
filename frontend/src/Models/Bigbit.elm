@@ -82,6 +82,7 @@ type alias BigbitCreateDataFSMetadata =
     , openFS : Bool
     , actionButtonState : Maybe FSActionButtonState
     , actionButtonInput : String
+    , actionButtonSubmitConfirmed : Bool
     }
 
 
@@ -189,6 +190,7 @@ bigbitCreateDataCacheEncoder bigbitCreateData =
                         , ( "openFS", Encode.bool fsMetadata.openFS )
                         , ( "actionButtonState", Util.justValueOrNull fsActionButtonStateCacheEncoder fsMetadata.actionButtonState )
                         , ( "actionButtonInput", Encode.string fsMetadata.actionButtonInput )
+                        , ( "actionButtonSubmitConfirmed", Encode.bool fsMetadata.actionButtonSubmitConfirmed )
                         ]
                 )
                 (\folderMetadata ->
@@ -224,6 +226,7 @@ bigbitCreateDataCacheDecoder =
                     |> required "openFS" Decode.bool
                     |> required "actionButtonState" (Decode.maybe fsActionButtonStateCacheDecoder)
                     |> required "actionButtonInput" Decode.string
+                    |> required "actionButtonSubmitConfirmed" Decode.bool
                 )
                 (decode BigbitCreateDataFolderMetadata
                     |> required "isExpanded" Decode.bool
@@ -262,6 +265,21 @@ type InvalidFolderName
     | FolderAlreadyExists
     | FolderIsEmpty
     | FolderHasDoubleSlash
+
+
+{-| Possible erros with input for removing a file.
+-}
+type InvalidRemoveFileName
+    = RemoveFileIsEmpty
+    | RemoveFileDoesNotExist
+
+
+{-| Possible erros with input for removing a folder.
+-}
+type InvalidRemoveFolderName
+    = RemoveFolderIsEmpty
+    | RemoveFolderIsRootFolder
+    | RemoveFolderDoesNotExist
 
 
 {-| Checks if the path has invalid characters.
@@ -354,6 +372,32 @@ isValidAddFileInput absolutePath fs =
                )
 
 
+{-| Checks that a remove-file-path is valid.
+-}
+isValidRemoveFileInput : FS.Path -> FS.FileStructure a b c -> Result InvalidRemoveFileName ()
+isValidRemoveFileInput absolutePath fs =
+    if pathIsEmpty absolutePath then
+        Result.Err RemoveFileIsEmpty
+    else if not <| FS.hasFile absolutePath fs then
+        Result.Err RemoveFileDoesNotExist
+    else
+        Result.Ok ()
+
+
+{-| Checks that a remove-folder-path is valid.
+-}
+isValidRemoveFolderInput : FS.Path -> FS.FileStructure a b c -> Result InvalidRemoveFolderName ()
+isValidRemoveFolderInput absolutePath fs =
+    if pathIsEmpty absolutePath then
+        Result.Err RemoveFolderIsEmpty
+    else if absolutePath == "/" then
+        Result.Err RemoveFolderIsRootFolder
+    else if not <| FS.hasFolder absolutePath fs then
+        Result.Err RemoveFolderDoesNotExist
+    else
+        Result.Ok ()
+
+
 
 -- FS helpers below (refer to examples below to use row-polymorphism).
 
@@ -435,3 +479,16 @@ createPageCurrentActiveFile route =
 
         _ ->
             Nothing
+
+
+{-| Helper for setting the actionButtonSubmitConfirmed.
+-}
+setActionButtonSubmitConfirmed : Bool -> FS.FileStructure { a | actionButtonSubmitConfirmed : Bool } b c -> FS.FileStructure { a | actionButtonSubmitConfirmed : Bool } b c
+setActionButtonSubmitConfirmed newConfirmValue fs =
+    fs
+        |> FS.updateFSMetadata
+            (\fsMetadata ->
+                { fsMetadata
+                    | actionButtonSubmitConfirmed = newConfirmValue
+                }
+            )
