@@ -151,6 +151,16 @@ updateCacheIf msg model shouldCache =
                                 shouldCache
                             )
 
+                        "create-bigbit-code-editor" ->
+                            (updateCacheIf
+                                (HomeMessage <|
+                                    HomeMessages.BigbitNewRangeSelected
+                                        range
+                                )
+                                model
+                                shouldCache
+                            )
+
                         _ ->
                             doNothing
     in

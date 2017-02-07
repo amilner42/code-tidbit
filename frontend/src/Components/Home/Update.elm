@@ -16,6 +16,7 @@ import Json.Decode as Decode
 import Models.Bigbit as Bigbit
 import Models.FileStructure as FS
 import Models.Snipbit as Snipbit
+import Models.Range as Range
 import Models.Route as Route
 import Task
 import Ports
@@ -51,6 +52,10 @@ update msg model shared =
         currentBigbitCreateData : Bigbit.BigbitCreateData
         currentBigbitCreateData =
             model.bigbitCreateData
+
+        currentBigbitHighlightedComments : Array.Array Bigbit.BigbitHighlightedCommentForCreate
+        currentBigbitHighlightedComments =
+            currentBigbitCreateData.highlightedComments
     in
         case msg of
             NoOp ->
@@ -78,7 +83,7 @@ update msg model shared =
                     userTheme =
                         ""
 
-                    createBigbitEditorForCurrentFile maybeFilePath backupRoute =
+                    createBigbitEditorForCurrentFile maybeRange maybeFilePath backupRoute =
                         case maybeFilePath of
                             Nothing ->
                                 Ports.createCodeEditor
@@ -101,7 +106,7 @@ update msg model shared =
                                             , lang = Editor.aceLanguageLocation language
                                             , theme = userTheme
                                             , value = content
-                                            , range = Nothing
+                                            , range = maybeRange
                                             , readOnly = False
                                             }
                 in
@@ -183,19 +188,83 @@ update msg model shared =
                         Route.HomeComponentCreateBigbitCodeIntroduction maybeFilePath ->
                             ( model
                             , shared
-                            , createBigbitEditorForCurrentFile maybeFilePath (Route.HomeComponentCreateBigbitCodeIntroduction Nothing)
+                            , createBigbitEditorForCurrentFile Nothing maybeFilePath (Route.HomeComponentCreateBigbitCodeIntroduction Nothing)
                             )
 
                         Route.HomeComponentCreateBigbitCodeFrame frameNumber maybeFilePath ->
-                            ( model
-                            , shared
-                            , createBigbitEditorForCurrentFile maybeFilePath (Route.HomeComponentCreateBigbitCodeFrame frameNumber Nothing)
-                            )
+                            if frameNumber < 1 || frameNumber > (Array.length currentBigbitHighlightedComments) then
+                                ( model, shared, Route.navigateTo <| Route.HomeComponentCreateBigbitCodeIntroduction Nothing )
+                            else
+                                let
+                                    newModel =
+                                        case maybeFilePath of
+                                            Nothing ->
+                                                case Array.get (frameNumber - 1) currentBigbitHighlightedComments of
+                                                    Nothing ->
+                                                        model
+
+                                                    Just currentHighlightedComment ->
+                                                        updateBigbitCreateData
+                                                            { currentBigbitCreateData
+                                                                | highlightedComments =
+                                                                    Array.set
+                                                                        (frameNumber - 1)
+                                                                        { currentHighlightedComment
+                                                                            | fileAndRange = Nothing
+                                                                        }
+                                                                        currentBigbitHighlightedComments
+                                                            }
+
+                                            Just filePath ->
+                                                case Array.get (frameNumber - 1) currentBigbitHighlightedComments of
+                                                    Nothing ->
+                                                        model
+
+                                                    Just currentHighlightedComment ->
+                                                        updateBigbitCreateData
+                                                            { currentBigbitCreateData
+                                                                | highlightedComments =
+                                                                    Array.set
+                                                                        (frameNumber - 1)
+                                                                        (case currentHighlightedComment.fileAndRange of
+                                                                            Nothing ->
+                                                                                { currentHighlightedComment
+                                                                                    | fileAndRange =
+                                                                                        Just
+                                                                                            { range = Nothing
+                                                                                            , file = filePath
+                                                                                            }
+                                                                                }
+
+                                                                            Just fileAndRange ->
+                                                                                if FS.isSameFilePath fileAndRange.file filePath then
+                                                                                    currentHighlightedComment
+                                                                                else
+                                                                                    { currentHighlightedComment
+                                                                                        | fileAndRange =
+                                                                                            Just
+                                                                                                { range = Nothing
+                                                                                                , file = filePath
+                                                                                                }
+                                                                                    }
+                                                                        )
+                                                                        currentBigbitHighlightedComments
+                                                            }
+
+                                    maybeRangeToHighlight =
+                                        Array.get (frameNumber - 1) newModel.bigbitCreateData.highlightedComments
+                                            |> Maybe.andThen .fileAndRange
+                                            |> Maybe.andThen .range
+                                in
+                                    ( newModel
+                                    , shared
+                                    , createBigbitEditorForCurrentFile maybeRangeToHighlight maybeFilePath (Route.HomeComponentCreateBigbitCodeFrame frameNumber Nothing)
+                                    )
 
                         Route.HomeComponentCreateBigbitCodeConclusion maybeFilePath ->
                             ( model
                             , shared
-                            , createBigbitEditorForCurrentFile maybeFilePath (Route.HomeComponentCreateBigbitCodeConclusion Nothing)
+                            , createBigbitEditorForCurrentFile Nothing maybeFilePath (Route.HomeComponentCreateBigbitCodeConclusion Nothing)
                             )
 
                         _ ->
@@ -619,32 +688,6 @@ update msg model shared =
             -- in range.
             SnipbitUpdateCode newCode ->
                 let
-                    rowsOfCode =
-                        String.split "\n" newCode
-
-                    maxRow =
-                        List.length rowsOfCode - 1
-
-                    lastRow =
-                        Util.lastElem rowsOfCode
-
-                    maxCol =
-                        case lastRow of
-                            Nothing ->
-                                0
-
-                            Just lastRowString ->
-                                String.length lastRowString
-
-                    getNewColAndRow : Int -> Int -> Int -> Int -> ( Int, Int )
-                    getNewColAndRow currentRow currentCol lastRow lastCol =
-                        if currentRow < lastRow then
-                            ( currentRow, currentCol )
-                        else if currentRow == maxRow then
-                            ( currentRow, min currentCol lastCol )
-                        else
-                            ( lastRow, lastCol )
-
                     newHighlightedComments =
                         Array.map
                             (\comment ->
@@ -653,31 +696,11 @@ update msg model shared =
                                         comment
 
                                     Just aRange ->
-                                        let
-                                            ( newStartRow, newStartCol ) =
-                                                getNewColAndRow
-                                                    aRange.startRow
-                                                    aRange.startCol
-                                                    maxRow
-                                                    maxCol
-
-                                            ( newEndRow, newEndCol ) =
-                                                getNewColAndRow
-                                                    aRange.endRow
-                                                    aRange.endCol
-                                                    maxRow
-                                                    maxCol
-
-                                            newRange =
-                                                { startRow = newStartRow
-                                                , startCol = newStartCol
-                                                , endRow = newEndRow
-                                                , endCol = newEndCol
-                                                }
-                                        in
-                                            { comment
-                                                | range = Just newRange
-                                            }
+                                        { comment
+                                            | range =
+                                                Just <|
+                                                    Range.newValidRange aRange newCode
+                                        }
                             )
                             currentHighlightedComments
 
@@ -1006,43 +1029,54 @@ update msg model shared =
                 , Cmd.none
                 )
 
+            -- Update the code and also check if any ranges are out of range
+            -- and update those ranges.
             BigbitUpdateCode newCode ->
-                let
-                    updateCodeForFile maybeFilePath =
-                        case maybeFilePath of
-                            Nothing ->
-                                doNothing
+                case Bigbit.createPageCurrentActiveFile shared.route of
+                    Nothing ->
+                        doNothing
 
-                            Just filePath ->
-                                ( updateBigbitCreateData
-                                    { currentBigbitCreateData
-                                        | fs =
-                                            currentBigbitCreateData.fs
-                                                |> FS.updateFile
-                                                    filePath
-                                                    (\(FS.File content fileMetadata) ->
-                                                        FS.File
-                                                            newCode
-                                                            fileMetadata
-                                                    )
-                                    }
-                                , shared
-                                , Cmd.none
-                                )
-                in
-                    case shared.route of
-                        Route.HomeComponentCreateBigbitCodeIntroduction maybePath ->
-                            updateCodeForFile maybePath
+                    Just filePath ->
+                        ( updateBigbitCreateData
+                            { currentBigbitCreateData
+                                | fs =
+                                    currentBigbitCreateData.fs
+                                        |> FS.updateFile
+                                            filePath
+                                            (\(FS.File content fileMetadata) ->
+                                                FS.File
+                                                    newCode
+                                                    fileMetadata
+                                            )
+                                , highlightedComments =
+                                    Array.map
+                                        (\comment ->
+                                            case comment.fileAndRange of
+                                                Nothing ->
+                                                    comment
 
-                        Route.HomeComponentCreateBigbitCodeFrame _ maybePath ->
-                            updateCodeForFile maybePath
+                                                Just { file, range } ->
+                                                    if FS.isSameFilePath file filePath then
+                                                        case range of
+                                                            Nothing ->
+                                                                comment
 
-                        Route.HomeComponentCreateBigbitCodeConclusion maybePath ->
-                            updateCodeForFile maybePath
-
-                        -- Should never happen
-                        _ ->
-                            doNothing
+                                                            Just aRange ->
+                                                                { comment
+                                                                    | fileAndRange =
+                                                                        Just
+                                                                            { file = file
+                                                                            , range = Just <| Range.newValidRange aRange newCode
+                                                                            }
+                                                                }
+                                                    else
+                                                        comment
+                                        )
+                                        currentBigbitHighlightedComments
+                            }
+                        , shared
+                        , Cmd.none
+                        )
 
             BigbitFileSelected absolutePath ->
                 ( model
@@ -1060,6 +1094,128 @@ update msg model shared =
                     _ ->
                         Cmd.none
                 )
+
+            BigbitAddFrame ->
+                let
+                    currentPath =
+                        Bigbit.createPageCurrentActiveFile shared.route
+
+                    newModel =
+                        updateBigbitCreateData
+                            { currentBigbitCreateData
+                                | highlightedComments =
+                                    (Array.push
+                                        Bigbit.emptyBigbitHighlightCommentForCreate
+                                        currentBigbitHighlightedComments
+                                    )
+                            }
+
+                    newCmd =
+                        Route.navigateTo <|
+                            Route.HomeComponentCreateBigbitCodeFrame
+                                (Array.length newModel.bigbitCreateData.highlightedComments)
+                                currentPath
+                in
+                    ( newModel, shared, newCmd )
+
+            BigbitRemoveFrame ->
+                if Array.length currentBigbitHighlightedComments == 1 then
+                    doNothing
+                else
+                    let
+                        newHighlightedComments =
+                            Array.slice
+                                0
+                                (Array.length currentBigbitHighlightedComments - 1)
+                                currentBigbitHighlightedComments
+
+                        newModel =
+                            updateBigbitCreateData
+                                { currentBigbitCreateData
+                                    | highlightedComments = newHighlightedComments
+                                }
+
+                        -- Have to make sure if they are on the last frame it pushes
+                        -- them down one frame.
+                        newRoute =
+                            case shared.route of
+                                Route.HomeComponentCreateBigbitCodeFrame frameNumber filePath ->
+                                    Just <|
+                                        Route.HomeComponentCreateBigbitCodeFrame
+                                            (if frameNumber == (Array.length currentBigbitHighlightedComments) then
+                                                (frameNumber - 1)
+                                             else
+                                                frameNumber
+                                            )
+                                            filePath
+
+                                _ ->
+                                    Nothing
+
+                        newCmd =
+                            Maybe.map Route.navigateTo newRoute
+                                |> Maybe.withDefault Cmd.none
+                    in
+                        ( newModel, shared, newCmd )
+
+            BigbitUpdateFrameComment frameNumber newComment ->
+                case Array.get (frameNumber - 1) currentBigbitHighlightedComments of
+                    Nothing ->
+                        doNothing
+
+                    Just highlightedComment ->
+                        let
+                            newHighlightedComment =
+                                { highlightedComment
+                                    | comment = newComment
+                                }
+
+                            newHighlightedComments =
+                                Array.set (frameNumber - 1)
+                                    newHighlightedComment
+                                    currentBigbitHighlightedComments
+                        in
+                            ( updateBigbitCreateData
+                                { currentBigbitCreateData
+                                    | highlightedComments = newHighlightedComments
+                                }
+                            , shared
+                            , Cmd.none
+                            )
+
+            BigbitNewRangeSelected newRange ->
+                case shared.route of
+                    Route.HomeComponentCreateBigbitCodeFrame frameNumber currentPath ->
+                        case Array.get (frameNumber - 1) currentBigbitHighlightedComments of
+                            Nothing ->
+                                doNothing
+
+                            Just highlightedComment ->
+                                case highlightedComment.fileAndRange of
+                                    Nothing ->
+                                        doNothing
+
+                                    Just fileAndRange ->
+                                        ( updateBigbitCreateData
+                                            { currentBigbitCreateData
+                                                | highlightedComments =
+                                                    Array.set
+                                                        (frameNumber - 1)
+                                                        { highlightedComment
+                                                            | fileAndRange =
+                                                                Just
+                                                                    { fileAndRange
+                                                                        | range = Just newRange
+                                                                    }
+                                                        }
+                                                        currentBigbitHighlightedComments
+                                            }
+                                        , shared
+                                        , Cmd.none
+                                        )
+
+                    _ ->
+                        doNothing
 
 
 {-| Filters the languages based on `query`.

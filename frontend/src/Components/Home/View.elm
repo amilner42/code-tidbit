@@ -545,28 +545,39 @@ createBigbitView model shared =
         bigbitCodeTab =
             let
                 currentActiveFile =
-                    case shared.route of
-                        Route.HomeComponentCreateBigbitCodeIntroduction maybePath ->
-                            maybePath
-
-                        Route.HomeComponentCreateBigbitCodeFrame _ maybePath ->
-                            maybePath
-
-                        Route.HomeComponentCreateBigbitCodeConclusion maybePath ->
-                            maybePath
-
-                        _ ->
-                            Nothing
+                    Bigbit.createPageCurrentActiveFile shared.route
 
                 viewingFile absolutePath =
-                    (Just absolutePath) == currentActiveFile
+                    Maybe.map (FS.isSameFilePath absolutePath) currentActiveFile
+                        |> Maybe.withDefault False
+
+                ( introTab, conclusionTab, frameTab ) =
+                    case shared.route of
+                        Route.HomeComponentCreateBigbitCodeIntroduction _ ->
+                            ( True, False, Nothing )
+
+                        Route.HomeComponentCreateBigbitCodeFrame frameNumber _ ->
+                            ( False, False, Just frameNumber )
+
+                        Route.HomeComponentCreateBigbitCodeConclusion _ ->
+                            ( False, True, Nothing )
+
+                        _ ->
+                            ( False, False, Nothing )
 
                 bigbitEditor =
                     div
                         [ class "bigbit-editor" ]
                         [ div
                             [ class "current-file" ]
-                            [ text <| Maybe.withDefault "No File Selected" currentActiveFile ]
+                            [ text <|
+                                if introTab then
+                                    "Bigbit introductions do not link to files or highlights, but you can browse and edit your code"
+                                else if conclusionTab then
+                                    "Bigbit conclusions do not link to files or highlights, but you can browse and edit your code"
+                                else
+                                    Maybe.withDefault "No File Selected" currentActiveFile
+                            ]
                         , div
                             [ class "create-tidbit-code" ]
                             [ Editor.editor "create-bigbit-code-editor"
@@ -849,8 +860,23 @@ createBigbitView model shared =
 
                                 Route.HomeComponentCreateBigbitCodeFrame frameNumber _ ->
                                     div
-                                        []
-                                        []
+                                        [ class "comment-body" ]
+                                        [ fs
+                                        , textarea
+                                            [ placeholder <| "Frame " ++ (toString frameNumber)
+                                            , onInput <| BigbitUpdateFrameComment frameNumber
+                                            , value <|
+                                                ((Array.get
+                                                    (frameNumber - 1)
+                                                    model.bigbitCreateData.highlightedComments
+                                                 )
+                                                    |> Maybe.map .comment
+                                                    |> Maybe.withDefault ""
+                                                )
+                                            , hidden <| Bigbit.isFSOpen model.bigbitCreateData.fs
+                                            ]
+                                            []
+                                        ]
 
                                 Route.HomeComponentCreateBigbitCodeConclusion _ ->
                                     div
@@ -867,12 +893,59 @@ createBigbitView model shared =
 
                                 -- Should never happen.
                                 _ ->
-                                    div [] []
+                                    Util.hiddenDiv
 
                         tabBar =
-                            div
-                                []
-                                []
+                            let
+                                dynamicFrameButtons =
+                                    (Array.indexedMap
+                                        (\index highlightedComment ->
+                                            button
+                                                [ classList [ ( "selected-frame", (Just <| index + 1) == frameTab ) ]
+                                                , onClick <|
+                                                    GoTo <|
+                                                        Route.HomeComponentCreateBigbitCodeFrame
+                                                            (index + 1)
+                                                            (Array.get index model.bigbitCreateData.highlightedComments
+                                                                |> Maybe.andThen .fileAndRange
+                                                                |> Maybe.map .file
+                                                            )
+                                                ]
+                                                [ text <| toString <| index + 1 ]
+                                        )
+                                        model.bigbitCreateData.highlightedComments
+                                    )
+                                        |> Array.toList
+                            in
+                                div
+                                    [ hidden <| Bigbit.isFSOpen model.bigbitCreateData.fs ]
+                                    ([ button
+                                        [ onClick <| GoTo <| Route.HomeComponentCreateBigbitCodeIntroduction Nothing
+                                        , classList [ ( "selected-frame", introTab ) ]
+                                        ]
+                                        [ text "Introduction" ]
+                                     , button
+                                        [ onClick <| GoTo <| Route.HomeComponentCreateBigbitCodeConclusion Nothing
+                                        , classList [ ( "selected-frame", conclusionTab ) ]
+                                        ]
+                                        [ text "Conclusion" ]
+                                     , button
+                                        [ class "action-button plus-button"
+                                        , onClick <| BigbitAddFrame
+                                        ]
+                                        [ text "+" ]
+                                     , button
+                                        [ class "action-button"
+                                        , onClick <| BigbitRemoveFrame
+                                        , disabled <|
+                                            Array.length model.bigbitCreateData.highlightedComments
+                                                <= 1
+                                        ]
+                                        [ text "-" ]
+                                     , hr [] []
+                                     ]
+                                        ++ dynamicFrameButtons
+                                    )
                     in
                         div
                             []
@@ -1297,7 +1370,17 @@ createSnipbitView model shared =
                     [ Editor.editor "create-snipbit-code-editor"
                     , div
                         [ class "comment-creator" ]
-                        [ body
+                        [ div
+                            [ class "editor-warning-text" ]
+                            [ text <|
+                                if currentRoute == Route.HomeComponentCreateSnipbitCodeIntroduction then
+                                    "Snipbit introductions do not link to highlights, but you can browse and edit your code"
+                                else if currentRoute == Route.HomeComponentCreateSnipbitCodeConclusion then
+                                    "Snipbit conclusions do not link to highlights, but you can browse and edit your code"
+                                else
+                                    ""
+                            ]
+                        , body
                         , tabBar
                         ]
                     ]

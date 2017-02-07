@@ -61,3 +61,7 @@ type Msg
     | BigbitAddFile FS.Path Editor.Language
     | BigbitUpdateCode FS.Content
     | BigbitFileSelected FS.Path
+    | BigbitAddFrame
+    | BigbitRemoveFrame
+    | BigbitUpdateFrameComment Int String
+    | BigbitNewRangeSelected Range.Range

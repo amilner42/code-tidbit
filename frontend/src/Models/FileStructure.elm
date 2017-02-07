@@ -82,6 +82,29 @@ isEmpty (FileStructure (Folder files subFolders metadata) fsMetaData) =
     Dict.isEmpty subFolders && Dict.isEmpty files
 
 
+{-| Checks if two file paths are the same, drops the initial optional slash on
+both to make sure that they follow the same format.
+
+NOTE: You should always use this to check path equality, otherwise bugs maybe
+      caused by one file having a `/` and the other not.
+-}
+isSameFilePath : Path -> Path -> Bool
+isSameFilePath file1 file2 =
+    (dropOptionalLeftSlash file1) == (dropOptionalLeftSlash file2)
+
+
+{-| Checks if two folder paths are the same, drops both the initial and final
+optional slashes to make sure they follow the same format.
+
+NOTE: You should always use this to check path eqaulity, otherwise bugs maybe
+      caused by one folder having ending/starting slashes and the other not.
+-}
+isSameFolderPath : Path -> Path -> Bool
+isSameFolderPath folder1 folder2 =
+    (dropOptionalRightSlash (dropOptionalLeftSlash folder1))
+        == (dropOptionalRightSlash (dropOptionalLeftSlash folder2))
+
+
 {-| Similar to a `map`, but does not allow to change the type, only the value.
 
 It will run the map on the folders fist, then on the files, then on the
