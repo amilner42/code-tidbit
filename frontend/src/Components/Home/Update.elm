@@ -192,51 +192,42 @@ update msg model shared =
                             )
 
                         Route.HomeComponentCreateBigbitCodeFrame frameNumber maybeFilePath ->
-                            let
-                                newModel =
-                                    case maybeFilePath of
-                                        Nothing ->
-                                            case Array.get (frameNumber - 1) currentBigbitHighlightedComments of
-                                                Nothing ->
-                                                    model
+                            if frameNumber < 1 || frameNumber > (Array.length currentBigbitHighlightedComments) then
+                                ( model, shared, Route.navigateTo <| Route.HomeComponentCreateBigbitCodeIntroduction Nothing )
+                            else
+                                let
+                                    newModel =
+                                        case maybeFilePath of
+                                            Nothing ->
+                                                case Array.get (frameNumber - 1) currentBigbitHighlightedComments of
+                                                    Nothing ->
+                                                        model
 
-                                                Just currentHighlightedComment ->
-                                                    updateBigbitCreateData
-                                                        { currentBigbitCreateData
-                                                            | highlightedComments =
-                                                                Array.set
-                                                                    (frameNumber - 1)
-                                                                    { currentHighlightedComment
-                                                                        | fileAndRange = Nothing
-                                                                    }
-                                                                    currentBigbitHighlightedComments
-                                                        }
+                                                    Just currentHighlightedComment ->
+                                                        updateBigbitCreateData
+                                                            { currentBigbitCreateData
+                                                                | highlightedComments =
+                                                                    Array.set
+                                                                        (frameNumber - 1)
+                                                                        { currentHighlightedComment
+                                                                            | fileAndRange = Nothing
+                                                                        }
+                                                                        currentBigbitHighlightedComments
+                                                            }
 
-                                        Just filePath ->
-                                            case Array.get (frameNumber - 1) currentBigbitHighlightedComments of
-                                                Nothing ->
-                                                    model
+                                            Just filePath ->
+                                                case Array.get (frameNumber - 1) currentBigbitHighlightedComments of
+                                                    Nothing ->
+                                                        model
 
-                                                Just currentHighlightedComment ->
-                                                    updateBigbitCreateData
-                                                        { currentBigbitCreateData
-                                                            | highlightedComments =
-                                                                Array.set
-                                                                    (frameNumber - 1)
-                                                                    (case currentHighlightedComment.fileAndRange of
-                                                                        Nothing ->
-                                                                            { currentHighlightedComment
-                                                                                | fileAndRange =
-                                                                                    Just
-                                                                                        { range = Nothing
-                                                                                        , file = filePath
-                                                                                        }
-                                                                            }
-
-                                                                        Just fileAndRange ->
-                                                                            if fileAndRange.file == filePath then
-                                                                                currentHighlightedComment
-                                                                            else
+                                                    Just currentHighlightedComment ->
+                                                        updateBigbitCreateData
+                                                            { currentBigbitCreateData
+                                                                | highlightedComments =
+                                                                    Array.set
+                                                                        (frameNumber - 1)
+                                                                        (case currentHighlightedComment.fileAndRange of
+                                                                            Nothing ->
                                                                                 { currentHighlightedComment
                                                                                     | fileAndRange =
                                                                                         Just
@@ -244,19 +235,31 @@ update msg model shared =
                                                                                             , file = filePath
                                                                                             }
                                                                                 }
-                                                                    )
-                                                                    currentBigbitHighlightedComments
-                                                        }
 
-                                maybeRangeToHighlight =
-                                    Array.get (frameNumber - 1) newModel.bigbitCreateData.highlightedComments
-                                        |> Maybe.andThen .fileAndRange
-                                        |> Maybe.andThen .range
-                            in
-                                ( newModel
-                                , shared
-                                , createBigbitEditorForCurrentFile maybeRangeToHighlight maybeFilePath (Route.HomeComponentCreateBigbitCodeFrame frameNumber Nothing)
-                                )
+                                                                            Just fileAndRange ->
+                                                                                if FS.isSameFilePath fileAndRange.file filePath then
+                                                                                    currentHighlightedComment
+                                                                                else
+                                                                                    { currentHighlightedComment
+                                                                                        | fileAndRange =
+                                                                                            Just
+                                                                                                { range = Nothing
+                                                                                                , file = filePath
+                                                                                                }
+                                                                                    }
+                                                                        )
+                                                                        currentBigbitHighlightedComments
+                                                            }
+
+                                    maybeRangeToHighlight =
+                                        Array.get (frameNumber - 1) newModel.bigbitCreateData.highlightedComments
+                                            |> Maybe.andThen .fileAndRange
+                                            |> Maybe.andThen .range
+                                in
+                                    ( newModel
+                                    , shared
+                                    , createBigbitEditorForCurrentFile maybeRangeToHighlight maybeFilePath (Route.HomeComponentCreateBigbitCodeFrame frameNumber Nothing)
+                                    )
 
                         Route.HomeComponentCreateBigbitCodeConclusion maybeFilePath ->
                             ( model
