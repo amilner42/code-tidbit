@@ -740,6 +740,14 @@
 
             .create-snipbit-code {
                 @extend .create-tidbit-code;
+
+                .editor-warning-text {
+                    position: absolute;
+                    top: -20px;
+                    left: -645px;
+                    font-size: 12px;
+                    color: $color4;
+                }
             }
 
             .create-tidbit-sub-bar {

@@ -569,7 +569,14 @@ createBigbitView model shared =
                         [ class "bigbit-editor" ]
                         [ div
                             [ class "current-file" ]
-                            [ text <| Maybe.withDefault "No File Selected" currentActiveFile ]
+                            [ text <|
+                                if introTab then
+                                    "Bigbit introductions do not link to files or highlights, but you can browse and edit your code"
+                                else if conclusionTab then
+                                    "Bigbit conclusions do not link to files or highlights, but you can browse and edit your code"
+                                else
+                                    Maybe.withDefault "No File Selected" currentActiveFile
+                            ]
                         , div
                             [ class "create-tidbit-code" ]
                             [ Editor.editor "create-bigbit-code-editor"
@@ -894,7 +901,14 @@ createBigbitView model shared =
                                         (\index highlightedComment ->
                                             button
                                                 [ classList [ ( "selected-frame", (Just <| index + 1) == frameTab ) ]
-                                                , onClick <| GoTo <| Route.HomeComponentCreateBigbitCodeFrame (index + 1) Nothing
+                                                , onClick <|
+                                                    GoTo <|
+                                                        Route.HomeComponentCreateBigbitCodeFrame
+                                                            (index + 1)
+                                                            (Array.get index model.bigbitCreateData.highlightedComments
+                                                                |> Maybe.andThen .fileAndRange
+                                                                |> Maybe.map .file
+                                                            )
                                                 ]
                                                 [ text <| toString <| index + 1 ]
                                         )
@@ -1355,7 +1369,17 @@ createSnipbitView model shared =
                     [ Editor.editor "create-snipbit-code-editor"
                     , div
                         [ class "comment-creator" ]
-                        [ body
+                        [ div
+                            [ class "editor-warning-text" ]
+                            [ text <|
+                                if currentRoute == Route.HomeComponentCreateSnipbitCodeIntroduction then
+                                    "Snipbit introductions do not link to highlights, but you can browse and edit your code"
+                                else if currentRoute == Route.HomeComponentCreateSnipbitCodeConclusion then
+                                    "Snipbit conclusions do not link to highlights, but you can browse and edit your code"
+                                else
+                                    ""
+                            ]
+                        , body
                         , tabBar
                         ]
                     ]

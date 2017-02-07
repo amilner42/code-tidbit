@@ -82,7 +82,7 @@ update msg model shared =
                     userTheme =
                         ""
 
-                    createBigbitEditorForCurrentFile maybeFilePath backupRoute =
+                    createBigbitEditorForCurrentFile maybeRange maybeFilePath backupRoute =
                         case maybeFilePath of
                             Nothing ->
                                 Ports.createCodeEditor
@@ -105,7 +105,7 @@ update msg model shared =
                                             , lang = Editor.aceLanguageLocation language
                                             , theme = userTheme
                                             , value = content
-                                            , range = Nothing
+                                            , range = maybeRange
                                             , readOnly = False
                                             }
                 in
@@ -187,19 +187,80 @@ update msg model shared =
                         Route.HomeComponentCreateBigbitCodeIntroduction maybeFilePath ->
                             ( model
                             , shared
-                            , createBigbitEditorForCurrentFile maybeFilePath (Route.HomeComponentCreateBigbitCodeIntroduction Nothing)
+                            , createBigbitEditorForCurrentFile Nothing maybeFilePath (Route.HomeComponentCreateBigbitCodeIntroduction Nothing)
                             )
 
                         Route.HomeComponentCreateBigbitCodeFrame frameNumber maybeFilePath ->
-                            ( model
-                            , shared
-                            , createBigbitEditorForCurrentFile maybeFilePath (Route.HomeComponentCreateBigbitCodeFrame frameNumber Nothing)
-                            )
+                            let
+                                newModel =
+                                    case maybeFilePath of
+                                        Nothing ->
+                                            case Array.get (frameNumber - 1) currentBigbitHighlightedComments of
+                                                Nothing ->
+                                                    model
+
+                                                Just currentHighlightedComment ->
+                                                    updateBigbitCreateData
+                                                        { currentBigbitCreateData
+                                                            | highlightedComments =
+                                                                Array.set
+                                                                    (frameNumber - 1)
+                                                                    { currentHighlightedComment
+                                                                        | fileAndRange = Nothing
+                                                                    }
+                                                                    currentBigbitHighlightedComments
+                                                        }
+
+                                        Just filePath ->
+                                            case Array.get (frameNumber - 1) currentBigbitHighlightedComments of
+                                                Nothing ->
+                                                    model
+
+                                                Just currentHighlightedComment ->
+                                                    updateBigbitCreateData
+                                                        { currentBigbitCreateData
+                                                            | highlightedComments =
+                                                                Array.set
+                                                                    (frameNumber - 1)
+                                                                    (case currentHighlightedComment.fileAndRange of
+                                                                        Nothing ->
+                                                                            { currentHighlightedComment
+                                                                                | fileAndRange =
+                                                                                    Just
+                                                                                        { range = Nothing
+                                                                                        , file = filePath
+                                                                                        }
+                                                                            }
+
+                                                                        Just fileAndRange ->
+                                                                            if fileAndRange.file == filePath then
+                                                                                currentHighlightedComment
+                                                                            else
+                                                                                { currentHighlightedComment
+                                                                                    | fileAndRange =
+                                                                                        Just
+                                                                                            { range = Nothing
+                                                                                            , file = filePath
+                                                                                            }
+                                                                                }
+                                                                    )
+                                                                    currentBigbitHighlightedComments
+                                                        }
+
+                                maybeRangeToHighlight =
+                                    Array.get (frameNumber - 1) newModel.bigbitCreateData.highlightedComments
+                                        |> Maybe.andThen .fileAndRange
+                                        |> Maybe.andThen .range
+                            in
+                                ( newModel
+                                , shared
+                                , createBigbitEditorForCurrentFile maybeRangeToHighlight maybeFilePath (Route.HomeComponentCreateBigbitCodeFrame frameNumber Nothing)
+                                )
 
                         Route.HomeComponentCreateBigbitCodeConclusion maybeFilePath ->
                             ( model
                             , shared
-                            , createBigbitEditorForCurrentFile maybeFilePath (Route.HomeComponentCreateBigbitCodeConclusion Nothing)
+                            , createBigbitEditorForCurrentFile Nothing maybeFilePath (Route.HomeComponentCreateBigbitCodeConclusion Nothing)
                             )
 
                         _ ->
@@ -1152,6 +1213,40 @@ update msg model shared =
                             , shared
                             , Cmd.none
                             )
+
+            BigbitNewRangeSelected newRange ->
+                case shared.route of
+                    Route.HomeComponentCreateBigbitCodeFrame frameNumber currentPath ->
+                        case Array.get (frameNumber - 1) currentBigbitHighlightedComments of
+                            Nothing ->
+                                doNothing
+
+                            Just highlightedComment ->
+                                case highlightedComment.fileAndRange of
+                                    Nothing ->
+                                        doNothing
+
+                                    Just fileAndRange ->
+                                        ( updateBigbitCreateData
+                                            { currentBigbitCreateData
+                                                | highlightedComments =
+                                                    Array.set
+                                                        (frameNumber - 1)
+                                                        { highlightedComment
+                                                            | fileAndRange =
+                                                                Just
+                                                                    { fileAndRange
+                                                                        | range = Just newRange
+                                                                    }
+                                                        }
+                                                        currentBigbitHighlightedComments
+                                            }
+                                        , shared
+                                        , Cmd.none
+                                        )
+
+                    _ ->
+                        doNothing
 
 
 {-| Filters the languages based on `query`.

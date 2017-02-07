@@ -64,3 +64,4 @@ type Msg
     | BigbitAddFrame
     | BigbitRemoveFrame
     | BigbitUpdateFrameComment Int String
+    | BigbitNewRangeSelected Range.Range
