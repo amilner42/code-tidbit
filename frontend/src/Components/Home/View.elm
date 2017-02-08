@@ -499,7 +499,9 @@ createBigbitView model shared =
 
                 Just bigbitForPublicaton ->
                     button
-                        [ class "create-bigbit-publish-button" ]
+                        [ class "create-bigbit-publish-button"
+                        , onClick <| BigbitPublish bigbitForPublicaton
+                        ]
                         [ text "Publish" ]
 
         createBigbitNavbar : Html Msg
