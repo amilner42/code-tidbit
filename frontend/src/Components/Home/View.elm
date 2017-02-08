@@ -485,6 +485,39 @@ createBigbitView model shared =
         currentRoute =
             shared.route
 
+        disabledPublishButton =
+            button
+                [ class "create-bigbit-disabled-publish-button"
+                , disabled True
+                ]
+                [ text "Publish" ]
+
+        currentPublishButton =
+            let
+                createData =
+                    model.bigbitCreateData
+
+                maybePublishableHC =
+                    Bigbit.hcForCreateToPublishable createData.highlightedComments
+            in
+                if
+                    (String.isEmpty createData.name)
+                        || (String.isEmpty createData.description)
+                        || (List.isEmpty createData.tags)
+                        || (String.isEmpty createData.conclusion)
+                        || (String.isEmpty createData.introduction)
+                then
+                    disabledPublishButton
+                else
+                    case maybePublishableHC of
+                        Nothing ->
+                            disabledPublishButton
+
+                        Just publishableHC ->
+                            button
+                                [ class "create-bigbit-publish-button" ]
+                                [ text "Publish" ]
+
         createBigbitNavbar : Html Msg
         createBigbitNavbar =
             div
@@ -1032,6 +1065,7 @@ createBigbitView model shared =
                     , onClick <| BigbitReset
                     ]
                     [ text "Reset" ]
+                , currentPublishButton
                 ]
             , createBigbitNavbar
             , case shared.route of

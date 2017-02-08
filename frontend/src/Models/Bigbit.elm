@@ -100,6 +100,36 @@ type alias BigbitCreateDataFileMetadata =
     }
 
 
+{-| Bigbit HighlightedComments for publication.
+-}
+type alias BigbitHighlightedCommentForPublication =
+    { comment : String
+    , range : Range.Range
+    , file : FS.Path
+    }
+
+
+{-| BigbitHighlightedCommentForPublication `cacheEncoder`.
+-}
+bigbitHighlightedCommentForPublicationCacheEncoder : BigbitHighlightedCommentForPublication -> Encode.Value
+bigbitHighlightedCommentForPublicationCacheEncoder hc =
+    Encode.object
+        [ ( "comment", Encode.string hc.comment )
+        , ( "range", Range.rangeCacheEncoder hc.range )
+        , ( "file", Encode.string hc.file )
+        ]
+
+
+{-| BigbitHighlightedCommentForPublication `cacheDecoder`.
+-}
+bigbitHighlightedCommentForPublicationCacheDecoder : Decode.Decoder BigbitHighlightedCommentForPublication
+bigbitHighlightedCommentForPublicationCacheDecoder =
+    decode BigbitHighlightedCommentForPublication
+        |> required "comment" Decode.string
+        |> required "range" Range.rangeCacheDecoder
+        |> required "file" Decode.string
+
+
 {-| The highlighted comments on bigbits are different than regular highlighted
 comments (`Models/HighlightedComment`) because they also need to point to a
 file.
@@ -396,6 +426,46 @@ isValidRemoveFolderInput absolutePath fs =
         Result.Err RemoveFolderDoesNotExist
     else
         Result.Ok ()
+
+
+{-| If all the highlighted comments are completely filled in, will return them
+in publishable form, otherwise will return Nothing.
+-}
+hcForCreateToPublishable : Array.Array BigbitHighlightedCommentForCreate -> Maybe (List BigbitHighlightedCommentForPublication)
+hcForCreateToPublishable hcArray =
+    (Array.foldl
+        (\hc currentList ->
+            if String.isEmpty hc.comment then
+                currentList
+            else
+                case hc.fileAndRange of
+                    Nothing ->
+                        currentList
+
+                    Just { file, range } ->
+                        case range of
+                            Nothing ->
+                                currentList
+
+                            Just aRange ->
+                                if Range.isEmptyRange aRange then
+                                    currentList
+                                else
+                                    { file = file
+                                    , comment = hc.comment
+                                    , range = aRange
+                                    }
+                                        :: currentList
+        )
+        []
+        hcArray
+    )
+        |> (\publishableListOfHC ->
+                if (List.length publishableListOfHC == Array.length hcArray) then
+                    Just publishableListOfHC
+                else
+                    Nothing
+           )
 
 
 
