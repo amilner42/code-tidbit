@@ -493,30 +493,14 @@ createBigbitView model shared =
                 [ text "Publish" ]
 
         currentPublishButton =
-            let
-                createData =
-                    model.bigbitCreateData
-
-                maybePublishableHC =
-                    Bigbit.hcForCreateToPublishable createData.highlightedComments
-            in
-                if
-                    (String.isEmpty createData.name)
-                        || (String.isEmpty createData.description)
-                        || (List.isEmpty createData.tags)
-                        || (String.isEmpty createData.conclusion)
-                        || (String.isEmpty createData.introduction)
-                then
+            case Bigbit.createDataToPublicationData model.bigbitCreateData of
+                Nothing ->
                     disabledPublishButton
-                else
-                    case maybePublishableHC of
-                        Nothing ->
-                            disabledPublishButton
 
-                        Just publishableHC ->
-                            button
-                                [ class "create-bigbit-publish-button" ]
-                                [ text "Publish" ]
+                Just bigbitForPublicaton ->
+                    button
+                        [ class "create-bigbit-publish-button" ]
+                        [ text "Publish" ]
 
         createBigbitNavbar : Html Msg
         createBigbitNavbar =

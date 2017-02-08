@@ -10,7 +10,6 @@ import Json.Decode.Pipeline exposing (decode, required, optional, hardcoded)
 
 
 -- TODO Test and publish as solution to handling files/folders. (not a priority)
--- TODO metamap on all 3 levels of metadata (not a priority)
 -- TODO Get rid of ridiculous duplicate code (not a priority).
 
 
@@ -188,6 +187,27 @@ valueMap ((FileStructure rootFolder metadata) as fs) folderFunc fileFunc fsFunc 
             |> folderMap
             |> fileMap
             |> fsMap
+
+
+{-| Maps over all the metadata.
+-}
+metaMap : (a -> a1) -> (b -> b1) -> (c -> c1) -> FileStructure a b c -> FileStructure a1 b1 c1
+metaMap aFunc bFunc cFunc (FileStructure rootFolder a) =
+    let
+        applyFile _ (File content c) =
+            File
+                content
+                (cFunc c)
+
+        applyFolder _ (Folder files folders b) =
+            Folder
+                (Dict.map applyFile files)
+                (Dict.map applyFolder folders)
+                (bFunc b)
+    in
+        FileStructure
+            (applyFolder "" rootFolder)
+            (aFunc a)
 
 
 {-| Drops the first char from a string if it starts with a slash.

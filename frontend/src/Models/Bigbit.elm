@@ -72,7 +72,42 @@ type alias BigbitForPublication =
     { name : String
     , description : String
     , tags : List String
+    , introduction : String
+    , conclusion : String
+    , fs : FS.FileStructure () () { language : Editor.Language }
+    , highlightedComments : List BigbitHighlightedCommentForPublication
     }
+
+
+{-| BigbitForPublication `encoder`.
+-}
+bigbitForPublicationEncoder : BigbitForPublication -> Encode.Value
+bigbitForPublicationEncoder bigbit =
+    let
+        encodeFS fs =
+            FS.encodeFS
+                (always <| Encode.object [])
+                (always <| Encode.object [])
+                (\fileMetadata ->
+                    Encode.object
+                        [ ( "language", Editor.languageCacheEncoder fileMetadata.language ) ]
+                )
+                fs
+    in
+        Encode.object
+            [ ( "name", Encode.string bigbit.name )
+            , ( "description", Encode.string bigbit.description )
+            , ( "tags", Encode.list <| List.map Encode.string bigbit.tags )
+            , ( "introduction", Encode.string bigbit.introduction )
+            , ( "conclusion", Encode.string bigbit.conclusion )
+            , ( "fs", encodeFS bigbit.fs )
+            , ( "highlightedComments"
+              , Encode.list <|
+                    List.map
+                        bigbitHighlightedCommentForPublicationCacheEncoder
+                        bigbit.highlightedComments
+              )
+            ]
 
 
 {-| The metadata connected to the FS.
@@ -466,6 +501,41 @@ hcForCreateToPublishable hcArray =
                 else
                     Nothing
            )
+
+
+{-| Given the create data, returns BigbitForPublication if the data is
+completely filled out, otherwise returns Nothing.
+-}
+createDataToPublicationData : BigbitCreateData -> Maybe BigbitForPublication
+createDataToPublicationData createData =
+    if
+        (String.isEmpty createData.name)
+            || (String.isEmpty createData.description)
+            || (List.isEmpty createData.tags)
+            || (String.isEmpty createData.conclusion)
+            || (String.isEmpty createData.introduction)
+    then
+        Nothing
+    else
+        hcForCreateToPublishable createData.highlightedComments
+            |> Maybe.map
+                (\publishableHC ->
+                    { name = createData.name
+                    , description = createData.description
+                    , tags = createData.tags
+                    , introduction = createData.introduction
+                    , conclusion = createData.conclusion
+                    , fs =
+                        createData.fs
+                            |> FS.metaMap
+                                (always ())
+                                (always ())
+                                (\fileMetadata ->
+                                    fileMetadata
+                                )
+                    , highlightedComments = publishableHC
+                    }
+                )
 
 
 
