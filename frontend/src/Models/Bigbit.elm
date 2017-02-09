@@ -468,7 +468,7 @@ in publishable form, otherwise will return Nothing.
 -}
 hcForCreateToPublishable : Array.Array BigbitHighlightedCommentForCreate -> Maybe (List BigbitHighlightedCommentForPublication)
 hcForCreateToPublishable hcArray =
-    (Array.foldl
+    (Array.foldr
         (\hc currentList ->
             if String.isEmpty hc.comment then
                 currentList

@@ -147,24 +147,19 @@ export const descriptionSchema = (emptyDescriptionErrorCode: ErrorCode): kleen.t
  */
 export const tagsSchema = (emptyTagErrorCode, noTagsErrorCode): kleen.typeSchema => {
   return nonEmptyArraySchema(
-    {
-      primitiveType: kleen.kindOfPrimitive.string,
-      restriction: (tag: string) => {
-        if(tag === "") {
-          return Promise.reject({
-            errorCode: emptyTagErrorCode,
-            message: "Tags cannot be empty!"
-          });
-        }
+    nonEmptyStringSchema(
+      {
+        errorCode: emptyTagErrorCode,
+        message: "Tags cannot be empty!"
       },
-      typeFailureError: malformedFieldError("tag")
-    },
+      malformedFieldError("tag")
+    ),
     {
       errorCode: noTagsErrorCode,
       message: "You must add at least one tag"
     },
     malformedFieldError("tags"),
-  )
+  );
 };
 
 /**
@@ -201,10 +196,7 @@ export const conclusionSchema = (emptyConclusionErrorCode: ErrorCode): kleen.typ
  * For validifying a FileStructure.
  *
  * On top of expected checks, also makes sure that no file/folder names have a
- * '*' in them. Because mongo can't have periods in key names, we swap periods
- * with stars on the way in, and the reverse on the way out. The frontend does
- * not allow stars so that's why it's an internal error (user hitting API
- * directly).
+ * '*' in them because mongo can't have periods in key names.
  */
 export const fileStructureSchema =
   (fsMetadataSchema: kleen.typeSchema,
@@ -237,7 +229,7 @@ export const fileStructureSchema =
             },
             restriction: (files) => {
               if(mapHasStarInKeys(files)) {
-                return Promise.reject(internalError("File names cannot have '*'"));
+                return Promise.reject(internalError("File names cannot contain '*'"));
               }
             },
             typeFailureError: malformedFieldError("files")
@@ -248,7 +240,7 @@ export const fileStructureSchema =
             },
             restriction: (folders) => {
               if(mapHasStarInKeys(folders)) {
-                return Promise.reject(internalError("Folder names cannot have a '*'"))
+                return Promise.reject(internalError("Folder names cannot contain '*'"))
               }
             },
             typeFailureError: malformedFieldError("folders")
