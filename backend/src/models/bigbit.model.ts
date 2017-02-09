@@ -6,7 +6,7 @@ import { malformedFieldError } from '../util';
 import { collection } from '../db';
 import { MongoID, ErrorCode, Language } from '../types';
 import { Range } from './range.model';
-import { FileStructure, metaMap, swapPeriodsWithStarsForFS } from './file-structure.model';
+import { FileStructure, metaMap, swapPeriodsWithStars } from './file-structure.model';
 import * as KS from './kleen-schemas';
 
 
@@ -40,33 +40,31 @@ export interface BigbitHighlightedComment {
 /**
  * Kleen schema for `BigbitHighlightedComment`.
  */
-const bigbitHighlightedCommentSchema: kleen.typeSchema= {
+const bigbitHighlightedCommentSchema: kleen.typeSchema = {
   objectProperties: {
     "file": KS.nonEmptyStringSchema(
-      { errorCode: undefined, message: "All bigbit highlighted comments cannot have an empty string for a file" },
+      { errorCode: ErrorCode.bigbitEmptyFilePath, message: "All bigbit highlighted comments cannot have an empty string for a file" },
       malformedFieldError("file")
     ),
-    "comment": KS.commentSchema(undefined),
-    "range": KS.rangeSchema(undefined)
+    "comment": KS.commentSchema(ErrorCode.bigbitEmptyComment),
+    "range": KS.rangeSchema(ErrorCode.bigbitEmptyRange)
   },
   typeFailureError: malformedFieldError("highlightedComment")
 };
 
 /**
  * Kleen schema for a bigbit.
- *
- * TODO switch `undefined` to actual errorCodes.
  */
 export const bigbitSchema: kleen.typeSchema = {
   objectProperties: {
-    "name": KS.nameSchema(undefined, undefined),
-    "description": KS.descriptionSchema(undefined),
-    "tags": KS.tagsSchema(undefined, undefined),
-    "introduction": KS.introductionSchema(undefined),
-    "conclusion": KS.conclusionSchema(undefined),
+    "name": KS.nameSchema(ErrorCode.bigbitEmptyName, ErrorCode.bigbitNameTooLong),
+    "description": KS.descriptionSchema(ErrorCode.bigbitEmptyDescription),
+    "tags": KS.tagsSchema(ErrorCode.bigbitEmptyTag, ErrorCode.bigbitNoTags),
+    "introduction": KS.introductionSchema(ErrorCode.bigbitEmptyIntroduction),
+    "conclusion": KS.conclusionSchema(ErrorCode.bigbitEmptyConclusion),
     "highlightedComments": KS.nonEmptyArraySchema(
       bigbitHighlightedCommentSchema,
-      { errorCode: undefined, message: "You must have at least one highlighted comment."},
+      { errorCode: ErrorCode.bigbitNoHighlightedComments, message: "You must have at least one highlighted comment."},
       malformedFieldError("bigbit.highlightedComments")
     ),
     "fs": KS.fileStructureSchema(
@@ -78,7 +76,7 @@ export const bigbitSchema: kleen.typeSchema = {
       ),
       { objectProperties:
         {
-          "language": KS.languageSchema(undefined)
+          "language": KS.languageSchema(ErrorCode.bigbitInvalidLanguage)
         }
       }
     )
@@ -115,7 +113,12 @@ export const validifyAndUpdateBigbit = (bigbit: Bigbit) => {
             (languageCollection.findOne({ encodedName: fileMetadata.language}) as Promise<Language>)
             .then((language) => {
               if(!language) {
-                rejectInner({ errorCode: undefined, message: `Language ${fileMetadata.language} is not a valid encoded language.`})
+                rejectInner(
+                  {
+                    errorCode: ErrorCode.bigbitInvalidLanguage,
+                    message: `Language ${fileMetadata.language} is not a valid encoded language.`
+                  }
+                );
               }
               resolveInner({ language: language._id});
             })
@@ -126,7 +129,7 @@ export const validifyAndUpdateBigbit = (bigbit: Bigbit) => {
       )
     })
     .then((updatedFS) => {
-      bigbit.fs = swapPeriodsWithStarsForFS(true, updatedFS);
+      bigbit.fs = swapPeriodsWithStars(true, updatedFS);
       resolve(bigbit);
     })
     .catch(reject);
