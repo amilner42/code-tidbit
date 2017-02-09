@@ -48,6 +48,7 @@ type ApiError
     | BigbitEmptyConclusion
     | BigbitNoHighlightedComments
     | BigbitInvalidLanguage
+    | BigbitDoesNotExist
 
 
 {-| An error from the backend still in Json form.
@@ -183,6 +184,9 @@ humanReadable apiError =
         BigbitInvalidLanguage ->
             "Language selected was not valid!"
 
+        BigbitDoesNotExist ->
+            "The bigbit you are looking for does not exist!"
+
 
 {-| Turns an errorCode integer from the backend to it's respective ApiError.
 -}
@@ -296,6 +300,9 @@ fromErrorCode errorCode =
 
         36 ->
             BigbitInvalidLanguage
+
+        37 ->
+            BigbitDoesNotExist
 
         _ ->
             InternalError
