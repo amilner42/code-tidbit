@@ -50,18 +50,16 @@ export const metaMap = <a, b, c, a1, b1, c1>
   // Map folder (and children) metadata.
   const applyFolder = (folder: Folder<b, c>): Promise<Folder<b1, c1>> => {
     return new Promise<Folder<b1, c1>>((resolve, reject) => {
-      return bFunc(folder.folderMetadata)
-      .then((newFolderMetadata) => {
-        return Bluebird.props(objectMap(folder.files, applyFile))
-        .then((newFiles: {[key: string]: File<c1>}) => {
-          return Bluebird.props(objectMap(folder.folders, applyFolder))
-          .then((newFolders: {[key: string]: Folder<b1,c1>}) => {
-            resolve({
-              files: newFiles,
-              folders: newFolders,
-              folderMetadata: newFolderMetadata
-            });
-          });
+      Promise.all([
+        bFunc(folder.folderMetadata),
+        Bluebird.props(objectMap(folder.files, applyFile)),
+        Bluebird.props(objectMap(folder.folders, applyFolder))
+      ])
+      .then(([newFolderMetadata, newFiles, newFolders ]) => {
+        resolve({
+          files: newFiles,
+          folders: newFolders,
+          folderMetadata: newFolderMetadata
         });
       })
       .catch(reject);
@@ -83,14 +81,14 @@ export const metaMap = <a, b, c, a1, b1, c1>
   };
 
   return new Promise<FileStructure<a1, b1, c1>>((resolve, reject) => {
-    aFunc(fileStructure.fsMetadata)
-    .then((newFSMetadata) => {
-      return applyFolder(fileStructure.rootFolder)
-      .then((newRootFolder) => {
-        resolve({
-          rootFolder: newRootFolder,
-          fsMetadata: newFSMetadata
-        });
+    Promise.all([
+      aFunc(fileStructure.fsMetadata),
+      applyFolder(fileStructure.rootFolder)
+    ])
+    .then(([newFSMetadata, newRootFolder]) => {
+      resolve({
+        rootFolder: newRootFolder,
+        fsMetadata: newFSMetadata
       });
     })
     .catch(reject);
