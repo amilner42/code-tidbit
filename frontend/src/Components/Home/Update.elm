@@ -724,12 +724,12 @@ update msg model shared =
                     OnSnipbitPublishSuccess
                 )
 
-            OnSnipbitPublishSuccess createSnipbitResponse ->
+            OnSnipbitPublishSuccess { newID } ->
                 ( { model
                     | snipbitCreateData = .snipbitCreateData HomeInit.init
                   }
                 , shared
-                , Route.navigateTo <| Route.HomeComponentViewSnipbitIntroduction createSnipbitResponse.newID
+                , Route.navigateTo <| Route.HomeComponentViewSnipbitIntroduction newID
                 )
 
             OnSnipbitPublishFailure apiError ->
@@ -1328,6 +1328,23 @@ update msg model shared =
 
                     _ ->
                         doNothing
+
+            BigbitPublish bigbit ->
+                ( model
+                , shared
+                , Api.postCreateBigbit
+                    bigbit
+                    OnBigbitPublishFailure
+                    OnBigbitPublishSuccess
+                )
+
+            OnBigbitPublishFailure apiError ->
+                -- TODO Handle bigbit publish failures.
+                doNothing
+
+            OnBigbitPublishSuccess { newID } ->
+                -- TODO redirect to bigbit viewer once viewer is complete.
+                doNothing
 
 
 {-| Filters the languages based on `query`.

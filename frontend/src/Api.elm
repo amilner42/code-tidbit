@@ -6,6 +6,7 @@ module Api
         , postLogin
         , postRegister
         , postCreateSnipbit
+        , postCreateBigbit
         )
 
 import Config exposing (apiBaseUrl)
@@ -14,7 +15,8 @@ import Json.Decode as Decode
 import Json.Encode as Encode
 import Models.ApiError as ApiError
 import Models.BasicResponse as BasicResponse
-import Models.CreateSnipbitResponse as CreateSnipbitResponse
+import Models.Bigbit as Bigbit
+import Models.CreateTidbitResponse as CreateTidbitResponse
 import Models.Snipbit as Snipbit
 import Models.User as User
 
@@ -78,9 +80,19 @@ postRegister user =
 
 {-| Creates a new snipbit.
 -}
-postCreateSnipbit : Snipbit.SnipbitForPublication -> (ApiError.ApiError -> b) -> (CreateSnipbitResponse.CreateSnipbitResponse -> b) -> Cmd b
+postCreateSnipbit : Snipbit.SnipbitForPublication -> (ApiError.ApiError -> b) -> (CreateTidbitResponse.CreateTidbitResponse -> b) -> Cmd b
 postCreateSnipbit snipbit =
     apiPost
         "snipbits"
-        CreateSnipbitResponse.createSnipbitResponseDecoder
+        CreateTidbitResponse.createTidbitResponseDecoder
         (Snipbit.snipbitForPublicationEncoder snipbit)
+
+
+{-| Creates a new bigbit.
+-}
+postCreateBigbit : Bigbit.BigbitForPublication -> (ApiError.ApiError -> b) -> (CreateTidbitResponse.CreateTidbitResponse -> b) -> Cmd b
+postCreateBigbit bigbit =
+    apiPost
+        "bigbits"
+        CreateTidbitResponse.createTidbitResponseDecoder
+        (Bigbit.bigbitForPublicationEncoder bigbit)

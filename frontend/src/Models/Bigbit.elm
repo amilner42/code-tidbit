@@ -72,7 +72,42 @@ type alias BigbitForPublication =
     { name : String
     , description : String
     , tags : List String
+    , introduction : String
+    , conclusion : String
+    , fs : FS.FileStructure () () { language : Editor.Language }
+    , highlightedComments : List BigbitHighlightedCommentForPublication
     }
+
+
+{-| BigbitForPublication `encoder`.
+-}
+bigbitForPublicationEncoder : BigbitForPublication -> Encode.Value
+bigbitForPublicationEncoder bigbit =
+    let
+        encodeFS fs =
+            FS.encodeFS
+                (always <| Encode.object [])
+                (always <| Encode.object [])
+                (\fileMetadata ->
+                    Encode.object
+                        [ ( "language", Editor.languageCacheEncoder fileMetadata.language ) ]
+                )
+                fs
+    in
+        Encode.object
+            [ ( "name", Encode.string bigbit.name )
+            , ( "description", Encode.string bigbit.description )
+            , ( "tags", Encode.list <| List.map Encode.string bigbit.tags )
+            , ( "introduction", Encode.string bigbit.introduction )
+            , ( "conclusion", Encode.string bigbit.conclusion )
+            , ( "fs", encodeFS bigbit.fs )
+            , ( "highlightedComments"
+              , Encode.list <|
+                    List.map
+                        bigbitHighlightedCommentForPublicationCacheEncoder
+                        bigbit.highlightedComments
+              )
+            ]
 
 
 {-| The metadata connected to the FS.
@@ -98,6 +133,36 @@ type alias BigbitCreateDataFolderMetadata =
 type alias BigbitCreateDataFileMetadata =
     { language : Editor.Language
     }
+
+
+{-| Bigbit HighlightedComments for publication.
+-}
+type alias BigbitHighlightedCommentForPublication =
+    { comment : String
+    , range : Range.Range
+    , file : FS.Path
+    }
+
+
+{-| BigbitHighlightedCommentForPublication `cacheEncoder`.
+-}
+bigbitHighlightedCommentForPublicationCacheEncoder : BigbitHighlightedCommentForPublication -> Encode.Value
+bigbitHighlightedCommentForPublicationCacheEncoder hc =
+    Encode.object
+        [ ( "comment", Encode.string hc.comment )
+        , ( "range", Range.rangeCacheEncoder hc.range )
+        , ( "file", Encode.string hc.file )
+        ]
+
+
+{-| BigbitHighlightedCommentForPublication `cacheDecoder`.
+-}
+bigbitHighlightedCommentForPublicationCacheDecoder : Decode.Decoder BigbitHighlightedCommentForPublication
+bigbitHighlightedCommentForPublicationCacheDecoder =
+    decode BigbitHighlightedCommentForPublication
+        |> required "comment" Decode.string
+        |> required "range" Range.rangeCacheDecoder
+        |> required "file" Decode.string
 
 
 {-| The highlighted comments on bigbits are different than regular highlighted
@@ -396,6 +461,81 @@ isValidRemoveFolderInput absolutePath fs =
         Result.Err RemoveFolderDoesNotExist
     else
         Result.Ok ()
+
+
+{-| If all the highlighted comments are completely filled in, will return them
+in publishable form, otherwise will return Nothing.
+-}
+hcForCreateToPublishable : Array.Array BigbitHighlightedCommentForCreate -> Maybe (List BigbitHighlightedCommentForPublication)
+hcForCreateToPublishable hcArray =
+    (Array.foldr
+        (\hc currentList ->
+            if String.isEmpty hc.comment then
+                currentList
+            else
+                case hc.fileAndRange of
+                    Nothing ->
+                        currentList
+
+                    Just { file, range } ->
+                        case range of
+                            Nothing ->
+                                currentList
+
+                            Just aRange ->
+                                if Range.isEmptyRange aRange then
+                                    currentList
+                                else
+                                    { file = file
+                                    , comment = hc.comment
+                                    , range = aRange
+                                    }
+                                        :: currentList
+        )
+        []
+        hcArray
+    )
+        |> (\publishableListOfHC ->
+                if (List.length publishableListOfHC == Array.length hcArray) then
+                    Just publishableListOfHC
+                else
+                    Nothing
+           )
+
+
+{-| Given the create data, returns BigbitForPublication if the data is
+completely filled out, otherwise returns Nothing.
+-}
+createDataToPublicationData : BigbitCreateData -> Maybe BigbitForPublication
+createDataToPublicationData createData =
+    if
+        (String.isEmpty createData.name)
+            || (String.isEmpty createData.description)
+            || (List.isEmpty createData.tags)
+            || (String.isEmpty createData.conclusion)
+            || (String.isEmpty createData.introduction)
+    then
+        Nothing
+    else
+        hcForCreateToPublishable createData.highlightedComments
+            |> Maybe.map
+                (\publishableHC ->
+                    { name = createData.name
+                    , description = createData.description
+                    , tags = createData.tags
+                    , introduction = createData.introduction
+                    , conclusion = createData.conclusion
+                    , fs =
+                        createData.fs
+                            |> FS.metaMap
+                                (always ())
+                                (always ())
+                                (\fileMetadata ->
+                                    fileMetadata
+                                )
+                    , highlightedComments = publishableHC
+                    }
+                )
 
 
 

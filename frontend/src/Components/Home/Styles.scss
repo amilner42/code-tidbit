@@ -304,6 +304,14 @@
                 .sub-bar-button {
                     margin-left: 10px;
                 }
+
+                .create-bigbit-disabled-publish-button {
+                    @extend .disabled-publish-button;
+                }
+
+                .create-bigbit-publish-button {
+                    @extend .publish-button;
+                }
             }
 
             .create-bigbit-name {
@@ -771,26 +779,41 @@
                 }
 
                 .create-snipbit-publish-button {
-                    @extend .sub-bar-button;
-
-                    float: right;
-                    margin-right: 10px;
-                    background-color: $color7;
+                    @extend .publish-button;
                 }
 
                 .create-snipbit-disabled-publish-button {
-                    @extend .sub-bar-button;
-
-                    float: right;
-                    margin-right: 10px;
-                    background-color: white;
-                    color: $color7;
-                    cursor: not-allowed;
-
-                    &:hover {
-                        color: $color7;
-                    }
+                    @extend .disabled-publish-button;
                 }
+            }
+        }
+
+        .disabled-publish-button {
+            @extend .sub-bar-button;
+
+            float: right;
+            margin-right: 10px;
+            background-color: white;
+            color: $color7;
+            cursor: not-allowed;
+
+            &:hover {
+                background-color: white;
+                color: $color7;
+            }
+        }
+
+        .publish-button {
+            @extend .sub-bar-button;
+
+            float: right;
+            margin-right: 10px;
+            background-color: $color7;
+            color: white;
+
+            &:hover {
+                background-color: $color7;
+                color: $color6;
             }
         }
     }

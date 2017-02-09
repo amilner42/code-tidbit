@@ -4,7 +4,7 @@ import Autocomplete as AC
 import Components.Home.Model exposing (TidbitType)
 import Models.ApiError as ApiError
 import Models.BasicResponse as BasicResponse
-import Models.CreateSnipbitResponse exposing (CreateSnipbitResponse)
+import Models.CreateTidbitResponse exposing (CreateTidbitResponse)
 import Models.Range as Range
 import Models.Route as Route
 import Models.Bigbit as Bigbit
@@ -41,7 +41,7 @@ type Msg
     | SnipbitUpdateConclusion String
     | SnipbitUpdateCode FS.Content
     | SnipbitPublish Snipbit.SnipbitForPublication
-    | OnSnipbitPublishSuccess CreateSnipbitResponse
+    | OnSnipbitPublishSuccess CreateTidbitResponse
     | OnSnipbitPublishFailure ApiError.ApiError
     | OnGetSnipbitFailure ApiError.ApiError
     | OnGetSnipbitSuccess Snipbit.Snipbit
@@ -65,3 +65,6 @@ type Msg
     | BigbitRemoveFrame
     | BigbitUpdateFrameComment Int String
     | BigbitNewRangeSelected Range.Range
+    | BigbitPublish Bigbit.BigbitForPublication
+    | OnBigbitPublishFailure ApiError.ApiError
+    | OnBigbitPublishSuccess CreateTidbitResponse

@@ -485,6 +485,25 @@ createBigbitView model shared =
         currentRoute =
             shared.route
 
+        disabledPublishButton =
+            button
+                [ class "create-bigbit-disabled-publish-button"
+                , disabled True
+                ]
+                [ text "Publish" ]
+
+        currentPublishButton =
+            case Bigbit.createDataToPublicationData model.bigbitCreateData of
+                Nothing ->
+                    disabledPublishButton
+
+                Just bigbitForPublicaton ->
+                    button
+                        [ class "create-bigbit-publish-button"
+                        , onClick <| BigbitPublish bigbitForPublicaton
+                        ]
+                        [ text "Publish" ]
+
         createBigbitNavbar : Html Msg
         createBigbitNavbar =
             div
@@ -1032,6 +1051,7 @@ createBigbitView model shared =
                     , onClick <| BigbitReset
                     ]
                     [ text "Reset" ]
+                , currentPublishButton
                 ]
             , createBigbitNavbar
             , case shared.route of
