@@ -4,11 +4,11 @@
 import { Response } from "express";
 import * as kleen from "kleen";
 import passport from 'passport';
-import R from 'ramda';
 
 import { APP_CONFIG } from '../app-config';
-import { User, userModel, Snipbit, validifyAndUpdateSnipbit, bigbitSchema,
-  metaMap, validifyAndUpdateBigbit, Bigbit } from './models/';
+import { User, userModel } from './models/user.model';
+import { Snipbit, validifyAndUpdateSnipbit } from './models/snipbit.model';
+import { validifyAndUpdateBigbit, Bigbit } from './models/bigbit.model';
 import { AppRoutes, ErrorCode, FrontendError, Language } from './types';
 import { collection, ID } from './db';
 import { internalError } from './util';

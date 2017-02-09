@@ -2,7 +2,7 @@
 
 import * as kleen from "kleen";
 
-import { internalError, malformedFieldError } from '../util';
+import { malformedFieldError } from '../util';
 import { collection } from '../db';
 import { MongoID, ErrorCode, Language } from '../types';
 import { Range } from './range.model';

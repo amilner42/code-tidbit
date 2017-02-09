@@ -1,7 +1,6 @@
 /// Module for encapsulating helper functions for the FileStructure model.
 
 import { objectMap } from '../util';
-import { map } from "ramda";
 import Bluebird from "bluebird";
 
 
