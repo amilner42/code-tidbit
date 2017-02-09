@@ -7,7 +7,8 @@ import passport from 'passport';
 import R from 'ramda';
 
 import { APP_CONFIG } from '../app-config';
-import { User, userModel, Snipbit, validifyAndUpdateSnipbit } from './models/';
+import { User, userModel, Snipbit, validifyAndUpdateSnipbit, bigbitSchema,
+  metaMap, validifyAndUpdateBigbit, Bigbit } from './models/';
 import { AppRoutes, ErrorCode, FrontendError, Language } from './types';
 import { collection, ID } from './db';
 import { internalError } from './util';
@@ -169,12 +170,37 @@ export const routes: AppRoutes = {
       .then((updatedSnipbit: Snipbit) => {
         updatedSnipbit.author = user._id;
 
-        collection("snipbits")
+        return collection("snipbits")
         .then((snipbitCollection) => {
           return snipbitCollection.insertOne(updatedSnipbit);
         })
         .then((snipbit) => {
           res.status(200).json({ newID: snipbit.insertedId });
+          return;
+        });
+      })
+      .catch(handleError(res));
+    }
+  },
+
+  '/bigbits': {
+    /**
+     * Creates a new snipbit for the logged-in user.
+     */
+    post: (req, res) => {
+      const user: User = req.user;
+      const bigbit = req.body;
+
+      validifyAndUpdateBigbit(bigbit)
+      .then((updatedBigbit: Bigbit) => {
+        updatedBigbit.author = user._id;
+
+        return collection("bigbits")
+        .then((bigbitCollection) => {
+          return bigbitCollection.insertOne(updatedBigbit);
+        })
+        .then((bigbit) => {
+          res.status(200).json({ newID: bigbit.insertedId })
           return;
         });
       })

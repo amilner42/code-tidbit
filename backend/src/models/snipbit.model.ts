@@ -92,7 +92,7 @@ export const validifyAndUpdateSnipbit = (snipbit: Snipbit): Promise<Snipbit> => 
       if(!language) {
         reject({
           errorCode: ErrorCode.snipbitInvalidLanguage,
-          message: `Language ${language} is not a valid encoded language.`
+          message: `Language ${snipbit.language} is not a valid encoded language.`
         });
         return;
       }

@@ -2,7 +2,7 @@
 
 import * as kleen from "kleen";
 import { Range, emptyRange } from './range.model';
-import { malformedFieldError } from '../util';
+import { malformedFieldError, internalError } from '../util';
 import { ErrorCode, FrontendError } from '../types';
 
 
@@ -199,12 +199,27 @@ export const conclusionSchema = (emptyConclusionErrorCode: ErrorCode): kleen.typ
 
 /**
  * For validifying a FileStructure.
+ *
+ * On top of expected checks, also makes sure that no file/folder names have a
+ * '*' in them. Because mongo can't have periods in key names, we swap periods
+ * with stars on the way in, and the reverse on the way out. The frontend does
+ * not allow stars so that's why it's an internal error (user hitting API
+ * directly).
  */
 export const fileStructureSchema =
   (fsMetadataSchema: kleen.typeSchema,
   folderMetadataSchema: kleen.typeSchema,
   fileMetadataSchema: kleen.typeSchema
   ): kleen.typeSchema => {
+
+  const mapHasStarInKeys = (someMap: {[key: string]: any}): boolean => {
+    for(let key in someMap) {
+      if(key.includes("*")) {
+        return true;
+      }
+    }
+    return false;
+  };
 
   return {
     objectProperties: {
@@ -220,11 +235,21 @@ export const fileStructureSchema =
               },
               typeFailureError: malformedFieldError("file")
             },
+            restriction: (files) => {
+              if(mapHasStarInKeys(files)) {
+                return Promise.reject(internalError("File names cannot have '*'"));
+              }
+            },
             typeFailureError: malformedFieldError("files")
           },
           "folders": {
             mapValueType: {
               referenceName: "folderSchema"
+            },
+            restriction: (folders) => {
+              if(mapHasStarInKeys(folders)) {
+                return Promise.reject(internalError("Folder names cannot have a '*'"))
+              }
             },
             typeFailureError: malformedFieldError("folders")
           },

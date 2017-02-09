@@ -6,7 +6,7 @@ import { internalError, malformedFieldError } from '../util';
 import { collection } from '../db';
 import { MongoID, ErrorCode, Language } from '../types';
 import { Range } from './range.model';
-import { FileStructure } from './file-structure.model';
+import { FileStructure, metaMap, swapPeriodsWithStarsForFS } from './file-structure.model';
 import * as KS from './kleen-schemas';
 
 
@@ -85,3 +85,50 @@ export const bigbitSchema: kleen.typeSchema = {
   },
   typeFailureError: malformedFieldError("bigbit")
 };
+
+/**
+ * Validates a bigbit coming in from the frontend, and
+ * updates it to the structure stored on the backend: the language on every
+ * file must be switched to the MongoID AND all key names in the FS must have
+ * their '.' replaced with '*' because mongoDB cannot have '.' in key names.
+ *
+ * NOTE: This function does not attach an author.
+ */
+export const validifyAndUpdateBigbit = (bigbit: Bigbit) => {
+
+  const asyncIdentity = <T1>(val: T1): Promise<T1> => {
+    return Promise.resolve(val);
+  };
+
+  return new Promise((resolve, reject) => {
+
+    kleen.validModel(bigbitSchema)(bigbit)
+    .then(() => {
+      return collection("languages");
+    })
+    .then((languageCollection) => {
+      return metaMap(
+        asyncIdentity,
+        asyncIdentity,
+        (fileMetadata => {
+          return new Promise<{language: MongoID}>((resolveInner, rejectInner) => {
+            (languageCollection.findOne({ encodedName: fileMetadata.language}) as Promise<Language>)
+            .then((language) => {
+              if(!language) {
+                rejectInner({ errorCode: undefined, message: `Language ${fileMetadata.language} is not a valid encoded language.`})
+              }
+              resolveInner({ language: language._id});
+            })
+            .catch(rejectInner);
+          });
+        }),
+        bigbit.fs
+      )
+    })
+    .then((updatedFS) => {
+      bigbit.fs = swapPeriodsWithStarsForFS(true, updatedFS);
+      resolve(bigbit);
+    })
+    .catch(reject);
+  });
+}

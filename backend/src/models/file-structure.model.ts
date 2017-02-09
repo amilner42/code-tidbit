@@ -94,3 +94,47 @@ export const metaMap = <a, b, c, a1, b1, c1>
     .catch(reject);
   });
 };
+
+/**
+ * When putting an fs into the db, we swap all '.' with '*', when taking the fs
+ * out of the db, we do the reverse. MongoDB cannot have periods in key names.
+ * This returns a new file structure and does not modify the old one.
+ */
+export const swapPeriodsWithStarsForFS = <a,b,c>(goingIntoDB: boolean, fs: FileStructure<a,b,c>): FileStructure<a,b,c> => {
+
+  // Performs swap of '.' and '*' depending on whether we are going in or out
+  // out of the db.
+  const getNewKey = (oldKey: string): string => {
+    return (goingIntoDB ? oldKey.replace(/\./g, "*") : oldKey.replace(/\*/g, "."));
+  };
+
+  const applyRenameOnFolder = (folder: Folder<b,c>): Folder<b,c> => {
+    return {
+      files: (() => {
+        const newFiles = {};
+
+        for(let key in folder.files) {
+          const newKey = getNewKey(key);
+          newFiles[newKey] = folder.files[key];
+        }
+        return newFiles;
+      })(),
+      folders: (() => {
+        const newFolders = {};
+
+        for(let key in folder.folders) {
+          const newKey = getNewKey(key);
+          newFolders[newKey] = applyRenameOnFolder(folder.folders[key]);
+        }
+
+        return newFolders;
+      })(),
+      folderMetadata: folder.folderMetadata
+    }
+  }
+
+  return {
+    fsMetadata: fs.fsMetadata,
+    rootFolder: applyRenameOnFolder(fs.rootFolder)
+  }
+};
