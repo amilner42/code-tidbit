@@ -11,79 +11,9 @@
 
         height: 100%;
 
-        .view-snipbit {
-            width: 100%;
-            height: 100%;
+        .view-bigbit { }
 
-            color: black;
-
-            .viewer {
-                display: block;
-                margin: auto;
-                width: $min-width-supported;
-
-                .snipbit-navbar {
-                    display: block;
-                    height: 70px;
-                    padding-top: 30px;
-                    margin: auto;
-                    width: 100%;
-                    text-align: center;
-
-                    .snipbit-navbar-item {
-                        @include no-select();
-
-                        position: relative;
-                        display: inline-block;
-                        color: $color4;
-                        border: 1px solid $color2;
-                        height: 30px;
-                        line-height: 30px;
-                        margin: 1px;
-                        padding: 5px;
-                        cursor: pointer;
-
-                        &.selected {
-                            color: $color1;
-                        }
-                    }
-
-                    i {
-                        @include no-select();
-
-                        position: relative;
-                        color: $color5;
-                        height: 30px;
-                        width: 30px;
-                        font-size: 30px;
-                        cursor: pointer;
-                    }
-
-                    .action-button {
-                        top: 10px;
-                        margin: 0 5px 0 5px;
-                    }
-
-                    .blank-icon {
-                        color: white;
-                        cursor: default;
-                    }
-                }
-
-                .comment-block {
-                    display: inline-block;
-                    width: 354px;
-                    height: 600px;
-                    margin-left: 10px;
-
-                    textarea {
-                        width: 100%;
-                        height: 50%;
-                        border: 1px solid $color2;
-                    }
-                }
-            }
-        }
+        .view-snipbit { }
 
         .create-select-tidbit-title {
             color: $color6;
@@ -814,6 +744,78 @@
             &:hover {
                 background-color: $color7;
                 color: $color6;
+            }
+        }
+
+        // Currently used by both snipbit and bigbit viewers.
+        .viewer {
+            display: block;
+            margin: auto;
+            width: $min-width-supported;
+
+            .viewer-navbar {
+                display: block;
+                height: 70px;
+                padding-top: 30px;
+                margin: auto;
+                width: 100%;
+                text-align: center;
+
+                .viewer-navbar-item {
+                    @include no-select();
+
+                    position: relative;
+                    display: inline-block;
+                    color: $color4;
+                    border: 1px solid $color2;
+                    height: 30px;
+                    line-height: 30px;
+                    margin: 1px;
+                    padding: 5px;
+                    cursor: pointer;
+
+                    &.selected {
+                        background-color: $color1;
+                        color: white;
+                        border-color: $color1;
+                    }
+                }
+
+                i {
+                    @include no-select();
+
+                    position: relative;
+                    color: $color5;
+                    height: 30px;
+                    width: 30px;
+                    font-size: 30px;
+                    cursor: pointer;
+                }
+
+                .action-button {
+                    top: 10px;
+                    margin: 0 5px 0 5px;
+                }
+
+                .disabled-icon {
+                    color: $color2;
+                    cursor: default;
+                }
+            }
+
+            .comment-block {
+                display: inline-block;
+                width: 354px;
+                height: 600px;
+                margin-left: 10px;
+
+                textarea {
+                    padding: 10px;
+                    width: 100%;
+                    height: 50%;
+                    border: 1px solid $color2;
+                    font-size: 14px;
+                }
             }
         }
     }

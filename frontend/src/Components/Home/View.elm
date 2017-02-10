@@ -54,6 +54,17 @@ makeHTMLTags closeTagMsg tags =
         )
 
 
+{-| Builds a progress bar for viewing tidbits.
+
+TODO implement.
+-}
+progressBar : Int -> Int -> Html Msg
+progressBar currentFrame maxFrame =
+    div
+        [ class "progress-bar" ]
+        []
+
+
 {-| The view for viewing a snipbit.
 -}
 viewSnipbitView : Model -> Shared -> Html Msg
@@ -68,11 +79,11 @@ viewSnipbitView model shared =
                 [ div
                     [ class "viewer" ]
                     [ div
-                        [ class "snipbit-navbar" ]
+                        [ class "viewer-navbar" ]
                         ([ i
                             [ classList
                                 [ ( "material-icons action-button", True )
-                                , ( "blank-icon"
+                                , ( "disabled-icon"
                                   , case shared.route of
                                         Route.HomeComponentViewSnipbitIntroduction _ ->
                                             True
@@ -96,7 +107,7 @@ viewSnipbitView model shared =
                          , div
                             [ onClick <| GoTo <| Route.HomeComponentViewSnipbitIntroduction snipbit.id
                             , classList
-                                [ ( "snipbit-navbar-item", True )
+                                [ ( "viewer-navbar-item", True )
                                 , ( "selected"
                                   , case shared.route of
                                         Route.HomeComponentViewSnipbitIntroduction _ ->
@@ -115,7 +126,7 @@ viewSnipbitView model shared =
                                             div
                                                 [ onClick <| GoTo <| Route.HomeComponentViewSnipbitFrame snipbit.id (index + 1)
                                                 , classList
-                                                    [ ( "snipbit-navbar-item", True )
+                                                    [ ( "viewer-navbar-item", True )
                                                     , ( "selected"
                                                       , case shared.route of
                                                             Route.HomeComponentViewSnipbitFrame _ frameNumber ->
@@ -134,7 +145,7 @@ viewSnipbitView model shared =
                             ++ [ div
                                     [ onClick <| GoTo <| Route.HomeComponentViewSnipbitConclusion snipbit.id
                                     , classList
-                                        [ ( "snipbit-navbar-item", True )
+                                        [ ( "viewer-navbar-item", True )
                                         , ( "selected"
                                           , case shared.route of
                                                 Route.HomeComponentViewSnipbitConclusion _ ->
@@ -149,7 +160,7 @@ viewSnipbitView model shared =
                                , i
                                     [ classList
                                         [ ( "material-icons action-button", True )
-                                        , ( "blank-icon"
+                                        , ( "disabled-icon"
                                           , case shared.route of
                                                 Route.HomeComponentViewSnipbitConclusion _ ->
                                                     True
@@ -176,7 +187,8 @@ viewSnipbitView model shared =
                     , div
                         [ class "comment-block" ]
                         [ textarea
-                            [ value <|
+                            [ disabled True
+                            , value <|
                                 case shared.route of
                                     Route.HomeComponentViewSnipbitIntroduction _ ->
                                         snipbit.introduction
@@ -216,8 +228,116 @@ viewBigbitView model shared =
 
             Just bigbit ->
                 div
-                    []
-                    [ Editor.editor "view-bigbit-code-editor" ]
+                    [ class "viewer" ]
+                    [ div
+                        [ class "viewer-navbar" ]
+                        [ i
+                            [ classList
+                                [ ( "material-icons action-button", True )
+                                , ( "disabled-icon"
+                                  , case shared.route of
+                                        Route.HomeComponentViewBigbitIntroduction _ _ ->
+                                            True
+
+                                        _ ->
+                                            False
+                                  )
+                                ]
+                            , onClick <|
+                                case shared.route of
+                                    Route.HomeComponentViewBigbitConclusion mongoID _ ->
+                                        GoTo <| Route.HomeComponentViewBigbitFrame mongoID (Array.length bigbit.highlightedComments) Nothing
+
+                                    Route.HomeComponentViewBigbitFrame mongoID frameNumber _ ->
+                                        GoTo <| Route.HomeComponentViewBigbitFrame mongoID (frameNumber - 1) Nothing
+
+                                    _ ->
+                                        NoOp
+                            ]
+                            [ text "arrow_back" ]
+                        , div
+                            [ onClick <| GoTo <| Route.HomeComponentViewBigbitIntroduction bigbit.id Nothing
+                            , classList
+                                [ ( "viewer-navbar-item", True )
+                                , ( "selected"
+                                  , case shared.route of
+                                        Route.HomeComponentViewBigbitIntroduction _ _ ->
+                                            True
+
+                                        _ ->
+                                            False
+                                  )
+                                ]
+                            ]
+                            [ text "Introduction" ]
+                          -- , progressBar
+                        , div
+                            [ onClick <| GoTo <| Route.HomeComponentViewBigbitConclusion bigbit.id Nothing
+                            , classList
+                                [ ( "viewer-navbar-item", True )
+                                , ( "selected"
+                                  , case shared.route of
+                                        Route.HomeComponentViewBigbitConclusion _ _ ->
+                                            True
+
+                                        _ ->
+                                            False
+                                  )
+                                ]
+                            ]
+                            [ text "Conclusion" ]
+                        , i
+                            [ classList
+                                [ ( "material-icons action-button", True )
+                                , ( "disabled-icon"
+                                  , case shared.route of
+                                        Route.HomeComponentViewBigbitConclusion _ _ ->
+                                            True
+
+                                        _ ->
+                                            False
+                                  )
+                                ]
+                            , onClick <|
+                                case shared.route of
+                                    Route.HomeComponentViewBigbitIntroduction mongoID _ ->
+                                        GoTo <| Route.HomeComponentViewBigbitFrame mongoID 1 Nothing
+
+                                    Route.HomeComponentViewBigbitFrame mongoID frameNumber _ ->
+                                        GoTo <| Route.HomeComponentViewBigbitFrame mongoID (frameNumber + 1) Nothing
+
+                                    _ ->
+                                        NoOp
+                            ]
+                            [ text "arrow_forward" ]
+                        ]
+                    , Editor.editor "view-bigbit-code-editor"
+                    , div
+                        [ class "comment-block" ]
+                        [ textarea
+                            [ disabled True
+                            , value <|
+                                case shared.route of
+                                    Route.HomeComponentViewBigbitIntroduction _ _ ->
+                                        bigbit.introduction
+
+                                    Route.HomeComponentViewBigbitConclusion _ _ ->
+                                        bigbit.conclusion
+
+                                    Route.HomeComponentViewBigbitFrame _ frameNumber _ ->
+                                        (Array.get
+                                            (frameNumber - 1)
+                                            bigbit.highlightedComments
+                                        )
+                                            |> Maybe.map .comment
+                                            |> Maybe.withDefault ""
+
+                                    _ ->
+                                        ""
+                            ]
+                            []
+                        ]
+                    ]
         ]
 
 
