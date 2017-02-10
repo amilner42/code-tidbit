@@ -2,8 +2,9 @@ module Elements.FileStructure exposing (..)
 
 import DefaultServices.Util as Util
 import Dict
-import Html exposing (div, text)
-import Html.Attributes exposing (class, hidden)
+import Html exposing (Html, div, text, i)
+import Html.Attributes exposing (class, hidden, classList)
+import Html.Events exposing (onClick)
 import Json.Encode as Encode
 import Json.Decode as Decode
 import Json.Decode.Pipeline exposing (decode, required, optional, hardcoded)
@@ -621,7 +622,7 @@ type alias RenderConfig b c msg =
     }
 
 
-{-| For rendering a FileStructure.
+{-| For rendering a FileStructure, allows for complete customization.
 -}
 render :
     RenderConfig b c msg
@@ -664,6 +665,78 @@ render renderConfig (FileStructure rootFolder fsMetadata) =
         div
             [ class renderConfig.fileStructureClass ]
             [ (renderFolder "" "/" rootFolder) ]
+
+
+{-| The config for creating a file-structure element.
+-}
+type alias FileStructureConfig msg =
+    { isFileSelected : Path -> Bool
+    , fileSelectedMsg : Path -> msg
+    , folderSelectedMsg : Path -> msg
+    }
+
+
+{-| For creating a cookie-cutter file-structure, use `render` if more
+customization is required.
+-}
+fileStructure : FileStructureConfig msg -> FileStructure a { b | isExpanded : Bool } c -> Html msg
+fileStructure fsConfig fs =
+    render
+        { fileStructureClass = "fs"
+        , folderAndSubContentClass = "fs-folder-and-sub-content"
+        , subContentClass = "fs-sub-content"
+        , subFoldersClass = "fs-sub-folders"
+        , subFilesClass = "fs-sub-files"
+        , renderFile =
+            (\name absolutePath fileMetadata ->
+                div
+                    [ class "fs-file" ]
+                    [ i
+                        [ classList
+                            [ ( "material-icons file-icon", True )
+                            , ( "selected-file"
+                              , fsConfig.isFileSelected absolutePath
+                              )
+                            ]
+                        , onClick <| fsConfig.fileSelectedMsg absolutePath
+                        ]
+                        [ text "insert_drive_file" ]
+                    , div
+                        [ classList
+                            [ ( "file-name", True )
+                            , ( "selected-file"
+                              , fsConfig.isFileSelected absolutePath
+                              )
+                            ]
+                        , onClick <| fsConfig.fileSelectedMsg absolutePath
+                        ]
+                        [ text name ]
+                    ]
+            )
+        , renderFolder =
+            (\name absolutePath folderMetadata ->
+                div
+                    [ class "fs-folder"
+                    ]
+                    [ i
+                        [ class "material-icons folder-icon"
+                        , onClick <| fsConfig.folderSelectedMsg absolutePath
+                        ]
+                        [ if folderMetadata.isExpanded then
+                            text "folder_open"
+                          else
+                            text "folder"
+                        ]
+                    , div
+                        [ class "folder-name"
+                        , onClick <| fsConfig.folderSelectedMsg absolutePath
+                        ]
+                        [ text <| name ++ "/" ]
+                    ]
+            )
+        , expandFolderIf = .isExpanded
+        }
+        fs
 
 
 {-| Updates the fs metadata.

@@ -834,60 +834,10 @@ createBigbitView model shared =
                                         ]
                                         [ text "close" ]
                                     , text "File Structure"
-                                    , FS.render
-                                        { fileStructureClass = "fs"
-                                        , folderAndSubContentClass = "fs-folder-and-sub-content"
-                                        , subContentClass = "fs-sub-content"
-                                        , subFoldersClass = "fs-sub-folders"
-                                        , subFilesClass = "fs-sub-files"
-                                        , renderFile =
-                                            (\name absolutePath fileMetadata ->
-                                                div
-                                                    [ class "fs-file" ]
-                                                    [ i
-                                                        [ classList
-                                                            [ ( "material-icons file-icon", True )
-                                                            , ( "selected-file"
-                                                              , viewingFile absolutePath
-                                                              )
-                                                            ]
-                                                        , onClick <| BigbitFileSelected absolutePath
-                                                        ]
-                                                        [ text "insert_drive_file" ]
-                                                    , div
-                                                        [ classList
-                                                            [ ( "file-name", True )
-                                                            , ( "selected-file"
-                                                              , viewingFile absolutePath
-                                                              )
-                                                            ]
-                                                        , onClick <| BigbitFileSelected absolutePath
-                                                        ]
-                                                        [ text name ]
-                                                    ]
-                                            )
-                                        , renderFolder =
-                                            (\name absolutePath folderMetadata ->
-                                                div
-                                                    [ class "fs-folder"
-                                                    ]
-                                                    [ i
-                                                        [ class "material-icons folder-icon"
-                                                        , onClick <| BigbitFSToggleFolder absolutePath
-                                                        ]
-                                                        [ if folderMetadata.isExpanded then
-                                                            text "folder_open"
-                                                          else
-                                                            text "folder"
-                                                        ]
-                                                    , div
-                                                        [ class "folder-name"
-                                                        , onClick <| BigbitFSToggleFolder absolutePath
-                                                        ]
-                                                        [ text <| name ++ "/" ]
-                                                    ]
-                                            )
-                                        , expandFolderIf = .isExpanded
+                                    , FS.fileStructure
+                                        { isFileSelected = viewingFile
+                                        , fileSelectedMsg = BigbitFileSelected
+                                        , folderSelectedMsg = BigbitFSToggleFolder
                                         }
                                         model.bigbitCreateData.fs
                                     , div
