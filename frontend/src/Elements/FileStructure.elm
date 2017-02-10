@@ -1,4 +1,4 @@
-module Models.FileStructure exposing (..)
+module Elements.FileStructure exposing (..)
 
 import DefaultServices.Util as Util
 import Dict

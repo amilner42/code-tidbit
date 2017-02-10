@@ -14,7 +14,7 @@ import DefaultServices.Util as Util
 import Elements.Editor as Editor
 import Json.Decode as Decode
 import Models.Bigbit as Bigbit
-import Models.FileStructure as FS
+import Elements.FileStructure as FS
 import Models.Snipbit as Snipbit
 import Models.Range as Range
 import Models.Route as Route

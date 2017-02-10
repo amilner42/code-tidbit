@@ -13,7 +13,7 @@ import Html exposing (Html, div, text, textarea, button, input, h1, h3, img, hr,
 import Html.Attributes exposing (class, classList, disabled, placeholder, value, hidden, id, src, style)
 import Html.Events exposing (onClick, onInput)
 import Models.Bigbit as Bigbit
-import Models.FileStructure as FS
+import Elements.FileStructure as FS
 import Models.Range as Range
 import Models.Route as Route
 import Models.Snipbit as Snipbit
@@ -835,15 +835,15 @@ createBigbitView model shared =
                                         [ text "close" ]
                                     , text "File Structure"
                                     , FS.render
-                                        { fileStructureClass = "create-bigbit-fs"
-                                        , folderAndSubContentClass = "create-bigbit-fs-folder-and-sub-content"
-                                        , subContentClass = "create-bigbit-fs-sub-content"
-                                        , subFoldersClass = "create-bigbit-fs-sub-folders"
-                                        , subFilesClass = "create-bigbit-fs-sub-files"
+                                        { fileStructureClass = "fs"
+                                        , folderAndSubContentClass = "fs-folder-and-sub-content"
+                                        , subContentClass = "fs-sub-content"
+                                        , subFoldersClass = "fs-sub-folders"
+                                        , subFilesClass = "fs-sub-files"
                                         , renderFile =
                                             (\name absolutePath fileMetadata ->
                                                 div
-                                                    [ class "create-bigbit-fs-file" ]
+                                                    [ class "fs-file" ]
                                                     [ i
                                                         [ classList
                                                             [ ( "material-icons file-icon", True )
@@ -869,7 +869,7 @@ createBigbitView model shared =
                                         , renderFolder =
                                             (\name absolutePath folderMetadata ->
                                                 div
-                                                    [ class "create-bigbit-fs-folder"
+                                                    [ class "fs-folder"
                                                     ]
                                                     [ i
                                                         [ class "material-icons folder-icon"

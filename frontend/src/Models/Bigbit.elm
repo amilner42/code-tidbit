@@ -9,7 +9,7 @@ import Json.Encode as Encode
 import Json.Decode as Decode
 import Json.Decode.Pipeline exposing (decode, required, optional, hardcoded)
 import Models.HighlightedComment as HighlightedComment
-import Models.FileStructure as FS
+import Elements.FileStructure as FS
 import Models.Range as Range
 import Models.Route as Route
 

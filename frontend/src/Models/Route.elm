@@ -17,7 +17,7 @@ import Config
 import DefaultServices.Util as Util
 import Json.Decode as Decode
 import Json.Encode as Encode
-import Models.FileStructure as FS
+import Elements.FileStructure as FS
 import Navigation
 import UrlParser exposing (Parser, s, (</>), (<?>), oneOf, map, top, int, string, stringParam)
 

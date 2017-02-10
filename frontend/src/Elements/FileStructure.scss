@@ -1,0 +1,52 @@
+@import '../Styles/variables';
+@import '../Styles/mixins';
+
+
+.fs {
+    margin-top: 10px;
+    color: $color4;
+    font-size: 16px;
+
+    .fs-sub-content {
+        margin-left: 20px;
+    }
+
+    .fs-folder {
+        @include no-select();
+        position: relative;
+
+        .folder-icon {
+            display: inline-block;
+            cursor: pointer;
+        }
+
+        .folder-name {
+            position: relative;
+            display: inline-block;
+            cursor: pointer;
+            top: -5px;
+            left: 3px;
+        }
+    }
+
+    .fs-file {
+        @include no-select();
+
+        .file-icon {
+            display: inline-block;
+            cursor: pointer;
+        }
+
+        .selected-file {
+          color: $color6;
+        }
+
+        .file-name {
+            position: relative;
+            display: inline-block;
+            cursor: pointer;
+            top: -5px;
+            left: 3px;
+        }
+    }
+}
