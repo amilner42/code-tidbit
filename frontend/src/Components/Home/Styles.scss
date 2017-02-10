@@ -775,9 +775,7 @@
                     cursor: pointer;
 
                     &.selected {
-                        background-color: $color1;
-                        color: white;
-                        border-color: $color1;
+                        color: $color1;
                     }
                 }
 
@@ -815,7 +813,34 @@
                     height: 50%;
                     border: 1px solid $color2;
                     font-size: 14px;
+                    background-color: white;
                 }
+            }
+        }
+
+        .progress-bar {
+            @include no-select();
+
+            position: relative;
+            display: inline-block;
+            width: 150px;
+            height: 30px;
+            line-height: 30px;
+            border: 1px solid $color2;
+            padding: 5px;
+            color: $color6;
+
+            .progress-bar-completion-bar {
+                position: absolute;
+                height: 100%;
+                background-color: $color3;
+                z-index: -1;
+                left: 0;
+                top: 0;
+            }
+
+            &.selected {
+                border-color: $color1;
             }
         }
     }
