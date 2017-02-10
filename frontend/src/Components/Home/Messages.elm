@@ -68,3 +68,5 @@ type Msg
     | BigbitPublish Bigbit.BigbitForPublication
     | OnBigbitPublishFailure ApiError.ApiError
     | OnBigbitPublishSuccess CreateTidbitResponse
+    | OnGetBigbitFailure ApiError.ApiError
+    | OnGetBigbitSuccess Bigbit.Bigbit

@@ -14,13 +14,88 @@ import Models.Range as Range
 import Models.Route as Route
 
 
-{-| A Bigbit as seen in the database.
+{-| A Bigbit as seen in the database, with a few extra fields thrown in the FS
+to make it easier to render.
 -}
 type alias Bigbit =
     { name : String
     , description : String
     , tags : List String
+    , introduction : String
+    , conclusion : String
+    , fs : FS.FileStructure { isOpen : Bool } { isExpanded : Bool } { language : Editor.Language }
+    , highlightedComments : Array.Array BigbitHighlightedCommentForPublication
+    , author : String
+    , id : String
     }
+
+
+{-| Bigbit encoder.
+-}
+bigbitEncoder : Bigbit -> Encode.Value
+bigbitEncoder bigbit =
+    let
+        encodeFS fs =
+            FS.encodeFS
+                (\fsMetadata ->
+                    Encode.object
+                        [ ( "isOpen", Encode.bool fsMetadata.isOpen ) ]
+                )
+                (\folderMetadata ->
+                    Encode.object
+                        [ ( "isExpanded", Encode.bool folderMetadata.isExpanded ) ]
+                )
+                (\fileMetadata ->
+                    Encode.object
+                        [ ( "language", Editor.languageCacheEncoder fileMetadata.language ) ]
+                )
+                fs
+    in
+        Encode.object
+            [ ( "name", Encode.string bigbit.name )
+            , ( "description", Encode.string bigbit.description )
+            , ( "tags", Encode.list <| List.map Encode.string bigbit.tags )
+            , ( "introduction", Encode.string bigbit.introduction )
+            , ( "conclusion", Encode.string bigbit.conclusion )
+            , ( "fs", encodeFS bigbit.fs )
+            , ( "highlightedComments"
+              , Encode.array <|
+                    Array.map
+                        bigbitHighlightedCommentForPublicationCacheEncoder
+                        bigbit.highlightedComments
+              )
+            , ( "author", Encode.string bigbit.author )
+            , ( "id", Encode.string bigbit.id )
+            ]
+
+
+{-| Bigbit decoder.
+-}
+bigbitDecoder : Decode.Decoder Bigbit
+bigbitDecoder =
+    let
+        decodeFS =
+            FS.decodeFS
+                (decode (\isOpen -> { isOpen = isOpen })
+                    |> optional "isOpen" Decode.bool False
+                )
+                (decode (\isExpanded -> { isExpanded = isExpanded })
+                    |> optional "isExpanded" Decode.bool False
+                )
+                (decode BigbitCreateDataFileMetadata
+                    |> required "language" Editor.languageCacheDecoder
+                )
+    in
+        decode Bigbit
+            |> required "name" Decode.string
+            |> required "description" Decode.string
+            |> required "tags" (Decode.list Decode.string)
+            |> required "introduction" Decode.string
+            |> required "conclusion" Decode.string
+            |> required "fs" decodeFS
+            |> required "highlightedComments" (Decode.array bigbitHighlightedCommentForPublicationCacheDecoder)
+            |> required "author" Decode.string
+            |> required "id" Decode.string
 
 
 {-| Basic union to keep track of the current state of the action buttons in
@@ -603,7 +678,7 @@ clearActionButtonInput =
         )
 
 
-{-| The current active path determined from the route.
+{-| The current active path (on create page) determined from the route.
 -}
 createPageCurrentActiveFile : Route.Route -> Maybe FS.Path
 createPageCurrentActiveFile route =
@@ -615,6 +690,24 @@ createPageCurrentActiveFile route =
             maybePath
 
         Route.HomeComponentCreateBigbitCodeConclusion maybePath ->
+            maybePath
+
+        _ ->
+            Nothing
+
+
+{-| The current active path (on view page) determined from the route.
+-}
+viewPageCurrentActiveFile : Route.Route -> Maybe FS.Path
+viewPageCurrentActiveFile route =
+    case route of
+        Route.HomeComponentViewBigbitIntroduction _ maybePath ->
+            maybePath
+
+        Route.HomeComponentViewBigbitFrame _ _ maybePath ->
+            maybePath
+
+        Route.HomeComponentViewBigbitConclusion _ maybePath ->
             maybePath
 
         _ ->

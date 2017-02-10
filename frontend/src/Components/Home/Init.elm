@@ -16,6 +16,7 @@ init =
     { logOutError = Nothing
     , showInfoFor = Nothing
     , viewingSnipbit = Nothing
+    , viewingBigbit = Nothing
     , snipbitCreateData =
         { language = Nothing
         , languageQueryACState = AC.empty

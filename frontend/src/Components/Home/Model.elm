@@ -14,6 +14,7 @@ type alias Model =
     { logOutError : Maybe ApiError.ApiError
     , showInfoFor : Maybe TidbitType
     , viewingSnipbit : Maybe Snipbit.Snipbit
+    , viewingBigbit : Maybe Bigbit.Bigbit
     , snipbitCreateData : Snipbit.SnipbitCreateData
     , bigbitCreateData : Bigbit.BigbitCreateData
     }
@@ -60,6 +61,7 @@ cacheEncoder model =
         [ ( "logOutError", Encode.null )
         , ( "showInfoFor", Util.justValueOrNull tidbitTypeCacheEncoder model.showInfoFor )
         , ( "viewingSnipbit", Util.justValueOrNull Snipbit.snipbitCacheEncoder model.viewingSnipbit )
+        , ( "viewingBigbit", Util.justValueOrNull Bigbit.bigbitEncoder model.viewingBigbit )
         , ( "snipbitCreateData"
           , Snipbit.createDataCacheEncoder model.snipbitCreateData
           )
@@ -71,9 +73,10 @@ cacheEncoder model =
 -}
 cacheDecoder : Decode.Decoder Model
 cacheDecoder =
-    Decode.map5 Model
+    Decode.map6 Model
         (field "logOutError" (Decode.null Nothing))
         (field "showInfoFor" (Decode.maybe tidbitTypeCacheDecoder))
         (field "viewingSnipbit" (Decode.maybe Snipbit.snipbitCacheDecoder))
+        (field "viewingBigbit" (Decode.maybe Bigbit.bigbitDecoder))
         (field "snipbitCreateData" Snipbit.createDataCacheDecoder)
         (field "bigbitCreateData" Bigbit.bigbitCreateDataCacheDecoder)

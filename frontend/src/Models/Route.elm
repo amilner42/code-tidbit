@@ -9,6 +9,7 @@ module Models.Route
         , defaultAuthRoute
         , defaultUnauthRoute
         , navigateTo
+        , modifyTo
         , parseLocation
         )
 
@@ -34,6 +35,9 @@ type Route
     | HomeComponentViewSnipbitIntroduction MongoID
     | HomeComponentViewSnipbitConclusion MongoID
     | HomeComponentViewSnipbitFrame MongoID Int
+    | HomeComponentViewBigbitIntroduction MongoID (Maybe FS.Path)
+    | HomeComponentViewBigbitFrame MongoID Int (Maybe FS.Path)
+    | HomeComponentViewBigbitConclusion MongoID (Maybe FS.Path)
     | HomeComponentCreate
     | HomeComponentCreateSnipbitName
     | HomeComponentCreateSnipbitDescription
@@ -77,6 +81,18 @@ matchers =
 
         viewSnipbitFrame =
             viewSnipbit </> s "frame" </> int
+
+        viewBigbit =
+            view </> s "bigbit" </> string
+
+        viewBigbitIntroduction =
+            viewBigbit </> s "introduction" <?> qpFile
+
+        viewBigbitFrame =
+            viewBigbit </> s "frame" </> int <?> qpFile
+
+        viewBigbitConclusion =
+            viewBigbit </> s "conclusion" <?> qpFile
 
         -- Abstract.
         createSnipbit =
@@ -155,6 +171,9 @@ matchers =
             , map HomeComponentViewSnipbitIntroduction (viewSnipbitIntroduction)
             , map HomeComponentViewSnipbitConclusion (viewSnipbitConclusion)
             , map HomeComponentViewSnipbitFrame (viewSnipbitFrame)
+            , map HomeComponentViewBigbitIntroduction (viewBigbitIntroduction)
+            , map HomeComponentViewBigbitFrame (viewBigbitFrame)
+            , map HomeComponentViewBigbitConclusion (viewBigbitConclusion)
             , map HomeComponentCreate (create)
             , map HomeComponentCreateSnipbitName (createSnipbitName)
             , map HomeComponentCreateSnipbitDescription (createSnipbitDescription)
@@ -225,6 +244,26 @@ toHashUrl route =
 
             HomeComponentViewSnipbitFrame mongoID frameNumber ->
                 "view/snipbit/" ++ mongoID ++ "/frame/" ++ (toString frameNumber)
+
+            HomeComponentViewBigbitIntroduction mongoID qpFile ->
+                "view/bigbit/"
+                    ++ mongoID
+                    ++ "/introduction/"
+                    ++ Util.queryParamsToString [ ( "file", qpFile ) ]
+
+            HomeComponentViewBigbitConclusion mongoID qpFile ->
+                "view/bigbit/"
+                    ++ mongoID
+                    ++ "/conclusion/"
+                    ++ Util.queryParamsToString [ ( "file", qpFile ) ]
+
+            HomeComponentViewBigbitFrame mongoID frameNumber qpFile ->
+                "view/bigbit/"
+                    ++ mongoID
+                    ++ "/frame/"
+                    ++ (toString frameNumber)
+                    ++ "/"
+                    ++ Util.queryParamsToString [ ( "file", qpFile ) ]
 
             HomeComponentCreateSnipbitName ->
                 "create/snipbit/name"
@@ -355,3 +394,11 @@ parseLocation location =
 navigateTo : Route -> Cmd msg
 navigateTo route =
     Navigation.newUrl <| toUrl <| route
+
+
+{-| Goes to a given route by modifying the current URL instead of adding a new
+url to the browser history.
+-}
+modifyTo : Route -> Cmd msg
+modifyTo route =
+    Navigation.modifyUrl <| toUrl <| route

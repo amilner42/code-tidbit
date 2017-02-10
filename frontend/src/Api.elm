@@ -3,6 +3,7 @@ module Api
         ( getAccount
         , getLogOut
         , getSnipbit
+        , getBigbit
         , postLogin
         , postRegister
         , postCreateSnipbit
@@ -62,6 +63,13 @@ getLogOut =
 getSnipbit : String -> (ApiError.ApiError -> b) -> (Snipbit.Snipbit -> b) -> Cmd b
 getSnipbit snipbitID =
     apiGet ("snipbits" :/: snipbitID) Snipbit.snipbitDecoder
+
+
+{-| Get's a bigbit.
+-}
+getBigbit : String -> (ApiError.ApiError -> b) -> (Bigbit.Bigbit -> b) -> Cmd b
+getBigbit bigbitID =
+    apiGet ("bigbits" :/: bigbitID) Bigbit.bigbitDecoder
 
 
 {-| Logs user in and returns the user, unless invalid credentials.

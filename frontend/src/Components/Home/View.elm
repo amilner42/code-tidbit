@@ -202,6 +202,25 @@ viewSnipbitView model shared =
         )
 
 
+{-| The view for viewing a bigbit.
+-}
+viewBigbitView : Model -> Shared -> Html Msg
+viewBigbitView model shared =
+    div
+        [ class "view-bigbit" ]
+        [ case model.viewingBigbit of
+            Nothing ->
+                div
+                    []
+                    [ text "LOADING" ]
+
+            Just bigbit ->
+                div
+                    []
+                    [ Editor.editor "view-bigbit-code-editor" ]
+        ]
+
+
 {-| Displays the correct view based on the model.
 -}
 displayViewForRoute : Model -> Shared -> Html Msg
@@ -218,6 +237,15 @@ displayViewForRoute model shared =
 
         Route.HomeComponentViewSnipbitFrame _ _ ->
             viewSnipbitView model shared
+
+        Route.HomeComponentViewBigbitIntroduction _ _ ->
+            viewBigbitView model shared
+
+        Route.HomeComponentViewBigbitFrame _ _ _ ->
+            viewBigbitView model shared
+
+        Route.HomeComponentViewBigbitConclusion _ _ ->
+            viewBigbitView model shared
 
         Route.HomeComponentCreate ->
             createView model shared
@@ -286,6 +314,15 @@ navbar shared =
                     True
 
                 Route.HomeComponentViewSnipbitConclusion _ ->
+                    True
+
+                Route.HomeComponentViewBigbitIntroduction _ _ ->
+                    True
+
+                Route.HomeComponentViewBigbitFrame _ _ _ ->
+                    True
+
+                Route.HomeComponentViewBigbitConclusion _ _ ->
                     True
 
                 _ ->
