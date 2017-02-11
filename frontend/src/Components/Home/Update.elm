@@ -57,6 +57,13 @@ update msg model shared =
         currentBigbitHighlightedComments : Array.Array Bigbit.BigbitHighlightedCommentForCreate
         currentBigbitHighlightedComments =
             currentBigbitCreateData.highlightedComments
+
+        updateViewingBigbit : (Bigbit.Bigbit -> Bigbit.Bigbit) -> Model
+        updateViewingBigbit bigbitUpdater =
+            { model
+                | viewingBigbit =
+                    Maybe.map bigbitUpdater model.viewingBigbit
+            }
     in
         case msg of
             NoOp ->
@@ -1381,6 +1388,50 @@ update msg model shared =
                   }
                 , shared
                 , createViewBigbitCodeEditor bigbit shared
+                )
+
+            ViewBigbitToggleFS ->
+                let
+                    fsIsOpen =
+                        model.viewingBigbit
+                            |> Maybe.map .fs
+                            |> Maybe.map Bigbit.isFSOpen
+                            |> Maybe.withDefault False
+                in
+                    ( updateViewingBigbit
+                        (\currentViewingBigbit ->
+                            { currentViewingBigbit
+                                | fs = Bigbit.toggleFS currentViewingBigbit.fs
+                            }
+                        )
+                    , shared
+                    , if fsIsOpen then
+                        Route.navigateToSameUrlWithFilePath Nothing shared.route
+                      else
+                        Route.navigateToSameUrlWithFilePath
+                            (Maybe.andThen
+                                (Bigbit.viewPageCurrentActiveFile shared.route)
+                                model.viewingBigbit
+                            )
+                            shared.route
+                    )
+
+            ViewBigbitSelectFile absolutePath ->
+                ( model
+                , shared
+                , Route.navigateToSameUrlWithFilePath (Just absolutePath) shared.route
+                )
+
+            ViewBigbitToggleFolder absolutePath ->
+                ( updateViewingBigbit
+                    (\currentViewingBigbit ->
+                        { currentViewingBigbit
+                            | fs =
+                                Bigbit.toggleFSFolder absolutePath currentViewingBigbit.fs
+                        }
+                    )
+                , shared
+                , Cmd.none
                 )
 
 

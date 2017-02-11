@@ -11,6 +11,7 @@ module Models.Route
         , navigateTo
         , modifyTo
         , parseLocation
+        , navigateToSameUrlWithFilePath
         )
 
 import Config
@@ -402,3 +403,31 @@ url to the browser history.
 modifyTo : Route -> Cmd msg
 modifyTo route =
     Navigation.modifyUrl <| toUrl <| route
+
+
+{-| For routes that have a file path query paramter, will  navigate to the same
+URL but with the file path added as a query param, otheriwse will do nothing.
+-}
+navigateToSameUrlWithFilePath : Maybe FS.Path -> Route -> Cmd msg
+navigateToSameUrlWithFilePath maybePath route =
+    case route of
+        HomeComponentViewBigbitIntroduction mongoID _ ->
+            navigateTo <| HomeComponentViewBigbitIntroduction mongoID maybePath
+
+        HomeComponentViewBigbitFrame mongoID frameNumber _ ->
+            navigateTo <| HomeComponentViewBigbitFrame mongoID frameNumber maybePath
+
+        HomeComponentViewBigbitConclusion mongoID _ ->
+            navigateTo <| HomeComponentViewBigbitConclusion mongoID maybePath
+
+        HomeComponentCreateBigbitCodeIntroduction _ ->
+            navigateTo <| HomeComponentCreateBigbitCodeIntroduction maybePath
+
+        HomeComponentCreateBigbitCodeFrame frameNumber _ ->
+            navigateTo <| HomeComponentCreateBigbitCodeFrame frameNumber maybePath
+
+        HomeComponentCreateBigbitCodeConclusion _ ->
+            navigateTo <| HomeComponentCreateBigbitCodeConclusion maybePath
+
+        _ ->
+            Cmd.none

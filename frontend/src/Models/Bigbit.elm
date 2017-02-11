@@ -23,7 +23,7 @@ type alias Bigbit =
     , tags : List String
     , introduction : String
     , conclusion : String
-    , fs : FS.FileStructure { isOpen : Bool } { isExpanded : Bool } { language : Editor.Language }
+    , fs : FS.FileStructure { openFS : Bool } { isExpanded : Bool } { language : Editor.Language }
     , highlightedComments : Array.Array BigbitHighlightedCommentForPublication
     , author : String
     , id : String
@@ -39,7 +39,7 @@ bigbitEncoder bigbit =
             FS.encodeFS
                 (\fsMetadata ->
                     Encode.object
-                        [ ( "isOpen", Encode.bool fsMetadata.isOpen ) ]
+                        [ ( "openFS", Encode.bool fsMetadata.openFS ) ]
                 )
                 (\folderMetadata ->
                     Encode.object
@@ -76,8 +76,8 @@ bigbitDecoder =
     let
         decodeFS =
             FS.decodeFS
-                (decode (\isOpen -> { isOpen = isOpen })
-                    |> optional "isOpen" Decode.bool False
+                (decode (\isOpen -> { openFS = isOpen })
+                    |> optional "openFS" Decode.bool False
                 )
                 (decode (\isExpanded -> { isExpanded = isExpanded })
                     |> optional "isExpanded" Decode.bool False
@@ -696,16 +696,21 @@ createPageCurrentActiveFile route =
             Nothing
 
 
-{-| The current active path (on view page) determined from the route.
+{-| The current active path (on view page) determined from the route or the
+current comment frame.
 -}
-viewPageCurrentActiveFile : Route.Route -> Maybe FS.Path
-viewPageCurrentActiveFile route =
+viewPageCurrentActiveFile : Route.Route -> Bigbit -> Maybe FS.Path
+viewPageCurrentActiveFile route bigbit =
     case route of
         Route.HomeComponentViewBigbitIntroduction _ maybePath ->
             maybePath
 
-        Route.HomeComponentViewBigbitFrame _ _ maybePath ->
-            maybePath
+        Route.HomeComponentViewBigbitFrame _ frameNumber maybePath ->
+            if Util.isNotNothing maybePath then
+                maybePath
+            else
+                Array.get (frameNumber - 1) bigbit.highlightedComments
+                    |> Maybe.map .file
 
         Route.HomeComponentViewBigbitConclusion _ maybePath ->
             maybePath

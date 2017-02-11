@@ -11,7 +11,25 @@
 
         height: 100%;
 
-        .view-bigbit { }
+        .view-bigbit {
+
+            .view-bigbit-toggle-fs {
+                position: absolute;
+                top: -35px;
+                right: -22px;
+                border: 1px solid $color2;
+                padding: 5px;
+                color: $color5;
+                cursor: pointer;
+            }
+
+            .view-bigbit-fs {
+                padding: 10px;
+                width: 100%;
+                height: 50%;
+                border: 1px solid $color2;
+            }
+        }
 
         .view-snipbit { }
 
@@ -633,14 +651,6 @@
 
             .create-snipbit-code {
                 @extend .create-tidbit-code;
-
-                .editor-warning-text {
-                    position: absolute;
-                    top: -20px;
-                    left: -645px;
-                    font-size: 12px;
-                    color: $color4;
-                }
             }
 
             .create-tidbit-sub-bar {
@@ -753,6 +763,7 @@
             }
 
             .comment-block {
+                position: relative;
                 display: inline-block;
                 width: 354px;
                 height: 600px;
@@ -793,6 +804,15 @@
             &.selected {
                 border-color: $color1;
             }
+        }
+
+        // Should be put in the comment-block for correct positioning.
+        .above-editor-text {
+            position: absolute;
+            top: -20px;
+            left: -645px;
+            font-size: 12px;
+            color: $color4;
         }
     }
 }

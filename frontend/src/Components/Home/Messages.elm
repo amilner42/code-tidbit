@@ -70,3 +70,6 @@ type Msg
     | OnBigbitPublishSuccess CreateTidbitResponse
     | OnGetBigbitFailure ApiError.ApiError
     | OnGetBigbitSuccess Bigbit.Bigbit
+    | ViewBigbitToggleFS
+    | ViewBigbitToggleFolder FS.Path
+    | ViewBigbitSelectFile FS.Path

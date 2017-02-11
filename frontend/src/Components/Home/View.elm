@@ -339,8 +339,32 @@ viewBigbitView model shared =
                     , Editor.editor "view-bigbit-code-editor"
                     , div
                         [ class "comment-block" ]
-                        [ textarea
+                        [ div
+                            [ class "view-bigbit-toggle-fs"
+                            , onClick <| ViewBigbitToggleFS
+                            ]
+                            [ text <|
+                                case Bigbit.isFSOpen bigbit.fs of
+                                    True ->
+                                        "Resume Tutorial"
+
+                                    False ->
+                                        "Explore File Structure"
+                            ]
+                        , div
+                            [ class "above-editor-text" ]
+                            [ text <|
+                                case Bigbit.viewPageCurrentActiveFile shared.route bigbit of
+                                    Nothing ->
+                                        "No File Selected"
+
+                                    Just activeFile ->
+                                        activeFile
+                            ]
+                        , textarea
                             [ disabled True
+                            , hidden <|
+                                Bigbit.isFSOpen bigbit.fs
                             , value <|
                                 case shared.route of
                                     Route.HomeComponentViewBigbitIntroduction _ _ ->
@@ -361,6 +385,22 @@ viewBigbitView model shared =
                                         ""
                             ]
                             []
+                        , div
+                            [ class "view-bigbit-fs"
+                            , hidden <| not <| Bigbit.isFSOpen bigbit.fs
+                            ]
+                            [ FS.fileStructure
+                                { isFileSelected =
+                                    (\absolutePath ->
+                                        Bigbit.viewPageCurrentActiveFile shared.route bigbit
+                                            |> Maybe.map (FS.isSameFilePath absolutePath)
+                                            |> Maybe.withDefault False
+                                    )
+                                , fileSelectedMsg = ViewBigbitSelectFile
+                                , folderSelectedMsg = ViewBigbitToggleFolder
+                                }
+                                bigbit.fs
+                            ]
                         ]
                     ]
         ]
@@ -1579,7 +1619,7 @@ createSnipbitView model shared =
                     , div
                         [ class "comment-creator" ]
                         [ div
-                            [ class "editor-warning-text" ]
+                            [ class "above-editor-text" ]
                             [ text <|
                                 if currentRoute == Route.HomeComponentCreateSnipbitCodeIntroduction then
                                     "Snipbit introductions do not link to highlights, but you can browse and edit your code"
