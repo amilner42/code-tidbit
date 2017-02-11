@@ -1396,10 +1396,10 @@ update msg model shared =
 
             ViewBigbitToggleFS ->
                 let
-                    fsIsOpen =
+                    -- We have a `not` because we toggle the fs state.
+                    fsJustOpened =
                         model.viewingBigbit
-                            |> Maybe.map .fs
-                            |> Maybe.map Bigbit.isFSOpen
+                            |> Maybe.map (not << Bigbit.isFSOpen << .fs)
                             |> Maybe.withDefault False
                 in
                     ( updateViewingBigbit
@@ -1409,15 +1409,15 @@ update msg model shared =
                             }
                         )
                     , shared
-                    , if fsIsOpen then
-                        Route.navigateToSameUrlWithFilePath Nothing shared.route
-                      else
+                    , if fsJustOpened then
                         Route.navigateToSameUrlWithFilePath
                             (Maybe.andThen
                                 (Bigbit.viewPageCurrentActiveFile shared.route)
                                 model.viewingBigbit
                             )
                             shared.route
+                      else
+                        Route.navigateToSameUrlWithFilePath Nothing shared.route
                     )
 
             ViewBigbitSelectFile absolutePath ->
