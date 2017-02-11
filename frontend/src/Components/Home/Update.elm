@@ -1375,8 +1375,12 @@ update msg model shared =
                 doNothing
 
             OnBigbitPublishSuccess { newID } ->
-                -- TODO redirect to bigbit viewer once viewer is complete.
-                doNothing
+                ( { model
+                    | bigbitCreateData = .bigbitCreateData HomeInit.init
+                  }
+                , shared
+                , Route.navigateTo <| Route.HomeComponentViewBigbitIntroduction newID Nothing
+                )
 
             OnGetBigbitFailure apiError ->
                 -- TODO handle get bigbit failure.
