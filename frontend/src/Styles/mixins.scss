@@ -4,81 +4,81 @@
 //Absolutely centering sometimes needs to be shifted a bit vertically.
 @mixin absolutely-centered-pick-y($top-distance) {
 
-  position: absolute;
+    position: absolute;
 
-  @media screen and (min-width: $min-width-supported) and (min-height: $min-height-supported) {
-    top: $top-distance;
-    left: 50%;
-    transform: translate(-50%, -50%);
-  }
+    @media screen and (min-width: $min-width-supported) and (min-height: $min-height-supported) {
+        top: $top-distance;
+        left: 50%;
+        transform: translate(-50%, -50%);
+    }
 
-  @media screen and (max-width: $min-width-supported) {
-    top: $top-distance;
-    left: 0;
-    transform: translate(0, -50%);
-  }
+    @media screen and (max-width: $min-width-supported) {
+        top: $top-distance;
+        left: 0;
+        transform: translate(0, -50%);
+    }
 
-  @media screen and (max-height: $min-height-supported) {
-    top: 0;
-    left: 50%;
-    transform: translate(-50%, 0);
-  }
+    @media screen and (max-height: $min-height-supported) {
+        top: 0;
+        left: 50%;
+        transform: translate(-50%, 0);
+    }
 
-  @media screen and (max-height: $min-height-supported) and (max-width: $min-width-supported) {
-    top: 0;
-    left: 0;
-    transform: none;
-  }
+    @media screen and (max-height: $min-height-supported) and (max-width: $min-width-supported) {
+        top: 0;
+        left: 0;
+        transform: none;
+    }
 }
 
 // Great for centering things (like the welcome form)
 @mixin absolutely-centered() {
-  @include absolutely-centered-pick-y(50%);
+    @include absolutely-centered-pick-y(50%);
 }
 
 
 // Takes the full screen with an absolutely positioned element.
 @mixin full-screen-absolute() {
-  height: 100vh;
-  width: 100vw;
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 0;
-  bottom: 0;
-  margin: 0;
-  padding: 0;
+    height: 100vh;
+    width: 100vw;
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    margin: 0;
+    padding: 0;
 }
 
 
 // Prevent text from being selectable in all browsers.
 @mixin no-select() {
-  -webkit-touch-callout: none; /* iOS Safari */
+    -webkit-touch-callout: none; /* iOS Safari */
     -webkit-user-select: none; /* Chrome/Safari/Opera */
-     -khtml-user-select: none; /* Konqueror */
-       -moz-user-select: none; /* Firefox */
-        -ms-user-select: none; /* Internet Explorer/Edge */
-            user-select: none; /* Non-prefixed version, currently
-                                  not supported by any browser */
-  cursor: default;
+    -khtml-user-select: none; /* Konqueror */
+    -moz-user-select: none; /* Firefox */
+    -ms-user-select: none; /* Internet Explorer/Edge */
+    user-select: none; /* Non-prefixed version, currently
+    not supported by any browser */
+    cursor: default;
 }
 
 // A stronger box shadow used for more effect.
 // Check out this codepen: https://codepen.io/sdthornton/pen/wBZdXq
 @mixin strong-box-shadow() {
-  box-shadow: 0 1px 3px rgba(0,0,0,0.15), 0 1px 2px rgba(0,0,0,0.30);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.15), 0 1px 2px rgba(0,0,0,0.30);
 }
 
 
 // A standard box shadow.
 // Check out this codepen: https://codepen.io/sdthornton/pen/wBZdXq
 @mixin standard-box-shadow() {
-  box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
 }
 
 
 // A lighter box shadow used for less effect.
 // Check out this codepen: https://codepen.io/sdthornton/pen/wBZdXq
 @mixin light-box-shadow() {
-  box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.12);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.12);
 }

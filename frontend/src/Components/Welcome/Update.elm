@@ -7,7 +7,6 @@ import Components.Welcome.Messages exposing (Msg(..))
 import Components.Welcome.Model exposing (Model)
 import Models.ApiError as ApiError
 import Models.Route as Route
-import Router
 
 
 {-| Welcome Component Update.
@@ -102,7 +101,7 @@ update msg model shared =
                         , route = Route.HomeComponentBrowse
                     }
             in
-                ( WelcomeInit.init, newShared, Router.navigateTo newShared.route )
+                ( WelcomeInit.init, newShared, Route.navigateTo newShared.route )
 
         Login ->
             let
@@ -124,7 +123,7 @@ update msg model shared =
                         , route = Route.HomeComponentBrowse
                     }
             in
-                ( WelcomeInit.init, newShared, Router.navigateTo newShared.route )
+                ( WelcomeInit.init, newShared, Route.navigateTo newShared.route )
 
         OnLoginFailure newApiError ->
             let
@@ -138,13 +137,13 @@ update msg model shared =
         GoToLoginView ->
             ( wipeError model
             , shared
-            , Router.navigateTo Route.WelcomeComponentLogin
+            , Route.navigateTo Route.WelcomeComponentLogin
             )
 
         GoToRegisterView ->
             ( wipeError model
             , shared
-            , Router.navigateTo Route.WelcomeComponentRegister
+            , Route.navigateTo Route.WelcomeComponentRegister
             )
 
 

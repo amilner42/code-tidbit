@@ -48,6 +48,15 @@ viewForRoute model =
             Route.HomeComponentViewSnipbitFrame _ _ ->
                 renderedHomeView
 
+            Route.HomeComponentViewBigbitIntroduction _ _ ->
+                renderedHomeView
+
+            Route.HomeComponentViewBigbitFrame _ _ _ ->
+                renderedHomeView
+
+            Route.HomeComponentViewBigbitConclusion _ _ ->
+                renderedHomeView
+
             Route.HomeComponentCreate ->
                 renderedHomeView
 
@@ -70,6 +79,24 @@ viewForRoute model =
                 renderedHomeView
 
             Route.HomeComponentCreateSnipbitCodeConclusion ->
+                renderedHomeView
+
+            Route.HomeComponentCreateBigbitName ->
+                renderedHomeView
+
+            Route.HomeComponentCreateBigbitDescription ->
+                renderedHomeView
+
+            Route.HomeComponentCreateBigbitTags ->
+                renderedHomeView
+
+            Route.HomeComponentCreateBigbitCodeIntroduction _ ->
+                renderedHomeView
+
+            Route.HomeComponentCreateBigbitCodeFrame _ _ ->
+                renderedHomeView
+
+            Route.HomeComponentCreateBigbitCodeConclusion _ ->
                 renderedHomeView
 
             Route.HomeComponentProfile ->

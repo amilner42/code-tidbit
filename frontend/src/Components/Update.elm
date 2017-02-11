@@ -13,7 +13,6 @@ import Elements.Editor as Editor
 import Models.Route as Route
 import Navigation
 import Ports
-import Router
 import Task
 
 
@@ -48,7 +47,7 @@ updateCacheIf msg model shouldCache =
                 OnLocationChange location ->
                     let
                         newRoute =
-                            Router.parseLocation location
+                            Route.parseLocation location
                     in
                         handleLocationChange newRoute model
 
@@ -56,7 +55,7 @@ updateCacheIf msg model shouldCache =
                     ( model, LocalStorage.loadModel () )
 
                 OnLoadModelFromLocalStorageSuccess newModel ->
-                    ( newModel, Router.navigateTo shared.route )
+                    ( newModel, Route.navigateTo shared.route )
 
                 OnLoadModelFromLocalStorageFailure err ->
                     ( model, getUser () )
@@ -71,7 +70,7 @@ updateCacheIf msg model shouldCache =
                                 | shared = { shared | user = Just user }
                             }
                     in
-                        ( newModel, Router.navigateTo shared.route )
+                        ( newModel, Route.navigateTo shared.route )
 
                 OnGetUserFailure newApiError ->
                     let
@@ -83,7 +82,7 @@ updateCacheIf msg model shouldCache =
                                     }
                             }
                     in
-                        ( newModel, Router.navigateTo newModel.shared.route )
+                        ( newModel, Route.navigateTo newModel.shared.route )
 
                 HomeMessage subMsg ->
                     let
@@ -128,6 +127,15 @@ updateCacheIf msg model shouldCache =
                                 shouldCache
                             )
 
+                        "create-bigbit-code-editor" ->
+                            (updateCacheIf
+                                (HomeMessage <|
+                                    HomeMessages.BigbitUpdateCode value
+                                )
+                                model
+                                shouldCache
+                            )
+
                         _ ->
                             doNothing
 
@@ -137,6 +145,16 @@ updateCacheIf msg model shouldCache =
                             (updateCacheIf
                                 (HomeMessage <|
                                     HomeMessages.SnipbitNewRangeSelected
+                                        range
+                                )
+                                model
+                                shouldCache
+                            )
+
+                        "create-bigbit-code-editor" ->
+                            (updateCacheIf
+                                (HomeMessage <|
+                                    HomeMessages.BigbitNewRangeSelected
                                         range
                                 )
                                 model
@@ -196,7 +214,7 @@ handleLocationChange maybeRoute model =
                     }
 
                 aceLang =
-                    case model.homeComponent.creatingSnipbitData.language of
+                    case model.homeComponent.snipbitCreateData.language of
                         Nothing ->
                             ""
 
@@ -208,7 +226,7 @@ handleLocationChange maybeRoute model =
                     ""
 
                 aceValue =
-                    model.homeComponent.creatingSnipbitData.code
+                    model.homeComponent.snipbitCreateData.code
 
                 -- Handle authentication logic here.
                 ( newModel, newCmd ) =
@@ -231,7 +249,7 @@ handleLocationChange maybeRoute model =
 
                                         newCmd =
                                             Cmd.batch
-                                                [ Router.navigateTo newModel.shared.route
+                                                [ Route.navigateTo newModel.shared.route
                                                 , LocalStorage.saveModel newModel
                                                 ]
                                     in
@@ -247,7 +265,7 @@ handleLocationChange maybeRoute model =
 
                                         newCmd =
                                             Cmd.batch
-                                                [ Router.navigateTo newModel.shared.route
+                                                [ Route.navigateTo newModel.shared.route
                                                 , LocalStorage.saveModel newModel
                                                 ]
                                     in
@@ -304,7 +322,7 @@ handleLocationChange maybeRoute model =
                                 frameNumber - 1
 
                             frameIndexTooHigh =
-                                frameIndex >= (Array.length model.homeComponent.creatingSnipbitData.highlightedComments)
+                                frameIndex >= (Array.length model.homeComponent.snipbitCreateData.highlightedComments)
 
                             frameIndexTooLow =
                                 frameIndex < 0
@@ -313,7 +331,7 @@ handleLocationChange maybeRoute model =
                                 ( newModel
                                 , Cmd.batch
                                     [ newCmd
-                                    , Router.navigateTo
+                                    , Route.navigateTo
                                         Route.HomeComponentCreateSnipbitCodeIntroduction
                                     ]
                                 )
@@ -324,7 +342,7 @@ handleLocationChange maybeRoute model =
                                         .range
                                         (Array.get
                                             frameIndex
-                                            model.homeComponent.creatingSnipbitData.highlightedComments
+                                            model.homeComponent.snipbitCreateData.highlightedComments
                                         )
                                 )
 
@@ -335,6 +353,24 @@ handleLocationChange maybeRoute model =
                         triggerRouteHookOnHomeComponent
 
                     Route.HomeComponentViewSnipbitFrame _ _ ->
+                        triggerRouteHookOnHomeComponent
+
+                    Route.HomeComponentViewBigbitIntroduction _ _ ->
+                        triggerRouteHookOnHomeComponent
+
+                    Route.HomeComponentViewBigbitFrame _ _ _ ->
+                        triggerRouteHookOnHomeComponent
+
+                    Route.HomeComponentViewBigbitConclusion _ _ ->
+                        triggerRouteHookOnHomeComponent
+
+                    Route.HomeComponentCreateBigbitCodeIntroduction _ ->
+                        triggerRouteHookOnHomeComponent
+
+                    Route.HomeComponentCreateBigbitCodeFrame _ _ ->
+                        triggerRouteHookOnHomeComponent
+
+                    Route.HomeComponentCreateBigbitCodeConclusion _ ->
                         triggerRouteHookOnHomeComponent
 
                     _ ->

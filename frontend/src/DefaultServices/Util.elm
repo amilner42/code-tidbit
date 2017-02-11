@@ -1,6 +1,9 @@
 module DefaultServices.Util exposing (..)
 
+import Dict
+import Dom
 import Html exposing (Html, Attribute)
+import Html.Attributes exposing (hidden)
 import Html.Events exposing (on, keyCode)
 import Json.Decode as Decode
 import Json.Encode as Encode
@@ -99,3 +102,71 @@ cmdFromMsg msg =
     Task.perform
         (\_ -> msg)
         (Task.succeed "")
+
+
+{-| Focus on a DOM element.
+-}
+domFocus : (Result.Result Dom.Error () -> msg) -> String -> Cmd msg
+domFocus onFocus domElement =
+    Task.attempt onFocus (Dom.focus domElement)
+
+
+{-| Helper for encoding dictionaries which use strings as keys.
+-}
+encodeStringDict : (v -> Encode.Value) -> Dict.Dict String v -> Encode.Value
+encodeStringDict valueEncoder dict =
+    Dict.toList dict
+        |> List.map (\( k, v ) -> ( k, valueEncoder v ))
+        |> Encode.object
+
+
+{-| Helper for decoding dictionaries which use strings as keys.
+-}
+decodeStringDict : Decode.Decoder v -> Decode.Decoder (Dict.Dict String v)
+decodeStringDict decodeValue =
+    Decode.keyValuePairs decodeValue
+        |> Decode.map Dict.fromList
+
+
+{-| Creates a basic hidden div.
+-}
+hiddenDiv : Html.Html msg
+hiddenDiv =
+    Html.div [ hidden True ] []
+
+
+{-| Helper for converting errors to False and successes to True.
+-}
+resultToBool : Result a b -> Bool
+resultToBool result =
+    case result of
+        Err _ ->
+            False
+
+        Ok _ ->
+            True
+
+
+{-| Given a bunch of maybe query params, turns it into a string of the query
+params that are actually there.
+
+Eg.
+  []  -> ""
+  [("path", Just "asdf"), ("bla", Nothing)] -> "?path=asdf"
+  [("path", Just "asdf"), ("bla", Just "bla")] -> "?path=asdf&bla=bla"
+
+-}
+queryParamsToString : List ( String, Maybe String ) -> String
+queryParamsToString listOfMaybeQueryParams =
+    listOfMaybeQueryParams
+        |> List.foldl
+            (\( qpName, maybeQPValue ) currentQPString ->
+                case maybeQPValue of
+                    Nothing ->
+                        currentQPString
+
+                    Just qpValue ->
+                        currentQPString ++ (qpName ++ "=" ++ qpValue ++ "&")
+            )
+            "?"
+        |> String.dropRight 1

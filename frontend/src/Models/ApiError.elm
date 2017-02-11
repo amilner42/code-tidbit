@@ -35,6 +35,20 @@ type ApiError
     | SnipbitNameTooLong
     | SnipbitInvalidLanguage
     | InvalidName
+    | SnipbitDoesNotExist
+    | BigbitEmptyRange
+    | BigbitEmptyComment
+    | BigbitEmptyFilePath
+    | BigbitEmptyName
+    | BigbitNameTooLong
+    | BigbitEmptyDescription
+    | BigbitEmptyTag
+    | BigbitNoTags
+    | BigbitEmptyIntroduction
+    | BigbitEmptyConclusion
+    | BigbitNoHighlightedComments
+    | BigbitInvalidLanguage
+    | BigbitDoesNotExist
 
 
 {-| An error from the backend still in Json form.
@@ -131,6 +145,48 @@ humanReadable apiError =
         InvalidName ->
             "Please enter your preffered name"
 
+        SnipbitDoesNotExist ->
+            "Snipbit does not exist!"
+
+        BigbitEmptyRange ->
+            "You must have a range selected for each frame!"
+
+        BigbitEmptyComment ->
+            "You must have an explanatory comment on each frame!"
+
+        BigbitEmptyFilePath ->
+            "Every frame must point to a file!"
+
+        BigbitEmptyName ->
+            "You must name your bigbit!"
+
+        BigbitNameTooLong ->
+            "Your bigbit name is too long!"
+
+        BigbitEmptyDescription ->
+            "Your bigbit must have a description!"
+
+        BigbitEmptyTag ->
+            "You cannot have empty tags in your bigbit!"
+
+        BigbitNoTags ->
+            "Your bigbit must have at least one tag!"
+
+        BigbitEmptyIntroduction ->
+            "Your bigbit must have an introduction!"
+
+        BigbitEmptyConclusion ->
+            "Your bigbit must have a conclusion!"
+
+        BigbitNoHighlightedComments ->
+            "You must have at least one frame!"
+
+        BigbitInvalidLanguage ->
+            "Language selected was not valid!"
+
+        BigbitDoesNotExist ->
+            "The bigbit you are looking for does not exist!"
+
 
 {-| Turns an errorCode integer from the backend to it's respective ApiError.
 -}
@@ -205,6 +261,48 @@ fromErrorCode errorCode =
 
         23 ->
             InvalidName
+
+        24 ->
+            SnipbitDoesNotExist
+
+        25 ->
+            BigbitEmptyRange
+
+        26 ->
+            BigbitEmptyComment
+
+        27 ->
+            BigbitEmptyFilePath
+
+        28 ->
+            BigbitEmptyName
+
+        29 ->
+            BigbitNameTooLong
+
+        30 ->
+            BigbitEmptyDescription
+
+        31 ->
+            BigbitEmptyTag
+
+        32 ->
+            BigbitNoTags
+
+        33 ->
+            BigbitEmptyIntroduction
+
+        34 ->
+            BigbitEmptyConclusion
+
+        35 ->
+            BigbitNoHighlightedComments
+
+        36 ->
+            BigbitInvalidLanguage
+
+        37 ->
+            BigbitDoesNotExist
 
         _ ->
             InternalError

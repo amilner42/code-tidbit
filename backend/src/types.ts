@@ -85,5 +85,18 @@ export enum ErrorCode {
   snipbitNameTooLong,
   snipbitInvalidLanguage,
   invalidName,
-  snipbitDoesNotExist
+  snipbitDoesNotExist,
+  bigbitEmptyRange,
+  bigbitEmptyComment,
+  bigbitEmptyFilePath,
+  bigbitEmptyName,
+  bigbitNameTooLong,
+  bigbitEmptyDescription,
+  bigbitEmptyTag,
+  bigbitNoTags,
+  bigbitEmptyIntroduction,
+  bigbitEmptyConclusion,
+  bigbitNoHighlightedComments,
+  bigbitInvalidLanguage,
+  bigbitDoesNotExist
 }

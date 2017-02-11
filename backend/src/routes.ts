@@ -4,13 +4,15 @@
 import { Response } from "express";
 import * as kleen from "kleen";
 import passport from 'passport';
-import R from 'ramda';
 
 import { APP_CONFIG } from '../app-config';
-import { User, userModel, Snipbit, validifyAndUpdateSnipbit } from './models/';
+import { User, userModel } from './models/user.model';
+import { Snipbit, validifyAndUpdateSnipbit } from './models/snipbit.model';
+import { validifyAndUpdateBigbit, Bigbit } from './models/bigbit.model';
+import { swapPeriodsWithStars, metaMap } from './models/file-structure.model';
 import { AppRoutes, ErrorCode, FrontendError, Language } from './types';
 import { collection, ID } from './db';
-import { internalError } from './util';
+import { internalError, asyncIdentity } from './util';
 
 
 /**
@@ -169,12 +171,37 @@ export const routes: AppRoutes = {
       .then((updatedSnipbit: Snipbit) => {
         updatedSnipbit.author = user._id;
 
-        collection("snipbits")
+        return collection("snipbits")
         .then((snipbitCollection) => {
           return snipbitCollection.insertOne(updatedSnipbit);
         })
         .then((snipbit) => {
           res.status(200).json({ newID: snipbit.insertedId });
+          return;
+        });
+      })
+      .catch(handleError(res));
+    }
+  },
+
+  '/bigbits': {
+    /**
+     * Creates a new snipbit for the logged-in user.
+     */
+    post: (req, res) => {
+      const user: User = req.user;
+      const bigbit = req.body;
+
+      validifyAndUpdateBigbit(bigbit)
+      .then((updatedBigbit: Bigbit) => {
+        updatedBigbit.author = user._id;
+
+        return collection("bigbits")
+        .then((bigbitCollection) => {
+          return bigbitCollection.insertOne(updatedBigbit);
+        })
+        .then((bigbit) => {
+          res.status(200).json({ newID: bigbit.insertedId })
           return;
         });
       })
@@ -229,5 +256,68 @@ export const routes: AppRoutes = {
       })
       .catch(handleError(res));
      }
+  },
+
+  '/bigbits/:id': {
+    /**
+     * Gets a bigbit.
+     */
+    get: (req, res) => {
+      const params = req.params;
+      const bigbitID = params["id"];
+
+      collection("bigbits")
+      .then((bigbitCollection) => {
+        return bigbitCollection.findOne({ _id: ID(bigbitID) }) as Promise<Bigbit>;
+      })
+      .then((bigbit) => {
+
+        if(!bigbit) {
+          res.status(400).json({
+            errorCode: ErrorCode.bigbitDoesNotExist,
+            message: `ID ${bigbitID} does not point to a bigbit.`
+          });
+          return;
+        }
+
+        // Rename id field.
+        bigbit.id = bigbit._id;
+        delete bigbit._id;
+
+        return collection("languages")
+        .then((languageCollection) => {
+          // Swap all languageIDs with encoded language names.
+          return metaMap(
+            asyncIdentity,
+            asyncIdentity,
+            (fileMetadata => {
+              return new Promise<{language: string}>((resolve, reject) => {
+                languageCollection.findOne({ _id: ID(fileMetadata.language) })
+                .then((language: Language) => {
+                  if(!language) {
+                    reject({
+                      errorCode: ErrorCode.internalError,
+                      message: `Language ID ${fileMetadata.language} does not point to a language`
+                    });
+                    return;
+                  }
+
+                  resolve({ language: language.encodedName });
+                  return;
+                });
+              });
+            }),
+            bigbit.fs
+          );
+        })
+        .then((updatedFS) => {
+          // Switch to updated fs, which includes swapping '*' with '.'
+          bigbit.fs = swapPeriodsWithStars(false, updatedFS);
+          res.status(200).json(bigbit);
+          return;
+        });
+      })
+      .catch(handleError(res));
+    }
   }
 }

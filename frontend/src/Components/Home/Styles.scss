@@ -11,79 +11,27 @@
 
         height: 100%;
 
-        .view-snipbit {
-          width: 100%;
-          height: 100%;
+        .view-bigbit {
 
-          color: black;
+            .view-bigbit-toggle-fs {
+                position: absolute;
+                top: -35px;
+                right: -22px;
+                border: 1px solid $color2;
+                padding: 5px;
+                color: $color5;
+                cursor: pointer;
+            }
 
-          .viewer {
-              display: block;
-              margin: auto;
-              width: $min-width-supported;
-
-              .snipbit-navbar {
-                display: block;
-                height: 70px;
-                padding-top: 30px;
-                margin: auto;
+            .view-bigbit-fs {
+                padding: 10px;
                 width: 100%;
-                text-align: center;
-
-                .snipbit-navbar-item {
-                    @include no-select();
-
-                    position: relative;
-                    display: inline-block;
-                    color: $color4;
-                    border: 1px solid $color2;
-                    height: 30px;
-                    line-height: 30px;
-                    margin: 1px;
-                    padding: 5px;
-                    cursor: pointer;
-
-                    &.selected {
-                        color: $color1;
-                    }
-                }
-
-                i {
-                    @include no-select();
-
-                    position: relative;
-                    color: $color5;
-                    height: 30px;
-                    width: 30px;
-                    font-size: 30px;
-                    cursor: pointer;
-                }
-
-                .action-button {
-                    top: 10px;
-                    margin: 0 5px 0 5px;
-                }
-
-                .blank-icon {
-                    color: white;
-                    cursor: default;
-                }
-              }
-
-              .comment-block {
-                  display: inline-block;
-                  width: 354px;
-                  height: 600px;
-                  margin-left: 10px;
-
-                  textarea {
-                      width: 100%;
-                      height: 50%;
-                      border: 1px solid $color2;
-                  }
-              }
-          }
+                height: 50%;
+                border: 1px solid $color2;
+            }
         }
+
+        .view-snipbit { }
 
         .create-select-tidbit-title {
             color: $color6;
@@ -151,10 +99,10 @@
                 }
 
                 .description-text {
-                  font-size: 16px;
-                  width: 300px;
-                  padding: 10px;
-                  font-weight: normal;
+                    font-size: 16px;
+                    width: 300px;
+                    padding: 10px;
+                    font-weight: normal;
                 }
 
                 .back-button {
@@ -213,14 +161,14 @@
             border-bottom: 2px solid $color6;
 
             .logo {
-              @include no-select();
+                @include no-select();
 
-              height: 44px;
-              padding: 3px;
-              background-color: white;
-              border-bottom: 2px solid $color6;
-              display: inline-block;
-              float: left;
+                height: 44px;
+                padding: 3px;
+                background-color: white;
+                border-bottom: 2px solid $color6;
+                display: inline-block;
+                float: left;
 
             }
 
@@ -241,66 +189,385 @@
             }
         }
 
-        .create-snipbit {
+        .create-tidbit-navbar {
+            @include no-select();
+
+            margin: 20px auto 10px auto;
+            position: relative;
+            display: block;
+            color: $color4;
+
+            .create-tidbit-tab {
+                box-sizing: border-box;
+                width: 100px;
+                height: 30px;
+                position: relative;
+                display: inline-block;
+                cursor: pointer;
+                border: 1px solid $color2;
+                margin: 1px;
+                font-size: 16px;
+                line-height: 30px;
+                text-align: center;
+
+                &.create-tidbit-selected-tab {
+                    color: $color1;
+                }
+            }
+        }
+
+        .create-tidbit-sub-bar {
+            position: relative;
+            display: inline-block;
+            width: 100%;
+            background-color: $color2;
+            margin-bottom: 10px;
+            height: 40px;
+            padding-top: 10px;
+
+            .sub-bar-button {
+                position: relative;
+                display: inline-block;
+                height: 30px;
+                width: 100px;
+                border: none;
+                border-radius: 5px;
+                color: white;
+
+                &:hover {
+                    color: $color6;
+                }
+            }
+        }
+
+        .create-bigbit {
 
             height: 100%;
 
-            .create-snipbit-navbar {
-                @include no-select();
+            .create-tidbit-navbar {
+                width: 410px;
+            }
 
-                width: 510px;
-                margin: 20px auto 10px auto;
+            .create-tidbit-sub-bar {
+                .sub-bar-button {
+                    margin-left: 10px;
+                }
+
+                .create-bigbit-disabled-publish-button {
+                    @extend .disabled-publish-button;
+                }
+
+                .create-bigbit-publish-button {
+                    @extend .publish-button;
+                }
+            }
+
+            .create-bigbit-name {
+                @extend .create-tidbit-x;
+
+                input {
+                    height: 73px;
+                    width: 800px;
+                }
+            }
+
+            .create-bigbit-description {
+                @extend .create-tidbit-x;
+
+                textarea {
+                    height: 400px;
+                    width: 600px;
+                }
+            }
+
+            .create-bigbit-tags {
+                @extend .create-tidbit-x;
+
+                input {
+                    width: 500px;
+                    height: 53px;
+                }
+            }
+
+            .create-bigbit-code {
+                @extend .create-tidbit-code;
+
+                .toggle-fs-icon {
+                    position: absolute;
+                    display: relative;
+                    height: 5px;
+                    width: 5px;
+                    margin-left: -3px;
+                    margin-top: -25px;
+                    color: $color4;
+                    cursor: pointer;
+                }
+
+                .bigbit-editor {
+                    position: relative;
+
+                    .current-file {
+                        position: absolute;
+                        top: -20px;
+                        left: 10px;
+                        font-size: 12px;
+                        color: $color4;
+                    }
+                }
+
+                .close-fs-icon {
+                    margin-top: -5px;
+                    margin-left: 320px;
+                }
+
+                .file-structure {
+                    box-sizing: border-box;
+                    position: block;
+                    display: relative;
+                    height: 600px;
+                    width: 360px;
+                    border: 1px solid $color2;
+                    margin-bottom: 10px;
+                    padding: 10px;
+
+                    .add-file, .add-folder, .remove-file, .remove-folder {
+                        width: 165px;
+                    }
+
+                    .selected-action-button {
+                        background-color: $color2;
+                        color: $color5;
+                    }
+
+                    .add-file {
+                        position: absolute;
+                        bottom: 10px;
+                    }
+
+                    .add-folder {
+                        position: absolute;
+                        bottom: 10px;
+                        right: 15px;
+                    }
+
+                    .remove-file {
+                        position: absolute;
+                        bottom: 56px;
+                    }
+
+                    .remove-folder {
+                        position: absolute;
+                        bottom: 56px;
+                        right: 15px;
+                    }
+
+                    .fs-action-input {
+                        position: absolute;
+                        width: 330px;
+                        height: 53px;
+                        bottom: 110px;
+                        left: 12px;
+                        text-align: center;
+
+                        input {
+                            text-align: center;
+                            width: 100%;
+                            height: 100%;
+                        }
+
+                        .fs-action-input-text {
+                            position: absolute;
+                            top: -20px;
+                            left: 3px;
+                            font-size: 12px;
+                            color: $color4;
+                            text-align: left;
+
+                            .fs-action-input-select-language-text {
+                                position: absolute;
+                                top: -27px;
+                                width: 300px;
+
+                                .language-options {
+                                    width: 100%;
+
+                                    button {
+                                        border-radius: 5px;
+                                        height: 25px;
+                                        line-height: 20px;
+                                        font-size: 12px;
+                                        margin: 3px 6px 3px -3px;
+                                        padding: 3px;
+
+                                        &:hover {
+                                            background-color: $color2;
+                                            color: $color5;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        .action-button-arrow {
+                          position: absolute;
+                          top: 8px;
+                          right: 0px;
+                          font-size: 43px;
+                          color: $color3;
+                          cursor: pointer;
+                        }
+
+                        .arrow-confirmed {
+                          color: red;
+                        }
+                    }
+
+                    .close-action-input {
+                        position: absolute;
+                        bottom: 25px;
+                        font-size: 32px;
+                    }
+                }
+            }
+        }
+
+        .create-tidbit-x {
+            position: relative;
+            display: block;
+            margin-top: 40px;
+            width: 100%;
+            height: 100%;
+
+            input, textarea {
                 position: relative;
                 display: block;
-                color: $color4;
+                margin: 20px auto 20px auto;
+                border: 1px solid $color2;
+                border-radius: 5px;
+                font-size: 26px;
+                color: $color5;
+            }
 
-                .create-snipbit-tab {
-                    box-sizing: border-box;
-                    width: 100px;
-                    height: 30px;
-                    position: relative;
+            input {
+                text-align: center;
+            }
+
+            textarea {
+                padding: 20px;
+            }
+        }
+
+        .create-tidbit-tags {
+            @extend .create-tidbit-x;
+
+            input {
+                width: 500px;
+                height: 53px;
+            }
+
+            .current-tags {
+                width: 500px;
+                display: block;
+                margin: -13px auto 0 auto;
+
+                .tag {
+                    @include no-select();
+
+                    border: 2px solid $color3;
+                    border-radius: 5px;
                     display: inline-block;
-                    cursor: pointer;
+                    position: relative;
+                    float: left;
+                    padding: 5px;
+                    margin: 0 5px 5px 0;
+
+                    button {
+                        color: white;
+                        background-color: $color5;
+                        border: none;
+                        border-radius: 10px;
+                        margin-left: 5px;
+                        cursor: pointer;
+                    }
+                }
+            }
+        }
+
+        .create-tidbit-code {
+            width: $min-width-supported;
+            display: block;
+            margin: 50px auto 0 auto;
+
+            .comment-creator {
+                box-sizing: border-box;
+                position: relative;
+                display: inline-block;
+                margin: 0 0 0 10px;
+                width: 366px;
+                height: 600px;
+                border-radius: 5px;
+
+                button {
+                    @include no-select();
+                    color: $color4;
                     border: 1px solid $color2;
                     margin: 1px;
                     font-size: 16px;
                     line-height: 30px;
                     text-align: center;
+                    background-color: white;
+                    cursor: pointer;
+                }
 
-                    &.create-snipbit-selected-tab {
-                        color: $color1;
+                .comment-body {
+                    width: 100%;
+
+                    textarea {
+                        width: 354px;
+                        height: 200px;
+                        border: 1px solid $color2;
                     }
                 }
+
+                .action-button {
+                    background-color: $color4;
+                    color: white;
+                    width: 35px;
+                    height: 35px;
+                    float: right;
+                    border: none;
+                }
+
+                .plus-button {
+                    margin-right: 6px;
+                }
+
+                hr {
+                    color: $color2;
+                    background-color: $color2;
+                    height: 0px;
+                    width: 0px;
+                    margin: 0px;
+                }
+
+                .selected-frame {
+                    background-color: $color1;
+                    color: white;
+                    border-color: $color1;
+                }
             }
+        }
 
-            .create-snipbit-x {
-                position: relative;
-                display: block;
-                margin-top: 40px;
-                width: 100%;
-                height: 100%;
+        .create-snipbit {
 
-                input, textarea {
-                    position: relative;
-                    display: block;
-                    margin: 20px auto 20px auto;
-                    border: 1px solid $color2;
-                    border-radius: 5px;
-                    font-size: 26px;
-                    color: $color5;
-                }
+            height: 100%;
 
-                input {
-                    text-align: center;
-                }
-
-                textarea {
-                    padding: 20px;
-                }
+            .create-tidbit-navbar {
+                width: 510px;
             }
 
             .create-snipbit-name {
-                @extend .create-snipbit-x;
+                @extend .create-tidbit-x;
 
                 input {
                     height: 73px;
@@ -309,7 +576,7 @@
             }
 
             .create-snipbit-description {
-                @extend .create-snipbit-x;
+                @extend .create-tidbit-x;
 
                 .create-snipbit-description-box {
                     height: 400px;
@@ -318,7 +585,7 @@
             }
 
             .create-snipbit-language {
-                @extend .create-snipbit-x;
+                @extend .create-tidbit-x;
 
                 input {
                     height: 53px;
@@ -382,128 +649,11 @@
                 }
             }
 
-            .create-snipbit-tags {
-                @extend .create-snipbit-x;
-
-                input {
-                    width: 500px;
-                    height: 53px;
-                }
-
-                .current-tags {
-                    width: 500px;
-                    display: block;
-                    margin: -13px auto 0 auto;
-
-                    .tag {
-                        @include no-select();
-
-                        border: 2px solid $color3;
-                        border-radius: 5px;
-                        display: inline-block;
-                        position: relative;
-                        float: left;
-                        padding: 5px;
-                        margin: 0 5px 5px 0;
-
-                        button {
-                            color: white;
-                            background-color: $color5;
-                            border: none;
-                            border-radius: 10px;
-                            margin-left: 5px;
-                            cursor: pointer;
-                        }
-                    }
-                }
-            }
-
             .create-snipbit-code {
-
-                width: $min-width-supported;
-                display: block;
-                margin: 50px auto 0 auto;
-
-                .comment-creator {
-                    box-sizing: border-box;
-                    position: relative;
-                    display: inline-block;
-                    margin: 0 0 0 10px;
-                    width: 366px;
-                    height: 600px;
-                    border-radius: 5px;
-
-                    button {
-                        @include no-select();
-                        color: $color4;
-                        border: 1px solid $color2;
-                        margin: 1px;
-                        font-size: 16px;
-                        line-height: 30px;
-                        text-align: center;
-                        background-color: white;
-                        cursor: pointer;
-                    }
-
-                    .comment-body {
-                        width: 100%;
-
-                        textarea {
-                          width: 354px;
-                          height: 200px;
-                          border: 1px solid $color2;
-                        }
-                    }
-
-                    .action-button {
-                        background-color: $color4;
-                        color: white;
-                        width: 35px;
-                        height: 35px;
-                        float: right;
-                        border: none;
-                    }
-
-                    .plus-button {
-                        margin-right: 6px;
-                    }
-
-                    hr {
-                        color: $color2;
-                        background-color: $color2;
-                        height: 0px;
-                        width: 0px;
-                        margin: 0px;
-                    }
-
-                    .selected-frame {
-                      color: $color1;
-                    }
-                }
+                @extend .create-tidbit-code;
             }
 
-            .sub-bar {
-                position: relative;
-                display: inline-block;
-                width: 100%;
-                background-color: $color2;
-                margin-bottom: 10px;
-                height: 40px;
-                padding-top: 10px;
-
-                .sub-bar-button {
-                    position: relative;
-                    display: inline-block;
-                    height: 30px;
-                    width: 100px;
-                    border: none;
-                    border-radius: 5px;
-                    color: white;
-
-                    &:hover {
-                        color: $color6;
-                    }
-                }
+            .create-tidbit-sub-bar {
 
                 .create-snipbit-back-button {
                     @extend .sub-bar-button;
@@ -520,27 +670,163 @@
                 }
 
                 .create-snipbit-publish-button {
-                    @extend .sub-bar-button;
-
-                    float: right;
-                    margin-right: 10px;
-                    background-color: $color7;
+                    @extend .publish-button;
                 }
 
                 .create-snipbit-disabled-publish-button {
-                    @extend .sub-bar-button;
-
-                    float: right;
-                    margin-right: 10px;
-                    background-color: white;
-                    color: $color7;
-                    cursor: not-allowed;
-
-                    &:hover {
-                        color: $color7;
-                    }
+                    @extend .disabled-publish-button;
                 }
             }
+        }
+
+        .disabled-publish-button {
+            @extend .sub-bar-button;
+
+            float: right;
+            margin-right: 10px;
+            background-color: white;
+            color: $color7;
+            cursor: not-allowed;
+
+            &:hover {
+                background-color: white;
+                color: $color7;
+            }
+        }
+
+        .publish-button {
+            @extend .sub-bar-button;
+
+            float: right;
+            margin-right: 10px;
+            background-color: $color7;
+            color: white;
+
+            &:hover {
+                background-color: $color7;
+                color: $color6;
+            }
+        }
+
+        // Currently used by both snipbit and bigbit viewers.
+        .viewer {
+            display: block;
+            margin: auto;
+            width: $min-width-supported;
+
+            .viewer-navbar {
+                display: block;
+                height: 70px;
+                padding-top: 30px;
+                margin: auto;
+                width: 100%;
+                text-align: center;
+
+                .viewer-navbar-item {
+                    @include no-select();
+
+                    position: relative;
+                    display: inline-block;
+                    color: $color4;
+                    border: 1px solid $color2;
+                    height: 30px;
+                    line-height: 30px;
+                    margin: 1px;
+                    padding: 5px;
+                    cursor: pointer;
+
+                    &.selected {
+                        color: $color1;
+                    }
+
+                    &.disabled {
+                        color: $color2;
+                        cursor: default;
+                    }
+                }
+
+                i {
+                    @include no-select();
+
+                    position: relative;
+                    color: $color5;
+                    height: 30px;
+                    width: 30px;
+                    font-size: 30px;
+                    cursor: pointer;
+                }
+
+                .action-button {
+                    top: 10px;
+                    margin: 0 5px 0 5px;
+                }
+
+                .disabled-icon {
+                    color: $color2;
+                    cursor: default;
+                }
+            }
+
+            .comment-block {
+                position: relative;
+                display: inline-block;
+                width: 354px;
+                height: 600px;
+                margin-left: 10px;
+
+                textarea {
+                    padding: 10px;
+                    width: 100%;
+                    height: 50%;
+                    border: 1px solid $color2;
+                    font-size: 14px;
+                    background-color: white;
+                }
+            }
+        }
+
+        .progress-bar {
+            @include no-select();
+
+            position: relative;
+            display: inline-block;
+            width: 150px;
+            height: 30px;
+            line-height: 30px;
+            border: 1px solid $color2;
+            padding: 5px;
+            color: $color6;
+
+            .progress-bar-completion-bar {
+                position: absolute;
+                height: 100%;
+                background-color: $color3;
+                z-index: -1;
+                left: 0;
+                top: 0;
+
+                &.disabled {
+                    background-color: $color2;
+                }
+            }
+
+            &.selected {
+                border-color: $color1;
+            }
+
+            &.disabled {
+                border-color: $color2;
+                color: $color8;
+            }
+        }
+
+        // Should be put in the comment-block for correct positioning.
+        .above-editor-text {
+            position: absolute;
+            top: -20px;
+            left: -645px;
+            font-size: 12px;
+            color: $color4;
         }
     }
 }
