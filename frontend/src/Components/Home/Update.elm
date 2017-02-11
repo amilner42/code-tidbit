@@ -1225,18 +1225,7 @@ update msg model shared =
             BigbitFileSelected absolutePath ->
                 ( model
                 , shared
-                , case shared.route of
-                    Route.HomeComponentCreateBigbitCodeIntroduction _ ->
-                        Route.navigateTo <| Route.HomeComponentCreateBigbitCodeIntroduction (Just absolutePath)
-
-                    Route.HomeComponentCreateBigbitCodeFrame frameNumber _ ->
-                        Route.navigateTo <| Route.HomeComponentCreateBigbitCodeFrame frameNumber (Just absolutePath)
-
-                    Route.HomeComponentCreateBigbitCodeConclusion _ ->
-                        Route.navigateTo <| Route.HomeComponentCreateBigbitCodeConclusion (Just absolutePath)
-
-                    _ ->
-                        Cmd.none
+                , Route.navigateToSameUrlWithFilePath (Just absolutePath) shared.route
                 )
 
             BigbitAddFrame ->

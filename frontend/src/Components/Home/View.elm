@@ -1035,7 +1035,7 @@ createBigbitView model shared =
 
                                             Just actionState ->
                                                 let
-                                                    showArrowIf condition isPlus =
+                                                    showSubmitIconIf condition isPlus =
                                                         if condition then
                                                             i
                                                                 [ classList
@@ -1059,16 +1059,16 @@ createBigbitView model shared =
                                                 in
                                                     case actionState of
                                                         Bigbit.AddingFile ->
-                                                            showArrowIf validFileInput True
+                                                            showSubmitIconIf validFileInput True
 
                                                         Bigbit.AddingFolder ->
-                                                            showArrowIf validFolderInput True
+                                                            showSubmitIconIf validFolderInput True
 
                                                         Bigbit.RemovingFile ->
-                                                            showArrowIf validRemoveFileInput False
+                                                            showSubmitIconIf validRemoveFileInput False
 
                                                         Bigbit.RemovingFolder ->
-                                                            showArrowIf validRemoveFolderInput False
+                                                            showSubmitIconIf validRemoveFolderInput False
                                         ]
                                     , button
                                         [ classList
