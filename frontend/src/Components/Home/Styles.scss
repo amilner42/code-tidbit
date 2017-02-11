@@ -738,6 +738,11 @@
                     &.selected {
                         color: $color1;
                     }
+
+                    &.disabled {
+                        color: $color2;
+                        cursor: default;
+                    }
                 }
 
                 i {
@@ -799,10 +804,19 @@
                 z-index: -1;
                 left: 0;
                 top: 0;
+
+                &.disabled {
+                    background-color: $color2;
+                }
             }
 
             &.selected {
                 border-color: $color1;
+            }
+
+            &.disabled {
+                border-color: $color2;
+                color: $color8;
             }
         }
 

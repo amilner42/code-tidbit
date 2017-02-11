@@ -60,8 +60,8 @@ NOTE: Progress bar subtracts 1 from current frame, so to get 100% completion
 maybeCurrentFrame must be one bigger than maxFrame (eg, 11 / 10). This is done
 because we don't wanna count the current frame as complete.
 -}
-progressBar : Maybe Int -> Int -> Html Msg
-progressBar maybeCurrentFrame maxFrame =
+progressBar : Maybe Int -> Int -> Bool -> Html Msg
+progressBar maybeCurrentFrame maxFrame isDisabled =
     let
         percentComplete =
             case maybeCurrentFrame of
@@ -78,10 +78,14 @@ progressBar maybeCurrentFrame maxFrame =
             [ classList
                 [ ( "progress-bar", True )
                 , ( "selected", Util.isNotNothing maybeCurrentFrame )
+                , ( "disabled", isDisabled )
                 ]
             ]
             [ div
-                [ class "progress-bar-completion-bar"
+                [ classList
+                    [ ( "progress-bar-completion-bar", True )
+                    , ( "disabled", isDisabled )
+                    ]
                 , style [ ( "width", (toString <| round <| percentComplete * 1.6) ++ "px" ) ]
                 ]
                 []
@@ -157,6 +161,7 @@ viewSnipbitView model shared =
                                     Nothing
                             )
                             (Array.length snipbit.highlightedComments)
+                            False
                         , div
                             [ onClick <| GoTo <| Route.HomeComponentViewSnipbitConclusion snipbit.id
                             , classList
@@ -249,28 +254,38 @@ viewBigbitView model shared =
                             [ classList
                                 [ ( "material-icons action-button", True )
                                 , ( "disabled-icon"
-                                  , case shared.route of
-                                        Route.HomeComponentViewBigbitIntroduction _ _ ->
-                                            True
+                                  , if Bigbit.isFSOpen bigbit.fs then
+                                        True
+                                    else
+                                        case shared.route of
+                                            Route.HomeComponentViewBigbitIntroduction _ _ ->
+                                                True
 
-                                        _ ->
-                                            False
+                                            _ ->
+                                                False
                                   )
                                 ]
                             , onClick <|
-                                case shared.route of
-                                    Route.HomeComponentViewBigbitConclusion mongoID _ ->
-                                        GoTo <| Route.HomeComponentViewBigbitFrame mongoID (Array.length bigbit.highlightedComments) Nothing
+                                if Bigbit.isFSOpen bigbit.fs then
+                                    NoOp
+                                else
+                                    case shared.route of
+                                        Route.HomeComponentViewBigbitConclusion mongoID _ ->
+                                            GoTo <| Route.HomeComponentViewBigbitFrame mongoID (Array.length bigbit.highlightedComments) Nothing
 
-                                    Route.HomeComponentViewBigbitFrame mongoID frameNumber _ ->
-                                        GoTo <| Route.HomeComponentViewBigbitFrame mongoID (frameNumber - 1) Nothing
+                                        Route.HomeComponentViewBigbitFrame mongoID frameNumber _ ->
+                                            GoTo <| Route.HomeComponentViewBigbitFrame mongoID (frameNumber - 1) Nothing
 
-                                    _ ->
-                                        NoOp
+                                        _ ->
+                                            NoOp
                             ]
                             [ text "arrow_back" ]
                         , div
-                            [ onClick <| GoTo <| Route.HomeComponentViewBigbitIntroduction bigbit.id Nothing
+                            [ onClick <|
+                                if Bigbit.isFSOpen bigbit.fs then
+                                    NoOp
+                                else
+                                    GoTo <| Route.HomeComponentViewBigbitIntroduction bigbit.id Nothing
                             , classList
                                 [ ( "viewer-navbar-item", True )
                                 , ( "selected"
@@ -281,6 +296,7 @@ viewBigbitView model shared =
                                         _ ->
                                             False
                                   )
+                                , ( "disabled", Bigbit.isFSOpen bigbit.fs )
                                 ]
                             ]
                             [ text "Introduction" ]
@@ -296,8 +312,13 @@ viewBigbitView model shared =
                                     Nothing
                             )
                             (Array.length bigbit.highlightedComments)
+                            (Bigbit.isFSOpen bigbit.fs)
                         , div
-                            [ onClick <| GoTo <| Route.HomeComponentViewBigbitConclusion bigbit.id Nothing
+                            [ onClick <|
+                                if Bigbit.isFSOpen bigbit.fs then
+                                    NoOp
+                                else
+                                    GoTo <| Route.HomeComponentViewBigbitConclusion bigbit.id Nothing
                             , classList
                                 [ ( "viewer-navbar-item", True )
                                 , ( "selected"
@@ -308,6 +329,7 @@ viewBigbitView model shared =
                                         _ ->
                                             False
                                   )
+                                , ( "disabled", Bigbit.isFSOpen bigbit.fs )
                                 ]
                             ]
                             [ text "Conclusion" ]
@@ -315,24 +337,30 @@ viewBigbitView model shared =
                             [ classList
                                 [ ( "material-icons action-button", True )
                                 , ( "disabled-icon"
-                                  , case shared.route of
-                                        Route.HomeComponentViewBigbitConclusion _ _ ->
-                                            True
+                                  , if Bigbit.isFSOpen bigbit.fs then
+                                        True
+                                    else
+                                        case shared.route of
+                                            Route.HomeComponentViewBigbitConclusion _ _ ->
+                                                True
 
-                                        _ ->
-                                            False
+                                            _ ->
+                                                False
                                   )
                                 ]
                             , onClick <|
-                                case shared.route of
-                                    Route.HomeComponentViewBigbitIntroduction mongoID _ ->
-                                        GoTo <| Route.HomeComponentViewBigbitFrame mongoID 1 Nothing
+                                if Bigbit.isFSOpen bigbit.fs then
+                                    NoOp
+                                else
+                                    case shared.route of
+                                        Route.HomeComponentViewBigbitIntroduction mongoID _ ->
+                                            GoTo <| Route.HomeComponentViewBigbitFrame mongoID 1 Nothing
 
-                                    Route.HomeComponentViewBigbitFrame mongoID frameNumber _ ->
-                                        GoTo <| Route.HomeComponentViewBigbitFrame mongoID (frameNumber + 1) Nothing
+                                        Route.HomeComponentViewBigbitFrame mongoID frameNumber _ ->
+                                            GoTo <| Route.HomeComponentViewBigbitFrame mongoID (frameNumber + 1) Nothing
 
-                                    _ ->
-                                        NoOp
+                                        _ ->
+                                            NoOp
                             ]
                             [ text "arrow_forward" ]
                         ]

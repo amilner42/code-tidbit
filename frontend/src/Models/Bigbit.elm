@@ -80,7 +80,7 @@ bigbitDecoder =
                     |> optional "openFS" Decode.bool False
                 )
                 (decode (\isExpanded -> { isExpanded = isExpanded })
-                    |> optional "isExpanded" Decode.bool False
+                    |> optional "isExpanded" Decode.bool True
                 )
                 (decode BigbitCreateDataFileMetadata
                     |> required "language" Editor.languageCacheDecoder
