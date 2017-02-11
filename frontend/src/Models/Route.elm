@@ -9,14 +9,16 @@ module Models.Route
         , defaultAuthRoute
         , defaultUnauthRoute
         , navigateTo
+        , modifyTo
         , parseLocation
+        , navigateToSameUrlWithFilePath
         )
 
 import Config
 import DefaultServices.Util as Util
 import Json.Decode as Decode
 import Json.Encode as Encode
-import Models.FileStructure as FS
+import Elements.FileStructure as FS
 import Navigation
 import UrlParser exposing (Parser, s, (</>), (<?>), oneOf, map, top, int, string, stringParam)
 
@@ -34,6 +36,9 @@ type Route
     | HomeComponentViewSnipbitIntroduction MongoID
     | HomeComponentViewSnipbitConclusion MongoID
     | HomeComponentViewSnipbitFrame MongoID Int
+    | HomeComponentViewBigbitIntroduction MongoID (Maybe FS.Path)
+    | HomeComponentViewBigbitFrame MongoID Int (Maybe FS.Path)
+    | HomeComponentViewBigbitConclusion MongoID (Maybe FS.Path)
     | HomeComponentCreate
     | HomeComponentCreateSnipbitName
     | HomeComponentCreateSnipbitDescription
@@ -77,6 +82,18 @@ matchers =
 
         viewSnipbitFrame =
             viewSnipbit </> s "frame" </> int
+
+        viewBigbit =
+            view </> s "bigbit" </> string
+
+        viewBigbitIntroduction =
+            viewBigbit </> s "introduction" <?> qpFile
+
+        viewBigbitFrame =
+            viewBigbit </> s "frame" </> int <?> qpFile
+
+        viewBigbitConclusion =
+            viewBigbit </> s "conclusion" <?> qpFile
 
         -- Abstract.
         createSnipbit =
@@ -155,6 +172,9 @@ matchers =
             , map HomeComponentViewSnipbitIntroduction (viewSnipbitIntroduction)
             , map HomeComponentViewSnipbitConclusion (viewSnipbitConclusion)
             , map HomeComponentViewSnipbitFrame (viewSnipbitFrame)
+            , map HomeComponentViewBigbitIntroduction (viewBigbitIntroduction)
+            , map HomeComponentViewBigbitFrame (viewBigbitFrame)
+            , map HomeComponentViewBigbitConclusion (viewBigbitConclusion)
             , map HomeComponentCreate (create)
             , map HomeComponentCreateSnipbitName (createSnipbitName)
             , map HomeComponentCreateSnipbitDescription (createSnipbitDescription)
@@ -225,6 +245,26 @@ toHashUrl route =
 
             HomeComponentViewSnipbitFrame mongoID frameNumber ->
                 "view/snipbit/" ++ mongoID ++ "/frame/" ++ (toString frameNumber)
+
+            HomeComponentViewBigbitIntroduction mongoID qpFile ->
+                "view/bigbit/"
+                    ++ mongoID
+                    ++ "/introduction/"
+                    ++ Util.queryParamsToString [ ( "file", qpFile ) ]
+
+            HomeComponentViewBigbitConclusion mongoID qpFile ->
+                "view/bigbit/"
+                    ++ mongoID
+                    ++ "/conclusion/"
+                    ++ Util.queryParamsToString [ ( "file", qpFile ) ]
+
+            HomeComponentViewBigbitFrame mongoID frameNumber qpFile ->
+                "view/bigbit/"
+                    ++ mongoID
+                    ++ "/frame/"
+                    ++ (toString frameNumber)
+                    ++ "/"
+                    ++ Util.queryParamsToString [ ( "file", qpFile ) ]
 
             HomeComponentCreateSnipbitName ->
                 "create/snipbit/name"
@@ -355,3 +395,39 @@ parseLocation location =
 navigateTo : Route -> Cmd msg
 navigateTo route =
     Navigation.newUrl <| toUrl <| route
+
+
+{-| Goes to a given route by modifying the current URL instead of adding a new
+url to the browser history.
+-}
+modifyTo : Route -> Cmd msg
+modifyTo route =
+    Navigation.modifyUrl <| toUrl <| route
+
+
+{-| For routes that have a file path query paramter, will  navigate to the same
+URL but with the file path added as a query param, otheriwse will do nothing.
+-}
+navigateToSameUrlWithFilePath : Maybe FS.Path -> Route -> Cmd msg
+navigateToSameUrlWithFilePath maybePath route =
+    case route of
+        HomeComponentViewBigbitIntroduction mongoID _ ->
+            navigateTo <| HomeComponentViewBigbitIntroduction mongoID maybePath
+
+        HomeComponentViewBigbitFrame mongoID frameNumber _ ->
+            navigateTo <| HomeComponentViewBigbitFrame mongoID frameNumber maybePath
+
+        HomeComponentViewBigbitConclusion mongoID _ ->
+            navigateTo <| HomeComponentViewBigbitConclusion mongoID maybePath
+
+        HomeComponentCreateBigbitCodeIntroduction _ ->
+            navigateTo <| HomeComponentCreateBigbitCodeIntroduction maybePath
+
+        HomeComponentCreateBigbitCodeFrame frameNumber _ ->
+            navigateTo <| HomeComponentCreateBigbitCodeFrame frameNumber maybePath
+
+        HomeComponentCreateBigbitCodeConclusion _ ->
+            navigateTo <| HomeComponentCreateBigbitCodeConclusion maybePath
+
+        _ ->
+            Cmd.none

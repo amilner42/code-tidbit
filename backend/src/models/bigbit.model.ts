@@ -2,7 +2,7 @@
 
 import * as kleen from "kleen";
 
-import { malformedFieldError } from '../util';
+import { malformedFieldError, asyncIdentity } from '../util';
 import { collection } from '../db';
 import { MongoID, ErrorCode, Language } from '../types';
 import { Range } from './range.model';
@@ -93,10 +93,6 @@ export const bigbitSchema: kleen.typeSchema = {
  * NOTE: This function does not attach an author.
  */
 export const validifyAndUpdateBigbit = (bigbit: Bigbit) => {
-
-  const asyncIdentity = <T1>(val: T1): Promise<T1> => {
-    return Promise.resolve(val);
-  };
 
   return new Promise((resolve, reject) => {
 

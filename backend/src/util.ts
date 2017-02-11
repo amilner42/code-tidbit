@@ -39,3 +39,10 @@ export const objectMap = <a, a1>(obj: {[key: string]: a}, func: (a: a) => a1): {
   }
   return result;
 };
+
+/**
+ * Similar to a regular identity function, but async, always resolves.
+ */
+export const asyncIdentity = <T1>(val: T1): Promise<T1> => {
+  return Promise.resolve(val);
+};

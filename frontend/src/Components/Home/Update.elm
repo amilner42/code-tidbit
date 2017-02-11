@@ -14,10 +14,11 @@ import DefaultServices.Util as Util
 import Elements.Editor as Editor
 import Json.Decode as Decode
 import Models.Bigbit as Bigbit
-import Models.FileStructure as FS
+import Elements.FileStructure as FS
 import Models.Snipbit as Snipbit
 import Models.Range as Range
 import Models.Route as Route
+import Models.User as User
 import Task
 import Ports
 
@@ -56,6 +57,13 @@ update msg model shared =
         currentBigbitHighlightedComments : Array.Array Bigbit.BigbitHighlightedCommentForCreate
         currentBigbitHighlightedComments =
             currentBigbitCreateData.highlightedComments
+
+        updateViewingBigbit : (Bigbit.Bigbit -> Bigbit.Bigbit) -> Model
+        updateViewingBigbit bigbitUpdater =
+            { model
+                | viewingBigbit =
+                    Maybe.map bigbitUpdater model.viewingBigbit
+            }
     in
         case msg of
             NoOp ->
@@ -73,15 +81,35 @@ update msg model shared =
                         , Api.getSnipbit mongoID OnGetSnipbitFailure OnGetSnipbitSuccess
                         )
 
+                    getBigbit mongoID =
+                        ( { model
+                            | viewingBigbit = Nothing
+                          }
+                        , shared
+                        , Api.getBigbit mongoID OnGetBigbitFailure OnGetBigbitSuccess
+                        )
+
                     renderSnipbit codeEditorConfig =
                         ( model
                         , shared
                         , Ports.createCodeEditor codeEditorConfig
                         )
 
-                    -- TODO get user theme.
-                    userTheme =
-                        ""
+                    -- If we already have the bigbit, renders, otherwise fetches
+                    -- it from the db.
+                    fetchOrRenderBigbit mongoID =
+                        case model.viewingBigbit of
+                            Nothing ->
+                                getBigbit mongoID
+
+                            Just bigbit ->
+                                if bigbit.id == mongoID then
+                                    ( model
+                                    , shared
+                                    , createViewBigbitCodeEditor bigbit shared
+                                    )
+                                else
+                                    getBigbit mongoID
 
                     createBigbitEditorForCurrentFile maybeRange maybeFilePath backupRoute =
                         case maybeFilePath of
@@ -89,7 +117,7 @@ update msg model shared =
                                 Ports.createCodeEditor
                                     { id = "create-bigbit-code-editor"
                                     , lang = ""
-                                    , theme = userTheme
+                                    , theme = User.getTheme shared.user
                                     , value = ""
                                     , range = Nothing
                                     , readOnly = True
@@ -104,7 +132,7 @@ update msg model shared =
                                         Ports.createCodeEditor
                                             { id = "create-bigbit-code-editor"
                                             , lang = Editor.aceLanguageLocation language
-                                            , theme = userTheme
+                                            , theme = User.getTheme shared.user
                                             , value = content
                                             , range = maybeRange
                                             , readOnly = False
@@ -121,7 +149,7 @@ update msg model shared =
                                         renderSnipbit
                                             { id = "view-snipbit-code-editor"
                                             , lang = Editor.aceLanguageLocation aSnipbit.language
-                                            , theme = userTheme
+                                            , theme = User.getTheme shared.user
                                             , value = aSnipbit.code
                                             , range = Nothing
                                             , readOnly = True
@@ -155,7 +183,7 @@ update msg model shared =
                                             renderSnipbit
                                                 { id = "view-snipbit-code-editor"
                                                 , lang = Editor.aceLanguageLocation aSnipbit.language
-                                                , theme = userTheme
+                                                , theme = User.getTheme shared.user
                                                 , value = aSnipbit.code
                                                 , range =
                                                     Array.get
@@ -177,13 +205,22 @@ update msg model shared =
                                         renderSnipbit
                                             { id = "view-snipbit-code-editor"
                                             , lang = Editor.aceLanguageLocation aSnipbit.language
-                                            , theme = userTheme
+                                            , theme = User.getTheme shared.user
                                             , value = aSnipbit.code
                                             , range = Nothing
                                             , readOnly = True
                                             }
                                     else
                                         getSnipbit mongoID
+
+                        Route.HomeComponentViewBigbitIntroduction mongoID _ ->
+                            fetchOrRenderBigbit mongoID
+
+                        Route.HomeComponentViewBigbitFrame mongoID _ _ ->
+                            fetchOrRenderBigbit mongoID
+
+                        Route.HomeComponentViewBigbitConclusion mongoID _ ->
+                            fetchOrRenderBigbit mongoID
 
                         Route.HomeComponentCreateBigbitCodeIntroduction maybeFilePath ->
                             ( model
@@ -741,34 +778,29 @@ update msg model shared =
                 doNothing
 
             OnGetSnipbitSuccess snipbit ->
-                let
-                    -- TODO get user theme.
-                    userTheme =
-                        ""
-                in
-                    ( { model
-                        | viewingSnipbit = Just snipbit
-                      }
-                    , shared
-                    , Ports.createCodeEditor
-                        { id = "view-snipbit-code-editor"
-                        , lang = Editor.aceLanguageLocation snipbit.language
-                        , theme = userTheme
-                        , value = snipbit.code
-                        , range =
-                            case shared.route of
-                                Route.HomeComponentViewSnipbitFrame _ frameNumber ->
-                                    (Array.get
-                                        (frameNumber - 1)
-                                        snipbit.highlightedComments
-                                    )
-                                        |> Maybe.map .range
+                ( { model
+                    | viewingSnipbit = Just snipbit
+                  }
+                , shared
+                , Ports.createCodeEditor
+                    { id = "view-snipbit-code-editor"
+                    , lang = Editor.aceLanguageLocation snipbit.language
+                    , theme = User.getTheme shared.user
+                    , value = snipbit.code
+                    , range =
+                        case shared.route of
+                            Route.HomeComponentViewSnipbitFrame _ frameNumber ->
+                                (Array.get
+                                    (frameNumber - 1)
+                                    snipbit.highlightedComments
+                                )
+                                    |> Maybe.map .range
 
-                                _ ->
-                                    Nothing
-                        , readOnly = True
-                        }
-                    )
+                            _ ->
+                                Nothing
+                    , readOnly = True
+                    }
+                )
 
             BigbitReset ->
                 ( updateBigbitCreateData <| .bigbitCreateData HomeInit.init
@@ -1343,8 +1375,145 @@ update msg model shared =
                 doNothing
 
             OnBigbitPublishSuccess { newID } ->
-                -- TODO redirect to bigbit viewer once viewer is complete.
+                ( { model
+                    | bigbitCreateData = .bigbitCreateData HomeInit.init
+                  }
+                , shared
+                , Route.navigateTo <| Route.HomeComponentViewBigbitIntroduction newID Nothing
+                )
+
+            OnGetBigbitFailure apiError ->
+                -- TODO handle get bigbit failure.
                 doNothing
+
+            OnGetBigbitSuccess bigbit ->
+                ( { model
+                    | viewingBigbit = Just bigbit
+                  }
+                , shared
+                , createViewBigbitCodeEditor bigbit shared
+                )
+
+            ViewBigbitToggleFS ->
+                let
+                    -- We have a `not` because we toggle the fs state.
+                    fsJustOpened =
+                        model.viewingBigbit
+                            |> Maybe.map (not << Bigbit.isFSOpen << .fs)
+                            |> Maybe.withDefault False
+                in
+                    ( updateViewingBigbit
+                        (\currentViewingBigbit ->
+                            { currentViewingBigbit
+                                | fs = Bigbit.toggleFS currentViewingBigbit.fs
+                            }
+                        )
+                    , shared
+                    , if fsJustOpened then
+                        Route.navigateToSameUrlWithFilePath
+                            (Maybe.andThen
+                                (Bigbit.viewPageCurrentActiveFile shared.route)
+                                model.viewingBigbit
+                            )
+                            shared.route
+                      else
+                        Route.navigateToSameUrlWithFilePath Nothing shared.route
+                    )
+
+            ViewBigbitSelectFile absolutePath ->
+                ( model
+                , shared
+                , Route.navigateToSameUrlWithFilePath (Just absolutePath) shared.route
+                )
+
+            ViewBigbitToggleFolder absolutePath ->
+                ( updateViewingBigbit
+                    (\currentViewingBigbit ->
+                        { currentViewingBigbit
+                            | fs =
+                                Bigbit.toggleFSFolder absolutePath currentViewingBigbit.fs
+                        }
+                    )
+                , shared
+                , Cmd.none
+                )
+
+
+{-| Based on the maybePath and the bigbit creates the editor.
+
+Will handle redirects if file path is invalid or frameNumber is invalid.
+-}
+createViewBigbitCodeEditor : Bigbit.Bigbit -> Shared -> Cmd msg
+createViewBigbitCodeEditor bigbit { route, user } =
+    let
+        blankEditor =
+            Ports.createCodeEditor
+                { id = "view-bigbit-code-editor"
+                , lang = ""
+                , theme = User.getTheme user
+                , value = ""
+                , range = Nothing
+                , readOnly = True
+                }
+
+        loadFileWithNoHighlight maybePath =
+            case maybePath of
+                Nothing ->
+                    blankEditor
+
+                Just somePath ->
+                    case FS.getFile bigbit.fs somePath of
+                        Nothing ->
+                            Route.modifyTo <| Route.HomeComponentViewBigbitIntroduction bigbit.id Nothing
+
+                        Just (FS.File content { language }) ->
+                            Ports.createCodeEditor
+                                { id = "view-bigbit-code-editor"
+                                , lang = Editor.aceLanguageLocation language
+                                , theme = User.getTheme user
+                                , value = content
+                                , range = Nothing
+                                , readOnly = True
+                                }
+    in
+        case route of
+            Route.HomeComponentViewBigbitIntroduction mongoID maybePath ->
+                loadFileWithNoHighlight maybePath
+
+            Route.HomeComponentViewBigbitFrame mongoID frameNumber maybePath ->
+                case Array.get (frameNumber - 1) bigbit.highlightedComments of
+                    Nothing ->
+                        if frameNumber > (Array.length bigbit.highlightedComments) then
+                            Route.modifyTo <| Route.HomeComponentViewBigbitConclusion bigbit.id Nothing
+                        else
+                            Route.modifyTo <| Route.HomeComponentViewBigbitIntroduction bigbit.id Nothing
+
+                    Just hc ->
+                        case maybePath of
+                            Nothing ->
+                                case FS.getFile bigbit.fs hc.file of
+                                    -- Should never happen, comments should always be pointing to valid files.
+                                    Nothing ->
+                                        Cmd.none
+
+                                    Just (FS.File content { language }) ->
+                                        Ports.createCodeEditor
+                                            { id = "view-bigbit-code-editor"
+                                            , lang = Editor.aceLanguageLocation language
+                                            , theme = User.getTheme user
+                                            , value = content
+                                            , range = Just hc.range
+                                            , readOnly = True
+                                            }
+
+                            Just absolutePath ->
+                                loadFileWithNoHighlight maybePath
+
+            Route.HomeComponentViewBigbitConclusion mongoID maybePath ->
+                loadFileWithNoHighlight maybePath
+
+            _ ->
+                Cmd.none
 
 
 {-| Filters the languages based on `query`.

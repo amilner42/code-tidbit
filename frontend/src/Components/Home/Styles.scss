@@ -11,79 +11,27 @@
 
         height: 100%;
 
-        .view-snipbit {
-            width: 100%;
-            height: 100%;
+        .view-bigbit {
 
-            color: black;
+            .view-bigbit-toggle-fs {
+                position: absolute;
+                top: -35px;
+                right: -22px;
+                border: 1px solid $color2;
+                padding: 5px;
+                color: $color5;
+                cursor: pointer;
+            }
 
-            .viewer {
-                display: block;
-                margin: auto;
-                width: $min-width-supported;
-
-                .snipbit-navbar {
-                    display: block;
-                    height: 70px;
-                    padding-top: 30px;
-                    margin: auto;
-                    width: 100%;
-                    text-align: center;
-
-                    .snipbit-navbar-item {
-                        @include no-select();
-
-                        position: relative;
-                        display: inline-block;
-                        color: $color4;
-                        border: 1px solid $color2;
-                        height: 30px;
-                        line-height: 30px;
-                        margin: 1px;
-                        padding: 5px;
-                        cursor: pointer;
-
-                        &.selected {
-                            color: $color1;
-                        }
-                    }
-
-                    i {
-                        @include no-select();
-
-                        position: relative;
-                        color: $color5;
-                        height: 30px;
-                        width: 30px;
-                        font-size: 30px;
-                        cursor: pointer;
-                    }
-
-                    .action-button {
-                        top: 10px;
-                        margin: 0 5px 0 5px;
-                    }
-
-                    .blank-icon {
-                        color: white;
-                        cursor: default;
-                    }
-                }
-
-                .comment-block {
-                    display: inline-block;
-                    width: 354px;
-                    height: 600px;
-                    margin-left: 10px;
-
-                    textarea {
-                        width: 100%;
-                        height: 50%;
-                        border: 1px solid $color2;
-                    }
-                }
+            .view-bigbit-fs {
+                padding: 10px;
+                width: 100%;
+                height: 50%;
+                border: 1px solid $color2;
             }
         }
+
+        .view-snipbit { }
 
         .create-select-tidbit-title {
             color: $color6;
@@ -479,55 +427,6 @@
                         bottom: 25px;
                         font-size: 32px;
                     }
-
-                    .create-bigbit-fs {
-                        margin-top: 10px;
-                        color: $color4;
-                        font-size: 16px;
-
-                        .create-bigbit-fs-sub-content {
-                            margin-left: 20px;
-                        }
-
-                        .create-bigbit-fs-folder {
-                            @include no-select();
-                            position: relative;
-
-                            .folder-icon {
-                                display: inline-block;
-                                cursor: pointer;
-                            }
-
-                            .folder-name {
-                                position: relative;
-                                display: inline-block;
-                                cursor: pointer;
-                                top: -5px;
-                                left: 3px;
-                            }
-                        }
-
-                        .create-bigbit-fs-file {
-                            @include no-select();
-
-                            .file-icon {
-                                display: inline-block;
-                                cursor: pointer;
-                            }
-
-                            .selected-file {
-                              color: $color6;
-                            }
-
-                            .file-name {
-                                position: relative;
-                                display: inline-block;
-                                cursor: pointer;
-                                top: -5px;
-                                left: 3px;
-                            }
-                        }
-                    }
                 }
             }
         }
@@ -752,14 +651,6 @@
 
             .create-snipbit-code {
                 @extend .create-tidbit-code;
-
-                .editor-warning-text {
-                    position: absolute;
-                    top: -20px;
-                    left: -645px;
-                    font-size: 12px;
-                    color: $color4;
-                }
             }
 
             .create-tidbit-sub-bar {
@@ -815,6 +706,127 @@
                 background-color: $color7;
                 color: $color6;
             }
+        }
+
+        // Currently used by both snipbit and bigbit viewers.
+        .viewer {
+            display: block;
+            margin: auto;
+            width: $min-width-supported;
+
+            .viewer-navbar {
+                display: block;
+                height: 70px;
+                padding-top: 30px;
+                margin: auto;
+                width: 100%;
+                text-align: center;
+
+                .viewer-navbar-item {
+                    @include no-select();
+
+                    position: relative;
+                    display: inline-block;
+                    color: $color4;
+                    border: 1px solid $color2;
+                    height: 30px;
+                    line-height: 30px;
+                    margin: 1px;
+                    padding: 5px;
+                    cursor: pointer;
+
+                    &.selected {
+                        color: $color1;
+                    }
+
+                    &.disabled {
+                        color: $color2;
+                        cursor: default;
+                    }
+                }
+
+                i {
+                    @include no-select();
+
+                    position: relative;
+                    color: $color5;
+                    height: 30px;
+                    width: 30px;
+                    font-size: 30px;
+                    cursor: pointer;
+                }
+
+                .action-button {
+                    top: 10px;
+                    margin: 0 5px 0 5px;
+                }
+
+                .disabled-icon {
+                    color: $color2;
+                    cursor: default;
+                }
+            }
+
+            .comment-block {
+                position: relative;
+                display: inline-block;
+                width: 354px;
+                height: 600px;
+                margin-left: 10px;
+
+                textarea {
+                    padding: 10px;
+                    width: 100%;
+                    height: 50%;
+                    border: 1px solid $color2;
+                    font-size: 14px;
+                    background-color: white;
+                }
+            }
+        }
+
+        .progress-bar {
+            @include no-select();
+
+            position: relative;
+            display: inline-block;
+            width: 150px;
+            height: 30px;
+            line-height: 30px;
+            border: 1px solid $color2;
+            padding: 5px;
+            color: $color6;
+
+            .progress-bar-completion-bar {
+                position: absolute;
+                height: 100%;
+                background-color: $color3;
+                z-index: -1;
+                left: 0;
+                top: 0;
+
+                &.disabled {
+                    background-color: $color2;
+                }
+            }
+
+            &.selected {
+                border-color: $color1;
+            }
+
+            &.disabled {
+                border-color: $color2;
+                color: $color8;
+            }
+        }
+
+        // Should be put in the comment-block for correct positioning.
+        .above-editor-text {
+            position: absolute;
+            top: -20px;
+            left: -645px;
+            font-size: 12px;
+            color: $color4;
         }
     }
 }

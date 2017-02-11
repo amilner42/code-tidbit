@@ -355,6 +355,15 @@ handleLocationChange maybeRoute model =
                     Route.HomeComponentViewSnipbitFrame _ _ ->
                         triggerRouteHookOnHomeComponent
 
+                    Route.HomeComponentViewBigbitIntroduction _ _ ->
+                        triggerRouteHookOnHomeComponent
+
+                    Route.HomeComponentViewBigbitFrame _ _ _ ->
+                        triggerRouteHookOnHomeComponent
+
+                    Route.HomeComponentViewBigbitConclusion _ _ ->
+                        triggerRouteHookOnHomeComponent
+
                     Route.HomeComponentCreateBigbitCodeIntroduction _ ->
                         triggerRouteHookOnHomeComponent
 

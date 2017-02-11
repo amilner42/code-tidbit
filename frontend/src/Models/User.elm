@@ -8,6 +8,7 @@ module Models.User
         , decoder
         , userLoginEncoder
         , userRegisterEncoder
+        , getTheme
         )
 
 import DefaultServices.Util exposing (justValueOrNull)
@@ -88,3 +89,12 @@ userLoginEncoder loginUser =
         [ ( "email", Encode.string loginUser.email )
         , ( "password", Encode.string loginUser.password )
         ]
+
+
+{-| Gets the theme for a user.
+
+TODO Implement function
+-}
+getTheme : Maybe User -> String
+getTheme maybeUser =
+    ""

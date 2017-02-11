@@ -10,10 +10,10 @@ import DefaultServices.Util as Util
 import Dict
 import Elements.Editor as Editor
 import Html exposing (Html, div, text, textarea, button, input, h1, h3, img, hr, i)
-import Html.Attributes exposing (class, classList, disabled, placeholder, value, hidden, id, src)
+import Html.Attributes exposing (class, classList, disabled, placeholder, value, hidden, id, src, style)
 import Html.Events exposing (onClick, onInput)
 import Models.Bigbit as Bigbit
-import Models.FileStructure as FS
+import Elements.FileStructure as FS
 import Models.Range as Range
 import Models.Route as Route
 import Models.Snipbit as Snipbit
@@ -54,6 +54,47 @@ makeHTMLTags closeTagMsg tags =
         )
 
 
+{-| Builds a progress bar.
+
+NOTE: Progress bar subtracts 1 from current frame, so to get 100% completion
+maybeCurrentFrame must be one bigger than maxFrame (eg, 11 / 10). This is done
+because we don't wanna count the current frame as complete.
+-}
+progressBar : Maybe Int -> Int -> Bool -> Html Msg
+progressBar maybeCurrentFrame maxFrame isDisabled =
+    let
+        percentComplete =
+            case maybeCurrentFrame of
+                Nothing ->
+                    0
+
+                Just currentFrame ->
+                    if (currentFrame - 1) == 0 then
+                        0
+                    else
+                        100 * (toFloat (currentFrame - 1)) / (toFloat maxFrame)
+    in
+        div
+            [ classList
+                [ ( "progress-bar", True )
+                , ( "selected", Util.isNotNothing maybeCurrentFrame )
+                , ( "disabled", isDisabled )
+                ]
+            ]
+            [ div
+                [ classList
+                    [ ( "progress-bar-completion-bar", True )
+                    , ( "disabled", isDisabled )
+                    ]
+                , style [ ( "width", (toString <| round <| percentComplete * 1.6) ++ "px" ) ]
+                ]
+                []
+            , div
+                [ class "progress-bar-percent" ]
+                [ text <| (toString <| round <| percentComplete) ++ "%" ]
+            ]
+
+
 {-| The view for viewing a snipbit.
 -}
 viewSnipbitView : Model -> Shared -> Html Msg
@@ -68,11 +109,11 @@ viewSnipbitView model shared =
                 [ div
                     [ class "viewer" ]
                     [ div
-                        [ class "snipbit-navbar" ]
-                        ([ i
+                        [ class "viewer-navbar" ]
+                        [ i
                             [ classList
                                 [ ( "material-icons action-button", True )
-                                , ( "blank-icon"
+                                , ( "disabled-icon"
                                   , case shared.route of
                                         Route.HomeComponentViewSnipbitIntroduction _ ->
                                             True
@@ -93,10 +134,10 @@ viewSnipbitView model shared =
                                         NoOp
                             ]
                             [ text "arrow_back" ]
-                         , div
+                        , div
                             [ onClick <| GoTo <| Route.HomeComponentViewSnipbitIntroduction snipbit.id
                             , classList
-                                [ ( "snipbit-navbar-item", True )
+                                [ ( "viewer-navbar-item", True )
                                 , ( "selected"
                                   , case shared.route of
                                         Route.HomeComponentViewSnipbitIntroduction _ ->
@@ -108,75 +149,65 @@ viewSnipbitView model shared =
                                 ]
                             ]
                             [ text "Introduction" ]
-                         ]
-                            ++ (Array.toList
-                                    (Array.indexedMap
-                                        (\index _ ->
-                                            div
-                                                [ onClick <| GoTo <| Route.HomeComponentViewSnipbitFrame snipbit.id (index + 1)
-                                                , classList
-                                                    [ ( "snipbit-navbar-item", True )
-                                                    , ( "selected"
-                                                      , case shared.route of
-                                                            Route.HomeComponentViewSnipbitFrame _ frameNumber ->
-                                                                frameNumber == index + 1
+                        , progressBar
+                            (case shared.route of
+                                Route.HomeComponentViewSnipbitFrame _ frameNumber ->
+                                    Just frameNumber
 
-                                                            _ ->
-                                                                False
-                                                      )
-                                                    ]
-                                                ]
-                                                [ text <| toString <| index + 1 ]
-                                        )
-                                        snipbit.highlightedComments
-                                    )
-                               )
-                            ++ [ div
-                                    [ onClick <| GoTo <| Route.HomeComponentViewSnipbitConclusion snipbit.id
-                                    , classList
-                                        [ ( "snipbit-navbar-item", True )
-                                        , ( "selected"
-                                          , case shared.route of
-                                                Route.HomeComponentViewSnipbitConclusion _ ->
-                                                    True
+                                Route.HomeComponentViewSnipbitConclusion _ ->
+                                    Just <| Array.length snipbit.highlightedComments + 1
 
-                                                _ ->
-                                                    False
-                                          )
-                                        ]
-                                    ]
-                                    [ text "Conclusion" ]
-                               , i
-                                    [ classList
-                                        [ ( "material-icons action-button", True )
-                                        , ( "blank-icon"
-                                          , case shared.route of
-                                                Route.HomeComponentViewSnipbitConclusion _ ->
-                                                    True
+                                _ ->
+                                    Nothing
+                            )
+                            (Array.length snipbit.highlightedComments)
+                            False
+                        , div
+                            [ onClick <| GoTo <| Route.HomeComponentViewSnipbitConclusion snipbit.id
+                            , classList
+                                [ ( "viewer-navbar-item", True )
+                                , ( "selected"
+                                  , case shared.route of
+                                        Route.HomeComponentViewSnipbitConclusion _ ->
+                                            True
 
-                                                _ ->
-                                                    False
-                                          )
-                                        ]
-                                    , onClick <|
-                                        case shared.route of
-                                            Route.HomeComponentViewSnipbitIntroduction mongoID ->
-                                                GoTo <| Route.HomeComponentViewSnipbitFrame mongoID 1
+                                        _ ->
+                                            False
+                                  )
+                                ]
+                            ]
+                            [ text "Conclusion" ]
+                        , i
+                            [ classList
+                                [ ( "material-icons action-button", True )
+                                , ( "disabled-icon"
+                                  , case shared.route of
+                                        Route.HomeComponentViewSnipbitConclusion _ ->
+                                            True
 
-                                            Route.HomeComponentViewSnipbitFrame mongoID frameNumber ->
-                                                GoTo <| Route.HomeComponentViewSnipbitFrame mongoID (frameNumber + 1)
+                                        _ ->
+                                            False
+                                  )
+                                ]
+                            , onClick <|
+                                case shared.route of
+                                    Route.HomeComponentViewSnipbitIntroduction mongoID ->
+                                        GoTo <| Route.HomeComponentViewSnipbitFrame mongoID 1
 
-                                            _ ->
-                                                NoOp
-                                    ]
-                                    [ text "arrow_forward" ]
-                               ]
-                        )
+                                    Route.HomeComponentViewSnipbitFrame mongoID frameNumber ->
+                                        GoTo <| Route.HomeComponentViewSnipbitFrame mongoID (frameNumber + 1)
+
+                                    _ ->
+                                        NoOp
+                            ]
+                            [ text "arrow_forward" ]
+                        ]
                     , Editor.editor "view-snipbit-code-editor"
                     , div
                         [ class "comment-block" ]
                         [ textarea
-                            [ value <|
+                            [ disabled True
+                            , value <|
                                 case shared.route of
                                     Route.HomeComponentViewSnipbitIntroduction _ ->
                                         snipbit.introduction
@@ -202,6 +233,207 @@ viewSnipbitView model shared =
         )
 
 
+{-| The view for viewing a bigbit.
+-}
+viewBigbitView : Model -> Shared -> Html Msg
+viewBigbitView model shared =
+    div
+        [ class "view-bigbit" ]
+        [ case model.viewingBigbit of
+            Nothing ->
+                div
+                    []
+                    [ text "LOADING" ]
+
+            Just bigbit ->
+                div
+                    [ class "viewer" ]
+                    [ div
+                        [ class "viewer-navbar" ]
+                        [ i
+                            [ classList
+                                [ ( "material-icons action-button", True )
+                                , ( "disabled-icon"
+                                  , if Bigbit.isFSOpen bigbit.fs then
+                                        True
+                                    else
+                                        case shared.route of
+                                            Route.HomeComponentViewBigbitIntroduction _ _ ->
+                                                True
+
+                                            _ ->
+                                                False
+                                  )
+                                ]
+                            , onClick <|
+                                if Bigbit.isFSOpen bigbit.fs then
+                                    NoOp
+                                else
+                                    case shared.route of
+                                        Route.HomeComponentViewBigbitConclusion mongoID _ ->
+                                            GoTo <| Route.HomeComponentViewBigbitFrame mongoID (Array.length bigbit.highlightedComments) Nothing
+
+                                        Route.HomeComponentViewBigbitFrame mongoID frameNumber _ ->
+                                            GoTo <| Route.HomeComponentViewBigbitFrame mongoID (frameNumber - 1) Nothing
+
+                                        _ ->
+                                            NoOp
+                            ]
+                            [ text "arrow_back" ]
+                        , div
+                            [ onClick <|
+                                if Bigbit.isFSOpen bigbit.fs then
+                                    NoOp
+                                else
+                                    GoTo <| Route.HomeComponentViewBigbitIntroduction bigbit.id Nothing
+                            , classList
+                                [ ( "viewer-navbar-item", True )
+                                , ( "selected"
+                                  , case shared.route of
+                                        Route.HomeComponentViewBigbitIntroduction _ _ ->
+                                            True
+
+                                        _ ->
+                                            False
+                                  )
+                                , ( "disabled", Bigbit.isFSOpen bigbit.fs )
+                                ]
+                            ]
+                            [ text "Introduction" ]
+                        , progressBar
+                            (case shared.route of
+                                Route.HomeComponentViewBigbitFrame _ frameNumber _ ->
+                                    Just frameNumber
+
+                                Route.HomeComponentViewBigbitConclusion _ _ ->
+                                    Just <| Array.length bigbit.highlightedComments + 1
+
+                                _ ->
+                                    Nothing
+                            )
+                            (Array.length bigbit.highlightedComments)
+                            (Bigbit.isFSOpen bigbit.fs)
+                        , div
+                            [ onClick <|
+                                if Bigbit.isFSOpen bigbit.fs then
+                                    NoOp
+                                else
+                                    GoTo <| Route.HomeComponentViewBigbitConclusion bigbit.id Nothing
+                            , classList
+                                [ ( "viewer-navbar-item", True )
+                                , ( "selected"
+                                  , case shared.route of
+                                        Route.HomeComponentViewBigbitConclusion _ _ ->
+                                            True
+
+                                        _ ->
+                                            False
+                                  )
+                                , ( "disabled", Bigbit.isFSOpen bigbit.fs )
+                                ]
+                            ]
+                            [ text "Conclusion" ]
+                        , i
+                            [ classList
+                                [ ( "material-icons action-button", True )
+                                , ( "disabled-icon"
+                                  , if Bigbit.isFSOpen bigbit.fs then
+                                        True
+                                    else
+                                        case shared.route of
+                                            Route.HomeComponentViewBigbitConclusion _ _ ->
+                                                True
+
+                                            _ ->
+                                                False
+                                  )
+                                ]
+                            , onClick <|
+                                if Bigbit.isFSOpen bigbit.fs then
+                                    NoOp
+                                else
+                                    case shared.route of
+                                        Route.HomeComponentViewBigbitIntroduction mongoID _ ->
+                                            GoTo <| Route.HomeComponentViewBigbitFrame mongoID 1 Nothing
+
+                                        Route.HomeComponentViewBigbitFrame mongoID frameNumber _ ->
+                                            GoTo <| Route.HomeComponentViewBigbitFrame mongoID (frameNumber + 1) Nothing
+
+                                        _ ->
+                                            NoOp
+                            ]
+                            [ text "arrow_forward" ]
+                        ]
+                    , Editor.editor "view-bigbit-code-editor"
+                    , div
+                        [ class "comment-block" ]
+                        [ div
+                            [ class "view-bigbit-toggle-fs"
+                            , onClick <| ViewBigbitToggleFS
+                            ]
+                            [ text <|
+                                case Bigbit.isFSOpen bigbit.fs of
+                                    True ->
+                                        "Resume Tutorial"
+
+                                    False ->
+                                        "Explore File Structure"
+                            ]
+                        , div
+                            [ class "above-editor-text" ]
+                            [ text <|
+                                case Bigbit.viewPageCurrentActiveFile shared.route bigbit of
+                                    Nothing ->
+                                        "No File Selected"
+
+                                    Just activeFile ->
+                                        activeFile
+                            ]
+                        , textarea
+                            [ disabled True
+                            , hidden <|
+                                Bigbit.isFSOpen bigbit.fs
+                            , value <|
+                                case shared.route of
+                                    Route.HomeComponentViewBigbitIntroduction _ _ ->
+                                        bigbit.introduction
+
+                                    Route.HomeComponentViewBigbitConclusion _ _ ->
+                                        bigbit.conclusion
+
+                                    Route.HomeComponentViewBigbitFrame _ frameNumber _ ->
+                                        (Array.get
+                                            (frameNumber - 1)
+                                            bigbit.highlightedComments
+                                        )
+                                            |> Maybe.map .comment
+                                            |> Maybe.withDefault ""
+
+                                    _ ->
+                                        ""
+                            ]
+                            []
+                        , div
+                            [ class "view-bigbit-fs"
+                            , hidden <| not <| Bigbit.isFSOpen bigbit.fs
+                            ]
+                            [ FS.fileStructure
+                                { isFileSelected =
+                                    (\absolutePath ->
+                                        Bigbit.viewPageCurrentActiveFile shared.route bigbit
+                                            |> Maybe.map (FS.isSameFilePath absolutePath)
+                                            |> Maybe.withDefault False
+                                    )
+                                , fileSelectedMsg = ViewBigbitSelectFile
+                                , folderSelectedMsg = ViewBigbitToggleFolder
+                                }
+                                bigbit.fs
+                            ]
+                        ]
+                    ]
+        ]
+
+
 {-| Displays the correct view based on the model.
 -}
 displayViewForRoute : Model -> Shared -> Html Msg
@@ -218,6 +450,15 @@ displayViewForRoute model shared =
 
         Route.HomeComponentViewSnipbitFrame _ _ ->
             viewSnipbitView model shared
+
+        Route.HomeComponentViewBigbitIntroduction _ _ ->
+            viewBigbitView model shared
+
+        Route.HomeComponentViewBigbitFrame _ _ _ ->
+            viewBigbitView model shared
+
+        Route.HomeComponentViewBigbitConclusion _ _ ->
+            viewBigbitView model shared
 
         Route.HomeComponentCreate ->
             createView model shared
@@ -286,6 +527,15 @@ navbar shared =
                     True
 
                 Route.HomeComponentViewSnipbitConclusion _ ->
+                    True
+
+                Route.HomeComponentViewBigbitIntroduction _ _ ->
+                    True
+
+                Route.HomeComponentViewBigbitFrame _ _ _ ->
+                    True
+
+                Route.HomeComponentViewBigbitConclusion _ _ ->
                     True
 
                 _ ->
@@ -652,60 +902,10 @@ createBigbitView model shared =
                                         ]
                                         [ text "close" ]
                                     , text "File Structure"
-                                    , FS.render
-                                        { fileStructureClass = "create-bigbit-fs"
-                                        , folderAndSubContentClass = "create-bigbit-fs-folder-and-sub-content"
-                                        , subContentClass = "create-bigbit-fs-sub-content"
-                                        , subFoldersClass = "create-bigbit-fs-sub-folders"
-                                        , subFilesClass = "create-bigbit-fs-sub-files"
-                                        , renderFile =
-                                            (\name absolutePath fileMetadata ->
-                                                div
-                                                    [ class "create-bigbit-fs-file" ]
-                                                    [ i
-                                                        [ classList
-                                                            [ ( "material-icons file-icon", True )
-                                                            , ( "selected-file"
-                                                              , viewingFile absolutePath
-                                                              )
-                                                            ]
-                                                        , onClick <| BigbitFileSelected absolutePath
-                                                        ]
-                                                        [ text "insert_drive_file" ]
-                                                    , div
-                                                        [ classList
-                                                            [ ( "file-name", True )
-                                                            , ( "selected-file"
-                                                              , viewingFile absolutePath
-                                                              )
-                                                            ]
-                                                        , onClick <| BigbitFileSelected absolutePath
-                                                        ]
-                                                        [ text name ]
-                                                    ]
-                                            )
-                                        , renderFolder =
-                                            (\name absolutePath folderMetadata ->
-                                                div
-                                                    [ class "create-bigbit-fs-folder"
-                                                    ]
-                                                    [ i
-                                                        [ class "material-icons folder-icon"
-                                                        , onClick <| BigbitFSToggleFolder absolutePath
-                                                        ]
-                                                        [ if folderMetadata.isExpanded then
-                                                            text "folder_open"
-                                                          else
-                                                            text "folder"
-                                                        ]
-                                                    , div
-                                                        [ class "folder-name"
-                                                        , onClick <| BigbitFSToggleFolder absolutePath
-                                                        ]
-                                                        [ text <| name ++ "/" ]
-                                                    ]
-                                            )
-                                        , expandFolderIf = .isExpanded
+                                    , FS.fileStructure
+                                        { isFileSelected = viewingFile
+                                        , fileSelectedMsg = BigbitFileSelected
+                                        , folderSelectedMsg = BigbitFSToggleFolder
                                         }
                                         model.bigbitCreateData.fs
                                     , div
@@ -1447,7 +1647,7 @@ createSnipbitView model shared =
                     , div
                         [ class "comment-creator" ]
                         [ div
-                            [ class "editor-warning-text" ]
+                            [ class "above-editor-text" ]
                             [ text <|
                                 if currentRoute == Route.HomeComponentCreateSnipbitCodeIntroduction then
                                     "Snipbit introductions do not link to highlights, but you can browse and edit your code"

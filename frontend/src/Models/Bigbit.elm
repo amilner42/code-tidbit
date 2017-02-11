@@ -9,18 +9,93 @@ import Json.Encode as Encode
 import Json.Decode as Decode
 import Json.Decode.Pipeline exposing (decode, required, optional, hardcoded)
 import Models.HighlightedComment as HighlightedComment
-import Models.FileStructure as FS
+import Elements.FileStructure as FS
 import Models.Range as Range
 import Models.Route as Route
 
 
-{-| A Bigbit as seen in the database.
+{-| A Bigbit as seen in the database, with a few extra fields thrown in the FS
+to make it easier to render.
 -}
 type alias Bigbit =
     { name : String
     , description : String
     , tags : List String
+    , introduction : String
+    , conclusion : String
+    , fs : FS.FileStructure { openFS : Bool } { isExpanded : Bool } { language : Editor.Language }
+    , highlightedComments : Array.Array BigbitHighlightedCommentForPublication
+    , author : String
+    , id : String
     }
+
+
+{-| Bigbit encoder.
+-}
+bigbitEncoder : Bigbit -> Encode.Value
+bigbitEncoder bigbit =
+    let
+        encodeFS fs =
+            FS.encodeFS
+                (\fsMetadata ->
+                    Encode.object
+                        [ ( "openFS", Encode.bool fsMetadata.openFS ) ]
+                )
+                (\folderMetadata ->
+                    Encode.object
+                        [ ( "isExpanded", Encode.bool folderMetadata.isExpanded ) ]
+                )
+                (\fileMetadata ->
+                    Encode.object
+                        [ ( "language", Editor.languageCacheEncoder fileMetadata.language ) ]
+                )
+                fs
+    in
+        Encode.object
+            [ ( "name", Encode.string bigbit.name )
+            , ( "description", Encode.string bigbit.description )
+            , ( "tags", Encode.list <| List.map Encode.string bigbit.tags )
+            , ( "introduction", Encode.string bigbit.introduction )
+            , ( "conclusion", Encode.string bigbit.conclusion )
+            , ( "fs", encodeFS bigbit.fs )
+            , ( "highlightedComments"
+              , Encode.array <|
+                    Array.map
+                        bigbitHighlightedCommentForPublicationCacheEncoder
+                        bigbit.highlightedComments
+              )
+            , ( "author", Encode.string bigbit.author )
+            , ( "id", Encode.string bigbit.id )
+            ]
+
+
+{-| Bigbit decoder.
+-}
+bigbitDecoder : Decode.Decoder Bigbit
+bigbitDecoder =
+    let
+        decodeFS =
+            FS.decodeFS
+                (decode (\isOpen -> { openFS = isOpen })
+                    |> optional "openFS" Decode.bool False
+                )
+                (decode (\isExpanded -> { isExpanded = isExpanded })
+                    |> optional "isExpanded" Decode.bool True
+                )
+                (decode BigbitCreateDataFileMetadata
+                    |> required "language" Editor.languageCacheDecoder
+                )
+    in
+        decode Bigbit
+            |> required "name" Decode.string
+            |> required "description" Decode.string
+            |> required "tags" (Decode.list Decode.string)
+            |> required "introduction" Decode.string
+            |> required "conclusion" Decode.string
+            |> required "fs" decodeFS
+            |> required "highlightedComments" (Decode.array bigbitHighlightedCommentForPublicationCacheDecoder)
+            |> required "author" Decode.string
+            |> required "id" Decode.string
 
 
 {-| Basic union to keep track of the current state of the action buttons in
@@ -603,7 +678,7 @@ clearActionButtonInput =
         )
 
 
-{-| The current active path determined from the route.
+{-| The current active path (on create page) determined from the route.
 -}
 createPageCurrentActiveFile : Route.Route -> Maybe FS.Path
 createPageCurrentActiveFile route =
@@ -615,6 +690,29 @@ createPageCurrentActiveFile route =
             maybePath
 
         Route.HomeComponentCreateBigbitCodeConclusion maybePath ->
+            maybePath
+
+        _ ->
+            Nothing
+
+
+{-| The current active path (on view page) determined from the route or the
+current comment frame.
+-}
+viewPageCurrentActiveFile : Route.Route -> Bigbit -> Maybe FS.Path
+viewPageCurrentActiveFile route bigbit =
+    case route of
+        Route.HomeComponentViewBigbitIntroduction _ maybePath ->
+            maybePath
+
+        Route.HomeComponentViewBigbitFrame _ frameNumber maybePath ->
+            if Util.isNotNothing maybePath then
+                maybePath
+            else
+                Array.get (frameNumber - 1) bigbit.highlightedComments
+                    |> Maybe.map .file
+
+        Route.HomeComponentViewBigbitConclusion _ maybePath ->
             maybePath
 
         _ ->

@@ -4,7 +4,7 @@ import Array
 import Autocomplete as AC
 import Components.Home.Model exposing (Model)
 import Elements.Editor as Editor
-import Models.FileStructure as FS
+import Elements.FileStructure as FS
 import Models.Snipbit as Snipbit
 import Models.Bigbit as Bigbit
 
@@ -16,6 +16,7 @@ init =
     { logOutError = Nothing
     , showInfoFor = Nothing
     , viewingSnipbit = Nothing
+    , viewingBigbit = Nothing
     , snipbitCreateData =
         { language = Nothing
         , languageQueryACState = AC.empty
