@@ -26,6 +26,7 @@ type Language
     | Ada
     | AppleScript
     | AssemblyX86
+    | C
     | CPlusPlus
     | Clojure
     | Cobol
@@ -41,7 +42,8 @@ type Language
     | Fortran
     | GoLang
     | Groovy
-    | Haml
+    | HAML
+    | HTML
     | Haskell
     | Java
     | JavaScript
@@ -65,12 +67,14 @@ type Language
     | R
     | Ruby
     | Rust
-    | Sass
+    | SASS
+    | Scala
     | SQL
     | SQLServer
     | Swift
     | TypeScript
     | XML
+    | YAML
 
 
 {-| Themes supported by the ACE editor.
@@ -107,6 +111,7 @@ humanReadableListOfLanguages =
     , ( Ada, "ada" )
     , ( AppleScript, "applescript" )
     , ( AssemblyX86, "assembly_x86" )
+    , ( C, "c" )
     , ( CPlusPlus, "c++" )
     , ( Clojure, "clojure" )
     , ( Cobol, "cobol" )
@@ -122,7 +127,8 @@ humanReadableListOfLanguages =
     , ( Fortran, "fortran" )
     , ( GoLang, "go" )
     , ( Groovy, "groovy" )
-    , ( Haml, "haml" )
+    , ( HAML, "haml" )
+    , ( HTML, "html" )
     , ( Haskell, "haskell" )
     , ( Java, "java" )
     , ( JavaScript, "javascript" )
@@ -146,12 +152,14 @@ humanReadableListOfLanguages =
     , ( R, "r" )
     , ( Ruby, "ruby" )
     , ( Rust, "rust" )
-    , ( Sass, "sass" )
+    , ( SASS, "sass" )
+    , ( Scala, "scala" )
     , ( SQL, "sql" )
     , ( SQLServer, "sqlserver" )
     , ( Swift, "swift" )
     , ( TypeScript, "typescript" )
     , ( XML, "xml" )
+    , ( YAML, "yaml" )
     ]
 
 
@@ -192,6 +200,9 @@ languagesFromFileName fileName =
 
                         "asm" ->
                             [ AssemblyX86 ]
+
+                        "c" ->
+                            [ C ]
 
                         "cc" ->
                             [ CPlusPlus ]
@@ -263,7 +274,10 @@ languagesFromFileName fileName =
                             [ Groovy ]
 
                         "haml" ->
-                            [ Haml ]
+                            [ HAML ]
+
+                        "html" ->
+                            [ HTML ]
 
                         "hs" ->
                             [ Haskell ]
@@ -341,10 +355,16 @@ languagesFromFileName fileName =
                             [ Rust ]
 
                         "scss" ->
-                            [ Sass ]
+                            [ SASS ]
 
                         "sass" ->
-                            [ Sass ]
+                            [ SASS ]
+
+                        "scala" ->
+                            [ Scala ]
+
+                        "sc" ->
+                            [ Scala ]
 
                         "swift" ->
                             [ Swift ]
@@ -354,6 +374,9 @@ languagesFromFileName fileName =
 
                         "xml" ->
                             [ XML ]
+
+                        "yaml" ->
+                            [ YAML ]
 
                         _ ->
                             []
@@ -381,6 +404,9 @@ aceLanguageLocation lang =
 
                 AssemblyX86 ->
                     "assembly_x86"
+
+                C ->
+                    "c_cpp"
 
                 CPlusPlus ->
                     "c_cpp"
@@ -427,11 +453,14 @@ aceLanguageLocation lang =
                 Groovy ->
                     "groovy"
 
-                Haml ->
+                HAML ->
                     "haml"
 
                 Haskell ->
                     "haskell"
+
+                HTML ->
+                    "html"
 
                 Java ->
                     "java"
@@ -499,8 +528,11 @@ aceLanguageLocation lang =
                 Rust ->
                     "rust"
 
-                Sass ->
+                SASS ->
                     "sass"
+
+                Scala ->
+                    "scala"
 
                 SQL ->
                     "sql"
@@ -516,6 +548,9 @@ aceLanguageLocation lang =
 
                 XML ->
                     "xml"
+
+                YAML ->
+                    "yaml"
     in
         baseLocation ++ languagePath
 
@@ -546,6 +581,9 @@ languageCacheDecoder =
 
                 "AssemblyX86" ->
                     Decode.succeed AssemblyX86
+
+                "C" ->
+                    Decode.succeed C
 
                 "CPlusPlus" ->
                     Decode.succeed CPlusPlus
@@ -592,8 +630,11 @@ languageCacheDecoder =
                 "Groovy" ->
                     Decode.succeed Groovy
 
-                "Haml" ->
-                    Decode.succeed Haml
+                "HAML" ->
+                    Decode.succeed HAML
+
+                "HTML" ->
+                    Decode.succeed HTML
 
                 "Haskell" ->
                     Decode.succeed Haskell
@@ -664,8 +705,11 @@ languageCacheDecoder =
                 "Rust" ->
                     Decode.succeed Rust
 
-                "Sass" ->
-                    Decode.succeed Sass
+                "SASS" ->
+                    Decode.succeed SASS
+
+                "Scala" ->
+                    Decode.succeed Scala
 
                 "SQL" ->
                     Decode.succeed SQL
@@ -681,6 +725,9 @@ languageCacheDecoder =
 
                 "XML" ->
                     Decode.succeed XML
+
+                "YAML" ->
+                    Decode.succeed YAML
 
                 _ ->
                     Decode.fail <| encodedLanguage ++ " is not a valid encoded string."
