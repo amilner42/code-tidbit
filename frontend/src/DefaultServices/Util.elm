@@ -170,3 +170,23 @@ queryParamsToString listOfMaybeQueryParams =
             )
             "?"
         |> String.dropRight 1
+
+
+{-| If the string is empty returns `Nothing`, otherwise `Just` the string.
+-}
+justNonEmptyString : String -> Maybe String
+justNonEmptyString string =
+    if String.isEmpty string then
+        Nothing
+    else
+        Just string
+
+
+{-| If the list is empty, returns `Nothing`, otherwise `Just` the list.
+-}
+justNonEmptyList : List a -> Maybe (List a)
+justNonEmptyList listOfA =
+    if List.isEmpty listOfA then
+        Nothing
+    else
+        Just listOfA

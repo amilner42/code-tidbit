@@ -1703,71 +1703,18 @@ createSnipbitView model shared =
            event handler to call the API.
         -}
         currentPublishButton =
-            let
-                tidbitData =
-                    model.snipbitCreateData
-            in
-                case tidbitData.language of
-                    Nothing ->
-                        disabledPublishButton
+            case Snipbit.createDataToPublicationData model.snipbitCreateData of
+                Nothing ->
+                    disabledPublishButton
 
-                    Just theLanguage ->
-                        if
-                            (tidbitData.name /= "")
-                                && (tidbitData.description /= "")
-                                && (List.length tidbitData.tags > 0)
-                                && (tidbitData.code /= "")
-                                && (tidbitData.introduction /= "")
-                                && (tidbitData.conclusion /= "")
-                        then
-                            let
-                                filledHighlightedComments =
-                                    Array.foldr
-                                        (\maybeHC previousHC ->
-                                            case ( maybeHC.range, maybeHC.comment ) of
-                                                ( Just aRange, Just aComment ) ->
-                                                    if
-                                                        (String.length aComment > 0)
-                                                            && (not <| Range.isEmptyRange aRange)
-                                                    then
-                                                        { range = aRange
-                                                        , comment = aComment
-                                                        }
-                                                            :: previousHC
-                                                    else
-                                                        previousHC
-
-                                                _ ->
-                                                    previousHC
-                                        )
-                                        []
-                                        tidbitData.highlightedComments
-                            in
-                                if
-                                    (List.length filledHighlightedComments)
-                                        == (Array.length tidbitData.highlightedComments)
-                                then
-                                    button
-                                        [ classList
-                                            [ ( "create-snipbit-publish-button", True )
-                                            ]
-                                        , onClick <|
-                                            SnipbitPublish
-                                                { language = theLanguage
-                                                , name = tidbitData.name
-                                                , description = tidbitData.description
-                                                , tags = tidbitData.tags
-                                                , code = tidbitData.code
-                                                , introduction = tidbitData.introduction
-                                                , conclusion = tidbitData.conclusion
-                                                , highlightedComments = Array.fromList filledHighlightedComments
-                                                }
-                                        ]
-                                        [ text "Publish" ]
-                                else
-                                    disabledPublishButton
-                        else
-                            disabledPublishButton
+                Just publicationData ->
+                    button
+                        [ classList
+                            [ ( "create-snipbit-publish-button", True )
+                            ]
+                        , onClick <| SnipbitPublish publicationData
+                        ]
+                        [ text "Publish" ]
     in
         div
             [ class "create-snipbit" ]
