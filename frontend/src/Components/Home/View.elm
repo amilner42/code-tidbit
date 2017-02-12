@@ -735,17 +735,15 @@ createBigbitView model shared =
         currentRoute =
             shared.route
 
-        disabledPublishButton =
-            button
-                [ class "create-bigbit-disabled-publish-button"
-                , disabled True
-                ]
-                [ text "Publish" ]
-
-        currentPublishButton =
+        {- It should be disabled unles everything is filled out. -}
+        publishButton =
             case Bigbit.createDataToPublicationData model.bigbitCreateData of
                 Nothing ->
-                    disabledPublishButton
+                    button
+                        [ class "create-bigbit-disabled-publish-button"
+                        , disabled True
+                        ]
+                        [ text "Publish" ]
 
                 Just bigbitForPublicaton ->
                     button
@@ -1251,7 +1249,7 @@ createBigbitView model shared =
                     , onClick <| BigbitReset
                     ]
                     [ text "Reset" ]
-                , currentPublishButton
+                , publishButton
                 ]
             , createBigbitNavbar
             , case shared.route of
@@ -1689,23 +1687,15 @@ createSnipbitView model shared =
                 _ ->
                     nameView
 
-        -- Disabled publish button.
-        disabledPublishButton =
-            button
-                [ class "create-snipbit-disabled-publish-button"
-                , disabled True
-                ]
-                [ text "Publish" ]
-
-        {- It should be `disabledPublishButton` unless
-           everything is filled out in which case it should be
-           the publish button with the info filled for an
-           event handler to call the API.
-        -}
-        currentPublishButton =
+        {- It should be disabled unles everything is filled out. -}
+        publishButton =
             case Snipbit.createDataToPublicationData model.snipbitCreateData of
                 Nothing ->
-                    disabledPublishButton
+                    button
+                        [ class "create-snipbit-disabled-publish-button"
+                        , disabled True
+                        ]
+                        [ text "Publish" ]
 
                 Just publicationData ->
                     button
@@ -1730,7 +1720,7 @@ createSnipbitView model shared =
                     , onClick <| SnipbitReset
                     ]
                     [ text "Reset" ]
-                , currentPublishButton
+                , publishButton
                 ]
             , div
                 []
