@@ -1508,10 +1508,17 @@ createViewBigbitCodeEditor bigbit { route, user } =
 {-| Filters the languages based on `query`.
 -}
 filterLanguagesByQuery : String -> List ( Editor.Language, String ) -> List ( Editor.Language, String )
-filterLanguagesByQuery query languages =
-    List.filter
-        (String.contains (String.toLower query) << Tuple.second)
-        languages
+filterLanguagesByQuery query =
+    let
+        -- Ignores case.
+        containsQuery =
+            String.toLower >> String.contains (String.toLower query)
+    in
+        List.filter
+            (\langPair ->
+                (containsQuery <| Tuple.second langPair)
+                    || (containsQuery <| toString <| Tuple.first langPair)
+            )
 
 
 {-| Config for language-list auto-complete (used in snipbit creation).
