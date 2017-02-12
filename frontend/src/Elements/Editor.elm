@@ -3,6 +3,7 @@ module Elements.Editor
         ( aceLanguageLocation
         , aceThemeLocation
         , editor
+        , getHumanReadableName
         , humanReadableListOfLanguages
         , languagesFromFileName
         , Language(..)
@@ -17,6 +18,10 @@ import Html.Attributes exposing (class, id)
 import Html.Keyed as Keyed
 import Json.Encode as Encode
 import Json.Decode as Decode
+
+
+-- TODO Dup code here is driving me crazy, some is needed but some can be
+-- definitely be removed. Not a priority.
 
 
 {-| The languages the Ace Editor supports.
@@ -103,7 +108,172 @@ type Theme
     | XCode
 
 
-{-| Human readable list of langauges.
+{-| Get's the human readable name.
+-}
+getHumanReadableName : Language -> String
+getHumanReadableName language =
+    case language of
+        ActionScript ->
+            "ActionScript"
+
+        Ada ->
+            "Ada"
+
+        AppleScript ->
+            "AppleScript"
+
+        AssemblyX86 ->
+            "Assembly_X86"
+
+        C ->
+            "C"
+
+        CPlusPlus ->
+            "C++"
+
+        Clojure ->
+            "Clojure"
+
+        Cobol ->
+            "Cobol"
+
+        CoffeeScript ->
+            "CoffeeScript"
+
+        CSharp ->
+            "C#"
+
+        CSS ->
+            "CSS"
+
+        D ->
+            "D"
+
+        Dart ->
+            "Dart"
+
+        DockerFile ->
+            "Dockerfile"
+
+        Elixir ->
+            "Elixir"
+
+        Elm ->
+            "Elm"
+
+        Erlang ->
+            "Erlang"
+
+        Fortran ->
+            "Fortran"
+
+        GoLang ->
+            "Go"
+
+        Groovy ->
+            "Groovy"
+
+        HAML ->
+            "HAML"
+
+        HTML ->
+            "HTML"
+
+        Haskell ->
+            "Haskell"
+
+        Java ->
+            "Java"
+
+        JavaScript ->
+            "JavaScript"
+
+        JSON ->
+            "JSON"
+
+        Latex ->
+            "Latex"
+
+        Less ->
+            "Less"
+
+        LiveScript ->
+            "LiveScript"
+
+        Lua ->
+            "Lua"
+
+        Makefile ->
+            "Makefile"
+
+        Matlab ->
+            "Matlab"
+
+        MySQL ->
+            "MySQL"
+
+        ObjectiveC ->
+            "ObjectiveC"
+
+        OCaml ->
+            "OCaml"
+
+        Pascal ->
+            "Pascal"
+
+        Perl ->
+            "Perl"
+
+        PGSQL ->
+            "PGSQL"
+
+        PHP ->
+            "PHP"
+
+        PowerShell ->
+            "PowerShell"
+
+        Prolog ->
+            "Prolog"
+
+        Python ->
+            "Python"
+
+        R ->
+            "R"
+
+        Ruby ->
+            "Ruby"
+
+        Rust ->
+            "Rust"
+
+        SASS ->
+            "SASS"
+
+        Scala ->
+            "Scala"
+
+        SQL ->
+            "SQL"
+
+        SQLServer ->
+            "SQLServer"
+
+        Swift ->
+            "Swift"
+
+        TypeScript ->
+            "TypeScript"
+
+        XML ->
+            "XML"
+
+        YAML ->
+            "YAML"
+
+
+{-| Human readable list of langauges, we need this list for searching purposes.
 -}
 humanReadableListOfLanguages : List ( Language, String )
 humanReadableListOfLanguages =

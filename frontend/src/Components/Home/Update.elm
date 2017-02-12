@@ -426,7 +426,7 @@ update msg model shared =
                                 ""
 
                             Just aLanguage ->
-                                toString aLanguage
+                                Editor.getHumanReadableName aLanguage
 
                     newSnipbitCreateData =
                         { currentSnipbitCreateData
