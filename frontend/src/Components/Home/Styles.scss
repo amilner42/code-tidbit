@@ -158,7 +158,7 @@
             width: 100%;
             height: 50px;
             background-color: $color1;
-            border-bottom: 2px solid $color6;
+            border-bottom: 1px solid $color6;
 
             .logo {
                 @include no-select();
@@ -166,7 +166,8 @@
                 height: 44px;
                 padding: 3px;
                 background-color: white;
-                border-bottom: 2px solid $color6;
+                border-bottom: 1px solid $color6;
+                border-right: 1px solid $color6;
                 display: inline-block;
                 float: left;
 
@@ -220,22 +221,27 @@
             position: relative;
             display: inline-block;
             width: 100%;
-            background-color: $color2;
+            background-color: $color9;
             margin-bottom: 10px;
             height: 40px;
             padding-top: 10px;
+            border-bottom: 1px solid $color2;
 
             .sub-bar-button {
+                @include light-box-shadow();
+
                 position: relative;
                 display: inline-block;
                 height: 30px;
                 width: 100px;
                 border: none;
-                border-radius: 5px;
-                color: white;
+                border-radius: 2px;
+                color: $color6;
+                background-color: white;
+                cursor: pointer;
 
                 &:hover {
-                    color: $color6;
+                    @include strong-box-shadow();
                 }
             }
         }
@@ -614,7 +620,7 @@
                     box-sizing: border-box;
                     position: relative;
                     height: 390px;
-                    overflow-y: scroll;
+                    overflow-y: auto;
                     overflow-x: hidden;
                     width: 300px;
                     display: block;
@@ -628,7 +634,6 @@
                         list-style-type: none;
                         color: $color4;
                         border: 1px solid $color2;
-                        border-right-width: 0px;
                         width: 300px;
                         height: 33px;
                         margin-bottom: 3px;
@@ -659,15 +664,11 @@
 
                 .create-snipbit-back-button {
                     @extend .sub-bar-button;
-
-                    background-color: $color8;
                     margin: 0 10px 0 10px;
                 }
 
                 .create-snipbit-reset-button {
                     @extend .sub-bar-button;
-
-                    background-color: $color8;
                     margin-right: 10px;
                 }
 
@@ -686,27 +687,23 @@
 
             float: right;
             margin-right: 10px;
-            background-color: white;
-            color: $color7;
             cursor: not-allowed;
 
             &:hover {
-                background-color: white;
-                color: $color7;
+                @include light-box-shadow();
             }
         }
 
         .publish-button {
-            @extend .sub-bar-button;
+            @extend .disabled-publish-button;
 
-            float: right;
-            margin-right: 10px;
             background-color: $color7;
             color: white;
+            cursor: pointer;
 
             &:hover {
                 background-color: $color7;
-                color: $color6;
+                color: $color5;
             }
         }
 
