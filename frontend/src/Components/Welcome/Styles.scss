@@ -18,11 +18,13 @@
     .logo-title-1 {
         position: absolute;
         font-size: 68px;
-        left: 136px;
+        left: 134px;
         top: 8px;
         font-weight: bold;
         width: 250px;
         font-family: 'Raleway', sans-serif;
+        color: $color4;
+        letter-spacing: -2px;
     }
 
     .logo-title-2 {
@@ -33,6 +35,8 @@
         font-weight: bold;
         width: 250px;
         font-family: 'Raleway', sans-serif;
+        color: $color8;
+        letter-spacing: -2px;
     }
 
     .welcome-component-change-tab-button {
