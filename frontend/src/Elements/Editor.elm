@@ -3,6 +3,7 @@ module Elements.Editor
         ( aceLanguageLocation
         , aceThemeLocation
         , editor
+        , getHumanReadableName
         , humanReadableListOfLanguages
         , languagesFromFileName
         , Language(..)
@@ -19,6 +20,10 @@ import Json.Encode as Encode
 import Json.Decode as Decode
 
 
+-- TODO Dup code here is driving me crazy, some is needed but some can be
+-- definitely be removed. Not a priority.
+
+
 {-| The languages the Ace Editor supports.
 -}
 type Language
@@ -26,6 +31,7 @@ type Language
     | Ada
     | AppleScript
     | AssemblyX86
+    | C
     | CPlusPlus
     | Clojure
     | Cobol
@@ -41,7 +47,8 @@ type Language
     | Fortran
     | GoLang
     | Groovy
-    | Haml
+    | HAML
+    | HTML
     | Haskell
     | Java
     | JavaScript
@@ -65,12 +72,14 @@ type Language
     | R
     | Ruby
     | Rust
-    | Sass
+    | SASS
+    | Scala
     | SQL
     | SQLServer
     | Swift
     | TypeScript
     | XML
+    | YAML
 
 
 {-| Themes supported by the ACE editor.
@@ -99,59 +108,228 @@ type Theme
     | XCode
 
 
-{-| Human readable list of langauges.
+{-| Get's the human readable name.
+-}
+getHumanReadableName : Language -> String
+getHumanReadableName language =
+    case language of
+        ActionScript ->
+            "ActionScript"
+
+        Ada ->
+            "Ada"
+
+        AppleScript ->
+            "AppleScript"
+
+        AssemblyX86 ->
+            "Assembly_X86"
+
+        C ->
+            "C"
+
+        CPlusPlus ->
+            "C++"
+
+        Clojure ->
+            "Clojure"
+
+        Cobol ->
+            "Cobol"
+
+        CoffeeScript ->
+            "CoffeeScript"
+
+        CSharp ->
+            "C#"
+
+        CSS ->
+            "CSS"
+
+        D ->
+            "D"
+
+        Dart ->
+            "Dart"
+
+        DockerFile ->
+            "Dockerfile"
+
+        Elixir ->
+            "Elixir"
+
+        Elm ->
+            "Elm"
+
+        Erlang ->
+            "Erlang"
+
+        Fortran ->
+            "Fortran"
+
+        GoLang ->
+            "Go"
+
+        Groovy ->
+            "Groovy"
+
+        HAML ->
+            "HAML"
+
+        HTML ->
+            "HTML"
+
+        Haskell ->
+            "Haskell"
+
+        Java ->
+            "Java"
+
+        JavaScript ->
+            "JavaScript"
+
+        JSON ->
+            "JSON"
+
+        Latex ->
+            "Latex"
+
+        Less ->
+            "Less"
+
+        LiveScript ->
+            "LiveScript"
+
+        Lua ->
+            "Lua"
+
+        Makefile ->
+            "Makefile"
+
+        Matlab ->
+            "Matlab"
+
+        MySQL ->
+            "MySQL"
+
+        ObjectiveC ->
+            "ObjectiveC"
+
+        OCaml ->
+            "OCaml"
+
+        Pascal ->
+            "Pascal"
+
+        Perl ->
+            "Perl"
+
+        PGSQL ->
+            "PGSQL"
+
+        PHP ->
+            "PHP"
+
+        PowerShell ->
+            "PowerShell"
+
+        Prolog ->
+            "Prolog"
+
+        Python ->
+            "Python"
+
+        R ->
+            "R"
+
+        Ruby ->
+            "Ruby"
+
+        Rust ->
+            "Rust"
+
+        SASS ->
+            "SASS"
+
+        Scala ->
+            "Scala"
+
+        SQL ->
+            "SQL"
+
+        SQLServer ->
+            "SQLServer"
+
+        Swift ->
+            "Swift"
+
+        TypeScript ->
+            "TypeScript"
+
+        XML ->
+            "XML"
+
+        YAML ->
+            "YAML"
+
+
+{-| Human readable list of langauges, we need this list for searching purposes.
 -}
 humanReadableListOfLanguages : List ( Language, String )
 humanReadableListOfLanguages =
-    [ ( ActionScript, "actionscript" )
-    , ( Ada, "ada" )
-    , ( AppleScript, "applescript" )
-    , ( AssemblyX86, "assembly_x86" )
-    , ( CPlusPlus, "c++" )
-    , ( Clojure, "clojure" )
-    , ( Cobol, "cobol" )
-    , ( CoffeeScript, "coffeescript" )
-    , ( CSharp, "c#" )
-    , ( CSS, "css" )
-    , ( D, "d" )
-    , ( Dart, "dart" )
-    , ( DockerFile, "dockerfile" )
-    , ( Elixir, "elixir" )
-    , ( Elm, "elm" )
-    , ( Erlang, "erlang" )
-    , ( Fortran, "fortran" )
-    , ( GoLang, "go" )
-    , ( Groovy, "groovy" )
-    , ( Haml, "haml" )
-    , ( Haskell, "haskell" )
-    , ( Java, "java" )
-    , ( JavaScript, "javascript" )
-    , ( JSON, "json" )
-    , ( Latex, "latex" )
-    , ( Less, "less" )
-    , ( LiveScript, "livescript" )
-    , ( Lua, "lua" )
-    , ( Makefile, "makefile" )
-    , ( Matlab, "matlab" )
-    , ( MySQL, "mysql" )
-    , ( ObjectiveC, "objectivec" )
-    , ( OCaml, "ocaml" )
-    , ( Pascal, "pascal" )
-    , ( Perl, "perl" )
-    , ( PGSQL, "pgsql" )
-    , ( PHP, "php" )
-    , ( PowerShell, "powershell" )
-    , ( Prolog, "prolog" )
-    , ( Python, "python" )
-    , ( R, "r" )
-    , ( Ruby, "ruby" )
-    , ( Rust, "rust" )
-    , ( Sass, "sass" )
-    , ( SQL, "sql" )
-    , ( SQLServer, "sqlserver" )
-    , ( Swift, "swift" )
-    , ( TypeScript, "typescript" )
-    , ( XML, "xml" )
+    [ ( ActionScript, "ActionScript" )
+    , ( Ada, "Ada" )
+    , ( AppleScript, "AppleScript" )
+    , ( AssemblyX86, "Assembly_X86" )
+    , ( C, "C" )
+    , ( CPlusPlus, "C++" )
+    , ( Clojure, "Clojure" )
+    , ( Cobol, "Cobol" )
+    , ( CoffeeScript, "CoffeeScript" )
+    , ( CSharp, "C#" )
+    , ( CSS, "CSS" )
+    , ( D, "D" )
+    , ( Dart, "Dart" )
+    , ( DockerFile, "Dockerfile" )
+    , ( Elixir, "Elixir" )
+    , ( Elm, "Elm" )
+    , ( Erlang, "Erlang" )
+    , ( Fortran, "Fortran" )
+    , ( GoLang, "Go" )
+    , ( Groovy, "Groovy" )
+    , ( HAML, "HAML" )
+    , ( HTML, "HTML" )
+    , ( Haskell, "Haskell" )
+    , ( Java, "Java" )
+    , ( JavaScript, "JavaScript" )
+    , ( JSON, "JSON" )
+    , ( Latex, "Latex" )
+    , ( Less, "Less" )
+    , ( LiveScript, "LiveScript" )
+    , ( Lua, "Lua" )
+    , ( Makefile, "Makefile" )
+    , ( Matlab, "Matlab" )
+    , ( MySQL, "MySQL" )
+    , ( ObjectiveC, "ObjectiveC" )
+    , ( OCaml, "OCaml" )
+    , ( Pascal, "Pascal" )
+    , ( Perl, "Perl" )
+    , ( PGSQL, "PGSQL" )
+    , ( PHP, "PHP" )
+    , ( PowerShell, "PowerShell" )
+    , ( Prolog, "Prolog" )
+    , ( Python, "Python" )
+    , ( R, "R" )
+    , ( Ruby, "Ruby" )
+    , ( Rust, "Rust" )
+    , ( SASS, "SASS" )
+    , ( Scala, "Scala" )
+    , ( SQL, "SQL" )
+    , ( SQLServer, "SQLServer" )
+    , ( Swift, "Swift" )
+    , ( TypeScript, "TypeScript" )
+    , ( XML, "XML" )
+    , ( YAML, "YAML" )
     ]
 
 
@@ -192,6 +370,9 @@ languagesFromFileName fileName =
 
                         "asm" ->
                             [ AssemblyX86 ]
+
+                        "c" ->
+                            [ C ]
 
                         "cc" ->
                             [ CPlusPlus ]
@@ -263,7 +444,10 @@ languagesFromFileName fileName =
                             [ Groovy ]
 
                         "haml" ->
-                            [ Haml ]
+                            [ HAML ]
+
+                        "html" ->
+                            [ HTML ]
 
                         "hs" ->
                             [ Haskell ]
@@ -341,10 +525,16 @@ languagesFromFileName fileName =
                             [ Rust ]
 
                         "scss" ->
-                            [ Sass ]
+                            [ SASS ]
 
                         "sass" ->
-                            [ Sass ]
+                            [ SASS ]
+
+                        "scala" ->
+                            [ Scala ]
+
+                        "sc" ->
+                            [ Scala ]
 
                         "swift" ->
                             [ Swift ]
@@ -354,6 +544,9 @@ languagesFromFileName fileName =
 
                         "xml" ->
                             [ XML ]
+
+                        "yaml" ->
+                            [ YAML ]
 
                         _ ->
                             []
@@ -381,6 +574,9 @@ aceLanguageLocation lang =
 
                 AssemblyX86 ->
                     "assembly_x86"
+
+                C ->
+                    "c_cpp"
 
                 CPlusPlus ->
                     "c_cpp"
@@ -427,11 +623,14 @@ aceLanguageLocation lang =
                 Groovy ->
                     "groovy"
 
-                Haml ->
+                HAML ->
                     "haml"
 
                 Haskell ->
                     "haskell"
+
+                HTML ->
+                    "html"
 
                 Java ->
                     "java"
@@ -499,8 +698,11 @@ aceLanguageLocation lang =
                 Rust ->
                     "rust"
 
-                Sass ->
+                SASS ->
                     "sass"
+
+                Scala ->
+                    "scala"
 
                 SQL ->
                     "sql"
@@ -516,6 +718,9 @@ aceLanguageLocation lang =
 
                 XML ->
                     "xml"
+
+                YAML ->
+                    "yaml"
     in
         baseLocation ++ languagePath
 
@@ -546,6 +751,9 @@ languageCacheDecoder =
 
                 "AssemblyX86" ->
                     Decode.succeed AssemblyX86
+
+                "C" ->
+                    Decode.succeed C
 
                 "CPlusPlus" ->
                     Decode.succeed CPlusPlus
@@ -592,8 +800,11 @@ languageCacheDecoder =
                 "Groovy" ->
                     Decode.succeed Groovy
 
-                "Haml" ->
-                    Decode.succeed Haml
+                "HAML" ->
+                    Decode.succeed HAML
+
+                "HTML" ->
+                    Decode.succeed HTML
 
                 "Haskell" ->
                     Decode.succeed Haskell
@@ -664,8 +875,11 @@ languageCacheDecoder =
                 "Rust" ->
                     Decode.succeed Rust
 
-                "Sass" ->
-                    Decode.succeed Sass
+                "SASS" ->
+                    Decode.succeed SASS
+
+                "Scala" ->
+                    Decode.succeed Scala
 
                 "SQL" ->
                     Decode.succeed SQL
@@ -681,6 +895,9 @@ languageCacheDecoder =
 
                 "XML" ->
                     Decode.succeed XML
+
+                "YAML" ->
+                    Decode.succeed YAML
 
                 _ ->
                     Decode.fail <| encodedLanguage ++ " is not a valid encoded string."

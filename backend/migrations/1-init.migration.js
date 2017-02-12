@@ -19,6 +19,9 @@ const languages = [
     encodedName: "AssemblyX86",
   },
   {
+    encodedName: "C"
+  },
+  {
     encodedName: "CPlusPlus",
   },
   {
@@ -64,7 +67,10 @@ const languages = [
     encodedName: "Groovy",
   },
   {
-    encodedName: "Haml",
+    encodedName: "HTML"
+  },
+  {
+    encodedName: "HAML",
   },
   {
     encodedName: "Haskell",
@@ -136,7 +142,10 @@ const languages = [
     encodedName: "Rust",
   },
   {
-    encodedName: "Sass",
+    encodedName: "SASS",
+  },
+  {
+    encodedName: "Scala"
   },
   {
     encodedName: "SQL",
@@ -152,6 +161,9 @@ const languages = [
   },
   {
     encodedName: "XML",
+  },
+  {
+    encodedName: "YAML"
   }
 ];
 
