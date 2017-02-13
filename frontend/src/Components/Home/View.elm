@@ -19,6 +19,15 @@ import Models.Route as Route
 import Models.Snipbit as Snipbit
 
 
+{-| A google-material-design check-icon.
+-}
+checkIcon : Html msg
+checkIcon =
+    i
+        [ class "material-icons check-icon" ]
+        [ text "check" ]
+
+
 {-| Home Component View.
 -}
 view : Model -> Shared -> Html Msg
@@ -735,17 +744,15 @@ createBigbitView model shared =
         currentRoute =
             shared.route
 
-        disabledPublishButton =
-            button
-                [ class "create-bigbit-disabled-publish-button"
-                , disabled True
-                ]
-                [ text "Publish" ]
-
-        currentPublishButton =
+        {- It should be disabled unles everything is filled out. -}
+        publishButton =
             case Bigbit.createDataToPublicationData model.bigbitCreateData of
                 Nothing ->
-                    disabledPublishButton
+                    button
+                        [ class "create-bigbit-disabled-publish-button"
+                        , disabled True
+                        ]
+                        [ text "Publish" ]
 
                 Just bigbitForPublicaton ->
                     button
@@ -764,30 +771,39 @@ createBigbitView model shared =
                         , ( "create-tidbit-selected-tab"
                           , currentRoute == Route.HomeComponentCreateBigbitName
                           )
+                        , ( "filled-in", Util.isNotNothing <| Bigbit.createDataNameFilledIn model.bigbitCreateData )
                         ]
                     , onClick <| GoTo Route.HomeComponentCreateBigbitName
                     ]
-                    [ text "Name" ]
+                    [ text "Name"
+                    , checkIcon
+                    ]
                 , div
                     [ classList
                         [ ( "create-tidbit-tab", True )
                         , ( "create-tidbit-selected-tab"
                           , currentRoute == Route.HomeComponentCreateBigbitDescription
                           )
+                        , ( "filled-in", Util.isNotNothing <| Bigbit.createDataDescriptionFilledIn model.bigbitCreateData )
                         ]
                     , onClick <| GoTo Route.HomeComponentCreateBigbitDescription
                     ]
-                    [ text "Description" ]
+                    [ text "Description"
+                    , checkIcon
+                    ]
                 , div
                     [ classList
                         [ ( "create-tidbit-tab", True )
                         , ( "create-tidbit-selected-tab"
                           , currentRoute == Route.HomeComponentCreateBigbitTags
                           )
+                        , ( "filled-in", Util.isNotNothing <| Bigbit.createDataTagsFilledIn model.bigbitCreateData )
                         ]
                     , onClick <| GoTo Route.HomeComponentCreateBigbitTags
                     ]
-                    [ text "Tags" ]
+                    [ text "Tags"
+                    , checkIcon
+                    ]
                 , div
                     [ classList
                         [ ( "create-tidbit-tab", True )
@@ -805,10 +821,13 @@ createBigbitView model shared =
                                 _ ->
                                     False
                           )
+                        , ( "filled-in", Bigbit.createDataCodeTabFilledIn model.bigbitCreateData )
                         ]
                     , onClick <| GoTo <| Route.HomeComponentCreateBigbitCodeIntroduction Nothing
                     ]
-                    [ text "Code" ]
+                    [ text "Code"
+                    , checkIcon
+                    ]
                 ]
 
         bigbitCodeTab =
@@ -1251,7 +1270,7 @@ createBigbitView model shared =
                     , onClick <| BigbitReset
                     ]
                     [ text "Reset" ]
-                , currentPublishButton
+                , publishButton
                 ]
             , createBigbitNavbar
             , case shared.route of
@@ -1373,40 +1392,52 @@ createSnipbitView model shared =
                         , ( "create-tidbit-selected-tab"
                           , currentRoute == Route.HomeComponentCreateSnipbitName
                           )
+                        , ( "filled-in", Util.isNotNothing <| Snipbit.createDataNameFilledIn model.snipbitCreateData )
                         ]
                     , onClick <| GoTo Route.HomeComponentCreateSnipbitName
                     ]
-                    [ text "Name" ]
+                    [ text "Name"
+                    , checkIcon
+                    ]
                 , div
                     [ classList
                         [ ( "create-tidbit-tab", True )
                         , ( "create-tidbit-selected-tab"
                           , currentRoute == Route.HomeComponentCreateSnipbitDescription
                           )
+                        , ( "filled-in", Util.isNotNothing <| Snipbit.createDataDescriptionFilledIn model.snipbitCreateData )
                         ]
                     , onClick <| GoTo Route.HomeComponentCreateSnipbitDescription
                     ]
-                    [ text "Description" ]
+                    [ text "Description"
+                    , checkIcon
+                    ]
                 , div
                     [ classList
                         [ ( "create-tidbit-tab", True )
                         , ( "create-tidbit-selected-tab"
                           , currentRoute == Route.HomeComponentCreateSnipbitLanguage
                           )
+                        , ( "filled-in", Util.isNotNothing <| model.snipbitCreateData.language )
                         ]
                     , onClick <| GoTo Route.HomeComponentCreateSnipbitLanguage
                     ]
-                    [ text "Language" ]
+                    [ text "Language"
+                    , checkIcon
+                    ]
                 , div
                     [ classList
                         [ ( "create-tidbit-tab", True )
                         , ( "create-tidbit-selected-tab"
                           , currentRoute == Route.HomeComponentCreateSnipbitTags
                           )
+                        , ( "filled-in", Util.isNotNothing <| Snipbit.createDataTagsFilledIn model.snipbitCreateData )
                         ]
                     , onClick <| GoTo Route.HomeComponentCreateSnipbitTags
                     ]
-                    [ text "Tags" ]
+                    [ text "Tags"
+                    , checkIcon
+                    ]
                 , div
                     [ classList
                         [ ( "create-tidbit-tab", True )
@@ -1424,10 +1455,13 @@ createSnipbitView model shared =
                                 _ ->
                                     False
                           )
+                        , ( "filled-in", Snipbit.createDataCodeTabFilledIn model.snipbitCreateData )
                         ]
                     , onClick <| GoTo Route.HomeComponentCreateSnipbitCodeIntroduction
                     ]
-                    [ text "Code" ]
+                    [ text "Code"
+                    , checkIcon
+                    ]
                 ]
 
         nameView : Html Msg
@@ -1689,85 +1723,24 @@ createSnipbitView model shared =
                 _ ->
                     nameView
 
-        -- Disabled publish button.
-        disabledPublishButton =
-            button
-                [ class "create-snipbit-disabled-publish-button"
-                , disabled True
-                ]
-                [ text "Publish" ]
+        {- It should be disabled unles everything is filled out. -}
+        publishButton =
+            case Snipbit.createDataToPublicationData model.snipbitCreateData of
+                Nothing ->
+                    button
+                        [ class "create-snipbit-disabled-publish-button"
+                        , disabled True
+                        ]
+                        [ text "Publish" ]
 
-        {- It should be `disabledPublishButton` unless
-           everything is filled out in which case it should be
-           the publish button with the info filled for an
-           event handler to call the API.
-        -}
-        currentPublishButton =
-            let
-                tidbitData =
-                    model.snipbitCreateData
-            in
-                case tidbitData.language of
-                    Nothing ->
-                        disabledPublishButton
-
-                    Just theLanguage ->
-                        if
-                            (tidbitData.name /= "")
-                                && (tidbitData.description /= "")
-                                && (List.length tidbitData.tags > 0)
-                                && (tidbitData.code /= "")
-                                && (tidbitData.introduction /= "")
-                                && (tidbitData.conclusion /= "")
-                        then
-                            let
-                                filledHighlightedComments =
-                                    Array.foldr
-                                        (\maybeHC previousHC ->
-                                            case ( maybeHC.range, maybeHC.comment ) of
-                                                ( Just aRange, Just aComment ) ->
-                                                    if
-                                                        (String.length aComment > 0)
-                                                            && (not <| Range.isEmptyRange aRange)
-                                                    then
-                                                        { range = aRange
-                                                        , comment = aComment
-                                                        }
-                                                            :: previousHC
-                                                    else
-                                                        previousHC
-
-                                                _ ->
-                                                    previousHC
-                                        )
-                                        []
-                                        tidbitData.highlightedComments
-                            in
-                                if
-                                    (List.length filledHighlightedComments)
-                                        == (Array.length tidbitData.highlightedComments)
-                                then
-                                    button
-                                        [ classList
-                                            [ ( "create-snipbit-publish-button", True )
-                                            ]
-                                        , onClick <|
-                                            SnipbitPublish
-                                                { language = theLanguage
-                                                , name = tidbitData.name
-                                                , description = tidbitData.description
-                                                , tags = tidbitData.tags
-                                                , code = tidbitData.code
-                                                , introduction = tidbitData.introduction
-                                                , conclusion = tidbitData.conclusion
-                                                , highlightedComments = Array.fromList filledHighlightedComments
-                                                }
-                                        ]
-                                        [ text "Publish" ]
-                                else
-                                    disabledPublishButton
-                        else
-                            disabledPublishButton
+                Just publicationData ->
+                    button
+                        [ classList
+                            [ ( "create-snipbit-publish-button", True )
+                            ]
+                        , onClick <| SnipbitPublish publicationData
+                        ]
+                        [ text "Publish" ]
     in
         div
             [ class "create-snipbit" ]
@@ -1783,7 +1756,7 @@ createSnipbitView model shared =
                     , onClick <| SnipbitReset
                     ]
                     [ text "Reset" ]
-                , currentPublishButton
+                , publishButton
                 ]
             , div
                 []
