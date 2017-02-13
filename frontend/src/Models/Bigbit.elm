@@ -538,44 +538,93 @@ isValidRemoveFolderInput absolutePath fs =
         Result.Ok ()
 
 
-{-| If all the highlighted comments are completely filled in, will return them
-in publishable form, otherwise will return Nothing.
+{-| Returns the filled-in name or `Nothing`.
 -}
-hcForCreateToPublishable : Array.Array BigbitHighlightedCommentForCreate -> Maybe (List BigbitHighlightedCommentForPublication)
-hcForCreateToPublishable hcArray =
-    (Array.foldr
-        (\hc currentList ->
-            if String.isEmpty hc.comment then
-                currentList
-            else
-                case hc.fileAndRange of
-                    Nothing ->
-                        currentList
+createDataNameFilledIn : BigbitCreateData -> Maybe String
+createDataNameFilledIn createData =
+    Util.justNonEmptyString createData.name
 
-                    Just { file, range } ->
-                        case range of
-                            Nothing ->
-                                currentList
 
-                            Just aRange ->
-                                if Range.isEmptyRange aRange then
-                                    currentList
-                                else
-                                    { file = file
-                                    , comment = hc.comment
-                                    , range = aRange
-                                    }
-                                        :: currentList
-        )
-        []
-        hcArray
-    )
-        |> (\publishableListOfHC ->
-                if (List.length publishableListOfHC == Array.length hcArray) then
-                    Just publishableListOfHC
-                else
-                    Nothing
+{-| Returns the filled-in description or `Nothing`.
+-}
+createDataDescriptionFilledIn : BigbitCreateData -> Maybe String
+createDataDescriptionFilledIn createData =
+    Util.justNonEmptyString createData.description
+
+
+{-| Returns the filled-in tags or `Nothing`.
+-}
+createDataTagsFilledIn : BigbitCreateData -> Maybe (List String)
+createDataTagsFilledIn createData =
+    Util.justNonEmptyList createData.tags
+
+
+{-| Returns the filled-in introduction or `Nothing`.
+-}
+createDataIntroductionFilledIn : BigbitCreateData -> Maybe String
+createDataIntroductionFilledIn createData =
+    Util.justNonEmptyString createData.introduction
+
+
+{-| Returns the filled-in conclusion or `Nothing`.
+-}
+createDataConclusionFilledIn : BigbitCreateData -> Maybe String
+createDataConclusionFilledIn createData =
+    Util.justNonEmptyString createData.conclusion
+
+
+{-| Returns the filled-in highlighted comments [in publication form] or
+`Nothing`.
+-}
+createDataHighlightedCommentsFilledIn : BigbitCreateData -> Maybe (List BigbitHighlightedCommentForPublication)
+createDataHighlightedCommentsFilledIn =
+    .highlightedComments
+        >> (Array.foldr
+                (\hc currentList ->
+                    if String.isEmpty hc.comment then
+                        Nothing
+                    else
+                        case hc.fileAndRange of
+                            Just { file, range } ->
+                                case range of
+                                    Nothing ->
+                                        Nothing
+
+                                    Just aRange ->
+                                        if Range.isEmptyRange aRange then
+                                            Nothing
+                                        else
+                                            Maybe.map
+                                                ((::)
+                                                    { file = file
+                                                    , comment = hc.comment
+                                                    , range = aRange
+                                                    }
+                                                )
+                                                currentList
+
+                            _ ->
+                                Nothing
+                )
+                (Just [])
            )
+
+
+{-| Returns true if all data in the code tab is filled-in.
+-}
+createDataCodeTabFilledIn : BigbitCreateData -> Bool
+createDataCodeTabFilledIn createData =
+    case
+        ( createDataIntroductionFilledIn createData
+        , createDataConclusionFilledIn createData
+        , createDataHighlightedCommentsFilledIn createData
+        )
+    of
+        ( Just _, Just _, Just _ ) ->
+            True
+
+        _ ->
+            False
 
 
 {-| Given the create data, returns BigbitForPublication if the data is
@@ -583,34 +632,30 @@ completely filled out, otherwise returns Nothing.
 -}
 createDataToPublicationData : BigbitCreateData -> Maybe BigbitForPublication
 createDataToPublicationData createData =
-    if
-        (String.isEmpty createData.name)
-            || (String.isEmpty createData.description)
-            || (List.isEmpty createData.tags)
-            || (String.isEmpty createData.conclusion)
-            || (String.isEmpty createData.introduction)
-    then
-        Nothing
-    else
-        hcForCreateToPublishable createData.highlightedComments
-            |> Maybe.map
-                (\publishableHC ->
-                    { name = createData.name
-                    , description = createData.description
-                    , tags = createData.tags
-                    , introduction = createData.introduction
-                    , conclusion = createData.conclusion
-                    , fs =
-                        createData.fs
-                            |> FS.metaMap
-                                (always ())
-                                (always ())
-                                (\fileMetadata ->
-                                    fileMetadata
-                                )
-                    , highlightedComments = publishableHC
-                    }
-                )
+    case
+        ( createDataNameFilledIn createData
+        , createDataDescriptionFilledIn createData
+        , createDataTagsFilledIn createData
+        , createDataIntroductionFilledIn createData
+        , createDataConclusionFilledIn createData
+        , createDataHighlightedCommentsFilledIn createData
+        )
+    of
+        ( Just name, Just description, Just tags, Just introduction, Just conclusion, Just hc ) ->
+            Just <|
+                BigbitForPublication
+                    name
+                    description
+                    tags
+                    introduction
+                    conclusion
+                    (createData.fs
+                        |> FS.metaMap (always ()) (always ()) (identity)
+                    )
+                    hc
+
+        _ ->
+            Nothing
 
 
 

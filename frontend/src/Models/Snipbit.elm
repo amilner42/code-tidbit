@@ -283,6 +283,23 @@ createDataHighlightedCommentsFilledIn =
         >> Maybe.map Array.fromList
 
 
+{-| Checks if all the data in the code tab is filled in.
+-}
+createDataCodeTabFilledIn : SnipbitCreateData -> Bool
+createDataCodeTabFilledIn createData =
+    case
+        ( createDataIntroductionFilledIn createData
+        , createDataConclusionFilledIn createData
+        , createDataHighlightedCommentsFilledIn createData
+        )
+    of
+        ( Just _, Just _, Just _ ) ->
+            True
+
+        _ ->
+            False
+
+
 {-| Given the createData, returns the publication data if everything is filled
 out, otherwise returns `Nothing`.
 -}

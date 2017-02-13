@@ -19,6 +19,15 @@ import Models.Route as Route
 import Models.Snipbit as Snipbit
 
 
+{-| A google-material-design check-icon.
+-}
+checkIcon : Html msg
+checkIcon =
+    i
+        [ class "material-icons check-icon" ]
+        [ text "check" ]
+
+
 {-| Home Component View.
 -}
 view : Model -> Shared -> Html Msg
@@ -762,30 +771,39 @@ createBigbitView model shared =
                         , ( "create-tidbit-selected-tab"
                           , currentRoute == Route.HomeComponentCreateBigbitName
                           )
+                        , ( "filled-in", Util.isNotNothing <| Bigbit.createDataNameFilledIn model.bigbitCreateData )
                         ]
                     , onClick <| GoTo Route.HomeComponentCreateBigbitName
                     ]
-                    [ text "Name" ]
+                    [ text "Name"
+                    , checkIcon
+                    ]
                 , div
                     [ classList
                         [ ( "create-tidbit-tab", True )
                         , ( "create-tidbit-selected-tab"
                           , currentRoute == Route.HomeComponentCreateBigbitDescription
                           )
+                        , ( "filled-in", Util.isNotNothing <| Bigbit.createDataDescriptionFilledIn model.bigbitCreateData )
                         ]
                     , onClick <| GoTo Route.HomeComponentCreateBigbitDescription
                     ]
-                    [ text "Description" ]
+                    [ text "Description"
+                    , checkIcon
+                    ]
                 , div
                     [ classList
                         [ ( "create-tidbit-tab", True )
                         , ( "create-tidbit-selected-tab"
                           , currentRoute == Route.HomeComponentCreateBigbitTags
                           )
+                        , ( "filled-in", Util.isNotNothing <| Bigbit.createDataTagsFilledIn model.bigbitCreateData )
                         ]
                     , onClick <| GoTo Route.HomeComponentCreateBigbitTags
                     ]
-                    [ text "Tags" ]
+                    [ text "Tags"
+                    , checkIcon
+                    ]
                 , div
                     [ classList
                         [ ( "create-tidbit-tab", True )
@@ -803,10 +821,13 @@ createBigbitView model shared =
                                 _ ->
                                     False
                           )
+                        , ( "filled-in", Bigbit.createDataCodeTabFilledIn model.bigbitCreateData )
                         ]
                     , onClick <| GoTo <| Route.HomeComponentCreateBigbitCodeIntroduction Nothing
                     ]
-                    [ text "Code" ]
+                    [ text "Code"
+                    , checkIcon
+                    ]
                 ]
 
         bigbitCodeTab =
@@ -1371,40 +1392,52 @@ createSnipbitView model shared =
                         , ( "create-tidbit-selected-tab"
                           , currentRoute == Route.HomeComponentCreateSnipbitName
                           )
+                        , ( "filled-in", Util.isNotNothing <| Snipbit.createDataNameFilledIn model.snipbitCreateData )
                         ]
                     , onClick <| GoTo Route.HomeComponentCreateSnipbitName
                     ]
-                    [ text "Name" ]
+                    [ text "Name"
+                    , checkIcon
+                    ]
                 , div
                     [ classList
                         [ ( "create-tidbit-tab", True )
                         , ( "create-tidbit-selected-tab"
                           , currentRoute == Route.HomeComponentCreateSnipbitDescription
                           )
+                        , ( "filled-in", Util.isNotNothing <| Snipbit.createDataDescriptionFilledIn model.snipbitCreateData )
                         ]
                     , onClick <| GoTo Route.HomeComponentCreateSnipbitDescription
                     ]
-                    [ text "Description" ]
+                    [ text "Description"
+                    , checkIcon
+                    ]
                 , div
                     [ classList
                         [ ( "create-tidbit-tab", True )
                         , ( "create-tidbit-selected-tab"
                           , currentRoute == Route.HomeComponentCreateSnipbitLanguage
                           )
+                        , ( "filled-in", Util.isNotNothing <| model.snipbitCreateData.language )
                         ]
                     , onClick <| GoTo Route.HomeComponentCreateSnipbitLanguage
                     ]
-                    [ text "Language" ]
+                    [ text "Language"
+                    , checkIcon
+                    ]
                 , div
                     [ classList
                         [ ( "create-tidbit-tab", True )
                         , ( "create-tidbit-selected-tab"
                           , currentRoute == Route.HomeComponentCreateSnipbitTags
                           )
+                        , ( "filled-in", Util.isNotNothing <| Snipbit.createDataTagsFilledIn model.snipbitCreateData )
                         ]
                     , onClick <| GoTo Route.HomeComponentCreateSnipbitTags
                     ]
-                    [ text "Tags" ]
+                    [ text "Tags"
+                    , checkIcon
+                    ]
                 , div
                     [ classList
                         [ ( "create-tidbit-tab", True )
@@ -1422,10 +1455,13 @@ createSnipbitView model shared =
                                 _ ->
                                     False
                           )
+                        , ( "filled-in", Snipbit.createDataCodeTabFilledIn model.snipbitCreateData )
                         ]
                     , onClick <| GoTo Route.HomeComponentCreateSnipbitCodeIntroduction
                     ]
-                    [ text "Code" ]
+                    [ text "Code"
+                    , checkIcon
+                    ]
                 ]
 
         nameView : Html Msg
