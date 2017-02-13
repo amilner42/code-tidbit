@@ -541,36 +541,36 @@ isValidRemoveFolderInput absolutePath fs =
 {-| Returns the filled-in name or `Nothing`.
 -}
 createDataNameFilledIn : BigbitCreateData -> Maybe String
-createDataNameFilledIn createData =
-    Util.justNonEmptyString createData.name
+createDataNameFilledIn =
+    .name >> Util.justNonEmptyString
 
 
 {-| Returns the filled-in description or `Nothing`.
 -}
 createDataDescriptionFilledIn : BigbitCreateData -> Maybe String
-createDataDescriptionFilledIn createData =
-    Util.justNonEmptyString createData.description
+createDataDescriptionFilledIn =
+    .description >> Util.justNonEmptyString
 
 
 {-| Returns the filled-in tags or `Nothing`.
 -}
 createDataTagsFilledIn : BigbitCreateData -> Maybe (List String)
-createDataTagsFilledIn createData =
-    Util.justNonEmptyList createData.tags
+createDataTagsFilledIn =
+    .tags >> Util.justNonEmptyList
 
 
 {-| Returns the filled-in introduction or `Nothing`.
 -}
 createDataIntroductionFilledIn : BigbitCreateData -> Maybe String
-createDataIntroductionFilledIn createData =
-    Util.justNonEmptyString createData.introduction
+createDataIntroductionFilledIn =
+    .introduction >> Util.justNonEmptyString
 
 
 {-| Returns the filled-in conclusion or `Nothing`.
 -}
 createDataConclusionFilledIn : BigbitCreateData -> Maybe String
-createDataConclusionFilledIn createData =
-    Util.justNonEmptyString createData.conclusion
+createDataConclusionFilledIn =
+    .conclusion >> Util.justNonEmptyString
 
 
 {-| Returns the filled-in highlighted comments [in publication form] or
