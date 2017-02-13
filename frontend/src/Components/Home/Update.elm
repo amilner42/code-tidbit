@@ -112,31 +112,34 @@ update msg model shared =
                                     getBigbit mongoID
 
                     createBigbitEditorForCurrentFile maybeRange maybeFilePath backupRoute =
-                        case maybeFilePath of
-                            Nothing ->
-                                Ports.createCodeEditor
-                                    { id = "create-bigbit-code-editor"
-                                    , lang = ""
-                                    , theme = User.getTheme shared.user
-                                    , value = ""
-                                    , range = Nothing
-                                    , readOnly = True
-                                    }
+                        Cmd.batch
+                            [ case maybeFilePath of
+                                Nothing ->
+                                    Ports.createCodeEditor
+                                        { id = "create-bigbit-code-editor"
+                                        , lang = ""
+                                        , theme = User.getTheme shared.user
+                                        , value = ""
+                                        , range = Nothing
+                                        , readOnly = True
+                                        }
 
-                            Just filePath ->
-                                case FS.getFile currentBigbitCreateData.fs filePath of
-                                    Nothing ->
-                                        Route.navigateTo backupRoute
+                                Just filePath ->
+                                    case FS.getFile currentBigbitCreateData.fs filePath of
+                                        Nothing ->
+                                            Route.navigateTo backupRoute
 
-                                    Just (FS.File content { language }) ->
-                                        Ports.createCodeEditor
-                                            { id = "create-bigbit-code-editor"
-                                            , lang = Editor.aceLanguageLocation language
-                                            , theme = User.getTheme shared.user
-                                            , value = content
-                                            , range = maybeRange
-                                            , readOnly = False
-                                            }
+                                        Just (FS.File content { language }) ->
+                                            Ports.createCodeEditor
+                                                { id = "create-bigbit-code-editor"
+                                                , lang = Editor.aceLanguageLocation language
+                                                , theme = User.getTheme shared.user
+                                                , value = content
+                                                , range = maybeRange
+                                                , readOnly = False
+                                                }
+                            , Ports.doScrolling { querySelector = ".invisible-bottom", duration = 750 }
+                            ]
                 in
                     case shared.route of
                         Route.HomeComponentViewSnipbitIntroduction mongoID ->

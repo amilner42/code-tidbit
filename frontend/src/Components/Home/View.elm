@@ -1327,6 +1327,9 @@ createBigbitView model shared =
                 -- Should never happen
                 _ ->
                     div [] []
+            , div
+                [ class "invisible-bottom" ]
+                []
             ]
 
 
@@ -1763,4 +1766,7 @@ createSnipbitView model shared =
                 [ createSnipbitNavbar
                 , viewForTab
                 ]
+            , div
+                [ class "invisible-bottom" ]
+                []
             ]

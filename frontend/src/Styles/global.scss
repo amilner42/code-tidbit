@@ -55,6 +55,11 @@ textarea:focus {
     display: none !important;
 }
 
+.invisible-bottom {
+    position: absolute;
+    bottom: 0;
+}
+
 .gray-button {
     color: white;
     background-color: lightgrey;

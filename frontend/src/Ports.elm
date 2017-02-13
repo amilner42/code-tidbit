@@ -24,6 +24,14 @@ port saveModelToLocalStorage : Encode.Value -> Cmd msg
 port loadModelFromLocalStorage : () -> Cmd msg
 
 
+{-| Scroll to element.
+
+@param querySelector For finding the element
+@param duration Number of milliseconds for scroll to take.
+-}
+port doScrolling : { querySelector : String, duration : Int } -> Cmd msg
+
+
 {-| Upon loading the model from local storage.
 -}
 port onLoadModelFromLocalStorage : (String -> msg) -> Sub msg

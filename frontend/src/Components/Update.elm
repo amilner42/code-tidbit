@@ -290,6 +290,7 @@ handleLocationChange maybeRoute model =
                             , range = aceRange
                             , readOnly = False
                             }
+                        , Ports.doScrolling { querySelector = ".invisible-bottom", duration = 750 }
                         ]
 
                 triggerRouteHookOnHomeComponent =
