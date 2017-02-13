@@ -74,3 +74,16 @@ textarea:focus {
         border-color:  $color1;
     }
 }
+
+// Fixing Browser Differences.
+
+// Firefox/Chrome have different disabled colors.
+textarea[disabled], input[disabled] {
+    background-color: $color9;
+}
+
+// Firefox buttons slightly different than chromes.
+button::-moz-focus-inner {
+    border:0;
+    padding:0;
+}
