@@ -70,9 +70,9 @@ markdownOr : Bool -> String -> Html msg -> Html msg
 markdownOr condition markdownText backUpHtml =
     if condition then
         div
-            [ class "preview-markdown-box" ]
+            [ class "markdown-box" ]
             [ Markdown.toHtml
-                [ class "preview-markdown-text" ]
+                [ class "markdown-text" ]
                 markdownText
             ]
     else
@@ -230,10 +230,12 @@ viewSnipbitView model shared =
                     , Editor.editor "view-snipbit-code-editor"
                     , div
                         [ class "comment-block" ]
-                        [ textarea
-                            [ disabled True
-                            , value <|
-                                case shared.route of
+                        [ div
+                            [ class "markdown-box" ]
+                            [ Markdown.toHtml
+                                [ class "markdown-text"
+                                ]
+                                (case shared.route of
                                     Route.HomeComponentViewSnipbitIntroduction _ ->
                                         snipbit.introduction
 
@@ -250,8 +252,8 @@ viewSnipbitView model shared =
 
                                     _ ->
                                         ""
+                                )
                             ]
-                            []
                         ]
                     ]
                 ]
@@ -414,12 +416,14 @@ viewBigbitView model shared =
                                     Just activeFile ->
                                         activeFile
                             ]
-                        , textarea
-                            [ disabled True
-                            , hidden <|
-                                Bigbit.isFSOpen bigbit.fs
-                            , value <|
-                                case shared.route of
+                        , div
+                            [ class "markdown-box"
+                            , hidden <| Bigbit.isFSOpen bigbit.fs
+                            ]
+                            [ Markdown.toHtml
+                                [ class "markdown-text"
+                                ]
+                                (case shared.route of
                                     Route.HomeComponentViewBigbitIntroduction _ _ ->
                                         bigbit.introduction
 
@@ -436,8 +440,8 @@ viewBigbitView model shared =
 
                                     _ ->
                                         ""
+                                )
                             ]
-                            []
                         , div
                             [ class "view-bigbit-fs"
                             , hidden <| not <| Bigbit.isFSOpen bigbit.fs
