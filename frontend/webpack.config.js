@@ -48,6 +48,8 @@ module.exports = {
     new ExtractTextPlugin("[name].css"),
     new CopyWebpackPlugin([
        { from: 'node_modules/ace-builds/src-min-noconflict/', to: 'ace-build/' },
+       { from: 'node_modules/highlightjs/highlight.pack.min.js', to: 'highlightjs/' },
+       { from: 'node_modules/highlightjs/styles/github.css', to: 'highlightjs/'},
        { from: 'assets/', to: 'assets/'}
     ]),
   ],

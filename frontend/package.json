@@ -16,7 +16,9 @@
   },
   "scripts": {},
   "homepage": "https://github.com/amilner42/meen-kickstarter",
-  "dependencies": {},
+  "dependencies": {
+    "highlightjs": "^9.8.0"
+  },
   "devDependencies": {
     "ace-builds": "^1.2.5",
     "ace-css": "^1.0.1",
