@@ -14,13 +14,8 @@
         .view-bigbit {
 
             .view-bigbit-toggle-fs {
-                position: absolute;
-                top: -35px;
+                @extend .above-comment-block-button;
                 right: -22px;
-                border: 1px solid $color2;
-                padding: 5px;
-                color: $color5;
-                cursor: pointer;
             }
 
             .view-bigbit-fs {
@@ -317,15 +312,9 @@
             .create-bigbit-code {
                 @extend .create-tidbit-code;
 
-                .toggle-fs-icon {
-                    position: absolute;
-                    display: relative;
-                    height: 5px;
-                    width: 5px;
-                    margin-left: -3px;
-                    margin-top: -25px;
-                    color: $color4;
-                    cursor: pointer;
+                .expand-file-structure {
+                    @extend .above-comment-block-button;
+                    right: 6px;
                 }
 
                 .bigbit-editor {
@@ -843,6 +832,21 @@
             left: -645px;
             font-size: 12px;
             color: $color4;
+        }
+
+        .above-comment-block-button {
+            position: absolute;
+            top: -35px;
+            border: 1px solid $color2;
+            padding: 5px;
+            color: $color5;
+            cursor: pointer;
+        }
+
+        .comment-body-bottom-buttons {
+            position: relative;
+            margin-top: 3px;
+            margin-left: -1px;
         }
     }
 }

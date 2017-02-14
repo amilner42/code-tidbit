@@ -912,230 +912,219 @@ createBigbitView model shared =
                             Util.resultToBool validFolderInputResult
 
                         fs =
-                            if Bigbit.isFSOpen model.bigbitCreateData.fs then
-                                div
-                                    [ class "file-structure" ]
-                                    [ i
-                                        [ class "material-icons toggle-fs-icon close-fs-icon"
-                                        , onClick BigbitToggleFS
-                                        ]
-                                        [ text "close" ]
-                                    , text "File Structure"
-                                    , FS.fileStructure
-                                        { isFileSelected = viewingFile
-                                        , fileSelectedMsg = BigbitFileSelected
-                                        , folderSelectedMsg = BigbitFSToggleFolder
-                                        }
-                                        model.bigbitCreateData.fs
-                                    , div
-                                        [ class "fs-action-input"
-                                        , hidden <| Util.isNothing <| maybeActionState
-                                        ]
-                                        [ div
-                                            [ class "fs-action-input-text" ]
-                                            [ case maybeActionState of
-                                                Nothing ->
-                                                    Util.hiddenDiv
-
-                                                Just actionState ->
-                                                    case actionState of
-                                                        Bigbit.AddingFolder ->
-                                                            case validFolderInputResult of
-                                                                Ok _ ->
-                                                                    text "Create folder and parent directories"
-
-                                                                Err err ->
-                                                                    text <|
-                                                                        case err of
-                                                                            Bigbit.FolderAlreadyExists ->
-                                                                                "That folder already exists"
-
-                                                                            Bigbit.FolderHasDoubleSlash ->
-                                                                                "You cannot have two slashes in a row"
-
-                                                                            Bigbit.FolderHasInvalidCharacters ->
-                                                                                "You are using invalid characters"
-
-                                                                            Bigbit.FolderIsEmpty ->
-                                                                                ""
-
-                                                        Bigbit.AddingFile ->
-                                                            case validFileInputResult of
-                                                                Ok _ ->
-                                                                    text "Create file and parent directories"
-
-                                                                Err err ->
-                                                                    case err of
-                                                                        Bigbit.FileAlreadyExists ->
-                                                                            text "That file already exists"
-
-                                                                        Bigbit.FileEndsInSlash ->
-                                                                            text "Files cannot end in a slash"
-
-                                                                        Bigbit.FileHasDoubleSlash ->
-                                                                            text "You cannot have two slashes in a row"
-
-                                                                        Bigbit.FileHasInvalidCharacters ->
-                                                                            text "You are using invalid characters"
-
-                                                                        Bigbit.FileHasInvalidExtension ->
-                                                                            text "You must have a valid file extension"
-
-                                                                        Bigbit.FileIsEmpty ->
-                                                                            text ""
-
-                                                                        Bigbit.FileLanguageIsAmbiguous languages ->
-                                                                            div
-                                                                                [ class "fs-action-input-select-language-text" ]
-                                                                                [ text "Select language to create file: "
-                                                                                , div
-                                                                                    [ class "language-options" ]
-                                                                                    (languages
-                                                                                        |> List.sortBy toString
-                                                                                        |> List.map
-                                                                                            (\language ->
-                                                                                                button
-                                                                                                    [ onClick <| BigbitAddFile actionInput language ]
-                                                                                                    [ text <| toString language ]
-                                                                                            )
-                                                                                    )
-                                                                                ]
-
-                                                        Bigbit.RemovingFolder ->
-                                                            case validRemoveFolderInputResult of
-                                                                Ok _ ->
-                                                                    if .actionButtonSubmitConfirmed <| FS.getFSMetadata model.bigbitCreateData.fs then
-                                                                        text "Are you sure? This will also delete all linked frames!"
-                                                                    else
-                                                                        text "Remove folder"
-
-                                                                Err err ->
-                                                                    case err of
-                                                                        Bigbit.RemoveFolderIsEmpty ->
-                                                                            text ""
-
-                                                                        Bigbit.RemoveFolderIsRootFolder ->
-                                                                            text "You cannot remove the root directory"
-
-                                                                        Bigbit.RemoveFolderDoesNotExist ->
-                                                                            text "Folder doesn't exist"
-
-                                                        Bigbit.RemovingFile ->
-                                                            case validRemoveFileInputResult of
-                                                                Ok _ ->
-                                                                    if .actionButtonSubmitConfirmed <| FS.getFSMetadata model.bigbitCreateData.fs then
-                                                                        text "Are you sure? This will also delete all linked frames!"
-                                                                    else
-                                                                        text "Remove file"
-
-                                                                Err err ->
-                                                                    case err of
-                                                                        Bigbit.RemoveFileIsEmpty ->
-                                                                            text ""
-
-                                                                        Bigbit.RemoveFileDoesNotExist ->
-                                                                            text "File doesn't exist"
-                                            ]
-                                        , input
-                                            [ id "fs-action-input-box"
-                                            , placeholder "Absolute Path"
-                                            , onInput BigbitUpdateActionInput
-                                            , Util.onEnter <| BigbitSubmitActionInput
-                                            , value
-                                                (model.bigbitCreateData.fs
-                                                    |> FS.getFSMetadata
-                                                    |> .actionButtonInput
-                                                )
-                                            ]
-                                            []
-                                        , case maybeActionState of
+                            div
+                                [ class "file-structure"
+                                , hidden <| not <| Bigbit.isFSOpen model.bigbitCreateData.fs
+                                ]
+                                [ FS.fileStructure
+                                    { isFileSelected = viewingFile
+                                    , fileSelectedMsg = BigbitFileSelected
+                                    , folderSelectedMsg = BigbitFSToggleFolder
+                                    }
+                                    model.bigbitCreateData.fs
+                                , div
+                                    [ class "fs-action-input"
+                                    , hidden <| Util.isNothing <| maybeActionState
+                                    ]
+                                    [ div
+                                        [ class "fs-action-input-text" ]
+                                        [ case maybeActionState of
                                             Nothing ->
                                                 Util.hiddenDiv
 
                                             Just actionState ->
-                                                let
-                                                    showSubmitIconIf condition isPlus =
-                                                        if condition then
-                                                            i
-                                                                [ classList
-                                                                    [ ( "material-icons action-button-arrow", True )
-                                                                    , ( "arrow-confirmed"
-                                                                      , model.bigbitCreateData.fs
-                                                                            |> FS.getFSMetadata
-                                                                            |> .actionButtonSubmitConfirmed
-                                                                      )
-                                                                    ]
-                                                                , onClick <| BigbitSubmitActionInput
+                                                case actionState of
+                                                    Bigbit.AddingFolder ->
+                                                        case validFolderInputResult of
+                                                            Ok _ ->
+                                                                text "Create folder and parent directories"
+
+                                                            Err err ->
+                                                                text <|
+                                                                    case err of
+                                                                        Bigbit.FolderAlreadyExists ->
+                                                                            "That folder already exists"
+
+                                                                        Bigbit.FolderHasDoubleSlash ->
+                                                                            "You cannot have two slashes in a row"
+
+                                                                        Bigbit.FolderHasInvalidCharacters ->
+                                                                            "You are using invalid characters"
+
+                                                                        Bigbit.FolderIsEmpty ->
+                                                                            ""
+
+                                                    Bigbit.AddingFile ->
+                                                        case validFileInputResult of
+                                                            Ok _ ->
+                                                                text "Create file and parent directories"
+
+                                                            Err err ->
+                                                                case err of
+                                                                    Bigbit.FileAlreadyExists ->
+                                                                        text "That file already exists"
+
+                                                                    Bigbit.FileEndsInSlash ->
+                                                                        text "Files cannot end in a slash"
+
+                                                                    Bigbit.FileHasDoubleSlash ->
+                                                                        text "You cannot have two slashes in a row"
+
+                                                                    Bigbit.FileHasInvalidCharacters ->
+                                                                        text "You are using invalid characters"
+
+                                                                    Bigbit.FileHasInvalidExtension ->
+                                                                        text "You must have a valid file extension"
+
+                                                                    Bigbit.FileIsEmpty ->
+                                                                        text ""
+
+                                                                    Bigbit.FileLanguageIsAmbiguous languages ->
+                                                                        div
+                                                                            [ class "fs-action-input-select-language-text" ]
+                                                                            [ text "Select language to create file: "
+                                                                            , div
+                                                                                [ class "language-options" ]
+                                                                                (languages
+                                                                                    |> List.sortBy toString
+                                                                                    |> List.map
+                                                                                        (\language ->
+                                                                                            button
+                                                                                                [ onClick <| BigbitAddFile actionInput language ]
+                                                                                                [ text <| toString language ]
+                                                                                        )
+                                                                                )
+                                                                            ]
+
+                                                    Bigbit.RemovingFolder ->
+                                                        case validRemoveFolderInputResult of
+                                                            Ok _ ->
+                                                                if .actionButtonSubmitConfirmed <| FS.getFSMetadata model.bigbitCreateData.fs then
+                                                                    text "Are you sure? This will also delete all linked frames!"
+                                                                else
+                                                                    text "Remove folder"
+
+                                                            Err err ->
+                                                                case err of
+                                                                    Bigbit.RemoveFolderIsEmpty ->
+                                                                        text ""
+
+                                                                    Bigbit.RemoveFolderIsRootFolder ->
+                                                                        text "You cannot remove the root directory"
+
+                                                                    Bigbit.RemoveFolderDoesNotExist ->
+                                                                        text "Folder doesn't exist"
+
+                                                    Bigbit.RemovingFile ->
+                                                        case validRemoveFileInputResult of
+                                                            Ok _ ->
+                                                                if .actionButtonSubmitConfirmed <| FS.getFSMetadata model.bigbitCreateData.fs then
+                                                                    text "Are you sure? This will also delete all linked frames!"
+                                                                else
+                                                                    text "Remove file"
+
+                                                            Err err ->
+                                                                case err of
+                                                                    Bigbit.RemoveFileIsEmpty ->
+                                                                        text ""
+
+                                                                    Bigbit.RemoveFileDoesNotExist ->
+                                                                        text "File doesn't exist"
+                                        ]
+                                    , input
+                                        [ id "fs-action-input-box"
+                                        , placeholder "Absolute Path"
+                                        , onInput BigbitUpdateActionInput
+                                        , Util.onEnter <| BigbitSubmitActionInput
+                                        , value
+                                            (model.bigbitCreateData.fs
+                                                |> FS.getFSMetadata
+                                                |> .actionButtonInput
+                                            )
+                                        ]
+                                        []
+                                    , case maybeActionState of
+                                        Nothing ->
+                                            Util.hiddenDiv
+
+                                        Just actionState ->
+                                            let
+                                                showSubmitIconIf condition isPlus =
+                                                    if condition then
+                                                        i
+                                                            [ classList
+                                                                [ ( "material-icons action-button-arrow", True )
+                                                                , ( "arrow-confirmed"
+                                                                  , model.bigbitCreateData.fs
+                                                                        |> FS.getFSMetadata
+                                                                        |> .actionButtonSubmitConfirmed
+                                                                  )
                                                                 ]
-                                                                [ text <|
-                                                                    if isPlus then
-                                                                        "add_box"
-                                                                    else
-                                                                        "indeterminate_check_box"
-                                                                ]
-                                                        else
-                                                            Util.hiddenDiv
-                                                in
-                                                    case actionState of
-                                                        Bigbit.AddingFile ->
-                                                            showSubmitIconIf validFileInput True
+                                                            , onClick <| BigbitSubmitActionInput
+                                                            ]
+                                                            [ text <|
+                                                                if isPlus then
+                                                                    "add_box"
+                                                                else
+                                                                    "indeterminate_check_box"
+                                                            ]
+                                                    else
+                                                        Util.hiddenDiv
+                                            in
+                                                case actionState of
+                                                    Bigbit.AddingFile ->
+                                                        showSubmitIconIf validFileInput True
 
-                                                        Bigbit.AddingFolder ->
-                                                            showSubmitIconIf validFolderInput True
+                                                    Bigbit.AddingFolder ->
+                                                        showSubmitIconIf validFolderInput True
 
-                                                        Bigbit.RemovingFile ->
-                                                            showSubmitIconIf validRemoveFileInput False
+                                                    Bigbit.RemovingFile ->
+                                                        showSubmitIconIf validRemoveFileInput False
 
-                                                        Bigbit.RemovingFolder ->
-                                                            showSubmitIconIf validRemoveFolderInput False
-                                        ]
-                                    , button
-                                        [ classList
-                                            [ ( "add-file", True )
-                                            , ( "selected-action-button"
-                                              , Bigbit.fsActionStateEquals (Just Bigbit.AddingFile) model.bigbitCreateData.fs
-                                              )
-                                            ]
-                                        , onClick <| BigbitUpdateActionButtonState <| Just Bigbit.AddingFile
-                                        ]
-                                        [ text "Add File" ]
-                                    , button
-                                        [ classList
-                                            [ ( "add-folder", True )
-                                            , ( "selected-action-button"
-                                              , Bigbit.fsActionStateEquals (Just Bigbit.AddingFolder) model.bigbitCreateData.fs
-                                              )
-                                            ]
-                                        , onClick <| BigbitUpdateActionButtonState <| Just Bigbit.AddingFolder
-                                        ]
-                                        [ text "Add Folder" ]
-                                    , button
-                                        [ classList
-                                            [ ( "remove-file", True )
-                                            , ( "selected-action-button"
-                                              , Bigbit.fsActionStateEquals (Just Bigbit.RemovingFile) model.bigbitCreateData.fs
-                                              )
-                                            ]
-                                        , onClick <| BigbitUpdateActionButtonState <| Just Bigbit.RemovingFile
-                                        ]
-                                        [ text "Remove File" ]
-                                    , button
-                                        [ classList
-                                            [ ( "remove-folder", True )
-                                            , ( "selected-action-button"
-                                              , Bigbit.fsActionStateEquals (Just Bigbit.RemovingFolder) model.bigbitCreateData.fs
-                                              )
-                                            ]
-                                        , onClick <| BigbitUpdateActionButtonState <| Just Bigbit.RemovingFolder
-                                        ]
-                                        [ text "Remove Folder" ]
+                                                    Bigbit.RemovingFolder ->
+                                                        showSubmitIconIf validRemoveFolderInput False
                                     ]
-                            else
-                                i
-                                    [ class "material-icons toggle-fs-icon"
-                                    , onClick BigbitToggleFS
+                                , button
+                                    [ classList
+                                        [ ( "add-file", True )
+                                        , ( "selected-action-button"
+                                          , Bigbit.fsActionStateEquals (Just Bigbit.AddingFile) model.bigbitCreateData.fs
+                                          )
+                                        ]
+                                    , onClick <| BigbitUpdateActionButtonState <| Just Bigbit.AddingFile
                                     ]
-                                    [ text "view_list" ]
+                                    [ text "Add File" ]
+                                , button
+                                    [ classList
+                                        [ ( "add-folder", True )
+                                        , ( "selected-action-button"
+                                          , Bigbit.fsActionStateEquals (Just Bigbit.AddingFolder) model.bigbitCreateData.fs
+                                          )
+                                        ]
+                                    , onClick <| BigbitUpdateActionButtonState <| Just Bigbit.AddingFolder
+                                    ]
+                                    [ text "Add Folder" ]
+                                , button
+                                    [ classList
+                                        [ ( "remove-file", True )
+                                        , ( "selected-action-button"
+                                          , Bigbit.fsActionStateEquals (Just Bigbit.RemovingFile) model.bigbitCreateData.fs
+                                          )
+                                        ]
+                                    , onClick <| BigbitUpdateActionButtonState <| Just Bigbit.RemovingFile
+                                    ]
+                                    [ text "Remove File" ]
+                                , button
+                                    [ classList
+                                        [ ( "remove-folder", True )
+                                        , ( "selected-action-button"
+                                          , Bigbit.fsActionStateEquals (Just Bigbit.RemovingFolder) model.bigbitCreateData.fs
+                                          )
+                                        ]
+                                    , onClick <| BigbitUpdateActionButtonState <| Just Bigbit.RemovingFolder
+                                    ]
+                                    [ text "Remove Folder" ]
+                                ]
 
                         body =
                             case shared.route of
@@ -1143,6 +1132,15 @@ createBigbitView model shared =
                                     div
                                         [ class "comment-body" ]
                                         [ fs
+                                        , div
+                                            [ class "expand-file-structure"
+                                            , onClick BigbitToggleFS
+                                            ]
+                                            [ if Bigbit.isFSOpen model.bigbitCreateData.fs then
+                                                text "Close File Structure"
+                                              else
+                                                text "Expand File Structure"
+                                            ]
                                         , textarea
                                             [ placeholder "Introduction"
                                             , onInput <| BigbitUpdateIntroduction
@@ -1212,7 +1210,9 @@ createBigbitView model shared =
                                         |> Array.toList
                             in
                                 div
-                                    [ hidden <| Bigbit.isFSOpen model.bigbitCreateData.fs ]
+                                    [ class "comment-body-bottom-buttons"
+                                    , hidden <| Bigbit.isFSOpen model.bigbitCreateData.fs
+                                    ]
                                     ([ button
                                         [ onClick <| GoTo <| Route.HomeComponentCreateBigbitCodeIntroduction Nothing
                                         , classList [ ( "selected-frame", introTab ) ]
@@ -1634,7 +1634,7 @@ createSnipbitView model shared =
                             )
                     in
                         div
-                            []
+                            [ class "comment-body-bottom-buttons" ]
                             (List.concat
                                 [ [ button
                                         [ onClick <|
