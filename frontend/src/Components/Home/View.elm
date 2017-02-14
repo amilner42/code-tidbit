@@ -1053,7 +1053,7 @@ createBigbitView model shared =
                                                     if condition then
                                                         i
                                                             [ classList
-                                                                [ ( "material-icons action-button-arrow", True )
+                                                                [ ( "material-icons action-button-submit-icon", True )
                                                                 , ( "arrow-confirmed"
                                                                   , model.bigbitCreateData.fs
                                                                         |> FS.getFSMetadata

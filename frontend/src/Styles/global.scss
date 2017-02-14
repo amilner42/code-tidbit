@@ -21,12 +21,12 @@ button {
 
 input:focus {
     outline: none;
-    border: 1px solid $color3;
+    border: 1px solid $color3 !important;
 }
 
 textarea:focus {
     border: none;
-    box-shadow: 0 0 0 1pt $color3;
+    box-shadow: 0 0 0 1pt $color3 !important;
 }
 
 .gap-10 {
