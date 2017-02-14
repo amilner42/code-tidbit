@@ -1182,56 +1182,64 @@ createBigbitView model shared =
                         tabBar =
                             let
                                 dynamicFrameButtons =
-                                    (Array.indexedMap
-                                        (\index highlightedComment ->
-                                            button
-                                                [ classList [ ( "selected-frame", (Just <| index + 1) == frameTab ) ]
-                                                , onClick <|
-                                                    GoTo <|
-                                                        Route.HomeComponentCreateBigbitCodeFrame
-                                                            (index + 1)
-                                                            (Array.get index model.bigbitCreateData.highlightedComments
-                                                                |> Maybe.andThen .fileAndRange
-                                                                |> Maybe.map .file
-                                                            )
-                                                ]
-                                                [ text <| toString <| index + 1 ]
+                                    div
+                                        [ class "frame-buttons-box" ]
+                                        ((Array.indexedMap
+                                            (\index highlightedComment ->
+                                                button
+                                                    [ classList [ ( "selected-frame", (Just <| index + 1) == frameTab ) ]
+                                                    , onClick <|
+                                                        GoTo <|
+                                                            Route.HomeComponentCreateBigbitCodeFrame
+                                                                (index + 1)
+                                                                (Array.get index model.bigbitCreateData.highlightedComments
+                                                                    |> Maybe.andThen .fileAndRange
+                                                                    |> Maybe.map .file
+                                                                )
+                                                    ]
+                                                    [ text <| toString <| index + 1 ]
+                                            )
+                                            model.bigbitCreateData.highlightedComments
+                                         )
+                                            |> Array.toList
                                         )
-                                        model.bigbitCreateData.highlightedComments
-                                    )
-                                        |> Array.toList
                             in
                                 div
                                     [ class "comment-body-bottom-buttons"
                                     , hidden <| Bigbit.isFSOpen model.bigbitCreateData.fs
                                     ]
-                                    ([ button
+                                    [ button
                                         [ onClick <| GoTo <| Route.HomeComponentCreateBigbitCodeIntroduction Nothing
-                                        , classList [ ( "selected-frame", introTab ) ]
+                                        , classList
+                                            [ ( "introduction-button", True )
+                                            , ( "selected-frame", introTab )
+                                            ]
                                         ]
                                         [ text "Introduction" ]
-                                     , button
+                                    , button
                                         [ onClick <| GoTo <| Route.HomeComponentCreateBigbitCodeConclusion Nothing
-                                        , classList [ ( "selected-frame", conclusionTab ) ]
+                                        , classList
+                                            [ ( "conclusion-button", True )
+                                            , ( "selected-frame", conclusionTab )
+                                            ]
                                         ]
                                         [ text "Conclusion" ]
-                                     , button
-                                        [ class "action-button plus-button"
+                                    , button
+                                        [ class "add-or-remove-frame-button"
                                         , onClick <| BigbitAddFrame
                                         ]
                                         [ text "+" ]
-                                     , button
-                                        [ class "action-button"
+                                    , button
+                                        [ class "add-or-remove-frame-button"
                                         , onClick <| BigbitRemoveFrame
                                         , disabled <|
                                             Array.length model.bigbitCreateData.highlightedComments
                                                 <= 1
                                         ]
                                         [ text "-" ]
-                                     , hr [] []
-                                     ]
-                                        ++ dynamicFrameButtons
-                                    )
+                                    , hr [] []
+                                    , dynamicFrameButtons
+                                    ]
                     in
                         div
                             []
@@ -1602,73 +1610,74 @@ createSnipbitView model shared =
                 tabBar =
                     let
                         dynamicFrameButtons =
-                            (Array.toList <|
-                                Array.indexedMap
-                                    (\index maybeHighlightedComment ->
-                                        button
-                                            [ onClick <|
-                                                GoTo <|
-                                                    Route.HomeComponentCreateSnipbitCodeFrame
-                                                        (index + 1)
-                                            , classList
-                                                [ ( "selected-frame"
-                                                  , shared.route
-                                                        == (Route.HomeComponentCreateSnipbitCodeFrame <|
-                                                                index
-                                                                    + 1
-                                                           )
-                                                  )
+                            div
+                                [ class "frame-buttons-box" ]
+                                (Array.toList <|
+                                    Array.indexedMap
+                                        (\index maybeHighlightedComment ->
+                                            button
+                                                [ onClick <|
+                                                    GoTo <|
+                                                        Route.HomeComponentCreateSnipbitCodeFrame
+                                                            (index + 1)
+                                                , classList
+                                                    [ ( "selected-frame"
+                                                      , shared.route
+                                                            == (Route.HomeComponentCreateSnipbitCodeFrame <|
+                                                                    index
+                                                                        + 1
+                                                               )
+                                                      )
+                                                    ]
                                                 ]
-                                            ]
-                                            [ text <| toString <| index + 1 ]
-                                    )
-                                    model.snipbitCreateData.highlightedComments
-                            )
+                                                [ text <| toString <| index + 1 ]
+                                        )
+                                        model.snipbitCreateData.highlightedComments
+                                )
                     in
                         div
                             [ class "comment-body-bottom-buttons" ]
-                            (List.concat
-                                [ [ button
-                                        [ onClick <|
-                                            GoTo Route.HomeComponentCreateSnipbitCodeIntroduction
-                                        , classList
-                                            [ ( "selected-frame"
-                                              , shared.route
-                                                    == Route.HomeComponentCreateSnipbitCodeIntroduction
-                                              )
-                                            ]
-                                        ]
-                                        [ text "Introduction" ]
-                                  , button
-                                        [ onClick <|
-                                            GoTo Route.HomeComponentCreateSnipbitCodeConclusion
-                                        , classList
-                                            [ ( "selected-frame"
-                                              , shared.route
-                                                    == Route.HomeComponentCreateSnipbitCodeConclusion
-                                              )
-                                            ]
-                                        ]
-                                        [ text "Conclusion" ]
-                                  , button
-                                        [ class "action-button plus-button"
-                                        , onClick <| SnipbitAddFrame
-                                        ]
-                                        [ text "+" ]
-                                  , button
-                                        [ class "action-button"
-                                        , onClick <| SnipbitRemoveFrame
-                                        , disabled <|
-                                            Array.length
-                                                model.snipbitCreateData.highlightedComments
-                                                <= 1
-                                        ]
-                                        [ text "-" ]
-                                  , hr [] []
-                                  ]
-                                , dynamicFrameButtons
+                            [ button
+                                [ onClick <|
+                                    GoTo Route.HomeComponentCreateSnipbitCodeIntroduction
+                                , classList
+                                    [ ( "selected-frame"
+                                      , shared.route
+                                            == Route.HomeComponentCreateSnipbitCodeIntroduction
+                                      )
+                                    , ( "introduction-button", True )
+                                    ]
                                 ]
-                            )
+                                [ text "Introduction" ]
+                            , button
+                                [ onClick <|
+                                    GoTo Route.HomeComponentCreateSnipbitCodeConclusion
+                                , classList
+                                    [ ( "selected-frame"
+                                      , shared.route
+                                            == Route.HomeComponentCreateSnipbitCodeConclusion
+                                      )
+                                    , ( "conclusion-button", True )
+                                    ]
+                                ]
+                                [ text "Conclusion" ]
+                            , button
+                                [ class "add-or-remove-frame-button"
+                                , onClick <| SnipbitAddFrame
+                                ]
+                                [ text "+" ]
+                            , button
+                                [ class "add-or-remove-frame-button"
+                                , onClick <| SnipbitRemoveFrame
+                                , disabled <|
+                                    Array.length
+                                        model.snipbitCreateData.highlightedComments
+                                        <= 1
+                                ]
+                                [ text "-" ]
+                            , hr [] []
+                            , dynamicFrameButtons
+                            ]
             in
                 div
                     [ class "create-snipbit-code" ]
