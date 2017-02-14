@@ -314,6 +314,7 @@ type alias BigbitCreateData =
     , conclusion : String
     , fs : FS.FileStructure BigbitCreateDataFSMetadata BigbitCreateDataFolderMetadata BigbitCreateDataFileMetadata
     , highlightedComments : Array.Array BigbitHighlightedCommentForCreate
+    , previewMarkdown : Bool
     }
 
 
@@ -351,6 +352,7 @@ bigbitCreateDataCacheEncoder bigbitCreateData =
             , ( "conclusion", Encode.string bigbitCreateData.conclusion )
             , ( "fs", encodeFS bigbitCreateData.fs )
             , ( "highlightedComments", Encode.array <| Array.map bigbitHighlightedCommentForCreateCacheEncoder bigbitCreateData.highlightedComments )
+            , ( "previewMarkdown", Encode.bool bigbitCreateData.previewMarkdown )
             ]
 
 
@@ -384,6 +386,7 @@ bigbitCreateDataCacheDecoder =
             |> required "conclusion" Decode.string
             |> required "fs" decodeFS
             |> required "highlightedComments" (Decode.array bigbitHighlightedCommentForCreateCacheDecoder)
+            |> required "previewMarkdown" Decode.bool
 
 
 {-| Possible errors with input for creating a file.

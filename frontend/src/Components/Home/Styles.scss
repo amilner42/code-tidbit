@@ -16,6 +16,7 @@
             .view-bigbit-toggle-fs {
                 @extend .above-comment-block-button;
                 right: 0;
+                width: 200px !important;
             }
 
             .view-bigbit-fs {
@@ -319,6 +320,11 @@
                     right: 0px;
                 }
 
+                .preview-markdown {
+                    @extend .above-comment-block-button;
+                    right: 181px;
+                }
+
                 .bigbit-editor {
                     position: relative;
 
@@ -541,7 +547,7 @@
                 .comment-body {
                     width: 360px;
 
-                    textarea {
+                    textarea, .preview-markdown-box {
                         box-sizing: border-box;
                         width: 360px;
                         height: 482px;
@@ -549,6 +555,14 @@
                         padding: 5px;
                         font-size: 16px;
                         resize: vertical;
+                    }
+
+                    .preview-markdown-box {
+                        height: 600px;
+
+                        .preview-markdown-text {
+                            margin-top: -15px;
+                        }
                     }
                 }
 
@@ -676,6 +690,11 @@
 
             .create-snipbit-code {
                 @extend .create-tidbit-code;
+
+                .preview-markdown {
+                    @extend .above-comment-block-button;
+                    right: 0;
+                }
             }
 
             .create-tidbit-sub-bar {
@@ -848,13 +867,16 @@
         }
 
         .above-comment-block-button {
+            @include no-select();
             position: absolute;
-            top: -35px;
-            border: 1px solid $color2;
+            top: -33px;
             padding: 5px 10px 5px 10px;
             background-color: $color5;
             color: white;
             cursor: pointer;
+            width: 179px;
+            box-sizing: border-box;
+            text-align: center;
 
             &:hover {
                 background-color: $color6;

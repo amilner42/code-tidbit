@@ -33,6 +33,7 @@ init =
                 ]
         , introduction = ""
         , conclusion = ""
+        , previewMarkdown = False
         }
     , bigbitCreateData =
         { name = ""
@@ -54,5 +55,7 @@ init =
         , highlightedComments =
             Array.fromList
                 [ Bigbit.emptyBigbitHighlightCommentForCreate ]
+        , previewMarkdown =
+            False
         }
     }

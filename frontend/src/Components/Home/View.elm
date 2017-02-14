@@ -14,6 +14,7 @@ import Html.Attributes exposing (class, classList, disabled, placeholder, value,
 import Html.Events exposing (onClick, onInput)
 import Models.Bigbit as Bigbit
 import Elements.FileStructure as FS
+import Markdown
 import Models.Range as Range
 import Models.Route as Route
 import Models.Snipbit as Snipbit
@@ -61,6 +62,21 @@ makeHTMLTags closeTagMsg tags =
             )
             tags
         )
+
+
+{-| Renders markdown if condition is true, otherwise the backup html.
+-}
+markdownOr : Bool -> String -> Html msg -> Html msg
+markdownOr condition markdownText backUpHtml =
+    if condition then
+        div
+            [ class "preview-markdown-box" ]
+            [ Markdown.toHtml
+                [ class "preview-markdown-text" ]
+                markdownText
+            ]
+    else
+        backUpHtml
 
 
 {-| Builds a progress bar.
@@ -911,10 +927,16 @@ createBigbitView model shared =
                         validFolderInput =
                             Util.resultToBool validFolderInputResult
 
+                        fsOpen =
+                            Bigbit.isFSOpen model.bigbitCreateData.fs
+
+                        markdownOpen =
+                            model.bigbitCreateData.previewMarkdown
+
                         fs =
                             div
                                 [ class "file-structure"
-                                , hidden <| not <| Bigbit.isFSOpen model.bigbitCreateData.fs
+                                , hidden <| not <| fsOpen
                                 ]
                                 [ FS.fileStructure
                                     { isFileSelected = viewingFile
@@ -1133,46 +1155,71 @@ createBigbitView model shared =
                                 , div
                                     [ class "expand-file-structure"
                                     , onClick BigbitToggleFS
+                                    , hidden markdownOpen
                                     ]
-                                    [ if Bigbit.isFSOpen model.bigbitCreateData.fs then
+                                    [ if fsOpen then
                                         text "Close File Structure"
                                       else
                                         text "View File Structure"
                                     ]
+                                , div
+                                    [ class "preview-markdown"
+                                    , onClick BigbitTogglePreviewMarkdown
+                                    , hidden fsOpen
+                                    ]
+                                    [ if markdownOpen then
+                                        text "Close Preview"
+                                      else
+                                        text "Preview Markdown"
+                                    ]
                                 , case shared.route of
                                     Route.HomeComponentCreateBigbitCodeIntroduction _ ->
-                                        textarea
-                                            [ placeholder "Introduction"
-                                            , onInput <| BigbitUpdateIntroduction
-                                            , hidden <| Bigbit.isFSOpen model.bigbitCreateData.fs
-                                            , value model.bigbitCreateData.introduction
-                                            ]
-                                            []
+                                        markdownOr
+                                            markdownOpen
+                                            model.bigbitCreateData.introduction
+                                            (textarea
+                                                [ placeholder "Introduction"
+                                                , onInput <| BigbitUpdateIntroduction
+                                                , hidden <| Bigbit.isFSOpen model.bigbitCreateData.fs
+                                                , value model.bigbitCreateData.introduction
+                                                ]
+                                                []
+                                            )
 
                                     Route.HomeComponentCreateBigbitCodeFrame frameNumber _ ->
-                                        textarea
-                                            [ placeholder <| "Frame " ++ (toString frameNumber)
-                                            , onInput <| BigbitUpdateFrameComment frameNumber
-                                            , value <|
-                                                ((Array.get
+                                        let
+                                            frameText =
+                                                (Array.get
                                                     (frameNumber - 1)
                                                     model.bigbitCreateData.highlightedComments
-                                                 )
+                                                )
                                                     |> Maybe.map .comment
                                                     |> Maybe.withDefault ""
+                                        in
+                                            markdownOr
+                                                markdownOpen
+                                                frameText
+                                                (textarea
+                                                    [ placeholder <| "Frame " ++ (toString frameNumber)
+                                                    , onInput <| BigbitUpdateFrameComment frameNumber
+                                                    , value frameText
+                                                    , hidden <| fsOpen
+                                                    ]
+                                                    []
                                                 )
-                                            , hidden <| Bigbit.isFSOpen model.bigbitCreateData.fs
-                                            ]
-                                            []
 
                                     Route.HomeComponentCreateBigbitCodeConclusion _ ->
-                                        textarea
-                                            [ placeholder "Conclusion"
-                                            , onInput BigbitUpdateConclusion
-                                            , hidden <| Bigbit.isFSOpen model.bigbitCreateData.fs
-                                            , value model.bigbitCreateData.conclusion
-                                            ]
-                                            []
+                                        markdownOr
+                                            markdownOpen
+                                            model.bigbitCreateData.conclusion
+                                            (textarea
+                                                [ placeholder "Conclusion"
+                                                , onInput BigbitUpdateConclusion
+                                                , hidden <| fsOpen
+                                                , value model.bigbitCreateData.conclusion
+                                                ]
+                                                []
+                                            )
 
                                     _ ->
                                         -- Should never happen.
@@ -1206,7 +1253,7 @@ createBigbitView model shared =
                             in
                                 div
                                     [ class "comment-body-bottom-buttons"
-                                    , hidden <| Bigbit.isFSOpen model.bigbitCreateData.fs
+                                    , hidden <| fsOpen || markdownOpen
                                     ]
                                     [ button
                                         [ onClick <| GoTo <| Route.HomeComponentCreateBigbitCodeIntroduction Nothing
@@ -1543,69 +1590,79 @@ createSnipbitView model shared =
         tidbitView : Html Msg
         tidbitView =
             let
+                markdownOpen =
+                    model.snipbitCreateData.previewMarkdown
+
                 body =
-                    case shared.route of
-                        Route.HomeComponentCreateSnipbitCodeIntroduction ->
-                            div
-                                [ class "comment-body" ]
-                                [ textarea
-                                    [ placeholder "Introduction"
-                                    , onInput <| SnipbitUpdateIntroduction
-                                    , value model.snipbitCreateData.introduction
-                                    ]
-                                    []
-                                ]
-
-                        Route.HomeComponentCreateSnipbitCodeFrame frameNumber ->
-                            let
-                                frameIndex =
-                                    frameNumber - 1
-                            in
-                                div
-                                    [ class "comment-body" ]
-                                    [ textarea
-                                        [ placeholder <|
-                                            "Frame "
-                                                ++ (toString <| frameNumber)
-                                        , onInput <|
-                                            SnipbitUpdateFrameComment frameIndex
-                                        , value <|
-                                            case
-                                                (Array.get
-                                                    frameIndex
-                                                    model.snipbitCreateData.highlightedComments
-                                                )
-                                            of
-                                                Nothing ->
-                                                    ""
-
-                                                Just maybeHC ->
-                                                    case maybeHC.comment of
-                                                        Nothing ->
-                                                            ""
-
-                                                        Just comment ->
-                                                            comment
+                    div
+                        [ class "comment-body" ]
+                        [ div
+                            [ class "preview-markdown"
+                            , onClick SnipbitTogglePreviewMarkdown
+                            ]
+                            [ if markdownOpen then
+                                text "Close Preview"
+                              else
+                                text "Markdown Preview"
+                            ]
+                        , case shared.route of
+                            Route.HomeComponentCreateSnipbitCodeIntroduction ->
+                                markdownOr
+                                    markdownOpen
+                                    model.snipbitCreateData.introduction
+                                    (textarea
+                                        [ placeholder "Introduction"
+                                        , onInput <| SnipbitUpdateIntroduction
+                                        , value model.snipbitCreateData.introduction
                                         ]
                                         []
-                                    ]
+                                    )
 
-                        Route.HomeComponentCreateSnipbitCodeConclusion ->
-                            div
-                                [ class "comment-body" ]
-                                [ textarea
-                                    [ placeholder "Conclusion"
-                                    , onInput <| SnipbitUpdateConclusion
-                                    , value model.snipbitCreateData.conclusion
-                                    ]
+                            Route.HomeComponentCreateSnipbitCodeFrame frameNumber ->
+                                let
+                                    frameIndex =
+                                        frameNumber - 1
+
+                                    frameText =
+                                        (Array.get
+                                            frameIndex
+                                            model.snipbitCreateData.highlightedComments
+                                        )
+                                            |> Maybe.andThen .comment
+                                            |> Maybe.withDefault ""
+                                in
+                                    markdownOr
+                                        markdownOpen
+                                        frameText
+                                        (textarea
+                                            [ placeholder <|
+                                                "Frame "
+                                                    ++ (toString frameNumber)
+                                            , onInput <|
+                                                SnipbitUpdateFrameComment frameIndex
+                                            , value <| frameText
+                                            ]
+                                            []
+                                        )
+
+                            Route.HomeComponentCreateSnipbitCodeConclusion ->
+                                markdownOr
+                                    markdownOpen
+                                    model.snipbitCreateData.conclusion
+                                    (textarea
+                                        [ placeholder "Conclusion"
+                                        , onInput <| SnipbitUpdateConclusion
+                                        , value model.snipbitCreateData.conclusion
+                                        ]
+                                        []
+                                    )
+
+                            -- Should never happen.
+                            _ ->
+                                div
                                     []
-                                ]
-
-                        -- Should never happen.
-                        _ ->
-                            div
-                                []
-                                []
+                                    []
+                        ]
 
                 tabBar =
                     let
@@ -1636,7 +1693,9 @@ createSnipbitView model shared =
                                 )
                     in
                         div
-                            [ class "comment-body-bottom-buttons" ]
+                            [ class "comment-body-bottom-buttons"
+                            , hidden <| markdownOpen
+                            ]
                             [ button
                                 [ onClick <|
                                     GoTo Route.HomeComponentCreateSnipbitCodeIntroduction

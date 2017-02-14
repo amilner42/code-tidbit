@@ -599,6 +599,13 @@ update msg model shared =
                     _ ->
                         doNothing
 
+            SnipbitTogglePreviewMarkdown ->
+                ( updateSnipbitCreateData <|
+                    togglePreviewMarkdown currentSnipbitCreateData
+                , shared
+                , Cmd.none
+                )
+
             SnipbitAddFrame ->
                 let
                     newSnipbitCreateData =
@@ -932,6 +939,13 @@ update msg model shared =
                     { currentBigbitCreateData
                         | fs = Bigbit.toggleFSFolder folderPath currentBigbitCreateData.fs
                     }
+                , shared
+                , Cmd.none
+                )
+
+            BigbitTogglePreviewMarkdown ->
+                ( updateBigbitCreateData <|
+                    togglePreviewMarkdown currentBigbitCreateData
                 , shared
                 , Cmd.none
                 )
@@ -1560,3 +1574,12 @@ acUpdateConfig =
             , onMouseEnter = \_ -> Nothing
             , separateSelections = False
             }
+
+
+{-| Helper for flipping the previewMarkdown field of any record.
+-}
+togglePreviewMarkdown : { a | previewMarkdown : Bool } -> { a | previewMarkdown : Bool }
+togglePreviewMarkdown record =
+    { record
+        | previewMarkdown = not record.previewMarkdown
+    }

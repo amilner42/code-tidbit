@@ -56,6 +56,7 @@ type alias SnipbitCreateData =
     , highlightedComments : Array.Array MaybeHighlightedComment
     , introduction : String
     , conclusion : String
+    , previewMarkdown : Bool
     }
 
 
@@ -186,6 +187,7 @@ createDataCacheEncoder snipbitCreateData =
           )
         , ( "introduction", Encode.string snipbitCreateData.introduction )
         , ( "conclusion", Encode.string snipbitCreateData.conclusion )
+        , ( "previewMarkdown", Encode.bool snipbitCreateData.previewMarkdown )
         ]
 
 
@@ -208,6 +210,7 @@ createDataCacheDecoder =
             (Decode.array maybeHighlightedCommentCacheDecoder)
         |> required "introduction" Decode.string
         |> required "conclusion" Decode.string
+        |> required "previewMarkdown" Decode.bool
 
 
 {-| Returns the filled-in name or `Nothing`.

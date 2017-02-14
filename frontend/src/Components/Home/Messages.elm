@@ -34,6 +34,7 @@ type Msg
     | SnipbitRemoveTag String
     | SnipbitAddTag String
     | SnipbitNewRangeSelected Range.Range
+    | SnipbitTogglePreviewMarkdown
     | SnipbitAddFrame
     | SnipbitRemoveFrame
     | SnipbitUpdateFrameComment Int String
@@ -55,6 +56,7 @@ type Msg
     | BigbitUpdateConclusion String
     | BigbitToggleFS
     | BigbitFSToggleFolder FS.Path
+    | BigbitTogglePreviewMarkdown
     | BigbitUpdateActionButtonState (Maybe Bigbit.FSActionButtonState)
     | BigbitUpdateActionInput String
     | BigbitSubmitActionInput
