@@ -1127,43 +1127,30 @@ createBigbitView model shared =
                                 ]
 
                         body =
-                            case shared.route of
-                                Route.HomeComponentCreateBigbitCodeIntroduction _ ->
-                                    div
-                                        [ class "comment-body" ]
-                                        [ fs
-                                        , div
-                                            [ class "expand-file-structure"
-                                            , onClick BigbitToggleFS
-                                            ]
-                                            [ if Bigbit.isFSOpen model.bigbitCreateData.fs then
-                                                text "Close File Structure"
-                                              else
-                                                text "Expand File Structure"
-                                            ]
-                                        , textarea
+                            div
+                                [ class "comment-body" ]
+                                [ fs
+                                , div
+                                    [ class "expand-file-structure"
+                                    , onClick BigbitToggleFS
+                                    ]
+                                    [ if Bigbit.isFSOpen model.bigbitCreateData.fs then
+                                        text "Close File Structure"
+                                      else
+                                        text "View File Structure"
+                                    ]
+                                , case shared.route of
+                                    Route.HomeComponentCreateBigbitCodeIntroduction _ ->
+                                        textarea
                                             [ placeholder "Introduction"
                                             , onInput <| BigbitUpdateIntroduction
                                             , hidden <| Bigbit.isFSOpen model.bigbitCreateData.fs
                                             , value model.bigbitCreateData.introduction
                                             ]
                                             []
-                                        ]
 
-                                Route.HomeComponentCreateBigbitCodeFrame frameNumber _ ->
-                                    div
-                                        [ class "comment-body" ]
-                                        [ fs
-                                        , div
-                                            [ class "expand-file-structure"
-                                            , onClick BigbitToggleFS
-                                            ]
-                                            [ if Bigbit.isFSOpen model.bigbitCreateData.fs then
-                                                text "Close File Structure"
-                                              else
-                                                text "Expand File Structure"
-                                            ]
-                                        , textarea
+                                    Route.HomeComponentCreateBigbitCodeFrame frameNumber _ ->
+                                        textarea
                                             [ placeholder <| "Frame " ++ (toString frameNumber)
                                             , onInput <| BigbitUpdateFrameComment frameNumber
                                             , value <|
@@ -1177,33 +1164,20 @@ createBigbitView model shared =
                                             , hidden <| Bigbit.isFSOpen model.bigbitCreateData.fs
                                             ]
                                             []
-                                        ]
 
-                                Route.HomeComponentCreateBigbitCodeConclusion _ ->
-                                    div
-                                        [ class "comment-body" ]
-                                        [ fs
-                                        , div
-                                            [ class "expand-file-structure"
-                                            , onClick BigbitToggleFS
-                                            ]
-                                            [ if Bigbit.isFSOpen model.bigbitCreateData.fs then
-                                                text "Close File Structure"
-                                              else
-                                                text "Expand File Structure"
-                                            ]
-                                        , textarea
+                                    Route.HomeComponentCreateBigbitCodeConclusion _ ->
+                                        textarea
                                             [ placeholder "Conclusion"
                                             , onInput BigbitUpdateConclusion
                                             , hidden <| Bigbit.isFSOpen model.bigbitCreateData.fs
                                             , value model.bigbitCreateData.conclusion
                                             ]
                                             []
-                                        ]
 
-                                -- Should never happen.
-                                _ ->
-                                    Util.hiddenDiv
+                                    _ ->
+                                        -- Should never happen.
+                                        Util.hiddenDiv
+                                ]
 
                         tabBar =
                             let
