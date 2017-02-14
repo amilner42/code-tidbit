@@ -380,15 +380,15 @@
 
                     .fs-action-input {
                         position: absolute;
-                        width: 331px;
                         height: 53px;
                         bottom: 110px;
                         left: 11px;
                         text-align: center;
 
                         input {
+                            box-sizing: border-box;
                             text-align: center;
-                            width: 100%;
+                            width: 337px;
                             height: 100%;
                         }
 
