@@ -1154,6 +1154,15 @@ createBigbitView model shared =
                                     div
                                         [ class "comment-body" ]
                                         [ fs
+                                        , div
+                                            [ class "expand-file-structure"
+                                            , onClick BigbitToggleFS
+                                            ]
+                                            [ if Bigbit.isFSOpen model.bigbitCreateData.fs then
+                                                text "Close File Structure"
+                                              else
+                                                text "Expand File Structure"
+                                            ]
                                         , textarea
                                             [ placeholder <| "Frame " ++ (toString frameNumber)
                                             , onInput <| BigbitUpdateFrameComment frameNumber
@@ -1174,6 +1183,15 @@ createBigbitView model shared =
                                     div
                                         [ class "comment-body" ]
                                         [ fs
+                                        , div
+                                            [ class "expand-file-structure"
+                                            , onClick BigbitToggleFS
+                                            ]
+                                            [ if Bigbit.isFSOpen model.bigbitCreateData.fs then
+                                                text "Close File Structure"
+                                              else
+                                                text "Expand File Structure"
+                                            ]
                                         , textarea
                                             [ placeholder "Conclusion"
                                             , onInput BigbitUpdateConclusion

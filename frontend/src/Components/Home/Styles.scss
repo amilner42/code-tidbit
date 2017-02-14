@@ -345,7 +345,8 @@
                     padding: 10px;
 
                     .add-file, .add-folder, .remove-file, .remove-folder {
-                        width: 165px;
+                        width: 164px;
+                        height: 36px;
                     }
 
                     .selected-action-button {
@@ -356,31 +357,33 @@
                     .add-file {
                         position: absolute;
                         bottom: 10px;
+                        left: 10px;
                     }
 
                     .add-folder {
                         position: absolute;
                         bottom: 10px;
-                        right: 15px;
+                        right: 17px;
                     }
 
                     .remove-file {
                         position: absolute;
                         bottom: 56px;
+                        left: 10px;
                     }
 
                     .remove-folder {
                         position: absolute;
                         bottom: 56px;
-                        right: 15px;
+                        right: 17px;
                     }
 
                     .fs-action-input {
                         position: absolute;
-                        width: 330px;
+                        width: 331px;
                         height: 53px;
                         bottom: 110px;
-                        left: 12px;
+                        left: 11px;
                         text-align: center;
 
                         input {
@@ -545,8 +548,7 @@
                 .action-button {
                     background-color: $color4;
                     color: white;
-                    width: 35px;
-                    height: 35px;
+                    width: 36px;
                     float: right;
                     border: none;
                 }
@@ -847,6 +849,12 @@
             position: relative;
             margin-top: 3px;
             margin-left: -1px;
+            width: 363px;
+
+            button {
+                margin-right: 2px !important;
+                height: 36px;
+            }
         }
     }
 }
