@@ -47,6 +47,7 @@ type Msg
     | OnSnipbitPublishFailure ApiError.ApiError
     | OnGetSnipbitFailure ApiError.ApiError
     | OnGetSnipbitSuccess Snipbit.Snipbit
+    | ViewSnipbitRangeSelected Range.Range
     | BigbitGoToCodeTab
     | BigbitReset
     | BigbitUpdateName String
@@ -77,3 +78,4 @@ type Msg
     | ViewBigbitToggleFS
     | ViewBigbitToggleFolder FS.Path
     | ViewBigbitSelectFile FS.Path
+    | ViewBigbitRangeSelected Range.Range

@@ -821,6 +821,36 @@ update msg model shared =
                     }
                 )
 
+            ViewSnipbitRangeSelected selectedRange ->
+                case model.viewingSnipbit of
+                    Nothing ->
+                        doNothing
+
+                    Just aSnipbit ->
+                        if Range.isEmptyRange selectedRange then
+                            ( { model
+                                | viewingSnipbitRelevantHC = Nothing
+                              }
+                            , shared
+                            , Cmd.none
+                            )
+                        else
+                            aSnipbit.highlightedComments
+                                |> Array.indexedMap (,)
+                                |> Array.filter (Tuple.second >> .range >> (Range.overlappingRanges selectedRange))
+                                |> (\relevantHC ->
+                                        ( { model
+                                            | viewingSnipbitRelevantHC =
+                                                Just
+                                                    { currentHC = Nothing
+                                                    , relevantHC = Array.toList relevantHC
+                                                    }
+                                          }
+                                        , shared
+                                        , Cmd.none
+                                        )
+                                   )
+
             BigbitGoToCodeTab ->
                 ( updateBigbitCreateData
                     { currentBigbitCreateData
@@ -1468,6 +1498,40 @@ update msg model shared =
                 , shared
                 , Cmd.none
                 )
+
+            ViewBigbitRangeSelected selectedRange ->
+                case model.viewingBigbit of
+                    Nothing ->
+                        doNothing
+
+                    Just aBigbit ->
+                        if Range.isEmptyRange selectedRange then
+                            ( { model
+                                | viewingBigbitRelevantHC = Nothing
+                              }
+                            , shared
+                            , Cmd.none
+                            )
+                        else
+                            aBigbit.highlightedComments
+                                |> Array.indexedMap (,)
+                                |> Array.filter
+                                    (\hc ->
+                                        (Tuple.second hc |> .range |> Range.overlappingRanges selectedRange)
+                                            && (Tuple.second hc |> .file |> Just |> (==) (Bigbit.viewPageCurrentActiveFile shared.route aBigbit))
+                                    )
+                                |> (\relevantHC ->
+                                        ( { model
+                                            | viewingBigbitRelevantHC =
+                                                Just
+                                                    { currentHC = Nothing
+                                                    , relevantHC = Array.toList relevantHC
+                                                    }
+                                          }
+                                        , shared
+                                        , Cmd.none
+                                        )
+                                   )
 
 
 {-| Based on the maybePath and the bigbit creates the editor.

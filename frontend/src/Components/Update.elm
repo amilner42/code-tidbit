@@ -144,8 +144,7 @@ updateCacheIf msg model shouldCache =
                         "create-snipbit-code-editor" ->
                             (updateCacheIf
                                 (HomeMessage <|
-                                    HomeMessages.SnipbitNewRangeSelected
-                                        range
+                                    HomeMessages.SnipbitNewRangeSelected range
                                 )
                                 model
                                 shouldCache
@@ -154,8 +153,25 @@ updateCacheIf msg model shouldCache =
                         "create-bigbit-code-editor" ->
                             (updateCacheIf
                                 (HomeMessage <|
-                                    HomeMessages.BigbitNewRangeSelected
-                                        range
+                                    HomeMessages.BigbitNewRangeSelected range
+                                )
+                                model
+                                shouldCache
+                            )
+
+                        "view-snipbit-code-editor" ->
+                            (updateCacheIf
+                                (HomeMessage <|
+                                    HomeMessages.ViewSnipbitRangeSelected range
+                                )
+                                model
+                                shouldCache
+                            )
+
+                        "view-bigbit-code-editor" ->
+                            (updateCacheIf
+                                (HomeMessage <|
+                                    HomeMessages.ViewBigbitRangeSelected range
                                 )
                                 model
                                 shouldCache
