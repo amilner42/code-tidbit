@@ -14,6 +14,7 @@ import Html.Attributes exposing (class, classList, disabled, placeholder, value,
 import Html.Events exposing (onClick, onInput)
 import Models.Bigbit as Bigbit
 import Elements.FileStructure as FS
+import Elements.Markdown exposing (githubMarkdown)
 import Models.Range as Range
 import Models.Route as Route
 import Models.Snipbit as Snipbit
@@ -61,6 +62,16 @@ makeHTMLTags closeTagMsg tags =
             )
             tags
         )
+
+
+{-| Renders markdown if condition is true, otherwise the backup html.
+-}
+markdownOr : Bool -> String -> Html msg -> Html msg
+markdownOr condition markdownText backUpHtml =
+    if condition then
+        githubMarkdown [] markdownText
+    else
+        backUpHtml
 
 
 {-| Builds a progress bar.
@@ -214,28 +225,24 @@ viewSnipbitView model shared =
                     , Editor.editor "view-snipbit-code-editor"
                     , div
                         [ class "comment-block" ]
-                        [ textarea
-                            [ disabled True
-                            , value <|
-                                case shared.route of
-                                    Route.HomeComponentViewSnipbitIntroduction _ ->
-                                        snipbit.introduction
+                        [ githubMarkdown [] <|
+                            case shared.route of
+                                Route.HomeComponentViewSnipbitIntroduction _ ->
+                                    snipbit.introduction
 
-                                    Route.HomeComponentViewSnipbitConclusion _ ->
-                                        snipbit.conclusion
+                                Route.HomeComponentViewSnipbitConclusion _ ->
+                                    snipbit.conclusion
 
-                                    Route.HomeComponentViewSnipbitFrame _ frameNumber ->
-                                        (Array.get
-                                            (frameNumber - 1)
-                                            snipbit.highlightedComments
-                                        )
-                                            |> Maybe.map .comment
-                                            |> Maybe.withDefault ""
+                                Route.HomeComponentViewSnipbitFrame _ frameNumber ->
+                                    (Array.get
+                                        (frameNumber - 1)
+                                        snipbit.highlightedComments
+                                    )
+                                        |> Maybe.map .comment
+                                        |> Maybe.withDefault ""
 
-                                    _ ->
-                                        ""
-                            ]
-                            []
+                                _ ->
+                                    ""
                         ]
                     ]
                 ]
@@ -398,30 +405,24 @@ viewBigbitView model shared =
                                     Just activeFile ->
                                         activeFile
                             ]
-                        , textarea
-                            [ disabled True
-                            , hidden <|
-                                Bigbit.isFSOpen bigbit.fs
-                            , value <|
-                                case shared.route of
-                                    Route.HomeComponentViewBigbitIntroduction _ _ ->
-                                        bigbit.introduction
+                        , githubMarkdown [ hidden <| Bigbit.isFSOpen bigbit.fs ] <|
+                            case shared.route of
+                                Route.HomeComponentViewBigbitIntroduction _ _ ->
+                                    bigbit.introduction
 
-                                    Route.HomeComponentViewBigbitConclusion _ _ ->
-                                        bigbit.conclusion
+                                Route.HomeComponentViewBigbitConclusion _ _ ->
+                                    bigbit.conclusion
 
-                                    Route.HomeComponentViewBigbitFrame _ frameNumber _ ->
-                                        (Array.get
-                                            (frameNumber - 1)
-                                            bigbit.highlightedComments
-                                        )
-                                            |> Maybe.map .comment
-                                            |> Maybe.withDefault ""
+                                Route.HomeComponentViewBigbitFrame _ frameNumber _ ->
+                                    (Array.get
+                                        (frameNumber - 1)
+                                        bigbit.highlightedComments
+                                    )
+                                        |> Maybe.map .comment
+                                        |> Maybe.withDefault ""
 
-                                    _ ->
-                                        ""
-                            ]
-                            []
+                                _ ->
+                                    ""
                         , div
                             [ class "view-bigbit-fs"
                             , hidden <| not <| Bigbit.isFSOpen bigbit.fs
@@ -823,7 +824,7 @@ createBigbitView model shared =
                           )
                         , ( "filled-in", Bigbit.createDataCodeTabFilledIn model.bigbitCreateData )
                         ]
-                    , onClick <| GoTo <| Route.HomeComponentCreateBigbitCodeIntroduction Nothing
+                    , onClick <| BigbitGoToCodeTab
                     ]
                     [ text "Code"
                     , checkIcon
@@ -911,10 +912,16 @@ createBigbitView model shared =
                         validFolderInput =
                             Util.resultToBool validFolderInputResult
 
+                        fsOpen =
+                            Bigbit.isFSOpen model.bigbitCreateData.fs
+
+                        markdownOpen =
+                            model.bigbitCreateData.previewMarkdown
+
                         fs =
                             div
                                 [ class "file-structure"
-                                , hidden <| not <| Bigbit.isFSOpen model.bigbitCreateData.fs
+                                , hidden <| not <| fsOpen
                                 ]
                                 [ FS.fileStructure
                                     { isFileSelected = viewingFile
@@ -1127,137 +1134,144 @@ createBigbitView model shared =
                                 ]
 
                         body =
-                            case shared.route of
-                                Route.HomeComponentCreateBigbitCodeIntroduction _ ->
-                                    div
-                                        [ class "comment-body" ]
-                                        [ fs
-                                        , div
-                                            [ class "expand-file-structure"
-                                            , onClick BigbitToggleFS
-                                            ]
-                                            [ if Bigbit.isFSOpen model.bigbitCreateData.fs then
-                                                text "Close File Structure"
-                                              else
-                                                text "Expand File Structure"
-                                            ]
-                                        , textarea
-                                            [ placeholder "Introduction"
-                                            , onInput <| BigbitUpdateIntroduction
-                                            , hidden <| Bigbit.isFSOpen model.bigbitCreateData.fs
-                                            , value model.bigbitCreateData.introduction
-                                            ]
-                                            []
-                                        ]
+                            div
+                                [ class "comment-body" ]
+                                [ fs
+                                , div
+                                    [ class "expand-file-structure"
+                                    , onClick BigbitToggleFS
+                                    , hidden markdownOpen
+                                    ]
+                                    [ if fsOpen then
+                                        text "Close File Structure"
+                                      else
+                                        text "View File Structure"
+                                    ]
+                                , div
+                                    [ class "preview-markdown"
+                                    , onClick BigbitTogglePreviewMarkdown
+                                    , hidden fsOpen
+                                    ]
+                                    [ if markdownOpen then
+                                        text "Close Preview"
+                                      else
+                                        text "Preview Markdown"
+                                    ]
+                                , case shared.route of
+                                    Route.HomeComponentCreateBigbitCodeIntroduction _ ->
+                                        markdownOr
+                                            markdownOpen
+                                            model.bigbitCreateData.introduction
+                                            (textarea
+                                                [ placeholder "Introduction"
+                                                , onInput <| BigbitUpdateIntroduction
+                                                , hidden <| Bigbit.isFSOpen model.bigbitCreateData.fs
+                                                , value model.bigbitCreateData.introduction
+                                                ]
+                                                []
+                                            )
 
-                                Route.HomeComponentCreateBigbitCodeFrame frameNumber _ ->
-                                    div
-                                        [ class "comment-body" ]
-                                        [ fs
-                                        , div
-                                            [ class "expand-file-structure"
-                                            , onClick BigbitToggleFS
-                                            ]
-                                            [ if Bigbit.isFSOpen model.bigbitCreateData.fs then
-                                                text "Close File Structure"
-                                              else
-                                                text "Expand File Structure"
-                                            ]
-                                        , textarea
-                                            [ placeholder <| "Frame " ++ (toString frameNumber)
-                                            , onInput <| BigbitUpdateFrameComment frameNumber
-                                            , value <|
-                                                ((Array.get
+                                    Route.HomeComponentCreateBigbitCodeFrame frameNumber _ ->
+                                        let
+                                            frameText =
+                                                (Array.get
                                                     (frameNumber - 1)
                                                     model.bigbitCreateData.highlightedComments
-                                                 )
+                                                )
                                                     |> Maybe.map .comment
                                                     |> Maybe.withDefault ""
+                                        in
+                                            markdownOr
+                                                markdownOpen
+                                                frameText
+                                                (textarea
+                                                    [ placeholder <| "Frame " ++ (toString frameNumber)
+                                                    , onInput <| BigbitUpdateFrameComment frameNumber
+                                                    , value frameText
+                                                    , hidden <| fsOpen
+                                                    ]
+                                                    []
                                                 )
-                                            , hidden <| Bigbit.isFSOpen model.bigbitCreateData.fs
-                                            ]
-                                            []
-                                        ]
 
-                                Route.HomeComponentCreateBigbitCodeConclusion _ ->
-                                    div
-                                        [ class "comment-body" ]
-                                        [ fs
-                                        , div
-                                            [ class "expand-file-structure"
-                                            , onClick BigbitToggleFS
-                                            ]
-                                            [ if Bigbit.isFSOpen model.bigbitCreateData.fs then
-                                                text "Close File Structure"
-                                              else
-                                                text "Expand File Structure"
-                                            ]
-                                        , textarea
-                                            [ placeholder "Conclusion"
-                                            , onInput BigbitUpdateConclusion
-                                            , hidden <| Bigbit.isFSOpen model.bigbitCreateData.fs
-                                            , value model.bigbitCreateData.conclusion
-                                            ]
-                                            []
-                                        ]
+                                    Route.HomeComponentCreateBigbitCodeConclusion _ ->
+                                        markdownOr
+                                            markdownOpen
+                                            model.bigbitCreateData.conclusion
+                                            (textarea
+                                                [ placeholder "Conclusion"
+                                                , onInput BigbitUpdateConclusion
+                                                , hidden <| fsOpen
+                                                , value model.bigbitCreateData.conclusion
+                                                ]
+                                                []
+                                            )
 
-                                -- Should never happen.
-                                _ ->
-                                    Util.hiddenDiv
+                                    _ ->
+                                        -- Should never happen.
+                                        Util.hiddenDiv
+                                ]
 
                         tabBar =
                             let
                                 dynamicFrameButtons =
-                                    (Array.indexedMap
-                                        (\index highlightedComment ->
-                                            button
-                                                [ classList [ ( "selected-frame", (Just <| index + 1) == frameTab ) ]
-                                                , onClick <|
-                                                    GoTo <|
-                                                        Route.HomeComponentCreateBigbitCodeFrame
-                                                            (index + 1)
-                                                            (Array.get index model.bigbitCreateData.highlightedComments
-                                                                |> Maybe.andThen .fileAndRange
-                                                                |> Maybe.map .file
-                                                            )
-                                                ]
-                                                [ text <| toString <| index + 1 ]
+                                    div
+                                        [ class "frame-buttons-box" ]
+                                        ((Array.indexedMap
+                                            (\index highlightedComment ->
+                                                button
+                                                    [ classList [ ( "selected-frame", (Just <| index + 1) == frameTab ) ]
+                                                    , onClick <|
+                                                        GoTo <|
+                                                            Route.HomeComponentCreateBigbitCodeFrame
+                                                                (index + 1)
+                                                                (Array.get index model.bigbitCreateData.highlightedComments
+                                                                    |> Maybe.andThen .fileAndRange
+                                                                    |> Maybe.map .file
+                                                                )
+                                                    ]
+                                                    [ text <| toString <| index + 1 ]
+                                            )
+                                            model.bigbitCreateData.highlightedComments
+                                         )
+                                            |> Array.toList
                                         )
-                                        model.bigbitCreateData.highlightedComments
-                                    )
-                                        |> Array.toList
                             in
                                 div
                                     [ class "comment-body-bottom-buttons"
-                                    , hidden <| Bigbit.isFSOpen model.bigbitCreateData.fs
+                                    , hidden <| fsOpen || markdownOpen
                                     ]
-                                    ([ button
+                                    [ button
                                         [ onClick <| GoTo <| Route.HomeComponentCreateBigbitCodeIntroduction Nothing
-                                        , classList [ ( "selected-frame", introTab ) ]
+                                        , classList
+                                            [ ( "introduction-button", True )
+                                            , ( "selected-frame", introTab )
+                                            ]
                                         ]
                                         [ text "Introduction" ]
-                                     , button
+                                    , button
                                         [ onClick <| GoTo <| Route.HomeComponentCreateBigbitCodeConclusion Nothing
-                                        , classList [ ( "selected-frame", conclusionTab ) ]
+                                        , classList
+                                            [ ( "conclusion-button", True )
+                                            , ( "selected-frame", conclusionTab )
+                                            ]
                                         ]
                                         [ text "Conclusion" ]
-                                     , button
-                                        [ class "action-button plus-button"
+                                    , button
+                                        [ class "add-or-remove-frame-button"
                                         , onClick <| BigbitAddFrame
                                         ]
                                         [ text "+" ]
-                                     , button
-                                        [ class "action-button"
+                                    , button
+                                        [ class "add-or-remove-frame-button"
                                         , onClick <| BigbitRemoveFrame
                                         , disabled <|
                                             Array.length model.bigbitCreateData.highlightedComments
                                                 <= 1
                                         ]
                                         [ text "-" ]
-                                     , hr [] []
-                                     ]
-                                        ++ dynamicFrameButtons
-                                    )
+                                    , hr [] []
+                                    , dynamicFrameButtons
+                                    ]
                     in
                         div
                             []
@@ -1478,7 +1492,7 @@ createSnipbitView model shared =
                           )
                         , ( "filled-in", Snipbit.createDataCodeTabFilledIn model.snipbitCreateData )
                         ]
-                    , onClick <| GoTo Route.HomeComponentCreateSnipbitCodeIntroduction
+                    , onClick <| SnipbitGoToCodeTab
                     ]
                     [ text "Code"
                     , checkIcon
@@ -1561,140 +1575,153 @@ createSnipbitView model shared =
         tidbitView : Html Msg
         tidbitView =
             let
+                markdownOpen =
+                    model.snipbitCreateData.previewMarkdown
+
                 body =
-                    case shared.route of
-                        Route.HomeComponentCreateSnipbitCodeIntroduction ->
-                            div
-                                [ class "comment-body" ]
-                                [ textarea
-                                    [ placeholder "Introduction"
-                                    , onInput <| SnipbitUpdateIntroduction
-                                    , value model.snipbitCreateData.introduction
-                                    ]
-                                    []
-                                ]
-
-                        Route.HomeComponentCreateSnipbitCodeFrame frameNumber ->
-                            let
-                                frameIndex =
-                                    frameNumber - 1
-                            in
-                                div
-                                    [ class "comment-body" ]
-                                    [ textarea
-                                        [ placeholder <|
-                                            "Frame "
-                                                ++ (toString <| frameNumber)
-                                        , onInput <|
-                                            SnipbitUpdateFrameComment frameIndex
-                                        , value <|
-                                            case
-                                                (Array.get
-                                                    frameIndex
-                                                    model.snipbitCreateData.highlightedComments
-                                                )
-                                            of
-                                                Nothing ->
-                                                    ""
-
-                                                Just maybeHC ->
-                                                    case maybeHC.comment of
-                                                        Nothing ->
-                                                            ""
-
-                                                        Just comment ->
-                                                            comment
+                    div
+                        [ class "comment-body" ]
+                        [ div
+                            [ class "preview-markdown"
+                            , onClick SnipbitTogglePreviewMarkdown
+                            ]
+                            [ if markdownOpen then
+                                text "Close Preview"
+                              else
+                                text "Markdown Preview"
+                            ]
+                        , case shared.route of
+                            Route.HomeComponentCreateSnipbitCodeIntroduction ->
+                                markdownOr
+                                    markdownOpen
+                                    model.snipbitCreateData.introduction
+                                    (textarea
+                                        [ placeholder "Introduction"
+                                        , onInput <| SnipbitUpdateIntroduction
+                                        , value model.snipbitCreateData.introduction
                                         ]
                                         []
-                                    ]
+                                    )
 
-                        Route.HomeComponentCreateSnipbitCodeConclusion ->
-                            div
-                                [ class "comment-body" ]
-                                [ textarea
-                                    [ placeholder "Conclusion"
-                                    , onInput <| SnipbitUpdateConclusion
-                                    , value model.snipbitCreateData.conclusion
-                                    ]
+                            Route.HomeComponentCreateSnipbitCodeFrame frameNumber ->
+                                let
+                                    frameIndex =
+                                        frameNumber - 1
+
+                                    frameText =
+                                        (Array.get
+                                            frameIndex
+                                            model.snipbitCreateData.highlightedComments
+                                        )
+                                            |> Maybe.andThen .comment
+                                            |> Maybe.withDefault ""
+                                in
+                                    markdownOr
+                                        markdownOpen
+                                        frameText
+                                        (textarea
+                                            [ placeholder <|
+                                                "Frame "
+                                                    ++ (toString frameNumber)
+                                            , onInput <|
+                                                SnipbitUpdateFrameComment frameIndex
+                                            , value <| frameText
+                                            ]
+                                            []
+                                        )
+
+                            Route.HomeComponentCreateSnipbitCodeConclusion ->
+                                markdownOr
+                                    markdownOpen
+                                    model.snipbitCreateData.conclusion
+                                    (textarea
+                                        [ placeholder "Conclusion"
+                                        , onInput <| SnipbitUpdateConclusion
+                                        , value model.snipbitCreateData.conclusion
+                                        ]
+                                        []
+                                    )
+
+                            -- Should never happen.
+                            _ ->
+                                div
                                     []
-                                ]
-
-                        -- Should never happen.
-                        _ ->
-                            div
-                                []
-                                []
+                                    []
+                        ]
 
                 tabBar =
                     let
                         dynamicFrameButtons =
-                            (Array.toList <|
-                                Array.indexedMap
-                                    (\index maybeHighlightedComment ->
-                                        button
-                                            [ onClick <|
-                                                GoTo <|
-                                                    Route.HomeComponentCreateSnipbitCodeFrame
-                                                        (index + 1)
-                                            , classList
-                                                [ ( "selected-frame"
-                                                  , shared.route
-                                                        == (Route.HomeComponentCreateSnipbitCodeFrame <|
-                                                                index
-                                                                    + 1
-                                                           )
-                                                  )
+                            div
+                                [ class "frame-buttons-box" ]
+                                (Array.toList <|
+                                    Array.indexedMap
+                                        (\index maybeHighlightedComment ->
+                                            button
+                                                [ onClick <|
+                                                    GoTo <|
+                                                        Route.HomeComponentCreateSnipbitCodeFrame
+                                                            (index + 1)
+                                                , classList
+                                                    [ ( "selected-frame"
+                                                      , shared.route
+                                                            == (Route.HomeComponentCreateSnipbitCodeFrame <|
+                                                                    index
+                                                                        + 1
+                                                               )
+                                                      )
+                                                    ]
                                                 ]
-                                            ]
-                                            [ text <| toString <| index + 1 ]
-                                    )
-                                    model.snipbitCreateData.highlightedComments
-                            )
+                                                [ text <| toString <| index + 1 ]
+                                        )
+                                        model.snipbitCreateData.highlightedComments
+                                )
                     in
                         div
-                            [ class "comment-body-bottom-buttons" ]
-                            (List.concat
-                                [ [ button
-                                        [ onClick <|
-                                            GoTo Route.HomeComponentCreateSnipbitCodeIntroduction
-                                        , classList
-                                            [ ( "selected-frame"
-                                              , shared.route
-                                                    == Route.HomeComponentCreateSnipbitCodeIntroduction
-                                              )
-                                            ]
-                                        ]
-                                        [ text "Introduction" ]
-                                  , button
-                                        [ onClick <|
-                                            GoTo Route.HomeComponentCreateSnipbitCodeConclusion
-                                        , classList
-                                            [ ( "selected-frame"
-                                              , shared.route
-                                                    == Route.HomeComponentCreateSnipbitCodeConclusion
-                                              )
-                                            ]
-                                        ]
-                                        [ text "Conclusion" ]
-                                  , button
-                                        [ class "action-button plus-button"
-                                        , onClick <| SnipbitAddFrame
-                                        ]
-                                        [ text "+" ]
-                                  , button
-                                        [ class "action-button"
-                                        , onClick <| SnipbitRemoveFrame
-                                        , disabled <|
-                                            Array.length
-                                                model.snipbitCreateData.highlightedComments
-                                                <= 1
-                                        ]
-                                        [ text "-" ]
-                                  , hr [] []
-                                  ]
-                                , dynamicFrameButtons
+                            [ class "comment-body-bottom-buttons"
+                            , hidden <| markdownOpen
+                            ]
+                            [ button
+                                [ onClick <|
+                                    GoTo Route.HomeComponentCreateSnipbitCodeIntroduction
+                                , classList
+                                    [ ( "selected-frame"
+                                      , shared.route
+                                            == Route.HomeComponentCreateSnipbitCodeIntroduction
+                                      )
+                                    , ( "introduction-button", True )
+                                    ]
                                 ]
-                            )
+                                [ text "Introduction" ]
+                            , button
+                                [ onClick <|
+                                    GoTo Route.HomeComponentCreateSnipbitCodeConclusion
+                                , classList
+                                    [ ( "selected-frame"
+                                      , shared.route
+                                            == Route.HomeComponentCreateSnipbitCodeConclusion
+                                      )
+                                    , ( "conclusion-button", True )
+                                    ]
+                                ]
+                                [ text "Conclusion" ]
+                            , button
+                                [ class "add-or-remove-frame-button"
+                                , onClick <| SnipbitAddFrame
+                                ]
+                                [ text "+" ]
+                            , button
+                                [ class "add-or-remove-frame-button"
+                                , onClick <| SnipbitRemoveFrame
+                                , disabled <|
+                                    Array.length
+                                        model.snipbitCreateData.highlightedComments
+                                        <= 1
+                                ]
+                                [ text "-" ]
+                            , hr [] []
+                            , dynamicFrameButtons
+                            ]
             in
                 div
                     [ class "create-snipbit-code" ]

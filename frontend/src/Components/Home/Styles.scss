@@ -15,13 +15,15 @@
 
             .view-bigbit-toggle-fs {
                 @extend .above-comment-block-button;
-                right: -22px;
+                right: 0;
+                width: 200px !important;
             }
 
             .view-bigbit-fs {
-                padding: 10px;
+                box-sizing: border-box;
+                padding-left: 10px;
                 width: 100%;
-                height: 50%;
+                height: 100%;
                 border: 1px solid $color2;
             }
         }
@@ -314,7 +316,12 @@
 
                 .expand-file-structure {
                     @extend .above-comment-block-button;
-                    right: 6px;
+                    right: 0px;
+                }
+
+                .preview-markdown {
+                    @extend .above-comment-block-button;
+                    right: 181px;
                 }
 
                 .bigbit-editor {
@@ -342,10 +349,10 @@
                     width: 360px;
                     border: 1px solid $color2;
                     margin-bottom: 10px;
-                    padding: 10px;
+                    padding-left: 10px;
 
                     .add-file, .add-folder, .remove-file, .remove-folder {
-                        width: 164px;
+                        width: 163px;
                         height: 36px;
                     }
 
@@ -363,7 +370,7 @@
                     .add-folder {
                         position: absolute;
                         bottom: 10px;
-                        right: 17px;
+                        right: 12px;
                     }
 
                     .remove-file {
@@ -375,7 +382,7 @@
                     .remove-folder {
                         position: absolute;
                         bottom: 56px;
-                        right: 17px;
+                        right: 12px;
                     }
 
                     .fs-action-input {
@@ -388,7 +395,7 @@
                         input {
                             box-sizing: border-box;
                             text-align: center;
-                            width: 337px;
+                            width: 336px;
                             height: 100%;
                             border: 1px solid $color2;
                         }
@@ -449,6 +456,7 @@
             }
         }
 
+        // General styling for every tab except code tab.
         .create-tidbit-x {
             position: relative;
             display: block;
@@ -510,19 +518,18 @@
             }
         }
 
+        // General styling for code tab.
         .create-tidbit-code {
             width: $min-width-supported;
             display: block;
             margin: 50px auto 0 auto;
 
             .comment-creator {
-                box-sizing: border-box;
                 position: relative;
                 display: inline-block;
-                margin: 0 0 0 10px;
-                width: 366px;
+                margin-left: 10px;
+                width: 360px;
                 height: 600px;
-                border-radius: 5px;
 
                 button {
                     @include no-select();
@@ -537,25 +544,31 @@
                 }
 
                 .comment-body {
-                    width: 100%;
+                    width: 360px;
 
                     textarea {
-                        width: 354px;
-                        height: 200px;
+                        box-sizing: border-box;
+                        width: 360px;
+                        height: 482px;
                         border: 1px solid $color2;
+                        padding: 5px;
+                        font-size: 16px;
+                        resize: vertical;
                     }
                 }
 
-                .action-button {
-                    background-color: $color4;
+                .add-or-remove-frame-button {
+                    background-color: $color5;
                     color: white;
                     width: 36px;
                     float: right;
                     border: none;
-                }
+                    font-weight: 300;
+                    font-size: 18px;
 
-                .plus-button {
-                    margin-right: 6px;
+                    &:hover {
+                        background-color: $color6;
+                    }
                 }
 
                 hr {
@@ -668,6 +681,11 @@
 
             .create-snipbit-code {
                 @extend .create-tidbit-code;
+
+                .preview-markdown {
+                    @extend .above-comment-block-button;
+                    right: 0;
+                }
             }
 
             .create-tidbit-sub-bar {
@@ -779,16 +797,18 @@
             .comment-block {
                 position: relative;
                 display: inline-block;
-                width: 354px;
+                width: 360px;
                 height: 600px;
                 margin-left: 10px;
 
                 textarea {
+                    box-sizing: border-box;
                     padding: 10px;
                     width: 100%;
-                    height: 50%;
+                    height: 100%;
                     border: 1px solid $color2;
-                    font-size: 14px;
+                    font-size: 16px;
+                    resize: vertical;
                 }
             }
         }
@@ -838,12 +858,20 @@
         }
 
         .above-comment-block-button {
+            @include no-select();
             position: absolute;
-            top: -35px;
-            border: 1px solid $color2;
-            padding: 5px;
-            color: $color5;
+            top: -33px;
+            padding: 5px 10px 5px 10px;
+            background-color: $color5;
+            color: white;
             cursor: pointer;
+            width: 179px;
+            box-sizing: border-box;
+            text-align: center;
+
+            &:hover {
+                background-color: $color6;
+            }
         }
 
         .comment-body-bottom-buttons {
@@ -855,6 +883,19 @@
             button {
                 margin-right: 2px !important;
                 height: 36px;
+            }
+
+            .introduction-button, .conclusion-button {
+                width: 111px;
+            }
+
+            .frame-buttons-box {
+                height: 76px;
+                overflow-y: auto;
+
+                button {
+                    width: 35px;
+                }
             }
         }
     }

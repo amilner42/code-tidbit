@@ -337,6 +337,15 @@ update msg model shared =
             ShowInfoFor maybeTidbitType ->
                 ( { model | showInfoFor = maybeTidbitType }, shared, Cmd.none )
 
+            SnipbitGoToCodeTab ->
+                ( updateSnipbitCreateData
+                    { currentSnipbitCreateData
+                        | previewMarkdown = False
+                    }
+                , shared
+                , Route.navigateTo Route.HomeComponentCreateSnipbitCodeIntroduction
+                )
+
             SnipbitUpdateLanguageQuery newLanguageQuery ->
                 let
                     newSnipbitCreateData =
@@ -599,6 +608,13 @@ update msg model shared =
                     _ ->
                         doNothing
 
+            SnipbitTogglePreviewMarkdown ->
+                ( updateSnipbitCreateData <|
+                    togglePreviewMarkdown currentSnipbitCreateData
+                , shared
+                , Cmd.none
+                )
+
             SnipbitAddFrame ->
                 let
                     newSnipbitCreateData =
@@ -805,6 +821,23 @@ update msg model shared =
                     }
                 )
 
+            BigbitGoToCodeTab ->
+                ( updateBigbitCreateData
+                    { currentBigbitCreateData
+                        | previewMarkdown = False
+                        , fs =
+                            currentBigbitCreateData.fs
+                                |> FS.updateFSMetadata
+                                    (\fsMetadata ->
+                                        { fsMetadata
+                                            | openFS = False
+                                        }
+                                    )
+                    }
+                , shared
+                , Route.navigateTo <| Route.HomeComponentCreateBigbitCodeIntroduction Nothing
+                )
+
             BigbitReset ->
                 ( updateBigbitCreateData <| .bigbitCreateData HomeInit.init
                 , shared
@@ -932,6 +965,13 @@ update msg model shared =
                     { currentBigbitCreateData
                         | fs = Bigbit.toggleFSFolder folderPath currentBigbitCreateData.fs
                     }
+                , shared
+                , Cmd.none
+                )
+
+            BigbitTogglePreviewMarkdown ->
+                ( updateBigbitCreateData <|
+                    togglePreviewMarkdown currentBigbitCreateData
                 , shared
                 , Cmd.none
                 )
@@ -1560,3 +1600,12 @@ acUpdateConfig =
             , onMouseEnter = \_ -> Nothing
             , separateSelections = False
             }
+
+
+{-| Helper for flipping the previewMarkdown field of any record.
+-}
+togglePreviewMarkdown : { a | previewMarkdown : Bool } -> { a | previewMarkdown : Bool }
+togglePreviewMarkdown record =
+    { record
+        | previewMarkdown = not record.previewMarkdown
+    }
