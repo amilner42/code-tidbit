@@ -249,7 +249,7 @@ handleLocationChange maybeRoute model =
 
                                         newCmd =
                                             Cmd.batch
-                                                [ Route.navigateTo newModel.shared.route
+                                                [ Route.modifyTo newModel.shared.route
                                                 , LocalStorage.saveModel newModel
                                                 ]
                                     in
@@ -265,7 +265,7 @@ handleLocationChange maybeRoute model =
 
                                         newCmd =
                                             Cmd.batch
-                                                [ Route.navigateTo newModel.shared.route
+                                                [ Route.modifyTo newModel.shared.route
                                                 , LocalStorage.saveModel newModel
                                                 ]
                                     in
@@ -332,7 +332,7 @@ handleLocationChange maybeRoute model =
                                 ( newModel
                                 , Cmd.batch
                                     [ newCmd
-                                    , Route.navigateTo
+                                    , Route.modifyTo
                                         Route.HomeComponentCreateSnipbitCodeIntroduction
                                     ]
                                 )

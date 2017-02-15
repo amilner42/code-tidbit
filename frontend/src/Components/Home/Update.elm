@@ -173,13 +173,13 @@ update msg model shared =
                                         if frameNumber - 1 >= Array.length aSnipbit.highlightedComments then
                                             ( model
                                             , shared
-                                            , Route.navigateTo <|
+                                            , Route.modifyTo <|
                                                 Route.HomeComponentViewSnipbitConclusion mongoID
                                             )
                                         else if frameNumber < 1 then
                                             ( model
                                             , shared
-                                            , Route.navigateTo <|
+                                            , Route.modifyTo <|
                                                 Route.HomeComponentViewSnipbitIntroduction mongoID
                                             )
                                         else
@@ -233,7 +233,7 @@ update msg model shared =
 
                         Route.HomeComponentCreateBigbitCodeFrame frameNumber maybeFilePath ->
                             if frameNumber < 1 || frameNumber > (Array.length currentBigbitHighlightedComments) then
-                                ( model, shared, Route.navigateTo <| Route.HomeComponentCreateBigbitCodeIntroduction Nothing )
+                                ( model, shared, Route.modifyTo <| Route.HomeComponentCreateBigbitCodeIntroduction Nothing )
                             else
                                 let
                                     newModel =
@@ -1062,7 +1062,7 @@ update msg model shared =
                     navigateIfRouteNowInvalid newFS newHighlightedComments =
                         let
                             redirectToIntro =
-                                Route.navigateTo <| Route.HomeComponentCreateBigbitCodeIntroduction Nothing
+                                Route.modifyTo <| Route.HomeComponentCreateBigbitCodeIntroduction Nothing
 
                             redirectIfFileRemoved =
                                 case Bigbit.createPageCurrentActiveFile shared.route of
@@ -1073,8 +1073,7 @@ update msg model shared =
                                         if FS.hasFile filePath newFS then
                                             Cmd.none
                                         else
-                                            Route.navigateTo <|
-                                                Route.HomeComponentCreateBigbitCodeIntroduction Nothing
+                                            redirectToIntro
                         in
                             case shared.route of
                                 Route.HomeComponentCreateBigbitCodeFrame frameNumber _ ->
@@ -1329,7 +1328,7 @@ update msg model shared =
                                     Nothing
 
                         newCmd =
-                            Maybe.map Route.navigateTo newRoute
+                            Maybe.map Route.modifyTo newRoute
                                 |> Maybe.withDefault Cmd.none
                     in
                         ( newModel, shared, newCmd )
