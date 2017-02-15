@@ -11,6 +11,7 @@ require("./Components/Welcome/Styles.scss");
 
 require("./Elements/Editor.scss")
 require("./Elements/FileStructure.scss")
+require("./Elements/Markdown.scss")
 
 // Require index.html so it gets copied to dist
 require('./index.html');

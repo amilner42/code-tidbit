@@ -14,7 +14,7 @@ import Html.Attributes exposing (class, classList, disabled, placeholder, value,
 import Html.Events exposing (onClick, onInput)
 import Models.Bigbit as Bigbit
 import Elements.FileStructure as FS
-import Markdown
+import Elements.Markdown exposing (githubMarkdown)
 import Models.Range as Range
 import Models.Route as Route
 import Models.Snipbit as Snipbit
@@ -69,12 +69,7 @@ makeHTMLTags closeTagMsg tags =
 markdownOr : Bool -> String -> Html msg -> Html msg
 markdownOr condition markdownText backUpHtml =
     if condition then
-        div
-            [ class "markdown-box" ]
-            [ Markdown.toHtml
-                [ class "markdown-text" ]
-                markdownText
-            ]
+        githubMarkdown [] markdownText
     else
         backUpHtml
 
@@ -230,30 +225,24 @@ viewSnipbitView model shared =
                     , Editor.editor "view-snipbit-code-editor"
                     , div
                         [ class "comment-block" ]
-                        [ div
-                            [ class "markdown-box" ]
-                            [ Markdown.toHtml
-                                [ class "markdown-text"
-                                ]
-                                (case shared.route of
-                                    Route.HomeComponentViewSnipbitIntroduction _ ->
-                                        snipbit.introduction
+                        [ githubMarkdown [] <|
+                            case shared.route of
+                                Route.HomeComponentViewSnipbitIntroduction _ ->
+                                    snipbit.introduction
 
-                                    Route.HomeComponentViewSnipbitConclusion _ ->
-                                        snipbit.conclusion
+                                Route.HomeComponentViewSnipbitConclusion _ ->
+                                    snipbit.conclusion
 
-                                    Route.HomeComponentViewSnipbitFrame _ frameNumber ->
-                                        (Array.get
-                                            (frameNumber - 1)
-                                            snipbit.highlightedComments
-                                        )
-                                            |> Maybe.map .comment
-                                            |> Maybe.withDefault ""
+                                Route.HomeComponentViewSnipbitFrame _ frameNumber ->
+                                    (Array.get
+                                        (frameNumber - 1)
+                                        snipbit.highlightedComments
+                                    )
+                                        |> Maybe.map .comment
+                                        |> Maybe.withDefault ""
 
-                                    _ ->
-                                        ""
-                                )
-                            ]
+                                _ ->
+                                    ""
                         ]
                     ]
                 ]
@@ -416,32 +405,24 @@ viewBigbitView model shared =
                                     Just activeFile ->
                                         activeFile
                             ]
-                        , div
-                            [ class "markdown-box"
-                            , hidden <| Bigbit.isFSOpen bigbit.fs
-                            ]
-                            [ Markdown.toHtml
-                                [ class "markdown-text"
-                                ]
-                                (case shared.route of
-                                    Route.HomeComponentViewBigbitIntroduction _ _ ->
-                                        bigbit.introduction
+                        , githubMarkdown [ hidden <| Bigbit.isFSOpen bigbit.fs ] <|
+                            case shared.route of
+                                Route.HomeComponentViewBigbitIntroduction _ _ ->
+                                    bigbit.introduction
 
-                                    Route.HomeComponentViewBigbitConclusion _ _ ->
-                                        bigbit.conclusion
+                                Route.HomeComponentViewBigbitConclusion _ _ ->
+                                    bigbit.conclusion
 
-                                    Route.HomeComponentViewBigbitFrame _ frameNumber _ ->
-                                        (Array.get
-                                            (frameNumber - 1)
-                                            bigbit.highlightedComments
-                                        )
-                                            |> Maybe.map .comment
-                                            |> Maybe.withDefault ""
+                                Route.HomeComponentViewBigbitFrame _ frameNumber _ ->
+                                    (Array.get
+                                        (frameNumber - 1)
+                                        bigbit.highlightedComments
+                                    )
+                                        |> Maybe.map .comment
+                                        |> Maybe.withDefault ""
 
-                                    _ ->
-                                        ""
-                                )
-                            ]
+                                _ ->
+                                    ""
                         , div
                             [ class "view-bigbit-fs"
                             , hidden <| not <| Bigbit.isFSOpen bigbit.fs
