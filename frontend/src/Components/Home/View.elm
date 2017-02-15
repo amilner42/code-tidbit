@@ -824,7 +824,7 @@ createBigbitView model shared =
                           )
                         , ( "filled-in", Bigbit.createDataCodeTabFilledIn model.bigbitCreateData )
                         ]
-                    , onClick <| GoTo <| Route.HomeComponentCreateBigbitCodeIntroduction Nothing
+                    , onClick <| BigbitGoToCodeTab
                     ]
                     [ text "Code"
                     , checkIcon
@@ -1492,7 +1492,7 @@ createSnipbitView model shared =
                           )
                         , ( "filled-in", Snipbit.createDataCodeTabFilledIn model.snipbitCreateData )
                         ]
-                    , onClick <| GoTo Route.HomeComponentCreateSnipbitCodeIntroduction
+                    , onClick <| SnipbitGoToCodeTab
                     ]
                     [ text "Code"
                     , checkIcon

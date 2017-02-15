@@ -23,6 +23,7 @@ type Msg
     | OnLogOutFailure ApiError.ApiError
     | OnLogOutSuccess BasicResponse.BasicResponse
     | ShowInfoFor (Maybe TidbitType)
+    | SnipbitGoToCodeTab
     | SnipbitUpdateLanguageQuery String
     | SnipbitUpdateACState AC.Msg
     | SnipbitUpdateACWrap Bool
@@ -46,6 +47,7 @@ type Msg
     | OnSnipbitPublishFailure ApiError.ApiError
     | OnGetSnipbitFailure ApiError.ApiError
     | OnGetSnipbitSuccess Snipbit.Snipbit
+    | BigbitGoToCodeTab
     | BigbitReset
     | BigbitUpdateName String
     | BigbitUpdateDescription String

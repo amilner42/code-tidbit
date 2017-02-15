@@ -337,6 +337,15 @@ update msg model shared =
             ShowInfoFor maybeTidbitType ->
                 ( { model | showInfoFor = maybeTidbitType }, shared, Cmd.none )
 
+            SnipbitGoToCodeTab ->
+                ( updateSnipbitCreateData
+                    { currentSnipbitCreateData
+                        | previewMarkdown = False
+                    }
+                , shared
+                , Route.navigateTo Route.HomeComponentCreateSnipbitCodeIntroduction
+                )
+
             SnipbitUpdateLanguageQuery newLanguageQuery ->
                 let
                     newSnipbitCreateData =
@@ -810,6 +819,23 @@ update msg model shared =
                                 Nothing
                     , readOnly = True
                     }
+                )
+
+            BigbitGoToCodeTab ->
+                ( updateBigbitCreateData
+                    { currentBigbitCreateData
+                        | previewMarkdown = False
+                        , fs =
+                            currentBigbitCreateData.fs
+                                |> FS.updateFSMetadata
+                                    (\fsMetadata ->
+                                        { fsMetadata
+                                            | openFS = False
+                                        }
+                                    )
+                    }
+                , shared
+                , Route.navigateTo <| Route.HomeComponentCreateBigbitCodeIntroduction Nothing
                 )
 
             BigbitReset ->
