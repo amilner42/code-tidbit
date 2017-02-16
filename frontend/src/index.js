@@ -104,8 +104,6 @@ app.ports.createCodeEditor.subscribe(function(editorConfig) {
       // minimize changes to the DOM), we manually delete the last div and
       // put in a new div with the correct `id`. This ensures that every time
       // we create a new ace editor it is indeed a new editor.
-      // TODO It may be possible to do this in Elm with Html.Keyed to force it
-      //      to delete the old DOM node.
       const parentCodeWrapperDiv = document.getElementById("code-editor-wrapper");
       const codeEditorDiv = document.getElementById(editorConfig.id);
       const newBlankDiv = document.createElement("div");
