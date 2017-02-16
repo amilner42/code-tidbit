@@ -5,7 +5,7 @@ import Api
 import Autocomplete as AC
 import Components.Home.Init as HomeInit
 import Components.Home.Messages exposing (Msg(..))
-import Components.Home.Model exposing (Model)
+import Components.Home.Model as Model exposing (Model)
 import Components.Model exposing (Shared)
 import Dom
 import Dict
@@ -63,6 +63,18 @@ update msg model shared =
             { model
                 | viewingBigbit =
                     Maybe.map bigbitUpdater model.viewingBigbit
+            }
+
+        updateViewingBigbitRelevantHC : (Model.ViewingBigbitRelevantHC -> Model.ViewingBigbitRelevantHC) -> Model
+        updateViewingBigbitRelevantHC updater =
+            { model
+                | viewingBigbitRelevantHC = Maybe.map updater model.viewingBigbitRelevantHC
+            }
+
+        updateViewingSnipbitRelevantHC : (Model.ViewingSnipbitRelevantHC -> Model.ViewingSnipbitRelevantHC) -> Model
+        updateViewingSnipbitRelevantHC updater =
+            { model
+                | viewingSnipbitRelevantHC = Maybe.map updater model.viewingSnipbitRelevantHC
             }
     in
         case msg of
@@ -771,13 +783,74 @@ update msg model shared =
                                             | viewingSnipbitRelevantHC =
                                                 Just
                                                     { currentHC = Nothing
-                                                    , relevantHC = Array.toList relevantHC
+                                                    , relevantHC =
+                                                        relevantHC
                                                     }
                                           }
                                         , shared
                                         , Cmd.none
                                         )
                                    )
+
+            ViewSnipbitBrowseRelevantHC ->
+                ( updateViewingSnipbitRelevantHC
+                    (\currentRelevantHC ->
+                        { currentRelevantHC
+                            | currentHC = Just 0
+                        }
+                    )
+                , shared
+                , Cmd.none
+                )
+
+            ViewSnipbitCancelBrowseRelevantHC ->
+                ( updateViewingSnipbitRelevantHC
+                    (\currentRelevantHC ->
+                        { currentRelevantHC
+                            | currentHC = Nothing
+                        }
+                    )
+                , shared
+                , Cmd.none
+                )
+
+            ViewSnipbitNextRelevantHC ->
+                ( updateViewingSnipbitRelevantHC
+                    (\currentRelevantHC ->
+                        { currentRelevantHC
+                            | currentHC =
+                                if Model.viewerRelevantHCOnLastFrame currentRelevantHC then
+                                    currentRelevantHC.currentHC
+                                else
+                                    Maybe.map ((+) 1) currentRelevantHC.currentHC
+                        }
+                    )
+                , shared
+                , Cmd.none
+                )
+
+            ViewSnipbitPreviousRelevantHC ->
+                ( updateViewingSnipbitRelevantHC
+                    (\currentRelevantHC ->
+                        { currentRelevantHC
+                            | currentHC =
+                                if Model.viewerRelevantHCOnFirstFrame currentRelevantHC then
+                                    currentRelevantHC.currentHC
+                                else
+                                    Maybe.map ((flip (-)) 1) currentRelevantHC.currentHC
+                        }
+                    )
+                , shared
+                , Cmd.none
+                )
+
+            ViewSnipbitJumpToFrame route ->
+                ( { model
+                    | viewingSnipbitRelevantHC = Nothing
+                  }
+                , shared
+                , Route.navigateTo route
+                )
 
             BigbitGoToCodeTab ->
                 ( updateBigbitCreateData
@@ -1453,7 +1526,7 @@ update msg model shared =
                                             | viewingBigbitRelevantHC =
                                                 Just
                                                     { currentHC = Nothing
-                                                    , relevantHC = Array.toList relevantHC
+                                                    , relevantHC = relevantHC
                                                     }
                                           }
                                         , shared

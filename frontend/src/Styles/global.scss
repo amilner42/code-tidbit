@@ -60,6 +60,14 @@ textarea:focus {
     bottom: 0;
 }
 
+.absolute-box {
+    position: absolute;
+}
+
+.relative-box {
+    position: relative;
+}
+
 .gray-button {
     color: white;
     background-color: lightgrey;

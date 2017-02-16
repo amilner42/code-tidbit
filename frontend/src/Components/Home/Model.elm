@@ -1,5 +1,6 @@
 module Components.Home.Model exposing (..)
 
+import Array
 import DefaultServices.Util as Util
 import Json.Decode as Decode exposing (field)
 import Json.Encode as Encode
@@ -30,8 +31,84 @@ reading.
 -}
 type alias ViewerRelevantHC hcType =
     { currentHC : Maybe Int
-    , relevantHC : List ( Int, hcType )
+    , relevantHC : Array.Array ( Int, hcType )
     }
+
+
+{-| Returns true if there are no relevant HC.
+-}
+viewerRelevantHCIsEmpty : ViewerRelevantHC a -> Bool
+viewerRelevantHCIsEmpty =
+    .relevantHC >> Array.isEmpty
+
+
+{-| Returns true if viewing the first frame.
+-}
+viewerRelevantHCOnFirstFrame : ViewerRelevantHC a -> Bool
+viewerRelevantHCOnFirstFrame =
+    .currentHC >> ((==) <| Just 0)
+
+
+{-| Returns true if viewing the last frame.
+-}
+viewerRelevantHCOnLastFrame : ViewerRelevantHC a -> Bool
+viewerRelevantHCOnLastFrame vr =
+    vr.currentHC == Just ((Array.length vr.relevantHC) - 1)
+
+
+{-| Returns the current frame and the total number of frames, 1-based-indexing.
+-}
+viewerRelevantHCurrentFramePair : ViewerRelevantHC a -> Maybe ( Int, Int )
+viewerRelevantHCurrentFramePair vr =
+    case vr.currentHC of
+        Nothing ->
+            Nothing
+
+        Just currentPos ->
+            Just ( currentPos + 1, Array.length vr.relevantHC )
+
+
+{-| Returns true if the user is browsing the relevant HC.
+-}
+viewerRelevantHCBrowsingFrames : ViewerRelevantHC a -> Bool
+viewerRelevantHCBrowsingFrames vr =
+    Util.isNotNothing <| viewerRelevantHCurrentFramePair vr
+
+
+{-| Returns true if the viewer has relevant HC to be browsed but the user is
+currently not browsing any.
+-}
+viewerRelevantHCHasFramesButNotBrowsing : ViewerRelevantHC a -> Bool
+viewerRelevantHCHasFramesButNotBrowsing vr =
+    Util.isNothing vr.currentHC && (not <| viewerRelevantHCIsEmpty vr)
+
+
+{-| Returns true if the snipbit viewer has no relevant HC at the current model
+state.
+-}
+snipbitViewerHasNoRelevantHC : Model -> Bool
+snipbitViewerHasNoRelevantHC model =
+    model.viewingSnipbitRelevantHC
+        |> Maybe.map viewerRelevantHCIsEmpty
+        |> Maybe.withDefault True
+
+
+{-| Returns true if the user is browsing the snipbit viewer relevant HC.
+-}
+snipbitViewerBrowsingRelevantHC : Model -> Bool
+snipbitViewerBrowsingRelevantHC model =
+    Maybe.map viewerRelevantHCBrowsingFrames model.viewingSnipbitRelevantHC
+        |> Maybe.withDefault False
+
+
+{-| Returns true if the bigbit viewer has no relevant HC at the current model
+state.
+-}
+bigbitViewerHasNoRelevantHC : Model -> Bool
+bigbitViewerHasNoRelevantHC model =
+    model.viewingBigbitRelevantHC
+        |> Maybe.map viewerRelevantHCIsEmpty
+        |> Maybe.withDefault True
 
 
 {-| ViewerRelevantHC `cacheEncoder`.
@@ -41,8 +118,8 @@ viewerRelevantHCCacheEncoder encodeHC viewerRelevantHC =
     Encode.object
         [ ( "currentHC", Util.justValueOrNull Encode.int viewerRelevantHC.currentHC )
         , ( "relevantHC"
-          , Encode.list <|
-                List.map
+          , Encode.array <|
+                Array.map
                     (\hc ->
                         Encode.object
                             [ ( "frameIndex", Encode.int <| Tuple.first hc )
@@ -61,7 +138,7 @@ viewerRelevantHCCacheDecoder decodeHC =
     decode ViewerRelevantHC
         |> required "currentHC" (Decode.maybe Decode.int)
         |> required "relevantHC"
-            (Decode.list
+            (Decode.array
                 (decode (,)
                     |> required "frameIndex" Decode.int
                     |> required "hc" decodeHC

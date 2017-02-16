@@ -3,7 +3,7 @@ module Components.Home.View exposing (..)
 import Array
 import Autocomplete as AC
 import Components.Home.Messages exposing (Msg(..))
-import Components.Home.Model exposing (Model, TidbitType(..))
+import Components.Home.Model as Model exposing (Model, TidbitType(..))
 import Components.Home.Update exposing (filterLanguagesByQuery)
 import Components.Model exposing (Shared)
 import DefaultServices.Util as Util
@@ -115,6 +115,98 @@ progressBar maybeCurrentFrame maxFrame isDisabled =
             ]
 
 
+{-| Gets the comment box for the view snipbit page, can be the markdown for the
+intro/conclusion/frame or the markdown with a few extra buttons for a selected
+range.
+-}
+viewSnipbitCommentBox : Snipbit.Snipbit -> Maybe Model.ViewingSnipbitRelevantHC -> Route.Route -> Html Msg
+viewSnipbitCommentBox snipbit relevantHC route =
+    let
+        -- To display if no relevant HC.
+        htmlIfNoRelevantHC =
+            githubMarkdown [] <|
+                case route of
+                    Route.HomeComponentViewSnipbitIntroduction _ ->
+                        snipbit.introduction
+
+                    Route.HomeComponentViewSnipbitConclusion _ ->
+                        snipbit.conclusion
+
+                    Route.HomeComponentViewSnipbitFrame _ frameNumber ->
+                        (Array.get
+                            (frameNumber - 1)
+                            snipbit.highlightedComments
+                        )
+                            |> Maybe.map .comment
+                            |> Maybe.withDefault ""
+
+                    _ ->
+                        ""
+    in
+        case relevantHC of
+            Nothing ->
+                htmlIfNoRelevantHC
+
+            Just ({ currentHC, relevantHC } as viewerRelevantHC) ->
+                case currentHC of
+                    Nothing ->
+                        htmlIfNoRelevantHC
+
+                    Just index ->
+                        div
+                            [ class "snipbit-view-relavnt-hc" ]
+                            [ case Model.viewerRelevantHCurrentFramePair viewerRelevantHC of
+                                Nothing ->
+                                    Util.hiddenDiv
+
+                                Just ( current, total ) ->
+                                    div
+                                        [ class "above-comment-block-text" ]
+                                        [ if total == 1 then
+                                            text "1 relevant frame found for current selection"
+                                          else
+                                            text <| "On frame " ++ (toString current) ++ " of " ++ (toString total) ++ " relevant frames found for current selection"
+                                        ]
+                            , div
+                                [ classList
+                                    [ ( "above-comment-block-button", True )
+                                    , ( "disabled", Model.viewerRelevantHCOnFirstFrame viewerRelevantHC )
+                                    ]
+                                , onClick ViewSnipbitPreviousRelevantHC
+                                ]
+                                [ text "Previous" ]
+                            , div
+                                [ classList
+                                    [ ( "above-comment-block-button next-button", True )
+                                    , ( "disabled", Model.viewerRelevantHCOnLastFrame viewerRelevantHC )
+                                    ]
+                                , onClick ViewSnipbitNextRelevantHC
+                                ]
+                                [ text "Next" ]
+                            , div
+                                [ classList
+                                    [ ( "above-comment-block-button go-to-frame-button", True ) ]
+                                , onClick
+                                    (Array.get index relevantHC
+                                        |> Maybe.map
+                                            (ViewSnipbitJumpToFrame
+                                                << Route.HomeComponentViewSnipbitFrame snipbit.id
+                                                << ((+) 1)
+                                                << Tuple.first
+                                            )
+                                        |> Maybe.withDefault NoOp
+                                    )
+                                ]
+                                [ text "Jump To Frame" ]
+                            , githubMarkdown
+                                []
+                                (Array.get index relevantHC
+                                    |> Maybe.map (Tuple.second >> .comment)
+                                    |> Maybe.withDefault ""
+                                )
+                            ]
+
+
 {-| The view for viewing a snipbit.
 -}
 viewSnipbitView : Model -> Shared -> Html Msg
@@ -128,6 +220,32 @@ viewSnipbitView model shared =
                 , onClick <| GoTo Route.HomeComponentBrowse
                 ]
                 [ text "Back" ]
+            , button
+                [ classList
+                    [ ( "sub-bar-button view-relevant-ranges", True )
+                    , ( "hidden"
+                      , not
+                            (Maybe.map Model.viewerRelevantHCHasFramesButNotBrowsing model.viewingSnipbitRelevantHC
+                                |> Maybe.withDefault False
+                            )
+                      )
+                    ]
+                , onClick <| ViewSnipbitBrowseRelevantHC
+                ]
+                [ text "Browse Related Frames" ]
+            , button
+                [ classList
+                    [ ( "sub-bar-button view-relevant-ranges", True )
+                    , ( "hidden"
+                      , not
+                            (Maybe.map Model.viewerRelevantHCBrowsingFrames model.viewingSnipbitRelevantHC
+                                |> Maybe.withDefault False
+                            )
+                      )
+                    ]
+                , onClick <| ViewSnipbitCancelBrowseRelevantHC
+                ]
+                [ text "Close Related Frames" ]
             ]
         , case model.viewingSnipbit of
             Nothing ->
@@ -142,28 +260,37 @@ viewSnipbitView model shared =
                             [ classList
                                 [ ( "material-icons action-button", True )
                                 , ( "disabled-icon"
-                                  , case shared.route of
+                                  , (case shared.route of
                                         Route.HomeComponentViewSnipbitIntroduction _ ->
                                             True
 
                                         _ ->
                                             False
+                                    )
+                                        || (Model.snipbitViewerBrowsingRelevantHC model)
                                   )
                                 ]
                             , onClick <|
-                                case shared.route of
-                                    Route.HomeComponentViewSnipbitConclusion mongoID ->
-                                        GoTo <| Route.HomeComponentViewSnipbitFrame mongoID (Array.length snipbit.highlightedComments)
+                                if (Model.snipbitViewerBrowsingRelevantHC model) then
+                                    NoOp
+                                else
+                                    case shared.route of
+                                        Route.HomeComponentViewSnipbitConclusion mongoID ->
+                                            ViewSnipbitJumpToFrame <| Route.HomeComponentViewSnipbitFrame mongoID (Array.length snipbit.highlightedComments)
 
-                                    Route.HomeComponentViewSnipbitFrame mongoID frameNumber ->
-                                        GoTo <| Route.HomeComponentViewSnipbitFrame mongoID (frameNumber - 1)
+                                        Route.HomeComponentViewSnipbitFrame mongoID frameNumber ->
+                                            ViewSnipbitJumpToFrame <| Route.HomeComponentViewSnipbitFrame mongoID (frameNumber - 1)
 
-                                    _ ->
-                                        NoOp
+                                        _ ->
+                                            NoOp
                             ]
                             [ text "arrow_back" ]
                         , div
-                            [ onClick <| GoTo <| Route.HomeComponentViewSnipbitIntroduction snipbit.id
+                            [ onClick <|
+                                if (Model.snipbitViewerBrowsingRelevantHC model) then
+                                    NoOp
+                                else
+                                    GoTo <| Route.HomeComponentViewSnipbitIntroduction snipbit.id
                             , classList
                                 [ ( "viewer-navbar-item", True )
                                 , ( "selected"
@@ -174,6 +301,7 @@ viewSnipbitView model shared =
                                         _ ->
                                             False
                                   )
+                                , ( "disabled", Model.snipbitViewerBrowsingRelevantHC model )
                                 ]
                             ]
                             [ text "Introduction" ]
@@ -189,9 +317,13 @@ viewSnipbitView model shared =
                                     Nothing
                             )
                             (Array.length snipbit.highlightedComments)
-                            False
+                            (Model.snipbitViewerBrowsingRelevantHC model)
                         , div
-                            [ onClick <| GoTo <| Route.HomeComponentViewSnipbitConclusion snipbit.id
+                            [ onClick <|
+                                if (Model.snipbitViewerBrowsingRelevantHC model) then
+                                    NoOp
+                                else
+                                    GoTo <| Route.HomeComponentViewSnipbitConclusion snipbit.id
                             , classList
                                 [ ( "viewer-navbar-item", True )
                                 , ( "selected"
@@ -202,6 +334,7 @@ viewSnipbitView model shared =
                                         _ ->
                                             False
                                   )
+                                , ( "disabled", Model.snipbitViewerBrowsingRelevantHC model )
                                 ]
                             ]
                             [ text "Conclusion" ]
@@ -209,48 +342,39 @@ viewSnipbitView model shared =
                             [ classList
                                 [ ( "material-icons action-button", True )
                                 , ( "disabled-icon"
-                                  , case shared.route of
+                                  , (case shared.route of
                                         Route.HomeComponentViewSnipbitConclusion _ ->
                                             True
 
                                         _ ->
                                             False
+                                    )
+                                        || (Model.snipbitViewerBrowsingRelevantHC model)
                                   )
                                 ]
                             , onClick <|
-                                case shared.route of
-                                    Route.HomeComponentViewSnipbitIntroduction mongoID ->
-                                        GoTo <| Route.HomeComponentViewSnipbitFrame mongoID 1
+                                if (Model.snipbitViewerBrowsingRelevantHC model) then
+                                    NoOp
+                                else
+                                    case shared.route of
+                                        Route.HomeComponentViewSnipbitIntroduction mongoID ->
+                                            ViewSnipbitJumpToFrame <| Route.HomeComponentViewSnipbitFrame mongoID 1
 
-                                    Route.HomeComponentViewSnipbitFrame mongoID frameNumber ->
-                                        GoTo <| Route.HomeComponentViewSnipbitFrame mongoID (frameNumber + 1)
+                                        Route.HomeComponentViewSnipbitFrame mongoID frameNumber ->
+                                            ViewSnipbitJumpToFrame <| Route.HomeComponentViewSnipbitFrame mongoID (frameNumber + 1)
 
-                                    _ ->
-                                        NoOp
+                                        _ ->
+                                            NoOp
                             ]
                             [ text "arrow_forward" ]
                         ]
                     , Editor.editor "view-snipbit-code-editor"
                     , div
                         [ class "comment-block" ]
-                        [ githubMarkdown [] <|
-                            case shared.route of
-                                Route.HomeComponentViewSnipbitIntroduction _ ->
-                                    snipbit.introduction
-
-                                Route.HomeComponentViewSnipbitConclusion _ ->
-                                    snipbit.conclusion
-
-                                Route.HomeComponentViewSnipbitFrame _ frameNumber ->
-                                    (Array.get
-                                        (frameNumber - 1)
-                                        snipbit.highlightedComments
-                                    )
-                                        |> Maybe.map .comment
-                                        |> Maybe.withDefault ""
-
-                                _ ->
-                                    ""
+                        [ viewSnipbitCommentBox
+                            snipbit
+                            model.viewingSnipbitRelevantHC
+                            shared.route
                         ]
                     ]
         ]
@@ -269,6 +393,13 @@ viewBigbitView model shared =
                 , onClick <| GoTo Route.HomeComponentBrowse
                 ]
                 [ text "Back" ]
+            , button
+                [ classList
+                    [ ( "sub-bar-button view-relevant-ranges", True )
+                    , ( "hidden", Model.bigbitViewerHasNoRelevantHC model )
+                    ]
+                ]
+                [ text "Browse Relevant Ranges" ]
             ]
         , case model.viewingBigbit of
             Nothing ->

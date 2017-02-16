@@ -39,6 +39,29 @@
             .sub-bar-button {
                 margin-left: 10px;
             }
+
+            // Styles copied but these really go beneath the comment block.
+            .above-comment-block-button {
+                width: 119px;
+                bottom: 0px;
+                top: auto;
+                width: 100px;
+            }
+
+            .next-button {
+                right: 0px;
+            }
+
+            .go-to-frame-button {
+                right: 102px;
+                width: 156px;
+            }
+
+            .snipbit-view-relavnt-hc {
+                .markdown-box {
+                    height: 568px;
+                }
+            }
         }
 
         .create-select-tidbit-title {
@@ -792,6 +815,13 @@
                     font-size: 16px;
                     resize: vertical;
                 }
+
+                .above-comment-block-text {
+                    position: absolute;
+                    font-size: 12px;
+                    color: $color4;
+                    top: -15px;
+                }
             }
         }
 
@@ -854,6 +884,11 @@
             &:hover {
                 background-color: $color6;
             }
+
+            &.disabled {
+                cursor: not-allowed;
+                opacity: 0.5;
+            }
         }
 
         .comment-body-bottom-buttons {
@@ -906,6 +941,12 @@
 
                 &:hover {
                     @include strong-box-shadow();
+                }
+
+                &.view-relevant-ranges {
+                    width: 150px !important;
+                    float: right;
+                    margin-right: 10px;
                 }
             }
         }

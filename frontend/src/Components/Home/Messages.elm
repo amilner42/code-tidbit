@@ -48,6 +48,11 @@ type Msg
     | OnGetSnipbitFailure ApiError.ApiError
     | OnGetSnipbitSuccess Snipbit.Snipbit
     | ViewSnipbitRangeSelected Range.Range
+    | ViewSnipbitBrowseRelevantHC
+    | ViewSnipbitCancelBrowseRelevantHC
+    | ViewSnipbitNextRelevantHC
+    | ViewSnipbitPreviousRelevantHC
+    | ViewSnipbitJumpToFrame Route.Route
     | BigbitGoToCodeTab
     | BigbitReset
     | BigbitUpdateName String

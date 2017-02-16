@@ -103,7 +103,7 @@ newValidRange range newCode =
 (<<<) : Range -> Range -> Bool
 (<<<) range1 range2 =
     (range1.endRow < range2.startRow)
-        || (range1.endRow == range2.startRow && range1.endCol < range2.startCol)
+        || (range1.endRow == range2.startRow && range1.endCol <= range2.startCol)
 
 
 {-| Returns true if `range1` is after `range2` and has absolute no overlap.
@@ -111,7 +111,7 @@ newValidRange range newCode =
 (>>>) : Range -> Range -> Bool
 (>>>) range1 range2 =
     (range1.startRow > range2.endRow)
-        || (range1.startRow == range2.endRow && range1.startCol > range2.endCol)
+        || (range1.startRow == range2.endRow && range1.startCol >= range2.endCol)
 
 
 {-| Checks if 2 ranges overlap at all.
