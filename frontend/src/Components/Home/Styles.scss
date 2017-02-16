@@ -12,6 +12,11 @@
         height: 100%;
 
         .view-bigbit {
+            height: 100%;
+
+            .sub-bar-button {
+                margin-left: 10px;
+            }
 
             .view-bigbit-toggle-fs {
                 @extend .above-comment-block-button;
@@ -28,7 +33,13 @@
             }
         }
 
-        .view-snipbit { }
+        .view-snipbit {
+            height: 100%;
+
+            .sub-bar-button {
+                margin-left: 10px;
+            }
+        }
 
         .create-select-tidbit-title {
             color: $color6;
@@ -233,35 +244,6 @@
             }
         }
 
-        .create-tidbit-sub-bar {
-            position: relative;
-            display: inline-block;
-            width: 100%;
-            background-color: $color9;
-            margin-bottom: 10px;
-            height: 40px;
-            padding-top: 10px;
-            border-bottom: 1px solid $color2;
-
-            .sub-bar-button {
-                @include light-box-shadow();
-
-                position: relative;
-                display: inline-block;
-                height: 30px;
-                width: 100px;
-                border: none;
-                border-radius: 2px;
-                color: $color6;
-                background-color: white;
-                cursor: pointer;
-
-                &:hover {
-                    @include strong-box-shadow();
-                }
-            }
-        }
-
         .create-bigbit {
 
             height: 100%;
@@ -270,7 +252,7 @@
                 width: 496px;
             }
 
-            .create-tidbit-sub-bar {
+            .sub-bar {
                 .sub-bar-button {
                     margin-left: 10px;
                 }
@@ -688,7 +670,7 @@
                 }
             }
 
-            .create-tidbit-sub-bar {
+            .sub-bar {
 
                 .create-snipbit-back-button {
                     @extend .sub-bar-button;
@@ -743,8 +725,8 @@
 
             .viewer-navbar {
                 display: block;
-                height: 70px;
-                padding-top: 30px;
+                height: 75px;
+                padding-top: 25px;
                 margin: auto;
                 width: 100%;
                 text-align: center;
@@ -895,6 +877,35 @@
 
                 button {
                     width: 35px;
+                }
+            }
+        }
+
+        .sub-bar {
+            position: relative;
+            display: inline-block;
+            width: 100%;
+            background-color: $color9;
+            margin-bottom: 10px;
+            height: 40px;
+            padding-top: 10px;
+            border-bottom: 1px solid $color2;
+
+            .sub-bar-button {
+                @include light-box-shadow();
+
+                position: relative;
+                display: inline-block;
+                height: 30px;
+                width: 100px;
+                border: none;
+                border-radius: 2px;
+                color: $color6;
+                background-color: white;
+                cursor: pointer;
+
+                &:hover {
+                    @include strong-box-shadow();
                 }
             }
         }

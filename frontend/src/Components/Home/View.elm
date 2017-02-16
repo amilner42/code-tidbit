@@ -121,12 +121,20 @@ viewSnipbitView : Model -> Shared -> Html Msg
 viewSnipbitView model shared =
     div
         [ class "view-snipbit" ]
-        (case model.viewingSnipbit of
+        [ div
+            [ class "sub-bar" ]
+            [ button
+                [ class "sub-bar-button"
+                , onClick <| GoTo Route.HomeComponentBrowse
+                ]
+                [ text "Back" ]
+            ]
+        , case model.viewingSnipbit of
             Nothing ->
-                [ text "LOADING" ]
+                text "LOADING"
 
             Just snipbit ->
-                [ div
+                div
                     [ class "viewer" ]
                     [ div
                         [ class "viewer-navbar" ]
@@ -245,8 +253,7 @@ viewSnipbitView model shared =
                                     ""
                         ]
                     ]
-                ]
-        )
+        ]
 
 
 {-| The view for viewing a bigbit.
@@ -255,7 +262,15 @@ viewBigbitView : Model -> Shared -> Html Msg
 viewBigbitView model shared =
     div
         [ class "view-bigbit" ]
-        [ case model.viewingBigbit of
+        [ div
+            [ class "sub-bar" ]
+            [ button
+                [ class "sub-bar-button"
+                , onClick <| GoTo Route.HomeComponentBrowse
+                ]
+                [ text "Back" ]
+            ]
+        , case model.viewingBigbit of
             Nothing ->
                 div
                     []
@@ -1291,7 +1306,7 @@ createBigbitView model shared =
         div
             [ class "create-bigbit" ]
             [ div
-                [ class "create-tidbit-sub-bar" ]
+                [ class "sub-bar" ]
                 [ button
                     [ class "sub-bar-button"
                     , onClick <| GoTo Route.HomeComponentCreate
@@ -1359,9 +1374,6 @@ createBigbitView model shared =
                 -- Should never happen
                 _ ->
                     div [] []
-            , div
-                [ class "invisible-bottom" ]
-                []
             ]
 
 
@@ -1793,7 +1805,7 @@ createSnipbitView model shared =
         div
             [ class "create-snipbit" ]
             [ div
-                [ class "create-tidbit-sub-bar" ]
+                [ class "sub-bar" ]
                 [ button
                     [ class "create-snipbit-back-button"
                     , onClick <| GoTo Route.HomeComponentCreate
@@ -1811,7 +1823,4 @@ createSnipbitView model shared =
                 [ createSnipbitNavbar
                 , viewForTab
                 ]
-            , div
-                [ class "invisible-bottom" ]
-                []
             ]
