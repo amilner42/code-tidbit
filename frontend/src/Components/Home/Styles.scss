@@ -14,8 +14,14 @@
         .view-bigbit {
             height: 100%;
 
-            .sub-bar-button {
-                margin-left: 10px;
+            .sub-bar {
+                .sub-bar-button {
+                    margin-left: 10px;
+                }
+
+                .explore-fs {
+                    width: 150px;
+                }
             }
 
             .view-bigbit-toggle-fs {

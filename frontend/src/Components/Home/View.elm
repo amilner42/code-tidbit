@@ -394,6 +394,16 @@ viewBigbitView model shared =
                 ]
                 [ text "Back" ]
             , button
+                [ classList [ ( "sub-bar-button explore-fs", True ) ]
+                , onClick <| ViewBigbitToggleFS
+                ]
+                [ text <|
+                    if Maybe.map .fs model.viewingBigbit |> Util.maybeMapWithDefault Bigbit.isFSOpen False then
+                        "Resume Tutorial"
+                    else
+                        "Explore File Structure"
+                ]
+            , button
                 [ classList
                     [ ( "sub-bar-button view-relevant-ranges", True )
                     , ( "hidden", Model.bigbitViewerHasNoRelevantHC model )
@@ -530,18 +540,6 @@ viewBigbitView model shared =
                     , div
                         [ class "comment-block" ]
                         [ div
-                            [ class "view-bigbit-toggle-fs"
-                            , onClick <| ViewBigbitToggleFS
-                            ]
-                            [ text <|
-                                case Bigbit.isFSOpen bigbit.fs of
-                                    True ->
-                                        "Resume Tutorial"
-
-                                    False ->
-                                        "Explore File Structure"
-                            ]
-                        , div
                             [ class "above-editor-text" ]
                             [ text <|
                                 case Bigbit.viewPageCurrentActiveFile shared.route bigbit of
