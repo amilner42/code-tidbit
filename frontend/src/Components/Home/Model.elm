@@ -253,7 +253,7 @@ cacheEncoder model =
         [ ( "logOutError", Encode.null )
         , ( "showInfoFor", Util.justValueOrNull tidbitTypeCacheEncoder model.showInfoFor )
         , ( "viewingSnipbit", Util.justValueOrNull Snipbit.snipbitCacheEncoder model.viewingSnipbit )
-        , ( "viewingSnipbitRelevantRanges"
+        , ( "viewingSnipbitRelevantHC"
           , Util.justValueOrNull viewingSnipbitRelevantHCCacheEncoder model.viewingSnipbitRelevantHC
           )
         , ( "viewingBigbit", Util.justValueOrNull Bigbit.bigbitEncoder model.viewingBigbit )
