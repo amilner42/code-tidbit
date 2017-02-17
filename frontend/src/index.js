@@ -122,6 +122,11 @@ app.ports.createCodeEditor.subscribe(function(editorConfig) {
       aceCodeEditor.resize(true);
       const editorSelection = aceCodeEditor.getSelection();
 
+      // Turns off the auto-linting, we may want to turn this on in the future
+      // but because it's only for a few languages and it ends up being annoying
+      // if you're just doing an incomplete snippet, probably not...
+      aceCodeEditor.getSession().setUseWorker(false);
+
       // Set theme and language.
       aceCodeEditor.getSession().setMode(editorConfig.lang || "ace/mode/text");
       aceCodeEditor.setTheme(editorConfig.theme || "ace/theme/monokai");
