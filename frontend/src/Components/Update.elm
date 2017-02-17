@@ -305,6 +305,7 @@ handleLocationChange maybeRoute model =
                             , value = aceValue
                             , range = aceRange
                             , readOnly = False
+                            , selectAllowed = True
                             }
                         , Ports.doScrolling { querySelector = ".invisible-bottom", duration = 750 }
                         ]

@@ -163,9 +163,9 @@ viewSnipbitCommentBox snipbit relevantHC route =
                                     div
                                         [ class "above-comment-block-text" ]
                                         [ if total == 1 then
-                                            text "1 relevant frame found for current selection"
+                                            text "Only this frame is related to your selection"
                                           else
-                                            text <| "On frame " ++ (toString current) ++ " of " ++ (toString total) ++ " relevant frames found for current selection"
+                                            text <| "On frame " ++ (toString current) ++ " of the " ++ (toString total) ++ " frames that are related to your selection"
                                         ]
                             , div
                                 [ classList

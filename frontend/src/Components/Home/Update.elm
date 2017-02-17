@@ -102,7 +102,9 @@ update msg model shared =
 
                             Just snipbit ->
                                 if snipbit.id == mongoID then
-                                    ( model
+                                    ( { model
+                                        | viewingSnipbitRelevantHC = Nothing
+                                      }
                                     , shared
                                     , createViewSnipbitCodeEditor snipbit shared
                                     )
@@ -144,6 +146,7 @@ update msg model shared =
                                         , value = ""
                                         , range = Nothing
                                         , readOnly = True
+                                        , selectAllowed = True
                                         }
 
                                 Just filePath ->
@@ -159,6 +162,7 @@ update msg model shared =
                                                 , value = content
                                                 , range = maybeRange
                                                 , readOnly = False
+                                                , selectAllowed = True
                                                 }
                             , smoothScrollToBottom
                             ]
@@ -756,6 +760,7 @@ update msg model shared =
             OnGetSnipbitSuccess snipbit ->
                 ( { model
                     | viewingSnipbit = Just snipbit
+                    , viewingSnipbitRelevantHC = Nothing
                   }
                 , shared
                 , createViewSnipbitCodeEditor snipbit shared
@@ -793,56 +798,67 @@ update msg model shared =
                                    )
 
             ViewSnipbitBrowseRelevantHC ->
-                ( updateViewingSnipbitRelevantHC
-                    (\currentRelevantHC ->
-                        { currentRelevantHC
-                            | currentHC = Just 0
-                        }
+                let
+                    newModel =
+                        updateViewingSnipbitRelevantHC
+                            (\currentRelevantHC ->
+                                { currentRelevantHC
+                                    | currentHC = Just 0
+                                }
+                            )
+                in
+                    ( newModel
+                    , shared
+                    , createViewSnipbitHCCodeEditor newModel.viewingSnipbit newModel.viewingSnipbitRelevantHC shared.user
                     )
-                , shared
-                , Cmd.none
-                )
 
             ViewSnipbitCancelBrowseRelevantHC ->
-                ( updateViewingSnipbitRelevantHC
-                    (\currentRelevantHC ->
-                        { currentRelevantHC
-                            | currentHC = Nothing
-                        }
-                    )
+                ( { model
+                    | viewingSnipbitRelevantHC = Nothing
+                  }
                 , shared
-                , Cmd.none
+                  -- Trigger route hook again, `modify` because we don't want to
+                  -- have the same page twice in the history.
+                , Route.modifyTo shared.route
                 )
 
             ViewSnipbitNextRelevantHC ->
-                ( updateViewingSnipbitRelevantHC
-                    (\currentRelevantHC ->
-                        { currentRelevantHC
-                            | currentHC =
-                                if Model.viewerRelevantHCOnLastFrame currentRelevantHC then
-                                    currentRelevantHC.currentHC
-                                else
-                                    Maybe.map ((+) 1) currentRelevantHC.currentHC
-                        }
+                let
+                    newModel =
+                        updateViewingSnipbitRelevantHC
+                            (\currentRelevantHC ->
+                                { currentRelevantHC
+                                    | currentHC =
+                                        if Model.viewerRelevantHCOnLastFrame currentRelevantHC then
+                                            currentRelevantHC.currentHC
+                                        else
+                                            Maybe.map ((+) 1) currentRelevantHC.currentHC
+                                }
+                            )
+                in
+                    ( newModel
+                    , shared
+                    , createViewSnipbitHCCodeEditor newModel.viewingSnipbit newModel.viewingSnipbitRelevantHC shared.user
                     )
-                , shared
-                , Cmd.none
-                )
 
             ViewSnipbitPreviousRelevantHC ->
-                ( updateViewingSnipbitRelevantHC
-                    (\currentRelevantHC ->
-                        { currentRelevantHC
-                            | currentHC =
-                                if Model.viewerRelevantHCOnFirstFrame currentRelevantHC then
-                                    currentRelevantHC.currentHC
-                                else
-                                    Maybe.map ((flip (-)) 1) currentRelevantHC.currentHC
-                        }
+                let
+                    newModel =
+                        updateViewingSnipbitRelevantHC
+                            (\currentRelevantHC ->
+                                { currentRelevantHC
+                                    | currentHC =
+                                        if Model.viewerRelevantHCOnFirstFrame currentRelevantHC then
+                                            currentRelevantHC.currentHC
+                                        else
+                                            Maybe.map ((flip (-)) 1) currentRelevantHC.currentHC
+                                }
+                            )
+                in
+                    ( newModel
+                    , shared
+                    , createViewSnipbitHCCodeEditor newModel.viewingSnipbit newModel.viewingSnipbitRelevantHC shared.user
                     )
-                , shared
-                , Cmd.none
-                )
 
             ViewSnipbitJumpToFrame route ->
                 ( { model
@@ -1535,6 +1551,40 @@ update msg model shared =
                                    )
 
 
+{-| Creates the code editor for the snipbit when browsing the relevant HC.
+
+This will only create the editor if the state of the model (the `Maybe`s) makes
+it appropriate to render the editor.
+-}
+createViewSnipbitHCCodeEditor : Maybe Snipbit.Snipbit -> Maybe Model.ViewingSnipbitRelevantHC -> Maybe User.User -> Cmd msg
+createViewSnipbitHCCodeEditor maybeSnipbit maybeRHC user =
+    case ( maybeSnipbit, maybeRHC ) of
+        ( Just snipbit, Just { currentHC, relevantHC } ) ->
+            let
+                editorWithRange range =
+                    Ports.createCodeEditor
+                        { id = "view-snipbit-code-editor"
+                        , lang = Editor.aceLanguageLocation snipbit.language
+                        , theme = User.getTheme user
+                        , value = snipbit.code
+                        , range = Just range
+                        , readOnly = True
+                        , selectAllowed = False
+                        }
+            in
+                case currentHC of
+                    Nothing ->
+                        Cmd.none
+
+                    Just index ->
+                        Array.get index relevantHC
+                            |> Maybe.map (editorWithRange << .range << Tuple.second)
+                            |> Maybe.withDefault Cmd.none
+
+        _ ->
+            Cmd.none
+
+
 {-| Creates the editor for the snipbit.
 
 Will handle redirects if bad path and highlighting code.
@@ -1550,6 +1600,7 @@ createViewSnipbitCodeEditor snipbit { route, user } =
                 , value = snipbit.code
                 , range = range
                 , readOnly = True
+                , selectAllowed = True
                 }
     in
         Cmd.batch
@@ -1596,6 +1647,7 @@ createViewBigbitCodeEditor bigbit { route, user } =
                 , value = ""
                 , range = Nothing
                 , readOnly = True
+                , selectAllowed = True
                 }
 
         loadFileWithNoHighlight maybePath =
@@ -1616,6 +1668,7 @@ createViewBigbitCodeEditor bigbit { route, user } =
                                 , value = content
                                 , range = Nothing
                                 , readOnly = True
+                                , selectAllowed = True
                                 }
     in
         Cmd.batch
@@ -1647,6 +1700,7 @@ createViewBigbitCodeEditor bigbit { route, user } =
                                                 , value = content
                                                 , range = Just hc.range
                                                 , readOnly = True
+                                                , selectAllowed = True
                                                 }
 
                                 Just absolutePath ->

@@ -161,22 +161,26 @@ app.ports.createCodeEditor.subscribe(function(editorConfig) {
 
       // Watch for selection changes.
       editorSelection.on("changeSelection", () => {
-        // Directly from the ACE api.
-        const aceSelectionRange = aceCodeEditor.getSelectionRange();
+        if(editorConfig.selectAllowed) {
+          // Directly from the ACE api.
+          const aceSelectionRange = aceCodeEditor.getSelectionRange();
 
-        // Set to match the elm port.
-        const elmSelectedRange = {
-          startRow : aceSelectionRange.start.row,
-          startCol : aceSelectionRange.start.column,
-          endRow : aceSelectionRange.end.row,
-          endCol : aceSelectionRange.end.column
-        };
+          // Set to match the elm port.
+          const elmSelectedRange = {
+            startRow : aceSelectionRange.start.row,
+            startCol : aceSelectionRange.start.column,
+            endRow : aceSelectionRange.end.row,
+            endCol : aceSelectionRange.end.column
+          };
 
-        // Update the port with the new selection.
-        app.ports.onCodeEditorSelectionUpdate.send({
-          id: editorConfig.id,
-          range: elmSelectedRange
-        });
+          // Update the port with the new selection.
+          app.ports.onCodeEditorSelectionUpdate.send({
+            id: editorConfig.id,
+            range: elmSelectedRange
+          });
+        } else {
+          aceCodeEditor.getSession().selection.clearSelection();
+        }
       });
 
       aceCodeEditor.on("change", (someObject) => {
@@ -192,5 +196,5 @@ app.ports.createCodeEditor.subscribe(function(editorConfig) {
       // editor here for that purpose.
       aceCodeEditors[editorConfig.id] = aceCodeEditor;
     }
-  }, 50);
+  }, 100);
 });
