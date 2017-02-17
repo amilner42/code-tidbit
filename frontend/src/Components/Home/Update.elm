@@ -132,7 +132,9 @@ update msg model shared =
 
                             Just bigbit ->
                                 if bigbit.id == mongoID then
-                                    ( model
+                                    ( { model
+                                        | viewingBigbitRelevantHC = Nothing
+                                      }
                                     , shared
                                     , createViewBigbitCodeEditor bigbit shared
                                     )
@@ -1453,6 +1455,7 @@ update msg model shared =
             OnGetBigbitSuccess bigbit ->
                 ( { model
                     | viewingBigbit = Just bigbit
+                    , viewingBigbitRelevantHC = Nothing
                   }
                 , shared
                 , createViewBigbitCodeEditor bigbit shared
