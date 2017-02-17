@@ -10,7 +10,7 @@ import Components.Model exposing (Shared)
 import Dom
 import Dict
 import DefaultModel exposing (defaultShared)
-import DefaultServices.Util as Util
+import DefaultServices.Util as Util exposing (maybeMapWithDefault)
 import Elements.Editor as Editor
 import Json.Decode as Decode
 import Models.Bigbit as Bigbit
@@ -64,6 +64,10 @@ update msg model shared =
                 | viewingBigbit =
                     Maybe.map bigbitUpdater model.viewingBigbit
             }
+
+        updateViewingBigbitReturningBigbit : (Bigbit.Bigbit -> Bigbit.Bigbit) -> Maybe Bigbit.Bigbit
+        updateViewingBigbitReturningBigbit updater =
+            Maybe.map updater model.viewingBigbit
 
         updateViewingBigbitRelevantHC : (Model.ViewingBigbitRelevantHC -> Model.ViewingBigbitRelevantHC) -> Model
         updateViewingBigbitRelevantHC updater =
@@ -825,16 +829,7 @@ update msg model shared =
             ViewSnipbitNextRelevantHC ->
                 let
                     newModel =
-                        updateViewingSnipbitRelevantHC
-                            (\currentRelevantHC ->
-                                { currentRelevantHC
-                                    | currentHC =
-                                        if Model.viewerRelevantHCOnLastFrame currentRelevantHC then
-                                            currentRelevantHC.currentHC
-                                        else
-                                            Maybe.map ((+) 1) currentRelevantHC.currentHC
-                                }
-                            )
+                        updateViewingSnipbitRelevantHC Model.viewerRelevantHCGoToNextFrame
                 in
                     ( newModel
                     , shared
@@ -844,16 +839,7 @@ update msg model shared =
             ViewSnipbitPreviousRelevantHC ->
                 let
                     newModel =
-                        updateViewingSnipbitRelevantHC
-                            (\currentRelevantHC ->
-                                { currentRelevantHC
-                                    | currentHC =
-                                        if Model.viewerRelevantHCOnFirstFrame currentRelevantHC then
-                                            currentRelevantHC.currentHC
-                                        else
-                                            Maybe.map ((flip (-)) 1) currentRelevantHC.currentHC
-                                }
-                            )
+                        updateViewingSnipbitRelevantHC Model.viewerRelevantHCGoToPreviousFrame
                 in
                     ( newModel
                     , shared
@@ -1480,12 +1466,16 @@ update msg model shared =
                             |> Maybe.map (not << Bigbit.isFSOpen << .fs)
                             |> Maybe.withDefault False
                 in
-                    ( updateViewingBigbit
-                        (\currentViewingBigbit ->
-                            { currentViewingBigbit
-                                | fs = Bigbit.toggleFS currentViewingBigbit.fs
-                            }
-                        )
+                    ( { model
+                        | viewingBigbit =
+                            updateViewingBigbitReturningBigbit
+                                (\currentViewingBigbit ->
+                                    { currentViewingBigbit
+                                        | fs = Bigbit.toggleFS currentViewingBigbit.fs
+                                    }
+                                )
+                        , viewingBigbitRelevantHC = Nothing
+                      }
                     , shared
                     , if fsJustOpened then
                         Route.navigateToSameUrlWithFilePath
@@ -1550,6 +1540,116 @@ update msg model shared =
                                         )
                                    )
 
+            ViewBigbitBrowseRelevantHC ->
+                let
+                    newModel =
+                        updateViewingBigbitRelevantHC
+                            (\currentRelevantHC ->
+                                { currentRelevantHC
+                                    | currentHC = Just 0
+                                }
+                            )
+                in
+                    ( newModel
+                    , shared
+                    , createViewBigbitHCCodeEditor
+                        newModel.viewingBigbit
+                        newModel.viewingBigbitRelevantHC
+                        shared.user
+                    )
+
+            ViewBigbitCancelBrowseRelevantHC ->
+                ( { model
+                    | viewingBigbitRelevantHC = Nothing
+                  }
+                , shared
+                  -- Trigger route hook again, `modify` because we don't want to
+                  -- have the same page twice in the history.
+                , Route.modifyTo shared.route
+                )
+
+            ViewBigbitNextRelevantHC ->
+                let
+                    newModel =
+                        updateViewingBigbitRelevantHC Model.viewerRelevantHCGoToNextFrame
+                in
+                    ( newModel
+                    , shared
+                    , createViewBigbitHCCodeEditor newModel.viewingBigbit newModel.viewingBigbitRelevantHC shared.user
+                    )
+
+            ViewBigbitPreviousRelevantHC ->
+                let
+                    newModel =
+                        updateViewingBigbitRelevantHC Model.viewerRelevantHCGoToPreviousFrame
+                in
+                    ( newModel
+                    , shared
+                    , createViewBigbitHCCodeEditor newModel.viewingBigbit newModel.viewingBigbitRelevantHC shared.user
+                    )
+
+            ViewBigbitJumpToFrame route ->
+                ( { model
+                    | viewingBigbitRelevantHC = Nothing
+                    , viewingBigbit =
+                        updateViewingBigbitReturningBigbit
+                            (\currentViewingBigbit ->
+                                { currentViewingBigbit
+                                    | fs = Bigbit.closeFS currentViewingBigbit.fs
+                                }
+                            )
+                  }
+                , shared
+                , Route.navigateTo route
+                )
+
+
+{-| Creates the code editor for the bigbit when browsing relevant HC.
+
+This will only create the editor if the state of the model (the `Maybe`s) makes
+it appropriate to render the editor.
+-}
+createViewBigbitHCCodeEditor : Maybe Bigbit.Bigbit -> Maybe Model.ViewingBigbitRelevantHC -> Maybe User.User -> Cmd msg
+createViewBigbitHCCodeEditor maybeBigbit maybeRHC user =
+    case ( maybeBigbit, maybeRHC ) of
+        ( Just bigbit, Just { currentHC, relevantHC } ) ->
+            let
+                editorWithRange range language code =
+                    Ports.createCodeEditor
+                        { id = "view-bigbit-code-editor"
+                        , lang = Editor.aceLanguageLocation language
+                        , theme = User.getTheme user
+                        , value = code
+                        , range = Just range
+                        , readOnly = True
+                        , selectAllowed = False
+                        }
+            in
+                case currentHC of
+                    Nothing ->
+                        Cmd.none
+
+                    Just index ->
+                        Array.get index relevantHC
+                            |> maybeMapWithDefault
+                                (Tuple.second
+                                    >> (\{ range, file } ->
+                                            FS.getFile bigbit.fs file
+                                                |> maybeMapWithDefault
+                                                    (\(FS.File content metadata) ->
+                                                        editorWithRange
+                                                            range
+                                                            metadata.language
+                                                            content
+                                                    )
+                                                    Cmd.none
+                                       )
+                                )
+                                Cmd.none
+
+        _ ->
+            Cmd.none
+
 
 {-| Creates the code editor for the snipbit when browsing the relevant HC.
 
@@ -1578,8 +1678,9 @@ createViewSnipbitHCCodeEditor maybeSnipbit maybeRHC user =
 
                     Just index ->
                         Array.get index relevantHC
-                            |> Maybe.map (editorWithRange << .range << Tuple.second)
-                            |> Maybe.withDefault Cmd.none
+                            |> maybeMapWithDefault
+                                (editorWithRange << .range << Tuple.second)
+                                Cmd.none
 
         _ ->
             Cmd.none

@@ -45,29 +45,6 @@
             .sub-bar-button {
                 margin-left: 10px;
             }
-
-            // Styles copied but these really go beneath the comment block.
-            .above-comment-block-button {
-                width: 119px;
-                bottom: 0px;
-                top: auto;
-                width: 100px;
-            }
-
-            .next-button {
-                right: 0px;
-            }
-
-            .go-to-frame-button {
-                right: 102px;
-                width: 156px;
-            }
-
-            .snipbit-view-relavnt-hc {
-                .markdown-box {
-                    height: 568px;
-                }
-            }
         }
 
         .create-select-tidbit-title {
@@ -736,13 +713,13 @@
         .publish-button {
             @extend .disabled-publish-button;
 
-            background-color: $color7;
-            color: white;
+            background-color: $color7 !important;
+            color: white !important;
             cursor: pointer;
 
             &:hover {
-                background-color: $color7;
-                color: $color5;
+                background-color: $color7 !important;
+                color: $color5 !important;
             }
         }
 
@@ -827,6 +804,30 @@
                     font-size: 12px;
                     color: $color4;
                     top: -15px;
+                }
+
+                .view-relevant-hc {
+                    .markdown-box {
+                        height: 568px;
+                    }
+                }
+
+                // Styles copied but these really go beneath the comment block,
+                // not above.
+                .above-comment-block-button {
+                    width: 119px;
+                    bottom: 0px;
+                    top: auto;
+                    width: 100px;
+                }
+
+                .next-button {
+                    right: 0px;
+                }
+
+                .go-to-frame-button {
+                    right: 102px;
+                    width: 156px;
                 }
             }
         }
@@ -953,6 +954,12 @@
                     width: 150px !important;
                     float: right;
                     margin-right: 10px;
+                    background-color: $color7;
+                    color: white;
+
+                    &:hover {
+                        color: $color5;
+                    }
                 }
             }
         }

@@ -83,6 +83,32 @@ viewerRelevantHCHasFramesButNotBrowsing vr =
     Util.isNothing vr.currentHC && (not <| viewerRelevantHCIsEmpty vr)
 
 
+{-| Goes to the next frame if possible.
+-}
+viewerRelevantHCGoToNextFrame : ViewerRelevantHC a -> ViewerRelevantHC a
+viewerRelevantHCGoToNextFrame vr =
+    { vr
+        | currentHC =
+            if viewerRelevantHCOnLastFrame vr then
+                vr.currentHC
+            else
+                Maybe.map ((+) 1) vr.currentHC
+    }
+
+
+{-| Goes the previous frame if possible.
+-}
+viewerRelevantHCGoToPreviousFrame : ViewerRelevantHC a -> ViewerRelevantHC a
+viewerRelevantHCGoToPreviousFrame vr =
+    { vr
+        | currentHC =
+            if viewerRelevantHCOnFirstFrame vr then
+                vr.currentHC
+            else
+                Maybe.map ((flip (-)) 1) vr.currentHC
+    }
+
+
 {-| Returns true if the snipbit viewer has no relevant HC at the current model
 state.
 -}

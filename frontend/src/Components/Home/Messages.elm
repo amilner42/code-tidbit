@@ -84,3 +84,8 @@ type Msg
     | ViewBigbitToggleFolder FS.Path
     | ViewBigbitSelectFile FS.Path
     | ViewBigbitRangeSelected Range.Range
+    | ViewBigbitBrowseRelevantHC
+    | ViewBigbitCancelBrowseRelevantHC
+    | ViewBigbitNextRelevantHC
+    | ViewBigbitPreviousRelevantHC
+    | ViewBigbitJumpToFrame Route.Route
