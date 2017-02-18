@@ -5,12 +5,12 @@ import Api
 import Autocomplete as AC
 import Components.Home.Init as HomeInit
 import Components.Home.Messages exposing (Msg(..))
-import Components.Home.Model exposing (Model)
+import Components.Home.Model as Model exposing (Model)
 import Components.Model exposing (Shared)
 import Dom
 import Dict
 import DefaultModel exposing (defaultShared)
-import DefaultServices.Util as Util
+import DefaultServices.Util as Util exposing (maybeMapWithDefault)
 import Elements.Editor as Editor
 import Json.Decode as Decode
 import Models.Bigbit as Bigbit
@@ -64,6 +64,22 @@ update msg model shared =
                 | viewingBigbit =
                     Maybe.map bigbitUpdater model.viewingBigbit
             }
+
+        updateViewingBigbitReturningBigbit : (Bigbit.Bigbit -> Bigbit.Bigbit) -> Maybe Bigbit.Bigbit
+        updateViewingBigbitReturningBigbit updater =
+            Maybe.map updater model.viewingBigbit
+
+        updateViewingBigbitRelevantHC : (Model.ViewingBigbitRelevantHC -> Model.ViewingBigbitRelevantHC) -> Model
+        updateViewingBigbitRelevantHC updater =
+            { model
+                | viewingBigbitRelevantHC = Maybe.map updater model.viewingBigbitRelevantHC
+            }
+
+        updateViewingSnipbitRelevantHC : (Model.ViewingSnipbitRelevantHC -> Model.ViewingSnipbitRelevantHC) -> Model
+        updateViewingSnipbitRelevantHC updater =
+            { model
+                | viewingSnipbitRelevantHC = Maybe.map updater model.viewingSnipbitRelevantHC
+            }
     in
         case msg of
             NoOp ->
@@ -81,18 +97,30 @@ update msg model shared =
                         , Api.getSnipbit mongoID OnGetSnipbitFailure OnGetSnipbitSuccess
                         )
 
+                    -- If we already have the snipbit, renders, otherwise fetches
+                    -- it from the db.
+                    fetchOrRenderSnipbit mongoID =
+                        case model.viewingSnipbit of
+                            Nothing ->
+                                getSnipbit mongoID
+
+                            Just snipbit ->
+                                if snipbit.id == mongoID then
+                                    ( { model
+                                        | viewingSnipbitRelevantHC = Nothing
+                                      }
+                                    , shared
+                                    , createViewSnipbitCodeEditor snipbit shared
+                                    )
+                                else
+                                    getSnipbit mongoID
+
                     getBigbit mongoID =
                         ( { model
                             | viewingBigbit = Nothing
                           }
                         , shared
                         , Api.getBigbit mongoID OnGetBigbitFailure OnGetBigbitSuccess
-                        )
-
-                    renderSnipbit codeEditorConfig =
-                        ( model
-                        , shared
-                        , Ports.createCodeEditor codeEditorConfig
                         )
 
                     -- If we already have the bigbit, renders, otherwise fetches
@@ -104,7 +132,9 @@ update msg model shared =
 
                             Just bigbit ->
                                 if bigbit.id == mongoID then
-                                    ( model
+                                    ( { model
+                                        | viewingBigbitRelevantHC = Nothing
+                                      }
                                     , shared
                                     , createViewBigbitCodeEditor bigbit shared
                                     )
@@ -122,6 +152,7 @@ update msg model shared =
                                         , value = ""
                                         , range = Nothing
                                         , readOnly = True
+                                        , selectAllowed = True
                                         }
 
                                 Just filePath ->
@@ -137,84 +168,20 @@ update msg model shared =
                                                 , value = content
                                                 , range = maybeRange
                                                 , readOnly = False
+                                                , selectAllowed = True
                                                 }
-                            , Ports.doScrolling { querySelector = ".invisible-bottom", duration = 750 }
+                            , smoothScrollToBottom
                             ]
                 in
                     case shared.route of
                         Route.HomeComponentViewSnipbitIntroduction mongoID ->
-                            case model.viewingSnipbit of
-                                Nothing ->
-                                    getSnipbit mongoID
+                            fetchOrRenderSnipbit mongoID
 
-                                Just aSnipbit ->
-                                    if aSnipbit.id == mongoID then
-                                        renderSnipbit
-                                            { id = "view-snipbit-code-editor"
-                                            , lang = Editor.aceLanguageLocation aSnipbit.language
-                                            , theme = User.getTheme shared.user
-                                            , value = aSnipbit.code
-                                            , range = Nothing
-                                            , readOnly = True
-                                            }
-                                    else
-                                        getSnipbit mongoID
-
-                        Route.HomeComponentViewSnipbitFrame mongoID frameNumber ->
-                            case model.viewingSnipbit of
-                                Nothing ->
-                                    getSnipbit mongoID
-
-                                Just aSnipbit ->
-                                    if aSnipbit.id == mongoID then
-                                        -- Make sure frame is in range, if not
-                                        -- redirect to intro/conclusion depending
-                                        -- on if it's beneath/above range respectively.
-                                        if frameNumber - 1 >= Array.length aSnipbit.highlightedComments then
-                                            ( model
-                                            , shared
-                                            , Route.modifyTo <|
-                                                Route.HomeComponentViewSnipbitConclusion mongoID
-                                            )
-                                        else if frameNumber < 1 then
-                                            ( model
-                                            , shared
-                                            , Route.modifyTo <|
-                                                Route.HomeComponentViewSnipbitIntroduction mongoID
-                                            )
-                                        else
-                                            renderSnipbit
-                                                { id = "view-snipbit-code-editor"
-                                                , lang = Editor.aceLanguageLocation aSnipbit.language
-                                                , theme = User.getTheme shared.user
-                                                , value = aSnipbit.code
-                                                , range =
-                                                    Array.get
-                                                        (frameNumber - 1)
-                                                        aSnipbit.highlightedComments
-                                                        |> Maybe.map .range
-                                                , readOnly = True
-                                                }
-                                    else
-                                        getSnipbit mongoID
+                        Route.HomeComponentViewSnipbitFrame mongoID _ ->
+                            fetchOrRenderSnipbit mongoID
 
                         Route.HomeComponentViewSnipbitConclusion mongoID ->
-                            case model.viewingSnipbit of
-                                Nothing ->
-                                    getSnipbit mongoID
-
-                                Just aSnipbit ->
-                                    if aSnipbit.id == mongoID then
-                                        renderSnipbit
-                                            { id = "view-snipbit-code-editor"
-                                            , lang = Editor.aceLanguageLocation aSnipbit.language
-                                            , theme = User.getTheme shared.user
-                                            , value = aSnipbit.code
-                                            , range = Nothing
-                                            , readOnly = True
-                                            }
-                                    else
-                                        getSnipbit mongoID
+                            fetchOrRenderSnipbit mongoID
 
                         Route.HomeComponentViewBigbitIntroduction mongoID _ ->
                             fetchOrRenderBigbit mongoID
@@ -799,26 +766,94 @@ update msg model shared =
             OnGetSnipbitSuccess snipbit ->
                 ( { model
                     | viewingSnipbit = Just snipbit
+                    , viewingSnipbitRelevantHC = Nothing
                   }
                 , shared
-                , Ports.createCodeEditor
-                    { id = "view-snipbit-code-editor"
-                    , lang = Editor.aceLanguageLocation snipbit.language
-                    , theme = User.getTheme shared.user
-                    , value = snipbit.code
-                    , range =
-                        case shared.route of
-                            Route.HomeComponentViewSnipbitFrame _ frameNumber ->
-                                (Array.get
-                                    (frameNumber - 1)
-                                    snipbit.highlightedComments
-                                )
-                                    |> Maybe.map .range
+                , createViewSnipbitCodeEditor snipbit shared
+                )
 
-                            _ ->
-                                Nothing
-                    , readOnly = True
-                    }
+            ViewSnipbitRangeSelected selectedRange ->
+                case model.viewingSnipbit of
+                    Nothing ->
+                        doNothing
+
+                    Just aSnipbit ->
+                        if Range.isEmptyRange selectedRange then
+                            ( { model
+                                | viewingSnipbitRelevantHC = Nothing
+                              }
+                            , shared
+                            , Cmd.none
+                            )
+                        else
+                            aSnipbit.highlightedComments
+                                |> Array.indexedMap (,)
+                                |> Array.filter (Tuple.second >> .range >> (Range.overlappingRanges selectedRange))
+                                |> (\relevantHC ->
+                                        ( { model
+                                            | viewingSnipbitRelevantHC =
+                                                Just
+                                                    { currentHC = Nothing
+                                                    , relevantHC =
+                                                        relevantHC
+                                                    }
+                                          }
+                                        , shared
+                                        , Cmd.none
+                                        )
+                                   )
+
+            ViewSnipbitBrowseRelevantHC ->
+                let
+                    newModel =
+                        updateViewingSnipbitRelevantHC
+                            (\currentRelevantHC ->
+                                { currentRelevantHC
+                                    | currentHC = Just 0
+                                }
+                            )
+                in
+                    ( newModel
+                    , shared
+                    , createViewSnipbitHCCodeEditor newModel.viewingSnipbit newModel.viewingSnipbitRelevantHC shared.user
+                    )
+
+            ViewSnipbitCancelBrowseRelevantHC ->
+                ( { model
+                    | viewingSnipbitRelevantHC = Nothing
+                  }
+                , shared
+                  -- Trigger route hook again, `modify` because we don't want to
+                  -- have the same page twice in the history.
+                , Route.modifyTo shared.route
+                )
+
+            ViewSnipbitNextRelevantHC ->
+                let
+                    newModel =
+                        updateViewingSnipbitRelevantHC Model.viewerRelevantHCGoToNextFrame
+                in
+                    ( newModel
+                    , shared
+                    , createViewSnipbitHCCodeEditor newModel.viewingSnipbit newModel.viewingSnipbitRelevantHC shared.user
+                    )
+
+            ViewSnipbitPreviousRelevantHC ->
+                let
+                    newModel =
+                        updateViewingSnipbitRelevantHC Model.viewerRelevantHCGoToPreviousFrame
+                in
+                    ( newModel
+                    , shared
+                    , createViewSnipbitHCCodeEditor newModel.viewingSnipbit newModel.viewingSnipbitRelevantHC shared.user
+                    )
+
+            ViewSnipbitJumpToFrame route ->
+                ( { model
+                    | viewingSnipbitRelevantHC = Nothing
+                  }
+                , shared
+                , Route.navigateTo route
                 )
 
             BigbitGoToCodeTab ->
@@ -1420,6 +1455,7 @@ update msg model shared =
             OnGetBigbitSuccess bigbit ->
                 ( { model
                     | viewingBigbit = Just bigbit
+                    , viewingBigbitRelevantHC = Nothing
                   }
                 , shared
                 , createViewBigbitCodeEditor bigbit shared
@@ -1433,12 +1469,16 @@ update msg model shared =
                             |> Maybe.map (not << Bigbit.isFSOpen << .fs)
                             |> Maybe.withDefault False
                 in
-                    ( updateViewingBigbit
-                        (\currentViewingBigbit ->
-                            { currentViewingBigbit
-                                | fs = Bigbit.toggleFS currentViewingBigbit.fs
-                            }
-                        )
+                    ( { model
+                        | viewingBigbit =
+                            updateViewingBigbitReturningBigbit
+                                (\currentViewingBigbit ->
+                                    { currentViewingBigbit
+                                        | fs = Bigbit.toggleFS currentViewingBigbit.fs
+                                    }
+                                )
+                        , viewingBigbitRelevantHC = Nothing
+                      }
                     , shared
                     , if fsJustOpened then
                         Route.navigateToSameUrlWithFilePath
@@ -1469,6 +1509,232 @@ update msg model shared =
                 , Cmd.none
                 )
 
+            ViewBigbitRangeSelected selectedRange ->
+                case model.viewingBigbit of
+                    Nothing ->
+                        doNothing
+
+                    Just aBigbit ->
+                        if Range.isEmptyRange selectedRange then
+                            ( { model
+                                | viewingBigbitRelevantHC = Nothing
+                              }
+                            , shared
+                            , Cmd.none
+                            )
+                        else
+                            aBigbit.highlightedComments
+                                |> Array.indexedMap (,)
+                                |> Array.filter
+                                    (\hc ->
+                                        (Tuple.second hc |> .range |> Range.overlappingRanges selectedRange)
+                                            && (Tuple.second hc |> .file |> Just |> (==) (Bigbit.viewPageCurrentActiveFile shared.route aBigbit))
+                                    )
+                                |> (\relevantHC ->
+                                        ( { model
+                                            | viewingBigbitRelevantHC =
+                                                Just
+                                                    { currentHC = Nothing
+                                                    , relevantHC = relevantHC
+                                                    }
+                                          }
+                                        , shared
+                                        , Cmd.none
+                                        )
+                                   )
+
+            ViewBigbitBrowseRelevantHC ->
+                let
+                    newModel =
+                        updateViewingBigbitRelevantHC
+                            (\currentRelevantHC ->
+                                { currentRelevantHC
+                                    | currentHC = Just 0
+                                }
+                            )
+                in
+                    ( newModel
+                    , shared
+                    , createViewBigbitHCCodeEditor
+                        newModel.viewingBigbit
+                        newModel.viewingBigbitRelevantHC
+                        shared.user
+                    )
+
+            ViewBigbitCancelBrowseRelevantHC ->
+                ( { model
+                    | viewingBigbitRelevantHC = Nothing
+                  }
+                , shared
+                  -- Trigger route hook again, `modify` because we don't want to
+                  -- have the same page twice in the history.
+                , Route.modifyTo shared.route
+                )
+
+            ViewBigbitNextRelevantHC ->
+                let
+                    newModel =
+                        updateViewingBigbitRelevantHC Model.viewerRelevantHCGoToNextFrame
+                in
+                    ( newModel
+                    , shared
+                    , createViewBigbitHCCodeEditor newModel.viewingBigbit newModel.viewingBigbitRelevantHC shared.user
+                    )
+
+            ViewBigbitPreviousRelevantHC ->
+                let
+                    newModel =
+                        updateViewingBigbitRelevantHC Model.viewerRelevantHCGoToPreviousFrame
+                in
+                    ( newModel
+                    , shared
+                    , createViewBigbitHCCodeEditor newModel.viewingBigbit newModel.viewingBigbitRelevantHC shared.user
+                    )
+
+            ViewBigbitJumpToFrame route ->
+                ( { model
+                    | viewingBigbitRelevantHC = Nothing
+                    , viewingBigbit =
+                        updateViewingBigbitReturningBigbit
+                            (\currentViewingBigbit ->
+                                { currentViewingBigbit
+                                    | fs = Bigbit.closeFS currentViewingBigbit.fs
+                                }
+                            )
+                  }
+                , shared
+                , Route.navigateTo route
+                )
+
+
+{-| Creates the code editor for the bigbit when browsing relevant HC.
+
+This will only create the editor if the state of the model (the `Maybe`s) makes
+it appropriate to render the editor.
+-}
+createViewBigbitHCCodeEditor : Maybe Bigbit.Bigbit -> Maybe Model.ViewingBigbitRelevantHC -> Maybe User.User -> Cmd msg
+createViewBigbitHCCodeEditor maybeBigbit maybeRHC user =
+    case ( maybeBigbit, maybeRHC ) of
+        ( Just bigbit, Just { currentHC, relevantHC } ) ->
+            let
+                editorWithRange range language code =
+                    Ports.createCodeEditor
+                        { id = "view-bigbit-code-editor"
+                        , lang = Editor.aceLanguageLocation language
+                        , theme = User.getTheme user
+                        , value = code
+                        , range = Just range
+                        , readOnly = True
+                        , selectAllowed = False
+                        }
+            in
+                case currentHC of
+                    Nothing ->
+                        Cmd.none
+
+                    Just index ->
+                        Array.get index relevantHC
+                            |> maybeMapWithDefault
+                                (Tuple.second
+                                    >> (\{ range, file } ->
+                                            FS.getFile bigbit.fs file
+                                                |> maybeMapWithDefault
+                                                    (\(FS.File content metadata) ->
+                                                        editorWithRange
+                                                            range
+                                                            metadata.language
+                                                            content
+                                                    )
+                                                    Cmd.none
+                                       )
+                                )
+                                Cmd.none
+
+        _ ->
+            Cmd.none
+
+
+{-| Creates the code editor for the snipbit when browsing the relevant HC.
+
+This will only create the editor if the state of the model (the `Maybe`s) makes
+it appropriate to render the editor.
+-}
+createViewSnipbitHCCodeEditor : Maybe Snipbit.Snipbit -> Maybe Model.ViewingSnipbitRelevantHC -> Maybe User.User -> Cmd msg
+createViewSnipbitHCCodeEditor maybeSnipbit maybeRHC user =
+    case ( maybeSnipbit, maybeRHC ) of
+        ( Just snipbit, Just { currentHC, relevantHC } ) ->
+            let
+                editorWithRange range =
+                    Ports.createCodeEditor
+                        { id = "view-snipbit-code-editor"
+                        , lang = Editor.aceLanguageLocation snipbit.language
+                        , theme = User.getTheme user
+                        , value = snipbit.code
+                        , range = Just range
+                        , readOnly = True
+                        , selectAllowed = False
+                        }
+            in
+                case currentHC of
+                    Nothing ->
+                        Cmd.none
+
+                    Just index ->
+                        Array.get index relevantHC
+                            |> maybeMapWithDefault
+                                (editorWithRange << .range << Tuple.second)
+                                Cmd.none
+
+        _ ->
+            Cmd.none
+
+
+{-| Creates the editor for the snipbit.
+
+Will handle redirects if bad path and highlighting code.
+-}
+createViewSnipbitCodeEditor : Snipbit.Snipbit -> Shared -> Cmd msg
+createViewSnipbitCodeEditor snipbit { route, user } =
+    let
+        editorWithRange range =
+            Ports.createCodeEditor
+                { id = "view-snipbit-code-editor"
+                , lang = Editor.aceLanguageLocation snipbit.language
+                , theme = User.getTheme user
+                , value = snipbit.code
+                , range = range
+                , readOnly = True
+                , selectAllowed = True
+                }
+    in
+        Cmd.batch
+            [ case route of
+                Route.HomeComponentViewSnipbitIntroduction _ ->
+                    editorWithRange Nothing
+
+                Route.HomeComponentViewSnipbitConclusion _ ->
+                    editorWithRange Nothing
+
+                Route.HomeComponentViewSnipbitFrame mongoID frameNumber ->
+                    if frameNumber > Array.length snipbit.highlightedComments then
+                        Route.modifyTo <|
+                            Route.HomeComponentViewSnipbitConclusion mongoID
+                    else if frameNumber < 1 then
+                        Route.modifyTo <|
+                            Route.HomeComponentViewSnipbitIntroduction mongoID
+                    else
+                        (Array.get
+                            (frameNumber - 1)
+                            snipbit.highlightedComments
+                        )
+                            |> Maybe.map .range
+                            |> editorWithRange
+
+                _ ->
+                    Cmd.none
+            , smoothScrollToBottom
+            ]
+
 
 {-| Based on the maybePath and the bigbit creates the editor.
 
@@ -1485,6 +1751,7 @@ createViewBigbitCodeEditor bigbit { route, user } =
                 , value = ""
                 , range = Nothing
                 , readOnly = True
+                , selectAllowed = True
                 }
 
         loadFileWithNoHighlight maybePath =
@@ -1505,46 +1772,51 @@ createViewBigbitCodeEditor bigbit { route, user } =
                                 , value = content
                                 , range = Nothing
                                 , readOnly = True
+                                , selectAllowed = True
                                 }
     in
-        case route of
-            Route.HomeComponentViewBigbitIntroduction mongoID maybePath ->
-                loadFileWithNoHighlight maybePath
+        Cmd.batch
+            [ case route of
+                Route.HomeComponentViewBigbitIntroduction mongoID maybePath ->
+                    loadFileWithNoHighlight maybePath
 
-            Route.HomeComponentViewBigbitFrame mongoID frameNumber maybePath ->
-                case Array.get (frameNumber - 1) bigbit.highlightedComments of
-                    Nothing ->
-                        if frameNumber > (Array.length bigbit.highlightedComments) then
-                            Route.modifyTo <| Route.HomeComponentViewBigbitConclusion bigbit.id Nothing
-                        else
-                            Route.modifyTo <| Route.HomeComponentViewBigbitIntroduction bigbit.id Nothing
+                Route.HomeComponentViewBigbitFrame mongoID frameNumber maybePath ->
+                    case Array.get (frameNumber - 1) bigbit.highlightedComments of
+                        Nothing ->
+                            if frameNumber > (Array.length bigbit.highlightedComments) then
+                                Route.modifyTo <| Route.HomeComponentViewBigbitConclusion bigbit.id Nothing
+                            else
+                                Route.modifyTo <| Route.HomeComponentViewBigbitIntroduction bigbit.id Nothing
 
-                    Just hc ->
-                        case maybePath of
-                            Nothing ->
-                                case FS.getFile bigbit.fs hc.file of
-                                    -- Should never happen, comments should always be pointing to valid files.
-                                    Nothing ->
-                                        Cmd.none
+                        Just hc ->
+                            case maybePath of
+                                Nothing ->
+                                    case FS.getFile bigbit.fs hc.file of
+                                        -- Should never happen, comments should always be pointing to valid files.
+                                        Nothing ->
+                                            Cmd.none
 
-                                    Just (FS.File content { language }) ->
-                                        Ports.createCodeEditor
-                                            { id = "view-bigbit-code-editor"
-                                            , lang = Editor.aceLanguageLocation language
-                                            , theme = User.getTheme user
-                                            , value = content
-                                            , range = Just hc.range
-                                            , readOnly = True
-                                            }
+                                        Just (FS.File content { language }) ->
+                                            Ports.createCodeEditor
+                                                { id = "view-bigbit-code-editor"
+                                                , lang = Editor.aceLanguageLocation language
+                                                , theme = User.getTheme user
+                                                , value = content
+                                                , range = Just hc.range
+                                                , readOnly = True
+                                                , selectAllowed = True
+                                                }
 
-                            Just absolutePath ->
-                                loadFileWithNoHighlight maybePath
+                                Just absolutePath ->
+                                    loadFileWithNoHighlight maybePath
 
-            Route.HomeComponentViewBigbitConclusion mongoID maybePath ->
-                loadFileWithNoHighlight maybePath
+                Route.HomeComponentViewBigbitConclusion mongoID maybePath ->
+                    loadFileWithNoHighlight maybePath
 
-            _ ->
-                Cmd.none
+                _ ->
+                    Cmd.none
+            , smoothScrollToBottom
+            ]
 
 
 {-| Filters the languages based on `query`.
@@ -1608,3 +1880,10 @@ togglePreviewMarkdown record =
     { record
         | previewMarkdown = not record.previewMarkdown
     }
+
+
+{-| Smooths to the bottom.
+-}
+smoothScrollToBottom : Cmd msg
+smoothScrollToBottom =
+    Ports.doScrolling { querySelector = ".invisible-bottom", duration = 750 }

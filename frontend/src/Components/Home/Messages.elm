@@ -47,6 +47,12 @@ type Msg
     | OnSnipbitPublishFailure ApiError.ApiError
     | OnGetSnipbitFailure ApiError.ApiError
     | OnGetSnipbitSuccess Snipbit.Snipbit
+    | ViewSnipbitRangeSelected Range.Range
+    | ViewSnipbitBrowseRelevantHC
+    | ViewSnipbitCancelBrowseRelevantHC
+    | ViewSnipbitNextRelevantHC
+    | ViewSnipbitPreviousRelevantHC
+    | ViewSnipbitJumpToFrame Route.Route
     | BigbitGoToCodeTab
     | BigbitReset
     | BigbitUpdateName String
@@ -77,3 +83,9 @@ type Msg
     | ViewBigbitToggleFS
     | ViewBigbitToggleFolder FS.Path
     | ViewBigbitSelectFile FS.Path
+    | ViewBigbitRangeSelected Range.Range
+    | ViewBigbitBrowseRelevantHC
+    | ViewBigbitCancelBrowseRelevantHC
+    | ViewBigbitNextRelevantHC
+    | ViewBigbitPreviousRelevantHC
+    | ViewBigbitJumpToFrame Route.Route

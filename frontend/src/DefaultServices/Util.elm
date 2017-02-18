@@ -190,3 +190,11 @@ justNonEmptyList listOfA =
         Nothing
     else
         Just listOfA
+
+
+{-| Convenience helper for avoiding Maybe.map followed by `withDefault`.
+-}
+maybeMapWithDefault : (a -> b) -> b -> Maybe a -> b
+maybeMapWithDefault func default maybeA =
+    Maybe.map func maybeA
+        |> Maybe.withDefault default

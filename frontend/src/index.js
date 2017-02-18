@@ -104,8 +104,6 @@ app.ports.createCodeEditor.subscribe(function(editorConfig) {
       // minimize changes to the DOM), we manually delete the last div and
       // put in a new div with the correct `id`. This ensures that every time
       // we create a new ace editor it is indeed a new editor.
-      // TODO It may be possible to do this in Elm with Html.Keyed to force it
-      //      to delete the old DOM node.
       const parentCodeWrapperDiv = document.getElementById("code-editor-wrapper");
       const codeEditorDiv = document.getElementById(editorConfig.id);
       const newBlankDiv = document.createElement("div");
@@ -123,6 +121,11 @@ app.ports.createCodeEditor.subscribe(function(editorConfig) {
       // Due to bug in the editor, you have to call resize upon creation.
       aceCodeEditor.resize(true);
       const editorSelection = aceCodeEditor.getSelection();
+
+      // Turns off the auto-linting, we may want to turn this on in the future
+      // but because it's only for a few languages and it ends up being annoying
+      // if you're just doing an incomplete snippet, probably not...
+      aceCodeEditor.getSession().setUseWorker(false);
 
       // Set theme and language.
       aceCodeEditor.getSession().setMode(editorConfig.lang || "ace/mode/text");
@@ -163,22 +166,26 @@ app.ports.createCodeEditor.subscribe(function(editorConfig) {
 
       // Watch for selection changes.
       editorSelection.on("changeSelection", () => {
-        // Directly from the ACE api.
-        const aceSelectionRange = aceCodeEditor.getSelectionRange();
+        if(editorConfig.selectAllowed) {
+          // Directly from the ACE api.
+          const aceSelectionRange = aceCodeEditor.getSelectionRange();
 
-        // Set to match the elm port.
-        const elmSelectedRange = {
-          startRow : aceSelectionRange.start.row,
-          startCol : aceSelectionRange.start.column,
-          endRow : aceSelectionRange.end.row,
-          endCol : aceSelectionRange.end.column
-        };
+          // Set to match the elm port.
+          const elmSelectedRange = {
+            startRow : aceSelectionRange.start.row,
+            startCol : aceSelectionRange.start.column,
+            endRow : aceSelectionRange.end.row,
+            endCol : aceSelectionRange.end.column
+          };
 
-        // Update the port with the new selection.
-        app.ports.onCodeEditorSelectionUpdate.send({
-          id: editorConfig.id,
-          range: elmSelectedRange
-        });
+          // Update the port with the new selection.
+          app.ports.onCodeEditorSelectionUpdate.send({
+            id: editorConfig.id,
+            range: elmSelectedRange
+          });
+        } else {
+          aceCodeEditor.getSession().selection.clearSelection();
+        }
       });
 
       aceCodeEditor.on("change", (someObject) => {
@@ -194,5 +201,5 @@ app.ports.createCodeEditor.subscribe(function(editorConfig) {
       // editor here for that purpose.
       aceCodeEditors[editorConfig.id] = aceCodeEditor;
     }
-  }, 50);
+  }, 100);
 });

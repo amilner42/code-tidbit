@@ -683,6 +683,17 @@ toggleFS (FS.FileStructure tree fsMetadata) =
         }
 
 
+{-| Closes the FS.
+-}
+closeFS : FS.FileStructure { a | openFS : Bool } b c -> FS.FileStructure { a | openFS : Bool } b c
+closeFS (FS.FileStructure tree fsMetadata) =
+    FS.FileStructure
+        tree
+        { fsMetadata
+            | openFS = False
+        }
+
+
 {-| Toggles whether a specific folder is expanded or not.
 -}
 toggleFSFolder : FS.Path -> FS.FileStructure a { b | isExpanded : Bool } c -> FS.FileStructure a { b | isExpanded : Bool } c

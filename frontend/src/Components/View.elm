@@ -126,4 +126,8 @@ view model =
         [ div
             [ class "base-component" ]
             [ viewForRoute model ]
+          -- Used for smooth scrolling to the bottom.
+        , div
+            [ class "invisible-bottom" ]
+            []
         ]

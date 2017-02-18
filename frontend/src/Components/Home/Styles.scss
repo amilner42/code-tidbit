@@ -12,6 +12,17 @@
         height: 100%;
 
         .view-bigbit {
+            height: 100%;
+
+            .sub-bar {
+                .sub-bar-button {
+                    margin-left: 10px;
+                }
+
+                .explore-fs {
+                    width: 150px;
+                }
+            }
 
             .view-bigbit-toggle-fs {
                 @extend .above-comment-block-button;
@@ -28,7 +39,13 @@
             }
         }
 
-        .view-snipbit { }
+        .view-snipbit {
+            height: 100%;
+
+            .sub-bar-button {
+                margin-left: 10px;
+            }
+        }
 
         .create-select-tidbit-title {
             color: $color6;
@@ -233,35 +250,6 @@
             }
         }
 
-        .create-tidbit-sub-bar {
-            position: relative;
-            display: inline-block;
-            width: 100%;
-            background-color: $color9;
-            margin-bottom: 10px;
-            height: 40px;
-            padding-top: 10px;
-            border-bottom: 1px solid $color2;
-
-            .sub-bar-button {
-                @include light-box-shadow();
-
-                position: relative;
-                display: inline-block;
-                height: 30px;
-                width: 100px;
-                border: none;
-                border-radius: 2px;
-                color: $color6;
-                background-color: white;
-                cursor: pointer;
-
-                &:hover {
-                    @include strong-box-shadow();
-                }
-            }
-        }
-
         .create-bigbit {
 
             height: 100%;
@@ -270,7 +258,7 @@
                 width: 496px;
             }
 
-            .create-tidbit-sub-bar {
+            .sub-bar {
                 .sub-bar-button {
                     margin-left: 10px;
                 }
@@ -688,7 +676,7 @@
                 }
             }
 
-            .create-tidbit-sub-bar {
+            .sub-bar {
 
                 .create-snipbit-back-button {
                     @extend .sub-bar-button;
@@ -725,13 +713,13 @@
         .publish-button {
             @extend .disabled-publish-button;
 
-            background-color: $color7;
-            color: white;
+            background-color: $color7 !important;
+            color: white !important;
             cursor: pointer;
 
             &:hover {
-                background-color: $color7;
-                color: $color5;
+                background-color: $color7 !important;
+                color: $color5 !important;
             }
         }
 
@@ -743,8 +731,8 @@
 
             .viewer-navbar {
                 display: block;
-                height: 70px;
-                padding-top: 30px;
+                height: 75px;
+                padding-top: 25px;
                 margin: auto;
                 width: 100%;
                 text-align: center;
@@ -810,6 +798,37 @@
                     font-size: 16px;
                     resize: vertical;
                 }
+
+                .above-comment-block-text {
+                    position: absolute;
+                    font-size: 12px;
+                    color: $color4;
+                    top: -15px;
+                }
+
+                .view-relevant-hc {
+                    .markdown-box {
+                        height: 568px;
+                    }
+                }
+
+                // Styles copied but these really go beneath the comment block,
+                // not above.
+                .above-comment-block-button {
+                    width: 119px;
+                    bottom: 0px;
+                    top: auto;
+                    width: 100px;
+                }
+
+                .next-button {
+                    right: 0px;
+                }
+
+                .go-to-frame-button {
+                    right: 102px;
+                    width: 156px;
+                }
             }
         }
 
@@ -872,6 +891,11 @@
             &:hover {
                 background-color: $color6;
             }
+
+            &.disabled {
+                cursor: not-allowed;
+                opacity: 0.5;
+            }
         }
 
         .comment-body-bottom-buttons {
@@ -895,6 +919,47 @@
 
                 button {
                     width: 35px;
+                }
+            }
+        }
+
+        .sub-bar {
+            position: relative;
+            display: inline-block;
+            width: 100%;
+            background-color: $color9;
+            margin-bottom: 10px;
+            height: 40px;
+            padding-top: 10px;
+            border-bottom: 1px solid $color2;
+
+            .sub-bar-button {
+                @include light-box-shadow();
+
+                position: relative;
+                display: inline-block;
+                height: 30px;
+                width: 100px;
+                border: none;
+                border-radius: 2px;
+                color: $color6;
+                background-color: white;
+                cursor: pointer;
+
+                &:hover {
+                    @include strong-box-shadow();
+                }
+
+                &.view-relevant-ranges {
+                    width: 150px !important;
+                    float: right;
+                    margin-right: 10px;
+                    background-color: $color7;
+                    color: white;
+
+                    &:hover {
+                        color: $color5;
+                    }
                 }
             }
         }

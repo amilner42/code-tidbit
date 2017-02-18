@@ -1,5 +1,6 @@
 module Models.Range exposing (..)
 
+import Array
 import DefaultServices.Util as Util
 import Json.Encode as Encode
 import Json.Decode as Decode
@@ -95,3 +96,26 @@ newValidRange range newCode =
         , endRow = newEndRow
         , endCol = newEndCol
         }
+
+
+{-| Returns true if `range1` is before `range2` and has absolutey no overlap.
+-}
+(<<<) : Range -> Range -> Bool
+(<<<) range1 range2 =
+    (range1.endRow < range2.startRow)
+        || (range1.endRow == range2.startRow && range1.endCol <= range2.startCol)
+
+
+{-| Returns true if `range1` is after `range2` and has absolute no overlap.
+-}
+(>>>) : Range -> Range -> Bool
+(>>>) range1 range2 =
+    (range1.startRow > range2.endRow)
+        || (range1.startRow == range2.endRow && range1.startCol >= range2.endCol)
+
+
+{-| Checks if 2 ranges overlap at all.
+-}
+overlappingRanges : Range -> Range -> Bool
+overlappingRanges range1 range2 =
+    not <| (range1 <<< range2) || (range1 >>> range2)

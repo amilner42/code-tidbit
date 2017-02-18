@@ -3,10 +3,10 @@ module Components.Home.View exposing (..)
 import Array
 import Autocomplete as AC
 import Components.Home.Messages exposing (Msg(..))
-import Components.Home.Model exposing (Model, TidbitType(..))
+import Components.Home.Model as Model exposing (Model, TidbitType(..))
 import Components.Home.Update exposing (filterLanguagesByQuery)
 import Components.Model exposing (Shared)
-import DefaultServices.Util as Util
+import DefaultServices.Util as Util exposing (maybeMapWithDefault)
 import Dict
 import Elements.Editor as Editor
 import Html exposing (Html, div, text, textarea, button, input, h1, h3, img, hr, i)
@@ -115,18 +115,154 @@ progressBar maybeCurrentFrame maxFrame isDisabled =
             ]
 
 
+{-| Helper for creating the text above the RHC specifying how many found and
+what RHC we are on currently.
+-}
+relevantHCTextAboveFrameSpecifyingPosition : ( Int, Int ) -> Html msg
+relevantHCTextAboveFrameSpecifyingPosition ( current, total ) =
+    div
+        [ class "above-comment-block-text" ]
+        [ if total == 1 then
+            text "Only this frame is related to your selection"
+          else
+            text <| "On frame " ++ (toString current) ++ " of the " ++ (toString total) ++ " frames that are related to your selection"
+        ]
+
+
+{-| Gets the comment box for the view snipbit page, can be the markdown for the
+intro/conclusion/frame or the markdown with a few extra buttons for a selected
+range.
+-}
+viewSnipbitCommentBox : Snipbit.Snipbit -> Maybe Model.ViewingSnipbitRelevantHC -> Route.Route -> Html Msg
+viewSnipbitCommentBox snipbit relevantHC route =
+    let
+        -- To display if no relevant HC.
+        htmlIfNoRelevantHC =
+            githubMarkdown [] <|
+                case route of
+                    Route.HomeComponentViewSnipbitIntroduction _ ->
+                        snipbit.introduction
+
+                    Route.HomeComponentViewSnipbitConclusion _ ->
+                        snipbit.conclusion
+
+                    Route.HomeComponentViewSnipbitFrame _ frameNumber ->
+                        (Array.get
+                            (frameNumber - 1)
+                            snipbit.highlightedComments
+                        )
+                            |> Maybe.map .comment
+                            |> Maybe.withDefault ""
+
+                    _ ->
+                        ""
+    in
+        case relevantHC of
+            Nothing ->
+                htmlIfNoRelevantHC
+
+            Just ({ currentHC, relevantHC } as viewerRelevantHC) ->
+                case currentHC of
+                    Nothing ->
+                        htmlIfNoRelevantHC
+
+                    Just index ->
+                        div
+                            [ class "view-relevant-hc" ]
+                            [ case Model.viewerRelevantHCurrentFramePair viewerRelevantHC of
+                                Nothing ->
+                                    Util.hiddenDiv
+
+                                Just currentFramePair ->
+                                    relevantHCTextAboveFrameSpecifyingPosition currentFramePair
+                            , div
+                                [ classList
+                                    [ ( "above-comment-block-button", True )
+                                    , ( "disabled", Model.viewerRelevantHCOnFirstFrame viewerRelevantHC )
+                                    ]
+                                , onClick ViewSnipbitPreviousRelevantHC
+                                ]
+                                [ text "Previous" ]
+                            , div
+                                [ classList
+                                    [ ( "above-comment-block-button go-to-frame-button", True ) ]
+                                , onClick
+                                    (Array.get index relevantHC
+                                        |> Maybe.map
+                                            (ViewSnipbitJumpToFrame
+                                                << Route.HomeComponentViewSnipbitFrame snipbit.id
+                                                << ((+) 1)
+                                                << Tuple.first
+                                            )
+                                        |> Maybe.withDefault NoOp
+                                    )
+                                ]
+                                [ text "Jump To Frame" ]
+                            , div
+                                [ classList
+                                    [ ( "above-comment-block-button next-button", True )
+                                    , ( "disabled", Model.viewerRelevantHCOnLastFrame viewerRelevantHC )
+                                    ]
+                                , onClick ViewSnipbitNextRelevantHC
+                                ]
+                                [ text "Next" ]
+                            , githubMarkdown
+                                []
+                                (Array.get index relevantHC
+                                    |> Maybe.map (Tuple.second >> .comment)
+                                    |> Maybe.withDefault ""
+                                )
+                            ]
+
+
 {-| The view for viewing a snipbit.
 -}
 viewSnipbitView : Model -> Shared -> Html Msg
 viewSnipbitView model shared =
     div
         [ class "view-snipbit" ]
-        (case model.viewingSnipbit of
+        [ div
+            [ class "sub-bar" ]
+            [ button
+                [ class "sub-bar-button"
+                , onClick <| GoTo Route.HomeComponentBrowse
+                ]
+                [ text "Back" ]
+            , button
+                [ classList
+                    [ ( "sub-bar-button view-relevant-ranges", True )
+                    , ( "hidden"
+                      , not <|
+                            maybeMapWithDefault
+                                Model.viewerRelevantHCHasFramesButNotBrowsing
+                                False
+                                model.viewingSnipbitRelevantHC
+                      )
+                    ]
+                , onClick <| ViewSnipbitBrowseRelevantHC
+                ]
+                [ text "Browse Related Frames" ]
+            , button
+                [ classList
+                    [ ( "sub-bar-button view-relevant-ranges", True )
+                    , ( "hidden"
+                      , not <|
+                            maybeMapWithDefault
+                                Model.viewerRelevantHCBrowsingFrames
+                                False
+                                model.viewingSnipbitRelevantHC
+                      )
+                    ]
+                , onClick <| ViewSnipbitCancelBrowseRelevantHC
+                ]
+                [ text "Close Related Frames" ]
+            ]
+        , case model.viewingSnipbit of
             Nothing ->
-                [ text "LOADING" ]
+                text "LOADING"
 
             Just snipbit ->
-                [ div
+                div
                     [ class "viewer" ]
                     [ div
                         [ class "viewer-navbar" ]
@@ -134,28 +270,37 @@ viewSnipbitView model shared =
                             [ classList
                                 [ ( "material-icons action-button", True )
                                 , ( "disabled-icon"
-                                  , case shared.route of
+                                  , (case shared.route of
                                         Route.HomeComponentViewSnipbitIntroduction _ ->
                                             True
 
                                         _ ->
                                             False
+                                    )
+                                        || (Model.snipbitViewerBrowsingRelevantHC model)
                                   )
                                 ]
                             , onClick <|
-                                case shared.route of
-                                    Route.HomeComponentViewSnipbitConclusion mongoID ->
-                                        GoTo <| Route.HomeComponentViewSnipbitFrame mongoID (Array.length snipbit.highlightedComments)
+                                if (Model.snipbitViewerBrowsingRelevantHC model) then
+                                    NoOp
+                                else
+                                    case shared.route of
+                                        Route.HomeComponentViewSnipbitConclusion mongoID ->
+                                            ViewSnipbitJumpToFrame <| Route.HomeComponentViewSnipbitFrame mongoID (Array.length snipbit.highlightedComments)
 
-                                    Route.HomeComponentViewSnipbitFrame mongoID frameNumber ->
-                                        GoTo <| Route.HomeComponentViewSnipbitFrame mongoID (frameNumber - 1)
+                                        Route.HomeComponentViewSnipbitFrame mongoID frameNumber ->
+                                            ViewSnipbitJumpToFrame <| Route.HomeComponentViewSnipbitFrame mongoID (frameNumber - 1)
 
-                                    _ ->
-                                        NoOp
+                                        _ ->
+                                            NoOp
                             ]
                             [ text "arrow_back" ]
                         , div
-                            [ onClick <| GoTo <| Route.HomeComponentViewSnipbitIntroduction snipbit.id
+                            [ onClick <|
+                                if (Model.snipbitViewerBrowsingRelevantHC model) then
+                                    NoOp
+                                else
+                                    GoTo <| Route.HomeComponentViewSnipbitIntroduction snipbit.id
                             , classList
                                 [ ( "viewer-navbar-item", True )
                                 , ( "selected"
@@ -166,6 +311,7 @@ viewSnipbitView model shared =
                                         _ ->
                                             False
                                   )
+                                , ( "disabled", Model.snipbitViewerBrowsingRelevantHC model )
                                 ]
                             ]
                             [ text "Introduction" ]
@@ -181,9 +327,13 @@ viewSnipbitView model shared =
                                     Nothing
                             )
                             (Array.length snipbit.highlightedComments)
-                            False
+                            (Model.snipbitViewerBrowsingRelevantHC model)
                         , div
-                            [ onClick <| GoTo <| Route.HomeComponentViewSnipbitConclusion snipbit.id
+                            [ onClick <|
+                                if (Model.snipbitViewerBrowsingRelevantHC model) then
+                                    NoOp
+                                else
+                                    GoTo <| Route.HomeComponentViewSnipbitConclusion snipbit.id
                             , classList
                                 [ ( "viewer-navbar-item", True )
                                 , ( "selected"
@@ -194,6 +344,7 @@ viewSnipbitView model shared =
                                         _ ->
                                             False
                                   )
+                                , ( "disabled", Model.snipbitViewerBrowsingRelevantHC model )
                                 ]
                             ]
                             [ text "Conclusion" ]
@@ -201,247 +352,396 @@ viewSnipbitView model shared =
                             [ classList
                                 [ ( "material-icons action-button", True )
                                 , ( "disabled-icon"
-                                  , case shared.route of
+                                  , (case shared.route of
                                         Route.HomeComponentViewSnipbitConclusion _ ->
                                             True
 
                                         _ ->
                                             False
+                                    )
+                                        || (Model.snipbitViewerBrowsingRelevantHC model)
                                   )
                                 ]
                             , onClick <|
-                                case shared.route of
-                                    Route.HomeComponentViewSnipbitIntroduction mongoID ->
-                                        GoTo <| Route.HomeComponentViewSnipbitFrame mongoID 1
+                                if (Model.snipbitViewerBrowsingRelevantHC model) then
+                                    NoOp
+                                else
+                                    case shared.route of
+                                        Route.HomeComponentViewSnipbitIntroduction mongoID ->
+                                            ViewSnipbitJumpToFrame <| Route.HomeComponentViewSnipbitFrame mongoID 1
 
-                                    Route.HomeComponentViewSnipbitFrame mongoID frameNumber ->
-                                        GoTo <| Route.HomeComponentViewSnipbitFrame mongoID (frameNumber + 1)
+                                        Route.HomeComponentViewSnipbitFrame mongoID frameNumber ->
+                                            ViewSnipbitJumpToFrame <| Route.HomeComponentViewSnipbitFrame mongoID (frameNumber + 1)
 
-                                    _ ->
-                                        NoOp
+                                        _ ->
+                                            NoOp
                             ]
                             [ text "arrow_forward" ]
                         ]
                     , Editor.editor "view-snipbit-code-editor"
                     , div
                         [ class "comment-block" ]
-                        [ githubMarkdown [] <|
-                            case shared.route of
-                                Route.HomeComponentViewSnipbitIntroduction _ ->
-                                    snipbit.introduction
-
-                                Route.HomeComponentViewSnipbitConclusion _ ->
-                                    snipbit.conclusion
-
-                                Route.HomeComponentViewSnipbitFrame _ frameNumber ->
-                                    (Array.get
-                                        (frameNumber - 1)
-                                        snipbit.highlightedComments
-                                    )
-                                        |> Maybe.map .comment
-                                        |> Maybe.withDefault ""
-
-                                _ ->
-                                    ""
+                        [ viewSnipbitCommentBox
+                            snipbit
+                            model.viewingSnipbitRelevantHC
+                            shared.route
                         ]
                     ]
+        ]
+
+
+{-| Returns true if the user is currently browsing the RHC.
+-}
+isViewBigbitRHCTabOpen : Maybe Model.ViewingBigbitRelevantHC -> Bool
+isViewBigbitRHCTabOpen =
+    maybeMapWithDefault Model.viewerRelevantHCBrowsingFrames False
+
+
+{-| Returns true if the user is currently browsing the FS.
+-}
+isViewBigbitFSTabOpen : Maybe Bigbit.Bigbit -> Maybe Model.ViewingBigbitRelevantHC -> Bool
+isViewBigbitFSTabOpen maybeBigbit maybeRHC =
+    (not <| isViewBigbitRHCTabOpen maybeRHC)
+        && isViewBigbitFSOpen maybeBigbit
+
+
+{-| Returns true if the FS is open, this ISNT the same as the FS tab being open,
+the FS can be open but have the browsing-rhc over-top it.
+-}
+isViewBigbitFSOpen : Maybe Bigbit.Bigbit -> Bool
+isViewBigbitFSOpen =
+    Maybe.map .fs
+        >> maybeMapWithDefault Bigbit.isFSOpen False
+
+
+{-| Returns true if the user is currently browsing the tutorial.
+-}
+isViewBigbitTutorialTabOpen : Maybe Bigbit.Bigbit -> Maybe Model.ViewingBigbitRelevantHC -> Bool
+isViewBigbitTutorialTabOpen maybeBigbit maybeRHC =
+    (not <| isViewBigbitRHCTabOpen maybeRHC)
+        && (not <| isViewBigbitFSTabOpen maybeBigbit maybeRHC)
+
+
+{-| Gets the comment box for the view bigbit page, can be the markdown for the
+intro/conclusion/frame, the FS, or the markdown with a few extra buttons for a
+selected range.
+-}
+viewBigbitCommentBox : Bigbit.Bigbit -> Maybe Model.ViewingBigbitRelevantHC -> Route.Route -> Html Msg
+viewBigbitCommentBox bigbit maybeRHC route =
+    let
+        rhcTabOpen =
+            isViewBigbitRHCTabOpen maybeRHC
+
+        fsTabOpen =
+            isViewBigbitFSTabOpen (Just bigbit) maybeRHC
+
+        tutorialOpen =
+            isViewBigbitTutorialTabOpen (Just bigbit) maybeRHC
+    in
+        div
+            [ class "comment-block" ]
+            [ div
+                [ class "above-editor-text" ]
+                [ text <|
+                    case Bigbit.viewPageCurrentActiveFile route bigbit of
+                        Nothing ->
+                            "No File Selected"
+
+                        Just activeFile ->
+                            activeFile
                 ]
-        )
+            , githubMarkdown [ hidden <| not <| tutorialOpen ] <|
+                case route of
+                    Route.HomeComponentViewBigbitIntroduction _ _ ->
+                        bigbit.introduction
+
+                    Route.HomeComponentViewBigbitConclusion _ _ ->
+                        bigbit.conclusion
+
+                    Route.HomeComponentViewBigbitFrame _ frameNumber _ ->
+                        (Array.get
+                            (frameNumber - 1)
+                            bigbit.highlightedComments
+                        )
+                            |> Maybe.map .comment
+                            |> Maybe.withDefault ""
+
+                    _ ->
+                        ""
+            , div
+                [ class "view-bigbit-fs"
+                , hidden <| not <| fsTabOpen
+                ]
+                [ FS.fileStructure
+                    { isFileSelected =
+                        (\absolutePath ->
+                            Bigbit.viewPageCurrentActiveFile route bigbit
+                                |> Maybe.map (FS.isSameFilePath absolutePath)
+                                |> Maybe.withDefault False
+                        )
+                    , fileSelectedMsg = ViewBigbitSelectFile
+                    , folderSelectedMsg = ViewBigbitToggleFolder
+                    }
+                    bigbit.fs
+                ]
+            , div
+                [ class "view-relevant-hc"
+                , hidden <| not <| rhcTabOpen
+                ]
+                (case maybeRHC of
+                    Nothing ->
+                        [ Util.hiddenDiv ]
+
+                    Just rhc ->
+                        case rhc.currentHC of
+                            Nothing ->
+                                [ Util.hiddenDiv ]
+
+                            Just index ->
+                                [ case Model.viewerRelevantHCurrentFramePair rhc of
+                                    Nothing ->
+                                        Util.hiddenDiv
+
+                                    Just currentFramePair ->
+                                        relevantHCTextAboveFrameSpecifyingPosition currentFramePair
+                                , githubMarkdown
+                                    []
+                                    (Array.get index rhc.relevantHC
+                                        |> maybeMapWithDefault (Tuple.second >> .comment) ""
+                                    )
+                                , div
+                                    [ classList
+                                        [ ( "above-comment-block-button", True )
+                                        , ( "disabled", Model.viewerRelevantHCOnFirstFrame rhc )
+                                        ]
+                                    , onClick ViewBigbitPreviousRelevantHC
+                                    ]
+                                    [ text "Previous" ]
+                                , div
+                                    [ classList
+                                        [ ( "above-comment-block-button go-to-frame-button", True ) ]
+                                    , onClick
+                                        (Array.get index rhc.relevantHC
+                                            |> maybeMapWithDefault
+                                                (ViewBigbitJumpToFrame
+                                                    << (\frameNumber ->
+                                                            Route.HomeComponentViewBigbitFrame
+                                                                bigbit.id
+                                                                frameNumber
+                                                                Nothing
+                                                       )
+                                                    << ((+) 1)
+                                                    << Tuple.first
+                                                )
+                                                NoOp
+                                        )
+                                    ]
+                                    [ text "Jump To Frame" ]
+                                , div
+                                    [ classList
+                                        [ ( "above-comment-block-button next-button", True )
+                                        , ( "disabled", Model.viewerRelevantHCOnLastFrame rhc )
+                                        ]
+                                    , onClick ViewBigbitNextRelevantHC
+                                    ]
+                                    [ text "Next" ]
+                                ]
+                )
+            ]
 
 
 {-| The view for viewing a bigbit.
 -}
 viewBigbitView : Model -> Shared -> Html Msg
 viewBigbitView model shared =
-    div
-        [ class "view-bigbit" ]
-        [ case model.viewingBigbit of
-            Nothing ->
-                div
-                    []
-                    [ text "LOADING" ]
+    let
+        -- They can be on the FS or browsing RHC.
+        notGoingThroughTutorial =
+            not <| isViewBigbitTutorialTabOpen model.viewingBigbit model.viewingBigbitRelevantHC
+    in
+        div
+            [ class "view-bigbit" ]
+            [ div
+                [ class "sub-bar" ]
+                [ button
+                    [ class "sub-bar-button"
+                    , onClick <| GoTo Route.HomeComponentBrowse
+                    ]
+                    [ text "Back" ]
+                , button
+                    [ classList
+                        [ ( "sub-bar-button explore-fs", True )
+                        , ( "hidden"
+                          , (isViewBigbitRHCTabOpen model.viewingBigbitRelevantHC)
+                                && (not <| isViewBigbitFSOpen model.viewingBigbit)
+                          )
+                        ]
+                    , onClick <| ViewBigbitToggleFS
+                    ]
+                    [ text <|
+                        if isViewBigbitFSOpen model.viewingBigbit then
+                            "Resume Tutorial"
+                        else
+                            "Explore File Structure"
+                    ]
+                , button
+                    [ classList
+                        [ ( "sub-bar-button view-relevant-ranges", True )
+                        , ( "hidden"
+                          , not <|
+                                maybeMapWithDefault
+                                    Model.viewerRelevantHCHasFramesButNotBrowsing
+                                    False
+                                    model.viewingBigbitRelevantHC
+                          )
+                        ]
+                    , onClick ViewBigbitBrowseRelevantHC
+                    ]
+                    [ text "Browse Related Frames" ]
+                , button
+                    [ classList
+                        [ ( "sub-bar-button view-relevant-ranges", True )
+                        , ( "hidden"
+                          , not <|
+                                maybeMapWithDefault
+                                    Model.viewerRelevantHCBrowsingFrames
+                                    False
+                                    model.viewingBigbitRelevantHC
+                          )
+                        ]
+                    , onClick ViewBigbitCancelBrowseRelevantHC
+                    ]
+                    [ text "Close Related Frames" ]
+                ]
+            , case model.viewingBigbit of
+                Nothing ->
+                    div
+                        []
+                        [ text "LOADING" ]
 
-            Just bigbit ->
-                div
-                    [ class "viewer" ]
-                    [ div
-                        [ class "viewer-navbar" ]
-                        [ i
-                            [ classList
-                                [ ( "material-icons action-button", True )
-                                , ( "disabled-icon"
-                                  , if Bigbit.isFSOpen bigbit.fs then
-                                        True
+                Just bigbit ->
+                    div
+                        [ class "viewer" ]
+                        [ div
+                            [ class "viewer-navbar" ]
+                            [ i
+                                [ classList
+                                    [ ( "material-icons action-button", True )
+                                    , ( "disabled-icon"
+                                      , if notGoingThroughTutorial then
+                                            True
+                                        else
+                                            case shared.route of
+                                                Route.HomeComponentViewBigbitIntroduction _ _ ->
+                                                    True
+
+                                                _ ->
+                                                    False
+                                      )
+                                    ]
+                                , onClick <|
+                                    if notGoingThroughTutorial then
+                                        NoOp
                                     else
                                         case shared.route of
+                                            Route.HomeComponentViewBigbitConclusion mongoID _ ->
+                                                ViewBigbitJumpToFrame <| Route.HomeComponentViewBigbitFrame mongoID (Array.length bigbit.highlightedComments) Nothing
+
+                                            Route.HomeComponentViewBigbitFrame mongoID frameNumber _ ->
+                                                ViewBigbitJumpToFrame <| Route.HomeComponentViewBigbitFrame mongoID (frameNumber - 1) Nothing
+
+                                            _ ->
+                                                NoOp
+                                ]
+                                [ text "arrow_back" ]
+                            , div
+                                [ onClick <|
+                                    if notGoingThroughTutorial then
+                                        NoOp
+                                    else
+                                        ViewBigbitJumpToFrame <| Route.HomeComponentViewBigbitIntroduction bigbit.id Nothing
+                                , classList
+                                    [ ( "viewer-navbar-item", True )
+                                    , ( "selected"
+                                      , case shared.route of
                                             Route.HomeComponentViewBigbitIntroduction _ _ ->
                                                 True
 
                                             _ ->
                                                 False
-                                  )
+                                      )
+                                    , ( "disabled", notGoingThroughTutorial )
+                                    ]
                                 ]
-                            , onClick <|
-                                if Bigbit.isFSOpen bigbit.fs then
-                                    NoOp
-                                else
-                                    case shared.route of
-                                        Route.HomeComponentViewBigbitConclusion mongoID _ ->
-                                            GoTo <| Route.HomeComponentViewBigbitFrame mongoID (Array.length bigbit.highlightedComments) Nothing
+                                [ text "Introduction" ]
+                            , progressBar
+                                (case shared.route of
+                                    Route.HomeComponentViewBigbitFrame _ frameNumber _ ->
+                                        Just frameNumber
 
-                                        Route.HomeComponentViewBigbitFrame mongoID frameNumber _ ->
-                                            GoTo <| Route.HomeComponentViewBigbitFrame mongoID (frameNumber - 1) Nothing
+                                    Route.HomeComponentViewBigbitConclusion _ _ ->
+                                        Just <| Array.length bigbit.highlightedComments + 1
 
-                                        _ ->
-                                            NoOp
-                            ]
-                            [ text "arrow_back" ]
-                        , div
-                            [ onClick <|
-                                if Bigbit.isFSOpen bigbit.fs then
-                                    NoOp
-                                else
-                                    GoTo <| Route.HomeComponentViewBigbitIntroduction bigbit.id Nothing
-                            , classList
-                                [ ( "viewer-navbar-item", True )
-                                , ( "selected"
-                                  , case shared.route of
-                                        Route.HomeComponentViewBigbitIntroduction _ _ ->
-                                            True
-
-                                        _ ->
-                                            False
-                                  )
-                                , ( "disabled", Bigbit.isFSOpen bigbit.fs )
-                                ]
-                            ]
-                            [ text "Introduction" ]
-                        , progressBar
-                            (case shared.route of
-                                Route.HomeComponentViewBigbitFrame _ frameNumber _ ->
-                                    Just frameNumber
-
-                                Route.HomeComponentViewBigbitConclusion _ _ ->
-                                    Just <| Array.length bigbit.highlightedComments + 1
-
-                                _ ->
-                                    Nothing
-                            )
-                            (Array.length bigbit.highlightedComments)
-                            (Bigbit.isFSOpen bigbit.fs)
-                        , div
-                            [ onClick <|
-                                if Bigbit.isFSOpen bigbit.fs then
-                                    NoOp
-                                else
-                                    GoTo <| Route.HomeComponentViewBigbitConclusion bigbit.id Nothing
-                            , classList
-                                [ ( "viewer-navbar-item", True )
-                                , ( "selected"
-                                  , case shared.route of
-                                        Route.HomeComponentViewBigbitConclusion _ _ ->
-                                            True
-
-                                        _ ->
-                                            False
-                                  )
-                                , ( "disabled", Bigbit.isFSOpen bigbit.fs )
-                                ]
-                            ]
-                            [ text "Conclusion" ]
-                        , i
-                            [ classList
-                                [ ( "material-icons action-button", True )
-                                , ( "disabled-icon"
-                                  , if Bigbit.isFSOpen bigbit.fs then
-                                        True
+                                    _ ->
+                                        Nothing
+                                )
+                                (Array.length bigbit.highlightedComments)
+                                notGoingThroughTutorial
+                            , div
+                                [ onClick <|
+                                    if notGoingThroughTutorial then
+                                        NoOp
                                     else
-                                        case shared.route of
+                                        ViewBigbitJumpToFrame <| Route.HomeComponentViewBigbitConclusion bigbit.id Nothing
+                                , classList
+                                    [ ( "viewer-navbar-item", True )
+                                    , ( "selected"
+                                      , case shared.route of
                                             Route.HomeComponentViewBigbitConclusion _ _ ->
                                                 True
 
                                             _ ->
                                                 False
-                                  )
+                                      )
+                                    , ( "disabled", notGoingThroughTutorial )
+                                    ]
                                 ]
-                            , onClick <|
-                                if Bigbit.isFSOpen bigbit.fs then
-                                    NoOp
-                                else
-                                    case shared.route of
-                                        Route.HomeComponentViewBigbitIntroduction mongoID _ ->
-                                            GoTo <| Route.HomeComponentViewBigbitFrame mongoID 1 Nothing
+                                [ text "Conclusion" ]
+                            , i
+                                [ classList
+                                    [ ( "material-icons action-button", True )
+                                    , ( "disabled-icon"
+                                      , if notGoingThroughTutorial then
+                                            True
+                                        else
+                                            case shared.route of
+                                                Route.HomeComponentViewBigbitConclusion _ _ ->
+                                                    True
 
-                                        Route.HomeComponentViewBigbitFrame mongoID frameNumber _ ->
-                                            GoTo <| Route.HomeComponentViewBigbitFrame mongoID (frameNumber + 1) Nothing
+                                                _ ->
+                                                    False
+                                      )
+                                    ]
+                                , onClick <|
+                                    if notGoingThroughTutorial then
+                                        NoOp
+                                    else
+                                        case shared.route of
+                                            Route.HomeComponentViewBigbitIntroduction mongoID _ ->
+                                                ViewBigbitJumpToFrame <| Route.HomeComponentViewBigbitFrame mongoID 1 Nothing
 
-                                        _ ->
-                                            NoOp
+                                            Route.HomeComponentViewBigbitFrame mongoID frameNumber _ ->
+                                                ViewBigbitJumpToFrame <| Route.HomeComponentViewBigbitFrame mongoID (frameNumber + 1) Nothing
+
+                                            _ ->
+                                                NoOp
+                                ]
+                                [ text "arrow_forward" ]
                             ]
-                            [ text "arrow_forward" ]
+                        , Editor.editor "view-bigbit-code-editor"
+                        , viewBigbitCommentBox bigbit model.viewingBigbitRelevantHC shared.route
                         ]
-                    , Editor.editor "view-bigbit-code-editor"
-                    , div
-                        [ class "comment-block" ]
-                        [ div
-                            [ class "view-bigbit-toggle-fs"
-                            , onClick <| ViewBigbitToggleFS
-                            ]
-                            [ text <|
-                                case Bigbit.isFSOpen bigbit.fs of
-                                    True ->
-                                        "Resume Tutorial"
-
-                                    False ->
-                                        "Explore File Structure"
-                            ]
-                        , div
-                            [ class "above-editor-text" ]
-                            [ text <|
-                                case Bigbit.viewPageCurrentActiveFile shared.route bigbit of
-                                    Nothing ->
-                                        "No File Selected"
-
-                                    Just activeFile ->
-                                        activeFile
-                            ]
-                        , githubMarkdown [ hidden <| Bigbit.isFSOpen bigbit.fs ] <|
-                            case shared.route of
-                                Route.HomeComponentViewBigbitIntroduction _ _ ->
-                                    bigbit.introduction
-
-                                Route.HomeComponentViewBigbitConclusion _ _ ->
-                                    bigbit.conclusion
-
-                                Route.HomeComponentViewBigbitFrame _ frameNumber _ ->
-                                    (Array.get
-                                        (frameNumber - 1)
-                                        bigbit.highlightedComments
-                                    )
-                                        |> Maybe.map .comment
-                                        |> Maybe.withDefault ""
-
-                                _ ->
-                                    ""
-                        , div
-                            [ class "view-bigbit-fs"
-                            , hidden <| not <| Bigbit.isFSOpen bigbit.fs
-                            ]
-                            [ FS.fileStructure
-                                { isFileSelected =
-                                    (\absolutePath ->
-                                        Bigbit.viewPageCurrentActiveFile shared.route bigbit
-                                            |> Maybe.map (FS.isSameFilePath absolutePath)
-                                            |> Maybe.withDefault False
-                                    )
-                                , fileSelectedMsg = ViewBigbitSelectFile
-                                , folderSelectedMsg = ViewBigbitToggleFolder
-                                }
-                                bigbit.fs
-                            ]
-                        ]
-                    ]
-        ]
+            ]
 
 
 {-| Displays the correct view based on the model.
@@ -1291,7 +1591,7 @@ createBigbitView model shared =
         div
             [ class "create-bigbit" ]
             [ div
-                [ class "create-tidbit-sub-bar" ]
+                [ class "sub-bar" ]
                 [ button
                     [ class "sub-bar-button"
                     , onClick <| GoTo Route.HomeComponentCreate
@@ -1359,9 +1659,6 @@ createBigbitView model shared =
                 -- Should never happen
                 _ ->
                     div [] []
-            , div
-                [ class "invisible-bottom" ]
-                []
             ]
 
 
@@ -1793,7 +2090,7 @@ createSnipbitView model shared =
         div
             [ class "create-snipbit" ]
             [ div
-                [ class "create-tidbit-sub-bar" ]
+                [ class "sub-bar" ]
                 [ button
                     [ class "create-snipbit-back-button"
                     , onClick <| GoTo Route.HomeComponentCreate
@@ -1811,7 +2108,4 @@ createSnipbitView model shared =
                 [ createSnipbitNavbar
                 , viewForTab
                 ]
-            , div
-                [ class "invisible-bottom" ]
-                []
             ]

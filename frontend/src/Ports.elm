@@ -11,6 +11,7 @@ type alias CreateCodeEditorConfig =
     , value : String
     , range : Maybe Range
     , readOnly : Bool
+    , selectAllowed : Bool
     }
 
 
