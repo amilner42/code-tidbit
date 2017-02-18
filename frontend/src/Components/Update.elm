@@ -10,6 +10,7 @@ import Components.Welcome.Update as WelcomeUpdate
 import DefaultServices.LocalStorage as LocalStorage
 import DefaultServices.Util as Util
 import Elements.Editor as Editor
+import Keyboard.Extra
 import Models.Route as Route
 import Navigation
 import Ports
@@ -179,6 +180,26 @@ updateCacheIf msg model shouldCache =
 
                         _ ->
                             doNothing
+
+                KeyboardExtraMessage msg ->
+                    let
+                        newKeyboardModel =
+                            Keyboard.Extra.update msg model.shared.keyboardModel
+
+                        modelWithNewKeys =
+                            { model
+                                | shared =
+                                    { shared
+                                        | keyboardModel = newKeyboardModel
+                                    }
+                            }
+                    in
+                        case msg of
+                            Keyboard.Extra.Down keyCode ->
+                                handleKeyPress (Keyboard.Extra.fromCode keyCode) modelWithNewKeys
+
+                            Keyboard.Extra.Up keyCode ->
+                                handleKeyRelease (Keyboard.Extra.fromCode keyCode) modelWithNewKeys
     in
         case shouldCache of
             True ->
@@ -191,6 +212,22 @@ updateCacheIf msg model shouldCache =
 
             False ->
                 ( newModel, newCmd )
+
+
+{-| Logic for handling new key-press, all keys currently pressed exist in
+`shared.keyboardModel`.
+-}
+handleKeyPress : Keyboard.Extra.Key -> Model -> ( Model, Cmd Msg )
+handleKeyPress lastKeyPressed model =
+    ( model, Cmd.none )
+
+
+{-| Logic for handling new key-release, all keys currently pressed available in
+`shared.keyboardModel`.
+-}
+handleKeyRelease : Keyboard.Extra.Key -> Model -> ( Model, Cmd Msg )
+handleKeyRelease lastKeyPressed model =
+    ( model, Cmd.none )
 
 
 {-| Gets the user from the API.

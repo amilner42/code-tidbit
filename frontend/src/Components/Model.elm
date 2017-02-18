@@ -8,6 +8,7 @@ import Json.Decode as Decode exposing (field)
 import Json.Encode as Encode
 import Models.Route as Route
 import Models.User as User
+import Keyboard.Extra
 
 
 {-| Base Component Model.
@@ -29,6 +30,7 @@ type alias Shared =
     { user : Maybe (User.User)
     , route : Route.Route
     , languages : List ( Editor.Language, String )
+    , keyboardModel : Keyboard.Extra.Model
     }
 
 
@@ -57,10 +59,11 @@ cacheEncoder model =
 -}
 sharedCacheDecoder : Decode.Decoder Shared
 sharedCacheDecoder =
-    Decode.map3 Shared
+    Decode.map4 Shared
         (field "user" (Decode.maybe (User.cacheDecoder)))
         (field "route" Route.cacheDecoder)
         (field "languages" (Decode.succeed Editor.humanReadableListOfLanguages))
+        (field "keyboardModel" (Decode.succeed Keyboard.Extra.init))
 
 
 {-| Shared `cacheEncoder`.
@@ -71,4 +74,5 @@ sharedCacheEncoder shared =
         [ ( "user", justValueOrNull User.cacheEncoder shared.user )
         , ( "route", Route.cacheEncoder shared.route )
         , ( "languages", Encode.null )
+        , ( "keyboardModel", Encode.null )
         ]

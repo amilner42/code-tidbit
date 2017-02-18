@@ -3,6 +3,7 @@ module Components.Messages exposing (..)
 import Components.Home.Messages as HomeMessages
 import Components.Model exposing (Model)
 import Components.Welcome.Messages as WelcomeMessages
+import Keyboard.Extra
 import Models.ApiError as ApiError
 import Models.Range as Range
 import Models.User exposing (User)
@@ -24,3 +25,4 @@ type Msg
     | WelcomeMessage WelcomeMessages.Msg
     | CodeEditorUpdate { id : String, value : String }
     | CodeEditorSelectionUpdate { id : String, range : Range.Range }
+    | KeyboardExtraMessage Keyboard.Extra.Msg
