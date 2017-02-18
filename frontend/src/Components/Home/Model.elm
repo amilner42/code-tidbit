@@ -109,32 +109,12 @@ viewerRelevantHCGoToPreviousFrame vr =
     }
 
 
-{-| Returns true if the snipbit viewer has no relevant HC at the current model
-state.
--}
-snipbitViewerHasNoRelevantHC : Model -> Bool
-snipbitViewerHasNoRelevantHC model =
-    model.viewingSnipbitRelevantHC
-        |> Maybe.map viewerRelevantHCIsEmpty
-        |> Maybe.withDefault True
-
-
 {-| Returns true if the user is browsing the snipbit viewer relevant HC.
 -}
 snipbitViewerBrowsingRelevantHC : Model -> Bool
 snipbitViewerBrowsingRelevantHC model =
     Maybe.map viewerRelevantHCBrowsingFrames model.viewingSnipbitRelevantHC
         |> Maybe.withDefault False
-
-
-{-| Returns true if the bigbit viewer has no relevant HC at the current model
-state.
--}
-bigbitViewerHasNoRelevantHC : Model -> Bool
-bigbitViewerHasNoRelevantHC model =
-    model.viewingBigbitRelevantHC
-        |> Maybe.map viewerRelevantHCIsEmpty
-        |> Maybe.withDefault True
 
 
 {-| ViewerRelevantHC `cacheEncoder`.

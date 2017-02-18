@@ -185,14 +185,6 @@ viewSnipbitCommentBox snipbit relevantHC route =
                                 [ text "Previous" ]
                             , div
                                 [ classList
-                                    [ ( "above-comment-block-button next-button", True )
-                                    , ( "disabled", Model.viewerRelevantHCOnLastFrame viewerRelevantHC )
-                                    ]
-                                , onClick ViewSnipbitNextRelevantHC
-                                ]
-                                [ text "Next" ]
-                            , div
-                                [ classList
                                     [ ( "above-comment-block-button go-to-frame-button", True ) ]
                                 , onClick
                                     (Array.get index relevantHC
@@ -206,6 +198,14 @@ viewSnipbitCommentBox snipbit relevantHC route =
                                     )
                                 ]
                                 [ text "Jump To Frame" ]
+                            , div
+                                [ classList
+                                    [ ( "above-comment-block-button next-button", True )
+                                    , ( "disabled", Model.viewerRelevantHCOnLastFrame viewerRelevantHC )
+                                    ]
+                                , onClick ViewSnipbitNextRelevantHC
+                                ]
+                                [ text "Next" ]
                             , githubMarkdown
                                 []
                                 (Array.get index relevantHC
@@ -232,10 +232,11 @@ viewSnipbitView model shared =
                 [ classList
                     [ ( "sub-bar-button view-relevant-ranges", True )
                     , ( "hidden"
-                      , not
-                            (Maybe.map Model.viewerRelevantHCHasFramesButNotBrowsing model.viewingSnipbitRelevantHC
-                                |> Maybe.withDefault False
-                            )
+                      , not <|
+                            maybeMapWithDefault
+                                Model.viewerRelevantHCHasFramesButNotBrowsing
+                                False
+                                model.viewingSnipbitRelevantHC
                       )
                     ]
                 , onClick <| ViewSnipbitBrowseRelevantHC
@@ -245,10 +246,11 @@ viewSnipbitView model shared =
                 [ classList
                     [ ( "sub-bar-button view-relevant-ranges", True )
                     , ( "hidden"
-                      , not
-                            (Maybe.map Model.viewerRelevantHCBrowsingFrames model.viewingSnipbitRelevantHC
-                                |> Maybe.withDefault False
-                            )
+                      , not <|
+                            maybeMapWithDefault
+                                Model.viewerRelevantHCBrowsingFrames
+                                False
+                                model.viewingSnipbitRelevantHC
                       )
                     ]
                 , onClick <| ViewSnipbitCancelBrowseRelevantHC
@@ -505,8 +507,7 @@ viewBigbitCommentBox bigbit maybeRHC route =
                                 , githubMarkdown
                                     []
                                     (Array.get index rhc.relevantHC
-                                        |> Maybe.map (Tuple.second >> .comment)
-                                        |> Maybe.withDefault ""
+                                        |> maybeMapWithDefault (Tuple.second >> .comment) ""
                                     )
                                 , div
                                     [ classList
@@ -521,7 +522,7 @@ viewBigbitCommentBox bigbit maybeRHC route =
                                         [ ( "above-comment-block-button go-to-frame-button", True ) ]
                                     , onClick
                                         (Array.get index rhc.relevantHC
-                                            |> Maybe.map
+                                            |> maybeMapWithDefault
                                                 (ViewBigbitJumpToFrame
                                                     << (\frameNumber ->
                                                             Route.HomeComponentViewBigbitFrame
@@ -532,7 +533,7 @@ viewBigbitCommentBox bigbit maybeRHC route =
                                                     << ((+) 1)
                                                     << Tuple.first
                                                 )
-                                            |> Maybe.withDefault NoOp
+                                                NoOp
                                         )
                                     ]
                                     [ text "Jump To Frame" ]
