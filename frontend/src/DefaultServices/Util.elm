@@ -4,7 +4,7 @@ import Dict
 import Dom
 import Html exposing (Html, Attribute)
 import Html.Attributes exposing (hidden)
-import Html.Events exposing (on, keyCode)
+import Html.Events exposing (on, onWithOptions, keyCode)
 import Json.Decode as Decode
 import Json.Encode as Encode
 import Task
@@ -86,6 +86,28 @@ onEnter msg =
                 Decode.fail "not ENTER"
     in
         on "keydown" (Decode.andThen isEnter keyCode)
+
+
+{-| Attribute for "preventDefault" on tab-keydown.
+
+NOTE: Will succeed with whatever message passed if it's a tab, if we use
+`Decode.fail` then the prevent default is not activated. So simply pass a `NoOp`
+if you just want the prevent default functionality.
+-}
+preventTabDefault : msg -> Attribute msg
+preventTabDefault msg =
+    onWithOptions
+        "keydown"
+        { stopPropagation = False, preventDefault = True }
+        (Decode.andThen
+            (\code ->
+                if code == 9 then
+                    Decode.succeed msg
+                else
+                    Decode.fail "Not a tab"
+            )
+            keyCode
+        )
 
 
 {-| Gets the last element of a list, if list is empty then Nothing.

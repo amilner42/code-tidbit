@@ -1611,13 +1611,10 @@ createBigbitView model shared =
                         [ class "create-bigbit-name" ]
                         [ input
                             [ placeholder "Name"
+                            , id "name-input"
                             , onInput BigbitUpdateName
                             , value model.bigbitCreateData.name
-                            , Util.onEnter <|
-                                if String.isEmpty model.bigbitCreateData.name then
-                                    NoOp
-                                else
-                                    GoTo Route.HomeComponentCreateBigbitDescription
+                            , Util.preventTabDefault NoOp
                             ]
                             []
                         ]
@@ -1627,8 +1624,10 @@ createBigbitView model shared =
                         [ class "create-bigbit-description" ]
                         [ textarea
                             [ placeholder "Description"
+                            , id "description-input"
                             , onInput BigbitUpdateDescription
                             , value model.bigbitCreateData.description
+                            , Util.preventTabDefault NoOp
                             ]
                             []
                         ]
@@ -1638,10 +1637,12 @@ createBigbitView model shared =
                         [ class "create-tidbit-tags" ]
                         [ input
                             [ placeholder "Tags"
+                            , id "tags-input"
                             , onInput BigbitUpdateTagInput
                             , value model.bigbitCreateData.tagInput
                             , Util.onEnter <|
                                 BigbitAddTag model.bigbitCreateData.tagInput
+                            , Util.preventTabDefault NoOp
                             ]
                             []
                         , makeHTMLTags BigbitRemoveTag model.bigbitCreateData.tags
@@ -1802,13 +1803,10 @@ createSnipbitView model shared =
                 [ class "create-snipbit-name" ]
                 [ input
                     [ placeholder "Name"
+                    , id "name-input"
                     , onInput SnipbitUpdateName
                     , value model.snipbitCreateData.name
-                    , Util.onEnter <|
-                        if String.isEmpty model.snipbitCreateData.name then
-                            NoOp
-                        else
-                            GoTo Route.HomeComponentCreateSnipbitDescription
+                    , Util.preventTabDefault NoOp
                     ]
                     []
                 ]
@@ -1820,8 +1818,10 @@ createSnipbitView model shared =
                 [ textarea
                     [ class "create-snipbit-description-box"
                     , placeholder "Description"
+                    , id "description-input"
                     , onInput SnipbitUpdateDescription
                     , value model.snipbitCreateData.description
+                    , Util.preventTabDefault NoOp
                     ]
                     []
                 ]
@@ -1838,6 +1838,7 @@ createSnipbitView model shared =
                     , disabled <|
                         Util.isNotNothing
                             model.snipbitCreateData.language
+                    , Util.preventTabDefault NoOp
                     ]
                     []
                 , viewMenu
@@ -1859,11 +1860,13 @@ createSnipbitView model shared =
                 [ class "create-tidbit-tags" ]
                 [ input
                     [ placeholder "Tags"
+                    , id "tags-input"
                     , onInput SnipbitUpdateTagInput
                     , value model.snipbitCreateData.tagInput
                     , Util.onEnter <|
                         SnipbitAddTag
                             model.snipbitCreateData.tagInput
+                    , Util.preventTabDefault NoOp
                     ]
                     []
                 , makeHTMLTags SnipbitRemoveTag model.snipbitCreateData.tags

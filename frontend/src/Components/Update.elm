@@ -5,12 +5,12 @@ import Api
 import Components.Home.Update as HomeUpdate
 import Components.Home.Messages as HomeMessages
 import Components.Messages exposing (Msg(..))
-import Components.Model exposing (Model)
+import Components.Model exposing (Model, updateKeysDown, updateKeysDownWithKeys)
 import Components.Welcome.Update as WelcomeUpdate
 import DefaultServices.LocalStorage as LocalStorage
 import DefaultServices.Util as Util
 import Elements.Editor as Editor
-import Keyboard.Extra
+import Keyboard.Extra as KK
 import Models.Route as Route
 import Navigation
 import Ports
@@ -183,23 +183,23 @@ updateCacheIf msg model shouldCache =
 
                 KeyboardExtraMessage msg ->
                     let
-                        newKeyboardModel =
-                            Keyboard.Extra.update msg model.shared.keyboardModel
+                        newKeysDown =
+                            KK.update msg model.shared.keysDown
 
                         modelWithNewKeys =
-                            { model
-                                | shared =
-                                    { shared
-                                        | keyboardModel = newKeyboardModel
-                                    }
-                            }
+                            updateKeysDown newKeysDown model
                     in
-                        case msg of
-                            Keyboard.Extra.Down keyCode ->
-                                handleKeyPress (Keyboard.Extra.fromCode keyCode) modelWithNewKeys
+                        -- Key held, but no new key clicked. Get rid of this if
+                        -- we need hotkeys with key-holds.
+                        if model.shared.keysDown == newKeysDown then
+                            doNothing
+                        else
+                            case msg of
+                                KK.Down keyCode ->
+                                    handleKeyPress modelWithNewKeys
 
-                            Keyboard.Extra.Up keyCode ->
-                                handleKeyRelease (Keyboard.Extra.fromCode keyCode) modelWithNewKeys
+                                KK.Up keyCode ->
+                                    handleKeyRelease (KK.fromCode keyCode) modelWithNewKeys
     in
         case shouldCache of
             True ->
@@ -215,18 +215,84 @@ updateCacheIf msg model shouldCache =
 
 
 {-| Logic for handling new key-press, all keys currently pressed exist in
-`shared.keyboardModel`.
+`shared.keysDown`.
 -}
-handleKeyPress : Keyboard.Extra.Key -> Model -> ( Model, Cmd Msg )
-handleKeyPress lastKeyPressed model =
-    ( model, Cmd.none )
+handleKeyPress : Model -> ( Model, Cmd Msg )
+handleKeyPress model =
+    let
+        keysDown =
+            model.shared.keysDown
+
+        doNothing =
+            ( model, Cmd.none )
+
+        tabPressed =
+            KK.isOneKeyPressed KK.Tab keysDown
+
+        shiftTabPressed =
+            KK.isTwoKeysPressed KK.Tab KK.Shift keysDown
+
+        -- When someone clicks shift-tab, they could let go of the tab but keep
+        -- their hand on the shift and click the tab again to "double-shift-tab"
+        -- To allow this behaviour, every shift tab we reset it as if it was
+        -- the first shift-tab clicked.
+        setToFreshShiftTab =
+            updateKeysDownWithKeys [ KK.Tab, KK.Shift ]
+
+        -- Basic helper for handling tab/shift-tab situations.
+        watchForTabAndShiftTab onTab onShiftTab =
+            if tabPressed then
+                ( model, onTab )
+            else if shiftTabPressed then
+                ( setToFreshShiftTab model, onShiftTab )
+            else
+                doNothing
+    in
+        case model.shared.route of
+            Route.HomeComponentCreateBigbitName ->
+                watchForTabAndShiftTab
+                    (Route.navigateTo Route.HomeComponentCreateBigbitDescription)
+                    Cmd.none
+
+            Route.HomeComponentCreateBigbitDescription ->
+                watchForTabAndShiftTab
+                    (Route.navigateTo Route.HomeComponentCreateBigbitTags)
+                    (Route.navigateTo Route.HomeComponentCreateBigbitName)
+
+            Route.HomeComponentCreateBigbitTags ->
+                watchForTabAndShiftTab
+                    (Route.navigateTo <| Route.HomeComponentCreateBigbitCodeIntroduction Nothing)
+                    (Route.navigateTo Route.HomeComponentCreateBigbitDescription)
+
+            Route.HomeComponentCreateSnipbitName ->
+                watchForTabAndShiftTab
+                    (Route.navigateTo Route.HomeComponentCreateSnipbitDescription)
+                    (Cmd.none)
+
+            Route.HomeComponentCreateSnipbitDescription ->
+                watchForTabAndShiftTab
+                    (Route.navigateTo Route.HomeComponentCreateSnipbitLanguage)
+                    (Route.navigateTo Route.HomeComponentCreateSnipbitName)
+
+            Route.HomeComponentCreateSnipbitLanguage ->
+                watchForTabAndShiftTab
+                    (Route.navigateTo Route.HomeComponentCreateSnipbitTags)
+                    (Route.navigateTo Route.HomeComponentCreateSnipbitDescription)
+
+            Route.HomeComponentCreateSnipbitTags ->
+                watchForTabAndShiftTab
+                    (Route.navigateTo Route.HomeComponentCreateSnipbitCodeIntroduction)
+                    (Route.navigateTo Route.HomeComponentCreateSnipbitLanguage)
+
+            _ ->
+                doNothing
 
 
 {-| Logic for handling new key-release, all keys currently pressed available in
-`shared.keyboardModel`.
+`shared.keysDown`.
 -}
-handleKeyRelease : Keyboard.Extra.Key -> Model -> ( Model, Cmd Msg )
-handleKeyRelease lastKeyPressed model =
+handleKeyRelease : KK.Key -> Model -> ( Model, Cmd Msg )
+handleKeyRelease releasedKey model =
     ( model, Cmd.none )
 
 
@@ -417,6 +483,27 @@ handleLocationChange maybeRoute model =
                         triggerRouteHookOnHomeComponent
 
                     Route.HomeComponentViewBigbitConclusion _ _ ->
+                        triggerRouteHookOnHomeComponent
+
+                    Route.HomeComponentCreateSnipbitName ->
+                        triggerRouteHookOnHomeComponent
+
+                    Route.HomeComponentCreateSnipbitDescription ->
+                        triggerRouteHookOnHomeComponent
+
+                    Route.HomeComponentCreateSnipbitLanguage ->
+                        triggerRouteHookOnHomeComponent
+
+                    Route.HomeComponentCreateSnipbitTags ->
+                        triggerRouteHookOnHomeComponent
+
+                    Route.HomeComponentCreateBigbitName ->
+                        triggerRouteHookOnHomeComponent
+
+                    Route.HomeComponentCreateBigbitDescription ->
+                        triggerRouteHookOnHomeComponent
+
+                    Route.HomeComponentCreateBigbitTags ->
                         triggerRouteHookOnHomeComponent
 
                     Route.HomeComponentCreateBigbitCodeIntroduction _ ->

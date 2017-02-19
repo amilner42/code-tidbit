@@ -172,6 +172,12 @@ update msg model shared =
                                                 }
                             , smoothScrollToBottom
                             ]
+
+                    focusOn theID =
+                        ( model
+                        , shared
+                        , Util.domFocus (\_ -> NoOp) theID
+                        )
                 in
                     case shared.route of
                         Route.HomeComponentViewSnipbitIntroduction mongoID ->
@@ -191,6 +197,27 @@ update msg model shared =
 
                         Route.HomeComponentViewBigbitConclusion mongoID _ ->
                             fetchOrRenderBigbit mongoID
+
+                        Route.HomeComponentCreateBigbitName ->
+                            focusOn "name-input"
+
+                        Route.HomeComponentCreateBigbitDescription ->
+                            focusOn "description-input"
+
+                        Route.HomeComponentCreateBigbitTags ->
+                            focusOn "tags-input"
+
+                        Route.HomeComponentCreateSnipbitName ->
+                            focusOn "name-input"
+
+                        Route.HomeComponentCreateSnipbitDescription ->
+                            focusOn "description-input"
+
+                        Route.HomeComponentCreateSnipbitLanguage ->
+                            focusOn "language-query-input"
+
+                        Route.HomeComponentCreateSnipbitTags ->
+                            focusOn "tags-input"
 
                         Route.HomeComponentCreateBigbitCodeIntroduction maybeFilePath ->
                             ( model
