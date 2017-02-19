@@ -755,6 +755,15 @@ createPageCurrentActiveFile route =
             Nothing
 
 
+{-| Gets the active file (on create page) for a specific frame.
+-}
+createPageGetActiveFileForFrame : Int -> BigbitCreateData -> Maybe FS.Path
+createPageGetActiveFileForFrame frameNumber bigbit =
+    Array.get (frameNumber - 1) bigbit.highlightedComments
+        |> Maybe.andThen .fileAndRange
+        |> Maybe.map .file
+
+
 {-| The current active path (on view page) determined from the route or the
 current comment frame.
 -}

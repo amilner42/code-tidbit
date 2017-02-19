@@ -1,4 +1,4 @@
-module Components.Update exposing (update, updateCacheIf)
+module Components.Update exposing (update, updateCacheIf, kkUpdateWrapper)
 
 import Array
 import Api
@@ -184,7 +184,7 @@ updateCacheIf msg model shouldCache =
                 KeyboardExtraMessage msg ->
                     let
                         newKeysDown =
-                            KK.update msg model.shared.keysDown
+                            kkUpdateWrapper msg model.shared.keysDown
 
                         modelWithNewKeys =
                             updateKeysDown newKeysDown model
@@ -214,8 +214,39 @@ updateCacheIf msg model shouldCache =
                 ( newModel, newCmd )
 
 
+{-| A wrapper around KK.update to handle extra logic.
+
+Extra Logic: When someone clicks shift-tab, they could let go of the tab but
+keep their hand on the shift and click the tab again to "double-shift-tab" to
+allow this behaviour, every shift tab we reset it as if it was the first
+shift-tab clicked.
+-}
+kkUpdateWrapper : KK.Msg -> KK.Model -> KK.Model
+kkUpdateWrapper keyMsg keysDown =
+    let
+        newKeysDown =
+            KK.update keyMsg keysDown
+    in
+        case newKeysDown of
+            [ Just key1, Nothing, Just key2 ] ->
+                if
+                    ((KK.fromCode key1) == KK.Tab)
+                        && ((KK.fromCode key2) == KK.Shift)
+                then
+                    [ Just key1, Just key2 ]
+                else
+                    newKeysDown
+
+            _ ->
+                newKeysDown
+
+
 {-| Logic for handling new key-press, all keys currently pressed exist in
 `shared.keysDown`.
+
+NOTE: This doesn't require that a specific element be focussed, put logic for
+route hotkeys here, if you want a hotkey only if a certain element is focussed,
+stick to putting that on the element itself.
 -}
 handleKeyPress : Model -> ( Model, Cmd Msg )
 handleKeyPress model =
@@ -232,19 +263,12 @@ handleKeyPress model =
         shiftTabPressed =
             KK.isTwoKeysPressed KK.Tab KK.Shift keysDown
 
-        -- When someone clicks shift-tab, they could let go of the tab but keep
-        -- their hand on the shift and click the tab again to "double-shift-tab"
-        -- To allow this behaviour, every shift tab we reset it as if it was
-        -- the first shift-tab clicked.
-        setToFreshShiftTab =
-            updateKeysDownWithKeys [ KK.Tab, KK.Shift ]
-
         -- Basic helper for handling tab/shift-tab situations.
         watchForTabAndShiftTab onTab onShiftTab =
             if tabPressed then
                 ( model, onTab )
             else if shiftTabPressed then
-                ( setToFreshShiftTab model, onShiftTab )
+                ( model, onShiftTab )
             else
                 doNothing
     in
@@ -309,6 +333,10 @@ welcome or where the user isn't logged in and goes to an auth-page. You simply
 need to specify `routesNotNeedingAuth`, `defaultUnauthRoute`, and
 `defaultAuthRoute` in your `Routes` model. It also handles users going to
 routes that don't exist (just goes `back` to the route they were on before).
+
+Aside from auth logic, nothing else should be put here otherwise it gets
+crowded. Trigger route hooks on the sub-components and let them hande the
+logic.
 -}
 handleLocationChange : Maybe Route.Route -> Model -> ( Model, Cmd Msg )
 handleLocationChange maybeRoute model =
@@ -331,21 +359,6 @@ handleLocationChange maybeRoute model =
                     { model
                         | shared = { shared | route = route }
                     }
-
-                aceLang =
-                    case model.homeComponent.snipbitCreateData.language of
-                        Nothing ->
-                            ""
-
-                        Just aLanguage ->
-                            Editor.aceLanguageLocation aLanguage
-
-                -- TODO Get theme from `shared.user`.
-                aceTheme =
-                    ""
-
-                aceValue =
-                    model.homeComponent.snipbitCreateData.code
 
                 -- Handle authentication logic here.
                 ( newModel, newCmd ) =
@@ -398,21 +411,6 @@ handleLocationChange maybeRoute model =
                                     in
                                         ( newModel, LocalStorage.saveModel newModel )
 
-                newCmdBatchedWithCreateSnipbitEditor aceRange =
-                    Cmd.batch
-                        [ newCmd
-                        , Ports.createCodeEditor
-                            { id = "create-snipbit-code-editor"
-                            , lang = aceLang
-                            , theme = aceTheme
-                            , value = aceValue
-                            , range = aceRange
-                            , readOnly = False
-                            , selectAllowed = True
-                            }
-                        , Ports.doScrolling { querySelector = ".invisible-bottom", duration = 750 }
-                        ]
-
                 triggerRouteHookOnHomeComponent =
                     ( newModel
                     , Cmd.batch
@@ -426,46 +424,14 @@ handleLocationChange maybeRoute model =
                 case route of
                     -- Init the editor.
                     Route.HomeComponentCreateSnipbitCodeIntroduction ->
-                        ( newModel
-                        , newCmdBatchedWithCreateSnipbitEditor Nothing
-                        )
+                        triggerRouteHookOnHomeComponent
 
                     -- Init the editor.
                     Route.HomeComponentCreateSnipbitCodeConclusion ->
-                        ( newModel
-                        , newCmdBatchedWithCreateSnipbitEditor Nothing
-                        )
+                        triggerRouteHookOnHomeComponent
 
-                    Route.HomeComponentCreateSnipbitCodeFrame frameNumber ->
-                        let
-                            -- 0 based indexing.
-                            frameIndex =
-                                frameNumber - 1
-
-                            frameIndexTooHigh =
-                                frameIndex >= (Array.length model.homeComponent.snipbitCreateData.highlightedComments)
-
-                            frameIndexTooLow =
-                                frameIndex < 0
-                        in
-                            if frameIndexTooHigh || frameIndexTooLow then
-                                ( newModel
-                                , Cmd.batch
-                                    [ newCmd
-                                    , Route.modifyTo
-                                        Route.HomeComponentCreateSnipbitCodeIntroduction
-                                    ]
-                                )
-                            else
-                                ( newModel
-                                , newCmdBatchedWithCreateSnipbitEditor <|
-                                    Maybe.andThen
-                                        .range
-                                        (Array.get
-                                            frameIndex
-                                            model.homeComponent.snipbitCreateData.highlightedComments
-                                        )
-                                )
+                    Route.HomeComponentCreateSnipbitCodeFrame _ ->
+                        triggerRouteHookOnHomeComponent
 
                     Route.HomeComponentViewSnipbitIntroduction _ ->
                         triggerRouteHookOnHomeComponent

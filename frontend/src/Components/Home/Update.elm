@@ -141,7 +141,7 @@ update msg model shared =
                                 else
                                     getBigbit mongoID
 
-                    createBigbitEditorForCurrentFile maybeRange maybeFilePath backupRoute =
+                    createCreateBigbitEditorForCurrentFile maybeRange maybeFilePath backupRoute =
                         Cmd.batch
                             [ case maybeFilePath of
                                 Nothing ->
@@ -172,6 +172,27 @@ update msg model shared =
                                                 }
                             , smoothScrollToBottom
                             ]
+
+                    createCreateSnipbitEditor aceRange =
+                        let
+                            aceLang =
+                                maybeMapWithDefault
+                                    Editor.aceLanguageLocation
+                                    ""
+                                    model.snipbitCreateData.language
+                        in
+                            Cmd.batch
+                                [ Ports.createCodeEditor
+                                    { id = "create-snipbit-code-editor"
+                                    , lang = aceLang
+                                    , theme = User.getTheme shared.user
+                                    , value = model.snipbitCreateData.code
+                                    , range = aceRange
+                                    , readOnly = False
+                                    , selectAllowed = True
+                                    }
+                                , Ports.doScrolling { querySelector = ".invisible-bottom", duration = 750 }
+                                ]
 
                     focusOn theID =
                         ( model
@@ -219,15 +240,80 @@ update msg model shared =
                         Route.HomeComponentCreateSnipbitTags ->
                             focusOn "tags-input"
 
+                        Route.HomeComponentCreateSnipbitCodeIntroduction ->
+                            ( model
+                            , shared
+                            , Cmd.batch
+                                [ createCreateSnipbitEditor Nothing
+                                , Util.domFocus (\_ -> NoOp) "introduction-input"
+                                ]
+                            )
+
+                        Route.HomeComponentCreateSnipbitCodeFrame frameNumber ->
+                            let
+                                -- 0 based indexing.
+                                frameIndex =
+                                    frameNumber - 1
+
+                                frameIndexTooHigh =
+                                    frameIndex >= (Array.length model.snipbitCreateData.highlightedComments)
+
+                                frameIndexTooLow =
+                                    frameIndex < 0
+                            in
+                                if frameIndexTooLow then
+                                    ( model
+                                    , shared
+                                    , Route.modifyTo
+                                        Route.HomeComponentCreateSnipbitCodeIntroduction
+                                    )
+                                else if frameIndexTooHigh then
+                                    ( model
+                                    , shared
+                                    , Route.modifyTo
+                                        Route.HomeComponentCreateSnipbitCodeConclusion
+                                    )
+                                else
+                                    ( model
+                                    , shared
+                                    , Cmd.batch
+                                        [ createCreateSnipbitEditor
+                                            ((Array.get
+                                                frameIndex
+                                                model.snipbitCreateData.highlightedComments
+                                             )
+                                                |> Maybe.andThen .range
+                                            )
+                                        , Util.domFocus (\_ -> NoOp) "frame-input"
+                                        ]
+                                    )
+
+                        Route.HomeComponentCreateSnipbitCodeConclusion ->
+                            ( model
+                            , shared
+                            , Cmd.batch
+                                [ createCreateSnipbitEditor Nothing
+                                , Util.domFocus (\_ -> NoOp) "conclusion-input"
+                                ]
+                            )
+
                         Route.HomeComponentCreateBigbitCodeIntroduction maybeFilePath ->
                             ( model
                             , shared
-                            , createBigbitEditorForCurrentFile Nothing maybeFilePath (Route.HomeComponentCreateBigbitCodeIntroduction Nothing)
+                            , Cmd.batch
+                                [ createCreateBigbitEditorForCurrentFile
+                                    Nothing
+                                    maybeFilePath
+                                    (Route.HomeComponentCreateBigbitCodeIntroduction Nothing)
+                                , Util.domFocus (\_ -> NoOp) "introduction-input"
+                                ]
                             )
 
                         Route.HomeComponentCreateBigbitCodeFrame frameNumber maybeFilePath ->
-                            if frameNumber < 1 || frameNumber > (Array.length currentBigbitHighlightedComments) then
+                            if frameNumber < 1 then
                                 ( model, shared, Route.modifyTo <| Route.HomeComponentCreateBigbitCodeIntroduction Nothing )
+                            else if frameNumber > (Array.length currentBigbitHighlightedComments) then
+                                ( model, shared, Route.modifyTo <| Route.HomeComponentCreateBigbitCodeConclusion Nothing )
                             else
                                 let
                                     newModel =
@@ -292,13 +378,25 @@ update msg model shared =
                                 in
                                     ( newModel
                                     , shared
-                                    , createBigbitEditorForCurrentFile maybeRangeToHighlight maybeFilePath (Route.HomeComponentCreateBigbitCodeFrame frameNumber Nothing)
+                                    , Cmd.batch
+                                        [ createCreateBigbitEditorForCurrentFile
+                                            maybeRangeToHighlight
+                                            maybeFilePath
+                                            (Route.HomeComponentCreateBigbitCodeFrame frameNumber Nothing)
+                                        , Util.domFocus (\_ -> NoOp) "frame-input"
+                                        ]
                                     )
 
                         Route.HomeComponentCreateBigbitCodeConclusion maybeFilePath ->
                             ( model
                             , shared
-                            , createBigbitEditorForCurrentFile Nothing maybeFilePath (Route.HomeComponentCreateBigbitCodeConclusion Nothing)
+                            , Cmd.batch
+                                [ createCreateBigbitEditorForCurrentFile
+                                    Nothing
+                                    maybeFilePath
+                                    (Route.HomeComponentCreateBigbitCodeConclusion Nothing)
+                                , Util.domFocus (\_ -> NoOp) "conclusion-input"
+                                ]
                             )
 
                         _ ->
