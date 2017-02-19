@@ -15,6 +15,7 @@ import Html.Events exposing (onClick, onInput)
 import Models.Bigbit as Bigbit
 import Elements.FileStructure as FS
 import Elements.Markdown exposing (githubMarkdown)
+import Keyboard.Extra as KK
 import Models.Range as Range
 import Models.Route as Route
 import Models.Snipbit as Snipbit
@@ -1342,7 +1343,13 @@ createBigbitView model shared =
                                         [ id "fs-action-input-box"
                                         , placeholder "Absolute Path"
                                         , onInput BigbitUpdateActionInput
-                                        , Util.onEnter <| BigbitSubmitActionInput
+                                        , Util.onKeydown
+                                            (\key ->
+                                                if key == KK.Enter then
+                                                    Just BigbitSubmitActionInput
+                                                else
+                                                    Nothing
+                                            )
                                         , value
                                             (model.bigbitCreateData.fs
                                                 |> FS.getFSMetadata
@@ -1614,7 +1621,13 @@ createBigbitView model shared =
                             , id "name-input"
                             , onInput BigbitUpdateName
                             , value model.bigbitCreateData.name
-                            , Util.preventTabDefault NoOp
+                            , Util.onKeydownPreventDefault
+                                (\key ->
+                                    if key == KK.Tab then
+                                        Just NoOp
+                                    else
+                                        Nothing
+                                )
                             ]
                             []
                         ]
@@ -1627,7 +1640,13 @@ createBigbitView model shared =
                             , id "description-input"
                             , onInput BigbitUpdateDescription
                             , value model.bigbitCreateData.description
-                            , Util.preventTabDefault NoOp
+                            , Util.onKeydownPreventDefault
+                                (\key ->
+                                    if key == KK.Tab then
+                                        Just NoOp
+                                    else
+                                        Nothing
+                                )
                             ]
                             []
                         ]
@@ -1640,9 +1659,15 @@ createBigbitView model shared =
                             , id "tags-input"
                             , onInput BigbitUpdateTagInput
                             , value model.bigbitCreateData.tagInput
-                            , Util.onEnter <|
-                                BigbitAddTag model.bigbitCreateData.tagInput
-                            , Util.preventTabDefault NoOp
+                            , Util.onKeydownPreventDefault
+                                (\key ->
+                                    if key == KK.Enter then
+                                        Just <| BigbitAddTag model.bigbitCreateData.tagInput
+                                    else if key == KK.Tab then
+                                        Just <| NoOp
+                                    else
+                                        Nothing
+                                )
                             ]
                             []
                         , makeHTMLTags BigbitRemoveTag model.bigbitCreateData.tags
@@ -1806,7 +1831,13 @@ createSnipbitView model shared =
                     , id "name-input"
                     , onInput SnipbitUpdateName
                     , value model.snipbitCreateData.name
-                    , Util.preventTabDefault NoOp
+                    , Util.onKeydownPreventDefault
+                        (\key ->
+                            if key == KK.Tab then
+                                Just NoOp
+                            else
+                                Nothing
+                        )
                     ]
                     []
                 ]
@@ -1821,7 +1852,13 @@ createSnipbitView model shared =
                     , id "description-input"
                     , onInput SnipbitUpdateDescription
                     , value model.snipbitCreateData.description
-                    , Util.preventTabDefault NoOp
+                    , Util.onKeydownPreventDefault
+                        (\key ->
+                            if key == KK.Tab then
+                                Just NoOp
+                            else
+                                Nothing
+                        )
                     ]
                     []
                 ]
@@ -1838,7 +1875,13 @@ createSnipbitView model shared =
                     , disabled <|
                         Util.isNotNothing
                             model.snipbitCreateData.language
-                    , Util.preventTabDefault NoOp
+                    , Util.onKeydownPreventDefault
+                        (\key ->
+                            if key == KK.Tab then
+                                Just NoOp
+                            else
+                                Nothing
+                        )
                     ]
                     []
                 , viewMenu
@@ -1863,10 +1906,15 @@ createSnipbitView model shared =
                     , id "tags-input"
                     , onInput SnipbitUpdateTagInput
                     , value model.snipbitCreateData.tagInput
-                    , Util.onEnter <|
-                        SnipbitAddTag
-                            model.snipbitCreateData.tagInput
-                    , Util.preventTabDefault NoOp
+                    , Util.onKeydownPreventDefault
+                        (\key ->
+                            if key == KK.Enter then
+                                Just <| SnipbitAddTag model.snipbitCreateData.tagInput
+                            else if key == KK.Tab then
+                                Just <| NoOp
+                            else
+                                Nothing
+                        )
                     ]
                     []
                 , makeHTMLTags SnipbitRemoveTag model.snipbitCreateData.tags
