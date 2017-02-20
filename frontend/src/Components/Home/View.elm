@@ -2,11 +2,10 @@ module Components.Home.View exposing (..)
 
 import Array
 import Autocomplete as AC
-import Components.Update exposing (kkUpdateWrapper)
 import Components.Home.Messages exposing (Msg(..))
 import Components.Home.Model as Model exposing (Model, TidbitType(..))
 import Components.Home.Update exposing (filterLanguagesByQuery)
-import Components.Model exposing (Shared)
+import Components.Model exposing (Shared, kkUpdateWrapper)
 import DefaultServices.Util as Util exposing (maybeMapWithDefault)
 import Dict
 import Elements.Editor as Editor

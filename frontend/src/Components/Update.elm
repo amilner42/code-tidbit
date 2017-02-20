@@ -1,11 +1,11 @@
-module Components.Update exposing (update, updateCacheIf, kkUpdateWrapper)
+module Components.Update exposing (update, updateCacheIf)
 
 import Array
 import Api
 import Components.Home.Update as HomeUpdate
 import Components.Home.Messages as HomeMessages
 import Components.Messages exposing (Msg(..))
-import Components.Model exposing (Model, updateKeysDown, updateKeysDownWithKeys)
+import Components.Model exposing (Model, updateKeysDown, updateKeysDownWithKeys, kkUpdateWrapper)
 import Components.Welcome.Update as WelcomeUpdate
 import DefaultServices.LocalStorage as LocalStorage
 import DefaultServices.Util as Util
@@ -212,33 +212,6 @@ updateCacheIf msg model shouldCache =
 
             False ->
                 ( newModel, newCmd )
-
-
-{-| A wrapper around KK.update to handle extra logic.
-
-Extra Logic: When someone clicks shift-tab, they could let go of the tab but
-keep their hand on the shift and click the tab again to "double-shift-tab" to
-allow this behaviour, every shift tab we reset it as if it was the first
-shift-tab clicked.
--}
-kkUpdateWrapper : KK.Msg -> KK.Model -> KK.Model
-kkUpdateWrapper keyMsg keysDown =
-    let
-        newKeysDown =
-            KK.update keyMsg keysDown
-    in
-        case newKeysDown of
-            [ Just key1, Nothing, Just key2 ] ->
-                if
-                    ((KK.fromCode key1) == KK.Tab)
-                        && ((KK.fromCode key2) == KK.Shift)
-                then
-                    [ Just key1, Just key2 ]
-                else
-                    newKeysDown
-
-            _ ->
-                newKeysDown
 
 
 {-| Logic for handling new key-press, all keys currently pressed exist in
