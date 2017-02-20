@@ -5,6 +5,7 @@ import Components.Model as Model
 import Components.Welcome.Init as WelcomeInit
 import Elements.Editor as Editor
 import Models.Route as Route
+import Keyboard.Extra as KK
 
 
 {-| The default model (`Components/Model.elm`) for the application.
@@ -24,4 +25,5 @@ defaultShared =
     { user = Nothing
     , route = Route.WelcomeComponentLogin
     , languages = Editor.humanReadableListOfLanguages
+    , keysDown = KK.init
     }

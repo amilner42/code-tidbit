@@ -162,7 +162,7 @@ app.ports.createCodeEditor.subscribe(function(editorConfig) {
       }
 
       // Focus the editor.
-      aceCodeEditor.focus();
+      //   aceCodeEditor.focus();
 
       aceCodeEditor.setReadOnly(editorConfig.readOnly);
 

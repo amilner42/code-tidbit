@@ -4,10 +4,12 @@ import Dict
 import Dom
 import Html exposing (Html, Attribute)
 import Html.Attributes exposing (hidden)
-import Html.Events exposing (on, keyCode)
+import Html.Events exposing (Options, on, onWithOptions, keyCode, defaultOptions)
 import Json.Decode as Decode
 import Json.Encode as Encode
+import Keyboard.Extra as KK
 import Task
+import Set
 
 
 {-| Useful for encoding, turns maybes into nulls / there actual value.
@@ -74,18 +76,40 @@ quote word =
     "\"" ++ word ++ "\""
 
 
-{-| Event handler for enter clicks.
+{-| Event handler for handling `keyDown` events.
 -}
-onEnter : msg -> Attribute msg
-onEnter msg =
+onKeydownWithOptions : Options -> (KK.Key -> Maybe msg) -> Attribute msg
+onKeydownWithOptions options keyToMsg =
     let
-        isEnter code =
-            if code == 13 then
-                Decode.succeed msg
-            else
-                Decode.fail "not ENTER"
+        decodeMsgFromKeyCode code =
+            KK.fromCode code
+                |> keyToMsg
+                |> maybeMapWithDefault Decode.succeed (Decode.fail "")
     in
-        on "keydown" (Decode.andThen isEnter keyCode)
+        onWithOptions
+            "keydown"
+            options
+            (Decode.andThen decodeMsgFromKeyCode keyCode)
+
+
+{-| Default event handler for `keyDown` events.
+-}
+onKeydown : (KK.Key -> Maybe msg) -> Attribute msg
+onKeydown =
+    onKeydownWithOptions defaultOptions
+
+
+{-| Event handler for `keyDown` events that also `preventDefault`.
+
+WARNING: It'll only prevent default if your function returns a message not
+`Nothing`.
+-}
+onKeydownPreventDefault : (KK.Key -> Maybe msg) -> Attribute msg
+onKeydownPreventDefault =
+    onKeydownWithOptions
+        { preventDefault = True
+        , stopPropagation = False
+        }
 
 
 {-| Gets the last element of a list, if list is empty then Nothing.

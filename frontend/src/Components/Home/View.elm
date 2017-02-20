@@ -5,7 +5,7 @@ import Autocomplete as AC
 import Components.Home.Messages exposing (Msg(..))
 import Components.Home.Model as Model exposing (Model, TidbitType(..))
 import Components.Home.Update exposing (filterLanguagesByQuery)
-import Components.Model exposing (Shared)
+import Components.Model exposing (Shared, kkUpdateWrapper)
 import DefaultServices.Util as Util exposing (maybeMapWithDefault)
 import Dict
 import Elements.Editor as Editor
@@ -15,6 +15,7 @@ import Html.Events exposing (onClick, onInput)
 import Models.Bigbit as Bigbit
 import Elements.FileStructure as FS
 import Elements.Markdown exposing (githubMarkdown)
+import Keyboard.Extra as KK
 import Models.Range as Range
 import Models.Route as Route
 import Models.Snipbit as Snipbit
@@ -1342,7 +1343,13 @@ createBigbitView model shared =
                                         [ id "fs-action-input-box"
                                         , placeholder "Absolute Path"
                                         , onInput BigbitUpdateActionInput
-                                        , Util.onEnter <| BigbitSubmitActionInput
+                                        , Util.onKeydown
+                                            (\key ->
+                                                if key == KK.Enter then
+                                                    Just BigbitSubmitActionInput
+                                                else
+                                                    Nothing
+                                            )
                                         , value
                                             (model.bigbitCreateData.fs
                                                 |> FS.getFSMetadata
@@ -1464,9 +1471,32 @@ createBigbitView model shared =
                                             model.bigbitCreateData.introduction
                                             (textarea
                                                 [ placeholder "Introduction"
+                                                , id "introduction-input"
                                                 , onInput <| BigbitUpdateIntroduction
                                                 , hidden <| Bigbit.isFSOpen model.bigbitCreateData.fs
                                                 , value model.bigbitCreateData.introduction
+                                                , Util.onKeydownPreventDefault
+                                                    (\key ->
+                                                        let
+                                                            newKeysDown =
+                                                                kkUpdateWrapper (KK.Down <| KK.toCode key) shared.keysDown
+                                                        in
+                                                            if key == KK.Tab then
+                                                                if newKeysDown == shared.keysDown then
+                                                                    Just NoOp
+                                                                else if KK.isOneKeyPressed KK.Tab newKeysDown then
+                                                                    Just <|
+                                                                        GoTo <|
+                                                                            Route.HomeComponentCreateBigbitCodeFrame
+                                                                                1
+                                                                                (Bigbit.createPageGetActiveFileForFrame 1 model.bigbitCreateData)
+                                                                else if KK.isTwoKeysPressed KK.Tab KK.Shift newKeysDown then
+                                                                    Just <| GoTo <| Route.HomeComponentCreateBigbitTags
+                                                                else
+                                                                    Nothing
+                                                            else
+                                                                Nothing
+                                                    )
                                                 ]
                                                 []
                                             )
@@ -1486,9 +1516,35 @@ createBigbitView model shared =
                                                 frameText
                                                 (textarea
                                                     [ placeholder <| "Frame " ++ (toString frameNumber)
+                                                    , id "frame-input"
                                                     , onInput <| BigbitUpdateFrameComment frameNumber
                                                     , value frameText
                                                     , hidden <| fsOpen
+                                                    , Util.onKeydownPreventDefault
+                                                        (\key ->
+                                                            let
+                                                                newKeysDown =
+                                                                    kkUpdateWrapper (KK.Down <| KK.toCode key) shared.keysDown
+                                                            in
+                                                                if key == KK.Tab then
+                                                                    if newKeysDown == shared.keysDown then
+                                                                        Just NoOp
+                                                                    else if KK.isOneKeyPressed KK.Tab newKeysDown then
+                                                                        Just <|
+                                                                            GoTo <|
+                                                                                Route.HomeComponentCreateBigbitCodeFrame
+                                                                                    (frameNumber + 1)
+                                                                                    (Bigbit.createPageGetActiveFileForFrame
+                                                                                        (frameNumber + 1)
+                                                                                        model.bigbitCreateData
+                                                                                    )
+                                                                    else if KK.isTwoKeysPressed KK.Tab KK.Shift newKeysDown then
+                                                                        Just <| GoTo <| Route.HomeComponentCreateBigbitCodeIntroduction Nothing
+                                                                    else
+                                                                        Nothing
+                                                                else
+                                                                    Nothing
+                                                        )
                                                     ]
                                                     []
                                                 )
@@ -1499,9 +1555,35 @@ createBigbitView model shared =
                                             model.bigbitCreateData.conclusion
                                             (textarea
                                                 [ placeholder "Conclusion"
+                                                , id "conclusion-input"
                                                 , onInput BigbitUpdateConclusion
                                                 , hidden <| fsOpen
                                                 , value model.bigbitCreateData.conclusion
+                                                , Util.onKeydownPreventDefault
+                                                    (\key ->
+                                                        let
+                                                            newKeysDown =
+                                                                kkUpdateWrapper (KK.Down <| KK.toCode key) shared.keysDown
+                                                        in
+                                                            if key == KK.Tab then
+                                                                if newKeysDown == shared.keysDown then
+                                                                    Just NoOp
+                                                                else if KK.isOneKeyPressed KK.Tab newKeysDown then
+                                                                    Just <| NoOp
+                                                                else if KK.isTwoKeysPressed KK.Tab KK.Shift newKeysDown then
+                                                                    Just <|
+                                                                        GoTo <|
+                                                                            Route.HomeComponentCreateBigbitCodeFrame
+                                                                                (Array.length model.bigbitCreateData.highlightedComments)
+                                                                                (Bigbit.createPageGetActiveFileForFrame
+                                                                                    (Array.length model.bigbitCreateData.highlightedComments)
+                                                                                    model.bigbitCreateData
+                                                                                )
+                                                                else
+                                                                    Nothing
+                                                            else
+                                                                Nothing
+                                                    )
                                                 ]
                                                 []
                                             )
@@ -1524,9 +1606,9 @@ createBigbitView model shared =
                                                         GoTo <|
                                                             Route.HomeComponentCreateBigbitCodeFrame
                                                                 (index + 1)
-                                                                (Array.get index model.bigbitCreateData.highlightedComments
-                                                                    |> Maybe.andThen .fileAndRange
-                                                                    |> Maybe.map .file
+                                                                (Bigbit.createPageGetActiveFileForFrame
+                                                                    (index + 1)
+                                                                    model.bigbitCreateData
                                                                 )
                                                     ]
                                                     [ text <| toString <| index + 1 ]
@@ -1611,13 +1693,16 @@ createBigbitView model shared =
                         [ class "create-bigbit-name" ]
                         [ input
                             [ placeholder "Name"
+                            , id "name-input"
                             , onInput BigbitUpdateName
                             , value model.bigbitCreateData.name
-                            , Util.onEnter <|
-                                if String.isEmpty model.bigbitCreateData.name then
-                                    NoOp
-                                else
-                                    GoTo Route.HomeComponentCreateBigbitDescription
+                            , Util.onKeydownPreventDefault
+                                (\key ->
+                                    if key == KK.Tab then
+                                        Just NoOp
+                                    else
+                                        Nothing
+                                )
                             ]
                             []
                         ]
@@ -1627,8 +1712,16 @@ createBigbitView model shared =
                         [ class "create-bigbit-description" ]
                         [ textarea
                             [ placeholder "Description"
+                            , id "description-input"
                             , onInput BigbitUpdateDescription
                             , value model.bigbitCreateData.description
+                            , Util.onKeydownPreventDefault
+                                (\key ->
+                                    if key == KK.Tab then
+                                        Just NoOp
+                                    else
+                                        Nothing
+                                )
                             ]
                             []
                         ]
@@ -1638,10 +1731,18 @@ createBigbitView model shared =
                         [ class "create-tidbit-tags" ]
                         [ input
                             [ placeholder "Tags"
+                            , id "tags-input"
                             , onInput BigbitUpdateTagInput
                             , value model.bigbitCreateData.tagInput
-                            , Util.onEnter <|
-                                BigbitAddTag model.bigbitCreateData.tagInput
+                            , Util.onKeydownPreventDefault
+                                (\key ->
+                                    if key == KK.Enter then
+                                        Just <| BigbitAddTag model.bigbitCreateData.tagInput
+                                    else if key == KK.Tab then
+                                        Just <| NoOp
+                                    else
+                                        Nothing
+                                )
                             ]
                             []
                         , makeHTMLTags BigbitRemoveTag model.bigbitCreateData.tags
@@ -1802,13 +1903,16 @@ createSnipbitView model shared =
                 [ class "create-snipbit-name" ]
                 [ input
                     [ placeholder "Name"
+                    , id "name-input"
                     , onInput SnipbitUpdateName
                     , value model.snipbitCreateData.name
-                    , Util.onEnter <|
-                        if String.isEmpty model.snipbitCreateData.name then
-                            NoOp
-                        else
-                            GoTo Route.HomeComponentCreateSnipbitDescription
+                    , Util.onKeydownPreventDefault
+                        (\key ->
+                            if key == KK.Tab then
+                                Just NoOp
+                            else
+                                Nothing
+                        )
                     ]
                     []
                 ]
@@ -1820,8 +1924,16 @@ createSnipbitView model shared =
                 [ textarea
                     [ class "create-snipbit-description-box"
                     , placeholder "Description"
+                    , id "description-input"
                     , onInput SnipbitUpdateDescription
                     , value model.snipbitCreateData.description
+                    , Util.onKeydownPreventDefault
+                        (\key ->
+                            if key == KK.Tab then
+                                Just NoOp
+                            else
+                                Nothing
+                        )
                     ]
                     []
                 ]
@@ -1838,6 +1950,13 @@ createSnipbitView model shared =
                     , disabled <|
                         Util.isNotNothing
                             model.snipbitCreateData.language
+                    , Util.onKeydownPreventDefault
+                        (\key ->
+                            if key == KK.Tab then
+                                Just NoOp
+                            else
+                                Nothing
+                        )
                     ]
                     []
                 , viewMenu
@@ -1859,11 +1978,18 @@ createSnipbitView model shared =
                 [ class "create-tidbit-tags" ]
                 [ input
                     [ placeholder "Tags"
+                    , id "tags-input"
                     , onInput SnipbitUpdateTagInput
                     , value model.snipbitCreateData.tagInput
-                    , Util.onEnter <|
-                        SnipbitAddTag
-                            model.snipbitCreateData.tagInput
+                    , Util.onKeydownPreventDefault
+                        (\key ->
+                            if key == KK.Enter then
+                                Just <| SnipbitAddTag model.snipbitCreateData.tagInput
+                            else if key == KK.Tab then
+                                Just <| NoOp
+                            else
+                                Nothing
+                        )
                     ]
                     []
                 , makeHTMLTags SnipbitRemoveTag model.snipbitCreateData.tags
@@ -1894,8 +2020,27 @@ createSnipbitView model shared =
                                     model.snipbitCreateData.introduction
                                     (textarea
                                         [ placeholder "Introduction"
+                                        , id "introduction-input"
                                         , onInput <| SnipbitUpdateIntroduction
                                         , value model.snipbitCreateData.introduction
+                                        , Util.onKeydownPreventDefault
+                                            (\key ->
+                                                let
+                                                    newKeysDown =
+                                                        kkUpdateWrapper (KK.Down <| KK.toCode key) shared.keysDown
+                                                in
+                                                    if key == KK.Tab then
+                                                        if newKeysDown == shared.keysDown then
+                                                            Just NoOp
+                                                        else if KK.isOneKeyPressed KK.Tab newKeysDown then
+                                                            Just <| GoTo <| Route.HomeComponentCreateSnipbitCodeFrame 1
+                                                        else if KK.isTwoKeysPressed KK.Tab KK.Shift newKeysDown then
+                                                            Just <| GoTo <| Route.HomeComponentCreateSnipbitTags
+                                                        else
+                                                            Nothing
+                                                    else
+                                                        Nothing
+                                            )
                                         ]
                                         []
                                     )
@@ -1920,9 +2065,28 @@ createSnipbitView model shared =
                                             [ placeholder <|
                                                 "Frame "
                                                     ++ (toString frameNumber)
+                                            , id "frame-input"
                                             , onInput <|
                                                 SnipbitUpdateFrameComment frameIndex
                                             , value <| frameText
+                                            , Util.onKeydownPreventDefault
+                                                (\key ->
+                                                    let
+                                                        newKeysDown =
+                                                            kkUpdateWrapper (KK.Down <| KK.toCode key) shared.keysDown
+                                                    in
+                                                        if key == KK.Tab then
+                                                            if newKeysDown == shared.keysDown then
+                                                                Just NoOp
+                                                            else if KK.isOneKeyPressed KK.Tab newKeysDown then
+                                                                Just <| GoTo <| Route.HomeComponentCreateSnipbitCodeFrame (frameNumber + 1)
+                                                            else if KK.isTwoKeysPressed KK.Tab KK.Shift newKeysDown then
+                                                                Just <| GoTo <| Route.HomeComponentCreateSnipbitCodeFrame (frameNumber - 1)
+                                                            else
+                                                                Nothing
+                                                        else
+                                                            Nothing
+                                                )
                                             ]
                                             []
                                         )
@@ -1933,8 +2097,30 @@ createSnipbitView model shared =
                                     model.snipbitCreateData.conclusion
                                     (textarea
                                         [ placeholder "Conclusion"
+                                        , id "conclusion-input"
                                         , onInput <| SnipbitUpdateConclusion
                                         , value model.snipbitCreateData.conclusion
+                                        , Util.onKeydownPreventDefault
+                                            (\key ->
+                                                let
+                                                    newKeysDown =
+                                                        kkUpdateWrapper (KK.Down <| KK.toCode key) shared.keysDown
+                                                in
+                                                    if key == KK.Tab then
+                                                        if newKeysDown == shared.keysDown then
+                                                            Just NoOp
+                                                        else if KK.isOneKeyPressed KK.Tab newKeysDown then
+                                                            Just NoOp
+                                                        else if KK.isTwoKeysPressed KK.Tab KK.Shift newKeysDown then
+                                                            Just <|
+                                                                GoTo <|
+                                                                    Route.HomeComponentCreateSnipbitCodeFrame
+                                                                        (Array.length model.snipbitCreateData.highlightedComments)
+                                                        else
+                                                            Nothing
+                                                    else
+                                                        Nothing
+                                            )
                                         ]
                                         []
                                     )

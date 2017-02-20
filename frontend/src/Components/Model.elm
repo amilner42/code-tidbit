@@ -1,4 +1,4 @@
-module Components.Model exposing (Model, Shared, cacheDecoder, cacheEncoder)
+module Components.Model exposing (..)
 
 import Components.Home.Model as HomeModel
 import Components.Welcome.Model as WelcomeModel
@@ -8,6 +8,7 @@ import Json.Decode as Decode exposing (field)
 import Json.Encode as Encode
 import Models.Route as Route
 import Models.User as User
+import Keyboard.Extra as KK
 
 
 {-| Base Component Model.
@@ -29,7 +30,58 @@ type alias Shared =
     { user : Maybe (User.User)
     , route : Route.Route
     , languages : List ( Editor.Language, String )
+    , keysDown : KK.Model
     }
+
+
+{-| A wrapper around KK.update to handle extra logic.
+
+Extra Logic: When someone clicks shift-tab, they could let go of the tab but
+keep their hand on the shift and click the tab again to "double-shift-tab" to
+allow this behaviour, every shift tab we reset it as if it was the first
+shift-tab clicked.
+-}
+kkUpdateWrapper : KK.Msg -> KK.Model -> KK.Model
+kkUpdateWrapper keyMsg keysDown =
+    let
+        newKeysDown =
+            KK.update keyMsg keysDown
+    in
+        case newKeysDown of
+            [ Just key1, Nothing, Just key2 ] ->
+                if
+                    ((KK.fromCode key1) == KK.Tab)
+                        && ((KK.fromCode key2) == KK.Shift)
+                then
+                    [ Just key1, Just key2 ]
+                else
+                    newKeysDown
+
+            _ ->
+                newKeysDown
+
+
+{-| Updates `keysDown`.
+-}
+updateKeysDown : KK.Model -> Model -> Model
+updateKeysDown newKeysDown model =
+    let
+        shared =
+            model.shared
+    in
+        { model
+            | shared =
+                { shared
+                    | keysDown = newKeysDown
+                }
+        }
+
+
+{-| Updates 'keysDown' with the given list of `Key`s.
+-}
+updateKeysDownWithKeys : List KK.Key -> Model -> Model
+updateKeysDownWithKeys newKeys =
+    updateKeysDown (List.map (Just << KK.toCode) newKeys)
 
 
 {-| Base Component `cacheDecoder`.
@@ -57,10 +109,11 @@ cacheEncoder model =
 -}
 sharedCacheDecoder : Decode.Decoder Shared
 sharedCacheDecoder =
-    Decode.map3 Shared
+    Decode.map4 Shared
         (field "user" (Decode.maybe (User.cacheDecoder)))
         (field "route" Route.cacheDecoder)
         (field "languages" (Decode.succeed Editor.humanReadableListOfLanguages))
+        (field "keysDown" (Decode.succeed KK.init))
 
 
 {-| Shared `cacheEncoder`.
@@ -71,4 +124,5 @@ sharedCacheEncoder shared =
         [ ( "user", justValueOrNull User.cacheEncoder shared.user )
         , ( "route", Route.cacheEncoder shared.route )
         , ( "languages", Encode.null )
+        , ( "keysDown", Encode.null )
         ]

@@ -5,11 +5,12 @@ import Api
 import Components.Home.Update as HomeUpdate
 import Components.Home.Messages as HomeMessages
 import Components.Messages exposing (Msg(..))
-import Components.Model exposing (Model)
+import Components.Model exposing (Model, updateKeysDown, updateKeysDownWithKeys, kkUpdateWrapper)
 import Components.Welcome.Update as WelcomeUpdate
 import DefaultServices.LocalStorage as LocalStorage
 import DefaultServices.Util as Util
 import Elements.Editor as Editor
+import Keyboard.Extra as KK
 import Models.Route as Route
 import Navigation
 import Ports
@@ -179,6 +180,26 @@ updateCacheIf msg model shouldCache =
 
                         _ ->
                             doNothing
+
+                KeyboardExtraMessage msg ->
+                    let
+                        newKeysDown =
+                            kkUpdateWrapper msg model.shared.keysDown
+
+                        modelWithNewKeys =
+                            updateKeysDown newKeysDown model
+                    in
+                        -- Key held, but no new key clicked. Get rid of this if
+                        -- we need hotkeys with key-holds.
+                        if model.shared.keysDown == newKeysDown then
+                            doNothing
+                        else
+                            case msg of
+                                KK.Down keyCode ->
+                                    handleKeyPress modelWithNewKeys
+
+                                KK.Up keyCode ->
+                                    handleKeyRelease (KK.fromCode keyCode) modelWithNewKeys
     in
         case shouldCache of
             True ->
@@ -191,6 +212,85 @@ updateCacheIf msg model shouldCache =
 
             False ->
                 ( newModel, newCmd )
+
+
+{-| Logic for handling new key-press, all keys currently pressed exist in
+`shared.keysDown`.
+
+NOTE: This doesn't require that a specific element be focussed, put logic for
+route hotkeys here, if you want a hotkey only if a certain element is focussed,
+stick to putting that on the element itself.
+-}
+handleKeyPress : Model -> ( Model, Cmd Msg )
+handleKeyPress model =
+    let
+        keysDown =
+            model.shared.keysDown
+
+        doNothing =
+            ( model, Cmd.none )
+
+        tabPressed =
+            KK.isOneKeyPressed KK.Tab keysDown
+
+        shiftTabPressed =
+            KK.isTwoKeysPressed KK.Tab KK.Shift keysDown
+
+        -- Basic helper for handling tab/shift-tab situations.
+        watchForTabAndShiftTab onTab onShiftTab =
+            if tabPressed then
+                ( model, onTab )
+            else if shiftTabPressed then
+                ( model, onShiftTab )
+            else
+                doNothing
+    in
+        case model.shared.route of
+            Route.HomeComponentCreateBigbitName ->
+                watchForTabAndShiftTab
+                    (Route.navigateTo Route.HomeComponentCreateBigbitDescription)
+                    Cmd.none
+
+            Route.HomeComponentCreateBigbitDescription ->
+                watchForTabAndShiftTab
+                    (Route.navigateTo Route.HomeComponentCreateBigbitTags)
+                    (Route.navigateTo Route.HomeComponentCreateBigbitName)
+
+            Route.HomeComponentCreateBigbitTags ->
+                watchForTabAndShiftTab
+                    (Route.navigateTo <| Route.HomeComponentCreateBigbitCodeIntroduction Nothing)
+                    (Route.navigateTo Route.HomeComponentCreateBigbitDescription)
+
+            Route.HomeComponentCreateSnipbitName ->
+                watchForTabAndShiftTab
+                    (Route.navigateTo Route.HomeComponentCreateSnipbitDescription)
+                    (Cmd.none)
+
+            Route.HomeComponentCreateSnipbitDescription ->
+                watchForTabAndShiftTab
+                    (Route.navigateTo Route.HomeComponentCreateSnipbitLanguage)
+                    (Route.navigateTo Route.HomeComponentCreateSnipbitName)
+
+            Route.HomeComponentCreateSnipbitLanguage ->
+                watchForTabAndShiftTab
+                    (Route.navigateTo Route.HomeComponentCreateSnipbitTags)
+                    (Route.navigateTo Route.HomeComponentCreateSnipbitDescription)
+
+            Route.HomeComponentCreateSnipbitTags ->
+                watchForTabAndShiftTab
+                    (Route.navigateTo Route.HomeComponentCreateSnipbitCodeIntroduction)
+                    (Route.navigateTo Route.HomeComponentCreateSnipbitLanguage)
+
+            _ ->
+                doNothing
+
+
+{-| Logic for handling new key-release, all keys currently pressed available in
+`shared.keysDown`.
+-}
+handleKeyRelease : KK.Key -> Model -> ( Model, Cmd Msg )
+handleKeyRelease releasedKey model =
+    ( model, Cmd.none )
 
 
 {-| Gets the user from the API.
@@ -206,6 +306,10 @@ welcome or where the user isn't logged in and goes to an auth-page. You simply
 need to specify `routesNotNeedingAuth`, `defaultUnauthRoute`, and
 `defaultAuthRoute` in your `Routes` model. It also handles users going to
 routes that don't exist (just goes `back` to the route they were on before).
+
+Aside from auth logic, nothing else should be put here otherwise it gets
+crowded. Trigger route hooks on the sub-components and let them hande the
+logic.
 -}
 handleLocationChange : Maybe Route.Route -> Model -> ( Model, Cmd Msg )
 handleLocationChange maybeRoute model =
@@ -228,21 +332,6 @@ handleLocationChange maybeRoute model =
                     { model
                         | shared = { shared | route = route }
                     }
-
-                aceLang =
-                    case model.homeComponent.snipbitCreateData.language of
-                        Nothing ->
-                            ""
-
-                        Just aLanguage ->
-                            Editor.aceLanguageLocation aLanguage
-
-                -- TODO Get theme from `shared.user`.
-                aceTheme =
-                    ""
-
-                aceValue =
-                    model.homeComponent.snipbitCreateData.code
 
                 -- Handle authentication logic here.
                 ( newModel, newCmd ) =
@@ -295,21 +384,6 @@ handleLocationChange maybeRoute model =
                                     in
                                         ( newModel, LocalStorage.saveModel newModel )
 
-                newCmdBatchedWithCreateSnipbitEditor aceRange =
-                    Cmd.batch
-                        [ newCmd
-                        , Ports.createCodeEditor
-                            { id = "create-snipbit-code-editor"
-                            , lang = aceLang
-                            , theme = aceTheme
-                            , value = aceValue
-                            , range = aceRange
-                            , readOnly = False
-                            , selectAllowed = True
-                            }
-                        , Ports.doScrolling { querySelector = ".invisible-bottom", duration = 750 }
-                        ]
-
                 triggerRouteHookOnHomeComponent =
                     ( newModel
                     , Cmd.batch
@@ -323,46 +397,14 @@ handleLocationChange maybeRoute model =
                 case route of
                     -- Init the editor.
                     Route.HomeComponentCreateSnipbitCodeIntroduction ->
-                        ( newModel
-                        , newCmdBatchedWithCreateSnipbitEditor Nothing
-                        )
+                        triggerRouteHookOnHomeComponent
 
                     -- Init the editor.
                     Route.HomeComponentCreateSnipbitCodeConclusion ->
-                        ( newModel
-                        , newCmdBatchedWithCreateSnipbitEditor Nothing
-                        )
+                        triggerRouteHookOnHomeComponent
 
-                    Route.HomeComponentCreateSnipbitCodeFrame frameNumber ->
-                        let
-                            -- 0 based indexing.
-                            frameIndex =
-                                frameNumber - 1
-
-                            frameIndexTooHigh =
-                                frameIndex >= (Array.length model.homeComponent.snipbitCreateData.highlightedComments)
-
-                            frameIndexTooLow =
-                                frameIndex < 0
-                        in
-                            if frameIndexTooHigh || frameIndexTooLow then
-                                ( newModel
-                                , Cmd.batch
-                                    [ newCmd
-                                    , Route.modifyTo
-                                        Route.HomeComponentCreateSnipbitCodeIntroduction
-                                    ]
-                                )
-                            else
-                                ( newModel
-                                , newCmdBatchedWithCreateSnipbitEditor <|
-                                    Maybe.andThen
-                                        .range
-                                        (Array.get
-                                            frameIndex
-                                            model.homeComponent.snipbitCreateData.highlightedComments
-                                        )
-                                )
+                    Route.HomeComponentCreateSnipbitCodeFrame _ ->
+                        triggerRouteHookOnHomeComponent
 
                     Route.HomeComponentViewSnipbitIntroduction _ ->
                         triggerRouteHookOnHomeComponent
@@ -380,6 +422,27 @@ handleLocationChange maybeRoute model =
                         triggerRouteHookOnHomeComponent
 
                     Route.HomeComponentViewBigbitConclusion _ _ ->
+                        triggerRouteHookOnHomeComponent
+
+                    Route.HomeComponentCreateSnipbitName ->
+                        triggerRouteHookOnHomeComponent
+
+                    Route.HomeComponentCreateSnipbitDescription ->
+                        triggerRouteHookOnHomeComponent
+
+                    Route.HomeComponentCreateSnipbitLanguage ->
+                        triggerRouteHookOnHomeComponent
+
+                    Route.HomeComponentCreateSnipbitTags ->
+                        triggerRouteHookOnHomeComponent
+
+                    Route.HomeComponentCreateBigbitName ->
+                        triggerRouteHookOnHomeComponent
+
+                    Route.HomeComponentCreateBigbitDescription ->
+                        triggerRouteHookOnHomeComponent
+
+                    Route.HomeComponentCreateBigbitTags ->
                         triggerRouteHookOnHomeComponent
 
                     Route.HomeComponentCreateBigbitCodeIntroduction _ ->
