@@ -1,7 +1,7 @@
 module Components.Home.Model exposing (..)
 
 import Array
-import DefaultServices.Util as Util
+import DefaultServices.Util as Util exposing (maybeMapWithDefault)
 import Json.Decode as Decode exposing (field)
 import Json.Encode as Encode
 import Json.Decode.Pipeline exposing (decode, required, optional, hardcoded)
@@ -107,14 +107,6 @@ viewerRelevantHCGoToPreviousFrame vr =
             else
                 Maybe.map ((flip (-)) 1) vr.currentHC
     }
-
-
-{-| Returns true if the user is browsing the snipbit viewer relevant HC.
--}
-snipbitViewerBrowsingRelevantHC : Model -> Bool
-snipbitViewerBrowsingRelevantHC model =
-    Maybe.map viewerRelevantHCBrowsingFrames model.viewingSnipbitRelevantHC
-        |> Maybe.withDefault False
 
 
 {-| ViewerRelevantHC `cacheEncoder`.
@@ -260,3 +252,42 @@ cacheDecoder =
         (field "viewingBigbitRelevantHC" (Decode.maybe viewingBigbitRelevantHCCacheDecoder))
         (field "snipbitCreateData" Snipbit.createDataCacheDecoder)
         (field "bigbitCreateData" Bigbit.bigbitCreateDataCacheDecoder)
+
+
+{-| Returns true if the user is browsing the snipbit viewer relevant HC.
+-}
+isViewSnipbitRHCTabOpen : Model -> Bool
+isViewSnipbitRHCTabOpen model =
+    maybeMapWithDefault viewerRelevantHCBrowsingFrames False model.viewingSnipbitRelevantHC
+
+
+{-| Returns true if the user is currently browsing the RHC.
+-}
+isViewBigbitRHCTabOpen : Maybe ViewingBigbitRelevantHC -> Bool
+isViewBigbitRHCTabOpen =
+    maybeMapWithDefault viewerRelevantHCBrowsingFrames False
+
+
+{-| Returns true if the user is currently browsing the FS.
+-}
+isViewBigbitFSTabOpen : Maybe Bigbit.Bigbit -> Maybe ViewingBigbitRelevantHC -> Bool
+isViewBigbitFSTabOpen maybeBigbit maybeRHC =
+    (not <| isViewBigbitRHCTabOpen maybeRHC)
+        && isViewBigbitFSOpen maybeBigbit
+
+
+{-| Returns true if the FS is open, this ISNT the same as the FS tab being open,
+the FS can be open but have the browsing-rhc over-top it.
+-}
+isViewBigbitFSOpen : Maybe Bigbit.Bigbit -> Bool
+isViewBigbitFSOpen =
+    Maybe.map .fs
+        >> maybeMapWithDefault Bigbit.isFSOpen False
+
+
+{-| Returns true if the user is currently browsing the tutorial.
+-}
+isViewBigbitTutorialTabOpen : Maybe Bigbit.Bigbit -> Maybe ViewingBigbitRelevantHC -> Bool
+isViewBigbitTutorialTabOpen maybeBigbit maybeRHC =
+    (not <| isViewBigbitRHCTabOpen maybeRHC)
+        && (not <| isViewBigbitFSTabOpen maybeBigbit maybeRHC)

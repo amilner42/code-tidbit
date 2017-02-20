@@ -3,7 +3,7 @@ module Components.Home.View exposing (..)
 import Array
 import Autocomplete as AC
 import Components.Home.Messages exposing (Msg(..))
-import Components.Home.Model as Model exposing (Model, TidbitType(..))
+import Components.Home.Model as Model exposing (Model, TidbitType(..), isViewBigbitRHCTabOpen, isViewBigbitFSTabOpen, isViewBigbitTutorialTabOpen, isViewBigbitFSOpen)
 import Components.Home.Update exposing (filterLanguagesByQuery)
 import Components.Model exposing (Shared, kkUpdateWrapper)
 import DefaultServices.Util as Util exposing (maybeMapWithDefault)
@@ -278,11 +278,11 @@ viewSnipbitView model shared =
                                         _ ->
                                             False
                                     )
-                                        || (Model.snipbitViewerBrowsingRelevantHC model)
+                                        || (Model.isViewSnipbitRHCTabOpen model)
                                   )
                                 ]
                             , onClick <|
-                                if (Model.snipbitViewerBrowsingRelevantHC model) then
+                                if (Model.isViewSnipbitRHCTabOpen model) then
                                     NoOp
                                 else
                                     case shared.route of
@@ -298,7 +298,7 @@ viewSnipbitView model shared =
                             [ text "arrow_back" ]
                         , div
                             [ onClick <|
-                                if (Model.snipbitViewerBrowsingRelevantHC model) then
+                                if (Model.isViewSnipbitRHCTabOpen model) then
                                     NoOp
                                 else
                                     GoTo <| Route.HomeComponentViewSnipbitIntroduction snipbit.id
@@ -312,7 +312,7 @@ viewSnipbitView model shared =
                                         _ ->
                                             False
                                   )
-                                , ( "disabled", Model.snipbitViewerBrowsingRelevantHC model )
+                                , ( "disabled", Model.isViewSnipbitRHCTabOpen model )
                                 ]
                             ]
                             [ text "Introduction" ]
@@ -328,10 +328,10 @@ viewSnipbitView model shared =
                                     Nothing
                             )
                             (Array.length snipbit.highlightedComments)
-                            (Model.snipbitViewerBrowsingRelevantHC model)
+                            (Model.isViewSnipbitRHCTabOpen model)
                         , div
                             [ onClick <|
-                                if (Model.snipbitViewerBrowsingRelevantHC model) then
+                                if (Model.isViewSnipbitRHCTabOpen model) then
                                     NoOp
                                 else
                                     GoTo <| Route.HomeComponentViewSnipbitConclusion snipbit.id
@@ -345,7 +345,7 @@ viewSnipbitView model shared =
                                         _ ->
                                             False
                                   )
-                                , ( "disabled", Model.snipbitViewerBrowsingRelevantHC model )
+                                , ( "disabled", Model.isViewSnipbitRHCTabOpen model )
                                 ]
                             ]
                             [ text "Conclusion" ]
@@ -360,11 +360,11 @@ viewSnipbitView model shared =
                                         _ ->
                                             False
                                     )
-                                        || (Model.snipbitViewerBrowsingRelevantHC model)
+                                        || (Model.isViewSnipbitRHCTabOpen model)
                                   )
                                 ]
                             , onClick <|
-                                if (Model.snipbitViewerBrowsingRelevantHC model) then
+                                if (Model.isViewSnipbitRHCTabOpen model) then
                                     NoOp
                                 else
                                     case shared.route of
@@ -389,38 +389,6 @@ viewSnipbitView model shared =
                         ]
                     ]
         ]
-
-
-{-| Returns true if the user is currently browsing the RHC.
--}
-isViewBigbitRHCTabOpen : Maybe Model.ViewingBigbitRelevantHC -> Bool
-isViewBigbitRHCTabOpen =
-    maybeMapWithDefault Model.viewerRelevantHCBrowsingFrames False
-
-
-{-| Returns true if the user is currently browsing the FS.
--}
-isViewBigbitFSTabOpen : Maybe Bigbit.Bigbit -> Maybe Model.ViewingBigbitRelevantHC -> Bool
-isViewBigbitFSTabOpen maybeBigbit maybeRHC =
-    (not <| isViewBigbitRHCTabOpen maybeRHC)
-        && isViewBigbitFSOpen maybeBigbit
-
-
-{-| Returns true if the FS is open, this ISNT the same as the FS tab being open,
-the FS can be open but have the browsing-rhc over-top it.
--}
-isViewBigbitFSOpen : Maybe Bigbit.Bigbit -> Bool
-isViewBigbitFSOpen =
-    Maybe.map .fs
-        >> maybeMapWithDefault Bigbit.isFSOpen False
-
-
-{-| Returns true if the user is currently browsing the tutorial.
--}
-isViewBigbitTutorialTabOpen : Maybe Bigbit.Bigbit -> Maybe Model.ViewingBigbitRelevantHC -> Bool
-isViewBigbitTutorialTabOpen maybeBigbit maybeRHC =
-    (not <| isViewBigbitRHCTabOpen maybeRHC)
-        && (not <| isViewBigbitFSTabOpen maybeBigbit maybeRHC)
 
 
 {-| Gets the comment box for the view bigbit page, can be the markdown for the

@@ -4,11 +4,12 @@ import Array
 import Api
 import Components.Home.Update as HomeUpdate
 import Components.Home.Messages as HomeMessages
+import Components.Home.Model as HomeModel
 import Components.Messages exposing (Msg(..))
 import Components.Model exposing (Model, updateKeysDown, updateKeysDownWithKeys, kkUpdateWrapper)
 import Components.Welcome.Update as WelcomeUpdate
 import DefaultServices.LocalStorage as LocalStorage
-import DefaultServices.Util as Util
+import DefaultServices.Util as Util exposing (maybeMapWithDefault)
 import Elements.Editor as Editor
 import Keyboard.Extra as KK
 import Models.Route as Route
@@ -236,12 +237,45 @@ handleKeyPress model =
         shiftTabPressed =
             KK.isTwoKeysPressed KK.Tab KK.Shift keysDown
 
+        leftArrowPressed =
+            KK.isOneKeyPressed KK.ArrowLeft keysDown
+
+        rightArrowPressed =
+            KK.isOneKeyPressed KK.ArrowRight keysDown
+
         -- Basic helper for handling tab/shift-tab situations.
         watchForTabAndShiftTab onTab onShiftTab =
             if tabPressed then
                 ( model, onTab )
             else if shiftTabPressed then
                 ( model, onShiftTab )
+            else
+                doNothing
+
+        -- Basic helper for left/right arrow situations.
+        watchForLeftAndRightArrow onLeft onRight =
+            if leftArrowPressed then
+                ( model, onLeft )
+            else if rightArrowPressed then
+                ( model, onRight )
+            else
+                doNothing
+
+        -- Makes sure to only activate arrow keys if in the tutorial.
+        viewSnipbitWatchForLeftAndRightArrow onLeft onRight =
+            if HomeModel.isViewSnipbitRHCTabOpen model.homeComponent then
+                doNothing
+            else
+                watchForLeftAndRightArrow onLeft onRight
+
+        -- Makes sure to only activate arrow keys if in the tutorial.
+        viewBigbitWatchForLeftAndRightArrow onLeft onRight =
+            if
+                HomeModel.isViewBigbitTutorialTabOpen
+                    model.homeComponent.viewingBigbit
+                    model.homeComponent.viewingBigbitRelevantHC
+            then
+                watchForLeftAndRightArrow onLeft onRight
             else
                 doNothing
     in
@@ -280,6 +314,49 @@ handleKeyPress model =
                 watchForTabAndShiftTab
                     (Route.navigateTo Route.HomeComponentCreateSnipbitCodeIntroduction)
                     (Route.navigateTo Route.HomeComponentCreateSnipbitLanguage)
+
+            Route.HomeComponentViewSnipbitIntroduction mongoID ->
+                viewSnipbitWatchForLeftAndRightArrow
+                    Cmd.none
+                    (Route.navigateTo <| Route.HomeComponentViewSnipbitFrame mongoID 1)
+
+            Route.HomeComponentViewSnipbitFrame mongoID frameNumber ->
+                viewSnipbitWatchForLeftAndRightArrow
+                    (Route.navigateTo <| Route.HomeComponentViewSnipbitFrame mongoID (frameNumber - 1))
+                    (Route.navigateTo <| Route.HomeComponentViewSnipbitFrame mongoID (frameNumber + 1))
+
+            Route.HomeComponentViewSnipbitConclusion mongoID ->
+                viewSnipbitWatchForLeftAndRightArrow
+                    (Route.navigateTo <|
+                        Route.HomeComponentViewSnipbitFrame
+                            mongoID
+                            (model.homeComponent.viewingSnipbit
+                                |> maybeMapWithDefault (.highlightedComments >> Array.length) 0
+                            )
+                    )
+                    Cmd.none
+
+            Route.HomeComponentViewBigbitIntroduction mongoID _ ->
+                viewBigbitWatchForLeftAndRightArrow
+                    Cmd.none
+                    (Route.navigateTo <| Route.HomeComponentViewBigbitFrame mongoID 1 Nothing)
+
+            Route.HomeComponentViewBigbitFrame mongoID frameNumber _ ->
+                viewBigbitWatchForLeftAndRightArrow
+                    (Route.navigateTo <| Route.HomeComponentViewBigbitFrame mongoID (frameNumber - 1) Nothing)
+                    (Route.navigateTo <| Route.HomeComponentViewBigbitFrame mongoID (frameNumber + 1) Nothing)
+
+            Route.HomeComponentViewBigbitConclusion mongoID _ ->
+                viewBigbitWatchForLeftAndRightArrow
+                    (Route.navigateTo <|
+                        Route.HomeComponentViewBigbitFrame
+                            mongoID
+                            (model.homeComponent.viewingBigbit
+                                |> maybeMapWithDefault (.highlightedComments >> Array.length) 0
+                            )
+                            Nothing
+                    )
+                    Cmd.none
 
             _ ->
                 doNothing
