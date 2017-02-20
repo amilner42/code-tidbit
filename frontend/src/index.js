@@ -205,3 +205,14 @@ app.ports.createCodeEditor.subscribe(function(editorConfig) {
     }
   }, 100);
 });
+
+// Jumps to a specific line, both putting the cursor there and scrolling it
+// into view.
+app.ports.codeEditorJumpToLine.subscribe(function(jumpToLineConfig) {
+  const aceCodeEditor = aceCodeEditors[jumpToLineConfig.id];
+
+  if(aceCodeEditor) {
+    aceCodeEditor.gotoLine(jumpToLineConfig.lineNumber, 0, true);
+    aceCodeEditor.focus();
+  }
+});

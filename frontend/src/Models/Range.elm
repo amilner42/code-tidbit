@@ -119,3 +119,14 @@ newValidRange range newCode =
 overlappingRanges : Range -> Range -> Bool
 overlappingRanges range1 range2 =
     not <| (range1 <<< range2) || (range1 >>> range2)
+
+
+{-| Collapses a range in on it's starting point. It will become empty range.
+-}
+collapseRange : Range -> Range
+collapseRange range =
+    { startRow = range.startRow
+    , endRow = range.startRow
+    , startCol = range.startCol
+    , endCol = range.startCol
+    }

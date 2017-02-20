@@ -1,6 +1,7 @@
 module Models.Bigbit exposing (..)
 
 import Array
+import DefaultServices.ArrayExtra as ArrayExtra
 import Char
 import DefaultServices.Util as Util
 import Dict
@@ -661,10 +662,6 @@ createDataToPublicationData createData =
             Nothing
 
 
-
--- FS helpers below (refer to examples below to use row-polymorphism).
-
-
 {-| Checks if an entire fs is open.
 -}
 isFSOpen : FS.FileStructure { a | openFS : Bool } b c -> Bool
@@ -798,3 +795,37 @@ setActionButtonSubmitConfirmed newConfirmValue fs =
                     | actionButtonSubmitConfirmed = newConfirmValue
                 }
             )
+
+
+{-| Gets the range from the previous frame's selected range if we're on a route
+which has a previous frame (Code Frame 2+) and the previous frame has a selected
+range.
+-}
+previousFrameLocation : BigbitCreateData -> Route.Route -> Maybe ( FS.Path, Range.Range )
+previousFrameLocation createData route =
+    case route of
+        Route.HomeComponentCreateBigbitCodeFrame frameNumber _ ->
+            Array.get (frameNumber - 2) createData.highlightedComments
+                |> Maybe.andThen .fileAndRange
+                |> Maybe.andThen
+                    (\{ file, range } ->
+                        Maybe.map ((,) file) range
+                    )
+
+        _ ->
+            Nothing
+
+
+{-| Sets one of the highlighted comments at position `index` to it's new value,
+if the `index` has no value then the createData is returned unchanged.
+-}
+updateCreateDataHCAtIndex :
+    BigbitCreateData
+    -> Int
+    -> (BigbitHighlightedCommentForCreate -> BigbitHighlightedCommentForCreate)
+    -> BigbitCreateData
+updateCreateDataHCAtIndex bigbit index hcUpdater =
+    { bigbit
+        | highlightedComments =
+            ArrayExtra.update index bigbit.highlightedComments hcUpdater
+    }

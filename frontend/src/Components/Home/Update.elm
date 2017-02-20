@@ -351,7 +351,14 @@ update msg model shared =
                                                                                 { currentHighlightedComment
                                                                                     | fileAndRange =
                                                                                         Just
-                                                                                            { range = Nothing
+                                                                                            { range =
+                                                                                                case Bigbit.previousFrameLocation model.bigbitCreateData shared.route of
+                                                                                                    Nothing ->
+                                                                                                        Nothing
+
+                                                                                                    Just ( _, range ) ->
+                                                                                                        Just <|
+                                                                                                            Range.collapseRange range
                                                                                             , file = filePath
                                                                                             }
                                                                                 }
@@ -1560,6 +1567,25 @@ update msg model shared =
                     OnBigbitPublishFailure
                     OnBigbitPublishSuccess
                 )
+
+            BigbitJumpToLineFromPreviousFrame filePath ->
+                case shared.route of
+                    Route.HomeComponentCreateBigbitCodeFrame frameNumber _ ->
+                        ( updateBigbitCreateData <|
+                            Bigbit.updateCreateDataHCAtIndex
+                                currentBigbitCreateData
+                                (frameNumber - 1)
+                                (\hcAtIndex ->
+                                    { hcAtIndex
+                                        | fileAndRange = Nothing
+                                    }
+                                )
+                        , shared
+                        , Route.navigateToSameUrlWithFilePath (Just filePath) shared.route
+                        )
+
+                    _ ->
+                        doNothing
 
             OnBigbitPublishFailure apiError ->
                 -- TODO Handle bigbit publish failures.
