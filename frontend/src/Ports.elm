@@ -4,17 +4,6 @@ import Json.Encode as Encode
 import Models.Range exposing (Range)
 
 
-type alias CreateCodeEditorConfig =
-    { id : String
-    , lang : String
-    , theme : String
-    , value : String
-    , range : Maybe Range
-    , readOnly : Bool
-    , selectAllowed : Bool
-    }
-
-
 {-| Saves the model to localstorage.
 -}
 port saveModelToLocalStorage : Encode.Value -> Cmd msg
@@ -38,10 +27,32 @@ port doScrolling : { querySelector : String, duration : Int } -> Cmd msg
 port onLoadModelFromLocalStorage : (String -> msg) -> Sub msg
 
 
+type alias CreateCodeEditorConfig =
+    { id : String
+    , lang : String
+    , theme : String
+    , value : String
+    , range : Maybe Range
+    , readOnly : Bool
+    , selectAllowed : Bool
+    }
+
+
 {-| Finds the dom element with the given class name and replaces it with the
 ace code editor.
 -}
 port createCodeEditor : CreateCodeEditorConfig -> Cmd msg
+
+
+type alias CodeEditorJumpToLineConfig =
+    { id : String
+    , lineNumber : Int
+    }
+
+
+{-| For jumping (and scrolling) to a specific line in the code editor.
+-}
+port codeEditorJumpToLine : CodeEditorJumpToLineConfig -> Cmd msg
 
 
 {-| Called when a code editor being used (with id `id`) has been updated.

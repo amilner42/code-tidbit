@@ -10,6 +10,7 @@ import Components.Model exposing (Shared)
 import Dom
 import Dict
 import DefaultModel exposing (defaultShared)
+import DefaultServices.ArrayExtra as ArrayExtra
 import DefaultServices.Util as Util exposing (maybeMapWithDefault)
 import Elements.Editor as Editor
 import Json.Decode as Decode
@@ -274,19 +275,44 @@ update msg model shared =
                                         Route.HomeComponentCreateSnipbitCodeConclusion
                                     )
                                 else
-                                    ( model
-                                    , shared
-                                    , Cmd.batch
-                                        [ createCreateSnipbitEditor
+                                    let
+                                        -- Either the existing range, the range from
+                                        -- the previous frame collapsed, or Nothing.
+                                        newHCRange =
                                             ((Array.get
                                                 frameIndex
                                                 model.snipbitCreateData.highlightedComments
                                              )
                                                 |> Maybe.andThen .range
+                                                |> (\maybeRange ->
+                                                        case maybeRange of
+                                                            Nothing ->
+                                                                Snipbit.previousFrameRange model.snipbitCreateData shared.route
+                                                                    |> Maybe.map Range.collapseRange
+
+                                                            Just range ->
+                                                                Just range
+                                                   )
                                             )
-                                        , Util.domFocus (\_ -> NoOp) "frame-input"
-                                        ]
-                                    )
+                                    in
+                                        ( updateSnipbitCreateData
+                                            { currentSnipbitCreateData
+                                                | highlightedComments =
+                                                    ArrayExtra.update
+                                                        frameIndex
+                                                        (\currentHC ->
+                                                            { currentHC
+                                                                | range = newHCRange
+                                                            }
+                                                        )
+                                                        currentSnipbitCreateData.highlightedComments
+                                            }
+                                        , shared
+                                        , Cmd.batch
+                                            [ createCreateSnipbitEditor newHCRange
+                                            , Util.domFocus (\_ -> NoOp) "frame-input"
+                                            ]
+                                        )
 
                         Route.HomeComponentCreateSnipbitCodeConclusion ->
                             ( model
@@ -351,7 +377,14 @@ update msg model shared =
                                                                                 { currentHighlightedComment
                                                                                     | fileAndRange =
                                                                                         Just
-                                                                                            { range = Nothing
+                                                                                            { range =
+                                                                                                case Bigbit.previousFrameRange model.bigbitCreateData shared.route of
+                                                                                                    Nothing ->
+                                                                                                        Nothing
+
+                                                                                                    Just ( _, range ) ->
+                                                                                                        Just <|
+                                                                                                            Range.collapseRange range
                                                                                             , file = filePath
                                                                                             }
                                                                                 }
@@ -684,14 +717,11 @@ update msg model shared =
                                                 newFrame
                                                 currentHighlightedComments
 
-                                        newSnipbitCreateData =
-                                            { currentSnipbitCreateData
-                                                | highlightedComments = newHighlightedComments
-                                            }
-
                                         newModel =
                                             updateSnipbitCreateData
-                                                newSnipbitCreateData
+                                                { currentSnipbitCreateData
+                                                    | highlightedComments = newHighlightedComments
+                                                }
                                     in
                                         ( newModel, shared, Cmd.none )
 
@@ -871,6 +901,28 @@ update msg model shared =
                     OnSnipbitPublishFailure
                     OnSnipbitPublishSuccess
                 )
+
+            SnipbitJumpToLineFromPreviousFrame ->
+                case shared.route of
+                    Route.HomeComponentCreateSnipbitCodeFrame frameNumber ->
+                        ( updateSnipbitCreateData <|
+                            { currentSnipbitCreateData
+                                | highlightedComments =
+                                    ArrayExtra.update
+                                        (frameNumber - 1)
+                                        (\hc ->
+                                            { hc
+                                                | range = Nothing
+                                            }
+                                        )
+                                        currentSnipbitCreateData.highlightedComments
+                            }
+                        , shared
+                        , Route.modifyTo shared.route
+                        )
+
+                    _ ->
+                        doNothing
 
             OnSnipbitPublishSuccess { newID } ->
                 ( { model
@@ -1560,6 +1612,25 @@ update msg model shared =
                     OnBigbitPublishFailure
                     OnBigbitPublishSuccess
                 )
+
+            BigbitJumpToLineFromPreviousFrame filePath ->
+                case shared.route of
+                    Route.HomeComponentCreateBigbitCodeFrame frameNumber _ ->
+                        ( updateBigbitCreateData <|
+                            Bigbit.updateCreateDataHCAtIndex
+                                currentBigbitCreateData
+                                (frameNumber - 1)
+                                (\hcAtIndex ->
+                                    { hcAtIndex
+                                        | fileAndRange = Nothing
+                                    }
+                                )
+                        , shared
+                        , Route.modifyTo <| Route.HomeComponentCreateBigbitCodeFrame frameNumber (Just filePath)
+                        )
+
+                    _ ->
+                        doNothing
 
             OnBigbitPublishFailure apiError ->
                 -- TODO Handle bigbit publish failures.

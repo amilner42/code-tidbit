@@ -9,6 +9,7 @@ import Json.Decode.Pipeline exposing (decode, required, optional, hardcoded)
 import Elements.Editor exposing (Language, languageCacheDecoder, languageCacheEncoder)
 import Models.HighlightedComment exposing (MaybeHighlightedComment, HighlightedComment, maybeHighlightedCommentCacheEncoder, maybeHighlightedCommentCacheDecoder, highlightedCommentEncoder, highlightedCommentDecoder)
 import Models.Range as Range
+import Models.Route as Route
 
 
 {-| A snipbit as seen in the db.
@@ -330,6 +331,22 @@ createDataToPublicationData createData =
                     introduction
                     conclusion
                     highlightedComments
+
+        _ ->
+            Nothing
+
+
+{-| Gets the range from the previous frame's selected range if we're on a route
+which has a previous frame (Code Frame 2+) and the previous frame has a selected
+non-empty range.
+-}
+previousFrameRange : SnipbitCreateData -> Route.Route -> Maybe Range.Range
+previousFrameRange createData route =
+    case route of
+        Route.HomeComponentCreateSnipbitCodeFrame frameNumber ->
+            Array.get (frameNumber - 2) createData.highlightedComments
+                |> Maybe.andThen .range
+                |> Maybe.andThen Range.nonEmptyRangeOrNothing
 
         _ ->
             Nothing

@@ -961,6 +961,10 @@
                         color: $color5;
                     }
                 }
+
+                &.previous-frame-location {
+                    width: 160px;
+                }
             }
         }
     }

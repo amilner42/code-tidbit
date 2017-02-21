@@ -1507,7 +1507,14 @@ createBigbitView model shared =
                                                                                         model.bigbitCreateData
                                                                                     )
                                                                     else if KK.isTwoKeysPressed KK.Tab KK.Shift newKeysDown then
-                                                                        Just <| GoTo <| Route.HomeComponentCreateBigbitCodeIntroduction Nothing
+                                                                        Just <|
+                                                                            GoTo <|
+                                                                                Route.HomeComponentCreateBigbitCodeFrame
+                                                                                    (frameNumber - 1)
+                                                                                    (Bigbit.createPageGetActiveFileForFrame
+                                                                                        (frameNumber - 1)
+                                                                                        model.bigbitCreateData
+                                                                                    )
                                                                     else
                                                                         Nothing
                                                                 else
@@ -1652,6 +1659,16 @@ createBigbitView model shared =
                     , onClick <| BigbitReset
                     ]
                     [ text "Reset" ]
+                , case Bigbit.previousFrameRange model.bigbitCreateData shared.route of
+                    Nothing ->
+                        Util.hiddenDiv
+
+                    Just ( filePath, _ ) ->
+                        button
+                            [ class "sub-bar-button previous-frame-location"
+                            , onClick <| BigbitJumpToLineFromPreviousFrame filePath
+                            ]
+                            [ text "Previous Frame Location" ]
                 , publishButton
                 ]
             , createBigbitNavbar
@@ -2256,6 +2273,16 @@ createSnipbitView model shared =
                     ]
                     [ text "Reset" ]
                 , publishButton
+                , case Snipbit.previousFrameRange model.snipbitCreateData shared.route of
+                    Nothing ->
+                        Util.hiddenDiv
+
+                    Just _ ->
+                        button
+                            [ class "sub-bar-button previous-frame-location"
+                            , onClick SnipbitJumpToLineFromPreviousFrame
+                            ]
+                            [ text "Previous Frame Location" ]
                 ]
             , div
                 []

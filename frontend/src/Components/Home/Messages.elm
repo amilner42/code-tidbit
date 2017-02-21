@@ -43,6 +43,7 @@ type Msg
     | SnipbitUpdateConclusion String
     | SnipbitUpdateCode FS.Content
     | SnipbitPublish Snipbit.SnipbitForPublication
+    | SnipbitJumpToLineFromPreviousFrame
     | OnSnipbitPublishSuccess CreateTidbitResponse
     | OnSnipbitPublishFailure ApiError.ApiError
     | OnGetSnipbitFailure ApiError.ApiError
@@ -76,6 +77,7 @@ type Msg
     | BigbitUpdateFrameComment Int String
     | BigbitNewRangeSelected Range.Range
     | BigbitPublish Bigbit.BigbitForPublication
+    | BigbitJumpToLineFromPreviousFrame FS.Path
     | OnBigbitPublishFailure ApiError.ApiError
     | OnBigbitPublishSuccess CreateTidbitResponse
     | OnGetBigbitFailure ApiError.ApiError
