@@ -2273,6 +2273,16 @@ createSnipbitView model shared =
                     ]
                     [ text "Reset" ]
                 , publishButton
+                , case Snipbit.previousFrameLocation model.snipbitCreateData shared.route of
+                    Nothing ->
+                        Util.hiddenDiv
+
+                    Just _ ->
+                        button
+                            [ class "sub-bar-button previous-frame-location"
+                            , onClick SnipbitJumpToLineFromPreviousFrame
+                            ]
+                            [ text "Previous Frame Location" ]
                 ]
             , div
                 []

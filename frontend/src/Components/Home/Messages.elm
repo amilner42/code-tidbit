@@ -43,6 +43,7 @@ type Msg
     | SnipbitUpdateConclusion String
     | SnipbitUpdateCode FS.Content
     | SnipbitPublish Snipbit.SnipbitForPublication
+    | SnipbitJumpToLineFromPreviousFrame
     | OnSnipbitPublishSuccess CreateTidbitResponse
     | OnSnipbitPublishFailure ApiError.ApiError
     | OnGetSnipbitFailure ApiError.ApiError
