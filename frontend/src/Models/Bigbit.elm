@@ -3,7 +3,7 @@ module Models.Bigbit exposing (..)
 import Array
 import DefaultServices.ArrayExtra as ArrayExtra
 import Char
-import DefaultServices.Util as Util
+import DefaultServices.Util as Util exposing (maybeMapWithDefault)
 import Dict
 import Elements.Editor as Editor
 import Json.Encode as Encode
@@ -799,17 +799,20 @@ setActionButtonSubmitConfirmed newConfirmValue fs =
 
 {-| Gets the range from the previous frame's selected range if we're on a route
 which has a previous frame (Code Frame 2+) and the previous frame has a selected
-range.
+non-empty range.
 -}
-previousFrameLocation : BigbitCreateData -> Route.Route -> Maybe ( FS.Path, Range.Range )
-previousFrameLocation createData route =
+previousFrameRange : BigbitCreateData -> Route.Route -> Maybe ( FS.Path, Range.Range )
+previousFrameRange createData route =
     case route of
         Route.HomeComponentCreateBigbitCodeFrame frameNumber _ ->
             Array.get (frameNumber - 2) createData.highlightedComments
                 |> Maybe.andThen .fileAndRange
                 |> Maybe.andThen
                     (\{ file, range } ->
-                        Maybe.map ((,) file) range
+                        if maybeMapWithDefault Range.isEmptyRange True range then
+                            Nothing
+                        else
+                            Maybe.map ((,) file) range
                     )
 
         _ ->

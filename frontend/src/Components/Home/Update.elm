@@ -287,7 +287,7 @@ update msg model shared =
                                                 |> (\maybeRange ->
                                                         case maybeRange of
                                                             Nothing ->
-                                                                Snipbit.previousFrameLocation model.snipbitCreateData shared.route
+                                                                Snipbit.previousFrameRange model.snipbitCreateData shared.route
                                                                     |> Maybe.map Range.collapseRange
 
                                                             Just range ->
@@ -378,7 +378,7 @@ update msg model shared =
                                                                                     | fileAndRange =
                                                                                         Just
                                                                                             { range =
-                                                                                                case Bigbit.previousFrameLocation model.bigbitCreateData shared.route of
+                                                                                                case Bigbit.previousFrameRange model.bigbitCreateData shared.route of
                                                                                                     Nothing ->
                                                                                                         Nothing
 

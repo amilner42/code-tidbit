@@ -47,6 +47,16 @@ isEmptyRange range =
         && (range.startCol == range.endCol)
 
 
+{-| Similar to `isEmptyRange` but returning range allowing for better chaining.
+-}
+nonEmptyRangeOrNothing : Range -> Maybe Range
+nonEmptyRangeOrNothing range =
+    if isEmptyRange range then
+        Nothing
+    else
+        Just range
+
+
 {-| Checks that a range is still in range for some given code, if it is, returns
 the same range. If the range is now out of range because the code has been
 shortened, returns the maximum size range that is in range. If a range is now

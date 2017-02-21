@@ -1659,7 +1659,7 @@ createBigbitView model shared =
                     , onClick <| BigbitReset
                     ]
                     [ text "Reset" ]
-                , case Bigbit.previousFrameLocation model.bigbitCreateData shared.route of
+                , case Bigbit.previousFrameRange model.bigbitCreateData shared.route of
                     Nothing ->
                         Util.hiddenDiv
 
@@ -2273,7 +2273,7 @@ createSnipbitView model shared =
                     ]
                     [ text "Reset" ]
                 , publishButton
-                , case Snipbit.previousFrameLocation model.snipbitCreateData shared.route of
+                , case Snipbit.previousFrameRange model.snipbitCreateData shared.route of
                     Nothing ->
                         Util.hiddenDiv
 
