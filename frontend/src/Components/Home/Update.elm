@@ -300,12 +300,12 @@ update msg model shared =
                                                 | highlightedComments =
                                                     ArrayExtra.update
                                                         frameIndex
-                                                        currentSnipbitCreateData.highlightedComments
                                                         (\currentHC ->
                                                             { currentHC
                                                                 | range = newHCRange
                                                             }
                                                         )
+                                                        currentSnipbitCreateData.highlightedComments
                                             }
                                         , shared
                                         , Cmd.batch
@@ -910,12 +910,12 @@ update msg model shared =
                                 | highlightedComments =
                                     ArrayExtra.update
                                         (frameNumber - 1)
-                                        currentSnipbitCreateData.highlightedComments
                                         (\hc ->
                                             { hc
                                                 | range = Nothing
                                             }
                                         )
+                                        currentSnipbitCreateData.highlightedComments
                             }
                         , shared
                         , Route.modifyTo shared.route
@@ -1626,7 +1626,7 @@ update msg model shared =
                                     }
                                 )
                         , shared
-                        , Route.navigateToSameUrlWithFilePath (Just filePath) shared.route
+                        , Route.modifyTo <| Route.HomeComponentCreateBigbitCodeFrame frameNumber (Just filePath)
                         )
 
                     _ ->

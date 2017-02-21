@@ -6,8 +6,8 @@ import Array
 {-| Updates an item in the array at position `index` if it exists, otherwise,
 returns the same array.
 -}
-update : Int -> Array.Array item -> (item -> item) -> Array.Array item
-update index array updater =
+update : Int -> (item -> item) -> Array.Array item -> Array.Array item
+update index updater array =
     case Array.get index array of
         Nothing ->
             array

@@ -830,5 +830,5 @@ updateCreateDataHCAtIndex :
 updateCreateDataHCAtIndex bigbit index hcUpdater =
     { bigbit
         | highlightedComments =
-            ArrayExtra.update index bigbit.highlightedComments hcUpdater
+            ArrayExtra.update index hcUpdater bigbit.highlightedComments
     }
