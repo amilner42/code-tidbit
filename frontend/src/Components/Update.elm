@@ -118,7 +118,7 @@ updateCacheIf msg model shouldCache =
                     in
                         ( newModel, Cmd.map WelcomeMessage newSubMsg )
 
-                CodeEditorUpdate { id, value } ->
+                CodeEditorUpdate { id, value, deltaRange, action } ->
                     case id of
                         "create-snipbit-code-editor" ->
                             (updateCacheIf
