@@ -58,7 +58,7 @@ port codeEditorJumpToLine : CodeEditorJumpToLineConfig -> Cmd msg
 {-| Called when a code editor being used (with id `id`) has been updated.
 -}
 port onCodeEditorUpdate :
-    ({ id : String, value : String } -> msg)
+    ({ id : String, value : String, deltaRange : Range, action : String } -> msg)
     -> Sub msg
 
 

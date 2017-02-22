@@ -118,12 +118,16 @@ updateCacheIf msg model shouldCache =
                     in
                         ( newModel, Cmd.map WelcomeMessage newSubMsg )
 
-                CodeEditorUpdate { id, value } ->
+                CodeEditorUpdate { id, value, deltaRange, action } ->
                     case id of
                         "create-snipbit-code-editor" ->
                             (updateCacheIf
                                 (HomeMessage <|
-                                    HomeMessages.SnipbitUpdateCode value
+                                    HomeMessages.SnipbitUpdateCode
+                                        { newCode = value
+                                        , deltaRange = deltaRange
+                                        , action = action
+                                        }
                                 )
                                 model
                                 shouldCache
@@ -132,7 +136,11 @@ updateCacheIf msg model shouldCache =
                         "create-bigbit-code-editor" ->
                             (updateCacheIf
                                 (HomeMessage <|
-                                    HomeMessages.BigbitUpdateCode value
+                                    HomeMessages.BigbitUpdateCode
+                                        { newCode = value
+                                        , deltaRange = deltaRange
+                                        , action = action
+                                        }
                                 )
                                 model
                                 shouldCache

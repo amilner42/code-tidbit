@@ -23,6 +23,6 @@ type Msg
     | OnGetUserFailure ApiError.ApiError
     | HomeMessage HomeMessages.Msg
     | WelcomeMessage WelcomeMessages.Msg
-    | CodeEditorUpdate { id : String, value : String }
+    | CodeEditorUpdate { id : String, value : String, deltaRange : Range.Range, action : String }
     | CodeEditorSelectionUpdate { id : String, range : Range.Range }
     | KeyboardExtraMessage Keyboard.Extra.Msg
