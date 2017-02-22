@@ -142,7 +142,7 @@ collapseRange range =
     }
 
 
-{-| Given some code and a range, returns the one-dimensional cordinates of the
+{-| Given some code and a range, returns the one-dimensional coordinates of the
 range. This is the number of characters from the left treating the code as one
 long string of characters.
 
@@ -151,8 +151,8 @@ NOTE: we do count newlines as characters as well.
 WARNING: Assumes the code is valid for the range, does not check and will
 produce an incorrect result if the range is not valid for the given code.
 -}
-toOneDimensionalCordinates : String -> Range -> ( Int, Int )
-toOneDimensionalCordinates code range =
+toOneDimensionalCoordinates : String -> Range -> ( Int, Int )
+toOneDimensionalCoordinates code range =
     let
         codeAsArray =
             Array.fromList <| String.split "\n" code
@@ -173,19 +173,19 @@ toOneDimensionalCordinates code range =
         )
 
 
-{-| Given some code and 1 dimensional cordinates, returns the range for those
-cordinates.
+{-| Given some code and 1 dimensional coordinates, returns the range for those
+coordinates.
 
-WARNING: Assumes the code is valid for the cordinates, does not check and will
-produce an incorrect result if the given cordinates are invalid.
+WARNING: Assumes the code is valid for the coordinates, does not check and will
+produce an incorrect result if the given coordinates are invalid.
 -}
-fromOneDimensionalCordinates : String -> ( Int, Int ) -> Range
-fromOneDimensionalCordinates code ( start, end ) =
+fromOneDimensionalCoordinates : String -> ( Int, Int ) -> Range
+fromOneDimensionalCoordinates code ( start, end ) =
     let
-        codeBeforeFirstCordinate =
+        codeBeforeFirstCoordinate =
             String.slice 0 start code
 
-        codeBeforeSecondCordinate =
+        codeBeforeSecondCoordinate =
             String.slice 0 end code
 
         -- Gets the row and col for the rightmost char in the substring.
@@ -205,10 +205,10 @@ fromOneDimensionalCordinates code ( start, end ) =
                 ( row, col )
 
         ( startRow, startCol ) =
-            getRowAndColForSubString codeBeforeFirstCordinate
+            getRowAndColForSubString codeBeforeFirstCoordinate
 
         ( endRow, endCol ) =
-            getRowAndColForSubString codeBeforeSecondCordinate
+            getRowAndColForSubString codeBeforeSecondCoordinate
     in
         { startRow = startRow
         , startCol = startCol
@@ -217,10 +217,10 @@ fromOneDimensionalCordinates code ( start, end ) =
         }
 
 
-{-| Shifts the cordinates by `shiftAmount`.
+{-| Shifts the coordinates by `shiftAmount`.
 -}
-shiftCordinates : Int -> ( Int, Int ) -> ( Int, Int )
-shiftCordinates shiftAmount ( start, end ) =
+shiftCoordinates : Int -> ( Int, Int ) -> ( Int, Int )
+shiftCoordinates shiftAmount ( start, end ) =
     ( start + shiftAmount, end + shiftAmount )
 
 
@@ -234,50 +234,50 @@ matrix. This avoids a lot of nasty code.
 getNewRangeAfterDelta : String -> String -> String -> Range -> Range -> Range
 getNewRangeAfterDelta oldCode newCode action deltaRange selectedRange =
     let
-        (( selectedStartCordinate, selectedEndCordinate ) as selectedCordinates) =
-            toOneDimensionalCordinates oldCode selectedRange
+        (( selectedStartCoordinate, selectedEndCoordinate ) as selectedCoordinates) =
+            toOneDimensionalCoordinates oldCode selectedRange
     in
         case action of
             "insert" ->
                 let
-                    -- With insertion, we want to get the 1D cordinates against
+                    -- With insertion, we want to get the 1D coordinates against
                     -- the new code.
-                    ( deltaStartCordinate, deltaEndCordinate ) =
-                        toOneDimensionalCordinates newCode deltaRange
+                    ( deltaStartCoordinate, deltaEndCoordinate ) =
+                        toOneDimensionalCoordinates newCode deltaRange
 
                     deltaLength =
-                        deltaEndCordinate - deltaStartCordinate
+                        deltaEndCoordinate - deltaStartCoordinate
                 in
-                    if deltaStartCordinate <= selectedStartCordinate then
-                        fromOneDimensionalCordinates newCode (shiftCordinates deltaLength selectedCordinates)
-                    else if deltaStartCordinate < selectedEndCordinate then
-                        fromOneDimensionalCordinates newCode ( selectedStartCordinate, selectedEndCordinate + deltaLength )
+                    if deltaStartCoordinate <= selectedStartCoordinate then
+                        fromOneDimensionalCoordinates newCode (shiftCoordinates deltaLength selectedCoordinates)
+                    else if deltaStartCoordinate < selectedEndCoordinate then
+                        fromOneDimensionalCoordinates newCode ( selectedStartCoordinate, selectedEndCoordinate + deltaLength )
                     else
                         selectedRange
 
             "remove" ->
                 let
-                    -- With removal, we want to get the 1D cordinates against
+                    -- With removal, we want to get the 1D coordinates against
                     -- the old code, because that's the code we are erasing.
-                    ( deltaStartCordinate, deltaEndCordinate ) =
-                        toOneDimensionalCordinates oldCode deltaRange
+                    ( deltaStartCoordinate, deltaEndCoordinate ) =
+                        toOneDimensionalCoordinates oldCode deltaRange
 
                     deltaLength =
-                        deltaEndCordinate - deltaStartCordinate
+                        deltaEndCoordinate - deltaStartCoordinate
                 in
-                    if deltaEndCordinate <= selectedStartCordinate then
-                        fromOneDimensionalCordinates newCode (shiftCordinates (-1 * deltaLength) selectedCordinates)
-                    else if deltaEndCordinate <= selectedEndCordinate then
-                        fromOneDimensionalCordinates
+                    if deltaEndCoordinate <= selectedStartCoordinate then
+                        fromOneDimensionalCoordinates newCode (shiftCoordinates (-1 * deltaLength) selectedCoordinates)
+                    else if deltaEndCoordinate <= selectedEndCoordinate then
+                        fromOneDimensionalCoordinates
                             newCode
-                            ( Basics.min selectedStartCordinate deltaStartCordinate
-                            , selectedEndCordinate - deltaLength
+                            ( Basics.min selectedStartCoordinate deltaStartCoordinate
+                            , selectedEndCoordinate - deltaLength
                             )
                     else
-                        fromOneDimensionalCordinates
+                        fromOneDimensionalCoordinates
                             newCode
-                            ( Basics.min selectedStartCordinate deltaStartCordinate
-                            , Basics.min selectedEndCordinate deltaStartCordinate
+                            ( Basics.min selectedStartCoordinate deltaStartCoordinate
+                            , Basics.min selectedEndCoordinate deltaStartCoordinate
                             )
 
             -- This will never happen, ACE actions are limited to "insert" and
