@@ -29,6 +29,7 @@ port onLoadModelFromLocalStorage : (String -> msg) -> Sub msg
 
 type alias CreateCodeEditorConfig =
     { id : String
+    , fileID : String
     , lang : String
     , theme : String
     , value : String

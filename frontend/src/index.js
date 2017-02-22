@@ -22,6 +22,7 @@ var mountNode = document.getElementById('main');
 var app = Elm.Main.embed(mountNode); // The third value on embed are the initial values for incomming ports into Elm
 var modelKey = "model"; // The key for the model in localStorage.
 var aceCodeEditors = {}; // Dictionary, id names mapped to ace editors.
+var aceCodeEditorsUndoManager = {}; // Stores the undoManager for editors.
 
 
 // Saves the model to local storage.
@@ -135,7 +136,20 @@ app.ports.createCodeEditor.subscribe(function(editorConfig) {
 
       // Set the value of the editor the last saved value. `-1` here sets the
       // cursor to the first line...yes the API is undocumented...
-      aceCodeEditor.setValue(editorConfig.value, -1);
+      // This also resets the undo-manager.
+      aceCodeEditor.session.setValue(editorConfig.value, -1);
+
+      // We check if we have an undo manager saved for that editor, if we do,
+      // we load it up so the user can save their undo-history even when they
+      // switch frames.
+      const lastUndoManager = aceCodeEditorsUndoManager[editorConfig.id];
+      if(lastUndoManager
+          && lastUndoManager.code === editorConfig.value
+          && lastUndoManager.file === editorConfig.fileID ) {
+        const newUndoManager = lastUndoManager.undoManager;
+        newUndoManager.$doc = aceCodeEditor.session;
+        aceCodeEditor.getSession().setUndoManager(newUndoManager);
+      }
 
       // If a range is passed, we need to highlight that part of the code.
       if(editorConfig.range) {
@@ -211,6 +225,13 @@ app.ports.createCodeEditor.subscribe(function(editorConfig) {
         const id = editorConfig.id;
 
         app.ports.onCodeEditorUpdate.send({ id, value, deltaRange, action });
+
+        // Update our saved undo manager.
+        aceCodeEditorsUndoManager[editorConfig.id] = {
+          code: value,
+          undoManager: aceCodeEditor.getSession().getUndoManager(),
+          file: editorConfig.fileID
+        };
       });
 
       // We save the editor in case future interaction with the editor is

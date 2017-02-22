@@ -90,7 +90,7 @@ NOTE: You should always use this to check path equality, otherwise bugs maybe
 -}
 isSameFilePath : Path -> Path -> Bool
 isSameFilePath file1 file2 =
-    (dropOptionalLeftSlash file1) == (dropOptionalLeftSlash file2)
+    (uniqueFilePath file1) == (uniqueFilePath file2)
 
 
 {-| Checks if two folder paths are the same, drops both the initial and final
@@ -101,8 +101,23 @@ NOTE: You should always use this to check path eqaulity, otherwise bugs maybe
 -}
 isSameFolderPath : Path -> Path -> Bool
 isSameFolderPath folder1 folder2 =
-    (dropOptionalRightSlash (dropOptionalLeftSlash folder1))
-        == (dropOptionalRightSlash (dropOptionalLeftSlash folder2))
+    (uniqueFolderPath folder1) == (uniqueFolderPath folder2)
+
+
+{-| Files `/bla/bla.a` and `bla/bla.a` point to the same file, this gets rid
+of the initial slash to produce a unique file name.
+-}
+uniqueFilePath : Path -> Path
+uniqueFilePath =
+    dropOptionalLeftSlash
+
+
+{-| Folders `/bla/bla/` and `bla/bla` point to the same folder, this gets rid
+of the initial and final slash to produce a unique folder name.
+-}
+uniqueFolderPath : Path -> Path
+uniqueFolderPath =
+    dropOptionalLeftSlash >> dropOptionalRightSlash
 
 
 {-| Similar to a `map`, but does not allow to change the type, only the value.
