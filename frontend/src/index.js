@@ -190,18 +190,18 @@ app.ports.createCodeEditor.subscribe(function(editorConfig) {
         }
       });
 
-      aceCodeEditor.on("change", (someObject) => {
+      aceCodeEditor.on("change", (delta) => {
         // The action, "insert" or "remove", let's us know what happened because
         // the range always has the start row be the smaller of the two.
-        const action = someObject.action;
+        const action = delta.action;
 
         // Delta range from last change. Start row is always smaller than end
         // row as per usual with the ACE API.
         const deltaRange = {
-          "startRow": someObject.start.row,
-          "startCol": someObject.start.column,
-          "endRow": someObject.end.row,
-          "endCol": someObject.end.column
+          "startRow": delta.start.row,
+          "startCol": delta.start.column,
+          "endRow": delta.end.row,
+          "endCol": delta.end.column
         };
 
         // New value of code editor.
