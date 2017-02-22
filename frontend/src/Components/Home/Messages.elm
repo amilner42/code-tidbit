@@ -41,7 +41,7 @@ type Msg
     | SnipbitUpdateFrameComment Int String
     | SnipbitUpdateIntroduction String
     | SnipbitUpdateConclusion String
-    | SnipbitUpdateCode FS.Content
+    | SnipbitUpdateCode { newCode : String, deltaRange : Range.Range, action : String }
     | SnipbitPublish Snipbit.SnipbitForPublication
     | SnipbitJumpToLineFromPreviousFrame
     | OnSnipbitPublishSuccess CreateTidbitResponse
@@ -70,7 +70,7 @@ type Msg
     | BigbitUpdateActionInput String
     | BigbitSubmitActionInput
     | BigbitAddFile FS.Path Editor.Language
-    | BigbitUpdateCode FS.Content
+    | BigbitUpdateCode { newCode : String, deltaRange : Range.Range, action : String }
     | BigbitFileSelected FS.Path
     | BigbitAddFrame
     | BigbitRemoveFrame

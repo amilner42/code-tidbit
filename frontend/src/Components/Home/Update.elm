@@ -864,8 +864,11 @@ update msg model shared =
             -- are now out of range. If highlights are now out of range we
             -- minimize them to the greatest size they can be whilst still being
             -- in range.
-            SnipbitUpdateCode newCode ->
+            SnipbitUpdateCode { newCode, action, deltaRange } ->
                 let
+                    currentCode =
+                        currentSnipbitCreateData.code
+
                     newHighlightedComments =
                         Array.map
                             (\comment ->
@@ -877,7 +880,7 @@ update msg model shared =
                                         { comment
                                             | range =
                                                 Just <|
-                                                    Range.newValidRange aRange newCode
+                                                    Range.getNewRangeAfterDelta currentCode newCode action deltaRange aRange
                                         }
                             )
                             currentHighlightedComments
@@ -1429,52 +1432,72 @@ update msg model shared =
 
             -- Update the code and also check if any ranges are out of range
             -- and update those ranges.
-            BigbitUpdateCode newCode ->
+            BigbitUpdateCode { newCode, action, deltaRange } ->
                 case Bigbit.createPageCurrentActiveFile shared.route of
                     Nothing ->
                         doNothing
 
                     Just filePath ->
-                        ( updateBigbitCreateData
-                            { currentBigbitCreateData
-                                | fs =
-                                    currentBigbitCreateData.fs
-                                        |> FS.updateFile
-                                            filePath
-                                            (\(FS.File content fileMetadata) ->
-                                                FS.File
-                                                    newCode
-                                                    fileMetadata
-                                            )
-                                , highlightedComments =
-                                    Array.map
-                                        (\comment ->
-                                            case comment.fileAndRange of
-                                                Nothing ->
-                                                    comment
-
-                                                Just { file, range } ->
-                                                    if FS.isSameFilePath file filePath then
-                                                        case range of
-                                                            Nothing ->
-                                                                comment
-
-                                                            Just aRange ->
-                                                                { comment
-                                                                    | fileAndRange =
-                                                                        Just
-                                                                            { file = file
-                                                                            , range = Just <| Range.newValidRange aRange newCode
-                                                                            }
-                                                                }
-                                                    else
-                                                        comment
+                        let
+                            currentCode =
+                                FS.getFile currentBigbitCreateData.fs filePath
+                                    |> maybeMapWithDefault
+                                        (\(FS.File content _) ->
+                                            content
                                         )
-                                        currentBigbitHighlightedComments
-                            }
-                        , shared
-                        , Cmd.none
-                        )
+                                        ""
+
+                            newFS =
+                                currentBigbitCreateData.fs
+                                    |> FS.updateFile
+                                        filePath
+                                        (\(FS.File content fileMetadata) ->
+                                            FS.File
+                                                newCode
+                                                fileMetadata
+                                        )
+
+                            newHC =
+                                Array.map
+                                    (\comment ->
+                                        case comment.fileAndRange of
+                                            Nothing ->
+                                                comment
+
+                                            Just { file, range } ->
+                                                if FS.isSameFilePath file filePath then
+                                                    case range of
+                                                        Nothing ->
+                                                            comment
+
+                                                        Just aRange ->
+                                                            { comment
+                                                                | fileAndRange =
+                                                                    Just
+                                                                        { file = file
+                                                                        , range =
+                                                                            Just <|
+                                                                                Range.getNewRangeAfterDelta
+                                                                                    currentCode
+                                                                                    newCode
+                                                                                    action
+                                                                                    deltaRange
+                                                                                    aRange
+                                                                        }
+                                                            }
+                                                else
+                                                    comment
+                                    )
+                                    currentBigbitHighlightedComments
+                        in
+                            ( updateBigbitCreateData
+                                { currentBigbitCreateData
+                                    | fs = newFS
+                                    , highlightedComments = newHC
+                                }
+                            , shared
+                            , Cmd.none
+                            )
 
             BigbitFileSelected absolutePath ->
                 ( model
