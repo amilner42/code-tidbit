@@ -148,6 +148,7 @@ update msg model shared =
                                 Nothing ->
                                     Ports.createCodeEditor
                                         { id = "create-bigbit-code-editor"
+                                        , fileID = ""
                                         , lang = ""
                                         , theme = User.getTheme shared.user
                                         , value = ""
@@ -164,6 +165,7 @@ update msg model shared =
                                         Just (FS.File content { language }) ->
                                             Ports.createCodeEditor
                                                 { id = "create-bigbit-code-editor"
+                                                , fileID = FS.uniqueFilePath filePath
                                                 , lang = Editor.aceLanguageLocation language
                                                 , theme = User.getTheme shared.user
                                                 , value = content
@@ -185,6 +187,7 @@ update msg model shared =
                             Cmd.batch
                                 [ Ports.createCodeEditor
                                     { id = "create-snipbit-code-editor"
+                                    , fileID = ""
                                     , lang = aceLang
                                     , theme = User.getTheme shared.user
                                     , value = model.snipbitCreateData.code
@@ -1839,6 +1842,7 @@ createViewBigbitHCCodeEditor maybeBigbit maybeRHC user =
                 editorWithRange range language code =
                     Ports.createCodeEditor
                         { id = "view-bigbit-code-editor"
+                        , fileID = ""
                         , lang = Editor.aceLanguageLocation language
                         , theme = User.getTheme user
                         , value = code
@@ -1886,6 +1890,7 @@ createViewSnipbitHCCodeEditor maybeSnipbit maybeRHC user =
                 editorWithRange range =
                     Ports.createCodeEditor
                         { id = "view-snipbit-code-editor"
+                        , fileID = ""
                         , lang = Editor.aceLanguageLocation snipbit.language
                         , theme = User.getTheme user
                         , value = snipbit.code
@@ -1918,6 +1923,7 @@ createViewSnipbitCodeEditor snipbit { route, user } =
         editorWithRange range =
             Ports.createCodeEditor
                 { id = "view-snipbit-code-editor"
+                , fileID = ""
                 , lang = Editor.aceLanguageLocation snipbit.language
                 , theme = User.getTheme user
                 , value = snipbit.code
@@ -1965,6 +1971,7 @@ createViewBigbitCodeEditor bigbit { route, user } =
         blankEditor =
             Ports.createCodeEditor
                 { id = "view-bigbit-code-editor"
+                , fileID = ""
                 , lang = ""
                 , theme = User.getTheme user
                 , value = ""
@@ -1986,6 +1993,7 @@ createViewBigbitCodeEditor bigbit { route, user } =
                         Just (FS.File content { language }) ->
                             Ports.createCodeEditor
                                 { id = "view-bigbit-code-editor"
+                                , fileID = FS.uniqueFilePath somePath
                                 , lang = Editor.aceLanguageLocation language
                                 , theme = User.getTheme user
                                 , value = content
@@ -2018,6 +2026,7 @@ createViewBigbitCodeEditor bigbit { route, user } =
                                         Just (FS.File content { language }) ->
                                             Ports.createCodeEditor
                                                 { id = "view-bigbit-code-editor"
+                                                , fileID = FS.uniqueFilePath hc.file
                                                 , lang = Editor.aceLanguageLocation language
                                                 , theme = User.getTheme user
                                                 , value = content
