@@ -13,6 +13,15 @@ export interface AppRoutes {
 }
 
 /**
+ * Format for specifiying if authenticaton is required for routes.
+ */
+export interface AppRoutesAuth {
+  [routeUrl: string]: {
+    [methodType: string]: boolean;
+  }
+};
+
+/**
  * The error format that the frontend expects.
  */
 export interface FrontendError {

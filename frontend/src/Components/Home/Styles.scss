@@ -203,6 +203,43 @@
                 &.selected {
                     border-bottom: 1px solid white;
                 }
+
+                &.sign-up {
+                    background-color: white;
+                    border: 1px solid $color1;
+                    color: $color3;
+                    font-weight: 800;
+                    padding: 5px 10px 5px 10px;
+                    margin: 5px;
+                    height: 40px;
+                    cursor: pointer;
+                    line-height: 30px;
+                    border-radius: 2px;
+
+                    &:hover {
+                        background-color: $color2;
+                        color: $color1;
+                    }
+                }
+
+                &.login {
+                    @extend .sign-up;
+                    color: $color4;
+                    margin-right: 0px;
+
+                    &:hover {
+                        color: $color5;
+                    }
+                }
+
+                &.code-tidbit {
+                    font-weight: 600;
+                    font-size: 40px;
+                    height: 50px;
+                    line-height: 50px;
+                    margin: 0 10px 0 10px;
+                    letter-spacing: 0px;
+                }
             }
         }
 

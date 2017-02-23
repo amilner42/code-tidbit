@@ -1,18 +1,4 @@
-module Models.Route
-    exposing
-        ( Route(..)
-        , cacheEncoder
-        , cacheDecoder
-        , matchers
-        , toUrl
-        , routesNotNeedingAuth
-        , defaultAuthRoute
-        , defaultUnauthRoute
-        , navigateTo
-        , modifyTo
-        , parseLocation
-        , navigateToSameUrlWithFilePath
-        )
+module Models.Route exposing (..)
 
 import Config
 import DefaultServices.Util as Util
@@ -195,13 +181,59 @@ matchers =
             ]
 
 
-{-| All the routes that don't require authentication. By default it will be
-assumed all routes require authentication.
+{-| Returns `True` iff the route requires authentication.
 -}
-routesNotNeedingAuth =
-    [ WelcomeComponentLogin
-    , WelcomeComponentRegister
-    ]
+routeRequiresAuth : Route -> Bool
+routeRequiresAuth route =
+    case route of
+        WelcomeComponentLogin ->
+            False
+
+        WelcomeComponentRegister ->
+            False
+
+        HomeComponentViewSnipbitIntroduction _ ->
+            False
+
+        HomeComponentViewSnipbitFrame _ _ ->
+            False
+
+        HomeComponentViewSnipbitConclusion _ ->
+            False
+
+        HomeComponentViewBigbitIntroduction _ _ ->
+            False
+
+        HomeComponentViewBigbitFrame _ _ _ ->
+            False
+
+        HomeComponentViewBigbitConclusion _ _ ->
+            False
+
+        HomeComponentBrowse ->
+            False
+
+        _ ->
+            True
+
+
+{-| Returns `True` iff the route requires that the user not be authenticated.
+
+NOTE: This is NOT the the same as `not routeRequiresAuth` as there are routes
+that the user can access both logged-in and logged-out, these are specifically
+the routes that you must be logged-out to access.
+-}
+routeRequiresNotAuth : Route -> Bool
+routeRequiresNotAuth route =
+    case route of
+        WelcomeComponentLogin ->
+            True
+
+        WelcomeComponentRegister ->
+            True
+
+        _ ->
+            False
 
 
 {-| The default route if authenticated.

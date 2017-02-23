@@ -410,9 +410,6 @@ handleLocationChange maybeRoute model =
                 loggedIn =
                     Util.isNotNothing shared.user
 
-                routeNeedsAuth =
-                    not <| List.member route Route.routesNotNeedingAuth
-
                 modelWithRoute route =
                     { model
                         | shared = { shared | route = route }
@@ -422,8 +419,7 @@ handleLocationChange maybeRoute model =
                 ( newModel, newCmd ) =
                     case loggedIn of
                         False ->
-                            case routeNeedsAuth of
-                                -- not logged in, route doesn't need auth, good
+                            case Route.routeRequiresAuth route of
                                 False ->
                                     let
                                         newModel =
@@ -431,7 +427,6 @@ handleLocationChange maybeRoute model =
                                     in
                                         ( newModel, LocalStorage.saveModel newModel )
 
-                                -- not logged in, route needs auth, bad - redirect.
                                 True ->
                                     let
                                         newModel =
@@ -446,9 +441,15 @@ handleLocationChange maybeRoute model =
                                         ( newModel, newCmd )
 
                         True ->
-                            case routeNeedsAuth of
-                                -- logged in, route doesn't need auth, bad - redirect.
+                            case Route.routeRequiresNotAuth route of
                                 False ->
+                                    let
+                                        newModel =
+                                            modelWithRoute route
+                                    in
+                                        ( newModel, LocalStorage.saveModel newModel )
+
+                                True ->
                                     let
                                         newModel =
                                             modelWithRoute Route.defaultAuthRoute
@@ -460,14 +461,6 @@ handleLocationChange maybeRoute model =
                                                 ]
                                     in
                                         ( newModel, newCmd )
-
-                                -- logged in, route needs auth, good.
-                                True ->
-                                    let
-                                        newModel =
-                                            modelWithRoute route
-                                    in
-                                        ( newModel, LocalStorage.saveModel newModel )
 
                 triggerRouteHookOnHomeComponent =
                     ( newModel

@@ -1,7 +1,7 @@
 /// Module for setting up the express server (all middleware).
 
 import bodyParser from 'body-parser';
-import express, { Express } from 'express';
+import express, { Express, Handler } from 'express';
 import expressSession from 'express-session';
 import sessionStore from 'connect-mongo';
 import path from 'path';
@@ -11,10 +11,27 @@ import passport from 'passport';
 import { APP_CONFIG } from '../app-config';
 import { ID, collection } from './db';
 import { loginStrategy, signUpStrategy } from './passport-local-auth-strategies';
-import { apiAuthlessRoutes, routes } from './routes';
+import { authlessRoutes, routes } from './routes';
 
 
 const MONGO_STORE = sessionStore(expressSession);
+
+/**
+ * Route-level middleware for making sure a user is authenticated, if not
+ * authenticated the errorCode for not being authenticated will be sent back.
+ */
+const isAuthenticated = (req, res, next) => {
+  if(req.isAuthenticated()) {
+    next();
+    return;
+  }
+
+  res.status(401).json({
+    message: "You are not authorized!",
+    errorCode: 1
+  });
+  return;
+};
 
 /**
  * Returns an express server with all the middleware setup.
@@ -93,30 +110,18 @@ const createExpressServer = () => {
   // Set up passport middleware.
   setUpPassport();
 
-  // Authenticate all routes for API (/api) that require auth.
-  //   - This middleware must be after all passport initialization.
-  server.all("/api/*", (req, res, next) => {
-    // If route requires authentication.
-    if(!contains(req.path, apiAuthlessRoutes)) {
-      if (req.isAuthenticated()) { return next(); }
-      res.status(401).json({
-        message: "You are not authorized!",
-        errorCode: 1
-      });
-    } else {
-      next();
-    }
-  });
-
   // Add all API routes.
   map(([apiUrl, handlers]) => {
     const apiUrlWithPrefix = `${APP_CONFIG.app.apiSuffix}${apiUrl}`;
 
     map(([method, handler]: [string, any]) => {
-      server[method](apiUrlWithPrefix, handler);
-    }, toPairs(handlers));
-
-  }, toPairs(routes));
+      if(authlessRoutes[apiUrl] && authlessRoutes[apiUrl][method]) {
+        server[method](apiUrlWithPrefix, handler);
+      } else {
+        server[method](apiUrlWithPrefix, isAuthenticated, handler);
+      }
+    }, toPairs<string, Handler>(handlers));
+  }, toPairs<string, { [methodType: string]: Handler; }>(routes));
 
   // Because of html 5 routing we meed to pass the `index.html` in the case that
   // they directly go to a route (such as `domainName.com/route/<some-param>`)
