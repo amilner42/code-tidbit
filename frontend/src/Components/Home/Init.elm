@@ -47,7 +47,7 @@ init =
         , fs =
             (FS.emptyFS
                 { activeFile = Nothing
-                , openFS = True
+                , openFS = False
                 , actionButtonState = Nothing
                 , actionButtonInput = ""
                 , actionButtonSubmitConfirmed = False
