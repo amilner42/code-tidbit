@@ -10,7 +10,7 @@ import { User, userModel } from './models/user.model';
 import { Snipbit, validifyAndUpdateSnipbit } from './models/snipbit.model';
 import { validifyAndUpdateBigbit, Bigbit } from './models/bigbit.model';
 import { swapPeriodsWithStars, metaMap } from './models/file-structure.model';
-import { AppRoutes, ErrorCode, FrontendError, Language } from './types';
+import { AppRoutes, AppRoutesAuth, ErrorCode, FrontendError, Language } from './types';
 import { collection, ID } from './db';
 import { internalError, asyncIdentity } from './util';
 
@@ -49,14 +49,16 @@ export const handleError = (res: Response): ((error: FrontendError) => Promise<v
 };
 
 /**
- * All routes by default will be assumed to require authentication, routes that
- * do not must be listed below. The API base url need not be included in the
- * array as it is `map`ed on.
+ * A dictionary matching the same format as `routes` that specifies whether
+ * routes do not require authentication. By default, all routes require
+ * authentication.
  */
-export const apiAuthlessRoutes = [
-  '/register',
-  '/login'
-].map((route) => `${APP_CONFIG.app.apiSuffix}${route}`);
+export const authlessRoutes: AppRoutesAuth = {
+  '/register': { post: true },
+  '/login': { post: true },
+  '/snipbits/:id': { get: true },
+  '/bigbits/:id': { get: true }
+};
 
 /**
  * The routes for the API.
