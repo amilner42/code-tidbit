@@ -861,7 +861,15 @@ navbar shared =
                 []
             , div
                 [ classList
+                    [ ( "nav-btn left code-tidbit", True )
+                    , ( "hidden", Util.isNotNothing shared.user )
+                    ]
+                ]
+                [ text "Code Tidbit" ]
+            , div
+                [ classList
                     [ ( "nav-btn left", True )
+                    , ( "hidden", Util.isNothing shared.user )
                     , ( "selected", browseViewSelected )
                     ]
                 , onClick <| GoTo Route.HomeComponentBrowse
@@ -870,6 +878,7 @@ navbar shared =
             , div
                 [ classList
                     [ ( "nav-btn left", True )
+                    , ( "hidden", Util.isNothing shared.user )
                     , ( "selected", createViewSelected )
                     ]
                 , onClick <| GoTo Route.HomeComponentCreate
@@ -878,11 +887,28 @@ navbar shared =
             , div
                 [ classList
                     [ ( "nav-btn right", True )
+                    , ( "hidden", Util.isNothing shared.user )
                     , ( "selected", profileViewSelected )
                     ]
                 , onClick <| GoTo Route.HomeComponentProfile
                 ]
                 [ text "Profile" ]
+            , div
+                [ classList
+                    [ ( "nav-btn sign-up right", True )
+                    , ( "hidden", Util.isNotNothing shared.user )
+                    ]
+                , onClick <| GoTo Route.WelcomeComponentRegister
+                ]
+                [ text "Sign Up" ]
+            , div
+                [ classList
+                    [ ( "nav-btn login right", True )
+                    , ( "hidden", Util.isNotNothing shared.user )
+                    ]
+                , onClick <| GoTo Route.WelcomeComponentLogin
+                ]
+                [ text "Login" ]
             ]
 
 

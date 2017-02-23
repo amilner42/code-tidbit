@@ -210,6 +210,9 @@ routeRequiresAuth route =
         HomeComponentViewBigbitConclusion _ _ ->
             False
 
+        HomeComponentBrowse ->
+            False
+
         _ ->
             True
 
