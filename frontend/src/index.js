@@ -123,7 +123,9 @@ app.ports.createCodeEditor.subscribe(function(editorConfig) {
       const aceCodeEditor = ace.edit(editorConfig.id);
       // Due to bug in the editor, you have to call resize upon creation.
       aceCodeEditor.resize(true);
-      const editorSelection = aceCodeEditor.getSelection();
+      aceCodeEditor.renderer.setScrollMargin(0, 570, 0, 25);
+      aceCodeEditor.renderer.setPrintMarginColumn(77); // Slightly under 80 becauase of scroll bar.
+      aceCodeEditor.$blockScrolling = Infinity; // Prevents a default logging message.
 
       // Turns off the auto-linting, we may want to turn this on in the future
       // but because it's only for a few languages and it ends up being annoying
@@ -162,6 +164,61 @@ app.ports.createCodeEditor.subscribe(function(editorConfig) {
           editorConfig.range.endCol
         );
 
+        // Makes sure to compare relative to position of (0,0).
+        const getPixelCoordinatesForPosition = (row, col) => {
+          const originCoordinates = aceCodeEditor.renderer.textToScreenCoordinates(0, 0);
+          const currentCoordinates = aceCodeEditor.renderer.textToScreenCoordinates(row, col);
+          return [currentCoordinates.pageX - originCoordinates.pageX, currentCoordinates.pageY - originCoordinates.pageY ]
+        }
+
+        // Centers a specific range, contains logic for centering the range
+        // intelligently.
+        const centerRange = (startRow, startCol, endRow, endCol) => {
+
+          const [startXCoordinate, startYCoordinate] = getPixelCoordinatesForPosition(startRow, startCol);
+          const [endXCoordinate, endYCoordinate] = getPixelCoordinatesForPosition(endRow, endCol);
+          const scrollWidth = aceCodeEditor.renderer.$size.scrollerWidth - 30; // -30 cause of scroll bar.
+
+          const getXCoordinate = () => {
+            return Math.max(0, (() => {
+              const rangeWidth = endXCoordinate - startXCoordinate;
+
+              // Handle single-row range-centering.
+              if(startRow === endRow) {
+                // If it's a small range, center it's center.
+                if(rangeWidth < scrollWidth) {
+                  return ((endXCoordinate + startXCoordinate) / 2) - (scrollWidth / 2);
+                }
+
+                // If it's a big range that starts anywhere in the first 1/2 of the
+                // screen then just keep it at the start.
+                if(startXCoordinate < (0.5 * scrollWidth)) {
+                  return 0;
+                }
+
+                // Otherwise scroll to just a bit before the range.
+                return startXCoordinate - 10;
+              }
+
+              // Handle multi-row range-centering.
+
+              // If the start is insight at all, just keep it at the start.
+              if(startXCoordinate < scrollWidth) {
+                return 0;
+              }
+
+              // Otherwise scroll to just a bit before the range.
+              return startXCoordinate - 10;
+            })());
+          };
+
+          // Scroll vertical length, will attempt to center top-line vertically.
+          aceCodeEditor.scrollToLine(startRow, true, true);
+          // Scroll to horizontal coordinate.
+          aceCodeEditor.renderer.scrollToX(getXCoordinate());
+        };
+
+
         // If it's readOnly we add a marker, that way it doesn't dissapear on a
         // new selection, if it's not readOnly then the user is creating it and
         // we just use selections so they can change what they wanna highlight.
@@ -170,9 +227,13 @@ app.ports.createCodeEditor.subscribe(function(editorConfig) {
         } else {
           aceCodeEditor.getSelection().setSelectionRange(aceRange, false);
         }
-
-        // scrollToLine(Number line, Boolean center, Boolean animate, Function callback)
-        aceCodeEditor.scrollToLine(editorConfig.range.endRow, true, true);
+        // Centers appropriately for the given range.
+        centerRange(
+          editorConfig.range.startRow,
+          editorConfig.range.startCol,
+          editorConfig.range.endRow,
+          editorConfig.range.endCol
+        );
       }
 
       // Focus the editor.
@@ -181,7 +242,7 @@ app.ports.createCodeEditor.subscribe(function(editorConfig) {
       aceCodeEditor.setReadOnly(editorConfig.readOnly);
 
       // Watch for selection changes.
-      editorSelection.on("changeSelection", () => {
+      aceCodeEditor.getSelection().on("changeSelection", () => {
         if(editorConfig.selectAllowed) {
           // Directly from the ACE api.
           const aceSelectionRange = aceCodeEditor.getSelectionRange();
