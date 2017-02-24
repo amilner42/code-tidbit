@@ -185,8 +185,13 @@ app.ports.createCodeEditor.subscribe(function(editorConfig) {
 
               // Handle single-row range-centering.
               if(startRow === endRow) {
-                // If it's a small range, center it's center.
                 if(rangeWidth < scrollWidth) {
+                  // If it's completely on-screen, just stay at the start.
+                  if(endXCoordinate <= scrollWidth) {
+                    return 0;
+                  }
+
+                  // Otherwise, center it's center.
                   return ((endXCoordinate + startXCoordinate) / 2) - (scrollWidth / 2);
                 }
 
