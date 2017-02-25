@@ -19,6 +19,7 @@ import Keyboard.Extra as KK
 import Models.Range as Range
 import Models.Route as Route
 import Models.Snipbit as Snipbit
+import Models.ProfileData as ProfileData
 
 
 {-| A google-material-design check-icon.
@@ -782,7 +783,7 @@ displayViewForRoute model shared =
             createBigbitView model shared
 
         Route.HomeComponentProfile ->
-            profileView model
+            profileView model shared
 
         -- This should never happen.
         _ ->
@@ -914,16 +915,98 @@ navbar shared =
 
 {-| The profile view.
 -}
-profileView : Model -> Html Msg
-profileView model =
-    div []
-        [ button
-            [ onClick LogOut ]
-            [ text "Log out" ]
-        , div
-            [ hidden <| Util.isNothing model.logOutError ]
-            [ text "Cannot log out right now, try again shortly." ]
-        ]
+profileView : Model -> Shared -> Html Msg
+profileView model shared =
+    case shared.user of
+        Nothing ->
+            Util.hiddenDiv
+
+        Just user ->
+            div [ class "profile-page" ]
+                [ div
+                    [ class "profile-panel" ]
+                    [ div
+                        [ class "profile-card account-card" ]
+                        [ div
+                            [ class "profile-card-title" ]
+                            [ text "Account" ]
+                        , div
+                            [ class "profile-card-sub-box" ]
+                            [ div
+                                [ class "profile-card-sub-box-title" ]
+                                [ text "Email" ]
+                            , div [ class "profile-card-sub-box-gap" ] []
+                            , div
+                                [ class "profile-card-sub-box-content email-display" ]
+                                [ text user.email ]
+                            ]
+                        , div
+                            [ class "profile-card-sub-box" ]
+                            [ div
+                                [ class "profile-card-sub-box-title" ]
+                                [ text "Name" ]
+                            , div [ class "profile-card-sub-box-gap" ] []
+                            , input
+                                [ class "profile-card-sub-box-content"
+                                , placeholder "Preferred Name"
+                                , value <| ProfileData.getNameWithDefault model.profileData user.name
+                                , onInput <| ProfileUpdateName user.name
+                                ]
+                                []
+                            , i
+                                [ classList
+                                    [ ( "material-icons", True )
+                                    , ( "hidden", not <| ProfileData.isEditingName model.profileData )
+                                    ]
+                                , onClick ProfileCancelEditName
+                                ]
+                                [ text "cancel" ]
+                            , i
+                                [ classList
+                                    [ ( "material-icons", True )
+                                    , ( "hidden", not <| ProfileData.isEditingName model.profileData )
+                                    ]
+                                , onClick ProfileSaveEditName
+                                ]
+                                [ text "check_circle" ]
+                            ]
+                        , div
+                            [ class "profile-card-sub-box" ]
+                            [ div
+                                [ class "profile-card-sub-box-title" ]
+                                [ text "Bio" ]
+                            , div
+                                [ class "profile-card-sub-box-gap" ]
+                                []
+                            , textarea
+                                [ class "profile-card-sub-box-content bio-textarea"
+                                , placeholder "Tell everyone about yourself..."
+                                ]
+                                []
+                            ]
+                        , button
+                            [ class "logout-button"
+                            , onClick LogOut
+                            ]
+                            [ text "Log Out" ]
+                        , div
+                            [ hidden <| Util.isNothing model.logOutError ]
+                            [ text "Cannot log out right now, try again shortly." ]
+                        ]
+                    , div
+                        [ class "profile-card editor-card" ]
+                        [ div
+                            [ class "profile-card-title" ]
+                            [ text "Editor" ]
+                        ]
+                    , div
+                        [ class "profile-card" ]
+                        [ div
+                            [ class "profile-card-title" ]
+                            [ text "App" ]
+                        ]
+                    ]
+                ]
 
 
 {-| The browse view.

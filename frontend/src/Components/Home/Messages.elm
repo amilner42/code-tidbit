@@ -91,3 +91,8 @@ type Msg
     | ViewBigbitNextRelevantHC
     | ViewBigbitPreviousRelevantHC
     | ViewBigbitJumpToFrame Route.Route
+    | ProfileCancelEditName
+    | ProfileUpdateName String String
+    | ProfileSaveEditName
+    | ProfileSaveNameFailure ApiError.ApiError
+    | ProfileSaveNameSuccess BasicResponse.BasicResponse

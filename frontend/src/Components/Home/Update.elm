@@ -19,6 +19,7 @@ import Elements.FileStructure as FS
 import Models.Snipbit as Snipbit
 import Models.Range as Range
 import Models.Route as Route
+import Models.ProfileData as ProfileData
 import Models.User as User
 import Task
 import Ports
@@ -80,6 +81,12 @@ update msg model shared =
         updateViewingSnipbitRelevantHC updater =
             { model
                 | viewingSnipbitRelevantHC = Maybe.map updater model.viewingSnipbitRelevantHC
+            }
+
+        updateProfileData : (ProfileData.ProfileData -> ProfileData.ProfileData) -> Model
+        updateProfileData updater =
+            { model
+                | profileData = updater model.profileData
             }
     in
         case msg of
@@ -1827,6 +1834,29 @@ update msg model shared =
                 , shared
                 , Route.navigateTo route
                 )
+
+            ProfileCancelEditName ->
+                let
+                    newModel =
+                        updateProfileData ProfileData.cancelEditingName
+                in
+                    ( newModel, shared, Cmd.none )
+
+            ProfileUpdateName originalName newName ->
+                let
+                    newModel =
+                        updateProfileData (ProfileData.setName originalName newName)
+                in
+                    ( newModel, shared, Cmd.none )
+
+            ProfileSaveEditName ->
+                doNothing
+
+            ProfileSaveNameFailure apiError ->
+                doNothing
+
+            ProfileSaveNameSuccess { message } ->
+                doNothing
 
 
 {-| Creates the code editor for the bigbit when browsing relevant HC.
