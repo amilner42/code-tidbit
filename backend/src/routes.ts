@@ -10,8 +10,9 @@ import { User, userModel, updateUserSchema, UserUpdateObject } from './models/us
 import { Snipbit, validifyAndUpdateSnipbit } from './models/snipbit.model';
 import { validifyAndUpdateBigbit, Bigbit } from './models/bigbit.model';
 import { swapPeriodsWithStars, metaMap } from './models/file-structure.model';
+import { Story, StorySchema } from "./models/story.model";
 import { AppRoutes, AppRoutesAuth, ErrorCode, FrontendError, Language } from './types';
-import { collection, ID } from './db';
+import { collection, ID, renameIDField } from './db';
 import { internalError, asyncIdentity, dropNullAndUndefinedProperties } from './util';
 
 
@@ -265,9 +266,7 @@ export const routes: AppRoutes = {
           return;
         }
 
-        // Rename `_id` field.
-        snipbit.id = snipbit._id;
-        delete snipbit._id;
+        renameIDField(snipbit);
 
         // Update `language` to encoded language name.
         return collection("languages")
@@ -314,9 +313,7 @@ export const routes: AppRoutes = {
           return;
         }
 
-        // Rename id field.
-        bigbit.id = bigbit._id;
-        delete bigbit._id;
+        renameIDField(bigbit);
 
         return collection("languages")
         .then((languageCollection) => {
@@ -350,6 +347,33 @@ export const routes: AppRoutes = {
           res.status(200).json(bigbit);
           return;
         });
+      })
+      .catch(handleError(res));
+    }
+  },
+
+  '/stories': {
+
+    /**
+     * For creating a new story for the given user.
+     */
+    post: (req, res) => {
+      const story: Story  = req.body;
+      const userID = req.user._id;
+
+      // Add the author as the current user.
+      story.author = userID;
+
+      kleen.validModel(StorySchema)(story)
+      .then(() => {
+        return collection("stories");
+      })
+      .then((StoryCollection) => {
+        return StoryCollection.insertOne(story);
+      })
+      .then((story) => {
+        res.status(200).json({ newID: story.insertedId });
+        return;
       })
       .catch(handleError(res));
     }

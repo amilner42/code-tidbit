@@ -108,5 +108,10 @@ export enum ErrorCode {
   bigbitNoHighlightedComments,
   bigbitInvalidLanguage,
   bigbitDoesNotExist,
-  invalidBio
+  invalidBio,
+  storyNameEmpty,
+  storyNameTooLong,
+  storyDescriptionEmpty,
+  storyDescriptionTooLong,
+  storyInvalidPageType
 }

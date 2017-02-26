@@ -40,3 +40,17 @@ export const collection = (collectionName: string): Promise<Collection> => {
 export const ID = (idString: string): ObjectID => {
   return new ObjectID(idString);
 }
+
+/**
+ * Renames the `_id` field to `id` if it has an `_id` field.
+ *
+ * @WARNING Mutates `obj`.
+ */
+export const renameIDField = (obj) => {
+  if(obj._id) {
+    obj.id = obj._id;
+    delete obj._id;
+  }
+
+  return obj;
+}
