@@ -49,12 +49,18 @@
                             cursor: pointer;
                             width: 20px;
                             height: 20px;
-                            margin-right: 3px;
+                            margin-right: 1px;
                             line-height: 20px;
                             font-size: 22px;
                             box-sizing: border-box;
                             top: 5px;
                             left: 5px;
+                        }
+
+                        .bio-icons-box {
+                            position: absolute;
+                            top: 260px;
+                            left: 33px;
                         }
 
                         .profile-card-sub-box-title {

@@ -16,15 +16,19 @@ export interface User {
   name: string;
   email: string;
   password: string;
+  bio: string;
 }
 
 /**
- * When registering a new user will need to provide these 3 fields.
+ * When registering a new user into the database. The user need not provide all
+ * of the values themselves, we may set default values manually. Anything with a
+ * `?` we set ourselves.
  */
 export interface UserForRegistration {
   name: string,
   email: string,
-  password: string
+  password: string,
+  bio?: string
 }
 
 /**
@@ -61,6 +65,13 @@ export const updateUserSchema: kleen.objectSchema = {
         { errorCode: ErrorCode.invalidName, message: "Name cannot be empty."},
         malformedFieldError("name")
       )
+    ),
+    "bio": optional(
+      nonEmptyStringSchema(
+        { errorCode: ErrorCode.invalidBio, message: "Bio cannot be empty" },
+        malformedFieldError("bio")
+      )
     )
-  }
+  },
+  typeFailureError: malformedFieldError("User Update Object")
 };

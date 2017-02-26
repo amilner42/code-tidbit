@@ -982,8 +982,29 @@ profileView model shared =
                             , textarea
                                 [ class "profile-card-sub-box-content bio-textarea"
                                 , placeholder "Tell everyone about yourself..."
+                                , value <| ProfileData.getBioWithDefault model.profileData user.bio
+                                , onInput <| ProfileUpdateBio user.bio
                                 ]
                                 []
+                            , div
+                                [ class "bio-icons-box" ]
+                                [ i
+                                    [ classList
+                                        [ ( "material-icons", True )
+                                        , ( "hidden", not <| ProfileData.isEditingBio model.profileData )
+                                        ]
+                                    , onClick ProfileCancelEditBio
+                                    ]
+                                    [ text "cancel" ]
+                                , i
+                                    [ classList
+                                        [ ( "material-icons", True )
+                                        , ( "hidden", not <| ProfileData.isEditingBio model.profileData )
+                                        ]
+                                    , onClick ProfileSaveEditBio
+                                    ]
+                                    [ text "check_circle" ]
+                                ]
                             ]
                         , button
                             [ class "logout-button"

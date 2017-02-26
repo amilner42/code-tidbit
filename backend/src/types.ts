@@ -107,5 +107,6 @@ export enum ErrorCode {
   bigbitEmptyConclusion,
   bigbitNoHighlightedComments,
   bigbitInvalidLanguage,
-  bigbitDoesNotExist
+  bigbitDoesNotExist,
+  invalidBio
 }

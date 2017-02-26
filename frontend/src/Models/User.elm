@@ -11,6 +11,7 @@ type alias User =
     { name : String
     , email : String
     , password : Maybe (String)
+    , bio : String
     }
 
 
@@ -35,6 +36,7 @@ type alias UserForLogin =
 -}
 type alias UserUpdateRecord =
     { name : Maybe String
+    , bio : Maybe String
     }
 
 
@@ -49,10 +51,11 @@ decoder =
 -}
 cacheDecoder : Decode.Decoder User
 cacheDecoder =
-    Decode.map3 User
+    Decode.map4 User
         (field "name" Decode.string)
         (field "email" Decode.string)
         (Decode.maybe (field "password" Decode.string))
+        (field "bio" Decode.string)
 
 
 {-| The User `cacheEncoder`.
@@ -63,6 +66,7 @@ cacheEncoder user =
         [ ( "name", Encode.string user.name )
         , ( "email", Encode.string user.email )
         , ( "password", Encode.null )
+        , ( "bio", Encode.string user.bio )
         ]
 
 
@@ -101,7 +105,9 @@ getTheme maybeUser =
 userUpdateRecordEncoder : UserUpdateRecord -> Encode.Value
 userUpdateRecordEncoder userUpdateRecord =
     Encode.object
-        [ ( "name", justValueOrNull Encode.string userUpdateRecord.name ) ]
+        [ ( "name", justValueOrNull Encode.string userUpdateRecord.name )
+        , ( "bio", justValueOrNull Encode.string userUpdateRecord.bio )
+        ]
 
 
 {-| This record-update represents 0 changes to the user.
@@ -109,4 +115,5 @@ userUpdateRecordEncoder userUpdateRecord =
 defaultUserUpdateRecord : UserUpdateRecord
 defaultUserUpdateRecord =
     { name = Nothing
+    , bio = Nothing
     }

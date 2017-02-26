@@ -11,6 +11,7 @@ import Json.Decode.Pipeline exposing (decode, required, optional, hardcoded)
 -}
 type alias ProfileData =
     { accountName : Maybe (Editable.Editable String)
+    , accountBio : Maybe (Editable.Editable String)
     }
 
 
@@ -19,7 +20,9 @@ type alias ProfileData =
 encoder : ProfileData -> Encode.Value
 encoder profileData =
     Encode.object
-        [ ( "accountName", Util.justValueOrNull (Editable.encoder Encode.string) profileData.accountName ) ]
+        [ ( "accountName", Util.justValueOrNull (Editable.encoder Encode.string) profileData.accountName )
+        , ( "accountBio", Util.justValueOrNull (Editable.encoder Encode.string) profileData.accountBio )
+        ]
 
 
 {-| ProfileData decoder.
@@ -28,9 +31,10 @@ decoder : Decode.Decoder ProfileData
 decoder =
     decode ProfileData
         |> required "accountName" (Decode.maybe <| Editable.decoder Decode.string)
+        |> required "accountBio" (Decode.maybe <| Editable.decoder Decode.string)
 
 
-{-| Gets the current account name from the profile data if is not nothing,
+{-| Gets the current account name from the profile data if is not `Nothing`,
 otherwise simply returns the backup name.
 -}
 getNameWithDefault : ProfileData -> String -> String
@@ -74,3 +78,48 @@ setAccountNameToNothing profileData =
     { profileData
         | accountName = Nothing
     }
+
+
+{-| Gets the current account bio from the profile data if it is not `Nothing`,
+otherwise simply returns the backup name.
+-}
+getBioWithDefault : ProfileData -> String -> String
+getBioWithDefault profileData backupBio =
+    Util.maybeMapWithDefault Editable.getBuffer backupBio profileData.accountBio
+
+
+{-| Sets the bio for `accountBio`. This includes initializing if it's `Nothing`
+and putting the editable in edit mode.
+-}
+setBio : String -> String -> ProfileData -> ProfileData
+setBio originalBio newBio currentProfileData =
+    { currentProfileData
+        | accountBio =
+            Just <|
+                Editable.Editing { originalValue = originalBio, buffer = newBio }
+    }
+
+
+{-| Cancels editing the bio.
+-}
+cancelEditingBio : ProfileData -> ProfileData
+cancelEditingBio profileData =
+    { profileData
+        | accountBio = Maybe.map (Editable.cancelEditing) profileData.accountBio
+    }
+
+
+{-| Sets the accountBio to `Nothing`
+-}
+setAccountBioToNothing : ProfileData -> ProfileData
+setAccountBioToNothing profileData =
+    { profileData
+        | accountBio = Nothing
+    }
+
+
+{-| Returns true if the bio is being edited (and has changed).
+-}
+isEditingBio : ProfileData -> Bool
+isEditingBio =
+    .accountBio >> Util.maybeMapWithDefault Editable.hasChanged False

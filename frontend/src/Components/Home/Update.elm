@@ -1878,6 +1878,48 @@ update msg model shared =
                 , Cmd.none
                 )
 
+            ProfileCancelEditBio ->
+                let
+                    newModel =
+                        updateProfileData ProfileData.cancelEditingBio
+                in
+                    ( newModel, shared, Cmd.none )
+
+            ProfileUpdateBio originalBio newBio ->
+                let
+                    newModel =
+                        updateProfileData (ProfileData.setBio originalBio newBio)
+                in
+                    ( newModel, shared, Cmd.none )
+
+            ProfileSaveEditBio ->
+                case model.profileData.accountBio of
+                    Nothing ->
+                        doNothing
+
+                    Just editableBio ->
+                        ( model
+                        , shared
+                        , Api.postUpdateUser
+                            { defaultUserUpdateRecord
+                                | bio = Just <| Editable.getBuffer editableBio
+                            }
+                            ProfileSaveBioFailure
+                            ProfileSaveBioSuccess
+                        )
+
+            ProfileSaveBioFailure apiError ->
+                -- TODO handle error.
+                doNothing
+
+            ProfileSaveBioSuccess updatedUser ->
+                ( updateProfileData ProfileData.setAccountBioToNothing
+                , { shared
+                    | user = Just updatedUser
+                  }
+                , Cmd.none
+                )
+
 
 {-| Creates the code editor for the bigbit when browsing relevant HC.
 

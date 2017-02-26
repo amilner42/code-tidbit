@@ -97,3 +97,8 @@ type Msg
     | ProfileSaveEditName
     | ProfileSaveNameFailure ApiError.ApiError
     | ProfileSaveNameSuccess User.User
+    | ProfileCancelEditBio
+    | ProfileUpdateBio String String
+    | ProfileSaveEditBio
+    | ProfileSaveBioFailure ApiError.ApiError
+    | ProfileSaveBioSuccess User.User

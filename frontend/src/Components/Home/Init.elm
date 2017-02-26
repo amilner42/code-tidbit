@@ -62,5 +62,6 @@ init =
         }
     , profileData =
         { accountName = Nothing
+        , accountBio = Nothing
         }
     }
