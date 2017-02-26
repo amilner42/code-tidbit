@@ -1,15 +1,4 @@
-module Models.User
-    exposing
-        ( User
-        , UserForRegistration
-        , UserForLogin
-        , cacheDecoder
-        , cacheEncoder
-        , decoder
-        , userLoginEncoder
-        , userRegisterEncoder
-        , getTheme
-        )
+module Models.User exposing (..)
 
 import DefaultServices.Util exposing (justValueOrNull)
 import Json.Decode as Decode exposing (field)
@@ -22,6 +11,7 @@ type alias User =
     { name : String
     , email : String
     , password : Maybe (String)
+    , bio : String
     }
 
 
@@ -42,6 +32,14 @@ type alias UserForLogin =
     }
 
 
+{-| For updating a user through the API.
+-}
+type alias UserUpdateRecord =
+    { name : Maybe String
+    , bio : Maybe String
+    }
+
+
 {-| The User `decoder`.
 -}
 decoder : Decode.Decoder User
@@ -53,10 +51,11 @@ decoder =
 -}
 cacheDecoder : Decode.Decoder User
 cacheDecoder =
-    Decode.map3 User
+    Decode.map4 User
         (field "name" Decode.string)
         (field "email" Decode.string)
         (Decode.maybe (field "password" Decode.string))
+        (field "bio" Decode.string)
 
 
 {-| The User `cacheEncoder`.
@@ -67,6 +66,7 @@ cacheEncoder user =
         [ ( "name", Encode.string user.name )
         , ( "email", Encode.string user.email )
         , ( "password", Encode.null )
+        , ( "bio", Encode.string user.bio )
         ]
 
 
@@ -98,3 +98,22 @@ TODO Implement function
 getTheme : Maybe User -> String
 getTheme maybeUser =
     ""
+
+
+{-| Encodes the UserUpdateRecord.
+-}
+userUpdateRecordEncoder : UserUpdateRecord -> Encode.Value
+userUpdateRecordEncoder userUpdateRecord =
+    Encode.object
+        [ ( "name", justValueOrNull Encode.string userUpdateRecord.name )
+        , ( "bio", justValueOrNull Encode.string userUpdateRecord.bio )
+        ]
+
+
+{-| This record-update represents 0 changes to the user.
+-}
+defaultUserUpdateRecord : UserUpdateRecord
+defaultUserUpdateRecord =
+    { name = Nothing
+    , bio = Nothing
+    }

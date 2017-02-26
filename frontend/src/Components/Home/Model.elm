@@ -1,6 +1,7 @@
 module Components.Home.Model exposing (..)
 
 import Array
+import DefaultServices.Editable as Editable
 import DefaultServices.Util as Util exposing (maybeMapWithDefault)
 import Json.Decode as Decode exposing (field)
 import Json.Encode as Encode
@@ -9,6 +10,7 @@ import Models.ApiError as ApiError
 import Models.Bigbit as Bigbit
 import Models.Snipbit as Snipbit
 import Models.HighlightedComment as HC
+import Models.ProfileData as ProfileData
 
 
 {-| Home Component Model.
@@ -22,6 +24,7 @@ type alias Model =
     , viewingBigbitRelevantHC : Maybe ViewingBigbitRelevantHC
     , snipbitCreateData : Snipbit.SnipbitCreateData
     , bigbitCreateData : Bigbit.BigbitCreateData
+    , profileData : ProfileData.ProfileData
     }
 
 
@@ -236,6 +239,7 @@ cacheEncoder model =
           , Snipbit.createDataCacheEncoder model.snipbitCreateData
           )
         , ( "bigbitCreateData", Bigbit.bigbitCreateDataCacheEncoder model.bigbitCreateData )
+        , ( "profileData", ProfileData.encoder model.profileData )
         ]
 
 
@@ -243,15 +247,16 @@ cacheEncoder model =
 -}
 cacheDecoder : Decode.Decoder Model
 cacheDecoder =
-    Decode.map8 Model
-        (field "logOutError" (Decode.null Nothing))
-        (field "showInfoFor" (Decode.maybe tidbitTypeCacheDecoder))
-        (field "viewingSnipbit" (Decode.maybe Snipbit.snipbitCacheDecoder))
-        (field "viewingSnipbitRelevantHC" (Decode.maybe viewingSnipbitRelevantHCCacheDecoder))
-        (field "viewingBigbit" (Decode.maybe Bigbit.bigbitDecoder))
-        (field "viewingBigbitRelevantHC" (Decode.maybe viewingBigbitRelevantHCCacheDecoder))
-        (field "snipbitCreateData" Snipbit.createDataCacheDecoder)
-        (field "bigbitCreateData" Bigbit.bigbitCreateDataCacheDecoder)
+    decode Model
+        |> required "logOutError" (Decode.null Nothing)
+        |> required "showInfoFor" (Decode.maybe tidbitTypeCacheDecoder)
+        |> required "viewingSnipbit" (Decode.maybe Snipbit.snipbitCacheDecoder)
+        |> required "viewingSnipbitRelevantHC" (Decode.maybe viewingSnipbitRelevantHCCacheDecoder)
+        |> required "viewingBigbit" (Decode.maybe Bigbit.bigbitDecoder)
+        |> required "viewingBigbitRelevantHC" (Decode.maybe viewingBigbitRelevantHCCacheDecoder)
+        |> required "snipbitCreateData" Snipbit.createDataCacheDecoder
+        |> required "bigbitCreateData" Bigbit.bigbitCreateDataCacheDecoder
+        |> required "profileData" ProfileData.decoder
 
 
 {-| Returns true if the user is browsing the snipbit viewer relevant HC.

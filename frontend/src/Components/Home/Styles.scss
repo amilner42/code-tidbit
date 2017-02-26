@@ -11,6 +11,155 @@
 
         height: 100%;
 
+        .profile-page {
+
+            .profile-panel {
+                position: relative;
+                display: block;
+                width: 1004px;
+                height: 540px;
+                margin: 20px auto 0px auto;
+
+                .profile-card {
+                    @include standard-box-shadow();
+                    position: relative;
+                    width: 497px;
+                    display: inline-block;
+                    float: left;
+                    height: 200px;
+                    padding: 10px;
+                    box-sizing: border-box;
+                    background-color: #FDFDFD;
+
+                    .profile-card-title {
+                        color: $color6;
+                        font-size: 36px;
+                        font-weight: 500;
+                        margin: 5px 0 10px 0;
+                    }
+
+                    .profile-card-sub-box {
+                        display: block;
+                        margin-bottom: 5px;
+
+                        i {
+                            position: relative;
+                            display: inline-block;
+                            color: $color4;
+                            cursor: pointer;
+                            width: 20px;
+                            height: 20px;
+                            margin-right: 1px;
+                            line-height: 20px;
+                            font-size: 22px;
+                            box-sizing: border-box;
+                            top: 5px;
+                            left: 5px;
+                        }
+
+                        .bio-icons-box {
+                            position: absolute;
+                            top: 260px;
+                            left: 33px;
+                        }
+
+                        .profile-card-sub-box-title {
+                            display: inline-block;
+                            color: $color4;
+                            font-size: 18px;
+                            font-weight: 600;
+                            width: 70px;
+                        }
+
+                        .profile-card-sub-box-gap {
+                            display: inline-block;
+                            width: 5px;
+                        }
+
+                        .profile-card-sub-box-content {
+                            display: inline-block;
+                            font-style: italic;
+                            color: $color5;
+                            border: 1px solid $color2;
+                            padding: 5px;
+                            width: 200px;
+                            cursor: default;
+
+                            &:focus {
+                                cursor: auto;
+                            }
+
+                            &.bio-textarea {
+                                width: 390px;
+                                height: 140px;
+                                resize: none;
+                            }
+
+                            &.email-display {
+                                cursor: not-allowed;
+                            }
+                        }
+                    }
+
+                    button {
+                        box-sizing: border-box;
+                        padding: 5px;
+                        background-color: $color3;
+                        border: 1px solid $color2;
+                        border-radius: 3px;
+                        width: 100px;
+                        height: 43px;
+                        cursor: pointer;
+                        color: white;
+                        font-size: 22px;
+                        line-height: 33px;
+
+                        &:hover {
+                            color: $color5;
+                        }
+                    }
+
+                    input {
+                        font-size: 16px;
+                        width: 180px;
+                        display: inline-block;
+                        background-color: #FDFDFD;
+                        border: none;
+                        font-style: italic;
+                        font-weight: 400;
+                        color: $color5;
+
+                        &[disabled] {
+                            @include no-select();
+                        }
+                    }
+
+                    textarea {
+                        display: inline-block;
+                    }
+
+                    .account-bio {
+                    }
+
+                    .logout-button {
+                        position: absolute;
+                        right: 10px;
+                        top: 10px;
+                    }
+
+                    &.editor-card {
+                        float: right !important;
+                        height: 510px;
+                    }
+
+                    &.account-card {
+                        margin-bottom: 10px;
+                        height: 300px;
+                    }
+                }
+            }
+        }
+
         .view-bigbit {
             height: 100%;
 

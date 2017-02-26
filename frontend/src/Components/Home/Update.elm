@@ -12,6 +12,7 @@ import Dict
 import DefaultModel exposing (defaultShared)
 import DefaultServices.ArrayExtra as ArrayExtra
 import DefaultServices.Util as Util exposing (maybeMapWithDefault)
+import DefaultServices.Editable as Editable
 import Elements.Editor as Editor
 import Json.Decode as Decode
 import Models.Bigbit as Bigbit
@@ -19,7 +20,8 @@ import Elements.FileStructure as FS
 import Models.Snipbit as Snipbit
 import Models.Range as Range
 import Models.Route as Route
-import Models.User as User
+import Models.ProfileData as ProfileData
+import Models.User as User exposing (defaultUserUpdateRecord)
 import Task
 import Ports
 
@@ -80,6 +82,12 @@ update msg model shared =
         updateViewingSnipbitRelevantHC updater =
             { model
                 | viewingSnipbitRelevantHC = Maybe.map updater model.viewingSnipbitRelevantHC
+            }
+
+        updateProfileData : (ProfileData.ProfileData -> ProfileData.ProfileData) -> Model
+        updateProfileData updater =
+            { model
+                | profileData = updater model.profileData
             }
     in
         case msg of
@@ -1826,6 +1834,90 @@ update msg model shared =
                   }
                 , shared
                 , Route.navigateTo route
+                )
+
+            ProfileCancelEditName ->
+                let
+                    newModel =
+                        updateProfileData ProfileData.cancelEditingName
+                in
+                    ( newModel, shared, Cmd.none )
+
+            ProfileUpdateName originalName newName ->
+                let
+                    newModel =
+                        updateProfileData (ProfileData.setName originalName newName)
+                in
+                    ( newModel, shared, Cmd.none )
+
+            ProfileSaveEditName ->
+                case model.profileData.accountName of
+                    Nothing ->
+                        doNothing
+
+                    Just editableName ->
+                        ( model
+                        , shared
+                        , Api.postUpdateUser
+                            { defaultUserUpdateRecord
+                                | name = Just <| Editable.getBuffer editableName
+                            }
+                            ProfileSaveNameFailure
+                            ProfileSaveNameSuccess
+                        )
+
+            ProfileSaveNameFailure apiError ->
+                -- TODO handle failure.
+                doNothing
+
+            ProfileSaveNameSuccess updatedUser ->
+                ( updateProfileData ProfileData.setAccountNameToNothing
+                , { shared
+                    | user = Just updatedUser
+                  }
+                , Cmd.none
+                )
+
+            ProfileCancelEditBio ->
+                let
+                    newModel =
+                        updateProfileData ProfileData.cancelEditingBio
+                in
+                    ( newModel, shared, Cmd.none )
+
+            ProfileUpdateBio originalBio newBio ->
+                let
+                    newModel =
+                        updateProfileData (ProfileData.setBio originalBio newBio)
+                in
+                    ( newModel, shared, Cmd.none )
+
+            ProfileSaveEditBio ->
+                case model.profileData.accountBio of
+                    Nothing ->
+                        doNothing
+
+                    Just editableBio ->
+                        ( model
+                        , shared
+                        , Api.postUpdateUser
+                            { defaultUserUpdateRecord
+                                | bio = Just <| Editable.getBuffer editableBio
+                            }
+                            ProfileSaveBioFailure
+                            ProfileSaveBioSuccess
+                        )
+
+            ProfileSaveBioFailure apiError ->
+                -- TODO handle error.
+                doNothing
+
+            ProfileSaveBioSuccess updatedUser ->
+                ( updateProfileData ProfileData.setAccountBioToNothing
+                , { shared
+                    | user = Just updatedUser
+                  }
+                , Cmd.none
                 )
 
 

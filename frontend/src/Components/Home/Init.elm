@@ -60,4 +60,8 @@ init =
         , previewMarkdown =
             False
         }
+    , profileData =
+        { accountName = Nothing
+        , accountBio = Nothing
+        }
     }

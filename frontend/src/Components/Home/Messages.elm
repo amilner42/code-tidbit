@@ -9,6 +9,7 @@ import Models.Range as Range
 import Models.Route as Route
 import Models.Bigbit as Bigbit
 import Models.Snipbit as Snipbit
+import Models.User as User
 import Elements.FileStructure as FS
 import Elements.Editor as Editor
 
@@ -91,3 +92,13 @@ type Msg
     | ViewBigbitNextRelevantHC
     | ViewBigbitPreviousRelevantHC
     | ViewBigbitJumpToFrame Route.Route
+    | ProfileCancelEditName
+    | ProfileUpdateName String String
+    | ProfileSaveEditName
+    | ProfileSaveNameFailure ApiError.ApiError
+    | ProfileSaveNameSuccess User.User
+    | ProfileCancelEditBio
+    | ProfileUpdateBio String String
+    | ProfileSaveEditBio
+    | ProfileSaveBioFailure ApiError.ApiError
+    | ProfileSaveBioSuccess User.User

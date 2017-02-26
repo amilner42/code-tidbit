@@ -49,6 +49,7 @@ type ApiError
     | BigbitNoHighlightedComments
     | BigbitInvalidLanguage
     | BigbitDoesNotExist
+    | InvalidBio
 
 
 {-| An error from the backend still in Json form.
@@ -187,6 +188,9 @@ humanReadable apiError =
         BigbitDoesNotExist ->
             "The bigbit you are looking for does not exist!"
 
+        InvalidBio ->
+            "The bio you entered is not valid!"
+
 
 {-| Turns an errorCode integer from the backend to it's respective ApiError.
 -}
@@ -303,6 +307,9 @@ fromErrorCode errorCode =
 
         37 ->
             BigbitDoesNotExist
+
+        38 ->
+            InvalidBio
 
         _ ->
             InternalError

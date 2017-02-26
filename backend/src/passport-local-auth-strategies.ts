@@ -97,7 +97,7 @@ export const loginStrategy: Strategy = new Strategy({ usernameField }, (email, p
         });
       });
     },
-    typeFailureError: internalError("User object must have a email and password.")
+    typeFailureError: internalError("User object must have just email and password.")
   };
 
   kleen.validModel(userLoginStructure)({email, password})
@@ -122,7 +122,8 @@ export const signUpStrategy: Strategy = new Strategy(
   { usernameField, passReqToCallback: true },
   (req, email, password, next) => {
     /**
-     * The user signup structure.
+     * The user signup schema, only handles the user-input side of the
+     * information required.
      */
     const userSignUpStructure: kleen.objectSchema = {
       objectProperties: {
@@ -196,7 +197,7 @@ export const signUpStrategy: Strategy = new Strategy(
           }
         }
       },
-      typeFailureError: internalError("User object must have an email and password")
+      typeFailureError: internalError("User object must have just email and password")
     };
 
     const newUser: UserForRegistration = {
@@ -207,6 +208,8 @@ export const signUpStrategy: Strategy = new Strategy(
 
     return kleen.validModel(userSignUpStructure)(newUser)
     .then(() => {
+      // Set default new user fields and then register user.
+      newUser.bio = "";
       return register(newUser);
     })
     .then((user) => {
