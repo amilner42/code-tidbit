@@ -43,7 +43,8 @@ export interface UserForLogin {
  * Used for updating a user.
  */
 export interface UserUpdateObject {
-  name: string
+  name: string,
+  bio: string
 }
 
 /**

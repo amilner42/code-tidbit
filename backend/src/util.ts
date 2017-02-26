@@ -51,7 +51,7 @@ export const asyncIdentity = <T1>(val: T1): Promise<T1> => {
  * Creates a new objects from the given `obj`, containing all the same fields
  * except drops all fields which have a value of null/undefined.
  */
-export const dropNullAndUndefined = (obj) => {
+export const dropNullAndUndefinedProperties = (obj) => {
   const newObj = {};
 
   for(let key in obj) {

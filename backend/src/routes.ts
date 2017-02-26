@@ -12,7 +12,7 @@ import { validifyAndUpdateBigbit, Bigbit } from './models/bigbit.model';
 import { swapPeriodsWithStars, metaMap } from './models/file-structure.model';
 import { AppRoutes, AppRoutesAuth, ErrorCode, FrontendError, Language } from './types';
 import { collection, ID } from './db';
-import { internalError, asyncIdentity, dropNullAndUndefined } from './util';
+import { internalError, asyncIdentity, dropNullAndUndefinedProperties } from './util';
 
 
 /**
@@ -163,7 +163,7 @@ export const routes: AppRoutes = {
       .then((UserCollection) => {
         return UserCollection.findOneAndUpdate(
           { _id: userID },
-          { $set: dropNullAndUndefined(userUpdateObject) },
+          { $set: dropNullAndUndefinedProperties(userUpdateObject) },
           { returnOriginal: false}
         );
       })
