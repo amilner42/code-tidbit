@@ -46,3 +46,19 @@ export const objectMap = <a, a1>(obj: {[key: string]: a}, func: (a: a) => a1): {
 export const asyncIdentity = <T1>(val: T1): Promise<T1> => {
   return Promise.resolve(val);
 };
+
+/**
+ * Creates a new objects from the given `obj`, containing all the same fields
+ * except drops all fields which have a value of null/undefined.
+ */
+export const dropNullAndUndefined = (obj) => {
+  const newObj = {};
+
+  for(let key in obj) {
+    if(obj[key] !== null && obj[key] !== undefined) {
+      newObj[key] = obj[key];
+    }
+  }
+
+  return newObj;
+};

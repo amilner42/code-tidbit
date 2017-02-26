@@ -65,3 +65,12 @@ cancelEditingName profileData =
     { profileData
         | accountName = Maybe.map (Editable.cancelEditing) profileData.accountName
     }
+
+
+{-| Sets the accountName to `Nothing`.
+-}
+setAccountNameToNothing : ProfileData -> ProfileData
+setAccountNameToNothing profileData =
+    { profileData
+        | accountName = Nothing
+    }

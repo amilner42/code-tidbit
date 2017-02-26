@@ -1,8 +1,11 @@
 /// Module for encapsulating helper functions for the user model.
 
 import { omit } from "ramda";
+import * as kleen from "kleen";
 
-import { Model, MongoID } from '../types';
+import { malformedFieldError } from "../util";
+import { nonEmptyStringSchema, optional } from "./kleen-schemas";
+import { Model, MongoID, ErrorCode } from '../types';
 
 
 /**
@@ -33,9 +36,31 @@ export interface UserForLogin {
 }
 
 /**
+ * Used for updating a user.
+ */
+export interface UserUpdateObject {
+  name: string
+}
+
+/**
  * The `User` model.
  */
 export const userModel: Model<User> = {
   name: "user",
   stripSensitiveDataForResponse: omit(['password', '_id'])
+};
+
+
+/**
+ * The schema for updating a user.
+ */
+export const updateUserSchema: kleen.objectSchema = {
+  objectProperties: {
+    "name": optional(
+      nonEmptyStringSchema(
+        { errorCode: ErrorCode.invalidName, message: "Name cannot be empty."},
+        malformedFieldError("name")
+      )
+    )
+  }
 };

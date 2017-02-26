@@ -12,6 +12,7 @@ import Dict
 import DefaultModel exposing (defaultShared)
 import DefaultServices.ArrayExtra as ArrayExtra
 import DefaultServices.Util as Util exposing (maybeMapWithDefault)
+import DefaultServices.Editable as Editable
 import Elements.Editor as Editor
 import Json.Decode as Decode
 import Models.Bigbit as Bigbit
@@ -20,7 +21,7 @@ import Models.Snipbit as Snipbit
 import Models.Range as Range
 import Models.Route as Route
 import Models.ProfileData as ProfileData
-import Models.User as User
+import Models.User as User exposing (defaultUserUpdateRecord)
 import Task
 import Ports
 
@@ -1850,13 +1851,32 @@ update msg model shared =
                     ( newModel, shared, Cmd.none )
 
             ProfileSaveEditName ->
-                doNothing
+                case model.profileData.accountName of
+                    Nothing ->
+                        doNothing
+
+                    Just editableName ->
+                        ( model
+                        , shared
+                        , Api.postUpdateUser
+                            { defaultUserUpdateRecord
+                                | name = Just <| Editable.getBuffer editableName
+                            }
+                            ProfileSaveNameFailure
+                            ProfileSaveNameSuccess
+                        )
 
             ProfileSaveNameFailure apiError ->
+                -- TODO handle failure.
                 doNothing
 
-            ProfileSaveNameSuccess { message } ->
-                doNothing
+            ProfileSaveNameSuccess updatedUser ->
+                ( updateProfileData ProfileData.setAccountNameToNothing
+                , { shared
+                    | user = Just updatedUser
+                  }
+                , Cmd.none
+                )
 
 
 {-| Creates the code editor for the bigbit when browsing relevant HC.

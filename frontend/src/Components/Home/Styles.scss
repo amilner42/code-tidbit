@@ -59,7 +59,7 @@
 
                         .profile-card-sub-box-title {
                             display: inline-block;
-                            color: $color6;
+                            color: $color4;
                             font-size: 18px;
                             font-weight: 600;
                             width: 70px;
@@ -77,11 +77,20 @@
                             border: 1px solid $color2;
                             padding: 5px;
                             width: 200px;
+                            cursor: default;
+
+                            &:focus {
+                                cursor: auto;
+                            }
 
                             &.bio-textarea {
                                 width: 390px;
                                 height: 140px;
                                 resize: none;
+                            }
+
+                            &.email-display {
+                                cursor: not-allowed;
                             }
                         }
                     }

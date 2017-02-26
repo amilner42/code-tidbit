@@ -6,14 +6,21 @@ import * as kleen from "kleen";
 import passport from 'passport';
 
 import { APP_CONFIG } from '../app-config';
-import { User, userModel } from './models/user.model';
+import { User, userModel, updateUserSchema, UserUpdateObject } from './models/user.model';
 import { Snipbit, validifyAndUpdateSnipbit } from './models/snipbit.model';
 import { validifyAndUpdateBigbit, Bigbit } from './models/bigbit.model';
 import { swapPeriodsWithStars, metaMap } from './models/file-structure.model';
 import { AppRoutes, AppRoutesAuth, ErrorCode, FrontendError, Language } from './types';
 import { collection, ID } from './db';
-import { internalError, asyncIdentity } from './util';
+import { internalError, asyncIdentity, dropNullAndUndefined } from './util';
 
+
+/**
+ * Returns true if the current user has the given `id`.
+ */
+export const isUser = (req, id) => {
+  return req.user._id === id;
+};
 
 /**
  * Use in catch-blocks (eg. `.catch(handleError(res))`) to check and then send
@@ -140,6 +147,31 @@ export const routes: AppRoutes = {
     get: (req, res, next) => {
       res.status(200).json(userModel.stripSensitiveDataForResponse(req.user));
       return;
+    },
+
+    /**
+     * Updates the user and returns the new updated user.
+     */
+    post: (req, res) => {
+      const userUpdateObject: UserUpdateObject = req.body;
+      const userID = req.user._id;
+
+      kleen.validModel(updateUserSchema)(userUpdateObject)
+      .then(() => {
+        return collection("users");
+      })
+      .then((UserCollection) => {
+        return UserCollection.findOneAndUpdate(
+          { _id: userID },
+          { $set: dropNullAndUndefined(userUpdateObject) },
+          { returnOriginal: false}
+        );
+      })
+      .then((updatedUserResult) => {
+        res.status(200).json(userModel.stripSensitiveDataForResponse(updatedUserResult.value));
+        return;
+      })
+      .catch(handleError(res));
     }
   },
 

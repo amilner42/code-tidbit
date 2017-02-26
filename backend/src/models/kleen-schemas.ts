@@ -16,7 +16,6 @@ export const emptyObjectSchema = (typeInvalidApiError: FrontendError): kleen.typ
   }
 };
 
-
 /**
  * Helper for building kleen schemas that validate that string is not empty.
  */
@@ -31,6 +30,35 @@ export const nonEmptyStringSchema = (emptyStringApiError: FrontendError, typeInv
     typeFailureError: typeInvalidApiError
   }
 };
+
+/**
+ * Mutates a schema to allow undefined.
+ *
+ * @WARNING mutates `schema`
+ */
+export const allowUndefined = (schema: kleen.typeSchema): kleen.typeSchema => {
+  schema.undefinedAllowed = true;
+  return schema;
+};
+
+/**
+ * Mutates a schema to allow null.
+ *
+ * @WARNING mutates `schema`.
+ */
+export const allowNull = (schema: kleen.typeSchema): kleen.typeSchema => {
+  schema.nullAllowed = true;
+  return schema;
+}
+
+/**
+ * Mutates a schema to allow null/undefined.
+ *
+ * @WARNING muates `schema`
+ */
+export const optional = (schema: kleen.typeSchema): kleen.typeSchema => {
+  return allowUndefined(allowNull(schema));
+}
 
 /**
  * Helper for building kleen schemas that validate a non-empty array.

@@ -7,6 +7,7 @@ import Components.Home.Model as Model exposing (Model, TidbitType(..), isViewBig
 import Components.Home.Update exposing (filterLanguagesByQuery)
 import Components.Model exposing (Shared, kkUpdateWrapper)
 import DefaultServices.Util as Util exposing (maybeMapWithDefault)
+import DefaultServices.Editable as Editable
 import Dict
 import Elements.Editor as Editor
 import Html exposing (Html, div, text, textarea, button, input, h1, h3, img, hr, i)

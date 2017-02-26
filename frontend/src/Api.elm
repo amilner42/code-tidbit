@@ -1,14 +1,4 @@
-module Api
-    exposing
-        ( getAccount
-        , getLogOut
-        , getSnipbit
-        , getBigbit
-        , postLogin
-        , postRegister
-        , postCreateSnipbit
-        , postCreateBigbit
-        )
+module Api exposing (..)
 
 import Config exposing (apiBaseUrl)
 import DefaultServices.Http as HttpService
@@ -104,3 +94,13 @@ postCreateBigbit bigbit =
         "bigbits"
         CreateTidbitResponse.createTidbitResponseDecoder
         (Bigbit.bigbitForPublicationEncoder bigbit)
+
+
+{-| Updates a user.
+-}
+postUpdateUser : User.UserUpdateRecord -> (ApiError.ApiError -> b) -> (User.User -> b) -> Cmd b
+postUpdateUser updateRecord =
+    apiPost
+        "account"
+        User.decoder
+        (User.userUpdateRecordEncoder updateRecord)
