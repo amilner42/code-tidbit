@@ -196,125 +196,209 @@
             }
         }
 
-        .create-select-tidbit-title {
-            color: $color6;
-            font-size: 52px;
-            text-align: center;
-        }
-
-        .create-select-tidbit-box {
-            width: $min-width-supported;
-            height: 100%;
-            position: relative;
-            display: block;
+        .create-page {
+            width: 85%;
+            min-width: 900px;
             margin: auto;
+            padding-top: 10px;
 
-            .create-select-tidbit-type-coming-soon {
-                @include light-box-shadow();
+            .create-bar {
+                width: 100%;
+                height: 350px;
                 position: relative;
-                box-sizing: border-box;
-                display: inline-block;
-                width: 324px;
-                height: 324px;
-                float: left;
+                margin-top: 10px;
 
-                .coming-soon-text {
-                    position: absolute;
-                    top: 40%;
-                    left: 50%;
-                    transform: translate(-50%, -50%);
+                .create-bar-title {
+                    position: relative;
+                    display: inline-block;
+                    left: 10px;
                     font-size: 28px;
-                    color: $color4;
+                    font-weight: 600;
+                    color: $color5;
+                }
+
+                .create-bar-line {
+                    position: relative;
                     width: 100%;
-                    text-align: center;
+                    border-bottom: 1px solid $color2;
+                    margin-bottom: 20px;
+
                 }
 
-                .coming-soon-sub-text {
-                    position: absolute;
-                    top: 50%;
-                    left: 50%;
-                    transform: translate(-50%, -50%);
-                    font-size: 16px;
-                    color: $color4;
-                }
-            }
+                .story-box {
+                    @include standard-box-shadow();
+                    box-sizing: border-box;
+                    display: inline-block;
+                    position: relative;
+                    float: left;
+                    width: 275px;
+                    height: 275px;
+                    margin: 0 10px 0 10px;
 
-            .create-select-tidbit-type {
-                @include strong-box-shadow();
-                box-sizing: border-box;
+                    .story-box-name {
+                        box-sizing: border-box;
+                        position: absolute;
+                        top: 50%;
+                        left: 50%;
+                        transform: translate(-50%, -50%);
+                        width: 100%;
+                        text-align: center;
+                        font-weight: 700;
+                        color: $color5;
+                        font-size: 28px;
+                        padding: 10px;
+                    }
 
-                position: relative;
-                display: inline-block;
-                width: 324px;
-                height: 324px;
-                margin-right: 25px;
-                background-color: white;
-                border: none;
-                font-size: 28px;
-                font-weight: 700;
-                color: $color5;
-                float: left;
-
-                .description-title {
-                    font-size: 22px;
-                    width: 300px;
-                    padding: 10px;
-                }
-
-                .description-text {
-                    font-size: 16px;
-                    width: 300px;
-                    padding: 10px;
-                    font-weight: normal;
-                }
-
-                .back-button {
-                    position: absolute;
-                    bottom: 10px;
-                    right: 10px;
-                }
-
-                .create-select-tidbit-type-title {
-                    position: absolute;
-                    top: 40%;
-                    left: 50%;
-                    transform: translate(-50%, -50%);
-                }
-
-                .create-select-tidbit-type-sub-title {
-                    position: absolute;
-                    top: 50%;
-                    left: 50%;
-                    font-size: 16px;
-                    width: 300px;
-                    text-align: center;
-                    transform: translate(-50%, -50%);
-                }
-
-                button {
-                    border: 2px solid $color1;
-                    border-radius: 15px;
-                    background-color: white;
-                    color: $color1;
-
-                    &:hover {
+                    button {
+                        position: absolute;
+                        right: 10px;
+                        bottom: 10px;
+                        border: 2px solid $color7;
+                        border-radius: 15px;
                         color: white;
-                        background-color: $color1;
+                        background-color: $color7;
+                        padding: 2px 8px 2px 8px;
+                        cursor: pointer;
                     }
                 }
 
-                .info-button {
-                    position: absolute;
-                    bottom: 10px;
-                    right: 60px;
-                    padding: 2px 5px 2px 5px;
+                .create-story-box {
+                    box-sizing: border-box;
+                    display: inline-block;
+                    position: relative;
+                    float: left;
+                    width: 275px;
+                    height: 275px;
+                    margin: 0 10px 0 10px;
+                    position: relative;
+                    border: 2px dotted $color2;
+                    cursor: pointer;
+
+                    &:hover {
+                        background-color: $color9;
+                        border-style: solid;
+
+                        .no-stories-box-icon {
+                            color: $color4;
+                        }
+                    }
+
+                    .no-stories-box-icon {
+                        position: absolute;
+                        top: 50%;
+                        left: 50%;
+                        transform: translate(-50%, -50%);
+                        font-size: 128px;
+                        color: $color2;
+                    }
                 }
 
-                .select-button {
-                    position: absolute;
-                    bottom: 10px;
-                    right: 10px;
-                    padding: 2px 5px 2px 5px;
+                .create-select-tidbit-type-coming-soon {
+                    @include light-box-shadow();
+                    position: relative;
+                    box-sizing: border-box;
+                    display: inline-block;
+                    width: 275px;
+                    height: 275px;
+                    float: left;
+                    margin-left: 10px;
+
+                    .coming-soon-text {
+                        position: absolute;
+                        top: 40%;
+                        left: 50%;
+                        transform: translate(-50%, -50%);
+                        font-size: 28px;
+                        color: $color4;
+                        width: 100%;
+                        text-align: center;
+                    }
+
+                    .coming-soon-sub-text {
+                        position: absolute;
+                        top: 50%;
+                        left: 50%;
+                        transform: translate(-50%, -50%);
+                        font-size: 16px;
+                        color: $color4;
+                        width: 275px;
+                        text-align: center;
+                    }
+                }
+
+                .create-select-tidbit-type {
+                    @include strong-box-shadow();
+                    box-sizing: border-box;
+
+                    position: relative;
+                    display: inline-block;
+                    width: 275px;
+                    height: 275px;
+                    margin-left: 10px;
+                    margin-right: 10px;
+                    background-color: white;
+                    border: none;
+                    font-size: 28px;
+                    font-weight: 700;
+                    color: $color5;
+                    float: left;
+
+                    .description-text {
+                        box-sizing: border-box;
+                        font-size: 16px;
+                        width: 275px;
+                        padding: 10px;
+                        font-weight: normal;
+                    }
+
+                    .back-button {
+                        position: absolute;
+                        bottom: 10px;
+                        right: 10px;
+                    }
+
+                    .create-select-tidbit-type-title {
+                        position: absolute;
+                        top: 40%;
+                        left: 50%;
+                        transform: translate(-50%, -50%);
+                    }
+
+                    .create-select-tidbit-type-sub-title {
+                        position: absolute;
+                        top: 50%;
+                        left: 50%;
+                        font-size: 16px;
+                        width: 300px;
+                        text-align: center;
+                        transform: translate(-50%, -50%);
+                    }
+
+                    button {
+                        border: 2px solid $color1;
+                        border-radius: 15px;
+                        color: white;
+                        background-color: $color1;
+                        padding: 2px 8px 2px 8px;
+                        cursor: pointer;
+
+                        &:hover {
+                            color: white;
+                            background-color: $color1;
+                        }
+                    }
+
+                    .info-button {
+                        position: absolute;
+                        bottom: 10px;
+                        right: 66px;
+                    }
+
+                    .select-button {
+                        position: absolute;
+                        bottom: 10px;
+                        right: 10px;
+                    }
                 }
             }
         }
