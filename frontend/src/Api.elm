@@ -2,6 +2,7 @@ module Api exposing (..)
 
 import Config exposing (apiBaseUrl)
 import DefaultServices.Http as HttpService
+import DefaultServices.Util as Util
 import Json.Decode as Decode
 import Json.Encode as Encode
 import Models.ApiError as ApiError
@@ -9,6 +10,7 @@ import Models.BasicResponse as BasicResponse
 import Models.Bigbit as Bigbit
 import Models.CreateTidbitResponse as CreateTidbitResponse
 import Models.Snipbit as Snipbit
+import Models.Story as Story
 import Models.User as User
 
 
@@ -31,6 +33,15 @@ apiPost url =
 getAccount : (ApiError.ApiError -> b) -> (User.User -> b) -> Cmd b
 getAccount =
     apiGet "account" User.decoder
+
+
+{-| Gets all the stories for a given user.
+-}
+getAccountStories : List ( String, Maybe String ) -> (ApiError.ApiError -> b) -> (List Story.Story -> b) -> Cmd b
+getAccountStories queryParams =
+    apiGet
+        ("stories" ++ Util.queryParamsToString queryParams)
+        (Decode.list <| Story.storyDecoder)
 
 
 {-| Queries the API to log the user out, which should send a response to delete

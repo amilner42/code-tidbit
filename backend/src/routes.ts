@@ -6,14 +6,14 @@ import * as kleen from "kleen";
 import passport from 'passport';
 
 import { APP_CONFIG } from '../app-config';
-import { User, userModel, updateUserSchema, UserUpdateObject } from './models/user.model';
+import { User, updateUserSchema, UserUpdateObject, prepareUserForResponse } from './models/user.model';
 import { Snipbit, validifyAndUpdateSnipbit } from './models/snipbit.model';
 import { validifyAndUpdateBigbit, Bigbit } from './models/bigbit.model';
 import { swapPeriodsWithStars, metaMap } from './models/file-structure.model';
-import { Story, StorySchema } from "./models/story.model";
+import { Story, StorySchema, prepareStoryForResponse } from "./models/story.model";
 import { AppRoutes, AppRoutesAuth, ErrorCode, FrontendError, Language } from './types';
 import { collection, ID, renameIDField } from './db';
-import { internalError, asyncIdentity, dropNullAndUndefinedProperties } from './util';
+import { internalError, asyncIdentity, dropNullAndUndefinedProperties, isNullOrUndefined } from './util';
 
 
 /**
@@ -65,7 +65,8 @@ export const authlessRoutes: AppRoutesAuth = {
   '/register': { post: true },
   '/login': { post: true },
   '/snipbits/:id': { get: true },
-  '/bigbits/:id': { get: true }
+  '/bigbits/:id': { get: true },
+  '/stories': { get: true }
 };
 
 /**
@@ -101,7 +102,7 @@ export const routes: AppRoutes = {
             return;
           }
 
-          res.status(201).json(userModel.stripSensitiveDataForResponse(user));
+          res.status(201).json(prepareUserForResponse(user));
           return;
         });
       })(req, res, next);
@@ -134,7 +135,7 @@ export const routes: AppRoutes = {
             return next(err);
           }
 
-          res.status(200).json(userModel.stripSensitiveDataForResponse(user));
+          res.status(200).json(prepareUserForResponse(user));
           return;
         });
       })(req, res, next);
@@ -146,7 +147,7 @@ export const routes: AppRoutes = {
      * Returns the users account with sensitive data stripped.
      */
     get: (req, res, next) => {
-      res.status(200).json(userModel.stripSensitiveDataForResponse(req.user));
+      res.status(200).json(prepareUserForResponse(req.user));
       return;
     },
 
@@ -169,7 +170,7 @@ export const routes: AppRoutes = {
         );
       })
       .then((updatedUserResult) => {
-        res.status(200).json(userModel.stripSensitiveDataForResponse(updatedUserResult.value));
+        res.status(200).json(prepareUserForResponse(updatedUserResult.value));
         return;
       })
       .catch(handleError(res));
@@ -353,6 +354,31 @@ export const routes: AppRoutes = {
   },
 
   '/stories': {
+
+    /**
+     * Get's stories, can customize query through query-params.
+     */
+    get: (req, res) => {
+      const userID = req.user._id;
+      const queryParams = req.query;
+      const author = queryParams.author;
+
+      collection("stories")
+      .then((StoryCollection) => {
+        const mongoSearchFilter: { author?: string } = {};
+
+        if(!isNullOrUndefined(author)) {
+          mongoSearchFilter.author = author;
+        }
+
+        return StoryCollection.find(mongoSearchFilter).toArray();
+      })
+      .then((stories) => {
+        res.status(200).json(stories.map(prepareStoryForResponse));
+        return;
+      })
+      .catch(handleError(res));
+    },
 
     /**
      * For creating a new story for the given user.

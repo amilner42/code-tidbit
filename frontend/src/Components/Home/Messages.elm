@@ -10,6 +10,7 @@ import Models.Route as Route
 import Models.Bigbit as Bigbit
 import Models.Snipbit as Snipbit
 import Models.User as User
+import Models.Story as Story
 import Elements.FileStructure as FS
 import Elements.Editor as Editor
 
@@ -102,3 +103,5 @@ type Msg
     | ProfileSaveEditBio
     | ProfileSaveBioFailure ApiError.ApiError
     | ProfileSaveBioSuccess User.User
+    | GetAccountStoriesFailure ApiError.ApiError
+    | GetAccountStoriesSuccess (List Story.Story)

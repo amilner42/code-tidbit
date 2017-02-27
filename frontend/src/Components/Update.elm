@@ -473,11 +473,12 @@ handleLocationChange maybeRoute model =
                 -- Handle general route-logic here, routes are a great way to be
                 -- able to trigger certain things (hooks).
                 case route of
-                    -- Init the editor.
+                    Route.HomeComponentCreate ->
+                        triggerRouteHookOnHomeComponent
+
                     Route.HomeComponentCreateSnipbitCodeIntroduction ->
                         triggerRouteHookOnHomeComponent
 
-                    -- Init the editor.
                     Route.HomeComponentCreateSnipbitCodeConclusion ->
                         triggerRouteHookOnHomeComponent
 

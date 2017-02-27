@@ -2,6 +2,7 @@
 
 import * as kleen from "kleen";
 
+import { renameIDField } from '../db';
 import { malformedFieldError } from '../util';
 import { mongoIDSchema, nameSchema, descriptionSchema, optional } from "./kleen-schemas";
 import { MongoID, ErrorCode } from '../types';
@@ -58,7 +59,6 @@ export const StoryPageSchema: kleen.typeSchema = {
   }
 };
 
-
 /**
 * The schema for validating a full story.
 */
@@ -74,3 +74,13 @@ export const StorySchema: kleen.typeSchema = {
     },
   }
 };
+
+/**
+ * Prepares a story for the response.
+ *
+ * - Rename `_id` to `id`.
+ */
+export const prepareStoryForResponse = (story: Story) => {
+  renameIDField(story);
+  return story;
+}

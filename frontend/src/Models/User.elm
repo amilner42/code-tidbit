@@ -8,7 +8,8 @@ import Json.Encode as Encode
 {-| The User type.
 -}
 type alias User =
-    { name : String
+    { id : String
+    , name : String
     , email : String
     , password : Maybe (String)
     , bio : String
@@ -51,7 +52,8 @@ decoder =
 -}
 cacheDecoder : Decode.Decoder User
 cacheDecoder =
-    Decode.map4 User
+    Decode.map5 User
+        (field "id" Decode.string)
         (field "name" Decode.string)
         (field "email" Decode.string)
         (Decode.maybe (field "password" Decode.string))
@@ -63,7 +65,8 @@ cacheDecoder =
 cacheEncoder : User -> Encode.Value
 cacheEncoder user =
     Encode.object
-        [ ( "name", Encode.string user.name )
+        [ ( "id", Encode.string user.id )
+        , ( "name", Encode.string user.name )
         , ( "email", Encode.string user.email )
         , ( "password", Encode.null )
         , ( "bio", Encode.string user.bio )

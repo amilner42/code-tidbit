@@ -6,7 +6,7 @@ import { ErrorCode } from './types';
  * Returns true if `thing` is null or undefined.
  */
 export const isNullOrUndefined: isNullOrUndefined = (thing: any) => {
-  return (thing == null || thing == undefined);
+  return (thing === null || thing === undefined);
 }
 
 /**

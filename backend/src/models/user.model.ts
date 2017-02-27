@@ -3,9 +3,10 @@
 import { omit } from "ramda";
 import * as kleen from "kleen";
 
+import { renameIDField } from '../db';
 import { malformedFieldError } from "../util";
 import { nonEmptyStringSchema, optional } from "./kleen-schemas";
-import { Model, MongoID, ErrorCode } from '../types';
+import { MongoID, ErrorCode } from '../types';
 
 
 /**
@@ -13,6 +14,7 @@ import { Model, MongoID, ErrorCode } from '../types';
  */
 export interface User {
   _id?: MongoID;
+  id?: MongoID;
   name: string;
   email: string;
   password: string;
@@ -48,13 +50,16 @@ export interface UserUpdateObject {
 }
 
 /**
- * The `User` model.
+ * Prepares the user for response.
+ *
+ * - Removes password
+ * - Rename `_id` to `id`
  */
-export const userModel: Model<User> = {
-  name: "user",
-  stripSensitiveDataForResponse: omit(['password', '_id'])
+export const prepareUserForResponse = (user: User) => {
+  delete user.password;
+  renameIDField(user);
+  return user;
 };
-
 
 /**
  * The schema for updating a user.

@@ -213,6 +213,24 @@ update msg model shared =
                         )
                 in
                     case shared.route of
+                        Route.HomeComponentCreate ->
+                            case shared.user of
+                                -- Should never happen.
+                                Nothing ->
+                                    doNothing
+
+                                Just user ->
+                                    if Util.isNothing shared.userStories then
+                                        ( model
+                                        , shared
+                                        , Api.getAccountStories
+                                            [ ( "author", Just user.id ) ]
+                                            GetAccountStoriesFailure
+                                            GetAccountStoriesSuccess
+                                        )
+                                    else
+                                        doNothing
+
                         Route.HomeComponentViewSnipbitIntroduction mongoID ->
                             fetchOrRenderSnipbit mongoID
 
@@ -1916,6 +1934,18 @@ update msg model shared =
                 ( updateProfileData ProfileData.setAccountBioToNothing
                 , { shared
                     | user = Just updatedUser
+                  }
+                , Cmd.none
+                )
+
+            GetAccountStoriesFailure apiError ->
+                -- TODO handle error.
+                doNothing
+
+            GetAccountStoriesSuccess userStories ->
+                ( model
+                , { shared
+                    | userStories = Just userStories
                   }
                 , Cmd.none
                 )
