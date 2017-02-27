@@ -12,6 +12,7 @@ import { validifyAndUpdateBigbit, Bigbit } from './models/bigbit.model';
 import { swapPeriodsWithStars, metaMap } from './models/file-structure.model';
 import { Story, StorySchema, prepareStoryForResponse } from "./models/story.model";
 import { AppRoutes, AppRoutesAuth, ErrorCode, FrontendError, Language } from './types';
+import { ObjectID } from "mongodb";
 import { collection, ID, renameIDField } from './db';
 import { internalError, asyncIdentity, dropNullAndUndefinedProperties, isNullOrUndefined } from './util';
 
@@ -164,7 +165,7 @@ export const routes: AppRoutes = {
       })
       .then((UserCollection) => {
         return UserCollection.findOneAndUpdate(
-          { _id: userID },
+          { _id: ID(userID) },
           { $set: dropNullAndUndefinedProperties(userUpdateObject) },
           { returnOriginal: false}
         );
@@ -272,7 +273,7 @@ export const routes: AppRoutes = {
         // Update `language` to encoded language name.
         return collection("languages")
         .then((languageCollection) => {
-          return languageCollection.findOne({ _id: snipbit.language }) as Promise<Language>;
+          return languageCollection.findOne({ _id: ID(snipbit.language) }) as Promise<Language>;
         })
         .then((language) => {
 
@@ -365,10 +366,10 @@ export const routes: AppRoutes = {
 
       collection("stories")
       .then((StoryCollection) => {
-        const mongoSearchFilter: { author?: string } = {};
+        const mongoSearchFilter: { author?: ObjectID } = {};
 
         if(!isNullOrUndefined(author)) {
-          mongoSearchFilter.author = author;
+          mongoSearchFilter.author = ID(author);
         }
 
         return StoryCollection.find(mongoSearchFilter).toArray();
