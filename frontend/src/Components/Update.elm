@@ -366,6 +366,21 @@ handleKeyPress model =
                     )
                     Cmd.none
 
+            Route.HomeComponentCreateNewStoryName ->
+                watchForTabAndShiftTab
+                    (Route.navigateTo Route.HomeComponentCreateNewStoryDescription)
+                    Cmd.none
+
+            Route.HomeComponentCreateNewStoryDescription ->
+                watchForTabAndShiftTab
+                    (Route.navigateTo Route.HomeComponentCreateNewStoryTags)
+                    (Route.navigateTo Route.HomeComponentCreateNewStoryName)
+
+            Route.HomeComponentCreateNewStoryTags ->
+                watchForTabAndShiftTab
+                    Cmd.none
+                    (Route.navigateTo Route.HomeComponentCreateNewStoryDescription)
+
             _ ->
                 doNothing
 
@@ -531,6 +546,15 @@ handleLocationChange maybeRoute model =
                         triggerRouteHookOnHomeComponent
 
                     Route.HomeComponentCreateBigbitCodeConclusion _ ->
+                        triggerRouteHookOnHomeComponent
+
+                    Route.HomeComponentCreateNewStoryName ->
+                        triggerRouteHookOnHomeComponent
+
+                    Route.HomeComponentCreateNewStoryDescription ->
+                        triggerRouteHookOnHomeComponent
+
+                    Route.HomeComponentCreateNewStoryTags ->
                         triggerRouteHookOnHomeComponent
 
                     _ ->

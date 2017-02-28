@@ -196,6 +196,48 @@
             }
         }
 
+        .new-story-page {
+
+            .sub-bar-button {
+                margin-left: 10px;
+            }
+
+            .create-tidbit-navbar {
+                width: 372px;
+            }
+
+            .create-new-story-name {
+                @extend .create-tidbit-x;
+
+                input {
+                    height: 53px;
+                    width: 800px;
+                }
+            }
+
+            .create-new-story-description {
+                @extend .create-tidbit-x;
+
+                textarea {
+                    height: 400px;
+                    width: 600px;
+                }
+            }
+
+            .create-new-story-tags {
+                @extend .create-tidbit-x;
+
+                input {
+                    height: 53px;
+                    width: 800px;
+                }
+            }
+
+            .create-new-story-tags {
+                @extend .create-tidbit-tags;
+            }
+        }
+
         .create-page {
             width: 85%;
             min-width: 900px;
@@ -253,10 +295,10 @@
                         position: absolute;
                         right: 10px;
                         bottom: 10px;
-                        border: 2px solid $color7;
+                        border: 2px solid $color3;
                         border-radius: 15px;
                         color: white;
-                        background-color: $color7;
+                        background-color: $color3;
                         padding: 2px 8px 2px 8px;
                         cursor: pointer;
                     }
@@ -375,16 +417,16 @@
                     }
 
                     button {
-                        border: 2px solid $color1;
+                        border: 2px solid $color3;
                         border-radius: 15px;
                         color: white;
-                        background-color: $color1;
+                        background-color: $color3;
                         padding: 2px 8px 2px 8px;
                         cursor: pointer;
 
                         &:hover {
                             color: white;
-                            background-color: $color1;
+                            background-color: $color3;
                         }
                     }
 
@@ -546,7 +588,7 @@
                 @extend .create-tidbit-x;
 
                 input {
-                    height: 73px;
+                    height: 53px;
                     width: 800px;
                 }
             }
@@ -857,7 +899,7 @@
                 @extend .create-tidbit-x;
 
                 input {
-                    height: 73px;
+                    height: 53px;
                     width: 800px;
                 }
             }
@@ -973,11 +1015,9 @@
 
             float: right;
             margin-right: 10px;
-            cursor: not-allowed;
-
-            &:hover {
-                @include light-box-shadow();
-            }
+            cursor: not-allowed !important;
+            box-shadow: none !important;
+            color: $color4;
         }
 
         .publish-button {
@@ -985,7 +1025,7 @@
 
             background-color: $color7 !important;
             color: white !important;
-            cursor: pointer;
+            cursor: pointer !important;
 
             &:hover {
                 background-color: $color7 !important;

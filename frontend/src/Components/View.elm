@@ -99,6 +99,15 @@ viewForRoute model =
             Route.HomeComponentCreateBigbitCodeConclusion _ ->
                 renderedHomeView
 
+            Route.HomeComponentCreateNewStoryName ->
+                renderedHomeView
+
+            Route.HomeComponentCreateNewStoryDescription ->
+                renderedHomeView
+
+            Route.HomeComponentCreateNewStoryTags ->
+                renderedHomeView
+
             Route.HomeComponentProfile ->
                 renderedHomeView
 

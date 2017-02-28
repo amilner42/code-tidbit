@@ -21,6 +21,7 @@ import Models.Snipbit as Snipbit
 import Models.Range as Range
 import Models.Route as Route
 import Models.ProfileData as ProfileData
+import Models.NewStoryData as NewStoryData
 import Models.User as User exposing (defaultUserUpdateRecord)
 import Task
 import Ports
@@ -88,6 +89,12 @@ update msg model shared =
         updateProfileData updater =
             { model
                 | profileData = updater model.profileData
+            }
+
+        updateNewStoryData : (NewStoryData.NewStoryData -> NewStoryData.NewStoryData) -> Model
+        updateNewStoryData updater =
+            { model
+                | newStoryData = updater model.newStoryData
             }
     in
         case msg of
@@ -460,6 +467,15 @@ update msg model shared =
                                 , Util.domFocus (\_ -> NoOp) "conclusion-input"
                                 ]
                             )
+
+                        Route.HomeComponentCreateNewStoryName ->
+                            focusOn "name-input"
+
+                        Route.HomeComponentCreateNewStoryDescription ->
+                            focusOn "description-input"
+
+                        Route.HomeComponentCreateNewStoryTags ->
+                            focusOn "tags-input"
 
                         _ ->
                             doNothing
@@ -1947,6 +1963,36 @@ update msg model shared =
                 , { shared
                     | userStories = Just userStories
                   }
+                , Cmd.none
+                )
+
+            NewStoryUpdateName newName ->
+                ( updateNewStoryData <| NewStoryData.updateName newName
+                , shared
+                , Cmd.none
+                )
+
+            NewStoryUpdateDescription newDescription ->
+                ( updateNewStoryData <| NewStoryData.updateDescription newDescription
+                , shared
+                , Cmd.none
+                )
+
+            NewStoryUpdateTagInput newTagInput ->
+                ( updateNewStoryData <| NewStoryData.updateTagInput newTagInput
+                , shared
+                , Cmd.none
+                )
+
+            NewStoryAddTag tagName ->
+                ( updateNewStoryData <| NewStoryData.newTag tagName
+                , shared
+                , Cmd.none
+                )
+
+            NewStoryRemoveTag tagName ->
+                ( updateNewStoryData <| NewStoryData.removeTag tagName
+                , shared
                 , Cmd.none
                 )
 

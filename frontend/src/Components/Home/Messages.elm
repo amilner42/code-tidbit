@@ -105,3 +105,8 @@ type Msg
     | ProfileSaveBioSuccess User.User
     | GetAccountStoriesFailure ApiError.ApiError
     | GetAccountStoriesSuccess (List Story.Story)
+    | NewStoryUpdateName String
+    | NewStoryUpdateDescription String
+    | NewStoryUpdateTagInput String
+    | NewStoryAddTag String
+    | NewStoryRemoveTag String

@@ -20,11 +20,9 @@ type alias Story =
 {-| A new story being created, does not yet contain any db-added fields.
 -}
 type alias NewStory =
-    { author : String
-    , name : String
+    { name : String
     , description : String
     , tags : List String
-    , pages : List StoryPage
     }
 
 
@@ -75,11 +73,9 @@ storyDecoder =
 newStoryEncoder : NewStory -> Encode.Value
 newStoryEncoder newStory =
     Encode.object
-        [ ( "author", Encode.string newStory.author )
-        , ( "name", Encode.string newStory.name )
+        [ ( "name", Encode.string newStory.name )
         , ( "description", Encode.string newStory.description )
         , ( "tags", Encode.list <| List.map Encode.string newStory.tags )
-        , ( "pages", Encode.list <| List.map storyPageEncoder newStory.pages )
         ]
 
 
@@ -88,11 +84,9 @@ newStoryEncoder newStory =
 newStoryDecoder : Decode.Decoder NewStory
 newStoryDecoder =
     decode NewStory
-        |> required "author" Decode.string
         |> required "name" Decode.string
         |> required "description" Decode.string
         |> required "tags" (Decode.list Decode.string)
-        |> required "pages" (Decode.list storyPageDecoder)
 
 
 {-| StoryPage encoder.
@@ -144,3 +138,13 @@ storyPageTypeDecoder =
     in
         Decode.int
             |> Decode.andThen fromIntDecoder
+
+
+{-| An empty new story.
+-}
+defaultNewStory : NewStory
+defaultNewStory =
+    { name = ""
+    , description = ""
+    , tags = []
+    }

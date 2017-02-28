@@ -39,6 +39,9 @@ type Route
     | HomeComponentCreateBigbitCodeIntroduction (Maybe FS.Path)
     | HomeComponentCreateBigbitCodeFrame Int (Maybe FS.Path)
     | HomeComponentCreateBigbitCodeConclusion (Maybe FS.Path)
+    | HomeComponentCreateNewStoryName
+    | HomeComponentCreateNewStoryDescription
+    | HomeComponentCreateNewStoryTags
     | HomeComponentProfile
     | WelcomeComponentLogin
     | WelcomeComponentRegister
@@ -136,6 +139,19 @@ matchers =
         createBigbitCodeConclusion =
             createBigbitCode </> s "conclusion" <?> qpFile
 
+        -- Abstract.
+        createNewStory =
+            create </> s "story"
+
+        homeComponentCreateNewStoryName =
+            createNewStory </> s "name"
+
+        homeComponentCreateNewStoryDescription =
+            createNewStory </> s "description"
+
+        homeComponentCreateNewStoryTags =
+            createNewStory </> s "tags"
+
         -- Query Param for the current active file.
         qpFile =
             stringParam "file"
@@ -175,6 +191,9 @@ matchers =
             , map HomeComponentCreateBigbitCodeIntroduction (createBigbitCodeIntroduction)
             , map HomeComponentCreateBigbitCodeFrame (createBigbitCodeFrame)
             , map HomeComponentCreateBigbitCodeConclusion (createBigbitCodeConclusion)
+            , map HomeComponentCreateNewStoryName homeComponentCreateNewStoryName
+            , map HomeComponentCreateNewStoryDescription homeComponentCreateNewStoryDescription
+            , map HomeComponentCreateNewStoryTags homeComponentCreateNewStoryTags
             , map HomeComponentProfile (profile)
             , map WelcomeComponentRegister (welcomeRegister)
             , map WelcomeComponentLogin (welcomeLogin)
@@ -341,6 +360,15 @@ toHashUrl route =
             HomeComponentCreateBigbitCodeConclusion qpFile ->
                 "create/bigbit/code/conclusion/"
                     ++ (Util.queryParamsToString [ ( "file", qpFile ) ])
+
+            HomeComponentCreateNewStoryName ->
+                "create/story/name"
+
+            HomeComponentCreateNewStoryDescription ->
+                "create/story/description"
+
+            HomeComponentCreateNewStoryTags ->
+                "create/story/tags"
 
             HomeComponentProfile ->
                 "profile"

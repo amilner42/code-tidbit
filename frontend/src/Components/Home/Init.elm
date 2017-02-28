@@ -7,6 +7,7 @@ import Elements.Editor as Editor
 import Elements.FileStructure as FS
 import Models.Snipbit as Snipbit
 import Models.Bigbit as Bigbit
+import Models.NewStoryData as NewStoryData
 
 
 {-| Home Component Init.
@@ -64,4 +65,5 @@ init =
         { accountName = Nothing
         , accountBio = Nothing
         }
+    , newStoryData = NewStoryData.defaultNewStoryData
     }
