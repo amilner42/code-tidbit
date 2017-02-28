@@ -1071,9 +1071,6 @@ createView model shared =
                 [ class "create-select-tidbit-type" ]
                 (if model.showInfoFor == (Just tidbitType) then
                     [ div
-                        [ class "description-title" ]
-                        [ text <| toString tidbitType ++ " Info" ]
-                    , div
                         [ class "description-text" ]
                         [ text description ]
                     , button
@@ -1098,40 +1095,82 @@ createView model shared =
                         [ class "select-button"
                         , onClick onClickMsg
                         ]
-                        [ text "select" ]
+                        [ text "create" ]
                     ]
                 )
+
+        yourStoriesHtml : Html Msg
+        yourStoriesHtml =
+            case shared.userStories of
+                -- Should never happen.
+                Nothing ->
+                    Util.hiddenDiv
+
+                Just userStories ->
+                    div
+                        []
+                        ([ div
+                            [ class "create-story-box" ]
+                            [ i
+                                [ class "material-icons no-stories-box-icon" ]
+                                [ text "add" ]
+                            ]
+                         ]
+                            ++ List.map
+                                (\story ->
+                                    div
+                                        [ class "story-box" ]
+                                        [ div
+                                            [ class "story-box-name" ]
+                                            [ text story.name ]
+                                        , button
+                                            []
+                                            [ text "continue" ]
+                                        ]
+                                )
+                                userStories
+                        )
     in
         div
-            []
+            [ class "create-page" ]
             [ div
-                []
-                [ h1
-                    [ class "create-select-tidbit-title" ]
-                    [ text "Select Tidbit Type" ]
+                [ class "create-bar" ]
+                [ div
+                    [ class "create-bar-title" ]
+                    [ text "Your Stories" ]
                 , div
-                    [ class "create-select-tidbit-box" ]
-                    [ makeTidbitTypeBox
-                        "SnipBit"
-                        "Excellent for answering questions"
-                        snipBitDescription
-                        (GoTo Route.HomeComponentCreateSnipbitName)
-                        SnipBit
-                    , makeTidbitTypeBox
-                        "BigBit"
-                        "Designed for larger tutorials"
-                        bigBitInfo
-                        (GoTo Route.HomeComponentCreateBigbitName)
-                        BigBit
+                    [ class "create-bar-line" ]
+                    []
+                , yourStoriesHtml
+                ]
+            , div
+                [ class "create-bar" ]
+                [ div
+                    [ class "create-bar-title" ]
+                    [ text "Create New Tidbit" ]
+                , div
+                    [ class "create-bar-line" ]
+                    []
+                , makeTidbitTypeBox
+                    "SnipBit"
+                    "Explain a chunk of code"
+                    snipBitDescription
+                    (GoTo Route.HomeComponentCreateSnipbitName)
+                    SnipBit
+                , makeTidbitTypeBox
+                    "BigBit"
+                    "Explain a full project"
+                    bigBitInfo
+                    (GoTo Route.HomeComponentCreateBigbitName)
+                    BigBit
+                , div
+                    [ class "create-select-tidbit-type-coming-soon" ]
+                    [ div
+                        [ class "coming-soon-text" ]
+                        [ text "More Coming Soon" ]
                     , div
-                        [ class "create-select-tidbit-type-coming-soon" ]
-                        [ div
-                            [ class "coming-soon-text" ]
-                            [ text "More Coming Soon" ]
-                        , div
-                            [ class "coming-soon-sub-text" ]
-                            [ text "We are working on it" ]
-                        ]
+                        [ class "coming-soon-sub-text" ]
+                        [ text "We are working on it" ]
                     ]
                 ]
             ]

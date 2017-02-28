@@ -4,32 +4,20 @@ import * as kleen from "kleen";
 import { Range, emptyRange } from './range.model';
 import { malformedFieldError, internalError } from '../util';
 import { ErrorCode, FrontendError } from '../types';
+import { validMongoID  } from '../validifier';
 
 
 /**
- * Helper for validifying an empty object.
+ * TODO move this into Kleen.
  */
-export const emptyObjectSchema = (typeInvalidApiError: FrontendError): kleen.typeSchema => {
-  return {
-    objectProperties: {},
-    typeFailureError: typeInvalidApiError
-  }
-};
+type RestrictableSchema
+  = kleen.primitiveSchema
+  | kleen.objectSchema
+  | kleen.arraySchema
+  | kleen.referenceSchema
+  | kleen.mapSchema;
 
-/**
- * Helper for building kleen schemas that validate that string is not empty.
- */
-export const nonEmptyStringSchema = (emptyStringApiError: FrontendError, typeInvalidApiError: FrontendError): kleen.typeSchema => {
-  return {
-    primitiveType: kleen.kindOfPrimitive.string,
-    restriction: (someString: string) => {
-      if(someString === "") {
-        return Promise.reject(emptyStringApiError);
-      }
-    },
-    typeFailureError: typeInvalidApiError
-  }
-};
+// Mutation Helpers START
 
 /**
  * Mutates a schema to allow undefined.
@@ -59,6 +47,42 @@ export const allowNull = (schema: kleen.typeSchema): kleen.typeSchema => {
 export const optional = (schema: kleen.typeSchema): kleen.typeSchema => {
   return allowUndefined(allowNull(schema));
 }
+
+/**
+ * Mutates a schema to use the given restriction. Will overwrite previous
+ * restrictions.
+ */
+export const withRestriction = (schema: RestrictableSchema , restriction: (any: any) => void | Promise<void>): kleen.typeSchema  => {
+  schema.restriction = restriction;
+  return schema;
+}
+
+// Mutation helpers END
+
+/**
+ * Helper for validifying an empty object.
+ */
+export const emptyObjectSchema = (typeInvalidApiError: FrontendError): kleen.typeSchema => {
+  return {
+    objectProperties: {},
+    typeFailureError: typeInvalidApiError
+  }
+};
+
+/**
+ * Helper for building kleen schemas that validate that string is not empty.
+ */
+export const nonEmptyStringSchema = (emptyStringApiError: FrontendError, typeInvalidApiError: FrontendError): RestrictableSchema => {
+  return {
+    primitiveType: kleen.kindOfPrimitive.string,
+    restriction: (someString: string) => {
+      if(someString === "") {
+        return Promise.reject(emptyStringApiError);
+      }
+    },
+    typeFailureError: typeInvalidApiError
+  }
+};
 
 /**
  * Helper for building kleen schemas that validate a non-empty array.
@@ -281,5 +305,20 @@ export const fileStructureSchema =
       "fsMetadata": fsMetadataSchema
     },
     typeFailureError: malformedFieldError("file structure")
+  }
+};
+
+/**
+ * A mongo id schema, will error with `error`.
+ */
+export const mongoIDSchema = (invalidMongoIDError: any): kleen.primitiveSchema => {
+  return {
+    primitiveType: kleen.kindOfPrimitive.string,
+    typeFailureError: invalidMongoIDError,
+    restriction: (mongoID: string) => {
+      if(!validMongoID(mongoID)) {
+        return Promise.reject(invalidMongoIDError);
+      }
+    }
   }
 };

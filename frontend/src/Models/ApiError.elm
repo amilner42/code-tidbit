@@ -50,6 +50,13 @@ type ApiError
     | BigbitInvalidLanguage
     | BigbitDoesNotExist
     | InvalidBio
+    | StoryNameEmpty
+    | StoryNameTooLong
+    | StoryDescriptionEmpty
+    | StoryDescriptionTooLong
+    | StoryInvalidPageType
+    | StoryEmptyTag
+    | StoryNoTags
 
 
 {-| An error from the backend still in Json form.
@@ -191,6 +198,27 @@ humanReadable apiError =
         InvalidBio ->
             "The bio you entered is not valid!"
 
+        StoryNameEmpty ->
+            "You cannot have empty story names!"
+
+        StoryNameTooLong ->
+            "Your story name is too long!"
+
+        StoryDescriptionEmpty ->
+            "You cannot have an empty description for your story!"
+
+        StoryDescriptionTooLong ->
+            "Your description name is too long!"
+
+        StoryInvalidPageType ->
+            "That is not a valid story type, refer to the API for valid types!"
+
+        StoryEmptyTag ->
+            "You cannot have empty tags!"
+
+        StoryNoTags ->
+            "Stories must have at least a single tag!"
+
 
 {-| Turns an errorCode integer from the backend to it's respective ApiError.
 -}
@@ -310,6 +338,27 @@ fromErrorCode errorCode =
 
         38 ->
             InvalidBio
+
+        39 ->
+            StoryNameEmpty
+
+        40 ->
+            StoryNameTooLong
+
+        41 ->
+            StoryDescriptionEmpty
+
+        42 ->
+            StoryDescriptionTooLong
+
+        43 ->
+            StoryInvalidPageType
+
+        44 ->
+            StoryEmptyTag
+
+        45 ->
+            StoryNoTags
 
         _ ->
             InternalError

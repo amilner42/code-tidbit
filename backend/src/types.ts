@@ -44,25 +44,6 @@ export interface Language {
 export type MongoID = string;
 
 /**
- * All models (in `/models`) should export an implementation of this
- * interface.
- */
-export interface Model<T> {
-
-  /**
-   * Unique name, should be identical to the name of interface `T`.
-   */
-  name: string;
-
-  /**
-   * Prior to responding to an HTTP request with a model, this method should
-   * be called to strip sensitive data, eg you don't wanna be sending the
-   * user his data with the password attached.
-   */
-  stripSensitiveDataForResponse: (model: T) => T;
-}
-
-/**
  * All ErrorCode are used for simpler programmatic communication between the
  * client and server.
  *
@@ -108,5 +89,12 @@ export enum ErrorCode {
   bigbitNoHighlightedComments,
   bigbitInvalidLanguage,
   bigbitDoesNotExist,
-  invalidBio
+  invalidBio,
+  storyNameEmpty,
+  storyNameTooLong,
+  storyDescriptionEmpty,
+  storyDescriptionTooLong,
+  storyInvalidPageType,
+  storyEmptyTag,
+  storyNoTags
 }

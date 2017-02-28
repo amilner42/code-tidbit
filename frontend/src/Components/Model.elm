@@ -7,6 +7,7 @@ import Elements.Editor as Editor
 import Json.Decode as Decode exposing (field)
 import Json.Encode as Encode
 import Models.Route as Route
+import Models.Story as Story
 import Models.User as User
 import Keyboard.Extra as KK
 
@@ -31,6 +32,7 @@ type alias Shared =
     , route : Route.Route
     , languages : List ( Editor.Language, String )
     , keysDown : KK.Model
+    , userStories : Maybe (List Story.Story)
     }
 
 
@@ -109,11 +111,12 @@ cacheEncoder model =
 -}
 sharedCacheDecoder : Decode.Decoder Shared
 sharedCacheDecoder =
-    Decode.map4 Shared
+    Decode.map5 Shared
         (field "user" (Decode.maybe (User.cacheDecoder)))
         (field "route" Route.cacheDecoder)
         (field "languages" (Decode.succeed Editor.humanReadableListOfLanguages))
         (field "keysDown" (Decode.succeed KK.init))
+        (field "userStories" (Decode.maybe <| Decode.list Story.storyDecoder))
 
 
 {-| Shared `cacheEncoder`.
@@ -125,4 +128,5 @@ sharedCacheEncoder shared =
         , ( "route", Route.cacheEncoder shared.route )
         , ( "languages", Encode.null )
         , ( "keysDown", Encode.null )
+        , ( "userStories", justValueOrNull (Encode.list << List.map Story.storyEncoder) shared.userStories )
         ]

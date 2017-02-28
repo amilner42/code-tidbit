@@ -6,13 +6,15 @@ import * as kleen from "kleen";
 import passport from 'passport';
 
 import { APP_CONFIG } from '../app-config';
-import { User, userModel, updateUserSchema, UserUpdateObject } from './models/user.model';
+import { User, updateUserSchema, UserUpdateObject, prepareUserForResponse } from './models/user.model';
 import { Snipbit, validifyAndUpdateSnipbit } from './models/snipbit.model';
 import { validifyAndUpdateBigbit, Bigbit } from './models/bigbit.model';
 import { swapPeriodsWithStars, metaMap } from './models/file-structure.model';
+import { Story, StorySchema, prepareStoryForResponse } from "./models/story.model";
 import { AppRoutes, AppRoutesAuth, ErrorCode, FrontendError, Language } from './types';
-import { collection, ID } from './db';
-import { internalError, asyncIdentity, dropNullAndUndefinedProperties } from './util';
+import { ObjectID } from "mongodb";
+import { collection, ID, renameIDField } from './db';
+import { internalError, asyncIdentity, dropNullAndUndefinedProperties, isNullOrUndefined } from './util';
 
 
 /**
@@ -64,7 +66,8 @@ export const authlessRoutes: AppRoutesAuth = {
   '/register': { post: true },
   '/login': { post: true },
   '/snipbits/:id': { get: true },
-  '/bigbits/:id': { get: true }
+  '/bigbits/:id': { get: true },
+  '/stories': { get: true }
 };
 
 /**
@@ -100,7 +103,7 @@ export const routes: AppRoutes = {
             return;
           }
 
-          res.status(201).json(userModel.stripSensitiveDataForResponse(user));
+          res.status(201).json(prepareUserForResponse(user));
           return;
         });
       })(req, res, next);
@@ -133,7 +136,7 @@ export const routes: AppRoutes = {
             return next(err);
           }
 
-          res.status(200).json(userModel.stripSensitiveDataForResponse(user));
+          res.status(200).json(prepareUserForResponse(user));
           return;
         });
       })(req, res, next);
@@ -145,7 +148,7 @@ export const routes: AppRoutes = {
      * Returns the users account with sensitive data stripped.
      */
     get: (req, res, next) => {
-      res.status(200).json(userModel.stripSensitiveDataForResponse(req.user));
+      res.status(200).json(prepareUserForResponse(req.user));
       return;
     },
 
@@ -162,13 +165,13 @@ export const routes: AppRoutes = {
       })
       .then((UserCollection) => {
         return UserCollection.findOneAndUpdate(
-          { _id: userID },
+          { _id: ID(userID) },
           { $set: dropNullAndUndefinedProperties(userUpdateObject) },
           { returnOriginal: false}
         );
       })
       .then((updatedUserResult) => {
-        res.status(200).json(userModel.stripSensitiveDataForResponse(updatedUserResult.value));
+        res.status(200).json(prepareUserForResponse(updatedUserResult.value));
         return;
       })
       .catch(handleError(res));
@@ -265,14 +268,12 @@ export const routes: AppRoutes = {
           return;
         }
 
-        // Rename `_id` field.
-        snipbit.id = snipbit._id;
-        delete snipbit._id;
+        renameIDField(snipbit);
 
         // Update `language` to encoded language name.
         return collection("languages")
         .then((languageCollection) => {
-          return languageCollection.findOne({ _id: snipbit.language }) as Promise<Language>;
+          return languageCollection.findOne({ _id: ID(snipbit.language) }) as Promise<Language>;
         })
         .then((language) => {
 
@@ -314,9 +315,7 @@ export const routes: AppRoutes = {
           return;
         }
 
-        // Rename id field.
-        bigbit.id = bigbit._id;
-        delete bigbit._id;
+        renameIDField(bigbit);
 
         return collection("languages")
         .then((languageCollection) => {
@@ -350,6 +349,58 @@ export const routes: AppRoutes = {
           res.status(200).json(bigbit);
           return;
         });
+      })
+      .catch(handleError(res));
+    }
+  },
+
+  '/stories': {
+
+    /**
+     * Get's stories, can customize query through query-params.
+     */
+    get: (req, res) => {
+      const userID = req.user._id;
+      const queryParams = req.query;
+      const author = queryParams.author;
+
+      collection("stories")
+      .then((StoryCollection) => {
+        const mongoSearchFilter: { author?: ObjectID } = {};
+
+        if(!isNullOrUndefined(author)) {
+          mongoSearchFilter.author = ID(author);
+        }
+
+        return StoryCollection.find(mongoSearchFilter).toArray();
+      })
+      .then((stories) => {
+        res.status(200).json(stories.map(prepareStoryForResponse));
+        return;
+      })
+      .catch(handleError(res));
+    },
+
+    /**
+     * For creating a new story for the given user.
+     */
+    post: (req, res) => {
+      const story: Story  = req.body;
+      const userID = req.user._id;
+
+      // Add the author as the current user.
+      story.author = userID;
+
+      kleen.validModel(StorySchema)(story)
+      .then(() => {
+        return collection("stories");
+      })
+      .then((StoryCollection) => {
+        return StoryCollection.insertOne(story);
+      })
+      .then((story) => {
+        res.status(200).json({ newID: story.insertedId });
+        return;
       })
       .catch(handleError(res));
     }
