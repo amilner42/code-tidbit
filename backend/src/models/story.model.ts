@@ -42,7 +42,7 @@ export enum StoryPageType {
 /**
 * The schema for validating a StoryPage.
 */
-export const StoryPageSchema: kleen.typeSchema = {
+export const storyPageSchema: kleen.typeSchema = {
   objectProperties: {
     "storyType": {
       primitiveType: kleen.kindOfPrimitive.number,
@@ -63,7 +63,7 @@ export const StoryPageSchema: kleen.typeSchema = {
 /**
 * The schema for validating a full story.
 */
-export const StorySchema: kleen.typeSchema = {
+export const storySchema: kleen.typeSchema = {
   objectProperties: {
     "id": optional(mongoIDSchema(malformedFieldError("story.id"))),
     "author": mongoIDSchema(malformedFieldError("author")),
@@ -71,9 +71,20 @@ export const StorySchema: kleen.typeSchema = {
     "description": descriptionSchema(ErrorCode.storyDescriptionEmpty),
     "tags": tagsSchema(ErrorCode.storyEmptyTag, ErrorCode.storyNoTags),
     "pages": {
-      arrayElementType: StoryPageSchema,
+      arrayElementType: storyPageSchema,
       typeFailureError: malformedFieldError("pages")
     },
+  }
+};
+
+/**
+ * The schema for validating the user-input for a new story.
+ */
+export const newStorySchema: kleen.typeSchema = {
+  objectProperties: {
+    "name": nameSchema(ErrorCode.storyNameEmpty, ErrorCode.storyNameTooLong),
+    "description": descriptionSchema(ErrorCode.storyDescriptionEmpty),
+    "tags": tagsSchema(ErrorCode.storyEmptyTag, ErrorCode.storyNoTags)
   }
 };
 

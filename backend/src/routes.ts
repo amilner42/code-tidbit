@@ -10,7 +10,7 @@ import { User, updateUserSchema, UserUpdateObject, prepareUserForResponse } from
 import { Snipbit, validifyAndUpdateSnipbit } from './models/snipbit.model';
 import { validifyAndUpdateBigbit, Bigbit } from './models/bigbit.model';
 import { swapPeriodsWithStars, metaMap } from './models/file-structure.model';
-import { Story, StorySchema, prepareStoryForResponse } from "./models/story.model";
+import { Story, prepareStoryForResponse, newStorySchema } from "./models/story.model";
 import { AppRoutes, AppRoutesAuth, ErrorCode, FrontendError, Language } from './types';
 import { ObjectID } from "mongodb";
 import { collection, ID, renameIDField } from './db';
@@ -213,7 +213,7 @@ export const routes: AppRoutes = {
           return snipbitCollection.insertOne(updatedSnipbit);
         })
         .then((snipbit) => {
-          res.status(200).json({ newID: snipbit.insertedId });
+          res.status(200).json({ targetID: snipbit.insertedId });
           return;
         });
       })
@@ -238,7 +238,7 @@ export const routes: AppRoutes = {
           return bigbitCollection.insertOne(updatedBigbit);
         })
         .then((bigbit) => {
-          res.status(200).json({ newID: bigbit.insertedId })
+          res.status(200).json({ targetID: bigbit.insertedId })
           return;
         });
       })
@@ -388,18 +388,20 @@ export const routes: AppRoutes = {
       const story: Story  = req.body;
       const userID = req.user._id;
 
-      // Add the author as the current user.
-      story.author = userID;
-
-      kleen.validModel(StorySchema)(story)
+      kleen.validModel(newStorySchema)(story)
       .then(() => {
         return collection("stories");
       })
       .then((StoryCollection) => {
+        // DB-added fields here:
+        //  - Author
+        //  - Add blank pages.
+        story.author = userID;
+        story.pages = [];
         return StoryCollection.insertOne(story);
       })
       .then((story) => {
-        res.status(200).json({ newID: story.insertedId });
+        res.status(200).json({ targetID: story.insertedId });
         return;
       })
       .catch(handleError(res));

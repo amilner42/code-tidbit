@@ -11,6 +11,7 @@ import Models.Bigbit as Bigbit
 import Models.Snipbit as Snipbit
 import Models.HighlightedComment as HC
 import Models.ProfileData as ProfileData
+import Models.NewStoryData as NewStoryData
 
 
 {-| Home Component Model.
@@ -25,6 +26,7 @@ type alias Model =
     , snipbitCreateData : Snipbit.SnipbitCreateData
     , bigbitCreateData : Bigbit.BigbitCreateData
     , profileData : ProfileData.ProfileData
+    , newStoryData : NewStoryData.NewStoryData
     }
 
 
@@ -240,6 +242,7 @@ cacheEncoder model =
           )
         , ( "bigbitCreateData", Bigbit.bigbitCreateDataCacheEncoder model.bigbitCreateData )
         , ( "profileData", ProfileData.encoder model.profileData )
+        , ( "newStoryData", NewStoryData.encoder model.newStoryData )
         ]
 
 
@@ -257,6 +260,7 @@ cacheDecoder =
         |> required "snipbitCreateData" Snipbit.createDataCacheDecoder
         |> required "bigbitCreateData" Bigbit.bigbitCreateDataCacheDecoder
         |> required "profileData" ProfileData.decoder
+        |> required "newStoryData" NewStoryData.decoder
 
 
 {-| Returns true if the user is browsing the snipbit viewer relevant HC.

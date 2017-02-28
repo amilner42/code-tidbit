@@ -21,6 +21,7 @@ import Models.Range as Range
 import Models.Route as Route
 import Models.Snipbit as Snipbit
 import Models.ProfileData as ProfileData
+import Models.NewStoryData as NewStoryData
 
 
 {-| A google-material-design check-icon.
@@ -786,6 +787,15 @@ displayViewForRoute model shared =
         Route.HomeComponentProfile ->
             profileView model shared
 
+        Route.HomeComponentCreateNewStoryName ->
+            createNewStoryView model shared
+
+        Route.HomeComponentCreateNewStoryDescription ->
+            createNewStoryView model shared
+
+        Route.HomeComponentCreateNewStoryTags ->
+            createNewStoryView model shared
+
         -- This should never happen.
         _ ->
             browseView model
@@ -852,6 +862,9 @@ navbar shared =
                         , Route.HomeComponentCreateBigbitName
                         , Route.HomeComponentCreateBigbitDescription
                         , Route.HomeComponentCreateBigbitTags
+                        , Route.HomeComponentCreateNewStoryName
+                        , Route.HomeComponentCreateNewStoryDescription
+                        , Route.HomeComponentCreateNewStoryTags
                         ]
                     )
     in
@@ -911,6 +924,134 @@ navbar shared =
                 , onClick <| GoTo Route.WelcomeComponentLogin
                 ]
                 [ text "Login" ]
+            ]
+
+
+{-| The view for creating a new story.
+-}
+createNewStoryView : Model -> Shared -> Html Msg
+createNewStoryView model shared =
+    let
+        currentRoute =
+            shared.route
+    in
+        div
+            [ class "new-story-page" ]
+            [ div
+                [ class "sub-bar" ]
+                [ button
+                    [ class "sub-bar-button"
+                    , onClick <| GoTo Route.HomeComponentCreate
+                    ]
+                    [ text "Back" ]
+                , button
+                    [ class "sub-bar-button"
+                    , onClick NewStoryReset
+                    ]
+                    [ text "Reset" ]
+                , button
+                    [ classList
+                        [ ( "continue-button", True )
+                        , ( "publish-button", NewStoryData.newStoryDataReadyForPublication model.newStoryData )
+                        , ( "disabled-publish-button", not <| NewStoryData.newStoryDataReadyForPublication model.newStoryData )
+                        ]
+                    , onClick <| NewStoryPublish
+                    ]
+                    [ text "Proceed to Tidbit Selection" ]
+                ]
+            , div
+                [ class "create-tidbit-navbar" ]
+                [ div
+                    [ classList
+                        [ ( "create-tidbit-tab", True )
+                        , ( "create-tidbit-selected-tab", currentRoute == Route.HomeComponentCreateNewStoryName )
+                        , ( "filled-in", NewStoryData.nameTabFilledIn model.newStoryData )
+                        ]
+                    , onClick <| GoTo Route.HomeComponentCreateNewStoryName
+                    ]
+                    [ text "Name" ]
+                , div
+                    [ classList
+                        [ ( "create-tidbit-tab", True )
+                        , ( "create-tidbit-selected-tab", currentRoute == Route.HomeComponentCreateNewStoryDescription )
+                        , ( "filled-in", NewStoryData.descriptionTabFilledIn model.newStoryData )
+                        ]
+                    , onClick <| GoTo Route.HomeComponentCreateNewStoryDescription
+                    ]
+                    [ text "Description" ]
+                , div
+                    [ classList
+                        [ ( "create-tidbit-tab", True )
+                        , ( "create-tidbit-selected-tab", currentRoute == Route.HomeComponentCreateNewStoryTags )
+                        , ( "filled-in", NewStoryData.tagsTabFilledIn model.newStoryData )
+                        ]
+                    , onClick <| GoTo Route.HomeComponentCreateNewStoryTags
+                    ]
+                    [ text "Tags" ]
+                ]
+            , case currentRoute of
+                Route.HomeComponentCreateNewStoryName ->
+                    div
+                        [ class "create-new-story-name" ]
+                        [ input
+                            [ placeholder "Name"
+                            , id "name-input"
+                            , onInput NewStoryUpdateName
+                            , value model.newStoryData.newStory.name
+                            , Util.onKeydownPreventDefault
+                                (\key ->
+                                    if key == KK.Tab then
+                                        Just NoOp
+                                    else
+                                        Nothing
+                                )
+                            ]
+                            []
+                        ]
+
+                Route.HomeComponentCreateNewStoryDescription ->
+                    div
+                        [ class "create-new-story-description" ]
+                        [ textarea
+                            [ placeholder "Description"
+                            , id "description-input"
+                            , onInput NewStoryUpdateDescription
+                            , value model.newStoryData.newStory.description
+                            , Util.onKeydownPreventDefault
+                                (\key ->
+                                    if key == KK.Tab then
+                                        Just NoOp
+                                    else
+                                        Nothing
+                                )
+                            ]
+                            []
+                        ]
+
+                Route.HomeComponentCreateNewStoryTags ->
+                    div
+                        [ class "create-new-story-tags" ]
+                        [ input
+                            [ placeholder "Tags"
+                            , id "tags-input"
+                            , onInput NewStoryUpdateTagInput
+                            , value model.newStoryData.tagInput
+                            , Util.onKeydownPreventDefault
+                                (\key ->
+                                    if key == KK.Enter then
+                                        Just <| NewStoryAddTag model.newStoryData.tagInput
+                                    else if key == KK.Tab then
+                                        Just <| NoOp
+                                    else
+                                        Nothing
+                                )
+                            ]
+                            []
+                        , makeHTMLTags NewStoryRemoveTag model.newStoryData.newStory.tags
+                        ]
+
+                _ ->
+                    Util.hiddenDiv
             ]
 
 
@@ -1109,14 +1250,17 @@ createView model shared =
                 Just userStories ->
                     div
                         []
-                        ([ div
-                            [ class "create-story-box" ]
+                        [ div
+                            [ class "create-story-box"
+                            , onClick <| GoTo Route.HomeComponentCreateNewStoryName
+                            ]
                             [ i
                                 [ class "material-icons no-stories-box-icon" ]
                                 [ text "add" ]
                             ]
-                         ]
-                            ++ List.map
+                        , div
+                            [ class "story-boxes" ]
+                            (List.map
                                 (\story ->
                                     div
                                         [ class "story-box" ]
@@ -1129,7 +1273,8 @@ createView model shared =
                                         ]
                                 )
                                 userStories
-                        )
+                            )
+                        ]
     in
         div
             [ class "create-page" ]
@@ -1137,7 +1282,7 @@ createView model shared =
                 [ class "create-bar" ]
                 [ div
                     [ class "create-bar-title" ]
-                    [ text "Your Stories" ]
+                    [ text "Assemble Stories" ]
                 , div
                     [ class "create-bar-line" ]
                     []
@@ -1147,7 +1292,7 @@ createView model shared =
                 [ class "create-bar" ]
                 [ div
                     [ class "create-bar-title" ]
-                    [ text "Create New Tidbit" ]
+                    [ text "Create Tidbits" ]
                 , div
                     [ class "create-bar-line" ]
                     []

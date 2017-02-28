@@ -196,6 +196,54 @@
             }
         }
 
+        .new-story-page {
+
+            .sub-bar {
+                .sub-bar-button {
+                    margin-left: 10px;
+                }
+
+                .continue-button {
+                    width: 180px;
+                }
+            }
+
+            .create-tidbit-navbar {
+                width: 372px;
+            }
+
+            .create-new-story-name {
+                @extend .create-tidbit-x;
+
+                input {
+                    height: 53px;
+                    width: 800px;
+                }
+            }
+
+            .create-new-story-description {
+                @extend .create-tidbit-x;
+
+                textarea {
+                    height: 400px;
+                    width: 600px;
+                }
+            }
+
+            .create-new-story-tags {
+                @extend .create-tidbit-x;
+
+                input {
+                    height: 53px;
+                    width: 800px;
+                }
+            }
+
+            .create-new-story-tags {
+                @extend .create-tidbit-tags;
+            }
+        }
+
         .create-page {
             width: 85%;
             min-width: 900px;
@@ -204,9 +252,9 @@
 
             .create-bar {
                 width: 100%;
-                height: 350px;
+                height: 345px;
                 position: relative;
-                margin-top: 10px;
+                margin-top: 13px;
 
                 .create-bar-title {
                     position: relative;
@@ -214,19 +262,24 @@
                     left: 10px;
                     font-size: 28px;
                     font-weight: 600;
-                    color: $color5;
+                    color: $color6;
                 }
 
                 .create-bar-line {
                     position: relative;
                     width: 100%;
-                    border-bottom: 1px solid $color2;
-                    margin-bottom: 20px;
+                    border-bottom: 3px solid $color5;
+                    border-radius: 10px;
+                    margin: -2px 0 20px 0;
 
                 }
 
+                .story-boxes {
+                    height: 275px;
+                    overflow-y: hidden;
+                }
+
                 .story-box {
-                    @include standard-box-shadow();
                     box-sizing: border-box;
                     display: inline-block;
                     position: relative;
@@ -234,6 +287,9 @@
                     width: 275px;
                     height: 275px;
                     margin: 0 10px 0 10px;
+                    border: 1px solid $color2;
+                    background-color: $color9;
+                    border-radius: 3px;
 
                     .story-box-name {
                         box-sizing: border-box;
@@ -253,14 +309,20 @@
                         position: absolute;
                         right: 10px;
                         bottom: 10px;
-                        border: 2px solid $color7;
+                        border: 1px solid $color2;
                         border-radius: 15px;
-                        color: white;
-                        background-color: $color7;
-                        padding: 2px 8px 2px 8px;
+                        color: $color3;
+                        background-color: white;
+                        padding: 3px 10px 3px 10px;
                         cursor: pointer;
+
+                        &:hover {
+                            color: $color1;
+                        }
                     }
                 }
+
+
 
                 .create-story-box {
                     box-sizing: border-box;
@@ -272,6 +334,7 @@
                     margin: 0 10px 0 10px;
                     position: relative;
                     border: 2px dotted $color2;
+                    border-radius: 3px;
                     cursor: pointer;
 
                     &:hover {
@@ -279,7 +342,7 @@
                         border-style: solid;
 
                         .no-stories-box-icon {
-                            color: $color4;
+                            color: $color5;
                         }
                     }
 
@@ -375,23 +438,22 @@
                     }
 
                     button {
-                        border: 2px solid $color1;
+                        border: none;
                         border-radius: 15px;
                         color: white;
-                        background-color: $color1;
-                        padding: 2px 8px 2px 8px;
+                        background-color: $color3;
+                        padding: 3px 10px 3px 10px;
                         cursor: pointer;
 
                         &:hover {
-                            color: white;
-                            background-color: $color1;
+                            color: $color5;
                         }
                     }
 
                     .info-button {
                         position: absolute;
                         bottom: 10px;
-                        right: 66px;
+                        right: 67px;
                     }
 
                     .select-button {
@@ -546,7 +608,7 @@
                 @extend .create-tidbit-x;
 
                 input {
-                    height: 73px;
+                    height: 53px;
                     width: 800px;
                 }
             }
@@ -857,7 +919,7 @@
                 @extend .create-tidbit-x;
 
                 input {
-                    height: 73px;
+                    height: 53px;
                     width: 800px;
                 }
             }
@@ -973,11 +1035,9 @@
 
             float: right;
             margin-right: 10px;
-            cursor: not-allowed;
-
-            &:hover {
-                @include light-box-shadow();
-            }
+            cursor: not-allowed !important;
+            box-shadow: none !important;
+            color: $color4;
         }
 
         .publish-button {
@@ -985,7 +1045,7 @@
 
             background-color: $color7 !important;
             color: white !important;
-            cursor: pointer;
+            cursor: pointer !important;
 
             &:hover {
                 background-color: $color7 !important;
