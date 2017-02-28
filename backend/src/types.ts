@@ -94,5 +94,7 @@ export enum ErrorCode {
   storyNameTooLong,
   storyDescriptionEmpty,
   storyDescriptionTooLong,
-  storyInvalidPageType
+  storyInvalidPageType,
+  storyEmptyTag,
+  storyNoTags
 }

@@ -4,7 +4,7 @@ import * as kleen from "kleen";
 
 import { renameIDField } from '../db';
 import { malformedFieldError } from '../util';
-import { mongoIDSchema, nameSchema, descriptionSchema, optional } from "./kleen-schemas";
+import { mongoIDSchema, nameSchema, descriptionSchema, optional, tagsSchema } from "./kleen-schemas";
 import { MongoID, ErrorCode } from '../types';
 
 /**
@@ -18,6 +18,7 @@ export interface Story {
   author: MongoID;
   name: string;
   description: string;
+  tags: string[];
   pages: StoryPage[];
 }
 
@@ -68,6 +69,7 @@ export const StorySchema: kleen.typeSchema = {
     "author": mongoIDSchema(malformedFieldError("author")),
     "name": nameSchema(ErrorCode.storyNameEmpty, ErrorCode.storyNameTooLong),
     "description": descriptionSchema(ErrorCode.storyDescriptionEmpty),
+    "tags": tagsSchema(ErrorCode.storyEmptyTag, ErrorCode.storyNoTags),
     "pages": {
       arrayElementType: StoryPageSchema,
       typeFailureError: malformedFieldError("pages")

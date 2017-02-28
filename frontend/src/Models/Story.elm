@@ -12,6 +12,7 @@ type alias Story =
     , author : String
     , name : String
     , description : String
+    , tags : List String
     , pages : List StoryPage
     }
 
@@ -22,6 +23,7 @@ type alias NewStory =
     { author : String
     , name : String
     , description : String
+    , tags : List String
     , pages : List StoryPage
     }
 
@@ -50,6 +52,7 @@ storyEncoder story =
         , ( "author", Encode.string story.author )
         , ( "name", Encode.string story.name )
         , ( "description", Encode.string story.description )
+        , ( "tags", Encode.list <| List.map Encode.string story.tags )
         , ( "pages", Encode.list <| List.map storyPageEncoder story.pages )
         ]
 
@@ -63,6 +66,7 @@ storyDecoder =
         |> required "author" Decode.string
         |> required "name" Decode.string
         |> required "description" Decode.string
+        |> required "tags" (Decode.list Decode.string)
         |> required "pages" (Decode.list storyPageDecoder)
 
 
@@ -74,6 +78,7 @@ newStoryEncoder newStory =
         [ ( "author", Encode.string newStory.author )
         , ( "name", Encode.string newStory.name )
         , ( "description", Encode.string newStory.description )
+        , ( "tags", Encode.list <| List.map Encode.string newStory.tags )
         , ( "pages", Encode.list <| List.map storyPageEncoder newStory.pages )
         ]
 
@@ -86,6 +91,7 @@ newStoryDecoder =
         |> required "author" Decode.string
         |> required "name" Decode.string
         |> required "description" Decode.string
+        |> required "tags" (Decode.list Decode.string)
         |> required "pages" (Decode.list storyPageDecoder)
 
 

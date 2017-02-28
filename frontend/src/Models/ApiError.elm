@@ -55,6 +55,8 @@ type ApiError
     | StoryDescriptionEmpty
     | StoryDescriptionTooLong
     | StoryInvalidPageType
+    | StoryEmptyTag
+    | StoryNoTags
 
 
 {-| An error from the backend still in Json form.
@@ -211,6 +213,12 @@ humanReadable apiError =
         StoryInvalidPageType ->
             "That is not a valid story type, refer to the API for valid types!"
 
+        StoryEmptyTag ->
+            "You cannot have empty tags!"
+
+        StoryNoTags ->
+            "Stories must have at least a single tag!"
+
 
 {-| Turns an errorCode integer from the backend to it's respective ApiError.
 -}
@@ -345,6 +353,12 @@ fromErrorCode errorCode =
 
         43 ->
             StoryInvalidPageType
+
+        44 ->
+            StoryEmptyTag
+
+        45 ->
+            StoryNoTags
 
         _ ->
             InternalError
