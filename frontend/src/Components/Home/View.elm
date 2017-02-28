@@ -945,13 +945,14 @@ createNewStoryView model shared =
                     ]
                     [ text "Back" ]
                 , button
-                    [ if NewStoryData.newStoryDataReadyForPublication model.newStoryData then
-                        class "publish-button"
-                      else
-                        class "disabled-publish-button"
+                    [ classList
+                        [ ( "continue-button", True )
+                        , ( "publish-button", NewStoryData.newStoryDataReadyForPublication model.newStoryData )
+                        , ( "disabled-publish-button", not <| NewStoryData.newStoryDataReadyForPublication model.newStoryData )
+                        ]
                     , onClick <| NewStoryPublish
                     ]
-                    [ text "Continue" ]
+                    [ text "Proceed to Tidbit Selection" ]
                 ]
             , div
                 [ class "create-tidbit-navbar" ]
@@ -1244,7 +1245,7 @@ createView model shared =
                 Just userStories ->
                     div
                         []
-                        ([ div
+                        [ div
                             [ class "create-story-box"
                             , onClick <| GoTo Route.HomeComponentCreateNewStoryName
                             ]
@@ -1252,8 +1253,9 @@ createView model shared =
                                 [ class "material-icons no-stories-box-icon" ]
                                 [ text "add" ]
                             ]
-                         ]
-                            ++ List.map
+                        , div
+                            [ class "story-boxes" ]
+                            (List.map
                                 (\story ->
                                     div
                                         [ class "story-box" ]
@@ -1266,7 +1268,8 @@ createView model shared =
                                         ]
                                 )
                                 userStories
-                        )
+                            )
+                        ]
     in
         div
             [ class "create-page" ]
@@ -1274,7 +1277,7 @@ createView model shared =
                 [ class "create-bar" ]
                 [ div
                     [ class "create-bar-title" ]
-                    [ text "Create and Edit Stories" ]
+                    [ text "Assemble Stories" ]
                 , div
                     [ class "create-bar-line" ]
                     []
@@ -1284,7 +1287,7 @@ createView model shared =
                 [ class "create-bar" ]
                 [ div
                     [ class "create-bar-title" ]
-                    [ text "Create New Tidbit" ]
+                    [ text "Create Tidbits" ]
                 , div
                     [ class "create-bar-line" ]
                     []
