@@ -108,6 +108,9 @@ viewForRoute model =
             Route.HomeComponentCreateNewStoryTags ->
                 renderedHomeView
 
+            Route.HomeComponentCreateStory _ ->
+                renderedHomeView
+
             Route.HomeComponentProfile ->
                 renderedHomeView
 

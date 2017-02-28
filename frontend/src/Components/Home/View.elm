@@ -796,6 +796,9 @@ displayViewForRoute model shared =
         Route.HomeComponentCreateNewStoryTags ->
             createNewStoryView model shared
 
+        Route.HomeComponentCreateStory _ ->
+            createStoryView model shared
+
         -- This should never happen.
         _ ->
             browseView model
@@ -847,6 +850,9 @@ navbar shared =
                     True
 
                 Route.HomeComponentCreateBigbitCodeConclusion _ ->
+                    True
+
+                Route.HomeComponentCreateStory _ ->
                     True
 
                 _ ->
@@ -925,6 +931,15 @@ navbar shared =
                 ]
                 [ text "Login" ]
             ]
+
+
+{-| The view for working on a story (adding tidbits).
+-}
+createStoryView : Model -> Shared -> Html Msg
+createStoryView model shared =
+    div
+        []
+        [ text "TODO" ]
 
 
 {-| The view for creating a new story.
@@ -1268,7 +1283,7 @@ createView model shared =
                                             [ class "story-box-name" ]
                                             [ text story.name ]
                                         , button
-                                            []
+                                            [ onClick <| GoTo <| Route.HomeComponentCreateStory story.id ]
                                             [ text "continue" ]
                                         ]
                                 )

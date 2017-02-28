@@ -42,6 +42,7 @@ type Route
     | HomeComponentCreateNewStoryName
     | HomeComponentCreateNewStoryDescription
     | HomeComponentCreateNewStoryTags
+    | HomeComponentCreateStory MongoID
     | HomeComponentProfile
     | WelcomeComponentLogin
     | WelcomeComponentRegister
@@ -139,18 +140,20 @@ matchers =
         createBigbitCodeConclusion =
             createBigbitCode </> s "conclusion" <?> qpFile
 
-        -- Abstract.
-        createNewStory =
+        createStory =
             create </> s "story"
 
         homeComponentCreateNewStoryName =
-            createNewStory </> s "name"
+            createStory </> s "name"
 
         homeComponentCreateNewStoryDescription =
-            createNewStory </> s "description"
+            createStory </> s "description"
 
         homeComponentCreateNewStoryTags =
-            createNewStory </> s "tags"
+            createStory </> s "tags"
+
+        homeComponentCreateStory =
+            createStory </> string
 
         -- Query Param for the current active file.
         qpFile =
@@ -194,6 +197,7 @@ matchers =
             , map HomeComponentCreateNewStoryName homeComponentCreateNewStoryName
             , map HomeComponentCreateNewStoryDescription homeComponentCreateNewStoryDescription
             , map HomeComponentCreateNewStoryTags homeComponentCreateNewStoryTags
+            , map HomeComponentCreateStory homeComponentCreateStory
             , map HomeComponentProfile (profile)
             , map WelcomeComponentRegister (welcomeRegister)
             , map WelcomeComponentLogin (welcomeLogin)
@@ -369,6 +373,9 @@ toHashUrl route =
 
             HomeComponentCreateNewStoryTags ->
                 "create/story/tags"
+
+            HomeComponentCreateStory storyID ->
+                "create/story/" ++ storyID
 
             HomeComponentProfile ->
                 "profile"

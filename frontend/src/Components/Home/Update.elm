@@ -2022,7 +2022,7 @@ update msg model shared =
                 , { shared
                     | userStories = Nothing
                   }
-                , Cmd.none
+                , Route.navigateTo <| Route.HomeComponentCreateStory targetID
                 )
 
 
