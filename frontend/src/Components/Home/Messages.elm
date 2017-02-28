@@ -4,7 +4,7 @@ import Autocomplete as AC
 import Components.Home.Model exposing (TidbitType)
 import Models.ApiError as ApiError
 import Models.BasicResponse as BasicResponse
-import Models.CreateTidbitResponse exposing (CreateTidbitResponse)
+import Models.IDResponse exposing (IDResponse)
 import Models.Range as Range
 import Models.Route as Route
 import Models.Bigbit as Bigbit
@@ -46,7 +46,7 @@ type Msg
     | SnipbitUpdateCode { newCode : String, deltaRange : Range.Range, action : String }
     | SnipbitPublish Snipbit.SnipbitForPublication
     | SnipbitJumpToLineFromPreviousFrame
-    | OnSnipbitPublishSuccess CreateTidbitResponse
+    | OnSnipbitPublishSuccess IDResponse
     | OnSnipbitPublishFailure ApiError.ApiError
     | OnGetSnipbitFailure ApiError.ApiError
     | OnGetSnipbitSuccess Snipbit.Snipbit
@@ -81,7 +81,7 @@ type Msg
     | BigbitPublish Bigbit.BigbitForPublication
     | BigbitJumpToLineFromPreviousFrame FS.Path
     | OnBigbitPublishFailure ApiError.ApiError
-    | OnBigbitPublishSuccess CreateTidbitResponse
+    | OnBigbitPublishSuccess IDResponse
     | OnGetBigbitFailure ApiError.ApiError
     | OnGetBigbitSuccess Bigbit.Bigbit
     | ViewBigbitToggleFS
@@ -111,5 +111,5 @@ type Msg
     | NewStoryAddTag String
     | NewStoryRemoveTag String
     | NewStoryPublish
-    | NewStoryPublishSuccess { newID : String }
+    | NewStoryPublishSuccess IDResponse
     | NewStoryPublishFailure ApiError.ApiError

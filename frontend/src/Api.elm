@@ -8,7 +8,7 @@ import Json.Encode as Encode
 import Models.ApiError as ApiError
 import Models.BasicResponse as BasicResponse
 import Models.Bigbit as Bigbit
-import Models.CreateTidbitResponse as CreateTidbitResponse
+import Models.IDResponse as IDResponse
 import Models.Snipbit as Snipbit
 import Models.Story as Story
 import Models.User as User
@@ -89,21 +89,21 @@ postRegister user =
 
 {-| Creates a new snipbit.
 -}
-postCreateSnipbit : Snipbit.SnipbitForPublication -> (ApiError.ApiError -> b) -> (CreateTidbitResponse.CreateTidbitResponse -> b) -> Cmd b
+postCreateSnipbit : Snipbit.SnipbitForPublication -> (ApiError.ApiError -> b) -> (IDResponse.IDResponse -> b) -> Cmd b
 postCreateSnipbit snipbit =
     apiPost
         "snipbits"
-        CreateTidbitResponse.createTidbitResponseDecoder
+        IDResponse.idResponseDecoder
         (Snipbit.snipbitForPublicationEncoder snipbit)
 
 
 {-| Creates a new bigbit.
 -}
-postCreateBigbit : Bigbit.BigbitForPublication -> (ApiError.ApiError -> b) -> (CreateTidbitResponse.CreateTidbitResponse -> b) -> Cmd b
+postCreateBigbit : Bigbit.BigbitForPublication -> (ApiError.ApiError -> b) -> (IDResponse.IDResponse -> b) -> Cmd b
 postCreateBigbit bigbit =
     apiPost
         "bigbits"
-        CreateTidbitResponse.createTidbitResponseDecoder
+        IDResponse.idResponseDecoder
         (Bigbit.bigbitForPublicationEncoder bigbit)
 
 
@@ -119,9 +119,9 @@ postUpdateUser updateRecord =
 
 {-| Creates a new story.
 -}
-postCreateNewStory : Story.NewStory -> (ApiError.ApiError -> b) -> (CreateTidbitResponse.CreateTidbitResponse -> b) -> Cmd b
+postCreateNewStory : Story.NewStory -> (ApiError.ApiError -> b) -> (IDResponse.IDResponse -> b) -> Cmd b
 postCreateNewStory newStory =
     apiPost
         "stories"
-        CreateTidbitResponse.createTidbitResponseDecoder
+        IDResponse.idResponseDecoder
         (Story.newStoryEncoder newStory)

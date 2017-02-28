@@ -972,12 +972,12 @@ update msg model shared =
                     _ ->
                         doNothing
 
-            OnSnipbitPublishSuccess { newID } ->
+            OnSnipbitPublishSuccess { targetID } ->
                 ( { model
                     | snipbitCreateData = .snipbitCreateData HomeInit.init
                   }
                 , shared
-                , Route.navigateTo <| Route.HomeComponentViewSnipbitIntroduction newID
+                , Route.navigateTo <| Route.HomeComponentViewSnipbitIntroduction targetID
                 )
 
             OnSnipbitPublishFailure apiError ->
@@ -1704,12 +1704,12 @@ update msg model shared =
                 -- TODO Handle bigbit publish failures.
                 doNothing
 
-            OnBigbitPublishSuccess { newID } ->
+            OnBigbitPublishSuccess { targetID } ->
                 ( { model
                     | bigbitCreateData = .bigbitCreateData HomeInit.init
                   }
                 , shared
-                , Route.navigateTo <| Route.HomeComponentViewBigbitIntroduction newID Nothing
+                , Route.navigateTo <| Route.HomeComponentViewBigbitIntroduction targetID Nothing
                 )
 
             OnGetBigbitFailure apiError ->
@@ -2009,7 +2009,7 @@ update msg model shared =
                 -- TODO handle error.
                 doNothing
 
-            NewStoryPublishSuccess { newID } ->
+            NewStoryPublishSuccess { targetID } ->
                 ( { model
                     | newStoryData = NewStoryData.defaultNewStoryData
                   }

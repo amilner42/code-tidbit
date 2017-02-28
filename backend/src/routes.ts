@@ -213,7 +213,7 @@ export const routes: AppRoutes = {
           return snipbitCollection.insertOne(updatedSnipbit);
         })
         .then((snipbit) => {
-          res.status(200).json({ newID: snipbit.insertedId });
+          res.status(200).json({ targetID: snipbit.insertedId });
           return;
         });
       })
@@ -238,7 +238,7 @@ export const routes: AppRoutes = {
           return bigbitCollection.insertOne(updatedBigbit);
         })
         .then((bigbit) => {
-          res.status(200).json({ newID: bigbit.insertedId })
+          res.status(200).json({ targetID: bigbit.insertedId })
           return;
         });
       })
@@ -401,7 +401,7 @@ export const routes: AppRoutes = {
         return StoryCollection.insertOne(story);
       })
       .then((story) => {
-        res.status(200).json({ newID: story.insertedId });
+        res.status(200).json({ targetID: story.insertedId });
         return;
       })
       .catch(handleError(res));
