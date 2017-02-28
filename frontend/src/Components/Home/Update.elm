@@ -1996,6 +1996,12 @@ update msg model shared =
                 , Cmd.none
                 )
 
+            NewStoryReset ->
+                ( updateNewStoryData <| always NewStoryData.defaultNewStoryData
+                , shared
+                , Route.navigateTo <| Route.HomeComponentCreateNewStoryName
+                )
+
             NewStoryPublish ->
                 if NewStoryData.newStoryDataReadyForPublication model.newStoryData then
                     ( model

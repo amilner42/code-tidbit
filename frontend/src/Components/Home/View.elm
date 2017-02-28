@@ -945,6 +945,11 @@ createNewStoryView model shared =
                     ]
                     [ text "Back" ]
                 , button
+                    [ class "sub-bar-button"
+                    , onClick NewStoryReset
+                    ]
+                    [ text "Reset" ]
+                , button
                     [ classList
                         [ ( "continue-button", True )
                         , ( "publish-button", NewStoryData.newStoryDataReadyForPublication model.newStoryData )

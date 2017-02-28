@@ -110,6 +110,7 @@ type Msg
     | NewStoryUpdateTagInput String
     | NewStoryAddTag String
     | NewStoryRemoveTag String
+    | NewStoryReset
     | NewStoryPublish
     | NewStoryPublishSuccess IDResponse
     | NewStoryPublishFailure ApiError.ApiError
