@@ -10,7 +10,7 @@ import { User, updateUserSchema, UserUpdateObject, prepareUserForResponse } from
 import { Snipbit, validifyAndUpdateSnipbit } from './models/snipbit.model';
 import { validifyAndUpdateBigbit, Bigbit } from './models/bigbit.model';
 import { swapPeriodsWithStars, metaMap } from './models/file-structure.model';
-import { Story, StorySchema, prepareStoryForResponse } from "./models/story.model";
+import { Story, prepareStoryForResponse, newStorySchema } from "./models/story.model";
 import { AppRoutes, AppRoutesAuth, ErrorCode, FrontendError, Language } from './types';
 import { ObjectID } from "mongodb";
 import { collection, ID, renameIDField } from './db';
@@ -388,14 +388,16 @@ export const routes: AppRoutes = {
       const story: Story  = req.body;
       const userID = req.user._id;
 
-      // Add the author as the current user.
-      story.author = userID;
-
-      kleen.validModel(StorySchema)(story)
+      kleen.validModel(newStorySchema)(story)
       .then(() => {
         return collection("stories");
       })
       .then((StoryCollection) => {
+        // DB-added fields here:
+        //  - Author
+        //  - Add blank pages.
+        story.author = userID;
+        story.pages = [];
         return StoryCollection.insertOne(story);
       })
       .then((story) => {

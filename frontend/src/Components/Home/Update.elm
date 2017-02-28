@@ -1996,6 +1996,29 @@ update msg model shared =
                 , Cmd.none
                 )
 
+            NewStoryPublish ->
+                if NewStoryData.newStoryDataReadyForPublication model.newStoryData then
+                    ( model
+                    , shared
+                    , Api.postCreateNewStory model.newStoryData.newStory NewStoryPublishFailure NewStoryPublishSuccess
+                    )
+                else
+                    doNothing
+
+            NewStoryPublishFailure apiError ->
+                -- TODO handle error.
+                doNothing
+
+            NewStoryPublishSuccess { newID } ->
+                ( { model
+                    | newStoryData = NewStoryData.defaultNewStoryData
+                  }
+                , { shared
+                    | userStories = Nothing
+                  }
+                , Cmd.none
+                )
+
 
 {-| Creates the code editor for the bigbit when browsing relevant HC.
 

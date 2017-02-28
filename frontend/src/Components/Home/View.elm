@@ -949,6 +949,7 @@ createNewStoryView model shared =
                         class "publish-button"
                       else
                         class "disabled-publish-button"
+                    , onClick <| NewStoryPublish
                     ]
                     [ text "Continue" ]
                 ]

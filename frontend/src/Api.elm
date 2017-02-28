@@ -115,3 +115,13 @@ postUpdateUser updateRecord =
         "account"
         User.decoder
         (User.userUpdateRecordEncoder updateRecord)
+
+
+{-| Creates a new story.
+-}
+postCreateNewStory : Story.NewStory -> (ApiError.ApiError -> b) -> (CreateTidbitResponse.CreateTidbitResponse -> b) -> Cmd b
+postCreateNewStory newStory =
+    apiPost
+        "stories"
+        CreateTidbitResponse.createTidbitResponseDecoder
+        (Story.newStoryEncoder newStory)
