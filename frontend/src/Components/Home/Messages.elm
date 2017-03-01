@@ -114,3 +114,5 @@ type Msg
     | NewStoryPublish
     | NewStoryPublishSuccess IDResponse
     | NewStoryPublishFailure ApiError.ApiError
+    | CreateStoryGetStoryFailure ApiError.ApiError
+    | CreateStoryGetStorySuccess Story.Story

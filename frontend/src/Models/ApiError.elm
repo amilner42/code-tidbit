@@ -57,6 +57,7 @@ type ApiError
     | StoryInvalidPageType
     | StoryEmptyTag
     | StoryNoTags
+    | StoryDoesNotExist
 
 
 {-| An error from the backend still in Json form.
@@ -219,6 +220,9 @@ humanReadable apiError =
         StoryNoTags ->
             "Stories must have at least a single tag!"
 
+        StoryDoesNotExist ->
+            "No story exists with that ID!"
+
 
 {-| Turns an errorCode integer from the backend to it's respective ApiError.
 -}
@@ -359,6 +363,9 @@ fromErrorCode errorCode =
 
         45 ->
             StoryNoTags
+
+        46 ->
+            StoryDoesNotExist
 
         _ ->
             InternalError

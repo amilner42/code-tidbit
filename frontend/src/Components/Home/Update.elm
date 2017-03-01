@@ -22,6 +22,7 @@ import Models.Range as Range
 import Models.Route as Route
 import Models.ProfileData as ProfileData
 import Models.NewStoryData as NewStoryData
+import Models.StoryData as StoryData
 import Models.User as User exposing (defaultUserUpdateRecord)
 import Task
 import Ports
@@ -95,6 +96,12 @@ update msg model shared =
         updateNewStoryData updater =
             { model
                 | newStoryData = updater model.newStoryData
+            }
+
+        updateStoryData : (StoryData.StoryData -> StoryData.StoryData) -> Model
+        updateStoryData updater =
+            { model
+                | storyData = updater model.storyData
             }
     in
         case msg of
@@ -230,7 +237,7 @@ update msg model shared =
                                     if Util.isNothing shared.userStories then
                                         ( model
                                         , shared
-                                        , Api.getAccountStories
+                                        , Api.getStories
                                             [ ( "author", Just user.id ) ]
                                             GetAccountStoriesFailure
                                             GetAccountStoriesSuccess
@@ -476,6 +483,15 @@ update msg model shared =
 
                         Route.HomeComponentCreateNewStoryTags ->
                             focusOn "tags-input"
+
+                        Route.HomeComponentCreateStory storyID ->
+                            if maybeMapWithDefault (.id >> ((==) storyID)) False model.storyData.currentStory then
+                                doNothing
+                            else
+                                ( updateStoryData <| always StoryData.defaultStoryData
+                                , shared
+                                , Api.getStory storyID CreateStoryGetStoryFailure CreateStoryGetStorySuccess
+                                )
 
                         _ ->
                             doNothing
@@ -2024,6 +2040,30 @@ update msg model shared =
                   }
                 , Route.navigateTo <| Route.HomeComponentCreateStory targetID
                 )
+
+            CreateStoryGetStoryFailure apiError ->
+                -- TODO handle error
+                doNothing
+
+            CreateStoryGetStorySuccess story ->
+                case shared.user of
+                    -- Should never happen.
+                    Nothing ->
+                        doNothing
+
+                    Just user ->
+                        -- If this is indeed the author, then stay on page,
+                        -- otherwise redirect.
+                        if user.id == story.author then
+                            ( updateStoryData <| StoryData.setCurrentStory story
+                            , shared
+                            , Cmd.none
+                            )
+                        else
+                            ( model
+                            , shared
+                            , Route.modifyTo Route.HomeComponentCreate
+                            )
 
 
 {-| Creates the code editor for the bigbit when browsing relevant HC.

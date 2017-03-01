@@ -8,6 +8,7 @@ import Elements.FileStructure as FS
 import Models.Snipbit as Snipbit
 import Models.Bigbit as Bigbit
 import Models.NewStoryData as NewStoryData
+import Models.StoryData as StoryData
 
 
 {-| Home Component Init.
@@ -66,4 +67,5 @@ init =
         , accountBio = Nothing
         }
     , newStoryData = NewStoryData.defaultNewStoryData
+    , storyData = StoryData.defaultStoryData
     }

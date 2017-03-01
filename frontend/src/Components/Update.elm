@@ -557,5 +557,8 @@ handleLocationChange maybeRoute model =
                     Route.HomeComponentCreateNewStoryTags ->
                         triggerRouteHookOnHomeComponent
 
+                    Route.HomeComponentCreateStory _ ->
+                        triggerRouteHookOnHomeComponent
+
                     _ ->
                         ( newModel, newCmd )

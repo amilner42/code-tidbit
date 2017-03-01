@@ -67,7 +67,8 @@ export const authlessRoutes: AppRoutesAuth = {
   '/login': { post: true },
   '/snipbits/:id': { get: true },
   '/bigbits/:id': { get: true },
-  '/stories': { get: true }
+  '/stories': { get: true },
+  '/stories/:id': { get: true }
 };
 
 /**
@@ -402,6 +403,34 @@ export const routes: AppRoutes = {
       })
       .then((story) => {
         res.status(200).json({ targetID: story.insertedId });
+        return;
+      })
+      .catch(handleError(res));
+    }
+  },
+
+  '/stories/:id': {
+    /**
+     * Gets a story from the db.
+     */
+    get: (req, res) => {
+      const params = req.params;
+      const storyID = params.id;
+
+      collection('stories')
+      .then((storyCollection) => {
+        return storyCollection.findOne({ _id: ID(storyID) }) as Promise<Story>;
+      })
+      .then((story) => {
+        if(!story) {
+          res.status(400).json({
+            message: `No story exists with id: ${storyID}`,
+            errorCode: ErrorCode.storyDoesNotExist
+          });
+          return
+        }
+
+        res.status(200).json(prepareStoryForResponse(story));
         return;
       })
       .catch(handleError(res));

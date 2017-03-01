@@ -35,13 +35,23 @@ getAccount =
     apiGet "account" User.decoder
 
 
-{-| Gets all the stories for a given user.
+{-| Gets all the stories, you can use query params to customize the search.
+Refer to the backend route to see what the options are.
 -}
-getAccountStories : List ( String, Maybe String ) -> (ApiError.ApiError -> b) -> (List Story.Story -> b) -> Cmd b
-getAccountStories queryParams =
+getStories : List ( String, Maybe String ) -> (ApiError.ApiError -> b) -> (List Story.Story -> b) -> Cmd b
+getStories queryParams =
     apiGet
         ("stories" ++ Util.queryParamsToString queryParams)
         (Decode.list <| Story.storyDecoder)
+
+
+{-| Gets a single story.
+-}
+getStory : String -> (ApiError.ApiError -> b) -> (Story.Story -> b) -> Cmd b
+getStory storyID =
+    apiGet
+        ("stories" :/: storyID)
+        Story.storyDecoder
 
 
 {-| Queries the API to log the user out, which should send a response to delete
