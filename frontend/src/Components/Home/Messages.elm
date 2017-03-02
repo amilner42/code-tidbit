@@ -117,7 +117,7 @@ type Msg
     | NewStoryGetEditingStoryFailure ApiError.ApiError
     | NewStoryGetEditingStorySuccess Story.Story
     | NewStoryCancelEdits String
-    | NewStorySaveEdits
+    | NewStorySaveEdits String
     | NewStorySaveEditsFailure ApiError.ApiError
     | NewStorySaveEditsSuccess IDResponse
     | CreateStoryGetStoryFailure ApiError.ApiError

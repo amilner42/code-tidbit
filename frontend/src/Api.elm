@@ -135,3 +135,13 @@ postCreateNewStory newStory =
         "stories"
         IDResponse.idResponseDecoder
         (Story.newStoryEncoder newStory)
+
+
+{-| Updates the information for a story.
+-}
+postUpdateStoryInformation : String -> Story.NewStory -> (ApiError.ApiError -> b) -> (IDResponse.IDResponse -> b) -> Cmd b
+postUpdateStoryInformation storyID newStoryInformation =
+    apiPost
+        ("stories" :/: storyID :/: "information")
+        IDResponse.idResponseDecoder
+        (Story.newStoryEncoder newStoryInformation)

@@ -2122,16 +2122,33 @@ update msg model shared =
                 , Route.navigateTo <| Route.HomeComponentCreateStory storyID
                 )
 
-            NewStorySaveEdits ->
-                -- TODO implement.
-                doNothing
+            NewStorySaveEdits storyID ->
+                let
+                    editingStory =
+                        model.newStoryData.editingStory
+
+                    editingStoryInformation =
+                        { name = editingStory.name
+                        , description = editingStory.description
+                        , tags = editingStory.tags
+                        }
+                in
+                    ( model
+                    , shared
+                    , Api.postUpdateStoryInformation storyID editingStoryInformation NewStorySaveEditsFailure NewStorySaveEditsSuccess
+                    )
 
             NewStorySaveEditsFailure apiError ->
                 -- TODO handle error.
                 doNothing
 
             NewStorySaveEditsSuccess { targetID } ->
-                doNothing
+                ( model
+                , { shared
+                    | userStories = Nothing
+                  }
+                , Route.navigateTo <| Route.HomeComponentCreateStory targetID
+                )
 
             CreateStoryGetStoryFailure apiError ->
                 -- TODO handle error

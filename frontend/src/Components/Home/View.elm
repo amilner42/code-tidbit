@@ -1024,7 +1024,7 @@ createNewStoryView model shared =
                                 , ( "publish-button", NewStoryData.editingStoryDataReadyForSave model.newStoryData )
                                 , ( "disabled-publish-button", not <| NewStoryData.editingStoryDataReadyForSave model.newStoryData )
                                 ]
-                            , onClick NewStorySaveEdits
+                            , onClick <| NewStorySaveEdits storyID
                             ]
                             [ text "Save Changes" ]
                         ]

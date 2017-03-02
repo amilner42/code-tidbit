@@ -18,6 +18,8 @@ type alias Story =
 
 
 {-| A new story being created, does not yet contain any db-added fields.
+
+This data structure can also represent the information for editing a story.
 -}
 type alias NewStory =
     { name : String
