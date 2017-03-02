@@ -105,14 +105,20 @@ type Msg
     | ProfileSaveBioSuccess User.User
     | GetAccountStoriesFailure ApiError.ApiError
     | GetAccountStoriesSuccess (List Story.Story)
-    | NewStoryUpdateName String
-    | NewStoryUpdateDescription String
-    | NewStoryUpdateTagInput String
-    | NewStoryAddTag String
-    | NewStoryRemoveTag String
+    | NewStoryUpdateName Bool String
+    | NewStoryUpdateDescription Bool String
+    | NewStoryUpdateTagInput Bool String
+    | NewStoryAddTag Bool String
+    | NewStoryRemoveTag Bool String
     | NewStoryReset
     | NewStoryPublish
     | NewStoryPublishSuccess IDResponse
     | NewStoryPublishFailure ApiError.ApiError
+    | NewStoryGetEditingStoryFailure ApiError.ApiError
+    | NewStoryGetEditingStorySuccess Story.Story
+    | NewStoryCancelEdits String
+    | NewStorySaveEdits
+    | NewStorySaveEditsFailure ApiError.ApiError
+    | NewStorySaveEditsSuccess IDResponse
     | CreateStoryGetStoryFailure ApiError.ApiError
     | CreateStoryGetStorySuccess Story.Story

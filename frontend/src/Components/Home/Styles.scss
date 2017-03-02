@@ -201,6 +201,10 @@
             .sub-bar {
                 .sub-bar-button {
                     margin-left: 10px;
+
+                    &.save-changes {
+                        width: 140px;
+                    }
                 }
 
                 .continue-button {
@@ -1294,6 +1298,20 @@
 
                 &.previous-frame-location {
                     width: 160px;
+                }
+            }
+        }
+
+        .create-story-page {
+
+            .sub-bar {
+
+                .sub-bar-button {
+                    margin-left: 10px;
+
+                    &.edit-information {
+                        width: 160px;
+                    }
                 }
             }
         }

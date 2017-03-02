@@ -99,13 +99,13 @@ viewForRoute model =
             Route.HomeComponentCreateBigbitCodeConclusion _ ->
                 renderedHomeView
 
-            Route.HomeComponentCreateNewStoryName ->
+            Route.HomeComponentCreateNewStoryName _ ->
                 renderedHomeView
 
-            Route.HomeComponentCreateNewStoryDescription ->
+            Route.HomeComponentCreateNewStoryDescription _ ->
                 renderedHomeView
 
-            Route.HomeComponentCreateNewStoryTags ->
+            Route.HomeComponentCreateNewStoryTags _ ->
                 renderedHomeView
 
             Route.HomeComponentCreateStory _ ->

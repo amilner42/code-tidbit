@@ -39,9 +39,9 @@ type Route
     | HomeComponentCreateBigbitCodeIntroduction (Maybe FS.Path)
     | HomeComponentCreateBigbitCodeFrame Int (Maybe FS.Path)
     | HomeComponentCreateBigbitCodeConclusion (Maybe FS.Path)
-    | HomeComponentCreateNewStoryName
-    | HomeComponentCreateNewStoryDescription
-    | HomeComponentCreateNewStoryTags
+    | HomeComponentCreateNewStoryName (Maybe MongoID)
+    | HomeComponentCreateNewStoryDescription (Maybe MongoID)
+    | HomeComponentCreateNewStoryTags (Maybe MongoID)
     | HomeComponentCreateStory MongoID
     | HomeComponentProfile
     | WelcomeComponentLogin
@@ -144,18 +144,22 @@ matchers =
             create </> s "story"
 
         homeComponentCreateNewStoryName =
-            createStory </> s "name"
+            createStory </> s "name" <?> qpEditingStory
 
         homeComponentCreateNewStoryDescription =
-            createStory </> s "description"
+            createStory </> s "description" <?> qpEditingStory
 
         homeComponentCreateNewStoryTags =
-            createStory </> s "tags"
+            createStory </> s "tags" <?> qpEditingStory
+
+        -- Query param
+        qpEditingStory =
+            stringParam "editingStory"
 
         homeComponentCreateStory =
             createStory </> string
 
-        -- Query Param for the current active file.
+        -- Query param for the current active file.
         qpFile =
             stringParam "file"
 
@@ -365,14 +369,17 @@ toHashUrl route =
                 "create/bigbit/code/conclusion/"
                     ++ (Util.queryParamsToString [ ( "file", qpFile ) ])
 
-            HomeComponentCreateNewStoryName ->
+            HomeComponentCreateNewStoryName qpStory ->
                 "create/story/name"
+                    ++ (Util.queryParamsToString [ ( "editingStory", qpStory ) ])
 
-            HomeComponentCreateNewStoryDescription ->
+            HomeComponentCreateNewStoryDescription qpStory ->
                 "create/story/description"
+                    ++ (Util.queryParamsToString [ ( "editingStory", qpStory ) ])
 
-            HomeComponentCreateNewStoryTags ->
+            HomeComponentCreateNewStoryTags qpStory ->
                 "create/story/tags"
+                    ++ (Util.queryParamsToString [ ( "editingStory", qpStory ) ])
 
             HomeComponentCreateStory storyID ->
                 "create/story/" ++ storyID
@@ -498,3 +505,22 @@ navigateToSameUrlWithFilePath maybePath route =
 
         _ ->
             Cmd.none
+
+
+{-| Returns the query paramater "editingStory" if on the create new story routes
+and the parameter is present.
+-}
+getEditingStoryQueryParamOnCreateNewStoryUrl : Route -> Maybe MongoID
+getEditingStoryQueryParamOnCreateNewStoryUrl route =
+    case route of
+        HomeComponentCreateNewStoryName qpEditingStory ->
+            qpEditingStory
+
+        HomeComponentCreateNewStoryDescription qpEditingStory ->
+            qpEditingStory
+
+        HomeComponentCreateNewStoryTags qpEditingStory ->
+            qpEditingStory
+
+        _ ->
+            Nothing

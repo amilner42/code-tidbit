@@ -7,10 +7,15 @@ import Models.Story as Story
 
 
 {-| The data for the new story page.
+
+`editingStory` is because this page is reused for editing the basic information
+of existing stories as well.
 -}
 type alias NewStoryData =
     { newStory : Story.NewStory
+    , editingStory : Story.Story
     , tagInput : String
+    , editingStoryTagInput : String
     }
 
 
@@ -20,7 +25,9 @@ encoder : NewStoryData -> Encode.Value
 encoder newStoryData =
     Encode.object
         [ ( "newStory", Story.newStoryEncoder newStoryData.newStory )
+        , ( "editingStory", Story.storyEncoder newStoryData.editingStory )
         , ( "tagInput", Encode.string newStoryData.tagInput )
+        , ( "editingStoryTagInput", Encode.string newStoryData.editingStoryTagInput )
         ]
 
 
@@ -30,7 +37,9 @@ decoder : Decode.Decoder NewStoryData
 decoder =
     decode NewStoryData
         |> required "newStory" Story.newStoryDecoder
+        |> required "editingStory" Story.storyDecoder
         |> required "tagInput" Decode.string
+        |> required "editingStoryTagInput" Decode.string
 
 
 {-| Default new story data, completely empty.
@@ -38,7 +47,9 @@ decoder =
 defaultNewStoryData : NewStoryData
 defaultNewStoryData =
     { newStory = Story.defaultNewStory
+    , editingStory = Story.blankStory
     , tagInput = ""
+    , editingStoryTagInput = ""
     }
 
 
@@ -51,17 +62,37 @@ updateNewStory newStoryUpdater newStoryData =
     }
 
 
+{-| Updates the `editingStory`.
+-}
+updateEditStory : (Story.Story -> Story.Story) -> NewStoryData -> NewStoryData
+updateEditStory editingStoryUpdater newStoryData =
+    { newStoryData
+        | editingStory = editingStoryUpdater newStoryData.editingStory
+    }
+
+
 {-| Updates the `name` in `newStory`.
 -}
 updateName : String -> NewStoryData -> NewStoryData
-updateName newName newStoryData =
+updateName newName =
     updateNewStory
         (\newStory ->
             { newStory
                 | name = newName
             }
         )
-        newStoryData
+
+
+{-| Updates the `name` in `editingStory`.
+-}
+updateEditName : String -> NewStoryData -> NewStoryData
+updateEditName newName =
+    updateEditStory
+        (\editingStory ->
+            { editingStory
+                | name = newName
+            }
+        )
 
 
 {-| Updates the `description` in `newStory`.
@@ -76,6 +107,18 @@ updateDescription newDescription =
         )
 
 
+{-| Updates the `description` in `editingStory`.
+-}
+updateEditDescription : String -> NewStoryData -> NewStoryData
+updateEditDescription newDescription =
+    updateEditStory
+        (\editingStory ->
+            { editingStory
+                | description = newDescription
+            }
+        )
+
+
 {-| Updates the `tagInput`.
 -}
 updateTagInput : String -> NewStoryData -> NewStoryData
@@ -85,7 +128,16 @@ updateTagInput newTagInput newStoryData =
     }
 
 
-{-| Adds a new tag if it's unique and not empty.
+{-| Updates the `editingStoryTagInput`.
+-}
+updateEditTagInput : String -> NewStoryData -> NewStoryData
+updateEditTagInput newTagInput newStoryData =
+    { newStoryData
+        | editingStoryTagInput = newTagInput
+    }
+
+
+{-| Adds a new tag to the `newStory` if it's unique and not empty.
 -}
 newTag : String -> NewStoryData -> NewStoryData
 newTag newTag newStoryData =
@@ -105,7 +157,27 @@ newTag newTag newStoryData =
         updateTagInput "" modelWithNewTags
 
 
-{-| Removes a tag if it exists in the tags.
+{-| Adds a new tag to the `editingStory` if it's unique and not empty.
+-}
+newEditTag : String -> NewStoryData -> NewStoryData
+newEditTag newTag newStoryData =
+    let
+        modelWithNewTags =
+            if String.isEmpty newTag || List.member newTag newStoryData.editingStory.tags then
+                newStoryData
+            else
+                updateEditStory
+                    (\editingStory ->
+                        { editingStory
+                            | tags = editingStory.tags ++ [ newTag ]
+                        }
+                    )
+                    newStoryData
+    in
+        updateEditTagInput "" modelWithNewTags
+
+
+{-| Removes a tag from the `newStory` if it exists in the tags.
 -}
 removeTag : String -> NewStoryData -> NewStoryData
 removeTag oldTag =
@@ -117,11 +189,30 @@ removeTag oldTag =
         )
 
 
+{-| Removes a tag from the `editingStory` if it exists in the tags.
+-}
+removeEditTag : String -> NewStoryData -> NewStoryData
+removeEditTag oldTag =
+    updateEditStory
+        (\editingStory ->
+            { editingStory
+                | tags = List.filter ((/=) oldTag) editingStory.tags
+            }
+        )
+
+
 {-| Returns True if the name tab is fileld in.
 -}
 nameTabFilledIn : NewStoryData -> Bool
 nameTabFilledIn =
     .newStory >> .name >> String.isEmpty >> not
+
+
+{-| Returns True if the name tab is filled in for the story being editd.
+-}
+editingNameTabFilledIn : NewStoryData -> Bool
+editingNameTabFilledIn =
+    .editingStory >> .name >> String.isEmpty >> not
 
 
 {-| Returns True if the description tab is filled in.
@@ -131,11 +222,25 @@ descriptionTabFilledIn =
     .newStory >> .description >> String.isEmpty >> not
 
 
+{-| Returns True if the description tab is filled for the story being edited.
+-}
+editingDescriptionTabFilledIn : NewStoryData -> Bool
+editingDescriptionTabFilledIn =
+    .editingStory >> .description >> String.isEmpty >> not
+
+
 {-| Returns True if the tags tab is filled in.
 -}
 tagsTabFilledIn : NewStoryData -> Bool
 tagsTabFilledIn =
     .newStory >> .tags >> List.isEmpty >> not
+
+
+{-| Returns True if the tags tab is filled in for the story being edited.
+-}
+editingTagsTabFilledIn : NewStoryData -> Bool
+editingTagsTabFilledIn =
+    .editingStory >> .tags >> List.isEmpty >> not
 
 
 {-| Returns true if the new story is ready for publication.
@@ -145,3 +250,12 @@ newStoryDataReadyForPublication newStoryData =
     nameTabFilledIn newStoryData
         && descriptionTabFilledIn newStoryData
         && tagsTabFilledIn newStoryData
+
+
+{-| Returns true if the editing story data is ready to be saved.
+-}
+editingStoryDataReadyForSave : NewStoryData -> Bool
+editingStoryDataReadyForSave newStoryData =
+    editingNameTabFilledIn newStoryData
+        && editingDescriptionTabFilledIn newStoryData
+        && editingTagsTabFilledIn newStoryData

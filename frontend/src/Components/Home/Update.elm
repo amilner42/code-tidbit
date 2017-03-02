@@ -22,6 +22,7 @@ import Models.Range as Range
 import Models.Route as Route
 import Models.ProfileData as ProfileData
 import Models.NewStoryData as NewStoryData
+import Models.Story as Story
 import Models.StoryData as StoryData
 import Models.User as User exposing (defaultUserUpdateRecord)
 import Task
@@ -224,6 +225,26 @@ update msg model shared =
                         ( model
                         , shared
                         , Util.domFocus (\_ -> NoOp) theID
+                        )
+
+                    -- If the ID of the current editingStory is different, we
+                    -- need to get the info of the story that we are editing.
+                    getEditingStoryAndFocusOn theID qpEditingStory =
+                        ( model
+                        , shared
+                        , Cmd.batch
+                            [ Util.domFocus (\_ -> NoOp) theID
+                            , case qpEditingStory of
+                                Nothing ->
+                                    Cmd.none
+
+                                Just storyID ->
+                                    -- We already loaded the story we want to edit.
+                                    if storyID == model.newStoryData.editingStory.id then
+                                        Cmd.none
+                                    else
+                                        Api.getStory storyID NewStoryGetEditingStoryFailure NewStoryGetEditingStorySuccess
+                            ]
                         )
                 in
                     case shared.route of
@@ -475,14 +496,14 @@ update msg model shared =
                                 ]
                             )
 
-                        Route.HomeComponentCreateNewStoryName ->
-                            focusOn "name-input"
+                        Route.HomeComponentCreateNewStoryName qpEditingStory ->
+                            getEditingStoryAndFocusOn "name-input" qpEditingStory
 
-                        Route.HomeComponentCreateNewStoryDescription ->
-                            focusOn "description-input"
+                        Route.HomeComponentCreateNewStoryDescription qpEditingStory ->
+                            getEditingStoryAndFocusOn "description-input" qpEditingStory
 
-                        Route.HomeComponentCreateNewStoryTags ->
-                            focusOn "tags-input"
+                        Route.HomeComponentCreateNewStoryTags qpEditingStory ->
+                            getEditingStoryAndFocusOn "tags-input" qpEditingStory
 
                         Route.HomeComponentCreateStory storyID ->
                             if maybeMapWithDefault (.id >> ((==) storyID)) False model.storyData.currentStory then
@@ -1982,40 +2003,71 @@ update msg model shared =
                 , Cmd.none
                 )
 
-            NewStoryUpdateName newName ->
-                ( updateNewStoryData <| NewStoryData.updateName newName
-                , shared
-                , Cmd.none
-                )
+            NewStoryUpdateName isEditing newName ->
+                if isEditing then
+                    ( updateNewStoryData <| NewStoryData.updateEditName newName
+                    , shared
+                    , Cmd.none
+                    )
+                else
+                    ( updateNewStoryData <| NewStoryData.updateName newName
+                    , shared
+                    , Cmd.none
+                    )
 
-            NewStoryUpdateDescription newDescription ->
-                ( updateNewStoryData <| NewStoryData.updateDescription newDescription
-                , shared
-                , Cmd.none
-                )
+            NewStoryUpdateDescription isEditing newDescription ->
+                if isEditing then
+                    ( updateNewStoryData <| NewStoryData.updateEditDescription newDescription
+                    , shared
+                    , Cmd.none
+                    )
+                else
+                    ( updateNewStoryData <| NewStoryData.updateDescription newDescription
+                    , shared
+                    , Cmd.none
+                    )
 
-            NewStoryUpdateTagInput newTagInput ->
-                ( updateNewStoryData <| NewStoryData.updateTagInput newTagInput
-                , shared
-                , Cmd.none
-                )
+            NewStoryUpdateTagInput isEditing newTagInput ->
+                if isEditing then
+                    ( updateNewStoryData <| NewStoryData.updateEditTagInput newTagInput
+                    , shared
+                    , Cmd.none
+                    )
+                else
+                    ( updateNewStoryData <| NewStoryData.updateTagInput newTagInput
+                    , shared
+                    , Cmd.none
+                    )
 
-            NewStoryAddTag tagName ->
-                ( updateNewStoryData <| NewStoryData.newTag tagName
-                , shared
-                , Cmd.none
-                )
+            NewStoryAddTag isEditing tagName ->
+                if isEditing then
+                    ( updateNewStoryData <| NewStoryData.newEditTag tagName
+                    , shared
+                    , Cmd.none
+                    )
+                else
+                    ( updateNewStoryData <| NewStoryData.newTag tagName
+                    , shared
+                    , Cmd.none
+                    )
 
-            NewStoryRemoveTag tagName ->
-                ( updateNewStoryData <| NewStoryData.removeTag tagName
-                , shared
-                , Cmd.none
-                )
+            NewStoryRemoveTag isEditing tagName ->
+                if isEditing then
+                    ( updateNewStoryData <| NewStoryData.removeEditTag tagName
+                    , shared
+                    , Cmd.none
+                    )
+                else
+                    ( updateNewStoryData <| NewStoryData.removeTag tagName
+                    , shared
+                    , Cmd.none
+                    )
 
             NewStoryReset ->
                 ( updateNewStoryData <| always NewStoryData.defaultNewStoryData
                 , shared
-                , Route.navigateTo <| Route.HomeComponentCreateNewStoryName
+                  -- The reset button only exists when there is no `qpEditingStory`.
+                , Route.navigateTo <| Route.HomeComponentCreateNewStoryName Nothing
                 )
 
             NewStoryPublish ->
@@ -2040,6 +2092,46 @@ update msg model shared =
                   }
                 , Route.navigateTo <| Route.HomeComponentCreateStory targetID
                 )
+
+            NewStoryGetEditingStoryFailure apiError ->
+                -- TODO handle error.
+                doNothing
+
+            NewStoryGetEditingStorySuccess story ->
+                case shared.user of
+                    Nothing ->
+                        doNothing
+
+                    Just user ->
+                        if story.author == user.id then
+                            ( updateNewStoryData <|
+                                NewStoryData.updateEditStory (always story)
+                            , shared
+                            , Cmd.none
+                            )
+                        else
+                            ( model
+                            , shared
+                            , Route.modifyTo <| Route.HomeComponentCreate
+                            )
+
+            NewStoryCancelEdits storyID ->
+                ( updateNewStoryData <|
+                    NewStoryData.updateEditStory (always Story.blankStory)
+                , shared
+                , Route.navigateTo <| Route.HomeComponentCreateStory storyID
+                )
+
+            NewStorySaveEdits ->
+                -- TODO implement.
+                doNothing
+
+            NewStorySaveEditsFailure apiError ->
+                -- TODO handle error.
+                doNothing
+
+            NewStorySaveEditsSuccess { targetID } ->
+                doNothing
 
             CreateStoryGetStoryFailure apiError ->
                 -- TODO handle error

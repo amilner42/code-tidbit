@@ -148,3 +148,16 @@ defaultNewStory =
     , description = ""
     , tags = []
     }
+
+
+{-| A completely blank story.
+-}
+blankStory : Story
+blankStory =
+    { id = ""
+    , author = ""
+    , name = ""
+    , description = ""
+    , tags = []
+    , pages = []
+    }

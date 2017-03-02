@@ -787,13 +787,13 @@ displayViewForRoute model shared =
         Route.HomeComponentProfile ->
             profileView model shared
 
-        Route.HomeComponentCreateNewStoryName ->
+        Route.HomeComponentCreateNewStoryName _ ->
             createNewStoryView model shared
 
-        Route.HomeComponentCreateNewStoryDescription ->
+        Route.HomeComponentCreateNewStoryDescription _ ->
             createNewStoryView model shared
 
-        Route.HomeComponentCreateNewStoryTags ->
+        Route.HomeComponentCreateNewStoryTags _ ->
             createNewStoryView model shared
 
         Route.HomeComponentCreateStory _ ->
@@ -855,6 +855,15 @@ navbar shared =
                 Route.HomeComponentCreateStory _ ->
                     True
 
+                Route.HomeComponentCreateNewStoryName _ ->
+                    True
+
+                Route.HomeComponentCreateNewStoryDescription _ ->
+                    True
+
+                Route.HomeComponentCreateNewStoryTags _ ->
+                    True
+
                 _ ->
                     (List.member
                         shared.route
@@ -868,9 +877,6 @@ navbar shared =
                         , Route.HomeComponentCreateBigbitName
                         , Route.HomeComponentCreateBigbitDescription
                         , Route.HomeComponentCreateBigbitTags
-                        , Route.HomeComponentCreateNewStoryName
-                        , Route.HomeComponentCreateNewStoryDescription
-                        , Route.HomeComponentCreateNewStoryTags
                         ]
                     )
     in
@@ -937,9 +943,27 @@ navbar shared =
 -}
 createStoryView : Model -> Shared -> Html Msg
 createStoryView model shared =
-    div
-        []
-        [ text "TODO" ]
+    case model.storyData.currentStory of
+        Nothing ->
+            Util.hiddenDiv
+
+        Just story ->
+            div
+                [ class "create-story-page" ]
+                [ div
+                    [ class "sub-bar" ]
+                    [ button
+                        [ class "sub-bar-button"
+                        , onClick <| GoTo Route.HomeComponentCreate
+                        ]
+                        [ text "Back" ]
+                    , button
+                        [ class "sub-bar-button edit-information"
+                        , onClick <| GoTo <| Route.HomeComponentCreateNewStoryName <| Just story.id
+                        ]
+                        [ text "Edit Information" ]
+                    ]
+                ]
 
 
 {-| The view for creating a new story.
@@ -949,121 +973,247 @@ createNewStoryView model shared =
     let
         currentRoute =
             shared.route
+
+        editingStoryQueryParam =
+            Route.getEditingStoryQueryParamOnCreateNewStoryUrl shared.route
+
+        isEditingStory =
+            Util.isNotNothing editingStoryQueryParam
+
+        editingStoryLoaded =
+            (Just model.newStoryData.editingStory.id == editingStoryQueryParam)
     in
         div
-            [ class "new-story-page" ]
+            [ class "new-story-page"
+            , hidden <| isEditingStory && not editingStoryLoaded
+            ]
             [ div
                 [ class "sub-bar" ]
-                [ button
-                    [ class "sub-bar-button"
-                    , onClick <| GoTo Route.HomeComponentCreate
-                    ]
-                    [ text "Back" ]
-                , button
-                    [ class "sub-bar-button"
-                    , onClick NewStoryReset
-                    ]
-                    [ text "Reset" ]
-                , button
-                    [ classList
-                        [ ( "continue-button", True )
-                        , ( "publish-button", NewStoryData.newStoryDataReadyForPublication model.newStoryData )
-                        , ( "disabled-publish-button", not <| NewStoryData.newStoryDataReadyForPublication model.newStoryData )
+                (case editingStoryQueryParam of
+                    Nothing ->
+                        [ button
+                            [ class "sub-bar-button"
+                            , onClick <| GoTo Route.HomeComponentCreate
+                            ]
+                            [ text "Back" ]
+                        , button
+                            [ class "sub-bar-button"
+                            , onClick NewStoryReset
+                            ]
+                            [ text "Reset" ]
+                        , button
+                            [ classList
+                                [ ( "continue-button", True )
+                                , ( "publish-button", NewStoryData.newStoryDataReadyForPublication model.newStoryData )
+                                , ( "disabled-publish-button", not <| NewStoryData.newStoryDataReadyForPublication model.newStoryData )
+                                ]
+                            , onClick NewStoryPublish
+                            ]
+                            [ text "Proceed to Tidbit Selection" ]
                         ]
-                    , onClick <| NewStoryPublish
-                    ]
-                    [ text "Proceed to Tidbit Selection" ]
-                ]
+
+                    Just storyID ->
+                        [ button
+                            [ class "sub-bar-button"
+                            , onClick <| NewStoryCancelEdits storyID
+                            ]
+                            [ text "Cancel" ]
+                        , button
+                            [ classList
+                                [ ( "sub-bar-button save-changes", True )
+                                , ( "publish-button", NewStoryData.editingStoryDataReadyForSave model.newStoryData )
+                                , ( "disabled-publish-button", not <| NewStoryData.editingStoryDataReadyForSave model.newStoryData )
+                                ]
+                            , onClick NewStorySaveEdits
+                            ]
+                            [ text "Save Changes" ]
+                        ]
+                )
             , div
                 [ class "create-tidbit-navbar" ]
                 [ div
                     [ classList
                         [ ( "create-tidbit-tab", True )
-                        , ( "create-tidbit-selected-tab", currentRoute == Route.HomeComponentCreateNewStoryName )
-                        , ( "filled-in", NewStoryData.nameTabFilledIn model.newStoryData )
+                        , ( "create-tidbit-selected-tab"
+                          , case currentRoute of
+                                Route.HomeComponentCreateNewStoryName _ ->
+                                    True
+
+                                _ ->
+                                    False
+                          )
+                        , ( "filled-in"
+                          , if isEditingStory then
+                                NewStoryData.editingNameTabFilledIn model.newStoryData
+                            else
+                                NewStoryData.nameTabFilledIn model.newStoryData
+                          )
                         ]
-                    , onClick <| GoTo Route.HomeComponentCreateNewStoryName
+                    , onClick <| GoTo <| Route.HomeComponentCreateNewStoryName editingStoryQueryParam
                     ]
                     [ text "Name" ]
                 , div
                     [ classList
                         [ ( "create-tidbit-tab", True )
-                        , ( "create-tidbit-selected-tab", currentRoute == Route.HomeComponentCreateNewStoryDescription )
-                        , ( "filled-in", NewStoryData.descriptionTabFilledIn model.newStoryData )
+                        , ( "create-tidbit-selected-tab"
+                          , case currentRoute of
+                                Route.HomeComponentCreateNewStoryDescription _ ->
+                                    True
+
+                                _ ->
+                                    False
+                          )
+                        , ( "filled-in"
+                          , if isEditingStory then
+                                NewStoryData.editingDescriptionTabFilledIn model.newStoryData
+                            else
+                                NewStoryData.descriptionTabFilledIn model.newStoryData
+                          )
                         ]
-                    , onClick <| GoTo Route.HomeComponentCreateNewStoryDescription
+                    , onClick <| GoTo <| Route.HomeComponentCreateNewStoryDescription editingStoryQueryParam
                     ]
                     [ text "Description" ]
                 , div
                     [ classList
                         [ ( "create-tidbit-tab", True )
-                        , ( "create-tidbit-selected-tab", currentRoute == Route.HomeComponentCreateNewStoryTags )
-                        , ( "filled-in", NewStoryData.tagsTabFilledIn model.newStoryData )
+                        , ( "create-tidbit-selected-tab"
+                          , case currentRoute of
+                                Route.HomeComponentCreateNewStoryTags _ ->
+                                    True
+
+                                _ ->
+                                    False
+                          )
+                        , ( "filled-in"
+                          , if isEditingStory then
+                                NewStoryData.editingTagsTabFilledIn model.newStoryData
+                            else
+                                NewStoryData.tagsTabFilledIn model.newStoryData
+                          )
                         ]
-                    , onClick <| GoTo Route.HomeComponentCreateNewStoryTags
+                    , onClick <| GoTo <| Route.HomeComponentCreateNewStoryTags editingStoryQueryParam
                     ]
                     [ text "Tags" ]
                 ]
             , case currentRoute of
-                Route.HomeComponentCreateNewStoryName ->
+                Route.HomeComponentCreateNewStoryName qpEditingStory ->
                     div
                         [ class "create-new-story-name" ]
-                        [ input
-                            [ placeholder "Name"
-                            , id "name-input"
-                            , onInput NewStoryUpdateName
-                            , value model.newStoryData.newStory.name
-                            , Util.onKeydownPreventDefault
-                                (\key ->
-                                    if key == KK.Tab then
-                                        Just NoOp
-                                    else
-                                        Nothing
-                                )
-                            ]
-                            []
+                        [ case qpEditingStory of
+                            Nothing ->
+                                input
+                                    [ placeholder "Name"
+                                    , id "name-input"
+                                    , onInput (NewStoryUpdateName False)
+                                    , value model.newStoryData.newStory.name
+                                    , Util.onKeydownPreventDefault
+                                        (\key ->
+                                            if key == KK.Tab then
+                                                Just NoOp
+                                            else
+                                                Nothing
+                                        )
+                                    ]
+                                    []
+
+                            _ ->
+                                input
+                                    [ placeholder "Edit Story Name"
+                                    , id "name-input"
+                                    , onInput (NewStoryUpdateName True)
+                                    , value model.newStoryData.editingStory.name
+                                    , Util.onKeydownPreventDefault
+                                        (\key ->
+                                            if key == KK.Tab then
+                                                Just NoOp
+                                            else
+                                                Nothing
+                                        )
+                                    ]
+                                    []
                         ]
 
-                Route.HomeComponentCreateNewStoryDescription ->
+                Route.HomeComponentCreateNewStoryDescription qpEditingStory ->
                     div
                         [ class "create-new-story-description" ]
-                        [ textarea
-                            [ placeholder "Description"
-                            , id "description-input"
-                            , onInput NewStoryUpdateDescription
-                            , value model.newStoryData.newStory.description
-                            , Util.onKeydownPreventDefault
-                                (\key ->
-                                    if key == KK.Tab then
-                                        Just NoOp
-                                    else
-                                        Nothing
-                                )
-                            ]
-                            []
+                        [ case qpEditingStory of
+                            Nothing ->
+                                textarea
+                                    [ placeholder "Description"
+                                    , id "description-input"
+                                    , onInput (NewStoryUpdateDescription False)
+                                    , value model.newStoryData.newStory.description
+                                    , Util.onKeydownPreventDefault
+                                        (\key ->
+                                            if key == KK.Tab then
+                                                Just NoOp
+                                            else
+                                                Nothing
+                                        )
+                                    ]
+                                    []
+
+                            Just editingStory ->
+                                textarea
+                                    [ placeholder "Edit Story Description"
+                                    , id "description-input"
+                                    , onInput (NewStoryUpdateDescription True)
+                                    , value model.newStoryData.editingStory.description
+                                    , Util.onKeydownPreventDefault
+                                        (\key ->
+                                            if key == KK.Tab then
+                                                Just NoOp
+                                            else
+                                                Nothing
+                                        )
+                                    ]
+                                    []
                         ]
 
-                Route.HomeComponentCreateNewStoryTags ->
+                Route.HomeComponentCreateNewStoryTags qpEditingStory ->
                     div
                         [ class "create-new-story-tags" ]
-                        [ input
-                            [ placeholder "Tags"
-                            , id "tags-input"
-                            , onInput NewStoryUpdateTagInput
-                            , value model.newStoryData.tagInput
-                            , Util.onKeydownPreventDefault
-                                (\key ->
-                                    if key == KK.Enter then
-                                        Just <| NewStoryAddTag model.newStoryData.tagInput
-                                    else if key == KK.Tab then
-                                        Just <| NoOp
-                                    else
-                                        Nothing
-                                )
-                            ]
-                            []
-                        , makeHTMLTags NewStoryRemoveTag model.newStoryData.newStory.tags
-                        ]
+                        (case qpEditingStory of
+                            Nothing ->
+                                [ input
+                                    [ placeholder "Tags"
+                                    , id "tags-input"
+                                    , onInput (NewStoryUpdateTagInput False)
+                                    , value model.newStoryData.tagInput
+                                    , Util.onKeydownPreventDefault
+                                        (\key ->
+                                            if key == KK.Enter then
+                                                Just <| (NewStoryAddTag False) model.newStoryData.tagInput
+                                            else if key == KK.Tab then
+                                                Just <| NoOp
+                                            else
+                                                Nothing
+                                        )
+                                    ]
+                                    []
+                                , makeHTMLTags (NewStoryRemoveTag False) model.newStoryData.newStory.tags
+                                ]
+
+                            Just _ ->
+                                [ input
+                                    [ placeholder "Edit Story Tags"
+                                    , id "tags-input"
+                                    , onInput (NewStoryUpdateTagInput True)
+                                    , value model.newStoryData.editingStoryTagInput
+                                    , Util.onKeydownPreventDefault
+                                        (\key ->
+                                            if key == KK.Enter then
+                                                Just <| (NewStoryAddTag True) model.newStoryData.editingStoryTagInput
+                                            else if key == KK.Tab then
+                                                Just <| NoOp
+                                            else
+                                                Nothing
+                                        )
+                                    ]
+                                    []
+                                , makeHTMLTags (NewStoryRemoveTag True) model.newStoryData.editingStory.tags
+                                ]
+                        )
 
                 _ ->
                     Util.hiddenDiv
@@ -1267,7 +1417,7 @@ createView model shared =
                         []
                         [ div
                             [ class "create-story-box"
-                            , onClick <| GoTo Route.HomeComponentCreateNewStoryName
+                            , onClick <| GoTo <| Route.HomeComponentCreateNewStoryName Nothing
                             ]
                             [ i
                                 [ class "material-icons no-stories-box-icon" ]
