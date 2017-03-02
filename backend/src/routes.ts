@@ -172,7 +172,15 @@ export const routes: AppRoutes = {
         );
       })
       .then((updatedUserResult) => {
-        res.status(200).json(prepareUserForResponse(updatedUserResult.value));
+        if(updatedUserResult.value) {
+          res.status(200).json(prepareUserForResponse(updatedUserResult.value));
+          return;
+        }
+
+        res.status(400).json({
+          errorCode: ErrorCode.internalError,
+          message: "We couldn't find your account."
+        })
         return;
       })
       .catch(handleError(res));
@@ -431,6 +439,45 @@ export const routes: AppRoutes = {
         }
 
         res.status(200).json(prepareStoryForResponse(story));
+        return;
+      })
+      .catch(handleError(res));
+    }
+  },
+
+  '/stories/:id/information': {
+    /**
+     * Updates the basic information connected to a story.
+     */
+    post: (req, res) => {
+      const params = req.params;
+      const storyID = params.id;
+      const userID = req.user._id;
+      const editedInfo = req.body;
+
+      kleen.validModel(newStorySchema)(editedInfo)
+      .then(() => {
+        return collection('stories')
+      })
+      .then((storyCollection) => {
+        return storyCollection.findOneAndUpdate(
+          { _id: ID(storyID),
+            author: userID
+          },
+          { $set: editedInfo },
+          {}
+        );
+      })
+      .then((updateStoryResult) => {
+        if(updateStoryResult.value) {
+          res.status(200).json({ targetID: updateStoryResult.value._id });
+          return;
+        }
+
+        res.status(400).json({
+          errorCode: ErrorCode.internalError,
+          message: "You do not have a story with that ID."
+        });
         return;
       })
       .catch(handleError(res));

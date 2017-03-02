@@ -78,14 +78,16 @@ export const storySchema: kleen.typeSchema = {
 };
 
 /**
- * The schema for validating the user-input for a new story.
+ * The schema for validating the user-input for a new story or for editing the
+ * information on an existing story.
  */
 export const newStorySchema: kleen.typeSchema = {
   objectProperties: {
     "name": nameSchema(ErrorCode.storyNameEmpty, ErrorCode.storyNameTooLong),
     "description": descriptionSchema(ErrorCode.storyDescriptionEmpty),
     "tags": tagsSchema(ErrorCode.storyEmptyTag, ErrorCode.storyNoTags)
-  }
+  },
+  typeFailureError: malformedFieldError("Story information")
 };
 
 /**
