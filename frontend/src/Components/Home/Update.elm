@@ -506,12 +506,22 @@ update msg model shared =
                             getEditingStoryAndFocusOn "tags-input" qpEditingStory
 
                         Route.HomeComponentCreateStory storyID ->
-                            if maybeMapWithDefault (.id >> ((==) storyID)) False model.storyData.currentStory then
-                                doNothing
-                            else
-                                ( updateStoryData <| always StoryData.defaultStoryData
-                                , shared
-                                , Api.getStory storyID CreateStoryGetStoryFailure CreateStoryGetStorySuccess
+                            let
+                                ( newModel, newShared, newCmd ) =
+                                    if maybeMapWithDefault (.id >> ((==) storyID)) False model.storyData.currentStory then
+                                        doNothing
+                                    else
+                                        ( updateStoryData <| always StoryData.defaultStoryData
+                                        , shared
+                                        , Api.getStory storyID CreateStoryGetStoryFailure CreateStoryGetStorySuccess
+                                        )
+                            in
+                                ( newModel
+                                , newShared
+                                , Cmd.batch
+                                    [ newCmd
+                                    , Ports.doScrolling { querySelector = ".invisible-bottom", duration = 750 }
+                                    ]
                                 )
 
                         _ ->

@@ -963,6 +963,53 @@ createStoryView model shared =
                         ]
                         [ text "Edit Information" ]
                     ]
+                , div
+                    [ class "create-story-page-content" ]
+                    [ div
+                        [ class "page-content-bar" ]
+                        [ div
+                            [ class "page-content-bar-title" ]
+                            [ text "Story Tidbits" ]
+                        , div
+                            [ class "page-content-bar-line" ]
+                            []
+                        , div
+                            [ class "boxes" ]
+                            (List.indexedMap
+                                (\index tidbit ->
+                                    div
+                                        [ class "tidbit-box" ]
+                                        [ div
+                                            [ class "tidbit-box-name" ]
+                                            [ text tidbit.targetID ]
+                                        ]
+                                )
+                                story.pages
+                            )
+                        ]
+                    , div
+                        [ class "page-content-bar" ]
+                        [ div
+                            [ class "page-content-bar-title" ]
+                            [ text "Your Tidbits" ]
+                        , div
+                            [ class "page-content-bar-line" ]
+                            []
+                        , div
+                            [ class "boxes" ]
+                            (List.map
+                                (\tidbit ->
+                                    div
+                                        [ class "tidbit-box" ]
+                                        [ div
+                                            [ class "tidbit-box-name" ]
+                                            [ text tidbit.name ]
+                                        ]
+                                )
+                                []
+                            )
+                        ]
+                    ]
                 ]
 
 
@@ -1424,7 +1471,7 @@ createView model shared =
                                 [ text "add" ]
                             ]
                         , div
-                            [ class "story-boxes" ]
+                            [ class "boxes" ]
                             (List.map
                                 (\story ->
                                     div
