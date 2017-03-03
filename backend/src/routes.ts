@@ -81,7 +81,9 @@ export const handleAction = <successObj>(res: Response): ((action: Promise<succe
 export const authlessRoutes: AppRoutesAuth = {
   '/register': { post: true },
   '/login': { post: true },
+  '/snipbits': { get: true },
   '/snipbits/:id': { get: true },
+  '/bigbits/': { get: true },
   '/bigbits/:id': { get: true },
   '/stories': { get: true },
   '/stories/:id': { get: true }
@@ -200,6 +202,16 @@ export const routes: AppRoutes = {
 
   '/snipbits': {
     /**
+     * Gets snipbits, customizable through query params.
+     */
+    get: (req, res) => {
+      const queryParams = req.query;
+      const forUser = queryParams.forUser;
+
+      handleAction(res)(snipbitDBActions.getSnipbits({ forUser }));
+    },
+
+    /**
      * Creates a new snipbit for the logged-in user.
      */
     post: (req, res) => {
@@ -211,6 +223,16 @@ export const routes: AppRoutes = {
   },
 
   '/bigbits': {
+    /**
+     * Gets bigbits, customizable through query params.
+     */
+    get: (req, res) => {
+      const queryParams = req.query;
+      const forUser = queryParams.forUser;
+
+      handleAction(res)(bigbitDBActions.getBigbits({ forUser }));
+    },
+
     /**
      * Creates a new snipbit for the logged-in user.
      */

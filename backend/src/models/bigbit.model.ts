@@ -1,8 +1,9 @@
 /// Module for encapsulating helper functions for the Bigbit model.
 
 import * as kleen from "kleen";
+import { ObjectID } from 'mongodb';
 
-import { malformedFieldError, asyncIdentity } from '../util';
+import { malformedFieldError, asyncIdentity, isNullOrUndefined } from '../util';
 import { collection, renameIDField, ID } from '../db';
 import { MongoID, ErrorCode, Language } from '../types';
 import { Range } from './range.model';
@@ -35,6 +36,20 @@ export interface BigbitHighlightedComment {
   file: String;
   comment: String;
   range: Range;
+};
+
+/**
+ * The search options for getting bigbits from the db.
+ */
+export interface BigbitSearchFilter {
+  forUser?: MongoID;
+};
+
+/**
+ * The internal search filter for querying the db.
+ */
+interface InternalBigbitSearchFilter {
+  author?: ObjectID;
 };
 
 /**
@@ -133,6 +148,50 @@ const validifyAndUpdateBigbit = (bigbit: Bigbit): Promise<Bigbit> => {
 };
 
 /**
+ * Prepare a bigbit for the frontend, this includes:
+ *  - Renaming _id to id
+ *  - Switching languageIDs with language names.
+ *  - Reversing the folder/file-names to once again have '.'
+ *
+ * @WARNING Mutates `bigbit`.
+ */
+const prepareBigbitForResponse = (bigbit: Bigbit): Promise<Bigbit> => {
+  renameIDField(bigbit);
+
+  return collection("languages")
+  .then((languageCollection) => {
+    // Swap all languageIDs with encoded language names.
+    return metaMap(
+      asyncIdentity,
+      asyncIdentity,
+      (fileMetadata => {
+        return new Promise<{language: string}>((resolve, reject) => {
+          languageCollection.findOne({ _id: ID(fileMetadata.language) })
+          .then((language: Language) => {
+            if(!language) {
+              reject({
+                errorCode: ErrorCode.internalError,
+                message: `Language ID ${fileMetadata.language} does not point to a language`
+              });
+              return;
+            }
+
+            resolve({ language: language.encodedName });
+            return;
+          });
+        });
+      }),
+      bigbit.fs
+    );
+  })
+  .then((updatedFS) => {
+    // Switch to updated fs, which includes swapping '*' with '.'
+    bigbit.fs = swapPeriodsWithStars(false, updatedFS);
+    return bigbit;
+  });
+};
+
+/**
  * All the db helpers for a bigbit.
  */
 export const bigbitDBActions = {
@@ -158,6 +217,25 @@ export const bigbitDBActions = {
   },
 
   /**
+   * Gets bigbits, customizable through the search filter.
+   */
+  getBigbits: (filter: BigbitSearchFilter): Promise<Bigbit[]> => {
+    return collection("bigbits")
+    .then((bigbitCollection) => {
+      const mongoSearchFilter: InternalBigbitSearchFilter = {};
+
+      if(!isNullOrUndefined(filter.forUser)) {
+        mongoSearchFilter.author = ID(filter.forUser);
+      }
+
+      return bigbitCollection.find(mongoSearchFilter).toArray();
+    })
+    .then((bigbits) => {
+      return Promise.all(bigbits.map(prepareBigbitForResponse));
+    });
+  },
+
+  /**
    * Gets a bigbit from the database, handles all the transformations to get the
    * bigbit in the correct format for the frontend (reverse transformations of
    * `addNewBigbit`).
@@ -176,39 +254,7 @@ export const bigbitDBActions = {
         });
       }
 
-      renameIDField(bigbit);
-
-      return collection("languages")
-      .then((languageCollection) => {
-        // Swap all languageIDs with encoded language names.
-        return metaMap(
-          asyncIdentity,
-          asyncIdentity,
-          (fileMetadata => {
-            return new Promise<{language: string}>((resolve, reject) => {
-              languageCollection.findOne({ _id: ID(fileMetadata.language) })
-              .then((language: Language) => {
-                if(!language) {
-                  reject({
-                    errorCode: ErrorCode.internalError,
-                    message: `Language ID ${fileMetadata.language} does not point to a language`
-                  });
-                  return;
-                }
-
-                resolve({ language: language.encodedName });
-                return;
-              });
-            });
-          }),
-          bigbit.fs
-        );
-      })
-      .then((updatedFS) => {
-        // Switch to updated fs, which includes swapping '*' with '.'
-        bigbit.fs = swapPeriodsWithStars(false, updatedFS);
-        return bigbit;
-      });
+      return prepareBigbitForResponse(bigbit);
     });
   }
 }
