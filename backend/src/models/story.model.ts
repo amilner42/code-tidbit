@@ -2,8 +2,9 @@
 
 import * as kleen from "kleen";
 
-import { renameIDField } from '../db';
-import { malformedFieldError } from '../util';
+import { ObjectID } from 'mongodb';
+import { renameIDField, collection, ID } from '../db';
+import { malformedFieldError, isNullOrUndefined } from '../util';
 import { mongoIDSchema, nameSchema, descriptionSchema, optional, tagsSchema } from "./kleen-schemas";
 import { MongoID, ErrorCode } from '../types';
 
@@ -20,6 +21,12 @@ export interface Story {
   description: string;
   tags: string[];
   pages: StoryPage[];
+}
+
+export interface NewStory {
+  name: string;
+  description: string;
+  tags: string[];
 }
 
 /**
@@ -40,9 +47,23 @@ export enum StoryPageType {
 }
 
 /**
+ * The filters allowed when searching stories.
+ */
+export interface StorySearchFilter {
+  author?: MongoID;
+}
+
+/**
+ * The internal search filter representation.
+ */
+interface InternalStorySearchFilter {
+  author?: ObjectID;
+}
+
+/**
 * The schema for validating a StoryPage.
 */
-export const storyPageSchema: kleen.typeSchema = {
+const storyPageSchema: kleen.typeSchema = {
   objectProperties: {
     "storyType": {
       primitiveType: kleen.kindOfPrimitive.number,
@@ -63,7 +84,7 @@ export const storyPageSchema: kleen.typeSchema = {
 /**
 * The schema for validating a full story.
 */
-export const storySchema: kleen.typeSchema = {
+const storySchema: kleen.typeSchema = {
   objectProperties: {
     "id": optional(mongoIDSchema(malformedFieldError("story.id"))),
     "author": mongoIDSchema(malformedFieldError("author")),
@@ -81,7 +102,7 @@ export const storySchema: kleen.typeSchema = {
  * The schema for validating the user-input for a new story or for editing the
  * information on an existing story.
  */
-export const newStorySchema: kleen.typeSchema = {
+const newStorySchema: kleen.typeSchema = {
   objectProperties: {
     "name": nameSchema(ErrorCode.storyNameEmpty, ErrorCode.storyNameTooLong),
     "description": descriptionSchema(ErrorCode.storyDescriptionEmpty),
@@ -99,3 +120,107 @@ export const prepareStoryForResponse = (story: Story) => {
   renameIDField(story);
   return story;
 }
+
+/**
+ * All the db helpers for a story.
+ */
+export const storyDBActions = {
+
+  /**
+   * Gets stories from the db,
+   */
+  getStories: (filter: StorySearchFilter) => {
+    return collection("stories")
+    .then((StoryCollection) => {
+      const mongoSearchFilter: InternalStorySearchFilter = {};
+
+      if(!isNullOrUndefined(filter.author)) {
+        mongoSearchFilter.author = ID(filter.author);
+      }
+
+      return StoryCollection.find(mongoSearchFilter).toArray();
+    })
+    .then((stories) => {
+      return stories.map(prepareStoryForResponse);
+    });
+  },
+
+  /**
+   * Gets a single story from the database.
+   */
+  getStory: (storyID: MongoID): Promise<Story> => {
+    return collection('stories')
+    .then((storyCollection) => {
+      return storyCollection.findOne({ _id: ID(storyID) }) as Promise<Story>;
+    })
+    .then((story) => {
+      if(!story) {
+        return Promise.reject({
+          message: `No story exists with id: ${storyID}`,
+          errorCode: ErrorCode.storyDoesNotExist
+        });
+      }
+
+      return Promise.resolve(prepareStoryForResponse(story));
+    });
+  },
+
+  /**
+   * Creates a new story for the user.
+   */
+  createNewStory: (userID, newStory: NewStory): Promise<{ targetID: MongoID }> => {
+    return kleen.validModel(newStorySchema)(newStory)
+    .then(() => {
+      return collection("stories");
+    })
+    .then((StoryCollection) => {
+
+      // Convert to a full `Story` by adding missing fields with defaults.
+      const story: Story = {
+        name: newStory.name,
+        description: newStory.description,
+        tags: newStory.tags,
+        // DB-added fields here:
+        //  - Author
+        //  - Add blank pages.
+        author: userID,
+        pages: []
+      };
+
+      return StoryCollection.insertOne(story);
+    })
+    .then((story) => {
+      return { targetID: story.insertedId.toHexString() };
+    });
+  },
+
+  /**
+   * Updates the information connected to a story. This will only allow the
+   * author to edit the information.
+   */
+  updateStoryInfo: (userID, storyID, editedInfo): Promise<{ targetID: MongoID }> => {
+    return kleen.validModel(newStorySchema)(editedInfo)
+    .then(() => {
+      return collection('stories')
+    })
+    .then((storyCollection) => {
+      return storyCollection.findOneAndUpdate(
+        { _id: ID(storyID),
+          author: userID
+        },
+        { $set: editedInfo },
+        {}
+      );
+    })
+    .then((updateStoryResult) => {
+      if(updateStoryResult.value) {
+        return { targetID: updateStoryResult.value._id };
+      }
+
+      return Promise.reject({
+        errorCode: ErrorCode.internalError,
+        message: "You do not have a story with that ID."
+      });
+    });
+  }
+};

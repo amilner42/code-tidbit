@@ -3,7 +3,7 @@
 import * as kleen from "kleen";
 
 import { malformedFieldError, asyncIdentity } from '../util';
-import { collection } from '../db';
+import { collection, renameIDField, ID } from '../db';
 import { MongoID, ErrorCode, Language } from '../types';
 import { Range } from './range.model';
 import { FileStructure, metaMap, swapPeriodsWithStars } from './file-structure.model';
@@ -55,7 +55,7 @@ const bigbitHighlightedCommentSchema: kleen.typeSchema = {
 /**
  * Kleen schema for a bigbit.
  */
-export const bigbitSchema: kleen.typeSchema = {
+const bigbitSchema: kleen.typeSchema = {
   objectProperties: {
     "name": KS.nameSchema(ErrorCode.bigbitEmptyName, ErrorCode.bigbitNameTooLong),
     "description": KS.descriptionSchema(ErrorCode.bigbitEmptyDescription),
@@ -92,7 +92,7 @@ export const bigbitSchema: kleen.typeSchema = {
  *
  * NOTE: This function does not attach an author.
  */
-export const validifyAndUpdateBigbit = (bigbit: Bigbit) => {
+const validifyAndUpdateBigbit = (bigbit: Bigbit): Promise<Bigbit> => {
 
   return new Promise((resolve, reject) => {
 
@@ -130,4 +130,85 @@ export const validifyAndUpdateBigbit = (bigbit: Bigbit) => {
     })
     .catch(reject);
   });
+};
+
+/**
+ * All the db helpers for a bigbit.
+ */
+export const bigbitDBActions = {
+
+  /**
+   * Adds a new bigbit to the database for a user. Handles all the logic of
+   * changing the languages to the IDs and renaming files/folders to avoid
+   * having a "." in them.
+   */
+  addNewBigbit: (userID, bigbit): Promise<{ targetID: MongoID }> => {
+    return validifyAndUpdateBigbit(bigbit)
+    .then((updatedBigbit: Bigbit) => {
+      updatedBigbit.author = userID;
+
+      return collection("bigbits")
+      .then((bigbitCollection) => {
+        return bigbitCollection.insertOne(updatedBigbit);
+      })
+      .then((bigbit) => {
+        return { targetID: bigbit.insertedId.toHexString() };
+      });
+    });
+  },
+
+  /**
+   * Gets a bigbit from the database, handles all the transformations to get the
+   * bigbit in the correct format for the frontend (reverse transformations of
+   * `addNewBigbit`).
+   */
+  getBigbit: (bigbitID: MongoID): Promise<Bigbit> => {
+    return collection("bigbits")
+    .then((bigbitCollection) => {
+      return bigbitCollection.findOne({ _id: ID(bigbitID) }) as Promise<Bigbit>;
+    })
+    .then((bigbit) => {
+
+      if(!bigbit) {
+        return Promise.reject({
+          errorCode: ErrorCode.bigbitDoesNotExist,
+          message: `ID ${bigbitID} does not point to a bigbit.`
+        });
+      }
+
+      renameIDField(bigbit);
+
+      return collection("languages")
+      .then((languageCollection) => {
+        // Swap all languageIDs with encoded language names.
+        return metaMap(
+          asyncIdentity,
+          asyncIdentity,
+          (fileMetadata => {
+            return new Promise<{language: string}>((resolve, reject) => {
+              languageCollection.findOne({ _id: ID(fileMetadata.language) })
+              .then((language: Language) => {
+                if(!language) {
+                  reject({
+                    errorCode: ErrorCode.internalError,
+                    message: `Language ID ${fileMetadata.language} does not point to a language`
+                  });
+                  return;
+                }
+
+                resolve({ language: language.encodedName });
+                return;
+              });
+            });
+          }),
+          bigbit.fs
+        );
+      })
+      .then((updatedFS) => {
+        // Switch to updated fs, which includes swapping '*' with '.'
+        bigbit.fs = swapPeriodsWithStars(false, updatedFS);
+        return bigbit;
+      });
+    });
+  }
 }
