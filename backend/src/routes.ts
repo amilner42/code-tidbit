@@ -86,7 +86,8 @@ export const authlessRoutes: AppRoutesAuth = {
   '/bigbits/': { get: true },
   '/bigbits/:id': { get: true },
   '/stories': { get: true },
-  '/stories/:id': { get: true }
+  '/stories/:id': { get: true },
+  '/tidbits': { get: true }
 };
 
 /**
@@ -294,13 +295,15 @@ export const routes: AppRoutes = {
 
   '/stories/:id': {
     /**
-     * Gets a story from the db.
+     * Gets a story from the db, customizable through query params.
      */
     get: (req, res) => {
       const params = req.params;
       const storyID = params.id;
+      const queryParams = req.query;
+      const expandStory = !!queryParams.expandStory;
 
-      handleAction(res)(storyDBActions.getStory(storyID));
+      handleAction(res)(storyDBActions.getStory(storyID, expandStory));
     }
   },
 
@@ -315,6 +318,25 @@ export const routes: AppRoutes = {
       const editedInfo = req.body;
 
       handleAction(res)(storyDBActions.updateStoryInfo(userID, storyID, editedInfo));
+    }
+  },
+
+  '/tidbits': {
+    /**
+     * Gets all the tidbits, customizable through query params.
+     */
+    get: (req, res) => {
+      const queryParams = req.query;
+      const forUser = queryParams.forUser;
+
+      Promise.all([snipbitDBActions.getSnipbits({ forUser }), bigbitDBActions.getBigbits({ forUser })])
+      .then(([snipbits, bigbits]) => {
+        let tidbits: (Snipbit | Bigbit)[] = snipbits;
+        tidbits = tidbits.concat(bigbits);
+
+        res.status(200).json(tidbits);
+      })
+      .catch(handleError(res));
     }
   }
 }
