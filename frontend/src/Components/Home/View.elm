@@ -22,6 +22,8 @@ import Models.Route as Route
 import Models.Snipbit as Snipbit
 import Models.ProfileData as ProfileData
 import Models.NewStoryData as NewStoryData
+import Models.StoryData as StoryData
+import Models.Tidbit as Tidbit
 
 
 {-| A google-material-design check-icon.
@@ -943,11 +945,8 @@ navbar shared =
 -}
 createStoryView : Model -> Shared -> Html Msg
 createStoryView model shared =
-    case model.storyData.currentStory of
-        Nothing ->
-            Util.hiddenDiv
-
-        Just story ->
+    case ( model.storyData.currentStory, shared.userTidbits ) of
+        ( Just story, Just userTidbits ) ->
             div
                 [ class "create-story-page" ]
                 [ div
@@ -968,23 +967,44 @@ createStoryView model shared =
                     [ div
                         [ class "page-content-bar" ]
                         [ div
-                            [ class "page-content-bar-title" ]
+                            [ class "page-content-bar-title"
+                            , id "story-tidbits-title"
+                            ]
                             [ text "Story Tidbits" ]
                         , div
                             [ class "page-content-bar-line" ]
                             []
                         , div
-                            [ class "boxes" ]
+                            []
                             (List.indexedMap
                                 (\index tidbit ->
                                     div
                                         [ class "tidbit-box" ]
                                         [ div
                                             [ class "tidbit-box-name" ]
-                                            [ text tidbit.targetID ]
+                                            [ text <| Tidbit.getName tidbit ]
+                                        , div
+                                            [ class "tidbit-box-page-number" ]
+                                            [ text <| toString <| index + 1 ]
                                         ]
                                 )
-                                story.pages
+                                story.expandedPages
+                            )
+                        , div
+                            []
+                            (List.map
+                                (\tidbit ->
+                                    div
+                                        [ class "tidbit-box not-yet-added" ]
+                                        [ div
+                                            [ class "tidbit-box-name" ]
+                                            [ text <| Tidbit.getName tidbit ]
+                                        , button
+                                            [ onClick <| CreateStoryRemoveTidbit tidbit ]
+                                            [ text "don't add" ]
+                                        ]
+                                )
+                                model.storyData.tidbitsToAdd
                             )
                         ]
                     , div
@@ -996,21 +1016,37 @@ createStoryView model shared =
                             [ class "page-content-bar-line" ]
                             []
                         , div
-                            [ class "boxes" ]
+                            []
                             (List.map
                                 (\tidbit ->
                                     div
                                         [ class "tidbit-box" ]
                                         [ div
                                             [ class "tidbit-box-name" ]
-                                            [ text tidbit.name ]
+                                            [ text <| Tidbit.getName tidbit ]
+                                        , div
+                                            [ class "tidbit-box-type-name" ]
+                                            [ text <| Tidbit.getTypeName tidbit ]
+                                        , button
+                                            [ class "view-tidbit"
+                                            , onClick <| GoTo <| Tidbit.viewTidbitRoute tidbit
+                                            ]
+                                            [ text "View" ]
+                                        , button
+                                            [ class "add-tidbit"
+                                            , onClick <| CreateStoryAddTidbit tidbit
+                                            ]
+                                            [ text "Add" ]
                                         ]
                                 )
-                                []
+                                (StoryData.remainingTidbits (story.expandedPages ++ model.storyData.tidbitsToAdd) userTidbits)
                             )
                         ]
                     ]
                 ]
+
+        _ ->
+            Util.hiddenDiv
 
 
 {-| The view for creating a new story.

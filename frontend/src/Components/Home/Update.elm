@@ -507,20 +507,27 @@ update msg model shared =
 
                         Route.HomeComponentCreateStory storyID ->
                             let
-                                ( newModel, newShared, newCmd ) =
+                                -- Handle logic for getting story if not loaded.
+                                ( newModel, _, newCmd ) =
                                     if maybeMapWithDefault (.id >> ((==) storyID)) False model.storyData.currentStory then
                                         doNothing
                                     else
                                         ( updateStoryData <| always StoryData.defaultStoryData
                                         , shared
-                                        , Api.getStory storyID CreateStoryGetStoryFailure CreateStoryGetStorySuccess
+                                        , Api.getExpandedStory storyID CreateStoryGetStoryFailure CreateStoryGetStorySuccess
                                         )
                             in
                                 ( newModel
-                                , newShared
+                                , shared
                                 , Cmd.batch
                                     [ newCmd
-                                    , Ports.doScrolling { querySelector = ".invisible-bottom", duration = 750 }
+                                    , case ( Util.isNothing shared.userTidbits, shared.user ) of
+                                        ( True, Just user ) ->
+                                            Api.getTidbits [ ( "forUser", Just user.id ) ] CreateStoryGetTidbitsFailure CreateStoryGetTidbitsSuccess
+
+                                        _ ->
+                                            Cmd.none
+                                    , Ports.doScrolling { querySelector = "#story-tidbits-title", duration = 750 }
                                     ]
                                 )
 
@@ -1023,7 +1030,9 @@ update msg model shared =
                 ( { model
                     | snipbitCreateData = .snipbitCreateData HomeInit.init
                   }
-                , shared
+                , { shared
+                    | userTidbits = Nothing
+                  }
                 , Route.navigateTo <| Route.HomeComponentViewSnipbitIntroduction targetID
                 )
 
@@ -1755,7 +1764,9 @@ update msg model shared =
                 ( { model
                     | bigbitCreateData = .bigbitCreateData HomeInit.init
                   }
-                , shared
+                , { shared
+                    | userTidbits = Nothing
+                  }
                 , Route.navigateTo <| Route.HomeComponentViewBigbitIntroduction targetID Nothing
                 )
 
@@ -2164,7 +2175,7 @@ update msg model shared =
                 -- TODO handle error
                 doNothing
 
-            CreateStoryGetStorySuccess story ->
+            CreateStoryGetStorySuccess expandedStory ->
                 case shared.user of
                     -- Should never happen.
                     Nothing ->
@@ -2173,8 +2184,8 @@ update msg model shared =
                     Just user ->
                         -- If this is indeed the author, then stay on page,
                         -- otherwise redirect.
-                        if user.id == story.author then
-                            ( updateStoryData <| StoryData.setCurrentStory story
+                        if user.id == expandedStory.author then
+                            ( updateStoryData <| StoryData.setCurrentStory expandedStory
                             , shared
                             , Cmd.none
                             )
@@ -2183,6 +2194,32 @@ update msg model shared =
                             , shared
                             , Route.modifyTo Route.HomeComponentCreate
                             )
+
+            CreateStoryGetTidbitsFailure apiError ->
+                -- Handle error.
+                doNothing
+
+            CreateStoryGetTidbitsSuccess tidbits ->
+                ( model
+                , { shared
+                    | userTidbits = Just tidbits
+                  }
+                , Cmd.none
+                )
+
+            CreateStoryAddTidbit tidbit ->
+                ( updateStoryData <|
+                    StoryData.addTidbit tidbit
+                , shared
+                , Cmd.none
+                )
+
+            CreateStoryRemoveTidbit tidbit ->
+                ( updateStoryData <|
+                    StoryData.removeTidbit tidbit
+                , shared
+                , Cmd.none
+                )
 
 
 {-| Creates the code editor for the bigbit when browsing relevant HC.

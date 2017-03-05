@@ -12,6 +12,7 @@ import Models.IDResponse as IDResponse
 import Models.Snipbit as Snipbit
 import Models.Story as Story
 import Models.User as User
+import Models.Tidbit as Tidbit
 
 
 {-| Helper for querying the API (GET), automatically adds the apiBaseUrl prefix.
@@ -54,6 +55,15 @@ getStory storyID =
         Story.storyDecoder
 
 
+{-| Gets a single expanded story.
+-}
+getExpandedStory : String -> (ApiError.ApiError -> b) -> (Story.ExpandedStory -> b) -> Cmd b
+getExpandedStory storyID =
+    apiGet
+        ("stories" :/: storyID ++ Util.queryParamsToString [ ( "expandStory", Just "true" ) ])
+        Story.expandedStoryDecoder
+
+
 {-| Queries the API to log the user out, which should send a response to delete
 the cookies.
 -}
@@ -81,6 +91,16 @@ getSnipbit snipbitID =
 getBigbit : String -> (ApiError.ApiError -> b) -> (Bigbit.Bigbit -> b) -> Cmd b
 getBigbit bigbitID =
     apiGet ("bigbits" :/: bigbitID) Bigbit.bigbitDecoder
+
+
+{-| Gets tidbits, you can use query params to customize the search.
+Refer to the backend to see what the options are.
+-}
+getTidbits : List ( String, Maybe String ) -> (ApiError.ApiError -> b) -> (List Tidbit.Tidbit -> b) -> Cmd b
+getTidbits queryParams =
+    apiGet
+        ("tidbits" ++ (Util.queryParamsToString queryParams))
+        (Decode.list Tidbit.decoder)
 
 
 {-| Logs user in and returns the user, unless invalid credentials.

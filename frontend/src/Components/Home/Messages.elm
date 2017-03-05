@@ -11,6 +11,7 @@ import Models.Bigbit as Bigbit
 import Models.Snipbit as Snipbit
 import Models.User as User
 import Models.Story as Story
+import Models.Tidbit as Tidbit
 import Elements.FileStructure as FS
 import Elements.Editor as Editor
 
@@ -121,4 +122,8 @@ type Msg
     | NewStorySaveEditsFailure ApiError.ApiError
     | NewStorySaveEditsSuccess IDResponse
     | CreateStoryGetStoryFailure ApiError.ApiError
-    | CreateStoryGetStorySuccess Story.Story
+    | CreateStoryGetStorySuccess Story.ExpandedStory
+    | CreateStoryGetTidbitsFailure ApiError.ApiError
+    | CreateStoryGetTidbitsSuccess (List Tidbit.Tidbit)
+    | CreateStoryAddTidbit Tidbit.Tidbit
+    | CreateStoryRemoveTidbit Tidbit.Tidbit
