@@ -1041,7 +1041,7 @@ createStoryView model shared =
                                             [ text <| Tidbit.getTypeName tidbit ]
                                         , button
                                             [ class "view-tidbit"
-                                            , onClick <| GoTo <| Tidbit.viewTidbitRoute tidbit
+                                            , onClick <| GoTo <| Tidbit.getTidbitRoute tidbit
                                             ]
                                             [ text "View" ]
                                         , button

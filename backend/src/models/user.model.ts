@@ -72,9 +72,8 @@ const updateUserSchema: kleen.objectSchema = {
 
 /**
  * Prepares the user for response.
- *
- * - Removes password
- * - Rename `_id` to `id`
+ *  - Removes password
+ *  - Rename `_id` to `id`
  */
 export const prepareUserForResponse = (user: User) => {
   delete user.password;

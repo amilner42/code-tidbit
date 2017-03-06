@@ -30,8 +30,8 @@ getName tidbit =
 {-| Gets the route-base for viewing the tidbit, still requires the ID to become
 a full `Route`.
 -}
-viewTidbitRoute : Tidbit -> Route.Route
-viewTidbitRoute tidbit =
+getTidbitRoute : Tidbit -> Route.Route
+getTidbitRoute tidbit =
     case tidbit of
         Snipbit { id } ->
             Route.HomeComponentViewSnipbitIntroduction id

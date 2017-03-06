@@ -231,7 +231,7 @@ export const storyDBActions = {
    * Gets a single story from the database. If `expandStory` then the `pages`
    * are expanded.
    */
-  getStory: (storyID: MongoID, expandStory: Boolean): Promise<Story> => {
+  getStory: (storyID: MongoID, expandStory: Boolean): Promise<Story | ExpandedStory> => {
     return collection('stories')
     .then((storyCollection) => {
       return storyCollection.findOne({ _id: ID(storyID) }) as Promise<Story>;
@@ -248,7 +248,7 @@ export const storyDBActions = {
         return storyDBActions.expandStory(story);
       }
 
-      return Promise.resolve(prepareStoryForResponse(story));
+      return prepareStoryForResponse(story);
     });
   },
 

@@ -126,7 +126,7 @@ const validifyAndUpdateSnipbit = (snipbit: Snipbit): Promise<Snipbit> => {
  *
  * @WARNING Mutates `snipbit`.
  */
-export const prepareSnipbitForResponse = (snipbit: Snipbit): Promise<Snipbit> => {
+const prepareSnipbitForResponse = (snipbit: Snipbit): Promise<Snipbit> => {
   renameIDField(snipbit);
 
   return new Promise((resolve, reject) => {
@@ -202,8 +202,8 @@ export const snipbitDBActions = {
    */
   getSnipbit: (snipbitID: MongoID): Promise<Snipbit> => {
     return collection("snipbits")
-    .then((snipbitCollection) => {
-      return snipbitCollection.findOne({ _id: ID(snipbitID)}) as Promise<Snipbit>;
+    .then<Snipbit>((snipbitCollection) => {
+      return snipbitCollection.findOne({ _id: ID(snipbitID)});
     })
     .then((snipbit) => {
 
