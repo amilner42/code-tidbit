@@ -97,5 +97,7 @@ export enum ErrorCode {
   storyInvalidPageType,
   storyEmptyTag,
   storyNoTags,
-  storyDoesNotExist
+  storyDoesNotExist,
+  storyEditorMustBeAuthor,
+  storyAddingNonExistantTidbit
 }

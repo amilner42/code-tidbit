@@ -321,6 +321,20 @@ export const routes: AppRoutes = {
     }
   },
 
+  '/stories/:id/addTidbits': {
+    /**
+     * Adds tidbits to an existing story.
+     */
+    post: (req, res) => {
+      const params = req.params;
+      const storyID = params.id;
+      const userID = req.user._id;
+      const newStoryPages = req.body;
+
+      handleAction(res)(storyDBActions.addTidbitsToStory(userID, storyID, newStoryPages));
+    }
+  },
+
   '/tidbits': {
     /**
      * Gets all the tidbits, customizable through query params.

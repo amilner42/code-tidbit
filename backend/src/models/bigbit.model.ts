@@ -256,5 +256,18 @@ export const bigbitDBActions = {
 
       return prepareBigbitForResponse(bigbit);
     });
+  },
+
+  /**
+   * Checks if a bigbit exists.
+   */
+  hasBigbit: (bigbitID: MongoID): Promise<boolean> => {
+    return collection("bigbits")
+    .then((bigbitCollection) => {
+      return bigbitCollection.count({ _id: ID(bigbitID) });
+    })
+    .then((numberOfBigbitsWithID) => {
+      return numberOfBigbitsWithID > 0;
+    })
   }
 }

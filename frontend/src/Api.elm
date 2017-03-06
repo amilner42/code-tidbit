@@ -165,3 +165,13 @@ postUpdateStoryInformation storyID newStoryInformation =
         ("stories" :/: storyID :/: "information")
         IDResponse.idResponseDecoder
         (Story.newStoryEncoder newStoryInformation)
+
+
+{-| Updates a story with new tidbits.
+-}
+postAddTidbitsToStory : String -> List Story.StoryPage -> (ApiError.ApiError -> b) -> (Story.ExpandedStory -> b) -> Cmd b
+postAddTidbitsToStory storyID newTidbits =
+    apiPost
+        ("stories" :/: storyID :/: "addTidbits")
+        Story.expandedStoryDecoder
+        (Encode.list <| List.map Story.storyPageEncoder newTidbits)

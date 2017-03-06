@@ -216,5 +216,18 @@ export const snipbitDBActions = {
 
       return prepareSnipbitForResponse(snipbit);
     });
+  },
+
+  /**
+   * Checks if a snipbit exists.
+   */
+  hasSnipbit: (snipbitID: MongoID): Promise<boolean> => {
+    return collection("snipbits")
+    .then((snipbitCollection) => {
+      return snipbitCollection.count({ _id: ID(snipbitID)});
+    })
+    .then((numberOfSnipbitsWithID) => {
+      return numberOfSnipbitsWithID > 0;
+    });
   }
 }

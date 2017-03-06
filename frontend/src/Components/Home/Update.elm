@@ -2221,6 +2221,20 @@ update msg model shared =
                 , Cmd.none
                 )
 
+            CreateStoryPublishAddedTidbits storyID tidbits ->
+                if List.length tidbits > 0 then
+                    ( model
+                    , shared
+                    , Api.postAddTidbitsToStory storyID (List.map Story.storyPageFromTidbit tidbits) CreateStoryPublishAddedTidbitsFailure CreateStoryGetStorySuccess
+                    )
+                else
+                    -- Should never happen.
+                    doNothing
+
+            CreateStoryPublishAddedTidbitsFailure apiError ->
+                -- TODO handle error.
+                doNothing
+
 
 {-| Creates the code editor for the bigbit when browsing relevant HC.
 

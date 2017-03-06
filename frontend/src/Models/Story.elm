@@ -59,6 +59,22 @@ type StoryPageType
     | Bigbit
 
 
+{-| Conerts a tidbit to it's condensed `StoryPage` form.
+-}
+storyPageFromTidbit : Tidbit.Tidbit -> StoryPage
+storyPageFromTidbit tidbit =
+    case tidbit of
+        Tidbit.Snipbit { id } ->
+            { storyType = Snipbit
+            , targetID = id
+            }
+
+        Tidbit.Bigbit { id } ->
+            { storyType = Bigbit
+            , targetID = id
+            }
+
+
 {-| Story encoder.
 -}
 storyEncoder : Story -> Encode.Value

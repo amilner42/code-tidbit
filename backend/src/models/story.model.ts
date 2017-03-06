@@ -1,11 +1,12 @@
 /// Module for encapsulating helper functions for the story model.
 
+import * as R from "ramda";
 import * as kleen from "kleen";
-import { ObjectID } from 'mongodb';
+import { ObjectID, Collection } from 'mongodb';
 
 import { renameIDField, collection, ID } from '../db';
 import { malformedFieldError, isNullOrUndefined } from '../util';
-import { mongoIDSchema, nameSchema, descriptionSchema, optional, tagsSchema } from "./kleen-schemas";
+import { mongoIDSchema, nameSchema, descriptionSchema, optional, tagsSchema, nonEmptyArraySchema } from "./kleen-schemas";
 import { MongoID, ErrorCode } from '../types';
 import { Snipbit, snipbitDBActions } from './snipbit.model';
 import { Bigbit, bigbitDBActions } from './bigbit.model';
@@ -160,23 +161,38 @@ const prepareExpandedStoryForResponse = (expandedStory: ExpandedStory): Expanded
 export const storyDBActions = {
 
   /**
+   * Returns [a promise to] true if the page exists.
+   */
+  pageExists: (page: StoryPage): Promise<boolean> => {
+    switch(page.storyType) {
+      case StoryPageType.Snipbit:
+        return snipbitDBActions.hasSnipbit(page.targetID);
+
+      case StoryPageType.Bigbit:
+        return bigbitDBActions.hasBigbit(page.targetID);
+    }
+  },
+
+  /**
+   * Gets the expanded page from appropriate collection.
+   */
+  expandPage: (page: StoryPage): Promise<ExpandedStoryPage> => {
+    switch(page.storyType) {
+      case StoryPageType.Snipbit:
+        return snipbitDBActions.getSnipbit(page.targetID);
+
+      case StoryPageType.Bigbit:
+        return bigbitDBActions.getBigbit(page.targetID);
+    }
+  },
+
+  /**
    * Expands a story, this means switching all the `pages` with `expandedPages`.
    * Also prepares the expanded story for the response.
    */
   expandStory: (story: Story): Promise<ExpandedStory> => {
 
-    // Gets expanded page from appropriate collection.
-    const expandPage = (page: StoryPage): Promise<ExpandedStoryPage> => {
-      switch(page.storyType) {
-        case StoryPageType.Snipbit:
-          return snipbitDBActions.getSnipbit(page.targetID);
-
-        case StoryPageType.Bigbit:
-          return bigbitDBActions.getBigbit(page.targetID);
-      }
-    };
-
-    return Promise.all(story.pages.map(expandPage))
+    return Promise.all(story.pages.map(storyDBActions.expandPage))
     .then((expandedPages) => {
       const expandedStory: ExpandedStory = {
         _id: story._id,
@@ -291,6 +307,66 @@ export const storyDBActions = {
       return Promise.reject({
         errorCode: ErrorCode.internalError,
         message: "You do not have a story with that ID."
+      });
+    });
+  },
+
+  /**
+   * Adds tidbits to an existing story. Verifies that:
+   *  - Story already exists
+   *  - Author of story is current user
+   *  - `newStoryPages` point to actual tidbits.
+   */
+  addTidbitsToStory: (userID, storyID, newStoryPages: StoryPage[]): Promise<ExpandedStory> => {
+
+    const nonEmptyStoryPagesSchema = nonEmptyArraySchema(
+      storyPageSchema,
+      {
+        errorCode: ErrorCode.internalError,
+        message: "You can't add 0 tidbits to a story..."
+      },
+      malformedFieldError("New stories")
+    );
+
+    return kleen.validModel(nonEmptyStoryPagesSchema)(newStoryPages)
+    .then(() => {
+      return storyDBActions.getStory(storyID, false);
+    })
+    .then<boolean[]>((story) => {
+      if(!ID(story.author).equals(ID(userID))) {
+        return Promise.reject({
+          message: "You can only edit your own stories",
+          errorCode: ErrorCode.storyEditorMustBeAuthor
+        });
+      }
+
+      return Promise.all(newStoryPages.map(storyDBActions.pageExists));
+    })
+    .then<Collection>((pagesExistArray) => {
+      if (!R.all(R.identity, pagesExistArray)) {
+        return Promise.reject({
+          errorCode: ErrorCode.storyAddingNonExistantTidbit,
+          message: "A tidbit you were adding does not exist."
+        });
+      }
+
+      return collection("stories");
+    })
+    .then((storyCollection) => {
+      return storyCollection.findOneAndUpdate(
+        { _id: ID(storyID), author: userID },
+        { $push: { pages: { $each: newStoryPages } } },
+        { returnOriginal: false }
+      );
+    })
+    .then<ExpandedStory>((updatedStoryResult) => {
+      if(updatedStoryResult.value) {
+        return storyDBActions.expandStory(updatedStoryResult.value);
+      }
+
+      return Promise.reject({
+        errorCode: ErrorCode.internalError,
+        message: "There was an internal error when updating your story"
       });
     });
   }

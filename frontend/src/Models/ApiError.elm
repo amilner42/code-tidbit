@@ -58,6 +58,8 @@ type ApiError
     | StoryEmptyTag
     | StoryNoTags
     | StoryDoesNotExist
+    | StoryEditorMustBeAuthor
+    | StoryAddingNonExistantTidbit
 
 
 {-| An error from the backend still in Json form.
@@ -223,6 +225,12 @@ humanReadable apiError =
         StoryDoesNotExist ->
             "No story exists with that ID!"
 
+        StoryEditorMustBeAuthor ->
+            "You can only edit your own stories!"
+
+        StoryAddingNonExistantTidbit ->
+            "You are adding a non-existant tidbit!"
+
 
 {-| Turns an errorCode integer from the backend to it's respective ApiError.
 -}
@@ -366,6 +374,12 @@ fromErrorCode errorCode =
 
         46 ->
             StoryDoesNotExist
+
+        47 ->
+            StoryEditorMustBeAuthor
+
+        48 ->
+            StoryAddingNonExistantTidbit
 
         _ ->
             InternalError

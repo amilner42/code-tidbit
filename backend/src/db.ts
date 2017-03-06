@@ -34,11 +34,13 @@ export const collection = (collectionName: string): Promise<Collection> => {
 /**
  * Get the ObjectID from an ID, basic convenience method.
  *
- * @param idString The id as a string
+ * @param idString The id as a string / objectID
  * @returns A new mongo ObjectID object with idString as the ID
  */
-export const ID = (idString: string): ObjectID => {
-  return new ObjectID(idString);
+export const ID = (idString: string | ObjectID): ObjectID => {
+  // If it's an objectID, it'll just be returned (the typings are wrong).
+  // https://github.com/mongodb/js-bson/blob/9e4b56bd9681539896f7633f6de0771b7185927b/lib/bson/objectid.js#L30
+  return new ObjectID(idString as string);
 }
 
 /**

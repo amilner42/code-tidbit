@@ -45,11 +45,14 @@ decoder =
 
 
 {-| Sets the `currentStory` to `expandedStory`.
+
+NOTE: This also clears the `tidbitsToAdd` field.
 -}
 setCurrentStory : Story.ExpandedStory -> StoryData -> StoryData
 setCurrentStory expandedStory storyData =
     { storyData
         | currentStory = Just expandedStory
+        , tidbitsToAdd = []
     }
 
 

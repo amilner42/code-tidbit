@@ -127,3 +127,5 @@ type Msg
     | CreateStoryGetTidbitsSuccess (List Tidbit.Tidbit)
     | CreateStoryAddTidbit Tidbit.Tidbit
     | CreateStoryRemoveTidbit Tidbit.Tidbit
+    | CreateStoryPublishAddedTidbits String (List Tidbit.Tidbit)
+    | CreateStoryPublishAddedTidbitsFailure ApiError.ApiError

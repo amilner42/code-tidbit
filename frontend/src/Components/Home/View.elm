@@ -961,6 +961,18 @@ createStoryView model shared =
                         , onClick <| GoTo <| Route.HomeComponentCreateNewStoryName <| Just story.id
                         ]
                         [ text "Edit Information" ]
+                    , case model.storyData.tidbitsToAdd of
+                        [] ->
+                            button
+                                [ class "disabled-publish-button" ]
+                                [ text "Add Tidbits" ]
+
+                        tidbits ->
+                            button
+                                [ class "publish-button"
+                                , onClick <| CreateStoryPublishAddedTidbits story.id tidbits
+                                ]
+                                [ text "Add Tidbits" ]
                     ]
                 , div
                     [ class "create-story-page-content" ]
@@ -975,7 +987,7 @@ createStoryView model shared =
                             [ class "page-content-bar-line" ]
                             []
                         , div
-                            []
+                            [ class "inline-block" ]
                             (List.indexedMap
                                 (\index tidbit ->
                                     div
@@ -991,7 +1003,7 @@ createStoryView model shared =
                                 story.expandedPages
                             )
                         , div
-                            []
+                            [ class "inline-block" ]
                             (List.map
                                 (\tidbit ->
                                     div
