@@ -12,6 +12,7 @@ import Models.IDResponse as IDResponse
 import Models.Snipbit as Snipbit
 import Models.Story as Story
 import Models.User as User
+import Models.Tidbit as Tidbit
 
 
 {-| Helper for querying the API (GET), automatically adds the apiBaseUrl prefix.
@@ -35,13 +36,32 @@ getAccount =
     apiGet "account" User.decoder
 
 
-{-| Gets all the stories for a given user.
+{-| Gets all the stories, you can use query params to customize the search.
+Refer to the backend route to see what the options are.
 -}
-getAccountStories : List ( String, Maybe String ) -> (ApiError.ApiError -> b) -> (List Story.Story -> b) -> Cmd b
-getAccountStories queryParams =
+getStories : List ( String, Maybe String ) -> (ApiError.ApiError -> b) -> (List Story.Story -> b) -> Cmd b
+getStories queryParams =
     apiGet
         ("stories" ++ Util.queryParamsToString queryParams)
         (Decode.list <| Story.storyDecoder)
+
+
+{-| Gets a single story.
+-}
+getStory : String -> (ApiError.ApiError -> b) -> (Story.Story -> b) -> Cmd b
+getStory storyID =
+    apiGet
+        ("stories" :/: storyID)
+        Story.storyDecoder
+
+
+{-| Gets a single expanded story.
+-}
+getExpandedStory : String -> (ApiError.ApiError -> b) -> (Story.ExpandedStory -> b) -> Cmd b
+getExpandedStory storyID =
+    apiGet
+        ("stories" :/: storyID ++ Util.queryParamsToString [ ( "expandStory", Just "true" ) ])
+        Story.expandedStoryDecoder
 
 
 {-| Queries the API to log the user out, which should send a response to delete
@@ -71,6 +91,16 @@ getSnipbit snipbitID =
 getBigbit : String -> (ApiError.ApiError -> b) -> (Bigbit.Bigbit -> b) -> Cmd b
 getBigbit bigbitID =
     apiGet ("bigbits" :/: bigbitID) Bigbit.bigbitDecoder
+
+
+{-| Gets tidbits, you can use query params to customize the search.
+Refer to the backend to see what the options are.
+-}
+getTidbits : List ( String, Maybe String ) -> (ApiError.ApiError -> b) -> (List Tidbit.Tidbit -> b) -> Cmd b
+getTidbits queryParams =
+    apiGet
+        ("tidbits" ++ (Util.queryParamsToString queryParams))
+        (Decode.list Tidbit.decoder)
 
 
 {-| Logs user in and returns the user, unless invalid credentials.
@@ -125,3 +155,23 @@ postCreateNewStory newStory =
         "stories"
         IDResponse.idResponseDecoder
         (Story.newStoryEncoder newStory)
+
+
+{-| Updates the information for a story.
+-}
+postUpdateStoryInformation : String -> Story.NewStory -> (ApiError.ApiError -> b) -> (IDResponse.IDResponse -> b) -> Cmd b
+postUpdateStoryInformation storyID newStoryInformation =
+    apiPost
+        ("stories" :/: storyID :/: "information")
+        IDResponse.idResponseDecoder
+        (Story.newStoryEncoder newStoryInformation)
+
+
+{-| Updates a story with new tidbits.
+-}
+postAddTidbitsToStory : String -> List Story.StoryPage -> (ApiError.ApiError -> b) -> (Story.ExpandedStory -> b) -> Cmd b
+postAddTidbitsToStory storyID newTidbits =
+    apiPost
+        ("stories" :/: storyID :/: "addTidbits")
+        Story.expandedStoryDecoder
+        (Encode.list <| List.map Story.storyPageEncoder newTidbits)

@@ -27,4 +27,5 @@ defaultShared =
     , languages = Editor.humanReadableListOfLanguages
     , keysDown = KK.init
     , userStories = Nothing
+    , userTidbits = Nothing
     }

@@ -57,6 +57,9 @@ type ApiError
     | StoryInvalidPageType
     | StoryEmptyTag
     | StoryNoTags
+    | StoryDoesNotExist
+    | StoryEditorMustBeAuthor
+    | StoryAddingNonExistantTidbit
 
 
 {-| An error from the backend still in Json form.
@@ -219,6 +222,15 @@ humanReadable apiError =
         StoryNoTags ->
             "Stories must have at least a single tag!"
 
+        StoryDoesNotExist ->
+            "No story exists with that ID!"
+
+        StoryEditorMustBeAuthor ->
+            "You can only edit your own stories!"
+
+        StoryAddingNonExistantTidbit ->
+            "You are adding a non-existant tidbit!"
+
 
 {-| Turns an errorCode integer from the backend to it's respective ApiError.
 -}
@@ -359,6 +371,15 @@ fromErrorCode errorCode =
 
         45 ->
             StoryNoTags
+
+        46 ->
+            StoryDoesNotExist
+
+        47 ->
+            StoryEditorMustBeAuthor
+
+        48 ->
+            StoryAddingNonExistantTidbit
 
         _ ->
             InternalError

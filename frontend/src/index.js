@@ -91,7 +91,7 @@ app.ports.doScrolling.subscribe(function(scrollConfig) {
         window.requestAnimationFrame(step)
       };
     });
-  }, 0);
+  }, 100);
 });
 
 // Creates the code editor by embedding into the element with the correct id.

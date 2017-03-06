@@ -39,9 +39,10 @@ type Route
     | HomeComponentCreateBigbitCodeIntroduction (Maybe FS.Path)
     | HomeComponentCreateBigbitCodeFrame Int (Maybe FS.Path)
     | HomeComponentCreateBigbitCodeConclusion (Maybe FS.Path)
-    | HomeComponentCreateNewStoryName
-    | HomeComponentCreateNewStoryDescription
-    | HomeComponentCreateNewStoryTags
+    | HomeComponentCreateNewStoryName (Maybe MongoID)
+    | HomeComponentCreateNewStoryDescription (Maybe MongoID)
+    | HomeComponentCreateNewStoryTags (Maybe MongoID)
+    | HomeComponentCreateStory MongoID
     | HomeComponentProfile
     | WelcomeComponentLogin
     | WelcomeComponentRegister
@@ -139,20 +140,26 @@ matchers =
         createBigbitCodeConclusion =
             createBigbitCode </> s "conclusion" <?> qpFile
 
-        -- Abstract.
-        createNewStory =
+        createStory =
             create </> s "story"
 
         homeComponentCreateNewStoryName =
-            createNewStory </> s "name"
+            createStory </> s "name" <?> qpEditingStory
 
         homeComponentCreateNewStoryDescription =
-            createNewStory </> s "description"
+            createStory </> s "description" <?> qpEditingStory
 
         homeComponentCreateNewStoryTags =
-            createNewStory </> s "tags"
+            createStory </> s "tags" <?> qpEditingStory
 
-        -- Query Param for the current active file.
+        -- Query param
+        qpEditingStory =
+            stringParam "editingStory"
+
+        homeComponentCreateStory =
+            createStory </> string
+
+        -- Query param for the current active file.
         qpFile =
             stringParam "file"
 
@@ -194,6 +201,7 @@ matchers =
             , map HomeComponentCreateNewStoryName homeComponentCreateNewStoryName
             , map HomeComponentCreateNewStoryDescription homeComponentCreateNewStoryDescription
             , map HomeComponentCreateNewStoryTags homeComponentCreateNewStoryTags
+            , map HomeComponentCreateStory homeComponentCreateStory
             , map HomeComponentProfile (profile)
             , map WelcomeComponentRegister (welcomeRegister)
             , map WelcomeComponentLogin (welcomeLogin)
@@ -361,14 +369,20 @@ toHashUrl route =
                 "create/bigbit/code/conclusion/"
                     ++ (Util.queryParamsToString [ ( "file", qpFile ) ])
 
-            HomeComponentCreateNewStoryName ->
+            HomeComponentCreateNewStoryName qpStory ->
                 "create/story/name"
+                    ++ (Util.queryParamsToString [ ( "editingStory", qpStory ) ])
 
-            HomeComponentCreateNewStoryDescription ->
+            HomeComponentCreateNewStoryDescription qpStory ->
                 "create/story/description"
+                    ++ (Util.queryParamsToString [ ( "editingStory", qpStory ) ])
 
-            HomeComponentCreateNewStoryTags ->
+            HomeComponentCreateNewStoryTags qpStory ->
                 "create/story/tags"
+                    ++ (Util.queryParamsToString [ ( "editingStory", qpStory ) ])
+
+            HomeComponentCreateStory storyID ->
+                "create/story/" ++ storyID
 
             HomeComponentProfile ->
                 "profile"
@@ -491,3 +505,22 @@ navigateToSameUrlWithFilePath maybePath route =
 
         _ ->
             Cmd.none
+
+
+{-| Returns the query paramater "editingStory" if on the create new story routes
+and the parameter is present.
+-}
+getEditingStoryQueryParamOnCreateNewStoryUrl : Route -> Maybe MongoID
+getEditingStoryQueryParamOnCreateNewStoryUrl route =
+    case route of
+        HomeComponentCreateNewStoryName qpEditingStory ->
+            qpEditingStory
+
+        HomeComponentCreateNewStoryDescription qpEditingStory ->
+            qpEditingStory
+
+        HomeComponentCreateNewStoryTags qpEditingStory ->
+            qpEditingStory
+
+        _ ->
+            Nothing

@@ -22,6 +22,8 @@ import Models.Range as Range
 import Models.Route as Route
 import Models.ProfileData as ProfileData
 import Models.NewStoryData as NewStoryData
+import Models.Story as Story
+import Models.StoryData as StoryData
 import Models.User as User exposing (defaultUserUpdateRecord)
 import Task
 import Ports
@@ -95,6 +97,12 @@ update msg model shared =
         updateNewStoryData updater =
             { model
                 | newStoryData = updater model.newStoryData
+            }
+
+        updateStoryData : (StoryData.StoryData -> StoryData.StoryData) -> Model
+        updateStoryData updater =
+            { model
+                | storyData = updater model.storyData
             }
     in
         case msg of
@@ -218,6 +226,26 @@ update msg model shared =
                         , shared
                         , Util.domFocus (\_ -> NoOp) theID
                         )
+
+                    -- If the ID of the current editingStory is different, we
+                    -- need to get the info of the story that we are editing.
+                    getEditingStoryAndFocusOn theID qpEditingStory =
+                        ( model
+                        , shared
+                        , Cmd.batch
+                            [ Util.domFocus (\_ -> NoOp) theID
+                            , case qpEditingStory of
+                                Nothing ->
+                                    Cmd.none
+
+                                Just storyID ->
+                                    -- We already loaded the story we want to edit.
+                                    if storyID == model.newStoryData.editingStory.id then
+                                        Cmd.none
+                                    else
+                                        Api.getStory storyID NewStoryGetEditingStoryFailure NewStoryGetEditingStorySuccess
+                            ]
+                        )
                 in
                     case shared.route of
                         Route.HomeComponentCreate ->
@@ -230,7 +258,7 @@ update msg model shared =
                                     if Util.isNothing shared.userStories then
                                         ( model
                                         , shared
-                                        , Api.getAccountStories
+                                        , Api.getStories
                                             [ ( "author", Just user.id ) ]
                                             GetAccountStoriesFailure
                                             GetAccountStoriesSuccess
@@ -468,14 +496,40 @@ update msg model shared =
                                 ]
                             )
 
-                        Route.HomeComponentCreateNewStoryName ->
-                            focusOn "name-input"
+                        Route.HomeComponentCreateNewStoryName qpEditingStory ->
+                            getEditingStoryAndFocusOn "name-input" qpEditingStory
 
-                        Route.HomeComponentCreateNewStoryDescription ->
-                            focusOn "description-input"
+                        Route.HomeComponentCreateNewStoryDescription qpEditingStory ->
+                            getEditingStoryAndFocusOn "description-input" qpEditingStory
 
-                        Route.HomeComponentCreateNewStoryTags ->
-                            focusOn "tags-input"
+                        Route.HomeComponentCreateNewStoryTags qpEditingStory ->
+                            getEditingStoryAndFocusOn "tags-input" qpEditingStory
+
+                        Route.HomeComponentCreateStory storyID ->
+                            let
+                                -- Handle logic for getting story if not loaded.
+                                ( newModel, _, newCmd ) =
+                                    if maybeMapWithDefault (.id >> ((==) storyID)) False model.storyData.currentStory then
+                                        doNothing
+                                    else
+                                        ( updateStoryData <| always StoryData.defaultStoryData
+                                        , shared
+                                        , Api.getExpandedStory storyID CreateStoryGetStoryFailure CreateStoryGetStorySuccess
+                                        )
+                            in
+                                ( newModel
+                                , shared
+                                , Cmd.batch
+                                    [ newCmd
+                                    , case ( Util.isNothing shared.userTidbits, shared.user ) of
+                                        ( True, Just user ) ->
+                                            Api.getTidbits [ ( "forUser", Just user.id ) ] CreateStoryGetTidbitsFailure CreateStoryGetTidbitsSuccess
+
+                                        _ ->
+                                            Cmd.none
+                                    , Ports.doScrolling { querySelector = "#story-tidbits-title", duration = 750 }
+                                    ]
+                                )
 
                         _ ->
                             doNothing
@@ -976,7 +1030,9 @@ update msg model shared =
                 ( { model
                     | snipbitCreateData = .snipbitCreateData HomeInit.init
                   }
-                , shared
+                , { shared
+                    | userTidbits = Nothing
+                  }
                 , Route.navigateTo <| Route.HomeComponentViewSnipbitIntroduction targetID
                 )
 
@@ -1708,7 +1764,9 @@ update msg model shared =
                 ( { model
                     | bigbitCreateData = .bigbitCreateData HomeInit.init
                   }
-                , shared
+                , { shared
+                    | userTidbits = Nothing
+                  }
                 , Route.navigateTo <| Route.HomeComponentViewBigbitIntroduction targetID Nothing
                 )
 
@@ -1966,40 +2024,71 @@ update msg model shared =
                 , Cmd.none
                 )
 
-            NewStoryUpdateName newName ->
-                ( updateNewStoryData <| NewStoryData.updateName newName
-                , shared
-                , Cmd.none
-                )
+            NewStoryUpdateName isEditing newName ->
+                if isEditing then
+                    ( updateNewStoryData <| NewStoryData.updateEditName newName
+                    , shared
+                    , Cmd.none
+                    )
+                else
+                    ( updateNewStoryData <| NewStoryData.updateName newName
+                    , shared
+                    , Cmd.none
+                    )
 
-            NewStoryUpdateDescription newDescription ->
-                ( updateNewStoryData <| NewStoryData.updateDescription newDescription
-                , shared
-                , Cmd.none
-                )
+            NewStoryUpdateDescription isEditing newDescription ->
+                if isEditing then
+                    ( updateNewStoryData <| NewStoryData.updateEditDescription newDescription
+                    , shared
+                    , Cmd.none
+                    )
+                else
+                    ( updateNewStoryData <| NewStoryData.updateDescription newDescription
+                    , shared
+                    , Cmd.none
+                    )
 
-            NewStoryUpdateTagInput newTagInput ->
-                ( updateNewStoryData <| NewStoryData.updateTagInput newTagInput
-                , shared
-                , Cmd.none
-                )
+            NewStoryUpdateTagInput isEditing newTagInput ->
+                if isEditing then
+                    ( updateNewStoryData <| NewStoryData.updateEditTagInput newTagInput
+                    , shared
+                    , Cmd.none
+                    )
+                else
+                    ( updateNewStoryData <| NewStoryData.updateTagInput newTagInput
+                    , shared
+                    , Cmd.none
+                    )
 
-            NewStoryAddTag tagName ->
-                ( updateNewStoryData <| NewStoryData.newTag tagName
-                , shared
-                , Cmd.none
-                )
+            NewStoryAddTag isEditing tagName ->
+                if isEditing then
+                    ( updateNewStoryData <| NewStoryData.newEditTag tagName
+                    , shared
+                    , Cmd.none
+                    )
+                else
+                    ( updateNewStoryData <| NewStoryData.newTag tagName
+                    , shared
+                    , Cmd.none
+                    )
 
-            NewStoryRemoveTag tagName ->
-                ( updateNewStoryData <| NewStoryData.removeTag tagName
-                , shared
-                , Cmd.none
-                )
+            NewStoryRemoveTag isEditing tagName ->
+                if isEditing then
+                    ( updateNewStoryData <| NewStoryData.removeEditTag tagName
+                    , shared
+                    , Cmd.none
+                    )
+                else
+                    ( updateNewStoryData <| NewStoryData.removeTag tagName
+                    , shared
+                    , Cmd.none
+                    )
 
             NewStoryReset ->
                 ( updateNewStoryData <| always NewStoryData.defaultNewStoryData
                 , shared
-                , Route.navigateTo <| Route.HomeComponentCreateNewStoryName
+                  -- The reset button only exists when there is no `qpEditingStory`.
+                , Route.navigateTo <| Route.HomeComponentCreateNewStoryName Nothing
                 )
 
             NewStoryPublish ->
@@ -2022,8 +2111,129 @@ update msg model shared =
                 , { shared
                     | userStories = Nothing
                   }
+                , Route.navigateTo <| Route.HomeComponentCreateStory targetID
+                )
+
+            NewStoryGetEditingStoryFailure apiError ->
+                -- TODO handle error.
+                doNothing
+
+            NewStoryGetEditingStorySuccess story ->
+                case shared.user of
+                    Nothing ->
+                        doNothing
+
+                    Just user ->
+                        if story.author == user.id then
+                            ( updateNewStoryData <|
+                                NewStoryData.updateEditStory (always story)
+                            , shared
+                            , Cmd.none
+                            )
+                        else
+                            ( model
+                            , shared
+                            , Route.modifyTo <| Route.HomeComponentCreate
+                            )
+
+            NewStoryCancelEdits storyID ->
+                ( updateNewStoryData <|
+                    NewStoryData.updateEditStory (always Story.blankStory)
+                , shared
+                , Route.navigateTo <| Route.HomeComponentCreateStory storyID
+                )
+
+            NewStorySaveEdits storyID ->
+                let
+                    editingStory =
+                        model.newStoryData.editingStory
+
+                    editingStoryInformation =
+                        { name = editingStory.name
+                        , description = editingStory.description
+                        , tags = editingStory.tags
+                        }
+                in
+                    ( model
+                    , shared
+                    , Api.postUpdateStoryInformation storyID editingStoryInformation NewStorySaveEditsFailure NewStorySaveEditsSuccess
+                    )
+
+            NewStorySaveEditsFailure apiError ->
+                -- TODO handle error.
+                doNothing
+
+            NewStorySaveEditsSuccess { targetID } ->
+                ( model
+                , { shared
+                    | userStories = Nothing
+                  }
+                , Route.navigateTo <| Route.HomeComponentCreateStory targetID
+                )
+
+            CreateStoryGetStoryFailure apiError ->
+                -- TODO handle error
+                doNothing
+
+            CreateStoryGetStorySuccess expandedStory ->
+                case shared.user of
+                    -- Should never happen.
+                    Nothing ->
+                        doNothing
+
+                    Just user ->
+                        -- If this is indeed the author, then stay on page,
+                        -- otherwise redirect.
+                        if user.id == expandedStory.author then
+                            ( updateStoryData <| StoryData.setCurrentStory expandedStory
+                            , shared
+                            , Cmd.none
+                            )
+                        else
+                            ( model
+                            , shared
+                            , Route.modifyTo Route.HomeComponentCreate
+                            )
+
+            CreateStoryGetTidbitsFailure apiError ->
+                -- Handle error.
+                doNothing
+
+            CreateStoryGetTidbitsSuccess tidbits ->
+                ( model
+                , { shared
+                    | userTidbits = Just tidbits
+                  }
                 , Cmd.none
                 )
+
+            CreateStoryAddTidbit tidbit ->
+                ( updateStoryData <|
+                    StoryData.addTidbit tidbit
+                , shared
+                , Cmd.none
+                )
+
+            CreateStoryRemoveTidbit tidbit ->
+                ( updateStoryData <|
+                    StoryData.removeTidbit tidbit
+                , shared
+                , Cmd.none
+                )
+
+            CreateStoryPublishAddedTidbits storyID tidbits ->
+                if List.length tidbits > 0 then
+                    ( model
+                    , shared
+                    , Api.postAddTidbitsToStory storyID (List.map Story.storyPageFromTidbit tidbits) CreateStoryPublishAddedTidbitsFailure CreateStoryGetStorySuccess
+                    )
+                else
+                    -- Should never happen.
+                    doNothing
+
+            CreateStoryPublishAddedTidbitsFailure apiError ->
+                -- TODO handle error.
+                doNothing
 
 
 {-| Creates the code editor for the bigbit when browsing relevant HC.

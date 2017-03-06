@@ -366,20 +366,20 @@ handleKeyPress model =
                     )
                     Cmd.none
 
-            Route.HomeComponentCreateNewStoryName ->
+            Route.HomeComponentCreateNewStoryName qpEditingStory ->
                 watchForTabAndShiftTab
-                    (Route.navigateTo Route.HomeComponentCreateNewStoryDescription)
+                    (Route.navigateTo <| Route.HomeComponentCreateNewStoryDescription qpEditingStory)
                     Cmd.none
 
-            Route.HomeComponentCreateNewStoryDescription ->
+            Route.HomeComponentCreateNewStoryDescription qpEditingStory ->
                 watchForTabAndShiftTab
-                    (Route.navigateTo Route.HomeComponentCreateNewStoryTags)
-                    (Route.navigateTo Route.HomeComponentCreateNewStoryName)
+                    (Route.navigateTo <| Route.HomeComponentCreateNewStoryTags qpEditingStory)
+                    (Route.navigateTo <| Route.HomeComponentCreateNewStoryName qpEditingStory)
 
-            Route.HomeComponentCreateNewStoryTags ->
+            Route.HomeComponentCreateNewStoryTags qpEditingStory ->
                 watchForTabAndShiftTab
                     Cmd.none
-                    (Route.navigateTo Route.HomeComponentCreateNewStoryDescription)
+                    (Route.navigateTo <| Route.HomeComponentCreateNewStoryDescription qpEditingStory)
 
             _ ->
                 doNothing
@@ -548,13 +548,16 @@ handleLocationChange maybeRoute model =
                     Route.HomeComponentCreateBigbitCodeConclusion _ ->
                         triggerRouteHookOnHomeComponent
 
-                    Route.HomeComponentCreateNewStoryName ->
+                    Route.HomeComponentCreateNewStoryName _ ->
                         triggerRouteHookOnHomeComponent
 
-                    Route.HomeComponentCreateNewStoryDescription ->
+                    Route.HomeComponentCreateNewStoryDescription _ ->
                         triggerRouteHookOnHomeComponent
 
-                    Route.HomeComponentCreateNewStoryTags ->
+                    Route.HomeComponentCreateNewStoryTags _ ->
+                        triggerRouteHookOnHomeComponent
+
+                    Route.HomeComponentCreateStory _ ->
                         triggerRouteHookOnHomeComponent
 
                     _ ->

@@ -11,6 +11,7 @@ import Models.Bigbit as Bigbit
 import Models.Snipbit as Snipbit
 import Models.User as User
 import Models.Story as Story
+import Models.Tidbit as Tidbit
 import Elements.FileStructure as FS
 import Elements.Editor as Editor
 
@@ -105,12 +106,26 @@ type Msg
     | ProfileSaveBioSuccess User.User
     | GetAccountStoriesFailure ApiError.ApiError
     | GetAccountStoriesSuccess (List Story.Story)
-    | NewStoryUpdateName String
-    | NewStoryUpdateDescription String
-    | NewStoryUpdateTagInput String
-    | NewStoryAddTag String
-    | NewStoryRemoveTag String
+    | NewStoryUpdateName Bool String
+    | NewStoryUpdateDescription Bool String
+    | NewStoryUpdateTagInput Bool String
+    | NewStoryAddTag Bool String
+    | NewStoryRemoveTag Bool String
     | NewStoryReset
     | NewStoryPublish
     | NewStoryPublishSuccess IDResponse
     | NewStoryPublishFailure ApiError.ApiError
+    | NewStoryGetEditingStoryFailure ApiError.ApiError
+    | NewStoryGetEditingStorySuccess Story.Story
+    | NewStoryCancelEdits String
+    | NewStorySaveEdits String
+    | NewStorySaveEditsFailure ApiError.ApiError
+    | NewStorySaveEditsSuccess IDResponse
+    | CreateStoryGetStoryFailure ApiError.ApiError
+    | CreateStoryGetStorySuccess Story.ExpandedStory
+    | CreateStoryGetTidbitsFailure ApiError.ApiError
+    | CreateStoryGetTidbitsSuccess (List Tidbit.Tidbit)
+    | CreateStoryAddTidbit Tidbit.Tidbit
+    | CreateStoryRemoveTidbit Tidbit.Tidbit
+    | CreateStoryPublishAddedTidbits String (List Tidbit.Tidbit)
+    | CreateStoryPublishAddedTidbitsFailure ApiError.ApiError

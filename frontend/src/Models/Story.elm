@@ -3,6 +3,7 @@ module Models.Story exposing (..)
 import Json.Encode as Encode
 import Json.Decode as Decode
 import Json.Decode.Pipeline exposing (decode, required, optional, hardcoded)
+import Models.Tidbit as Tidbit
 
 
 {-| The story model.
@@ -17,7 +18,24 @@ type alias Story =
     }
 
 
+{-| The expanded-story model.
+
+NOTE: Currently expanded pages are just tidbits, but in the future this may need
+to as we may have tidbits AND quizzes etc...
+-}
+type alias ExpandedStory =
+    { id : String
+    , author : String
+    , name : String
+    , description : String
+    , tags : List String
+    , expandedPages : List Tidbit.Tidbit
+    }
+
+
 {-| A new story being created, does not yet contain any db-added fields.
+
+This data structure can also represent the information for editing a story.
 -}
 type alias NewStory =
     { name : String
@@ -39,6 +57,22 @@ type alias StoryPage =
 type StoryPageType
     = Snipbit
     | Bigbit
+
+
+{-| Conerts a tidbit to it's condensed `StoryPage` form.
+-}
+storyPageFromTidbit : Tidbit.Tidbit -> StoryPage
+storyPageFromTidbit tidbit =
+    case tidbit of
+        Tidbit.Snipbit { id } ->
+            { storyType = Snipbit
+            , targetID = id
+            }
+
+        Tidbit.Bigbit { id } ->
+            { storyType = Bigbit
+            , targetID = id
+            }
 
 
 {-| Story encoder.
@@ -66,6 +100,33 @@ storyDecoder =
         |> required "description" Decode.string
         |> required "tags" (Decode.list Decode.string)
         |> required "pages" (Decode.list storyPageDecoder)
+
+
+{-| ExpandedStory encoder.
+-}
+expandedStoryEncoder : ExpandedStory -> Encode.Value
+expandedStoryEncoder expandedStory =
+    Encode.object
+        [ ( "id", Encode.string expandedStory.id )
+        , ( "author", Encode.string expandedStory.author )
+        , ( "name", Encode.string expandedStory.name )
+        , ( "description", Encode.string expandedStory.description )
+        , ( "tags", Encode.list <| List.map Encode.string expandedStory.tags )
+        , ( "expandedPages", Encode.list <| List.map Tidbit.encoder expandedStory.expandedPages )
+        ]
+
+
+{-| ExpandedStory decoder.
+-}
+expandedStoryDecoder : Decode.Decoder ExpandedStory
+expandedStoryDecoder =
+    decode ExpandedStory
+        |> required "id" Decode.string
+        |> required "author" Decode.string
+        |> required "name" Decode.string
+        |> required "description" Decode.string
+        |> required "tags" (Decode.list Decode.string)
+        |> required "expandedPages" (Decode.list Tidbit.decoder)
 
 
 {-| NewStory encoder.
@@ -147,4 +208,17 @@ defaultNewStory =
     { name = ""
     , description = ""
     , tags = []
+    }
+
+
+{-| A completely blank story.
+-}
+blankStory : Story
+blankStory =
+    { id = ""
+    , author = ""
+    , name = ""
+    , description = ""
+    , tags = []
+    , pages = []
     }

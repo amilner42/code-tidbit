@@ -201,6 +201,10 @@
             .sub-bar {
                 .sub-bar-button {
                     margin-left: 10px;
+
+                    &.save-changes {
+                        width: 140px;
+                    }
                 }
 
                 .continue-button {
@@ -245,84 +249,22 @@
         }
 
         .create-page {
-            width: 85%;
-            min-width: 900px;
-            margin: auto;
-            padding-top: 10px;
+            @extend .page-content;
 
             .create-bar {
-                width: 100%;
-                height: 345px;
-                position: relative;
-                margin-top: 13px;
+                @extend .page-content-bar;
 
                 .create-bar-title {
-                    position: relative;
-                    display: inline-block;
-                    left: 10px;
-                    font-size: 28px;
-                    font-weight: 600;
-                    color: $color6;
+                    @extend .page-content-bar-title;
                 }
 
                 .create-bar-line {
-                    position: relative;
-                    width: 100%;
-                    border-bottom: 3px solid $color5;
-                    border-radius: 10px;
-                    margin: -2px 0 20px 0;
-
-                }
-
-                .story-boxes {
-                    height: 275px;
-                    overflow-y: hidden;
+                    @extend .page-content-bar-line;
                 }
 
                 .story-box {
-                    box-sizing: border-box;
-                    display: inline-block;
-                    position: relative;
                     float: left;
-                    width: 275px;
-                    height: 275px;
-                    margin: 0 10px 0 10px;
-                    border: 1px solid $color2;
-                    background-color: $color9;
-                    border-radius: 3px;
-
-                    .story-box-name {
-                        box-sizing: border-box;
-                        position: absolute;
-                        top: 50%;
-                        left: 50%;
-                        transform: translate(-50%, -50%);
-                        width: 100%;
-                        text-align: center;
-                        font-weight: 700;
-                        color: $color5;
-                        font-size: 28px;
-                        padding: 10px;
-                    }
-
-                    button {
-                        position: absolute;
-                        right: 10px;
-                        bottom: 10px;
-                        border: 1px solid $color2;
-                        border-radius: 15px;
-                        color: $color3;
-                        background-color: white;
-                        padding: 3px 10px 3px 10px;
-                        cursor: pointer;
-
-                        &:hover {
-                            color: $color1;
-                        }
-                    }
                 }
-
-
 
                 .create-story-box {
                     box-sizing: border-box;
@@ -1295,6 +1237,176 @@
                 &.previous-frame-location {
                     width: 160px;
                 }
+            }
+        }
+
+        .create-story-page {
+            height: 100%;
+
+            .sub-bar {
+
+                .sub-bar-button {
+                    margin-left: 10px;
+
+                    &.edit-information {
+                        width: 160px;
+                    }
+                }
+            }
+
+            .create-story-page-content {
+                @extend .page-content;
+            }
+        }
+
+        .page-content {
+            width: 85%;
+            min-width: 900px;
+            margin: auto;
+            padding-top: 10px;
+
+            .page-content-bar {
+                    width: 100%;
+                    min-height: 345px;
+                    position: relative;
+                    margin-top: 13px;
+
+                    .page-content-bar-title {
+                        position: relative;
+                        display: inline-block;
+                        left: 10px;
+                        font-size: 28px;
+                        font-weight: 600;
+                        color: $color6;
+                    }
+
+                    .page-content-bar-line {
+                        position: relative;
+                        width: 100%;
+                        border-bottom: 3px solid $color5;
+                        border-radius: 10px;
+                        margin: -2px 0 20px 0;
+
+                    }
+            }
+        }
+
+        // For containing stories/tidbit boxes.
+        .boxes {
+            height: 275px;
+            overflow-y: hidden;
+        }
+
+        .story-box {
+            box-sizing: border-box;
+            display: inline-block;
+            position: relative;
+            width: 275px;
+            height: 275px;
+            margin: 0 10px 0 10px;
+            border: 1px solid $color2;
+            background-color: $color9;
+            border-radius: 3px;
+
+            .story-box-name {
+                box-sizing: border-box;
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                width: 100%;
+                text-align: center;
+                font-weight: 700;
+                color: $color5;
+                font-size: 28px;
+                padding: 10px;
+            }
+
+            button {
+                position: absolute;
+                right: 10px;
+                bottom: 10px;
+                border: 1px solid $color2;
+                border-radius: 15px;
+                color: $color3;
+                background-color: white;
+                padding: 3px 10px 3px 10px;
+                cursor: pointer;
+
+                &:hover {
+                    color: $color1;
+                }
+            }
+        }
+
+        .tidbit-box {
+            box-sizing: border-box;
+            display: inline-block;
+            position: relative;
+            width: 275px;
+            height: 275px;
+            margin: 0 10px 20px 10px;
+            border: 1px solid $color2;
+            background-color: $color9;
+            border-radius: 3px;
+
+            .tidbit-box-name {
+                box-sizing: border-box;
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                width: 100%;
+                text-align: center;
+                font-weight: 700;
+                color: $color5;
+                font-size: 28px;
+                padding: 10px;
+            }
+
+            .tidbit-box-page-number {
+                position: absolute;
+                top: 5px;
+                left: 10px;
+                font-size: 20px;
+                color: $color4;
+            }
+
+            .tidbit-box-type-name {
+                position: absolute;
+                top: 10px;
+                left: 10px;
+                font-size: 10px;
+                color: $color4;
+            }
+
+            button {
+                position: absolute;
+                right: 10px;
+                bottom: 10px;
+                border: 1px solid $color2;
+                border-radius: 15px;
+                color: $color3;
+                background-color: white;
+                padding: 3px 10px 3px 10px;
+                cursor: pointer;
+
+                &:hover {
+                    color: $color1;
+                }
+
+                &.add-tidbit {
+                    right: 10px;
+                }
+
+                &.view-tidbit {
+                    right: 56px;
+                }
+            }
+
+            &.not-yet-added {
+                border: dotted 3px $color2;
+                opacity: 0.7;
             }
         }
     }
