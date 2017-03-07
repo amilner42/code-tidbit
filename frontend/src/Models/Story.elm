@@ -1,5 +1,7 @@
 module Models.Story exposing (..)
 
+import Date
+import DefaultServices.Util as Util
 import Json.Encode as Encode
 import Json.Decode as Decode
 import Json.Decode.Pipeline exposing (decode, required, optional, hardcoded)
@@ -16,6 +18,8 @@ type alias Story =
     , description : String
     , tags : List String
     , tidbitPointers : List TidbitPointer.TidbitPointer
+    , createdAt : Date.Date
+    , lastModified : Date.Date
     }
 
 
@@ -28,6 +32,8 @@ type alias ExpandedStory =
     , description : String
     , tags : List String
     , tidbits : List Tidbit.Tidbit
+    , createdAt : Date.Date
+    , lastModified : Date.Date
     }
 
 
@@ -53,6 +59,8 @@ storyEncoder story =
         , ( "description", Encode.string story.description )
         , ( "tags", Encode.list <| List.map Encode.string story.tags )
         , ( "tidbitPointers", Encode.list <| List.map TidbitPointer.encoder story.tidbitPointers )
+        , ( "createdAt", Util.dateEncoder story.createdAt )
+        , ( "lastModified", Util.dateEncoder story.lastModified )
         ]
 
 
@@ -67,6 +75,8 @@ storyDecoder =
         |> required "description" Decode.string
         |> required "tags" (Decode.list Decode.string)
         |> required "tidbitPointers" (Decode.list TidbitPointer.decoder)
+        |> required "createdAt" Util.dateDecoder
+        |> required "lastModified" Util.dateDecoder
 
 
 {-| ExpandedStory encoder.
@@ -80,6 +90,8 @@ expandedStoryEncoder expandedStory =
         , ( "description", Encode.string expandedStory.description )
         , ( "tags", Encode.list <| List.map Encode.string expandedStory.tags )
         , ( "tidbits", Encode.list <| List.map Tidbit.encoder expandedStory.tidbits )
+        , ( "createdAt", Util.dateEncoder expandedStory.createdAt )
+        , ( "lastModified", Util.dateEncoder expandedStory.lastModified )
         ]
 
 
@@ -94,6 +106,8 @@ expandedStoryDecoder =
         |> required "description" Decode.string
         |> required "tags" (Decode.list Decode.string)
         |> required "tidbits" (Decode.list Tidbit.decoder)
+        |> required "createdAt" Util.dateDecoder
+        |> required "lastModified" Util.dateDecoder
 
 
 {-| NewStory encoder.
@@ -128,6 +142,8 @@ defaultNewStory =
 
 
 {-| A completely blank story.
+
+Meaningless stub-dates are used for the dates.
 -}
 blankStory : Story
 blankStory =
@@ -137,4 +153,6 @@ blankStory =
     , description = ""
     , tags = []
     , tidbitPointers = []
+    , createdAt = Date.fromTime 0
+    , lastModified = Date.fromTime 0
     }

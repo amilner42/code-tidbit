@@ -3,6 +3,7 @@
 import * as R from "ramda";
 import * as kleen from "kleen";
 import { ObjectID, Collection } from 'mongodb';
+import moment from "moment";
 
 import { renameIDField, collection, ID } from '../db';
 import { malformedFieldError, isNullOrUndefined } from '../util';
@@ -23,6 +24,8 @@ interface StoryBase {
   name: string;
   description: string;
   tags: string[];
+  createdAt?: Date;
+  lastModified?: Date;
 }
 
 /**
@@ -132,7 +135,9 @@ export const storyDBActions = {
         author: story.author,
         description: story.description,
         tags: story.tags,
-        tidbits: tidbits
+        tidbits: tidbits,
+        lastModified: story.lastModified,
+        createdAt: story.createdAt
       };
 
       return prepareExpandedStoryForResponse(expandedStory);
@@ -192,6 +197,7 @@ export const storyDBActions = {
       return collection("stories");
     })
     .then((StoryCollection) => {
+      const dateNow = moment.utc().toDate();
 
       // Convert to a full `Story` by adding missing fields with defaults.
       const story: Story = {
@@ -202,7 +208,9 @@ export const storyDBActions = {
         //  - Author
         //  - Add an empty array of tidbit pointers.
         author: userID,
-        tidbitPointers: []
+        tidbitPointers: [],
+        createdAt: dateNow,
+        lastModified: dateNow
       };
 
       return StoryCollection.insertOne(story);
@@ -222,11 +230,13 @@ export const storyDBActions = {
       return collection('stories')
     })
     .then((storyCollection) => {
+      const dateNow = moment.utc().toDate();
+
       return storyCollection.findOneAndUpdate(
         { _id: ID(storyID),
           author: userID
         },
-        { $set: editedInfo },
+        { $set: Object.assign(editedInfo, { lastModified: dateNow }) },
         {}
       );
     })
@@ -284,9 +294,13 @@ export const storyDBActions = {
       return collection("stories");
     })
     .then((storyCollection) => {
+      const dateNow = moment.utc().toDate();
+
       return storyCollection.findOneAndUpdate(
         { _id: ID(storyID), author: userID },
-        { $push: { tidbitPointers: { $each: newTidbitPointers } } },
+        { $push: { tidbitPointers: { $each: newTidbitPointers } }
+        , $set: { lastModified: dateNow }
+        },
         { returnOriginal: false }
       );
     })

@@ -1,5 +1,6 @@
 module DefaultServices.Util exposing (..)
 
+import Date
 import Dict
 import Dom
 import Html exposing (Html, Attribute)
@@ -222,3 +223,35 @@ maybeMapWithDefault : (a -> b) -> b -> Maybe a -> b
 maybeMapWithDefault func default maybeA =
     Maybe.map func maybeA
         |> Maybe.withDefault default
+
+
+{-| Date decoder.
+
+Will decode both dates in number-form and dates in ISO-string-form.
+-}
+dateDecoder : Decode.Decoder Date.Date
+dateDecoder =
+    let
+        decodeStringDate =
+            Decode.string
+                |> Decode.andThen
+                    (Date.fromString
+                        >> Result.map Decode.succeed
+                        >> Result.withDefault (Decode.fail "Error parsing date")
+                    )
+
+        decodeFloatDate =
+            Decode.float
+                |> Decode.map Date.fromTime
+    in
+        Decode.oneOf
+            [ decodeFloatDate, decodeStringDate ]
+
+
+{-| Encodes a date into number-form.
+
+NOTE: Compatible with `dateDecoder`.
+-}
+dateEncoder : Date.Date -> Encode.Value
+dateEncoder =
+    Encode.float << Date.toTime

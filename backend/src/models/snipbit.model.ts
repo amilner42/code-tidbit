@@ -2,6 +2,7 @@
 
 import * as kleen from "kleen";
 import { ObjectID } from 'mongodb';
+import moment from 'moment';
 
 import { malformedFieldError, isNullOrUndefined } from '../util';
 import { collection, renameIDField, ID } from '../db';
@@ -27,6 +28,8 @@ export interface Snipbit {
   language: MongoID; // Backend converts language string to MongoID of language in DB.
   _id?: MongoID;
   author?: MongoID;
+  createdAt?: Date;
+  lastModified?: Date;
 }
 
 /**
@@ -165,7 +168,11 @@ export const snipbitDBActions = {
   addNewSnipbit: (userID, snipbit): Promise<{ targetID: MongoID }> => {
     return validifyAndUpdateSnipbit(snipbit)
     .then((updatedSnipbit: Snipbit) => {
+      const dateNow = moment.utc().toDate();
+
       updatedSnipbit.author = userID;
+      updatedSnipbit.createdAt = dateNow;
+      updatedSnipbit.lastModified = dateNow;
 
       return collection("snipbits")
       .then((snipbitCollection) => {

@@ -2,6 +2,7 @@
 
 import * as kleen from "kleen";
 import { ObjectID } from 'mongodb';
+import moment from 'moment';
 
 import { malformedFieldError, asyncIdentity, isNullOrUndefined } from '../util';
 import { collection, renameIDField, ID } from '../db';
@@ -27,6 +28,8 @@ export interface Bigbit {
   _id?: MongoID;
   fs : FileStructure<{},{},{ language : MongoID }>; // FileStructure from the frontend has language in string form, backend converts it to the ID.
   author?: MongoID;
+  createdAt?: Date;
+  lastModified?: Date;
 };
 
 /**
@@ -204,7 +207,11 @@ export const bigbitDBActions = {
   addNewBigbit: (userID, bigbit): Promise<{ targetID: MongoID }> => {
     return validifyAndUpdateBigbit(bigbit)
     .then((updatedBigbit: Bigbit) => {
+      const dateNow = moment.utc().toDate();
+
       updatedBigbit.author = userID;
+      updatedBigbit.createdAt = dateNow;
+      updatedBigbit.lastModified = dateNow;
 
       return collection("bigbits")
       .then((bigbitCollection) => {
