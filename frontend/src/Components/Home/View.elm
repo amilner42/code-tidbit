@@ -1000,7 +1000,7 @@ createStoryView model shared =
                                             [ text <| toString <| index + 1 ]
                                         ]
                                 )
-                                story.expandedPages
+                                story.tidbits
                             )
                         , div
                             [ class "inline-block" ]
@@ -1051,7 +1051,7 @@ createStoryView model shared =
                                             [ text "Add" ]
                                         ]
                                 )
-                                (StoryData.remainingTidbits (story.expandedPages ++ model.storyData.tidbitsToAdd) userTidbits)
+                                (StoryData.remainingTidbits (story.tidbits ++ model.storyData.tidbitsToAdd) userTidbits)
                             )
                         ]
                     ]

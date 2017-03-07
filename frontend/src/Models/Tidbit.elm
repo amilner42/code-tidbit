@@ -6,6 +6,7 @@ import Json.Decode.Pipeline exposing (decode, required, optional, hardcoded)
 import Models.Snipbit as SnipbitModel
 import Models.Bigbit as BigbitModel
 import Models.Route as Route
+import Models.TidbitPointer as TidbitPointer
 
 
 {-| All the different tidbit types.
@@ -50,6 +51,22 @@ getTypeName tidbit =
 
         Bigbit _ ->
             "Bigbit"
+
+
+{-| Converts a tidbit to compressed-pointer form.
+-}
+compressTidbit : Tidbit -> TidbitPointer.TidbitPointer
+compressTidbit tidbit =
+    case tidbit of
+        Snipbit { id } ->
+            { tidbitType = TidbitPointer.Snipbit
+            , targetID = id
+            }
+
+        Bigbit { id } ->
+            { tidbitType = TidbitPointer.Bigbit
+            , targetID = id
+            }
 
 
 {-| Tidbit encoder.

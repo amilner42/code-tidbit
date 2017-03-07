@@ -9,6 +9,7 @@ import { User, userDBActions, prepareUserForResponse } from './models/user.model
 import { Snipbit, snipbitDBActions } from './models/snipbit.model';
 import { Bigbit, bigbitDBActions } from './models/bigbit.model';
 import { NewStory, storyDBActions } from "./models/story.model";
+import { tidbitDBActions } from './models/tidbit.model';
 import { AppRoutes, AppRoutesAuth, FrontendError } from './types';
 import { internalError } from './util';
 
@@ -329,9 +330,9 @@ export const routes: AppRoutes = {
       const params = req.params;
       const storyID = params.id;
       const userID = req.user._id;
-      const newStoryPages = req.body;
+      const newStoryTidbitPointers = req.body;
 
-      handleAction(res)(storyDBActions.addTidbitsToStory(userID, storyID, newStoryPages));
+      handleAction(res)(storyDBActions.addTidbitPointersToStory(userID, storyID, newStoryTidbitPointers));
     }
   },
 
@@ -343,14 +344,7 @@ export const routes: AppRoutes = {
       const queryParams = req.query;
       const forUser = queryParams.forUser;
 
-      Promise.all([snipbitDBActions.getSnipbits({ forUser }), bigbitDBActions.getBigbits({ forUser })])
-      .then(([snipbits, bigbits]) => {
-        let tidbits: (Snipbit | Bigbit)[] = snipbits;
-        tidbits = tidbits.concat(bigbits);
-
-        res.status(200).json(tidbits);
-      })
-      .catch(handleError(res));
+      handleAction(res)(tidbitDBActions.getTidbits({ forUser }));
     }
   }
 }
