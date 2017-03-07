@@ -1511,28 +1511,46 @@ createView model shared =
                     div
                         []
                         [ div
-                            [ class "create-story-box"
-                            , onClick <| GoTo <| Route.HomeComponentCreateNewStoryName Nothing
+                            [ class "show-all-stories-icon"
+                            , onClick CreateStoryToggleShowAllStories
                             ]
                             [ i
-                                [ class "material-icons no-stories-box-icon" ]
-                                [ text "add" ]
+                                [ classList
+                                    [ ( "material-icons", True )
+                                    , ( "showing-all-stories", model.storyData.showAllStories )
+                                    ]
+                                ]
+                                [ text "play_arrow" ]
                             ]
                         , div
-                            [ class "boxes" ]
-                            (List.map
-                                (\story ->
-                                    div
-                                        [ class "story-box" ]
-                                        [ div
-                                            [ class "story-box-name" ]
-                                            [ text story.name ]
-                                        , button
-                                            [ onClick <| GoTo <| Route.HomeComponentCreateStory story.id ]
-                                            [ text "continue" ]
-                                        ]
-                                )
-                                userStories
+                            [ classList
+                                [ ( "boxes", True )
+                                , ( "collapsed", not <| model.storyData.showAllStories )
+                                ]
+                            ]
+                            ([ div
+                                [ class "create-story-box"
+                                , onClick <| GoTo <| Route.HomeComponentCreateNewStoryName Nothing
+                                ]
+                                [ i
+                                    [ class "material-icons no-stories-box-icon" ]
+                                    [ text "add" ]
+                                ]
+                             ]
+                                ++ (List.map
+                                        (\story ->
+                                            div
+                                                [ class "story-box" ]
+                                                [ div
+                                                    [ class "story-box-name" ]
+                                                    [ text story.name ]
+                                                , button
+                                                    [ onClick <| GoTo <| Route.HomeComponentCreateStory story.id ]
+                                                    [ text "continue" ]
+                                                ]
+                                        )
+                                        userStories
+                                   )
                             )
                         ]
     in

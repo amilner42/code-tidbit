@@ -513,7 +513,13 @@ update msg model shared =
                                     if maybeMapWithDefault (.id >> ((==) storyID)) False model.storyData.currentStory then
                                         doNothing
                                     else
-                                        ( updateStoryData <| always StoryData.defaultStoryData
+                                        ( updateStoryData <|
+                                            (\storyData ->
+                                                { storyData
+                                                    | currentStory = Nothing
+                                                    , tidbitsToAdd = []
+                                                }
+                                            )
                                         , shared
                                         , Api.getExpandedStory storyID CreateStoryGetStoryFailure CreateStoryGetStorySuccess
                                         )
@@ -2235,6 +2241,17 @@ update msg model shared =
             CreateStoryPublishAddedTidbitsFailure apiError ->
                 -- TODO handle error.
                 doNothing
+
+            CreateStoryToggleShowAllStories ->
+                ( updateStoryData <|
+                    (\storyData ->
+                        { storyData
+                            | showAllStories = not storyData.showAllStories
+                        }
+                    )
+                , shared
+                , Cmd.none
+                )
 
 
 {-| Creates the code editor for the bigbit when browsing relevant HC.

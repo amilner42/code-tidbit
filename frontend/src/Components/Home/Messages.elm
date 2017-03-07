@@ -129,3 +129,4 @@ type Msg
     | CreateStoryRemoveTidbit Tidbit.Tidbit
     | CreateStoryPublishAddedTidbits String (List Tidbit.Tidbit)
     | CreateStoryPublishAddedTidbitsFailure ApiError.ApiError
+    | CreateStoryToggleShowAllStories

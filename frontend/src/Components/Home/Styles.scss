@@ -250,9 +250,27 @@
 
         .create-page {
             @extend .page-content;
+            padding-bottom: 5px;
 
             .create-bar {
                 @extend .page-content-bar;
+
+                .show-all-stories-icon {
+                    position: absolute;
+                    left: -25px;
+                    top: 4px;
+                    background: transparent;
+                    color: $color6;
+                    border: none;
+                    cursor: pointer;
+                    font-size: 26px;
+                    height: 26px;
+                    width: 26px;
+
+                    .showing-all-stories {
+                        transform: rotate(90deg);
+                    }
+                }
 
                 .create-bar-title {
                     @extend .page-content-bar-title;
@@ -1293,8 +1311,15 @@
 
         // For containing stories/tidbit boxes.
         .boxes {
-            height: 275px;
-            overflow-y: hidden;
+            box-sizing: border-box;
+            overflow-y: auto;
+            height: 100%;
+
+            &.collapsed {
+                height: 0px;
+                overflow-y: hidden;
+                margin-bottom: -295px;
+            }
         }
 
         .story-box {
@@ -1303,7 +1328,7 @@
             position: relative;
             width: 275px;
             height: 275px;
-            margin: 0 10px 0 10px;
+            margin: 0 10px 20px 10px;
             border: 1px solid $color2;
             background-color: $color9;
             border-radius: 3px;
