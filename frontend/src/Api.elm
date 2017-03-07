@@ -13,6 +13,7 @@ import Models.Snipbit as Snipbit
 import Models.Story as Story
 import Models.User as User
 import Models.Tidbit as Tidbit
+import Models.TidbitPointer as TidbitPointer
 
 
 {-| Helper for querying the API (GET), automatically adds the apiBaseUrl prefix.
@@ -169,9 +170,9 @@ postUpdateStoryInformation storyID newStoryInformation =
 
 {-| Updates a story with new tidbits.
 -}
-postAddTidbitsToStory : String -> List Story.StoryPage -> (ApiError.ApiError -> b) -> (Story.ExpandedStory -> b) -> Cmd b
-postAddTidbitsToStory storyID newTidbits =
+postAddTidbitsToStory : String -> List TidbitPointer.TidbitPointer -> (ApiError.ApiError -> b) -> (Story.ExpandedStory -> b) -> Cmd b
+postAddTidbitsToStory storyID newTidbitPointers =
     apiPost
         ("stories" :/: storyID :/: "addTidbits")
         Story.expandedStoryDecoder
-        (Encode.list <| List.map Story.storyPageEncoder newTidbits)
+        (Encode.list <| List.map TidbitPointer.encoder newTidbitPointers)

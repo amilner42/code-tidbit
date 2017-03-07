@@ -54,7 +54,7 @@ type ApiError
     | StoryNameTooLong
     | StoryDescriptionEmpty
     | StoryDescriptionTooLong
-    | StoryInvalidPageType
+    | StoryInvalidTidbitType
     | StoryEmptyTag
     | StoryNoTags
     | StoryDoesNotExist
@@ -213,8 +213,8 @@ humanReadable apiError =
         StoryDescriptionTooLong ->
             "Your description name is too long!"
 
-        StoryInvalidPageType ->
-            "That is not a valid story type, refer to the API for valid types!"
+        StoryInvalidTidbitType ->
+            "That is not a valid tidbit type, refer to the API for valid tidbit types!"
 
         StoryEmptyTag ->
             "You cannot have empty tags!"
@@ -364,7 +364,7 @@ fromErrorCode errorCode =
             StoryDescriptionTooLong
 
         43 ->
-            StoryInvalidPageType
+            StoryInvalidTidbitType
 
         44 ->
             StoryEmptyTag

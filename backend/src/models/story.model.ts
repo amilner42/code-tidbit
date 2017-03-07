@@ -10,6 +10,7 @@ import { mongoIDSchema, nameSchema, descriptionSchema, optional, tagsSchema, non
 import { MongoID, ErrorCode } from '../types';
 import { Snipbit, snipbitDBActions } from './snipbit.model';
 import { Bigbit, bigbitDBActions } from './bigbit.model';
+import { Tidbit, TidbitPointer, TidbitType, tidbitPointerSchema, tidbitDBActions } from './tidbit.model';
 
 
 /**
@@ -32,16 +33,16 @@ interface InternalStorySearchFilter {
 }
 
 /**
-* A story will represent a series of tidbits that the user can go through. Of
-* course, in the future we may have additional things like quizzes.
+* A story will represent a series of tidbits that the user can go through. In
+* this form, all the tidbits are simply `TidbitPointer`s (to keep the story
+* compact), if you need all those tidbits then you need an `ExpandedStory`.
 */
-export type Story = StoryBase & { pages: StoryPage[]; };
+export type Story = StoryBase & { tidbitPointers: TidbitPointer[]; };
 
 /**
- * An expanded story is similar to a `Story` but we expand the pages instead
- * of just having them be pointers.
+ * An expanded story is similar to a `Story` but we expand the tidbit pointers.
  */
-export type ExpandedStory = StoryBase &  { expandedPages: ExpandedStoryPage[]; };
+export type ExpandedStory = StoryBase &  { tidbits: Tidbit[]; };
 
 /**
  * A `NewStory` represents the information part of a story which is all we
@@ -55,55 +56,11 @@ export interface NewStory {
 }
 
 /**
-* A StoryPage refers to a single part of the story, this could be one
-* `snipbit`, `bigbit`, or other things as more develop.
-*/
-export interface StoryPage {
-  storyType: StoryPageType;
-  targetID: string;
-}
-
-/**
-* The current possible pages.
-*/
-export enum StoryPageType {
-  Snipbit = 1,
-  Bigbit
-}
-
-/**
- * The types of the expanded pages, should be the actual values which
- * `StoryPageType` is referring to.
- */
-export type ExpandedStoryPage = Snipbit | Bigbit;
-
-/**
  * The filters allowed when searching stories.
  */
 export interface StorySearchFilter {
   author?: MongoID;
 }
-
-/**
-* The schema for validating a StoryPage.
-*/
-const storyPageSchema: kleen.typeSchema = {
-  objectProperties: {
-    "storyType": {
-      primitiveType: kleen.kindOfPrimitive.number,
-      restriction: (storyType: number) => {
-        if(!(storyType in StoryPageType)) {
-          return Promise.reject({
-            errorCode: ErrorCode.storyInvalidPageType,
-            message: "Invalid story type."
-          });
-        }
-      },
-      typeFailureError: malformedFieldError("storyPage.storyType")
-    },
-    "targetID": mongoIDSchema(malformedFieldError("storyPage.targetID")),
-  }
-};
 
 /**
 * The schema for validating a story.
@@ -115,9 +72,9 @@ const storySchema: kleen.typeSchema = {
     "name": nameSchema(ErrorCode.storyNameEmpty, ErrorCode.storyNameTooLong),
     "description": descriptionSchema(ErrorCode.storyDescriptionEmpty),
     "tags": tagsSchema(ErrorCode.storyEmptyTag, ErrorCode.storyNoTags),
-    "pages": {
-      arrayElementType: storyPageSchema,
-      typeFailureError: malformedFieldError("pages")
+    "tidbitPointers": {
+      arrayElementType: tidbitPointerSchema,
+      typeFailureError: malformedFieldError("tidbitPointers")
     },
   }
 };
@@ -161,39 +118,13 @@ const prepareExpandedStoryForResponse = (expandedStory: ExpandedStory): Expanded
 export const storyDBActions = {
 
   /**
-   * Returns [a promise to] true if the page exists.
-   */
-  pageExists: (page: StoryPage): Promise<boolean> => {
-    switch(page.storyType) {
-      case StoryPageType.Snipbit:
-        return snipbitDBActions.hasSnipbit(page.targetID);
-
-      case StoryPageType.Bigbit:
-        return bigbitDBActions.hasBigbit(page.targetID);
-    }
-  },
-
-  /**
-   * Gets the expanded page from appropriate collection.
-   */
-  expandPage: (page: StoryPage): Promise<ExpandedStoryPage> => {
-    switch(page.storyType) {
-      case StoryPageType.Snipbit:
-        return snipbitDBActions.getSnipbit(page.targetID);
-
-      case StoryPageType.Bigbit:
-        return bigbitDBActions.getBigbit(page.targetID);
-    }
-  },
-
-  /**
-   * Expands a story, this means switching all the `pages` with `expandedPages`.
-   * Also prepares the expanded story for the response.
+   * Expands a story, this means switching all the `tidbitPointers` with
+   * `tidbits`. Also prepares the expanded story for the response.
    */
   expandStory: (story: Story): Promise<ExpandedStory> => {
 
-    return Promise.all(story.pages.map(storyDBActions.expandPage))
-    .then((expandedPages) => {
+    return Promise.all(story.tidbitPointers.map(tidbitDBActions.expandTidbitPointer))
+    .then((tidbits) => {
       const expandedStory: ExpandedStory = {
         _id: story._id,
         id: story.id,
@@ -201,7 +132,7 @@ export const storyDBActions = {
         author: story.author,
         description: story.description,
         tags: story.tags,
-        expandedPages: expandedPages
+        tidbits: tidbits
       };
 
       return prepareExpandedStoryForResponse(expandedStory);
@@ -228,8 +159,8 @@ export const storyDBActions = {
   },
 
   /**
-   * Gets a single story from the database. If `expandStory` then the `pages`
-   * are expanded.
+   * Gets a single story from the database. If `expandStory` then the
+   * `tidbitPointers` are expanded.
    */
   getStory: (storyID: MongoID, expandStory: Boolean): Promise<Story | ExpandedStory> => {
     return collection('stories')
@@ -245,10 +176,10 @@ export const storyDBActions = {
       }
 
       if(expandStory) {
-        return storyDBActions.expandStory(story);
+        return Promise.resolve(storyDBActions.expandStory(story));
       }
 
-      return prepareStoryForResponse(story);
+      return Promise.resolve(prepareStoryForResponse(story));
     });
   },
 
@@ -269,9 +200,9 @@ export const storyDBActions = {
         tags: newStory.tags,
         // DB-added fields here:
         //  - Author
-        //  - Add blank pages.
+        //  - Add an empty array of tidbit pointers.
         author: userID,
-        pages: []
+        tidbitPointers: []
       };
 
       return StoryCollection.insertOne(story);
@@ -312,15 +243,15 @@ export const storyDBActions = {
   },
 
   /**
-   * Adds tidbits to an existing story. Verifies that:
+   * Adds `TidbitPointer`s to an existing story. Verifies that:
    *  - Story already exists
    *  - Author of story is current user
-   *  - `newStoryPages` point to actual tidbits.
+   *  - `newTidbitPointers` point to actual tidbits.
    */
-  addTidbitsToStory: (userID, storyID, newStoryPages: StoryPage[]): Promise<ExpandedStory> => {
+  addTidbitPointersToStory: (userID, storyID, newTidbitPointers: TidbitPointer[]): Promise<ExpandedStory> => {
 
-    const nonEmptyStoryPagesSchema = nonEmptyArraySchema(
-      storyPageSchema,
+    const nonEmptyTidbitPointersSchema = nonEmptyArraySchema(
+      tidbitPointerSchema,
       {
         errorCode: ErrorCode.internalError,
         message: "You can't add 0 tidbits to a story..."
@@ -328,7 +259,7 @@ export const storyDBActions = {
       malformedFieldError("New stories")
     );
 
-    return kleen.validModel(nonEmptyStoryPagesSchema)(newStoryPages)
+    return kleen.validModel(nonEmptyTidbitPointersSchema)(newTidbitPointers)
     .then(() => {
       return storyDBActions.getStory(storyID, false);
     })
@@ -340,13 +271,13 @@ export const storyDBActions = {
         });
       }
 
-      return Promise.all(newStoryPages.map(storyDBActions.pageExists));
+      return Promise.all(newTidbitPointers.map(tidbitDBActions.tidbitPointerExists));
     })
-    .then<Collection>((pagesExistArray) => {
-      if (!R.all(R.identity, pagesExistArray)) {
+    .then<Collection>((tidbitExistsArray) => {
+      if (!R.all(R.identity, tidbitExistsArray)) {
         return Promise.reject({
           errorCode: ErrorCode.storyAddingNonExistantTidbit,
-          message: "A tidbit you were adding does not exist."
+          message: "A tidbitPointer you were adding does not point to an existant tidbit."
         });
       }
 
@@ -355,7 +286,7 @@ export const storyDBActions = {
     .then((storyCollection) => {
       return storyCollection.findOneAndUpdate(
         { _id: ID(storyID), author: userID },
-        { $push: { pages: { $each: newStoryPages } } },
+        { $push: { tidbitPointers: { $each: newTidbitPointers } } },
         { returnOriginal: false }
       );
     })

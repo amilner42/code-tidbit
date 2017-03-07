@@ -4,6 +4,7 @@ import Json.Encode as Encode
 import Json.Decode as Decode
 import Json.Decode.Pipeline exposing (decode, required, optional, hardcoded)
 import Models.Tidbit as Tidbit
+import Models.TidbitPointer as TidbitPointer
 
 
 {-| The story model.
@@ -14,14 +15,11 @@ type alias Story =
     , name : String
     , description : String
     , tags : List String
-    , pages : List StoryPage
+    , tidbitPointers : List TidbitPointer.TidbitPointer
     }
 
 
 {-| The expanded-story model.
-
-NOTE: Currently expanded pages are just tidbits, but in the future this may need
-to as we may have tidbits AND quizzes etc...
 -}
 type alias ExpandedStory =
     { id : String
@@ -29,7 +27,7 @@ type alias ExpandedStory =
     , name : String
     , description : String
     , tags : List String
-    , expandedPages : List Tidbit.Tidbit
+    , tidbits : List Tidbit.Tidbit
     }
 
 
@@ -44,37 +42,6 @@ type alias NewStory =
     }
 
 
-{-| A single "page" from a story.
--}
-type alias StoryPage =
-    { storyType : StoryPageType
-    , targetID : String
-    }
-
-
-{-| The current possible pages.
--}
-type StoryPageType
-    = Snipbit
-    | Bigbit
-
-
-{-| Conerts a tidbit to it's condensed `StoryPage` form.
--}
-storyPageFromTidbit : Tidbit.Tidbit -> StoryPage
-storyPageFromTidbit tidbit =
-    case tidbit of
-        Tidbit.Snipbit { id } ->
-            { storyType = Snipbit
-            , targetID = id
-            }
-
-        Tidbit.Bigbit { id } ->
-            { storyType = Bigbit
-            , targetID = id
-            }
-
-
 {-| Story encoder.
 -}
 storyEncoder : Story -> Encode.Value
@@ -85,7 +52,7 @@ storyEncoder story =
         , ( "name", Encode.string story.name )
         , ( "description", Encode.string story.description )
         , ( "tags", Encode.list <| List.map Encode.string story.tags )
-        , ( "pages", Encode.list <| List.map storyPageEncoder story.pages )
+        , ( "tidbitPointers", Encode.list <| List.map TidbitPointer.encoder story.tidbitPointers )
         ]
 
 
@@ -99,7 +66,7 @@ storyDecoder =
         |> required "name" Decode.string
         |> required "description" Decode.string
         |> required "tags" (Decode.list Decode.string)
-        |> required "pages" (Decode.list storyPageDecoder)
+        |> required "tidbitPointers" (Decode.list TidbitPointer.decoder)
 
 
 {-| ExpandedStory encoder.
@@ -112,7 +79,7 @@ expandedStoryEncoder expandedStory =
         , ( "name", Encode.string expandedStory.name )
         , ( "description", Encode.string expandedStory.description )
         , ( "tags", Encode.list <| List.map Encode.string expandedStory.tags )
-        , ( "expandedPages", Encode.list <| List.map Tidbit.encoder expandedStory.expandedPages )
+        , ( "tidbits", Encode.list <| List.map Tidbit.encoder expandedStory.tidbits )
         ]
 
 
@@ -126,7 +93,7 @@ expandedStoryDecoder =
         |> required "name" Decode.string
         |> required "description" Decode.string
         |> required "tags" (Decode.list Decode.string)
-        |> required "expandedPages" (Decode.list Tidbit.decoder)
+        |> required "tidbits" (Decode.list Tidbit.decoder)
 
 
 {-| NewStory encoder.
@@ -150,57 +117,6 @@ newStoryDecoder =
         |> required "tags" (Decode.list Decode.string)
 
 
-{-| StoryPage encoder.
--}
-storyPageEncoder : StoryPage -> Encode.Value
-storyPageEncoder storyPage =
-    Encode.object
-        [ ( "storyType", storyPageTypeEncoder storyPage.storyType )
-        , ( "targetID", Encode.string storyPage.targetID )
-        ]
-
-
-{-| StoryPage decoder.
--}
-storyPageDecoder : Decode.Decoder StoryPage
-storyPageDecoder =
-    decode StoryPage
-        |> required "storyType" storyPageTypeDecoder
-        |> required "targetID" Decode.string
-
-
-{-| StoryPageType encoder.
--}
-storyPageTypeEncoder : StoryPageType -> Encode.Value
-storyPageTypeEncoder storyPageType =
-    case storyPageType of
-        Snipbit ->
-            Encode.int 1
-
-        Bigbit ->
-            Encode.int 2
-
-
-{-| StoryPageType decoder.
--}
-storyPageTypeDecoder : Decode.Decoder StoryPageType
-storyPageTypeDecoder =
-    let
-        fromIntDecoder encodedInt =
-            case encodedInt of
-                1 ->
-                    Decode.succeed Snipbit
-
-                2 ->
-                    Decode.succeed Bigbit
-
-                _ ->
-                    Decode.fail <| "That is not a valid encoded storyPageType: " ++ (toString encodedInt)
-    in
-        Decode.int
-            |> Decode.andThen fromIntDecoder
-
-
 {-| An empty new story.
 -}
 defaultNewStory : NewStory
@@ -220,5 +136,5 @@ blankStory =
     , name = ""
     , description = ""
     , tags = []
-    , pages = []
+    , tidbitPointers = []
     }

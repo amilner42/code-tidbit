@@ -24,6 +24,7 @@ import Models.ProfileData as ProfileData
 import Models.NewStoryData as NewStoryData
 import Models.Story as Story
 import Models.StoryData as StoryData
+import Models.Tidbit as Tidbit
 import Models.User as User exposing (defaultUserUpdateRecord)
 import Task
 import Ports
@@ -2225,7 +2226,7 @@ update msg model shared =
                 if List.length tidbits > 0 then
                     ( model
                     , shared
-                    , Api.postAddTidbitsToStory storyID (List.map Story.storyPageFromTidbit tidbits) CreateStoryPublishAddedTidbitsFailure CreateStoryGetStorySuccess
+                    , Api.postAddTidbitsToStory storyID (List.map Tidbit.compressTidbit tidbits) CreateStoryPublishAddedTidbitsFailure CreateStoryGetStorySuccess
                     )
                 else
                     -- Should never happen.
