@@ -4,6 +4,7 @@ import Date
 import Dict
 import Dom
 import Html exposing (Html, Attribute)
+import Html.Keyed as Keyed
 import Html.Attributes exposing (hidden)
 import Html.Events exposing (Options, on, onWithOptions, keyCode, defaultOptions)
 import Json.Decode as Decode
@@ -262,3 +263,10 @@ dateEncoder =
 sortByDate : (x -> Date.Date) -> List x -> List x
 sortByDate getDate =
     List.sortBy (getDate >> Date.toTime)
+
+
+{-| Produces a keyed div.
+-}
+keyedDiv : List (Attribute msg) -> List ( String, Html msg ) -> Html msg
+keyedDiv =
+    Keyed.node "div"

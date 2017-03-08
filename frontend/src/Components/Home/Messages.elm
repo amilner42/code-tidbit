@@ -94,6 +94,8 @@ type Msg
     | ViewBigbitNextRelevantHC
     | ViewBigbitPreviousRelevantHC
     | ViewBigbitJumpToFrame Route.Route
+    | ViewStoryGetExpandedStoryFailure ApiError.ApiError
+    | ViewStoryGetExpandedStorySuccess Story.ExpandedStory
     | ProfileCancelEditName
     | ProfileUpdateName String String
     | ProfileSaveEditName

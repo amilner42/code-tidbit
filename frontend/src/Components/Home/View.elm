@@ -80,30 +80,25 @@ markdownOr condition markdownText backUpHtml =
         backUpHtml
 
 
-{-| Builds a progress bar.
+{-| Builds a progress bar
 
-NOTE: Progress bar subtracts 1 from current frame, so to get 100% completion
-maybeCurrentFrame must be one bigger than maxFrame (eg, 11 / 10). This is done
-because we don't wanna count the current frame as complete.
+NOTE: If position is `Nothing`, it is assumed 0% is complete.
 -}
 progressBar : Maybe Int -> Int -> Bool -> Html Msg
-progressBar maybeCurrentFrame maxFrame isDisabled =
+progressBar maybePosition maxPosition isDisabled =
     let
         percentComplete =
-            case maybeCurrentFrame of
+            case maybePosition of
                 Nothing ->
                     0
 
                 Just currentFrame ->
-                    if (currentFrame - 1) == 0 then
-                        0
-                    else
-                        100 * (toFloat (currentFrame - 1)) / (toFloat maxFrame)
+                    100 * (toFloat currentFrame) / (toFloat maxPosition)
     in
         div
             [ classList
                 [ ( "progress-bar", True )
-                , ( "selected", Util.isNotNothing maybeCurrentFrame )
+                , ( "selected", Util.isNotNothing maybePosition )
                 , ( "disabled", isDisabled )
                 ]
             ]
@@ -324,10 +319,10 @@ viewSnipbitView model shared =
                         , progressBar
                             (case shared.route of
                                 Route.HomeComponentViewSnipbitFrame _ frameNumber ->
-                                    Just frameNumber
+                                    Just (frameNumber - 1)
 
                                 Route.HomeComponentViewSnipbitConclusion _ ->
-                                    Just <| Array.length snipbit.highlightedComments + 1
+                                    Just <| Array.length snipbit.highlightedComments
 
                                 _ ->
                                     Nothing
@@ -651,10 +646,10 @@ viewBigbitView model shared =
                             , progressBar
                                 (case shared.route of
                                     Route.HomeComponentViewBigbitFrame _ frameNumber _ ->
-                                        Just frameNumber
+                                        Just (frameNumber - 1)
 
                                     Route.HomeComponentViewBigbitConclusion _ _ ->
-                                        Just <| Array.length bigbit.highlightedComments + 1
+                                        Just <| Array.length bigbit.highlightedComments
 
                                     _ ->
                                         Nothing
@@ -718,6 +713,70 @@ viewBigbitView model shared =
             ]
 
 
+{-| The view for viewing a story.
+-}
+viewStoryView : Model -> Shared -> Html Msg
+viewStoryView model shared =
+    case model.viewStoryData.currentStory of
+        Nothing ->
+            div
+                []
+                []
+
+        Just story ->
+            div
+                [ class "view-story-page" ]
+                [ div
+                    [ class "sub-bar" ]
+                    [ button
+                        [ class "sub-bar-button"
+                        , onClick <| GoTo Route.HomeComponentBrowse
+                        ]
+                        [ text "Back" ]
+                    ]
+                , div
+                    [ class "sub-bar-ghost hidden" ]
+                    []
+                , div
+                    [ class "view-story-page-content" ]
+                    [ div
+                        [ class "story-name" ]
+                        [ text story.name ]
+                    , div
+                        [ classList
+                            [ ( "progress-bar-title", True )
+                            , ( "hidden", Util.isNothing shared.user )
+                            ]
+                        ]
+                        [ text "you've completed" ]
+                    , div
+                        [ classList
+                            [ ( "story-progress-bar-bar", True )
+                            , ( "hidden", Util.isNothing shared.user )
+                            ]
+                        ]
+                        [ progressBar (Just 1) 2 False
+                        ]
+                    , div
+                        []
+                        (List.indexedMap
+                            (\index tidbit ->
+                                div
+                                    [ class "tidbit-box" ]
+                                    [ div
+                                        [ class "tidbit-box-name" ]
+                                        [ text <| Tidbit.getName tidbit ]
+                                    , div
+                                        [ class "tidbit-box-page-number" ]
+                                        [ text <| toString <| index + 1 ]
+                                    ]
+                            )
+                            story.tidbits
+                        )
+                    ]
+                ]
+
+
 {-| Displays the correct view based on the model.
 -}
 displayViewForRoute : Model -> Shared -> Html Msg
@@ -743,6 +802,9 @@ displayViewForRoute model shared =
 
         Route.HomeComponentViewBigbitConclusion _ _ ->
             viewBigbitView model shared
+
+        Route.HomeComponentViewStory _ ->
+            viewStoryView model shared
 
         Route.HomeComponentCreate ->
             createView model shared
@@ -832,6 +894,9 @@ navbar shared =
                     True
 
                 Route.HomeComponentViewBigbitConclusion _ _ ->
+                    True
+
+                Route.HomeComponentViewStory _ ->
                     True
 
                 _ ->
@@ -949,32 +1014,45 @@ createStoryView model shared =
         ( Just story, Just userTidbits ) ->
             div
                 [ class "create-story-page" ]
-                [ div
+                [ Util.keyedDiv
                     [ class "sub-bar" ]
-                    [ button
-                        [ class "sub-bar-button"
-                        , onClick <| GoTo Route.HomeComponentCreate
-                        ]
-                        [ text "Back" ]
-                    , button
-                        [ class "sub-bar-button edit-information"
-                        , onClick <| GoTo <| Route.HomeComponentCreateNewStoryName <| Just story.id
-                        ]
-                        [ text "Edit Information" ]
-                    , case model.storyData.tidbitsToAdd of
-                        [] ->
-                            button
-                                [ class "disabled-publish-button" ]
-                                [ text "Add Tidbits" ]
+                    [ ( "create-story-page-sub-bar-back-button"
+                      , button
+                            [ class "sub-bar-button"
+                            , onClick <| GoTo Route.HomeComponentCreate
+                            ]
+                            [ text "Back" ]
+                      )
+                    , ( "create-story-page-sub-bar-view-story-button"
+                      , button
+                            [ class "sub-bar-button "
+                            , onClick <| GoTo <| Route.HomeComponentViewStory story.id
+                            ]
+                            [ text "View Story" ]
+                      )
+                    , ( "create-story-page-sub-bar-edit-info-button"
+                      , button
+                            [ class "sub-bar-button edit-information"
+                            , onClick <| GoTo <| Route.HomeComponentCreateNewStoryName <| Just story.id
+                            ]
+                            [ text "Edit Information" ]
+                      )
+                    , ( "create-story-page-sub-bar-add-tidbits-button"
+                      , case model.storyData.tidbitsToAdd of
+                            [] ->
+                                button
+                                    [ class "disabled-publish-button" ]
+                                    [ text "Add Tidbits" ]
 
-                        tidbits ->
-                            button
-                                [ class "publish-button"
-                                , onClick <| CreateStoryPublishAddedTidbits story.id tidbits
-                                ]
-                                [ text "Add Tidbits" ]
+                            tidbits ->
+                                button
+                                    [ class "publish-button"
+                                    , onClick <| CreateStoryPublishAddedTidbits story.id tidbits
+                                    ]
+                                    [ text "Add Tidbits" ]
+                      )
                     ]
-                , div
+                , Util.keyedDiv
                     [ class "sub-bar-ghost hidden" ]
                     []
                 , div

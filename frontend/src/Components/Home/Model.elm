@@ -13,6 +13,7 @@ import Models.HighlightedComment as HC
 import Models.ProfileData as ProfileData
 import Models.NewStoryData as NewStoryData
 import Models.StoryData as StoryData
+import Models.ViewStoryData as ViewStoryData
 
 
 {-| Home Component Model.
@@ -29,6 +30,7 @@ type alias Model =
     , profileData : ProfileData.ProfileData
     , newStoryData : NewStoryData.NewStoryData
     , storyData : StoryData.StoryData
+    , viewStoryData : ViewStoryData.ViewStoryData
     }
 
 
@@ -246,6 +248,7 @@ cacheEncoder model =
         , ( "profileData", ProfileData.encoder model.profileData )
         , ( "newStoryData", NewStoryData.encoder model.newStoryData )
         , ( "storyData", StoryData.encoder model.storyData )
+        , ( "viewStoryData", ViewStoryData.encoder model.viewStoryData )
         ]
 
 
@@ -265,6 +268,7 @@ cacheDecoder =
         |> required "profileData" ProfileData.decoder
         |> required "newStoryData" NewStoryData.decoder
         |> required "storyData" StoryData.decoder
+        |> required "viewStoryData" ViewStoryData.decoder
 
 
 {-| Returns true if the user is browsing the snipbit viewer relevant HC.

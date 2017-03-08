@@ -25,6 +25,7 @@ type Route
     | HomeComponentViewBigbitIntroduction MongoID (Maybe FS.Path)
     | HomeComponentViewBigbitFrame MongoID Int (Maybe FS.Path)
     | HomeComponentViewBigbitConclusion MongoID (Maybe FS.Path)
+    | HomeComponentViewStory MongoID
     | HomeComponentCreate
     | HomeComponentCreateSnipbitName
     | HomeComponentCreateSnipbitDescription
@@ -84,6 +85,9 @@ matchers =
 
         viewBigbitConclusion =
             viewBigbit </> s "conclusion" <?> qpFile
+
+        homeComponentViewStory =
+            view </> s "story" </> string
 
         -- Abstract.
         createSnipbit =
@@ -184,6 +188,7 @@ matchers =
             , map HomeComponentViewBigbitIntroduction (viewBigbitIntroduction)
             , map HomeComponentViewBigbitFrame (viewBigbitFrame)
             , map HomeComponentViewBigbitConclusion (viewBigbitConclusion)
+            , map HomeComponentViewStory (homeComponentViewStory)
             , map HomeComponentCreate (create)
             , map HomeComponentCreateSnipbitName (createSnipbitName)
             , map HomeComponentCreateSnipbitDescription (createSnipbitDescription)
@@ -235,6 +240,9 @@ routeRequiresAuth route =
             False
 
         HomeComponentViewBigbitConclusion _ _ ->
+            False
+
+        HomeComponentViewStory _ ->
             False
 
         HomeComponentBrowse ->
@@ -324,6 +332,9 @@ toHashUrl route =
                     ++ (toString frameNumber)
                     ++ "/"
                     ++ Util.queryParamsToString [ ( "file", qpFile ) ]
+
+            HomeComponentViewStory mongoID ->
+                "view/story/" ++ mongoID
 
             HomeComponentCreateSnipbitName ->
                 "create/snipbit/name"

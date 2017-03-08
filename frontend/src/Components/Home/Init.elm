@@ -9,6 +9,7 @@ import Models.Snipbit as Snipbit
 import Models.Bigbit as Bigbit
 import Models.NewStoryData as NewStoryData
 import Models.StoryData as StoryData
+import Models.ViewStoryData as ViewStoryData
 
 
 {-| Home Component Init.
@@ -68,4 +69,5 @@ init =
         }
     , newStoryData = NewStoryData.defaultNewStoryData
     , storyData = StoryData.defaultStoryData
+    , viewStoryData = ViewStoryData.defaultViewStoryData
     }

@@ -24,6 +24,7 @@ import Models.ProfileData as ProfileData
 import Models.NewStoryData as NewStoryData
 import Models.Story as Story
 import Models.StoryData as StoryData
+import Models.ViewStoryData as ViewStoryData
 import Models.Tidbit as Tidbit
 import Models.User as User exposing (defaultUserUpdateRecord)
 import Task
@@ -105,6 +106,12 @@ update msg model shared =
             { model
                 | storyData = updater model.storyData
             }
+
+        updateViewStoryData : (ViewStoryData.ViewStoryData -> ViewStoryData.ViewStoryData) -> Model
+        updateViewStoryData updater =
+            { model
+                | viewStoryData = updater model.viewStoryData
+            }
     in
         case msg of
             NoOp ->
@@ -124,6 +131,7 @@ update msg model shared =
 
                     -- If we already have the snipbit, renders, otherwise fetches
                     -- it from the db.
+                    -- TODO ISSUE#99 Update to check cache if it is expired.
                     fetchOrRenderSnipbit mongoID =
                         case model.viewingSnipbit of
                             Nothing ->
@@ -150,6 +158,7 @@ update msg model shared =
 
                     -- If we already have the bigbit, renders, otherwise fetches
                     -- it from the db.
+                    -- TODO ISSUE#99 Update to check cache if it is expired.
                     fetchOrRenderBigbit mongoID =
                         case model.viewingBigbit of
                             Nothing ->
@@ -165,6 +174,16 @@ update msg model shared =
                                     )
                                 else
                                     getBigbit mongoID
+
+                    -- TODO ISSUE#99 Update to check cache if it is expired.
+                    fetchOrRenderStory mongoID =
+                        ( model
+                        , shared
+                        , Cmd.batch
+                            [ smoothScrollToSubBar
+                            , Api.getExpandedStory mongoID ViewStoryGetExpandedStoryFailure ViewStoryGetExpandedStorySuccess
+                            ]
+                        )
 
                     createCreateBigbitEditorForCurrentFile maybeRange maybeFilePath backupRoute =
                         Cmd.batch
@@ -230,6 +249,7 @@ update msg model shared =
 
                     -- If the ID of the current editingStory is different, we
                     -- need to get the info of the story that we are editing.
+                    -- TODO ISSUE#99 Update to check cache if it is expired.
                     getEditingStoryAndFocusOn theID qpEditingStory =
                         ( model
                         , shared
@@ -284,6 +304,9 @@ update msg model shared =
 
                         Route.HomeComponentViewBigbitConclusion mongoID _ ->
                             fetchOrRenderBigbit mongoID
+
+                        Route.HomeComponentViewStory mongoID ->
+                            fetchOrRenderStory mongoID
 
                         Route.HomeComponentCreateBigbitName ->
                             focusOn "name-input"
@@ -1935,6 +1958,17 @@ update msg model shared =
                 , Route.navigateTo route
                 )
 
+            ViewStoryGetExpandedStoryFailure apiError ->
+                -- TODO handle error.
+                doNothing
+
+            ViewStoryGetExpandedStorySuccess expandedStory ->
+                ( updateViewStoryData <|
+                    ViewStoryData.setCurrentStory (Just expandedStory)
+                , shared
+                , Cmd.none
+                )
+
             ProfileCancelEditName ->
                 let
                     newModel =
@@ -2545,8 +2579,15 @@ togglePreviewMarkdown record =
     }
 
 
-{-| Smooths to the bottom.
+{-| Smooth-scrolls to the bottom.
 -}
 smoothScrollToBottom : Cmd msg
 smoothScrollToBottom =
     Ports.doScrolling { querySelector = ".invisible-bottom", duration = 750, extraScroll = 0 }
+
+
+{-| Smooth-scrolls to the subbar, effectively hiding the top navbar.
+-}
+smoothScrollToSubBar : Cmd msg
+smoothScrollToSubBar =
+    Ports.doScrolling { querySelector = ".sub-bar", duration = 750, extraScroll = 0 }

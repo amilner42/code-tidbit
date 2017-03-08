@@ -57,6 +57,9 @@ viewForRoute model =
             Route.HomeComponentViewBigbitConclusion _ _ ->
                 renderedHomeView
 
+            Route.HomeComponentViewStory _ ->
+                renderedHomeView
+
             Route.HomeComponentCreate ->
                 renderedHomeView
 
