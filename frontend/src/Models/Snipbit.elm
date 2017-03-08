@@ -2,6 +2,7 @@ module Models.Snipbit exposing (..)
 
 import Array
 import Autocomplete as AC
+import Date
 import DefaultServices.Util as Util
 import Json.Encode as Encode
 import Json.Decode as Decode
@@ -25,6 +26,8 @@ type alias Snipbit =
     , conclusion : String
     , highlightedComments : Array.Array HighlightedComment
     , author : String
+    , createdAt : Date.Date
+    , lastModified : Date.Date
     }
 
 
@@ -106,6 +109,8 @@ snipbitEncoder snipbit =
         snipbit
         [ ( "id", Encode.string snipbit.id )
         , ( "author", Encode.string snipbit.author )
+        , ( "createdAt", Util.dateEncoder snipbit.createdAt )
+        , ( "lastModified", Util.dateEncoder snipbit.lastModified )
         ]
 
 
@@ -124,6 +129,8 @@ snipbitDecoder =
         |> required "conclusion" Decode.string
         |> required "highlightedComments" (Decode.array highlightedCommentDecoder)
         |> required "author" Decode.string
+        |> required "createdAt" Util.dateDecoder
+        |> required "lastModified" Util.dateDecoder
 
 
 {-| Identical to the encoder, but used to follow naming conventions.

@@ -122,7 +122,7 @@ type Msg
     | NewStorySaveEditsFailure ApiError.ApiError
     | NewStorySaveEditsSuccess IDResponse
     | CreateStoryGetStoryFailure ApiError.ApiError
-    | CreateStoryGetStorySuccess Story.ExpandedStory
+    | CreateStoryGetStorySuccess Bool Story.ExpandedStory
     | CreateStoryGetTidbitsFailure ApiError.ApiError
     | CreateStoryGetTidbitsSuccess (List Tidbit.Tidbit)
     | CreateStoryAddTidbit Tidbit.Tidbit

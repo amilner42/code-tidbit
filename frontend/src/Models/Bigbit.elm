@@ -4,6 +4,7 @@ import Array
 import DefaultServices.ArrayExtra as ArrayExtra
 import Char
 import DefaultServices.Util as Util exposing (maybeMapWithDefault)
+import Date
 import Dict
 import Elements.Editor as Editor
 import Json.Encode as Encode
@@ -28,6 +29,8 @@ type alias Bigbit =
     , highlightedComments : Array.Array BigbitHighlightedCommentForPublication
     , author : String
     , id : String
+    , createdAt : Date.Date
+    , lastModified : Date.Date
     }
 
 
@@ -67,6 +70,8 @@ bigbitEncoder bigbit =
               )
             , ( "author", Encode.string bigbit.author )
             , ( "id", Encode.string bigbit.id )
+            , ( "createdAt", Util.dateEncoder bigbit.createdAt )
+            , ( "lastModified", Util.dateEncoder bigbit.lastModified )
             ]
 
 
@@ -97,6 +102,8 @@ bigbitDecoder =
             |> required "highlightedComments" (Decode.array bigbitHighlightedCommentForPublicationCacheDecoder)
             |> required "author" Decode.string
             |> required "id" Decode.string
+            |> required "createdAt" Util.dateDecoder
+            |> required "lastModified" Util.dateDecoder
 
 
 {-| Basic union to keep track of the current state of the action buttons in

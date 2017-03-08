@@ -521,7 +521,7 @@ update msg model shared =
                                                 }
                                             )
                                         , shared
-                                        , Api.getExpandedStory storyID CreateStoryGetStoryFailure CreateStoryGetStorySuccess
+                                        , Api.getExpandedStory storyID CreateStoryGetStoryFailure (CreateStoryGetStorySuccess False)
                                         )
                             in
                                 ( newModel
@@ -2182,25 +2182,35 @@ update msg model shared =
                 -- TODO handle error
                 doNothing
 
-            CreateStoryGetStorySuccess expandedStory ->
-                case shared.user of
-                    -- Should never happen.
-                    Nothing ->
-                        doNothing
-
-                    Just user ->
-                        -- If this is indeed the author, then stay on page,
-                        -- otherwise redirect.
-                        if user.id == expandedStory.author then
-                            ( updateStoryData <| StoryData.setCurrentStory expandedStory
-                            , shared
-                            , Cmd.none
-                            )
+            CreateStoryGetStorySuccess resetUserStories expandedStory ->
+                let
+                    -- Resets stories if needed.
+                    newShared =
+                        if resetUserStories then
+                            { shared
+                                | userStories = Nothing
+                            }
                         else
-                            ( model
-                            , shared
-                            , Route.modifyTo Route.HomeComponentCreate
-                            )
+                            shared
+                in
+                    case shared.user of
+                        -- Should never happen.
+                        Nothing ->
+                            doNothing
+
+                        Just user ->
+                            -- If this is indeed the author, then stay on page,
+                            -- otherwise redirect.
+                            if user.id == expandedStory.author then
+                                ( updateStoryData <| StoryData.setCurrentStory expandedStory
+                                , newShared
+                                , Cmd.none
+                                )
+                            else
+                                ( model
+                                , newShared
+                                , Route.modifyTo Route.HomeComponentCreate
+                                )
 
             CreateStoryGetTidbitsFailure apiError ->
                 -- Handle error.
@@ -2232,7 +2242,7 @@ update msg model shared =
                 if List.length tidbits > 0 then
                     ( model
                     , shared
-                    , Api.postAddTidbitsToStory storyID (List.map Tidbit.compressTidbit tidbits) CreateStoryPublishAddedTidbitsFailure CreateStoryGetStorySuccess
+                    , Api.postAddTidbitsToStory storyID (List.map Tidbit.compressTidbit tidbits) CreateStoryPublishAddedTidbitsFailure (CreateStoryGetStorySuccess True)
                     )
                 else
                     -- Should never happen.
