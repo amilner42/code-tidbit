@@ -255,3 +255,10 @@ NOTE: Compatible with `dateDecoder`.
 dateEncoder : Date.Date -> Encode.Value
 dateEncoder =
     Encode.float << Date.toTime
+
+
+{-| Sorts a list by the date.
+-}
+sortByDate : (x -> Date.Date) -> List x -> List x
+sortByDate getDate =
+    List.sortBy (getDate >> Date.toTime)

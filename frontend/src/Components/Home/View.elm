@@ -1051,7 +1051,11 @@ createStoryView model shared =
                                             [ text "Add" ]
                                         ]
                                 )
-                                (StoryData.remainingTidbits (story.tidbits ++ model.storyData.tidbitsToAdd) userTidbits)
+                                (userTidbits
+                                    |> StoryData.remainingTidbits (story.tidbits ++ model.storyData.tidbitsToAdd)
+                                    |> Util.sortByDate Tidbit.getLastModified
+                                    |> List.reverse
+                                )
                             )
                         ]
                     ]
@@ -1549,7 +1553,7 @@ createView model shared =
                                                     [ text "continue" ]
                                                 ]
                                         )
-                                        userStories
+                                        (List.reverse <| Util.sortByDate .lastModified userStories)
                                    )
                             )
                         ]

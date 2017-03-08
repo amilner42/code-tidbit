@@ -1,5 +1,6 @@
 module Models.Tidbit exposing (..)
 
+import Date as Date
 import Json.Encode as Encode
 import Json.Decode as Decode
 import Json.Decode.Pipeline exposing (decode, required, optional, hardcoded)
@@ -26,6 +27,18 @@ getName tidbit =
 
         Bigbit { name } ->
             name
+
+
+{-| Gets the date a tidbit was last modified.
+-}
+getLastModified : Tidbit -> Date.Date
+getLastModified tidbit =
+    case tidbit of
+        Snipbit { lastModified } ->
+            lastModified
+
+        Bigbit { lastModified } ->
+            lastModified
 
 
 {-| Gets the route-base for viewing the tidbit, still requires the ID to become
