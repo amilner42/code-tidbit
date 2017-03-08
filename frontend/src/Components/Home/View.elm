@@ -975,6 +975,9 @@ createStoryView model shared =
                                 [ text "Add Tidbits" ]
                     ]
                 , div
+                    [ class "sub-bar-ghost hidden" ]
+                    []
+                , div
                     [ class "create-story-page-content" ]
                     [ div
                         [ class "page-content-bar" ]

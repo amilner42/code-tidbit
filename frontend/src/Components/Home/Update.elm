@@ -219,7 +219,7 @@ update msg model shared =
                                     , readOnly = False
                                     , selectAllowed = True
                                     }
-                                , Ports.doScrolling { querySelector = ".invisible-bottom", duration = 750 }
+                                , smoothScrollToBottom
                                 ]
 
                     focusOn theID =
@@ -534,7 +534,7 @@ update msg model shared =
 
                                         _ ->
                                             Cmd.none
-                                    , Ports.doScrolling { querySelector = "#story-tidbits-title", duration = 750 }
+                                    , Ports.doScrolling { querySelector = "#story-tidbits-title", duration = 750, extraScroll = -60 }
                                     ]
                                 )
 
@@ -2549,4 +2549,4 @@ togglePreviewMarkdown record =
 -}
 smoothScrollToBottom : Cmd msg
 smoothScrollToBottom =
-    Ports.doScrolling { querySelector = ".invisible-bottom", duration = 750 }
+    Ports.doScrolling { querySelector = ".invisible-bottom", duration = 750, extraScroll = 0 }

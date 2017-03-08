@@ -24,6 +24,31 @@ var modelKey = "model"; // The key for the model in localStorage.
 var aceCodeEditors = {}; // Dictionary, id names mapped to ace editors.
 var aceCodeEditorsUndoManager = {}; // Stores the undoManager for editors.
 
+// Event handler for scrolling.
+//
+// Currently this event handles:
+//  1. Adding/removing "sticky" class to "sub-bar" and adding/removing "hidden"
+//     class to "sub-bar-ghost" depending on scroll position.
+window.addEventListener('scroll', function(e) {
+  const yPos = window.scrollY || 0;
+  const globalHeaderHeight = 50;
+  const subBar = document.querySelector(".sub-bar");
+  const subBarGhost = document.querySelector(".sub-bar-ghost");
+
+  // Element may not be on page.
+  if(subBar && subBarGhost) {
+
+    if(yPos > globalHeaderHeight) {
+      subBar.classList.add("sticky");
+      subBarGhost.classList.remove("hidden");
+      return;
+    }
+
+    subBar.classList.remove("sticky");
+    subBarGhost.classList.add("hidden");
+    return;
+  }
+});
 
 // Saves the model to local storage.
 app.ports.saveModelToLocalStorage.subscribe(function(model) {
@@ -56,8 +81,9 @@ app.ports.doScrolling.subscribe(function(scrollConfig) {
   setTimeout(() => {
     var startingY = window.pageYOffset;
     var elementY = getElementY(scrollConfig.querySelector);
-    // If element is close to page's bottom then window will scroll only to some position above the element.
-    var targetY = document.body.scrollHeight - elementY < window.innerHeight ? document.body.scrollHeight - window.innerHeight : elementY;
+    var goalY = elementY + scrollConfig.extraScroll;
+    var maxPossibleY = document.body.scrollHeight - window.innerHeight;
+    var targetY = Math.min(goalY, maxPossibleY);
     var diff = targetY - startingY;
     // Easing function: easeInOutCubic
     // From: https://gist.github.com/gre/1650294

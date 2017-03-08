@@ -1262,6 +1262,7 @@
             height: 100%;
 
             .sub-bar {
+                z-index: 100;
 
                 .sub-bar-button {
                     margin-left: 10px;
@@ -1270,6 +1271,17 @@
                         width: 160px;
                     }
                 }
+
+                &.sticky {
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                }
+            }
+
+            .sub-bar-ghost {
+                height: 60px; // sub-bar 50px + sub-bar-margin-bottom 10px
+                width: 100%;
             }
 
             .create-story-page-content {
