@@ -2,13 +2,13 @@
 
 import * as R from "ramda";
 import * as kleen from "kleen";
-import { ObjectID, Collection } from 'mongodb';
+import { Collection } from 'mongodb';
 import moment from "moment";
 
 import { renameIDField, collection, ID } from '../db';
 import { malformedFieldError, isNullOrUndefined } from '../util';
 import { mongoIDSchema, nameSchema, descriptionSchema, optional, tagsSchema, nonEmptyArraySchema } from "./kleen-schemas";
-import { MongoID, ErrorCode } from '../types';
+import { MongoID, MongoObjectID, ErrorCode } from '../types';
 import { Snipbit, snipbitDBActions } from './snipbit.model';
 import { Bigbit, bigbitDBActions } from './bigbit.model';
 import { Tidbit, TidbitPointer, TidbitType, tidbitPointerSchema, tidbitDBActions } from './tidbit.model';
@@ -32,7 +32,7 @@ interface StoryBase {
  * The internal search filter representation.
  */
 interface InternalStorySearchFilter {
-  author?: ObjectID;
+  author?: MongoObjectID;
 }
 
 /**

@@ -1,5 +1,6 @@
 /// Module for all typings specific to the app.
 
+import { ObjectID } from "mongodb";
 import { Handler } from "express";
 
 
@@ -39,9 +40,19 @@ export interface Language {
 }
 
 /**
- * A mongo ID.
+ * An alias for a mongo `ObjectID`.
  */
-export type MongoID = string;
+export type MongoObjectID = ObjectID;
+
+/**
+ * An alias for a `string`, representing a mongoID in string form.
+ */
+export type MongoStringID = string;
+
+/**
+ * A mongo ID in either string-form or ObjectID-form.
+ */
+export type MongoID = MongoStringID | MongoObjectID;
 
 /**
  * All ErrorCode are used for simpler programmatic communication between the

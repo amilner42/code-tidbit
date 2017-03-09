@@ -17,6 +17,7 @@ import Models.Bigbit as Bigbit
 import Elements.FileStructure as FS
 import Elements.Markdown exposing (githubMarkdown)
 import Keyboard.Extra as KK
+import Models.Completed as Completed
 import Models.Range as Range
 import Models.Route as Route
 import Models.Snipbit as Snipbit
@@ -257,6 +258,23 @@ viewSnipbitView model shared =
                 , onClick <| ViewSnipbitCancelBrowseRelevantHC
                 ]
                 [ text "Close Related Frames" ]
+            , case ( shared.user, model.viewingSnipbitIsCompleted ) of
+                ( Just user, Just ({ complete } as isCompleted) ) ->
+                    if complete then
+                        button
+                            [ class "sub-bar-button complete-button"
+                            , onClick <| ViewSnipbitMarkAsIncomplete <| Completed.completedFromIsCompleted isCompleted user.id
+                            ]
+                            [ text "Mark as Incomplete" ]
+                    else
+                        button
+                            [ class "sub-bar-button complete-button"
+                            , onClick <| ViewSnipbitMarkAsComplete <| Completed.completedFromIsCompleted isCompleted user.id
+                            ]
+                            [ text "Mark as Complete" ]
+
+                _ ->
+                    Util.hiddenDiv
             ]
         , case model.viewingSnipbit of
             Nothing ->
@@ -581,6 +599,23 @@ viewBigbitView model shared =
                     , onClick ViewBigbitCancelBrowseRelevantHC
                     ]
                     [ text "Close Related Frames" ]
+                , case ( shared.user, model.viewingBigbitIsCompleted ) of
+                    ( Just user, Just ({ complete } as isCompleted) ) ->
+                        if complete then
+                            button
+                                [ classList [ ( "sub-bar-button complete-button", True ) ]
+                                , onClick <| ViewBigbitMarkAsIncomplete <| Completed.completedFromIsCompleted isCompleted user.id
+                                ]
+                                [ text "Mark Tidbit as Incomplete" ]
+                        else
+                            button
+                                [ classList [ ( "sub-bar-button complete-button", True ) ]
+                                , onClick <| ViewBigbitMarkAsComplete <| Completed.completedFromIsCompleted isCompleted user.id
+                                ]
+                                [ text "Mark Tidbit as Complete" ]
+
+                    _ ->
+                        Util.hiddenDiv
                 ]
             , case model.viewingBigbit of
                 Nothing ->

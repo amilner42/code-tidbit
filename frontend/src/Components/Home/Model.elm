@@ -14,6 +14,7 @@ import Models.ProfileData as ProfileData
 import Models.NewStoryData as NewStoryData
 import Models.StoryData as StoryData
 import Models.ViewStoryData as ViewStoryData
+import Models.Completed as Completed
 
 
 {-| Home Component Model.
@@ -22,8 +23,10 @@ type alias Model =
     { logOutError : Maybe ApiError.ApiError
     , showInfoFor : Maybe TidbitType
     , viewingSnipbit : Maybe Snipbit.Snipbit
+    , viewingSnipbitIsCompleted : Maybe Completed.IsCompleted
     , viewingSnipbitRelevantHC : Maybe ViewingSnipbitRelevantHC
     , viewingBigbit : Maybe Bigbit.Bigbit
+    , viewingBigbitIsCompleted : Maybe Completed.IsCompleted
     , viewingBigbitRelevantHC : Maybe ViewingBigbitRelevantHC
     , snipbitCreateData : Snipbit.SnipbitCreateData
     , bigbitCreateData : Bigbit.BigbitCreateData
@@ -234,10 +237,12 @@ cacheEncoder model =
         [ ( "logOutError", Encode.null )
         , ( "showInfoFor", Util.justValueOrNull tidbitTypeCacheEncoder model.showInfoFor )
         , ( "viewingSnipbit", Util.justValueOrNull Snipbit.snipbitCacheEncoder model.viewingSnipbit )
+        , ( "viewingSnipbitIsCompleted", Util.justValueOrNull Completed.isCompletedEncoder model.viewingSnipbitIsCompleted )
         , ( "viewingSnipbitRelevantHC"
           , Util.justValueOrNull viewingSnipbitRelevantHCCacheEncoder model.viewingSnipbitRelevantHC
           )
         , ( "viewingBigbit", Util.justValueOrNull Bigbit.bigbitEncoder model.viewingBigbit )
+        , ( "viewingBigbitIsCompleted", Util.justValueOrNull Completed.isCompletedEncoder model.viewingBigbitIsCompleted )
         , ( "viewingBigbitRelevantHC"
           , Util.justValueOrNull viewingBigbitRelevantHCCacheEncoder model.viewingBigbitRelevantHC
           )
@@ -260,8 +265,10 @@ cacheDecoder =
         |> required "logOutError" (Decode.null Nothing)
         |> required "showInfoFor" (Decode.maybe tidbitTypeCacheDecoder)
         |> required "viewingSnipbit" (Decode.maybe Snipbit.snipbitCacheDecoder)
+        |> required "viewingSnipbitIsCompleted" (Decode.maybe Completed.isCompletedDecoder)
         |> required "viewingSnipbitRelevantHC" (Decode.maybe viewingSnipbitRelevantHCCacheDecoder)
         |> required "viewingBigbit" (Decode.maybe Bigbit.bigbitDecoder)
+        |> required "viewingBigbitIsCompleted" (Decode.maybe Completed.isCompletedDecoder)
         |> required "viewingBigbitRelevantHC" (Decode.maybe viewingBigbitRelevantHCCacheDecoder)
         |> required "snipbitCreateData" Snipbit.createDataCacheDecoder
         |> required "bigbitCreateData" Bigbit.bigbitCreateDataCacheDecoder

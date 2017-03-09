@@ -15,8 +15,9 @@ import DefaultServices.Util as Util exposing (maybeMapWithDefault)
 import DefaultServices.Editable as Editable
 import Elements.Editor as Editor
 import Json.Decode as Decode
-import Models.Bigbit as Bigbit
 import Elements.FileStructure as FS
+import Models.Bigbit as Bigbit
+import Models.Completed as Completed
 import Models.Snipbit as Snipbit
 import Models.Range as Range
 import Models.Route as Route
@@ -26,6 +27,7 @@ import Models.Story as Story
 import Models.StoryData as StoryData
 import Models.ViewStoryData as ViewStoryData
 import Models.Tidbit as Tidbit
+import Models.TidbitPointer as TidbitPointer
 import Models.User as User exposing (defaultUserUpdateRecord)
 import Task
 import Ports
@@ -133,20 +135,49 @@ update msg model shared =
                     -- it from the db.
                     -- TODO ISSUE#99 Update to check cache if it is expired.
                     fetchOrRenderSnipbit mongoID =
-                        case model.viewingSnipbit of
-                            Nothing ->
-                                getSnipbit mongoID
+                        let
+                            currentTidbitPointer =
+                                TidbitPointer.TidbitPointer
+                                    TidbitPointer.Snipbit
+                                    mongoID
 
-                            Just snipbit ->
-                                if snipbit.id == mongoID then
-                                    ( { model
-                                        | viewingSnipbitRelevantHC = Nothing
-                                      }
-                                    , shared
-                                    , createViewSnipbitCodeEditor snipbit shared
-                                    )
-                                else
-                                    getSnipbit mongoID
+                            ( newModel, newShared, newCmd ) =
+                                case model.viewingSnipbit of
+                                    Nothing ->
+                                        getSnipbit mongoID
+
+                                    Just snipbit ->
+                                        if snipbit.id == mongoID then
+                                            ( { model
+                                                | viewingSnipbitRelevantHC = Nothing
+                                              }
+                                            , shared
+                                            , createViewSnipbitCodeEditor snipbit shared
+                                            )
+                                        else
+                                            getSnipbit mongoID
+
+                            getSnipbitIsCompleted userID =
+                                Api.postCheckCompleted (Completed.Completed currentTidbitPointer userID) ViewSnipbitGetCompletedFailure ViewSnipbitGetCompletedSuccess
+                        in
+                            ( newModel
+                            , newShared
+                            , Cmd.batch
+                                [ newCmd
+                                , case ( shared.user, model.viewingSnipbitIsCompleted ) of
+                                    ( Just user, Nothing ) ->
+                                        getSnipbitIsCompleted user.id
+
+                                    ( Just user, Just currentCompleted ) ->
+                                        if currentCompleted.tidbitPointer == currentTidbitPointer then
+                                            Cmd.none
+                                        else
+                                            getSnipbitIsCompleted user.id
+
+                                    _ ->
+                                        Cmd.none
+                                ]
+                            )
 
                     getBigbit mongoID =
                         ( { model
@@ -160,20 +191,53 @@ update msg model shared =
                     -- it from the db.
                     -- TODO ISSUE#99 Update to check cache if it is expired.
                     fetchOrRenderBigbit mongoID =
-                        case model.viewingBigbit of
-                            Nothing ->
-                                getBigbit mongoID
+                        let
+                            currentTidbitPointer =
+                                TidbitPointer.TidbitPointer
+                                    TidbitPointer.Bigbit
+                                    mongoID
 
-                            Just bigbit ->
-                                if bigbit.id == mongoID then
-                                    ( { model
-                                        | viewingBigbitRelevantHC = Nothing
-                                      }
-                                    , shared
-                                    , createViewBigbitCodeEditor bigbit shared
-                                    )
-                                else
-                                    getBigbit mongoID
+                            -- Handle getting bigbit if needed.
+                            ( newModel, newShared, newCmd ) =
+                                case model.viewingBigbit of
+                                    Nothing ->
+                                        getBigbit mongoID
+
+                                    Just bigbit ->
+                                        if bigbit.id == mongoID then
+                                            ( { model
+                                                | viewingBigbitRelevantHC = Nothing
+                                              }
+                                            , shared
+                                            , createViewBigbitCodeEditor bigbit shared
+                                            )
+                                        else
+                                            getBigbit mongoID
+
+                            -- Command for fetching the `isCompleted`
+                            getBigbitIsCompleted userID =
+                                Api.postCheckCompleted (Completed.Completed currentTidbitPointer userID) ViewBigbitGetCompletedFailure ViewBigbitGetCompletedSuccess
+                        in
+                            ( newModel
+                            , newShared
+                            , Cmd.batch
+                                [ newCmd
+                                  -- Handle getting bigbitCompleted if needed.
+                                , case ( shared.user, model.viewingBigbitIsCompleted ) of
+                                    -- CONTINUE
+                                    ( Just user, Just currentCompleted ) ->
+                                        if currentCompleted.tidbitPointer == currentTidbitPointer then
+                                            Cmd.none
+                                        else
+                                            getBigbitIsCompleted user.id
+
+                                    ( Just user, Nothing ) ->
+                                        getBigbitIsCompleted user.id
+
+                                    _ ->
+                                        Cmd.none
+                                ]
+                            )
 
                     -- TODO ISSUE#99 Update to check cache if it is expired.
                     fetchOrRenderStory mongoID =
@@ -294,7 +358,29 @@ update msg model shared =
                             fetchOrRenderSnipbit mongoID
 
                         Route.HomeComponentViewSnipbitConclusion mongoID ->
-                            fetchOrRenderSnipbit mongoID
+                            let
+                                ( newModel, newShared, newCmd ) =
+                                    fetchOrRenderSnipbit mongoID
+                            in
+                                ( newModel
+                                , newShared
+                                , Cmd.batch
+                                    [ newCmd
+                                    , case ( newShared.user, model.viewingSnipbitIsCompleted ) of
+                                        ( Just user, Just isCompleted ) ->
+                                            let
+                                                completed =
+                                                    Completed.completedFromIsCompleted isCompleted user.id
+                                            in
+                                                if isCompleted.complete == False then
+                                                    Api.wrapPostAddCompleted completed ViewSnipbitMarkAsCompleteFailure ViewSnipbitMarkAsCompleteSuccess
+                                                else
+                                                    Cmd.none
+
+                                        _ ->
+                                            Cmd.none
+                                    ]
+                                )
 
                         Route.HomeComponentViewBigbitIntroduction mongoID _ ->
                             fetchOrRenderBigbit mongoID
@@ -303,7 +389,29 @@ update msg model shared =
                             fetchOrRenderBigbit mongoID
 
                         Route.HomeComponentViewBigbitConclusion mongoID _ ->
-                            fetchOrRenderBigbit mongoID
+                            let
+                                ( newModel, newShared, newCmd ) =
+                                    fetchOrRenderBigbit mongoID
+                            in
+                                ( newModel
+                                , newShared
+                                , Cmd.batch
+                                    [ newCmd
+                                    , case ( newShared.user, model.viewingBigbitIsCompleted ) of
+                                        ( Just user, Just isCompleted ) ->
+                                            let
+                                                completed =
+                                                    Completed.completedFromIsCompleted isCompleted user.id
+                                            in
+                                                if isCompleted.complete == False then
+                                                    Api.wrapPostAddCompleted completed ViewBigbitMarkAsCompleteFailure ViewBigbitMarkAsCompleteSuccess
+                                                else
+                                                    Cmd.none
+
+                                        _ ->
+                                            Cmd.none
+                                    ]
+                                )
 
                         Route.HomeComponentViewStory mongoID ->
                             fetchOrRenderStory mongoID
@@ -1167,6 +1275,54 @@ update msg model shared =
                 , Route.navigateTo route
                 )
 
+            ViewSnipbitGetCompletedSuccess isCompleted ->
+                ( { model
+                    | viewingSnipbitIsCompleted = Just isCompleted
+                  }
+                , shared
+                , Cmd.none
+                )
+
+            ViewSnipbitGetCompletedFailure apiError ->
+                -- TODO handle error.
+                doNothing
+
+            ViewSnipbitMarkAsComplete completed ->
+                ( model
+                , shared
+                , Api.wrapPostAddCompleted completed ViewSnipbitMarkAsCompleteFailure ViewSnipbitMarkAsCompleteSuccess
+                )
+
+            ViewSnipbitMarkAsCompleteSuccess isCompleted ->
+                ( { model
+                    | viewingSnipbitIsCompleted = Just isCompleted
+                  }
+                , shared
+                , Cmd.none
+                )
+
+            ViewSnipbitMarkAsCompleteFailure apiError ->
+                -- TODO handle error.
+                doNothing
+
+            ViewSnipbitMarkAsIncomplete completed ->
+                ( model
+                , shared
+                , Api.wrapPostRemoveCompleted completed ViewSnipbitMarkAsIncompleteFailure ViewSnipbitMarkAsIncompleteSuccess
+                )
+
+            ViewSnipbitMarkAsIncompleteSuccess isCompleted ->
+                ( { model
+                    | viewingSnipbitIsCompleted = Just isCompleted
+                  }
+                , shared
+                , Cmd.none
+                )
+
+            ViewSnipbitMarkAsIncompleteFailure apiError ->
+                -- TODO handle error.
+                doNothing
+
             BigbitGoToCodeTab ->
                 ( updateBigbitCreateData
                     { currentBigbitCreateData
@@ -1957,6 +2113,54 @@ update msg model shared =
                 , shared
                 , Route.navigateTo route
                 )
+
+            ViewBigbitGetCompletedSuccess isCompleted ->
+                ( { model
+                    | viewingBigbitIsCompleted = Just isCompleted
+                  }
+                , shared
+                , Cmd.none
+                )
+
+            ViewBigbitGetCompletedFailure apiError ->
+                -- TODO handle error.
+                doNothing
+
+            ViewBigbitMarkAsComplete completed ->
+                ( model
+                , shared
+                , Api.wrapPostAddCompleted completed ViewBigbitMarkAsCompleteFailure ViewBigbitMarkAsCompleteSuccess
+                )
+
+            ViewBigbitMarkAsCompleteSuccess isCompleted ->
+                ( { model
+                    | viewingBigbitIsCompleted = Just isCompleted
+                  }
+                , shared
+                , Cmd.none
+                )
+
+            ViewBigbitMarkAsCompleteFailure apiError ->
+                -- TODO handle error.
+                doNothing
+
+            ViewBigbitMarkAsIncomplete completed ->
+                ( model
+                , shared
+                , Api.wrapPostRemoveCompleted completed ViewBigbitMarkAsIncompleteFailure ViewBigbitMarkAsIncompleteSuccess
+                )
+
+            ViewBigbitMarkAsIncompleteSuccess isCompleted ->
+                ( { model
+                    | viewingBigbitIsCompleted = Just isCompleted
+                  }
+                , shared
+                , Cmd.none
+                )
+
+            ViewBigbitMarkAsIncompleteFailure apiError ->
+                -- TODO handle error.
+                doNothing
 
             ViewStoryGetExpandedStoryFailure apiError ->
                 -- TODO handle error.

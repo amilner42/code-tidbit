@@ -5,9 +5,11 @@ import DefaultServices.Http as HttpService
 import DefaultServices.Util as Util
 import Json.Decode as Decode
 import Json.Encode as Encode
+import Json.Decode.Pipeline exposing (decode, required, optional, hardcoded)
 import Models.ApiError as ApiError
 import Models.BasicResponse as BasicResponse
 import Models.Bigbit as Bigbit
+import Models.Completed as Completed
 import Models.IDResponse as IDResponse
 import Models.Snipbit as Snipbit
 import Models.Story as Story
@@ -176,3 +178,59 @@ postAddTidbitsToStory storyID newTidbitPointers =
         ("stories" :/: storyID :/: "addTidbits")
         Story.expandedStoryDecoder
         (Encode.list <| List.map TidbitPointer.encoder newTidbitPointers)
+
+
+{-| Adds a new `Completed` to the list of things the user has completed.
+-}
+postAddCompleted : Completed.Completed -> (ApiError.ApiError -> b) -> (IDResponse.IDResponse -> b) -> Cmd b
+postAddCompleted completed =
+    apiPost
+        "account/addCompleted"
+        IDResponse.idResponseDecoder
+        (Completed.encoder completed)
+
+
+{-| Removs a `Completed` from the users list of completed tidbits.
+-}
+postRemoveCompleted : Completed.Completed -> (ApiError.ApiError -> b) -> (Bool -> b) -> Cmd b
+postRemoveCompleted completed =
+    apiPost
+        "account/removeCompleted"
+        Decode.bool
+        (Completed.encoder completed)
+
+
+{-| Checks if something is completed, does not modify the db.
+-}
+postCheckCompleted : Completed.Completed -> (ApiError.ApiError -> b) -> (Completed.IsCompleted -> b) -> Cmd b
+postCheckCompleted completed =
+    apiPost
+        "account/checkCompleted"
+        (Completed.isCompletedFromBoolDecoder completed.tidbitPointer)
+        (Completed.encoder completed)
+
+
+
+-- API Request Wrappers
+
+
+{-| Wrapper around `postAddCompleted`, returns the result in `IsComplete` form
+using the input to get that information.
+-}
+wrapPostAddCompleted : Completed.Completed -> (ApiError.ApiError -> b) -> (Completed.IsCompleted -> b) -> Cmd b
+wrapPostAddCompleted completed handleError handleSuccess =
+    postAddCompleted
+        completed
+        handleError
+        (always <| handleSuccess <| Completed.IsCompleted completed.tidbitPointer True)
+
+
+{-| Wrapper around `postRemoveCompleted`, returns the result in `IsComplete`
+form using the input to get that information.
+-}
+wrapPostRemoveCompleted : Completed.Completed -> (ApiError.ApiError -> b) -> (Completed.IsCompleted -> b) -> Cmd b
+wrapPostRemoveCompleted completed handleError handleSuccess =
+    postRemoveCompleted
+        completed
+        handleError
+        (always <| handleSuccess <| Completed.IsCompleted completed.tidbitPointer False)

@@ -5,6 +5,7 @@ import { Response } from "express";
 import * as kleen from "kleen";
 import passport from 'passport';
 
+import { completedDBActions } from "./models/completed.model";
 import { User, userDBActions, prepareUserForResponse } from './models/user.model';
 import { Snipbit, snipbitDBActions } from './models/snipbit.model';
 import { Bigbit, bigbitDBActions } from './models/bigbit.model';
@@ -199,6 +200,45 @@ export const routes: AppRoutes = {
       const userID = req.user._id;
 
       handleAction(res)(userDBActions.updateUser(userID, userUpdateObject));
+    }
+  },
+
+  '/account/addCompleted': {
+    /**
+     * Adds the tidbit as completed for the logged-in user, if it's already
+     * completed no changes are made.
+     */
+    post: (req, res) => {
+      const userID = req.user._id;
+      const completed = req.body;
+
+      handleAction(res)(completedDBActions.markAsComplete(completed, userID));
+    }
+  },
+
+  '/account/removeCompleted': {
+    /**
+     * Removes the tidbit from the completed table for the logged-in user, no
+     * changes are made if the tidbit wasn't in the completed table to begin
+     * with.
+     */
+    post: (req, res) => {
+      const userID = req.user._id;
+      const completed = req.body;
+
+      handleAction(res)(completedDBActions.markAsIncomplete(completed, userID));
+    }
+  },
+
+  '/account/checkCompleted': {
+    /**
+     * Checks if a tidbit is completed for the logged-in user.
+     */
+    post: (req, res) => {
+      const userID = req.user._id;
+      const completed = req.body;
+
+      handleAction(res)(completedDBActions.isCompleted(completed, userID));
     }
   },
 
