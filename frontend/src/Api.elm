@@ -67,7 +67,7 @@ getExpandedStory storyID =
         Story.expandedStoryDecoder
 
 
-{-| Gets a single expanded story with the completed.
+{-| Gets a single expanded story with the completed list attached.
 -}
 getExpandedStoryWithCompleted : String -> (ApiError.ApiError -> b) -> (Story.ExpandedStory -> b) -> Cmd b
 getExpandedStoryWithCompleted storyID =
@@ -217,11 +217,11 @@ postRemoveCompleted completed =
 
 {-| Checks if something is completed, does not modify the db.
 -}
-postCheckCompleted : Completed.Completed -> (ApiError.ApiError -> b) -> (Completed.IsCompleted -> b) -> Cmd b
+postCheckCompleted : Completed.Completed -> (ApiError.ApiError -> b) -> (Bool -> b) -> Cmd b
 postCheckCompleted completed =
     apiPost
         "account/checkCompleted"
-        (Completed.isCompletedFromBoolDecoder completed.tidbitPointer)
+        Decode.bool
         (Completed.encoder completed)
 
 
@@ -249,3 +249,14 @@ wrapPostRemoveCompleted completed handleError handleSuccess =
         completed
         handleError
         (always <| handleSuccess <| Completed.IsCompleted completed.tidbitPointer False)
+
+
+{-| Wrapper around `postCheckCompleted`, returns the result in `IsComplete` form
+using the input to get that information.
+-}
+wrapPostCheckCompleted : Completed.Completed -> (ApiError.ApiError -> b) -> (Completed.IsCompleted -> b) -> Cmd b
+wrapPostCheckCompleted completed handleError handleSuccess =
+    postCheckCompleted
+        completed
+        handleError
+        (Completed.IsCompleted completed.tidbitPointer >> handleSuccess)

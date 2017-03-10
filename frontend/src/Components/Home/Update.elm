@@ -41,6 +41,10 @@ update msg model shared =
         doNothing =
             ( model, shared, Cmd.none )
 
+        justUpdateModel : Model -> ( Model, Shared, Cmd Msg )
+        justUpdateModel newModel =
+            ( newModel, shared, Cmd.none )
+
         updateSnipbitCreateData : Snipbit.SnipbitCreateData -> Model
         updateSnipbitCreateData newSnipbitCreateData =
             { model
@@ -114,6 +118,18 @@ update msg model shared =
             { model
                 | viewStoryData = updater model.viewStoryData
             }
+
+        updateViewingSnipbitIsCompleted : Maybe Completed.IsCompleted -> Model
+        updateViewingSnipbitIsCompleted maybeIsCompleted =
+            { model
+                | viewingSnipbitIsCompleted = maybeIsCompleted
+            }
+
+        updateViewingBigbitIsCompleted : Maybe Completed.IsCompleted -> Model
+        updateViewingBigbitIsCompleted maybeIsCompleted =
+            { model
+                | viewingBigbitIsCompleted = maybeIsCompleted
+            }
     in
         case msg of
             NoOp ->
@@ -158,7 +174,7 @@ update msg model shared =
                                             getSnipbit mongoID
 
                             getSnipbitIsCompleted userID =
-                                Api.postCheckCompleted (Completed.Completed currentTidbitPointer userID) ViewSnipbitGetCompletedFailure ViewSnipbitGetCompletedSuccess
+                                Api.wrapPostCheckCompleted (Completed.Completed currentTidbitPointer userID) ViewSnipbitGetCompletedFailure ViewSnipbitGetCompletedSuccess
                         in
                             ( newModel
                             , newShared
@@ -216,7 +232,7 @@ update msg model shared =
 
                             -- Command for fetching the `isCompleted`
                             getBigbitIsCompleted userID =
-                                Api.postCheckCompleted (Completed.Completed currentTidbitPointer userID) ViewBigbitGetCompletedFailure ViewBigbitGetCompletedSuccess
+                                Api.wrapPostCheckCompleted (Completed.Completed currentTidbitPointer userID) ViewBigbitGetCompletedFailure ViewBigbitGetCompletedSuccess
                         in
                             ( newModel
                             , newShared
@@ -224,7 +240,6 @@ update msg model shared =
                                 [ newCmd
                                   -- Handle getting bigbitCompleted if needed.
                                 , case ( shared.user, model.viewingBigbitIsCompleted ) of
-                                    -- CONTINUE
                                     ( Just user, Just currentCompleted ) ->
                                         if currentCompleted.tidbitPointer == currentTidbitPointer then
                                             Cmd.none
@@ -1276,12 +1291,7 @@ update msg model shared =
                 )
 
             ViewSnipbitGetCompletedSuccess isCompleted ->
-                ( { model
-                    | viewingSnipbitIsCompleted = Just isCompleted
-                  }
-                , shared
-                , Cmd.none
-                )
+                justUpdateModel <| updateViewingSnipbitIsCompleted <| Just isCompleted
 
             ViewSnipbitGetCompletedFailure apiError ->
                 -- TODO handle error.
@@ -1294,12 +1304,7 @@ update msg model shared =
                 )
 
             ViewSnipbitMarkAsCompleteSuccess isCompleted ->
-                ( { model
-                    | viewingSnipbitIsCompleted = Just isCompleted
-                  }
-                , shared
-                , Cmd.none
-                )
+                justUpdateModel <| updateViewingSnipbitIsCompleted <| Just isCompleted
 
             ViewSnipbitMarkAsCompleteFailure apiError ->
                 -- TODO handle error.
@@ -1312,12 +1317,7 @@ update msg model shared =
                 )
 
             ViewSnipbitMarkAsIncompleteSuccess isCompleted ->
-                ( { model
-                    | viewingSnipbitIsCompleted = Just isCompleted
-                  }
-                , shared
-                , Cmd.none
-                )
+                justUpdateModel <| updateViewingSnipbitIsCompleted <| Just isCompleted
 
             ViewSnipbitMarkAsIncompleteFailure apiError ->
                 -- TODO handle error.
@@ -2115,12 +2115,7 @@ update msg model shared =
                 )
 
             ViewBigbitGetCompletedSuccess isCompleted ->
-                ( { model
-                    | viewingBigbitIsCompleted = Just isCompleted
-                  }
-                , shared
-                , Cmd.none
-                )
+                justUpdateModel <| updateViewingBigbitIsCompleted <| Just isCompleted
 
             ViewBigbitGetCompletedFailure apiError ->
                 -- TODO handle error.
@@ -2133,12 +2128,7 @@ update msg model shared =
                 )
 
             ViewBigbitMarkAsCompleteSuccess isCompleted ->
-                ( { model
-                    | viewingBigbitIsCompleted = Just isCompleted
-                  }
-                , shared
-                , Cmd.none
-                )
+                justUpdateModel <| updateViewingBigbitIsCompleted <| Just isCompleted
 
             ViewBigbitMarkAsCompleteFailure apiError ->
                 -- TODO handle error.
@@ -2151,12 +2141,7 @@ update msg model shared =
                 )
 
             ViewBigbitMarkAsIncompleteSuccess isCompleted ->
-                ( { model
-                    | viewingBigbitIsCompleted = Just isCompleted
-                  }
-                , shared
-                , Cmd.none
-                )
+                justUpdateModel <| updateViewingBigbitIsCompleted <| Just isCompleted
 
             ViewBigbitMarkAsIncompleteFailure apiError ->
                 -- TODO handle error.

@@ -254,7 +254,7 @@ routeRequiresAuth route =
 
 {-| Returns `True` iff the route requires that the user not be authenticated.
 
-NOTE: This is NOT the the same as `not routeRequiresAuth` as there are routes
+NOTE: This is NOT the same as `not routeRequiresAuth` as there are routes
 that the user can access both logged-in and logged-out, these are specifically
 the routes that you must be logged-out to access.
 -}

@@ -62,6 +62,6 @@ export const renameIDField = (obj) => {
  * Checks that two IDs are the same, regardless of if they are in string-form or
  * ObjectID-form.
  */
-export const sameID = (id1: MongoID, id2: MongoID) => {
+export const sameID = (id1: MongoID, id2: MongoID): boolean => {
   return ID(id1).equals(ID(id2));
 }

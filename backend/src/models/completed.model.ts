@@ -10,7 +10,7 @@ import { malformedFieldError } from '../util';
 
 
 /**
- * The completed table represents the the tidbits that every user has completed.
+ * The completed table represents the tidbits that every user has completed.
  */
 export interface Completed {
   tidbitPointer: TidbitPointer;

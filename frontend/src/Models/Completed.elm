@@ -66,11 +66,3 @@ isCompletedDecoder =
     decode IsCompleted
         |> required "tidbitPointer" TidbitPointer.decoder
         |> required "complete" Decode.bool
-
-
-{-| Given a tidbit pointer, returns
--}
-isCompletedFromBoolDecoder : TidbitPointer.TidbitPointer -> Decode.Decoder IsCompleted
-isCompletedFromBoolDecoder tidbitPointer =
-    Decode.bool
-        |> Decode.map (IsCompleted tidbitPointer)
