@@ -232,8 +232,8 @@ postCheckCompleted completed =
 {-| Wrapper around `postAddCompleted`, returns the result in `IsComplete` form
 using the input to get that information.
 -}
-wrapPostAddCompleted : Completed.Completed -> (ApiError.ApiError -> b) -> (Completed.IsCompleted -> b) -> Cmd b
-wrapPostAddCompleted completed handleError handleSuccess =
+postAddCompletedWrapper : Completed.Completed -> (ApiError.ApiError -> b) -> (Completed.IsCompleted -> b) -> Cmd b
+postAddCompletedWrapper completed handleError handleSuccess =
     postAddCompleted
         completed
         handleError
@@ -243,8 +243,8 @@ wrapPostAddCompleted completed handleError handleSuccess =
 {-| Wrapper around `postRemoveCompleted`, returns the result in `IsComplete`
 form using the input to get that information.
 -}
-wrapPostRemoveCompleted : Completed.Completed -> (ApiError.ApiError -> b) -> (Completed.IsCompleted -> b) -> Cmd b
-wrapPostRemoveCompleted completed handleError handleSuccess =
+postRemoveCompletedWrapper : Completed.Completed -> (ApiError.ApiError -> b) -> (Completed.IsCompleted -> b) -> Cmd b
+postRemoveCompletedWrapper completed handleError handleSuccess =
     postRemoveCompleted
         completed
         handleError
@@ -254,8 +254,8 @@ wrapPostRemoveCompleted completed handleError handleSuccess =
 {-| Wrapper around `postCheckCompleted`, returns the result in `IsComplete` form
 using the input to get that information.
 -}
-wrapPostCheckCompleted : Completed.Completed -> (ApiError.ApiError -> b) -> (Completed.IsCompleted -> b) -> Cmd b
-wrapPostCheckCompleted completed handleError handleSuccess =
+postCheckCompletedWrapper : Completed.Completed -> (ApiError.ApiError -> b) -> (Completed.IsCompleted -> b) -> Cmd b
+postCheckCompletedWrapper completed handleError handleSuccess =
     postCheckCompleted
         completed
         handleError

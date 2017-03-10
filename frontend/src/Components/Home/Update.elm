@@ -206,7 +206,7 @@ update msg model shared =
                                             | viewingSnipbitIsCompleted = Nothing
                                           }
                                         , shared
-                                        , Api.wrapPostCheckCompleted
+                                        , Api.postCheckCompletedWrapper
                                             (Completed.Completed currentTidbitPointer userID)
                                             ViewSnipbitGetCompletedFailure
                                             ViewSnipbitGetCompletedSuccess
@@ -275,7 +275,7 @@ update msg model shared =
                                             | viewingBigbitIsCompleted = Nothing
                                           }
                                         , shared
-                                        , Api.wrapPostCheckCompleted
+                                        , Api.postCheckCompletedWrapper
                                             (Completed.Completed currentTidbitPointer userID)
                                             ViewBigbitGetCompletedFailure
                                             ViewBigbitGetCompletedSuccess
@@ -430,7 +430,7 @@ update msg model shared =
                                                     Completed.completedFromIsCompleted isCompleted user.id
                                             in
                                                 if isCompleted.complete == False then
-                                                    Api.wrapPostAddCompleted completed ViewSnipbitMarkAsCompleteFailure ViewSnipbitMarkAsCompleteSuccess
+                                                    Api.postAddCompletedWrapper completed ViewSnipbitMarkAsCompleteFailure ViewSnipbitMarkAsCompleteSuccess
                                                 else
                                                     Cmd.none
 
@@ -461,7 +461,7 @@ update msg model shared =
                                                     Completed.completedFromIsCompleted isCompleted user.id
                                             in
                                                 if isCompleted.complete == False then
-                                                    Api.wrapPostAddCompleted completed ViewBigbitMarkAsCompleteFailure ViewBigbitMarkAsCompleteSuccess
+                                                    Api.postAddCompletedWrapper completed ViewBigbitMarkAsCompleteFailure ViewBigbitMarkAsCompleteSuccess
                                                 else
                                                     Cmd.none
 
@@ -1342,7 +1342,7 @@ update msg model shared =
             ViewSnipbitMarkAsComplete completed ->
                 ( model
                 , shared
-                , Api.wrapPostAddCompleted completed ViewSnipbitMarkAsCompleteFailure ViewSnipbitMarkAsCompleteSuccess
+                , Api.postAddCompletedWrapper completed ViewSnipbitMarkAsCompleteFailure ViewSnipbitMarkAsCompleteSuccess
                 )
 
             ViewSnipbitMarkAsCompleteSuccess isCompleted ->
@@ -1355,7 +1355,7 @@ update msg model shared =
             ViewSnipbitMarkAsIncomplete completed ->
                 ( model
                 , shared
-                , Api.wrapPostRemoveCompleted completed ViewSnipbitMarkAsIncompleteFailure ViewSnipbitMarkAsIncompleteSuccess
+                , Api.postRemoveCompletedWrapper completed ViewSnipbitMarkAsIncompleteFailure ViewSnipbitMarkAsIncompleteSuccess
                 )
 
             ViewSnipbitMarkAsIncompleteSuccess isCompleted ->
@@ -2166,7 +2166,7 @@ update msg model shared =
             ViewBigbitMarkAsComplete completed ->
                 ( model
                 , shared
-                , Api.wrapPostAddCompleted completed ViewBigbitMarkAsCompleteFailure ViewBigbitMarkAsCompleteSuccess
+                , Api.postAddCompletedWrapper completed ViewBigbitMarkAsCompleteFailure ViewBigbitMarkAsCompleteSuccess
                 )
 
             ViewBigbitMarkAsCompleteSuccess isCompleted ->
@@ -2179,7 +2179,7 @@ update msg model shared =
             ViewBigbitMarkAsIncomplete completed ->
                 ( model
                 , shared
-                , Api.wrapPostRemoveCompleted completed ViewBigbitMarkAsIncompleteFailure ViewBigbitMarkAsIncompleteSuccess
+                , Api.postRemoveCompletedWrapper completed ViewBigbitMarkAsIncompleteFailure ViewBigbitMarkAsIncompleteSuccess
                 )
 
             ViewBigbitMarkAsIncompleteSuccess isCompleted ->
