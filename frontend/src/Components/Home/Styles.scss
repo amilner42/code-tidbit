@@ -1268,6 +1268,10 @@
                 &.complete-button {
                     width: 160px;
                 }
+
+                &.next-tidbit-button {
+                    width: 160px;
+                }
             }
         }
 
@@ -1395,7 +1399,7 @@
 
             .completed-icon {
                 position: absolute;
-                right: 10px;
+                left: 10px;
                 bottom: 5px;
                 background-color: $color3;
                 display: none;

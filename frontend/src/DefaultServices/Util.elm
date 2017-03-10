@@ -278,3 +278,23 @@ or `Nothing` if the list is not long enough.
 getAt : List a -> Int -> Maybe a
 getAt xs idx =
     List.head <| List.drop idx xs
+
+
+{-| Get's the index of the first False in a list, otherwise returns nothing if
+the list does not contain a single False.
+-}
+indexOfFirstFalse : List Bool -> Maybe Int
+indexOfFirstFalse =
+    let
+        go index listOfBool =
+            case listOfBool of
+                [] ->
+                    Nothing
+
+                h :: xs ->
+                    if not h then
+                        Just index
+                    else
+                        go (index + 1) xs
+    in
+        go 0
