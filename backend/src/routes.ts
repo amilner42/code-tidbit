@@ -212,7 +212,7 @@ export const routes: AppRoutes = {
       const userID = req.user._id;
       const completed = req.body;
 
-      handleAction(res)(completedDBActions.markAsComplete(completed, userID));
+      handleAction(res)(completedDBActions.addCompleted(completed, userID));
     }
   },
 
@@ -226,7 +226,7 @@ export const routes: AppRoutes = {
       const userID = req.user._id;
       const completed = req.body;
 
-      handleAction(res)(completedDBActions.markAsIncomplete(completed, userID));
+      handleAction(res)(completedDBActions.removeCompleted(completed, userID));
     }
   },
 

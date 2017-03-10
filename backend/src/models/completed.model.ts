@@ -73,7 +73,7 @@ export const completedDBActions = {
    * NOTE: Method is safe, running validation against `completed` and permission
    *       checks to make sure the `userMakingRequest` is the one in `completed`.
    */
-  markAsComplete: (completed: Completed, userMakingRequest: MongoID): Promise<{ targetID: MongoID }> => {
+  addCompleted: (completed: Completed, userMakingRequest: MongoID): Promise<{ targetID: MongoID }> => {
     return validCompletedAndUserPermission(completed, userMakingRequest)
     .then(() => {
       return collection("completed");
@@ -110,7 +110,7 @@ export const completedDBActions = {
    * NOTE: Method is safe, running validation against `completed` and permission
    *       checks to make sure the `userMakingRequest` is the one in `completed`.
    */
-  markAsIncomplete: (completed: Completed, userMakingRequest: MongoID): Promise<boolean> => {
+  removeCompleted: (completed: Completed, userMakingRequest: MongoID): Promise<boolean> => {
     return validCompletedAndUserPermission(completed, userMakingRequest)
     .then(() => {
       return collection("completed");
