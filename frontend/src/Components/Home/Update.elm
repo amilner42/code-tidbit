@@ -45,6 +45,24 @@ update msg model shared =
         justUpdateModel newModel =
             ( newModel, shared, Cmd.none )
 
+        withCmd : Cmd Msg -> ( Model, Shared, Cmd Msg ) -> ( Model, Shared, Cmd Msg )
+        withCmd withCmd ( newModel, newShared, newCmd ) =
+            ( newModel, newShared, Cmd.batch [ newCmd, withCmd ] )
+
+        -- For when you need to do multiple things all which change model/shared/cmd.
+        handleAll : List (( Model, Shared ) -> ( Model, Shared, Cmd Msg )) -> ( Model, Shared, Cmd Msg )
+        handleAll =
+            let
+                go ( lastModel, lastShared, lastCmd ) listOfThingsToHandle =
+                    case listOfThingsToHandle of
+                        [] ->
+                            ( lastModel, lastShared, lastCmd )
+
+                        handleCurrent :: xs ->
+                            go (withCmd lastCmd (handleCurrent ( lastModel, lastShared ))) xs
+            in
+                go ( model, shared, Cmd.none )
+
         updateSnipbitCreateData : Snipbit.SnipbitCreateData -> Model
         updateSnipbitCreateData newSnipbitCreateData =
             { model
@@ -139,14 +157,6 @@ update msg model shared =
             -- route hooks.
             OnRouteHit ->
                 let
-                    getSnipbit mongoID =
-                        ( { model
-                            | viewingSnipbit = Nothing
-                          }
-                        , shared
-                        , Api.getSnipbit mongoID OnGetSnipbitFailure OnGetSnipbitSuccess
-                        )
-
                     -- If we already have the snipbit, renders, otherwise fetches
                     -- it from the db.
                     -- TODO ISSUE#99 Update to check cache if it is expired.
@@ -157,51 +167,65 @@ update msg model shared =
                                     TidbitPointer.Snipbit
                                     mongoID
 
-                            ( newModel, newShared, newCmd ) =
-                                case model.viewingSnipbit of
-                                    Nothing ->
-                                        getSnipbit mongoID
-
-                                    Just snipbit ->
-                                        if snipbit.id == mongoID then
-                                            ( { model
-                                                | viewingSnipbitRelevantHC = Nothing
-                                              }
-                                            , shared
-                                            , createViewSnipbitCodeEditor snipbit shared
-                                            )
-                                        else
+                            -- Handle getting snipbit if needed.
+                            handleGetSnipbit : ( Model, Shared ) -> ( Model, Shared, Cmd Msg )
+                            handleGetSnipbit ( model, shared ) =
+                                let
+                                    getSnipbit mongoID =
+                                        ( { model
+                                            | viewingSnipbit = Nothing
+                                          }
+                                        , shared
+                                        , Api.getSnipbit mongoID OnGetSnipbitFailure OnGetSnipbitSuccess
+                                        )
+                                in
+                                    case model.viewingSnipbit of
+                                        Nothing ->
                                             getSnipbit mongoID
 
-                            getSnipbitIsCompleted userID =
-                                Api.wrapPostCheckCompleted (Completed.Completed currentTidbitPointer userID) ViewSnipbitGetCompletedFailure ViewSnipbitGetCompletedSuccess
-                        in
-                            ( newModel
-                            , newShared
-                            , Cmd.batch
-                                [ newCmd
-                                , case ( shared.user, model.viewingSnipbitIsCompleted ) of
-                                    ( Just user, Nothing ) ->
-                                        getSnipbitIsCompleted user.id
+                                        Just snipbit ->
+                                            if snipbit.id == mongoID then
+                                                ( { model
+                                                    | viewingSnipbitRelevantHC = Nothing
+                                                  }
+                                                , shared
+                                                , createViewSnipbitCodeEditor snipbit shared
+                                                )
+                                            else
+                                                getSnipbit mongoID
 
-                                    ( Just user, Just currentCompleted ) ->
-                                        if currentCompleted.tidbitPointer == currentTidbitPointer then
-                                            Cmd.none
-                                        else
+                            -- Handle getting snipbit is-completed if needed.
+                            handleGetSnipbitIsCompleted : ( Model, Shared ) -> ( Model, Shared, Cmd Msg )
+                            handleGetSnipbitIsCompleted ( model, shared ) =
+                                let
+                                    doNothing =
+                                        ( model, shared, Cmd.none )
+
+                                    getSnipbitIsCompleted userID =
+                                        ( { model
+                                            | viewingSnipbitIsCompleted = Nothing
+                                          }
+                                        , shared
+                                        , Api.wrapPostCheckCompleted
+                                            (Completed.Completed currentTidbitPointer userID)
+                                            ViewSnipbitGetCompletedFailure
+                                            ViewSnipbitGetCompletedSuccess
+                                        )
+                                in
+                                    case ( shared.user, model.viewingSnipbitIsCompleted ) of
+                                        ( Just user, Nothing ) ->
                                             getSnipbitIsCompleted user.id
 
-                                    _ ->
-                                        Cmd.none
-                                ]
-                            )
+                                        ( Just user, Just currentCompleted ) ->
+                                            if currentCompleted.tidbitPointer == currentTidbitPointer then
+                                                doNothing
+                                            else
+                                                getSnipbitIsCompleted user.id
 
-                    getBigbit mongoID =
-                        ( { model
-                            | viewingBigbit = Nothing
-                          }
-                        , shared
-                        , Api.getBigbit mongoID OnGetBigbitFailure OnGetBigbitSuccess
-                        )
+                                        _ ->
+                                            doNothing
+                        in
+                            handleAll [ handleGetSnipbit, handleGetSnipbitIsCompleted ]
 
                     -- If we already have the bigbit, renders, otherwise fetches
                     -- it from the db.
@@ -214,45 +238,63 @@ update msg model shared =
                                     mongoID
 
                             -- Handle getting bigbit if needed.
-                            ( newModel, newShared, newCmd ) =
-                                case model.viewingBigbit of
-                                    Nothing ->
-                                        getBigbit mongoID
-
-                                    Just bigbit ->
-                                        if bigbit.id == mongoID then
-                                            ( { model
-                                                | viewingBigbitRelevantHC = Nothing
-                                              }
-                                            , shared
-                                            , createViewBigbitCodeEditor bigbit shared
-                                            )
-                                        else
+                            handleGetBigbit ( model, shared ) =
+                                let
+                                    getBigbit mongoID =
+                                        ( { model
+                                            | viewingBigbit = Nothing
+                                          }
+                                        , shared
+                                        , Api.getBigbit mongoID OnGetBigbitFailure OnGetBigbitSuccess
+                                        )
+                                in
+                                    case model.viewingBigbit of
+                                        Nothing ->
                                             getBigbit mongoID
 
-                            -- Command for fetching the `isCompleted`
-                            getBigbitIsCompleted userID =
-                                Api.wrapPostCheckCompleted (Completed.Completed currentTidbitPointer userID) ViewBigbitGetCompletedFailure ViewBigbitGetCompletedSuccess
-                        in
-                            ( newModel
-                            , newShared
-                            , Cmd.batch
-                                [ newCmd
-                                  -- Handle getting bigbitCompleted if needed.
-                                , case ( shared.user, model.viewingBigbitIsCompleted ) of
-                                    ( Just user, Just currentCompleted ) ->
-                                        if currentCompleted.tidbitPointer == currentTidbitPointer then
-                                            Cmd.none
-                                        else
+                                        Just bigbit ->
+                                            if bigbit.id == mongoID then
+                                                ( { model
+                                                    | viewingBigbitRelevantHC = Nothing
+                                                  }
+                                                , shared
+                                                , createViewBigbitCodeEditor bigbit shared
+                                                )
+                                            else
+                                                getBigbit mongoID
+
+                            -- Handle getting bigbit is-completed if needed.
+                            handleGetBigbitIsCompleted ( model, shared ) =
+                                let
+                                    doNothing =
+                                        ( model, shared, Cmd.none )
+
+                                    -- Command for fetching the `isCompleted`
+                                    getBigbitIsCompleted userID =
+                                        ( { model
+                                            | viewingBigbitIsCompleted = Nothing
+                                          }
+                                        , shared
+                                        , Api.wrapPostCheckCompleted
+                                            (Completed.Completed currentTidbitPointer userID)
+                                            ViewBigbitGetCompletedFailure
+                                            ViewBigbitGetCompletedSuccess
+                                        )
+                                in
+                                    case ( shared.user, model.viewingBigbitIsCompleted ) of
+                                        ( Just user, Just currentCompleted ) ->
+                                            if currentCompleted.tidbitPointer == currentTidbitPointer then
+                                                doNothing
+                                            else
+                                                getBigbitIsCompleted user.id
+
+                                        ( Just user, Nothing ) ->
                                             getBigbitIsCompleted user.id
 
-                                    ( Just user, Nothing ) ->
-                                        getBigbitIsCompleted user.id
-
-                                    _ ->
-                                        Cmd.none
-                                ]
-                            )
+                                        _ ->
+                                            doNothing
+                        in
+                            handleAll [ handleGetBigbit, handleGetBigbitIsCompleted ]
 
                     -- TODO ISSUE#99 Update to check cache if it is expired.
                     fetchOrRenderStory mongoID =
