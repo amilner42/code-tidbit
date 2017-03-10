@@ -3,8 +3,8 @@
 import * as kleen from "kleen";
 
 import { malformedFieldError, isNullOrUndefined } from '../util';
-import { ErrorCode, MongoID } from '../types';
-import { mongoIDSchema } from './kleen-schemas';
+import { ErrorCode, MongoID, MongoObjectID } from '../types';
+import { mongoStringIDSchema } from './kleen-schemas';
 import { Snipbit, snipbitDBActions } from './snipbit.model';
 import { Bigbit, bigbitDBActions } from './bigbit.model';
 
@@ -13,7 +13,7 @@ import { Bigbit, bigbitDBActions } from './bigbit.model';
  * The internal tidbit search filter.
  */
 interface InternalTidbitSearchFilter {
-  author?: MongoID;
+  author?: MongoObjectID;
 }
 
 /**
@@ -27,7 +27,7 @@ export type Tidbit = Snipbit | Bigbit;
 */
 export interface TidbitPointer {
   tidbitType: TidbitType;
-  targetID: string;
+  targetID: MongoID;
 }
 
 /**
@@ -62,7 +62,7 @@ export const tidbitPointerSchema: kleen.typeSchema = {
       },
       typeFailureError: malformedFieldError("tidbitPointer.tidbitType")
     },
-    "targetID": mongoIDSchema(malformedFieldError("tidbitPointer.targetID")),
+    "targetID": mongoStringIDSchema(malformedFieldError("tidbitPointer.targetID")),
   }
 };
 

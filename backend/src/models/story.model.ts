@@ -2,13 +2,14 @@
 
 import * as R from "ramda";
 import * as kleen from "kleen";
-import { ObjectID, Collection } from 'mongodb';
+import { Collection } from 'mongodb';
 import moment from "moment";
 
 import { renameIDField, collection, ID } from '../db';
 import { malformedFieldError, isNullOrUndefined } from '../util';
-import { mongoIDSchema, nameSchema, descriptionSchema, optional, tagsSchema, nonEmptyArraySchema } from "./kleen-schemas";
-import { MongoID, ErrorCode } from '../types';
+import { mongoStringIDSchema, nameSchema, descriptionSchema, optional, tagsSchema, nonEmptyArraySchema } from "./kleen-schemas";
+import { MongoID, MongoObjectID, ErrorCode } from '../types';
+import { completedDBActions } from './completed.model';
 import { Snipbit, snipbitDBActions } from './snipbit.model';
 import { Bigbit, bigbitDBActions } from './bigbit.model';
 import { Tidbit, TidbitPointer, TidbitType, tidbitPointerSchema, tidbitDBActions } from './tidbit.model';
@@ -26,13 +27,14 @@ interface StoryBase {
   tags: string[];
   createdAt?: Date;
   lastModified?: Date;
+  userHasCompleted?: boolean[];
 }
 
 /**
  * The internal search filter representation.
  */
 interface InternalStorySearchFilter {
-  author?: ObjectID;
+  author?: MongoObjectID;
 }
 
 /**
@@ -70,8 +72,8 @@ export interface StorySearchFilter {
 */
 const storySchema: kleen.typeSchema = {
   objectProperties: {
-    "id": optional(mongoIDSchema(malformedFieldError("story.id"))),
-    "author": mongoIDSchema(malformedFieldError("author")),
+    "id": optional(mongoStringIDSchema(malformedFieldError("story.id"))),
+    "author": mongoStringIDSchema(malformedFieldError("author")),
     "name": nameSchema(ErrorCode.storyNameEmpty, ErrorCode.storyNameTooLong),
     "description": descriptionSchema(ErrorCode.storyDescriptionEmpty),
     "tags": tagsSchema(ErrorCode.storyEmptyTag, ErrorCode.storyNoTags),
@@ -137,7 +139,8 @@ export const storyDBActions = {
         tags: story.tags,
         tidbits: tidbits,
         lastModified: story.lastModified,
-        createdAt: story.createdAt
+        createdAt: story.createdAt,
+        userHasCompleted: story.userHasCompleted
       };
 
       return prepareExpandedStoryForResponse(expandedStory);
@@ -167,7 +170,7 @@ export const storyDBActions = {
    * Gets a single story from the database. If `expandStory` then the
    * `tidbitPointers` are expanded.
    */
-  getStory: (storyID: MongoID, expandStory: Boolean): Promise<Story | ExpandedStory> => {
+  getStory: (storyID: MongoID, expandStory: boolean, withCompletedForUser: MongoObjectID): Promise<Story | ExpandedStory> => {
     return collection('stories')
     .then((storyCollection) => {
       return storyCollection.findOne({ _id: ID(storyID) }) as Promise<Story>;
@@ -180,12 +183,28 @@ export const storyDBActions = {
         });
       }
 
-      if(expandStory) {
-        return Promise.resolve(storyDBActions.expandStory(story));
+      if(!withCompletedForUser) {
+        return story;
       }
 
-      return Promise.resolve(prepareStoryForResponse(story));
+      return Promise.all<boolean>(
+        story.tidbitPointers.map((tidbitPointer) => {
+          return completedDBActions.isCompleted({ tidbitPointer: tidbitPointer, user: withCompletedForUser.toHexString() } , withCompletedForUser);
+        })
+      )
+      .then((completedArray) => {
+        story.userHasCompleted = completedArray;
+        return story;
+      });
+    })
+    .then<Story | ExpandedStory>((story) => {
+      if(expandStory) {
+        return storyDBActions.expandStory(story);
+      }
+
+      return prepareStoryForResponse(story);
     });
+
   },
 
   /**
@@ -271,7 +290,7 @@ export const storyDBActions = {
 
     return kleen.validModel(nonEmptyTidbitPointersSchema)(newTidbitPointers)
     .then(() => {
-      return storyDBActions.getStory(storyID, false);
+      return storyDBActions.getStory(storyID, false, null);
     })
     .then<boolean[]>((story) => {
       if(!ID(story.author).equals(ID(userID))) {

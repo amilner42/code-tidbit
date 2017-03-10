@@ -4,6 +4,7 @@ import Date
 import Dict
 import Dom
 import Html exposing (Html, Attribute)
+import Html.Keyed as Keyed
 import Html.Attributes exposing (hidden)
 import Html.Events exposing (Options, on, onWithOptions, keyCode, defaultOptions)
 import Json.Decode as Decode
@@ -262,3 +263,38 @@ dateEncoder =
 sortByDate : (x -> Date.Date) -> List x -> List x
 sortByDate getDate =
     List.sortBy (getDate >> Date.toTime)
+
+
+{-| Produces a keyed div.
+-}
+keyedDiv : List (Attribute msg) -> List ( String, Html msg ) -> Html msg
+keyedDiv =
+    Keyed.node "div"
+
+
+{-| Returns `Just` the element at the given index in the list,
+or `Nothing` if the list is not long enough.
+-}
+getAt : List a -> Int -> Maybe a
+getAt xs idx =
+    List.head <| List.drop idx xs
+
+
+{-| Get's the index of the first False in a list, otherwise returns nothing if
+the list does not contain a single False.
+-}
+indexOfFirstFalse : List Bool -> Maybe Int
+indexOfFirstFalse =
+    let
+        go index listOfBool =
+            case listOfBool of
+                [] ->
+                    Nothing
+
+                h :: xs ->
+                    if not h then
+                        Just index
+                    else
+                        go (index + 1) xs
+    in
+        go 0

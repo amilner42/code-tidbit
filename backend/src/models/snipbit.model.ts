@@ -1,12 +1,11 @@
 /// Module for encapsulating helper functions for the Snipbit model.
 
 import * as kleen from "kleen";
-import { ObjectID } from 'mongodb';
 import moment from 'moment';
 
 import { malformedFieldError, isNullOrUndefined } from '../util';
 import { collection, renameIDField, ID } from '../db';
-import { MongoID, ErrorCode, Language } from '../types';
+import { MongoID, MongoObjectID, ErrorCode, Language } from '../types';
 import { Range, emptyRange } from './range.model';
 import * as KS from './kleen-schemas';
 
@@ -51,7 +50,7 @@ export interface SnipbitSearchFilter {
  * The internal search filter for querying the DB.
  */
 interface InternalSnipbitSearchFilter {
-  author?: ObjectID;
+  author?: MongoObjectID;
 }
 
 /**

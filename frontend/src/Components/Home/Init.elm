@@ -9,6 +9,7 @@ import Models.Snipbit as Snipbit
 import Models.Bigbit as Bigbit
 import Models.NewStoryData as NewStoryData
 import Models.StoryData as StoryData
+import Models.ViewStoryData as ViewStoryData
 
 
 {-| Home Component Init.
@@ -18,8 +19,10 @@ init =
     { logOutError = Nothing
     , showInfoFor = Nothing
     , viewingSnipbit = Nothing
+    , viewingSnipbitIsCompleted = Nothing
     , viewingSnipbitRelevantHC = Nothing
     , viewingBigbit = Nothing
+    , viewingBigbitIsCompleted = Nothing
     , viewingBigbitRelevantHC = Nothing
     , snipbitCreateData =
         { language = Nothing
@@ -68,4 +71,5 @@ init =
         }
     , newStoryData = NewStoryData.defaultNewStoryData
     , storyData = StoryData.defaultStoryData
+    , viewStoryData = ViewStoryData.defaultViewStoryData
     }

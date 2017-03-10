@@ -5,6 +5,7 @@ import { Response } from "express";
 import * as kleen from "kleen";
 import passport from 'passport';
 
+import { completedDBActions } from "./models/completed.model";
 import { User, userDBActions, prepareUserForResponse } from './models/user.model';
 import { Snipbit, snipbitDBActions } from './models/snipbit.model';
 import { Bigbit, bigbitDBActions } from './models/bigbit.model';
@@ -202,6 +203,45 @@ export const routes: AppRoutes = {
     }
   },
 
+  '/account/addCompleted': {
+    /**
+     * Adds the tidbit as completed for the logged-in user, if it's already
+     * completed no changes are made.
+     */
+    post: (req, res) => {
+      const userID = req.user._id;
+      const completed = req.body;
+
+      handleAction(res)(completedDBActions.addCompleted(completed, userID));
+    }
+  },
+
+  '/account/removeCompleted': {
+    /**
+     * Removes the tidbit from the completed table for the logged-in user, no
+     * changes are made if the tidbit wasn't in the completed table to begin
+     * with.
+     */
+    post: (req, res) => {
+      const userID = req.user._id;
+      const completed = req.body;
+
+      handleAction(res)(completedDBActions.removeCompleted(completed, userID));
+    }
+  },
+
+  '/account/checkCompleted': {
+    /**
+     * Checks if a tidbit is completed for the logged-in user.
+     */
+    post: (req, res) => {
+      const userID = req.user._id;
+      const completed = req.body;
+
+      handleAction(res)(completedDBActions.isCompleted(completed, userID));
+    }
+  },
+
   '/snipbits': {
     /**
      * Gets snipbits, customizable through query params.
@@ -303,8 +343,10 @@ export const routes: AppRoutes = {
       const storyID = params.id;
       const queryParams = req.query;
       const expandStory = !!queryParams.expandStory;
+      const withCompleted = !!queryParams.withCompleted;
+      const userID = req.user ? req.user._id : null;
 
-      handleAction(res)(storyDBActions.getStory(storyID, expandStory));
+      handleAction(res)(storyDBActions.getStory(storyID, expandStory, withCompleted ? userID : null ));
     }
   },
 

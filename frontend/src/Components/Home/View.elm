@@ -17,6 +17,7 @@ import Models.Bigbit as Bigbit
 import Elements.FileStructure as FS
 import Elements.Markdown exposing (githubMarkdown)
 import Keyboard.Extra as KK
+import Models.Completed as Completed
 import Models.Range as Range
 import Models.Route as Route
 import Models.Snipbit as Snipbit
@@ -80,30 +81,25 @@ markdownOr condition markdownText backUpHtml =
         backUpHtml
 
 
-{-| Builds a progress bar.
+{-| Builds a progress bar
 
-NOTE: Progress bar subtracts 1 from current frame, so to get 100% completion
-maybeCurrentFrame must be one bigger than maxFrame (eg, 11 / 10). This is done
-because we don't wanna count the current frame as complete.
+NOTE: If position is `Nothing`, it is assumed 0% is complete.
 -}
 progressBar : Maybe Int -> Int -> Bool -> Html Msg
-progressBar maybeCurrentFrame maxFrame isDisabled =
+progressBar maybePosition maxPosition isDisabled =
     let
         percentComplete =
-            case maybeCurrentFrame of
+            case maybePosition of
                 Nothing ->
                     0
 
                 Just currentFrame ->
-                    if (currentFrame - 1) == 0 then
-                        0
-                    else
-                        100 * (toFloat (currentFrame - 1)) / (toFloat maxFrame)
+                    100 * (toFloat currentFrame) / (toFloat maxPosition)
     in
         div
             [ classList
                 [ ( "progress-bar", True )
-                , ( "selected", Util.isNotNothing maybeCurrentFrame )
+                , ( "selected", Util.isNotNothing maybePosition )
                 , ( "disabled", isDisabled )
                 ]
             ]
@@ -262,6 +258,23 @@ viewSnipbitView model shared =
                 , onClick <| ViewSnipbitCancelBrowseRelevantHC
                 ]
                 [ text "Close Related Frames" ]
+            , case ( shared.user, model.viewingSnipbitIsCompleted ) of
+                ( Just user, Just ({ complete } as isCompleted) ) ->
+                    if complete then
+                        button
+                            [ class "sub-bar-button complete-button"
+                            , onClick <| ViewSnipbitMarkAsIncomplete <| Completed.completedFromIsCompleted isCompleted user.id
+                            ]
+                            [ text "Mark as Incomplete" ]
+                    else
+                        button
+                            [ class "sub-bar-button complete-button"
+                            , onClick <| ViewSnipbitMarkAsComplete <| Completed.completedFromIsCompleted isCompleted user.id
+                            ]
+                            [ text "Mark as Complete" ]
+
+                _ ->
+                    Util.hiddenDiv
             ]
         , case model.viewingSnipbit of
             Nothing ->
@@ -324,10 +337,10 @@ viewSnipbitView model shared =
                         , progressBar
                             (case shared.route of
                                 Route.HomeComponentViewSnipbitFrame _ frameNumber ->
-                                    Just frameNumber
+                                    Just (frameNumber - 1)
 
                                 Route.HomeComponentViewSnipbitConclusion _ ->
-                                    Just <| Array.length snipbit.highlightedComments + 1
+                                    Just <| Array.length snipbit.highlightedComments
 
                                 _ ->
                                     Nothing
@@ -586,6 +599,23 @@ viewBigbitView model shared =
                     , onClick ViewBigbitCancelBrowseRelevantHC
                     ]
                     [ text "Close Related Frames" ]
+                , case ( shared.user, model.viewingBigbitIsCompleted ) of
+                    ( Just user, Just ({ complete } as isCompleted) ) ->
+                        if complete then
+                            button
+                                [ classList [ ( "sub-bar-button complete-button", True ) ]
+                                , onClick <| ViewBigbitMarkAsIncomplete <| Completed.completedFromIsCompleted isCompleted user.id
+                                ]
+                                [ text "Mark Tidbit as Incomplete" ]
+                        else
+                            button
+                                [ classList [ ( "sub-bar-button complete-button", True ) ]
+                                , onClick <| ViewBigbitMarkAsComplete <| Completed.completedFromIsCompleted isCompleted user.id
+                                ]
+                                [ text "Mark Tidbit as Complete" ]
+
+                    _ ->
+                        Util.hiddenDiv
                 ]
             , case model.viewingBigbit of
                 Nothing ->
@@ -651,10 +681,10 @@ viewBigbitView model shared =
                             , progressBar
                                 (case shared.route of
                                     Route.HomeComponentViewBigbitFrame _ frameNumber _ ->
-                                        Just frameNumber
+                                        Just (frameNumber - 1)
 
                                     Route.HomeComponentViewBigbitConclusion _ _ ->
-                                        Just <| Array.length bigbit.highlightedComments + 1
+                                        Just <| Array.length bigbit.highlightedComments
 
                                     _ ->
                                         Nothing
@@ -718,6 +748,145 @@ viewBigbitView model shared =
             ]
 
 
+{-| The view for viewing a story.
+-}
+viewStoryView : Model -> Shared -> Html Msg
+viewStoryView model shared =
+    case model.viewStoryData.currentStory of
+        Nothing ->
+            div
+                []
+                []
+
+        Just story ->
+            let
+                completedListForLoggedInUser : Maybe (List Bool)
+                completedListForLoggedInUser =
+                    case ( shared.user, model.viewStoryData.currentStory |> Maybe.andThen .userHasCompleted ) of
+                        ( Just user, Just hasCompletedList ) ->
+                            Just hasCompletedList
+
+                        _ ->
+                            Nothing
+
+                nextTidbitInStory : Maybe ( Int, Route.Route )
+                nextTidbitInStory =
+                    completedListForLoggedInUser
+                        |> Maybe.andThen Util.indexOfFirstFalse
+                        |> Maybe.andThen
+                            (\index ->
+                                Util.getAt story.tidbits index
+                                    |> Maybe.map (Tidbit.getTidbitRoute >> (,) index)
+                            )
+            in
+                div
+                    [ class "view-story-page" ]
+                    [ Util.keyedDiv
+                        [ class "sub-bar" ]
+                        [ ( "view-story-sub-bar-back-button"
+                          , button
+                                [ class "sub-bar-button"
+                                , onClick <| GoTo Route.HomeComponentBrowse
+                                ]
+                                [ text "Back" ]
+                          )
+                        , ( "view-story-next-tidbit-button"
+                          , case nextTidbitInStory of
+                                Just ( index, routeForViewingTidbit ) ->
+                                    button
+                                        [ class "sub-bar-button next-tidbit-button"
+                                        , onClick <| GoTo routeForViewingTidbit
+                                        ]
+                                        [ text <| "Continue on Tidbit " ++ (toString <| index + 1) ]
+
+                                _ ->
+                                    Util.hiddenDiv
+                          )
+                        ]
+                    , Util.keyedDiv
+                        [ class "sub-bar-ghost hidden" ]
+                        []
+                    , div
+                        [ class "view-story-page-content" ]
+                        [ div
+                            [ class "story-name" ]
+                            [ text story.name ]
+                        , case ( completedListForLoggedInUser, story.tidbits ) of
+                            ( Just hasCompletedList, h :: xs ) ->
+                                div
+                                    []
+                                    [ div
+                                        [ classList [ ( "progress-bar-title", True ) ]
+                                        ]
+                                        [ text "you've completed" ]
+                                    , div
+                                        [ classList [ ( "story-progress-bar-bar", True ) ]
+                                        ]
+                                        [ progressBar
+                                            (Just <|
+                                                List.sum <|
+                                                    List.map
+                                                        (\bool ->
+                                                            if bool then
+                                                                1
+                                                            else
+                                                                0
+                                                        )
+                                                        hasCompletedList
+                                            )
+                                            (List.length hasCompletedList)
+                                            False
+                                        ]
+                                    ]
+
+                            _ ->
+                                Util.hiddenDiv
+                        , case story.tidbits of
+                            [] ->
+                                div
+                                    [ class "no-tidbit-text" ]
+                                    [ text "This story has no tidbits yet!" ]
+
+                            _ ->
+                                div
+                                    []
+                                    (List.indexedMap
+                                        (\index tidbit ->
+                                            div
+                                                [ classList
+                                                    [ ( "tidbit-box", True )
+                                                    , ( "completed"
+                                                      , case model.viewStoryData.currentStory |> Maybe.andThen .userHasCompleted of
+                                                            Nothing ->
+                                                                False
+
+                                                            Just hasCompletedList ->
+                                                                Maybe.withDefault False (Util.getAt hasCompletedList index)
+                                                      )
+                                                    ]
+                                                ]
+                                                [ div
+                                                    [ class "tidbit-box-name" ]
+                                                    [ text <| Tidbit.getName tidbit ]
+                                                , div
+                                                    [ class "tidbit-box-page-number" ]
+                                                    [ text <| toString <| index + 1 ]
+                                                , button
+                                                    [ class "view-button"
+                                                    , onClick <| GoTo <| Tidbit.getTidbitRoute tidbit
+                                                    ]
+                                                    [ text "view" ]
+                                                , i
+                                                    [ class "material-icons completed-icon" ]
+                                                    [ text "check" ]
+                                                ]
+                                        )
+                                        story.tidbits
+                                    )
+                        ]
+                    ]
+
+
 {-| Displays the correct view based on the model.
 -}
 displayViewForRoute : Model -> Shared -> Html Msg
@@ -743,6 +912,9 @@ displayViewForRoute model shared =
 
         Route.HomeComponentViewBigbitConclusion _ _ ->
             viewBigbitView model shared
+
+        Route.HomeComponentViewStory _ ->
+            viewStoryView model shared
 
         Route.HomeComponentCreate ->
             createView model shared
@@ -832,6 +1004,9 @@ navbar shared =
                     True
 
                 Route.HomeComponentViewBigbitConclusion _ _ ->
+                    True
+
+                Route.HomeComponentViewStory _ ->
                     True
 
                 _ ->
@@ -949,32 +1124,45 @@ createStoryView model shared =
         ( Just story, Just userTidbits ) ->
             div
                 [ class "create-story-page" ]
-                [ div
+                [ Util.keyedDiv
                     [ class "sub-bar" ]
-                    [ button
-                        [ class "sub-bar-button"
-                        , onClick <| GoTo Route.HomeComponentCreate
-                        ]
-                        [ text "Back" ]
-                    , button
-                        [ class "sub-bar-button edit-information"
-                        , onClick <| GoTo <| Route.HomeComponentCreateNewStoryName <| Just story.id
-                        ]
-                        [ text "Edit Information" ]
-                    , case model.storyData.tidbitsToAdd of
-                        [] ->
-                            button
-                                [ class "disabled-publish-button" ]
-                                [ text "Add Tidbits" ]
+                    [ ( "create-story-page-sub-bar-back-button"
+                      , button
+                            [ class "sub-bar-button"
+                            , onClick <| GoTo Route.HomeComponentCreate
+                            ]
+                            [ text "Back" ]
+                      )
+                    , ( "create-story-page-sub-bar-view-story-button"
+                      , button
+                            [ class "sub-bar-button "
+                            , onClick <| GoTo <| Route.HomeComponentViewStory story.id
+                            ]
+                            [ text "View Story" ]
+                      )
+                    , ( "create-story-page-sub-bar-edit-info-button"
+                      , button
+                            [ class "sub-bar-button edit-information"
+                            , onClick <| GoTo <| Route.HomeComponentCreateNewStoryName <| Just story.id
+                            ]
+                            [ text "Edit Information" ]
+                      )
+                    , ( "create-story-page-sub-bar-add-tidbits-button"
+                      , case model.storyData.tidbitsToAdd of
+                            [] ->
+                                button
+                                    [ class "disabled-publish-button" ]
+                                    [ text "Add Tidbits" ]
 
-                        tidbits ->
-                            button
-                                [ class "publish-button"
-                                , onClick <| CreateStoryPublishAddedTidbits story.id tidbits
-                                ]
-                                [ text "Add Tidbits" ]
+                            tidbits ->
+                                button
+                                    [ class "publish-button"
+                                    , onClick <| CreateStoryPublishAddedTidbits story.id tidbits
+                                    ]
+                                    [ text "Add Tidbits" ]
+                      )
                     ]
-                , div
+                , Util.keyedDiv
                     [ class "sub-bar-ghost hidden" ]
                     []
                 , div

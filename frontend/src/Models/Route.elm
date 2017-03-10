@@ -25,6 +25,7 @@ type Route
     | HomeComponentViewBigbitIntroduction MongoID (Maybe FS.Path)
     | HomeComponentViewBigbitFrame MongoID Int (Maybe FS.Path)
     | HomeComponentViewBigbitConclusion MongoID (Maybe FS.Path)
+    | HomeComponentViewStory MongoID
     | HomeComponentCreate
     | HomeComponentCreateSnipbitName
     | HomeComponentCreateSnipbitDescription
@@ -84,6 +85,9 @@ matchers =
 
         viewBigbitConclusion =
             viewBigbit </> s "conclusion" <?> qpFile
+
+        homeComponentViewStory =
+            view </> s "story" </> string
 
         -- Abstract.
         createSnipbit =
@@ -184,6 +188,7 @@ matchers =
             , map HomeComponentViewBigbitIntroduction (viewBigbitIntroduction)
             , map HomeComponentViewBigbitFrame (viewBigbitFrame)
             , map HomeComponentViewBigbitConclusion (viewBigbitConclusion)
+            , map HomeComponentViewStory (homeComponentViewStory)
             , map HomeComponentCreate (create)
             , map HomeComponentCreateSnipbitName (createSnipbitName)
             , map HomeComponentCreateSnipbitDescription (createSnipbitDescription)
@@ -237,6 +242,9 @@ routeRequiresAuth route =
         HomeComponentViewBigbitConclusion _ _ ->
             False
 
+        HomeComponentViewStory _ ->
+            False
+
         HomeComponentBrowse ->
             False
 
@@ -246,7 +254,7 @@ routeRequiresAuth route =
 
 {-| Returns `True` iff the route requires that the user not be authenticated.
 
-NOTE: This is NOT the the same as `not routeRequiresAuth` as there are routes
+NOTE: This is NOT the same as `not routeRequiresAuth` as there are routes
 that the user can access both logged-in and logged-out, these are specifically
 the routes that you must be logged-out to access.
 -}
@@ -324,6 +332,9 @@ toHashUrl route =
                     ++ (toString frameNumber)
                     ++ "/"
                     ++ Util.queryParamsToString [ ( "file", qpFile ) ]
+
+            HomeComponentViewStory mongoID ->
+                "view/story/" ++ mongoID
 
             HomeComponentCreateSnipbitName ->
                 "create/snipbit/name"

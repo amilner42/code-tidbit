@@ -4,6 +4,7 @@
 import { MongoClient, Collection, ObjectID } from 'mongodb';
 
 import { APP_CONFIG } from '../app-config';
+import { MongoID } from './types';
 
 
 /**
@@ -55,4 +56,12 @@ export const renameIDField = (obj) => {
   }
 
   return obj;
+}
+
+/**
+ * Checks that two IDs are the same, regardless of if they are in string-form or
+ * ObjectID-form.
+ */
+export const sameID = (id1: MongoID, id2: MongoID): boolean => {
+  return ID(id1).equals(ID(id2));
 }

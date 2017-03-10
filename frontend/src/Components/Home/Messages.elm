@@ -4,6 +4,7 @@ import Autocomplete as AC
 import Components.Home.Model exposing (TidbitType)
 import Models.ApiError as ApiError
 import Models.BasicResponse as BasicResponse
+import Models.Completed as Completed
 import Models.IDResponse exposing (IDResponse)
 import Models.Range as Range
 import Models.Route as Route
@@ -57,6 +58,14 @@ type Msg
     | ViewSnipbitNextRelevantHC
     | ViewSnipbitPreviousRelevantHC
     | ViewSnipbitJumpToFrame Route.Route
+    | ViewSnipbitGetCompletedSuccess Completed.IsCompleted
+    | ViewSnipbitGetCompletedFailure ApiError.ApiError
+    | ViewSnipbitMarkAsComplete Completed.Completed
+    | ViewSnipbitMarkAsCompleteSuccess Completed.IsCompleted
+    | ViewSnipbitMarkAsCompleteFailure ApiError.ApiError
+    | ViewSnipbitMarkAsIncomplete Completed.Completed
+    | ViewSnipbitMarkAsIncompleteSuccess Completed.IsCompleted
+    | ViewSnipbitMarkAsIncompleteFailure ApiError.ApiError
     | BigbitGoToCodeTab
     | BigbitReset
     | BigbitUpdateName String
@@ -94,6 +103,16 @@ type Msg
     | ViewBigbitNextRelevantHC
     | ViewBigbitPreviousRelevantHC
     | ViewBigbitJumpToFrame Route.Route
+    | ViewBigbitGetCompletedSuccess Completed.IsCompleted
+    | ViewBigbitGetCompletedFailure ApiError.ApiError
+    | ViewBigbitMarkAsComplete Completed.Completed
+    | ViewBigbitMarkAsCompleteSuccess Completed.IsCompleted
+    | ViewBigbitMarkAsCompleteFailure ApiError.ApiError
+    | ViewBigbitMarkAsIncomplete Completed.Completed
+    | ViewBigbitMarkAsIncompleteSuccess Completed.IsCompleted
+    | ViewBigbitMarkAsIncompleteFailure ApiError.ApiError
+    | ViewStoryGetExpandedStoryFailure ApiError.ApiError
+    | ViewStoryGetExpandedStorySuccess Story.ExpandedStory
     | ProfileCancelEditName
     | ProfileUpdateName String String
     | ProfileSaveEditName
