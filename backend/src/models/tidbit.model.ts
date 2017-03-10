@@ -4,7 +4,7 @@ import * as kleen from "kleen";
 
 import { malformedFieldError, isNullOrUndefined } from '../util';
 import { ErrorCode, MongoID, MongoObjectID } from '../types';
-import { mongoIDSchema } from './kleen-schemas';
+import { mongoStringIDSchema } from './kleen-schemas';
 import { Snipbit, snipbitDBActions } from './snipbit.model';
 import { Bigbit, bigbitDBActions } from './bigbit.model';
 
@@ -62,7 +62,7 @@ export const tidbitPointerSchema: kleen.typeSchema = {
       },
       typeFailureError: malformedFieldError("tidbitPointer.tidbitType")
     },
-    "targetID": mongoIDSchema(malformedFieldError("tidbitPointer.targetID")),
+    "targetID": mongoStringIDSchema(malformedFieldError("tidbitPointer.targetID")),
   }
 };
 

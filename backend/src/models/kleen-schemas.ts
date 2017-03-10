@@ -310,10 +310,8 @@ export const fileStructureSchema =
 
 /**
  * A mongo id schema, will error with `error`.
- *
- * WARNING: Will only validify strings, not `ObjectID`s.
  */
-export const mongoIDSchema = (invalidMongoIDError: any): kleen.primitiveSchema => {
+export const mongoStringIDSchema = (invalidMongoIDError: any): kleen.primitiveSchema => {
   return {
     primitiveType: kleen.kindOfPrimitive.string,
     typeFailureError: invalidMongoIDError,

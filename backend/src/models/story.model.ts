@@ -7,7 +7,7 @@ import moment from "moment";
 
 import { renameIDField, collection, ID } from '../db';
 import { malformedFieldError, isNullOrUndefined } from '../util';
-import { mongoIDSchema, nameSchema, descriptionSchema, optional, tagsSchema, nonEmptyArraySchema } from "./kleen-schemas";
+import { mongoStringIDSchema, nameSchema, descriptionSchema, optional, tagsSchema, nonEmptyArraySchema } from "./kleen-schemas";
 import { MongoID, MongoObjectID, ErrorCode } from '../types';
 import { completedDBActions } from './completed.model';
 import { Snipbit, snipbitDBActions } from './snipbit.model';
@@ -72,8 +72,8 @@ export interface StorySearchFilter {
 */
 const storySchema: kleen.typeSchema = {
   objectProperties: {
-    "id": optional(mongoIDSchema(malformedFieldError("story.id"))),
-    "author": mongoIDSchema(malformedFieldError("author")),
+    "id": optional(mongoStringIDSchema(malformedFieldError("story.id"))),
+    "author": mongoStringIDSchema(malformedFieldError("author")),
     "name": nameSchema(ErrorCode.storyNameEmpty, ErrorCode.storyNameTooLong),
     "description": descriptionSchema(ErrorCode.storyDescriptionEmpty),
     "tags": tagsSchema(ErrorCode.storyEmptyTag, ErrorCode.storyNoTags),
