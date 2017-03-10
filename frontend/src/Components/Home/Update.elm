@@ -245,7 +245,7 @@ update msg model shared =
                         , shared
                         , Cmd.batch
                             [ smoothScrollToSubBar
-                            , Api.getExpandedStory mongoID ViewStoryGetExpandedStoryFailure ViewStoryGetExpandedStorySuccess
+                            , Api.getExpandedStoryWithCompleted mongoID ViewStoryGetExpandedStoryFailure ViewStoryGetExpandedStorySuccess
                             ]
                         )
 

@@ -270,3 +270,11 @@ sortByDate getDate =
 keyedDiv : List (Attribute msg) -> List ( String, Html msg ) -> Html msg
 keyedDiv =
     Keyed.node "div"
+
+
+{-| Returns `Just` the element at the given index in the list,
+or `Nothing` if the list is not long enough.
+-}
+getAt : List a -> Int -> Maybe a
+getAt xs idx =
+    List.head <| List.drop idx xs

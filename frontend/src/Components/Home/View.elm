@@ -777,33 +777,68 @@ viewStoryView model shared =
                     [ div
                         [ class "story-name" ]
                         [ text story.name ]
-                    , div
-                        [ classList
-                            [ ( "progress-bar-title", True )
-                            , ( "hidden", Util.isNothing shared.user )
-                            ]
-                        ]
-                        [ text "you've completed" ]
-                    , div
-                        [ classList
-                            [ ( "story-progress-bar-bar", True )
-                            , ( "hidden", Util.isNothing shared.user )
-                            ]
-                        ]
-                        [ progressBar (Just 1) 2 False
-                        ]
+                    , case ( shared.user, model.viewStoryData.currentStory |> Maybe.andThen .userHasCompleted ) of
+                        ( Just user, Just hasCompletedList ) ->
+                            div
+                                []
+                                [ div
+                                    [ classList
+                                        [ ( "progress-bar-title", True )
+                                        , ( "hidden", Util.isNothing shared.user )
+                                        ]
+                                    ]
+                                    [ text "you've completed" ]
+                                , div
+                                    [ classList
+                                        [ ( "story-progress-bar-bar", True )
+                                        , ( "hidden", Util.isNothing shared.user )
+                                        ]
+                                    ]
+                                    [ progressBar
+                                        (Just <|
+                                            List.sum <|
+                                                List.map
+                                                    (\bool ->
+                                                        if bool then
+                                                            1
+                                                        else
+                                                            0
+                                                    )
+                                                    hasCompletedList
+                                        )
+                                        (List.length hasCompletedList)
+                                        False
+                                    ]
+                                ]
+
+                        _ ->
+                            Util.hiddenDiv
                     , div
                         []
                         (List.indexedMap
                             (\index tidbit ->
                                 div
-                                    [ class "tidbit-box" ]
+                                    [ classList
+                                        [ ( "tidbit-box", True )
+                                        , ( "completed"
+                                          , case model.viewStoryData.currentStory |> Maybe.andThen .userHasCompleted of
+                                                Nothing ->
+                                                    False
+
+                                                Just hasCompletedList ->
+                                                    Maybe.withDefault False (Util.getAt hasCompletedList index)
+                                          )
+                                        ]
+                                    ]
                                     [ div
                                         [ class "tidbit-box-name" ]
                                         [ text <| Tidbit.getName tidbit ]
                                     , div
                                         [ class "tidbit-box-page-number" ]
                                         [ text <| toString <| index + 1 ]
+                                    , i
+                                        [ class "material-icons completed-icon" ]
+                                        [ text "check" ]
                                     ]
                             )
                             story.tidbits

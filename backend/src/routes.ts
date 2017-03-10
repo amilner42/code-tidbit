@@ -343,8 +343,10 @@ export const routes: AppRoutes = {
       const storyID = params.id;
       const queryParams = req.query;
       const expandStory = !!queryParams.expandStory;
+      const withCompleted = !!queryParams.withCompleted;
+      const userID = req.user ? req.user._id : null;
 
-      handleAction(res)(storyDBActions.getStory(storyID, expandStory));
+      handleAction(res)(storyDBActions.getStory(storyID, expandStory, withCompleted ? userID : null ));
     }
   },
 

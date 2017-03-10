@@ -20,6 +20,7 @@ type alias Story =
     , tidbitPointers : List TidbitPointer.TidbitPointer
     , createdAt : Date.Date
     , lastModified : Date.Date
+    , userHasCompleted : Maybe (List Bool)
     }
 
 
@@ -34,6 +35,7 @@ type alias ExpandedStory =
     , tidbits : List Tidbit.Tidbit
     , createdAt : Date.Date
     , lastModified : Date.Date
+    , userHasCompleted : Maybe (List Bool)
     }
 
 
@@ -61,6 +63,7 @@ storyEncoder story =
         , ( "tidbitPointers", Encode.list <| List.map TidbitPointer.encoder story.tidbitPointers )
         , ( "createdAt", Util.dateEncoder story.createdAt )
         , ( "lastModified", Util.dateEncoder story.lastModified )
+        , ( "userHasCompleted", Util.justValueOrNull (Encode.list << List.map Encode.bool) story.userHasCompleted )
         ]
 
 
@@ -77,6 +80,7 @@ storyDecoder =
         |> required "tidbitPointers" (Decode.list TidbitPointer.decoder)
         |> required "createdAt" Util.dateDecoder
         |> required "lastModified" Util.dateDecoder
+        |> optional "userHasCompleted" (Decode.maybe <| Decode.list Decode.bool) Nothing
 
 
 {-| ExpandedStory encoder.
@@ -92,6 +96,7 @@ expandedStoryEncoder expandedStory =
         , ( "tidbits", Encode.list <| List.map Tidbit.encoder expandedStory.tidbits )
         , ( "createdAt", Util.dateEncoder expandedStory.createdAt )
         , ( "lastModified", Util.dateEncoder expandedStory.lastModified )
+        , ( "userHasCompleted", Util.justValueOrNull (Encode.list << List.map Encode.bool) expandedStory.userHasCompleted )
         ]
 
 
@@ -108,6 +113,7 @@ expandedStoryDecoder =
         |> required "tidbits" (Decode.list Tidbit.decoder)
         |> required "createdAt" Util.dateDecoder
         |> required "lastModified" Util.dateDecoder
+        |> optional "userHasCompleted" (Decode.maybe <| Decode.list Decode.bool) Nothing
 
 
 {-| NewStory encoder.
@@ -155,4 +161,5 @@ blankStory =
     , tidbitPointers = []
     , createdAt = Date.fromTime 0
     , lastModified = Date.fromTime 0
+    , userHasCompleted = Nothing
     }

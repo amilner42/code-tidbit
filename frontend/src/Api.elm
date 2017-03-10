@@ -67,6 +67,21 @@ getExpandedStory storyID =
         Story.expandedStoryDecoder
 
 
+{-| Gets a single expanded story with the completed.
+-}
+getExpandedStoryWithCompleted : String -> (ApiError.ApiError -> b) -> (Story.ExpandedStory -> b) -> Cmd b
+getExpandedStoryWithCompleted storyID =
+    apiGet
+        ("stories"
+            :/: storyID
+            ++ Util.queryParamsToString
+                [ ( "expandStory", Just "true" )
+                , ( "withCompleted", Just "true" )
+                ]
+        )
+        Story.expandedStoryDecoder
+
+
 {-| Queries the API to log the user out, which should send a response to delete
 the cookies.
 -}

@@ -1393,6 +1393,29 @@
             background-color: $color9;
             border-radius: 3px;
 
+            .completed-icon {
+                position: absolute;
+                right: 10px;
+                bottom: 5px;
+                background-color: $color3;
+                display: none;
+                color: $color1;
+                font-size: 36px;
+            }
+
+            &.completed {
+                border: 1px solid $color1;
+                background-color: $color3;
+
+                .tidbit-box-name {
+                    color: white;
+                }
+
+                .completed-icon {
+                    display: inline-block;
+                }
+            }
+
             .tidbit-box-name {
                 box-sizing: border-box;
                 position: absolute;
