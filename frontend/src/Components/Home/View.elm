@@ -811,8 +811,8 @@ viewStoryView model shared =
                         [ div
                             [ class "story-name" ]
                             [ text story.name ]
-                        , case completedListForLoggedInUser of
-                            Just hasCompletedList ->
+                        , case ( completedListForLoggedInUser, story.tidbits ) of
+                            ( Just hasCompletedList, h :: xs ) ->
                                 div
                                     []
                                     [ div
@@ -841,41 +841,48 @@ viewStoryView model shared =
 
                             _ ->
                                 Util.hiddenDiv
-                        , div
-                            []
-                            (List.indexedMap
-                                (\index tidbit ->
-                                    div
-                                        [ classList
-                                            [ ( "tidbit-box", True )
-                                            , ( "completed"
-                                              , case model.viewStoryData.currentStory |> Maybe.andThen .userHasCompleted of
-                                                    Nothing ->
-                                                        False
+                        , case story.tidbits of
+                            [] ->
+                                div
+                                    [ class "no-tidbit-text" ]
+                                    [ text "This story has no tidbits yet!" ]
 
-                                                    Just hasCompletedList ->
-                                                        Maybe.withDefault False (Util.getAt hasCompletedList index)
-                                              )
-                                            ]
-                                        ]
-                                        [ div
-                                            [ class "tidbit-box-name" ]
-                                            [ text <| Tidbit.getName tidbit ]
-                                        , div
-                                            [ class "tidbit-box-page-number" ]
-                                            [ text <| toString <| index + 1 ]
-                                        , button
-                                            [ class "view-button"
-                                            , onClick <| GoTo <| Tidbit.getTidbitRoute tidbit
-                                            ]
-                                            [ text "view" ]
-                                        , i
-                                            [ class "material-icons completed-icon" ]
-                                            [ text "check" ]
-                                        ]
-                                )
-                                story.tidbits
-                            )
+                            _ ->
+                                div
+                                    []
+                                    (List.indexedMap
+                                        (\index tidbit ->
+                                            div
+                                                [ classList
+                                                    [ ( "tidbit-box", True )
+                                                    , ( "completed"
+                                                      , case model.viewStoryData.currentStory |> Maybe.andThen .userHasCompleted of
+                                                            Nothing ->
+                                                                False
+
+                                                            Just hasCompletedList ->
+                                                                Maybe.withDefault False (Util.getAt hasCompletedList index)
+                                                      )
+                                                    ]
+                                                ]
+                                                [ div
+                                                    [ class "tidbit-box-name" ]
+                                                    [ text <| Tidbit.getName tidbit ]
+                                                , div
+                                                    [ class "tidbit-box-page-number" ]
+                                                    [ text <| toString <| index + 1 ]
+                                                , button
+                                                    [ class "view-button"
+                                                    , onClick <| GoTo <| Tidbit.getTidbitRoute tidbit
+                                                    ]
+                                                    [ text "view" ]
+                                                , i
+                                                    [ class "material-icons completed-icon" ]
+                                                    [ text "check" ]
+                                                ]
+                                        )
+                                        story.tidbits
+                                    )
                         ]
                     ]
 
