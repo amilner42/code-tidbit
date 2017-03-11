@@ -722,7 +722,7 @@ update msg model shared =
 
                                         _ ->
                                             Cmd.none
-                                    , Ports.doScrolling { querySelector = "#story-tidbits-title", duration = 750, extraScroll = -60 }
+                                    , Ports.doScrolling { querySelector = "#story-tidbits-title", duration = 500, extraScroll = -60 }
                                     ]
                                 )
 
@@ -2814,11 +2814,11 @@ togglePreviewMarkdown record =
 -}
 smoothScrollToBottom : Cmd msg
 smoothScrollToBottom =
-    Ports.doScrolling { querySelector = ".invisible-bottom", duration = 750, extraScroll = 0 }
+    Ports.doScrolling { querySelector = ".invisible-bottom", duration = 500, extraScroll = 0 }
 
 
 {-| Smooth-scrolls to the subbar, effectively hiding the top navbar.
 -}
 smoothScrollToSubBar : Cmd msg
 smoothScrollToSubBar =
-    Ports.doScrolling { querySelector = ".sub-bar", duration = 750, extraScroll = 0 }
+    Ports.doScrolling { querySelector = ".sub-bar", duration = 500, extraScroll = 0 }

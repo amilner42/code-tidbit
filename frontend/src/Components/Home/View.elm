@@ -226,10 +226,10 @@ viewSnipbitView model shared =
         [ div
             [ class "sub-bar" ]
             [ button
-                [ class "sub-bar-button"
+                [ class "sub-bar-button back-to-browse-button"
                 , onClick <| GoTo Route.HomeComponentBrowse
                 ]
-                [ text "Back" ]
+                [ text "Back to Browse" ]
             , button
                 [ classList
                     [ ( "sub-bar-button view-relevant-ranges", True )
@@ -551,10 +551,10 @@ viewBigbitView model shared =
             [ div
                 [ class "sub-bar" ]
                 [ button
-                    [ class "sub-bar-button"
+                    [ class "sub-bar-button back-to-browse-button"
                     , onClick <| GoTo Route.HomeComponentBrowse
                     ]
-                    [ text "Back" ]
+                    [ text "Back to Browse" ]
                 , button
                     [ classList
                         [ ( "sub-bar-button explore-fs", True )
@@ -785,10 +785,10 @@ viewStoryView model shared =
                         [ class "sub-bar" ]
                         [ ( "view-story-sub-bar-back-button"
                           , button
-                                [ class "sub-bar-button"
+                                [ class "sub-bar-button back-to-browse-button"
                                 , onClick <| GoTo Route.HomeComponentBrowse
                                 ]
-                                [ text "Back" ]
+                                [ text "Back to Browse" ]
                           )
                         , ( "view-story-next-tidbit-button"
                           , case nextTidbitInStory of
@@ -1128,10 +1128,10 @@ createStoryView model shared =
                     [ class "sub-bar" ]
                     [ ( "create-story-page-sub-bar-back-button"
                       , button
-                            [ class "sub-bar-button"
+                            [ class "sub-bar-button back-to-create-button"
                             , onClick <| GoTo Route.HomeComponentCreate
                             ]
-                            [ text "Back" ]
+                            [ text "Back to Create" ]
                       )
                     , ( "create-story-page-sub-bar-view-story-button"
                       , button
@@ -1282,10 +1282,10 @@ createNewStoryView model shared =
                 (case editingStoryQueryParam of
                     Nothing ->
                         [ button
-                            [ class "sub-bar-button"
+                            [ class "sub-bar-button back-to-create-button"
                             , onClick <| GoTo Route.HomeComponentCreate
                             ]
-                            [ text "Back" ]
+                            [ text "Back to Create" ]
                         , button
                             [ class "sub-bar-button"
                             , onClick NewStoryReset
@@ -2438,10 +2438,10 @@ createBigbitView model shared =
             [ div
                 [ class "sub-bar" ]
                 [ button
-                    [ class "sub-bar-button"
+                    [ class "sub-bar-button back-to-create-button"
                     , onClick <| GoTo Route.HomeComponentCreate
                     ]
-                    [ text "Back" ]
+                    [ text "Back to Create" ]
                 , button
                     [ class "sub-bar-button"
                     , onClick <| BigbitReset
@@ -3051,10 +3051,10 @@ createSnipbitView model shared =
             [ div
                 [ class "sub-bar" ]
                 [ button
-                    [ class "create-snipbit-back-button"
+                    [ class "create-snipbit-back-button back-to-create-button"
                     , onClick <| GoTo Route.HomeComponentCreate
                     ]
-                    [ text "Back" ]
+                    [ text "Back to Create" ]
                 , button
                     [ class "create-snipbit-reset-button"
                     , onClick <| SnipbitReset
