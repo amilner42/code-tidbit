@@ -251,72 +251,39 @@
         }
 
         .create-page {
-            @extend .page-content;
+            width: 100%;
             padding-bottom: 5px;
 
-            .create-bar {
-                @extend .page-content-bar;
+            .title-banner {
+                box-sizing: border-box;
+                width: 100%;
+                height: 75px;
+                color: white;
+                background-color: $color10;
+                text-align: center;
+                line-height: 50px;
+                padding-top: 20px;
+                font-size: 48px;
+                font-weight: 800;
 
-                .show-all-stories-icon {
-                    position: absolute;
-                    left: -25px;
-                    top: 4px;
-                    background: transparent;
-                    color: $color6;
-                    border: none;
-                    cursor: pointer;
-                    font-size: 26px;
-                    height: 26px;
-                    width: 26px;
-
-                    .showing-all-stories {
-                        transform: rotate(90deg);
-                    }
+                &.story-banner {
+                    background-color: $color9;
+                    color: $color5;
+                    border-bottom: 1px solid $color2;
+                    margin-bottom: 10px;
+                    height: 85px;
                 }
+            }
 
-                .create-bar-title {
-                    @extend .page-content-bar-title;
-                }
-
-                .create-bar-line {
-                    @extend .page-content-bar-line;
-                }
-
-                .story-box {
-                    float: left;
-                }
-
-                .create-story-box {
-                    box-sizing: border-box;
-                    display: inline-block;
-                    position: relative;
-                    float: left;
-                    width: 275px;
-                    height: 275px;
-                    margin: 0 10px 0 10px;
-                    position: relative;
-                    border: 2px dotted $color2;
-                    border-radius: 3px;
-                    cursor: pointer;
-
-                    &:hover {
-                        background-color: $color9;
-                        border-style: solid;
-
-                        .no-stories-box-icon {
-                            color: $color5;
-                        }
-                    }
-
-                    .no-stories-box-icon {
-                        position: absolute;
-                        top: 50%;
-                        left: 50%;
-                        transform: translate(-50%, -50%);
-                        font-size: 128px;
-                        color: $color2;
-                    }
-                }
+            .make-tidbits {
+                box-sizing: border-box;
+                display: flex;
+                justify-content: center;
+                height: 315px;
+                min-height: 315px;
+                padding: 20px;
+                background-color: $color10;
+                border-bottom: 1px solid #555;
 
                 .create-select-tidbit-type-coming-soon {
                     @include light-box-shadow();
@@ -327,6 +294,10 @@
                     height: 275px;
                     float: left;
                     margin-left: 10px;
+                    margin-right: 10px;
+                    background-color: white;
+                    flex-grow: 1;
+                    max-width: 300px;
 
                     .coming-soon-text {
                         position: absolute;
@@ -357,8 +328,10 @@
 
                     position: relative;
                     display: inline-block;
+                    flex-grow: 1;
                     width: 275px;
                     height: 275px;
+                    max-width: 300px;
                     margin-left: 10px;
                     margin-right: 10px;
                     background-color: white;
@@ -380,6 +353,7 @@
                         position: absolute;
                         bottom: 10px;
                         right: 10px;
+                        background-color: $color4;
                     }
 
                     .create-select-tidbit-type-title {
@@ -401,27 +375,71 @@
 
                     button {
                         border: none;
-                        border-radius: 15px;
+                        border-radius: 3px;
                         color: white;
-                        background-color: $color3;
+                        background-color: $color1;
                         padding: 3px 10px 3px 10px;
-                        cursor: pointer;
+                        width: 280px;
+                        height: 35px;
+                        opacity: 0.9;
+                        font-size: 18px;
 
                         &:hover {
-                            color: $color5;
+                            opacity: 1;
                         }
                     }
 
-                    .info-button {
+                    .info-icon {
                         position: absolute;
-                        bottom: 10px;
-                        right: 67px;
+                        top: 5px;
+                        right: 5px;
+                        color: $color4;
+                        cursor: pointer;
                     }
 
                     .select-button {
                         position: absolute;
                         bottom: 10px;
                         right: 10px;
+                    }
+                }
+            }
+
+            .develop-stories {
+                width: 85%;
+                min-width: 900px;
+                margin: auto;
+                margin-top: 20px;
+
+                .create-story-box {
+                    box-sizing: border-box;
+                    display: inline-block;
+                    position: relative;
+                    float: left;
+                    width: 275px;
+                    height: 275px;
+                    margin: 0 10px 20px 10px;
+                    position: relative;
+                    border: 2px dotted $color2;
+                    border-radius: 3px;
+                    cursor: pointer;
+
+                    &:hover {
+                        background-color: $color9;
+                        border-style: solid;
+
+                        .add-story-box-icon {
+                            color: $color5;
+                        }
+                    }
+
+                    .add-story-box-icon {
+                        position: absolute;
+                        top: 50%;
+                        left: 50%;
+                        transform: translate(-50%, -50%);
+                        font-size: 128px;
+                        color: $color2;
                     }
                 }
             }
@@ -980,6 +998,7 @@
                 .create-snipbit-reset-button {
                     @extend .sub-bar-button;
                     margin-right: 10px;
+                    margin-left: 10px;
                 }
 
                 .create-snipbit-publish-button {

@@ -1748,7 +1748,7 @@ createView model shared =
                         [ class "back-button"
                         , onClick <| ShowInfoFor Nothing
                         ]
-                        [ text "back" ]
+                        [ text "Back" ]
                     ]
                  else
                     [ div
@@ -1757,16 +1757,16 @@ createView model shared =
                     , div
                         [ class "create-select-tidbit-type-sub-title" ]
                         [ text subTitle ]
-                    , button
-                        [ class "info-button"
+                    , i
+                        [ class "material-icons info-icon"
                         , onClick <| ShowInfoFor <| Just tidbitType
                         ]
-                        [ text "more info" ]
+                        [ text "help_outline" ]
                     , button
                         [ class "select-button"
                         , onClick onClickMsg
                         ]
-                        [ text "create" ]
+                        [ text "CREATE" ]
                     ]
                 )
 
@@ -1779,20 +1779,8 @@ createView model shared =
 
                 Just userStories ->
                     div
-                        []
+                        [ class "develop-stories" ]
                         [ div
-                            [ class "show-all-stories-icon"
-                            , onClick CreateStoryToggleShowAllStories
-                            ]
-                            [ i
-                                [ classList
-                                    [ ( "material-icons", True )
-                                    , ( "showing-all-stories", model.storyData.showAllStories )
-                                    ]
-                                ]
-                                [ text "play_arrow" ]
-                            ]
-                        , div
                             [ classList
                                 [ ( "boxes flex-box", True )
                                 , ( "collapsed", not <| model.storyData.showAllStories )
@@ -1803,7 +1791,7 @@ createView model shared =
                                 , onClick <| GoTo <| Route.HomeComponentCreateNewStoryName Nothing
                                 ]
                                 [ i
-                                    [ class "material-icons no-stories-box-icon" ]
+                                    [ class "material-icons add-story-box-icon" ]
                                     [ text "add" ]
                                 ]
                              ]
@@ -1828,24 +1816,11 @@ createView model shared =
         div
             [ class "create-page" ]
             [ div
-                [ class "create-bar" ]
-                [ div
-                    [ class "create-bar-title" ]
-                    [ text "Assemble Stories" ]
-                , div
-                    [ class "create-bar-line" ]
-                    []
-                , yourStoriesHtml
-                ]
+                [ class "title-banner" ]
+                [ text "CREATE TIDBIT" ]
             , div
-                [ class "create-bar" ]
-                [ div
-                    [ class "create-bar-title" ]
-                    [ text "Create Tidbits" ]
-                , div
-                    [ class "create-bar-line" ]
-                    []
-                , makeTidbitTypeBox
+                [ class "make-tidbits" ]
+                [ makeTidbitTypeBox
                     "SnipBit"
                     "Explain a chunk of code"
                     snipBitDescription
@@ -1867,6 +1842,10 @@ createView model shared =
                         [ text "We are working on it" ]
                     ]
                 ]
+            , div
+                [ class "title-banner story-banner" ]
+                [ text "DEVELOP STORY" ]
+            , yourStoriesHtml
             ]
 
 
