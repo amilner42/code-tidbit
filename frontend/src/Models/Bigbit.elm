@@ -774,17 +774,17 @@ current comment frame.
 viewPageCurrentActiveFile : Route.Route -> Bigbit -> Maybe FS.Path
 viewPageCurrentActiveFile route bigbit =
     case route of
-        Route.HomeComponentViewBigbitIntroduction _ maybePath ->
+        Route.HomeComponentViewBigbitIntroduction _ _ maybePath ->
             maybePath
 
-        Route.HomeComponentViewBigbitFrame _ frameNumber maybePath ->
+        Route.HomeComponentViewBigbitFrame _ _ frameNumber maybePath ->
             if Util.isNotNothing maybePath then
                 maybePath
             else
                 Array.get (frameNumber - 1) bigbit.highlightedComments
                     |> Maybe.map .file
 
-        Route.HomeComponentViewBigbitConclusion _ maybePath ->
+        Route.HomeComponentViewBigbitConclusion _ _ maybePath ->
             maybePath
 
         _ ->

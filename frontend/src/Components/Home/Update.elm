@@ -25,7 +25,6 @@ import Models.ProfileData as ProfileData
 import Models.NewStoryData as NewStoryData
 import Models.Story as Story
 import Models.StoryData as StoryData
-import Models.ViewStoryData as ViewStoryData
 import Models.Tidbit as Tidbit
 import Models.TidbitPointer as TidbitPointer
 import Models.User as User exposing (defaultUserUpdateRecord)
@@ -131,12 +130,6 @@ update msg model shared =
                 | storyData = updater model.storyData
             }
 
-        updateViewStoryData : (ViewStoryData.ViewStoryData -> ViewStoryData.ViewStoryData) -> Model
-        updateViewStoryData updater =
-            { model
-                | viewStoryData = updater model.viewStoryData
-            }
-
         updateViewingSnipbitIsCompleted : Maybe Completed.IsCompleted -> Model
         updateViewingSnipbitIsCompleted maybeIsCompleted =
             { model
@@ -157,10 +150,14 @@ update msg model shared =
             -- route hooks.
             OnRouteHit ->
                 let
-                    -- If we already have the snipbit, renders, otherwise fetches
-                    -- it from the db.
-                    -- TODO ISSUE#99 Update to check cache if it is expired.
-                    fetchOrRenderSnipbit mongoID =
+                    {- Get's data for viewing snipbit as required:
+                          - May need to fetch tidbit itself
+                          - May need to fetch story
+                          - May need to fetch if the tidbit is completed by the user.
+
+                       TODO ISSUE#99 Update to check cache if it is expired.
+                    -}
+                    fetchOrRenderViewSnipbitData mongoID =
                         let
                             currentTidbitPointer =
                                 TidbitPointer.TidbitPointer
@@ -224,13 +221,57 @@ update msg model shared =
 
                                         _ ->
                                             doNothing
-                        in
-                            handleAll [ handleGetSnipbit, handleGetSnipbitIsCompleted ]
 
-                    -- If we already have the bigbit, renders, otherwise fetches
-                    -- it from the db.
-                    -- TODO ISSUE#99 Update to check cache if it is expired.
-                    fetchOrRenderBigbit mongoID =
+                            -- Handle getting story if viewing snipbit from story.
+                            handleGetStoryForSnipbit : ( Model, Shared ) -> ( Model, Shared, Cmd Msg )
+                            handleGetStoryForSnipbit ( model, shared ) =
+                                let
+                                    doNothing =
+                                        ( model, shared, Cmd.none )
+
+                                    maybeViewingStoryID =
+                                        Maybe.map .id shared.viewingStory
+
+                                    getStory storyID =
+                                        Api.getExpandedStoryWithCompleted
+                                            storyID
+                                            ViewSnipbitGetExpandedStoryFailure
+                                            ViewSnipbitGetExpandedStorySuccess
+                                in
+                                    case Route.getFromStoryQueryParamOnViewSnipbitUrl shared.route of
+                                        Just storyID ->
+                                            if (Just storyID) == maybeViewingStoryID then
+                                                doNothing
+                                            else
+                                                ( model
+                                                , { shared
+                                                    | viewingStory = Nothing
+                                                  }
+                                                , getStory storyID
+                                                )
+
+                                        _ ->
+                                            ( model
+                                            , { shared
+                                                | viewingStory = Nothing
+                                              }
+                                            , Cmd.none
+                                            )
+                        in
+                            handleAll
+                                [ handleGetSnipbit
+                                , handleGetSnipbitIsCompleted
+                                , handleGetStoryForSnipbit
+                                ]
+
+                    {- Get's data for viewing bigbit as required:
+                          - May need to fetch tidbit itself
+                          - May need to fetch story
+                          - May need to fetch if the tidbit is completed by the user.
+
+                       TODO ISSUE#99 Update to check cache if it is expired.
+                    -}
+                    fetchOrRenderViewBigbitData mongoID =
                         let
                             currentTidbitPointer =
                                 TidbitPointer.TidbitPointer
@@ -293,13 +334,54 @@ update msg model shared =
 
                                         _ ->
                                             doNothing
+
+                            handleGetStoryForBigbit : ( Model, Shared ) -> ( Model, Shared, Cmd Msg )
+                            handleGetStoryForBigbit ( model, shared ) =
+                                let
+                                    doNothing =
+                                        ( model, shared, Cmd.none )
+
+                                    maybeViewingStoryID =
+                                        Maybe.map .id shared.viewingStory
+
+                                    getStory storyID =
+                                        Api.getExpandedStoryWithCompleted
+                                            storyID
+                                            ViewBigbitGetExpandedStoryFailure
+                                            ViewBigbitGetExpandedStorySuccess
+                                in
+                                    case Route.getFromStoryQueryParamOnViewBigbitUrl shared.route of
+                                        Just fromStoryID ->
+                                            if Just fromStoryID == maybeViewingStoryID then
+                                                doNothing
+                                            else
+                                                ( model
+                                                , { shared
+                                                    | viewingStory = Nothing
+                                                  }
+                                                , getStory fromStoryID
+                                                )
+
+                                        _ ->
+                                            ( model
+                                            , { shared
+                                                | viewingStory = Nothing
+                                              }
+                                            , Cmd.none
+                                            )
                         in
-                            handleAll [ handleGetBigbit, handleGetBigbitIsCompleted ]
+                            handleAll
+                                [ handleGetBigbit
+                                , handleGetBigbitIsCompleted
+                                , handleGetStoryForBigbit
+                                ]
 
                     -- TODO ISSUE#99 Update to check cache if it is expired.
-                    fetchOrRenderStory mongoID =
+                    fetchOrRenderStory mongoID ( model, shared ) =
                         ( model
-                        , shared
+                        , { shared
+                            | viewingStory = Nothing
+                          }
                         , Cmd.batch
                             [ smoothScrollToSubBar
                             , Api.getExpandedStoryWithCompleted mongoID ViewStoryGetExpandedStoryFailure ViewStoryGetExpandedStorySuccess
@@ -408,22 +490,16 @@ update msg model shared =
                                     else
                                         doNothing
 
-                        Route.HomeComponentViewSnipbitIntroduction mongoID ->
-                            fetchOrRenderSnipbit mongoID
+                        Route.HomeComponentViewSnipbitIntroduction _ mongoID ->
+                            fetchOrRenderViewSnipbitData mongoID
 
-                        Route.HomeComponentViewSnipbitFrame mongoID _ ->
-                            fetchOrRenderSnipbit mongoID
+                        Route.HomeComponentViewSnipbitFrame _ mongoID _ ->
+                            fetchOrRenderViewSnipbitData mongoID
 
-                        Route.HomeComponentViewSnipbitConclusion mongoID ->
-                            let
-                                ( newModel, newShared, newCmd ) =
-                                    fetchOrRenderSnipbit mongoID
-                            in
-                                ( newModel
-                                , newShared
-                                , Cmd.batch
-                                    [ newCmd
-                                    , case ( newShared.user, model.viewingSnipbitIsCompleted ) of
+                        Route.HomeComponentViewSnipbitConclusion _ mongoID ->
+                            fetchOrRenderViewSnipbitData mongoID
+                                |> withCmd
+                                    (case ( shared.user, model.viewingSnipbitIsCompleted ) of
                                         ( Just user, Just isCompleted ) ->
                                             let
                                                 completed =
@@ -436,25 +512,18 @@ update msg model shared =
 
                                         _ ->
                                             Cmd.none
-                                    ]
-                                )
+                                    )
 
-                        Route.HomeComponentViewBigbitIntroduction mongoID _ ->
-                            fetchOrRenderBigbit mongoID
+                        Route.HomeComponentViewBigbitIntroduction _ mongoID _ ->
+                            fetchOrRenderViewBigbitData mongoID
 
-                        Route.HomeComponentViewBigbitFrame mongoID _ _ ->
-                            fetchOrRenderBigbit mongoID
+                        Route.HomeComponentViewBigbitFrame _ mongoID _ _ ->
+                            fetchOrRenderViewBigbitData mongoID
 
-                        Route.HomeComponentViewBigbitConclusion mongoID _ ->
-                            let
-                                ( newModel, newShared, newCmd ) =
-                                    fetchOrRenderBigbit mongoID
-                            in
-                                ( newModel
-                                , newShared
-                                , Cmd.batch
-                                    [ newCmd
-                                    , case ( newShared.user, model.viewingBigbitIsCompleted ) of
+                        Route.HomeComponentViewBigbitConclusion _ mongoID _ ->
+                            fetchOrRenderViewBigbitData mongoID
+                                |> withCmd
+                                    (case ( shared.user, model.viewingBigbitIsCompleted ) of
                                         ( Just user, Just isCompleted ) ->
                                             let
                                                 completed =
@@ -467,11 +536,10 @@ update msg model shared =
 
                                         _ ->
                                             Cmd.none
-                                    ]
-                                )
+                                    )
 
                         Route.HomeComponentViewStory mongoID ->
-                            fetchOrRenderStory mongoID
+                            fetchOrRenderStory mongoID ( model, shared )
 
                         Route.HomeComponentCreateBigbitName ->
                             focusOn "name-input"
@@ -1228,7 +1296,7 @@ update msg model shared =
                 , { shared
                     | userTidbits = Nothing
                   }
-                , Route.navigateTo <| Route.HomeComponentViewSnipbitIntroduction targetID
+                , Route.navigateTo <| Route.HomeComponentViewSnipbitIntroduction Nothing targetID
                 )
 
             OnSnipbitPublishFailure apiError ->
@@ -1364,6 +1432,18 @@ update msg model shared =
             ViewSnipbitMarkAsIncompleteFailure apiError ->
                 -- TODO handle error.
                 doNothing
+
+            ViewSnipbitGetExpandedStoryFailure apiError ->
+                -- TODO handle error.
+                doNothing
+
+            ViewSnipbitGetExpandedStorySuccess expandedStory ->
+                ( model
+                , { shared
+                    | viewingStory = Just expandedStory
+                  }
+                , Cmd.none
+                )
 
             BigbitGoToCodeTab ->
                 ( updateBigbitCreateData
@@ -1995,7 +2075,7 @@ update msg model shared =
                 , { shared
                     | userTidbits = Nothing
                   }
-                , Route.navigateTo <| Route.HomeComponentViewBigbitIntroduction targetID Nothing
+                , Route.navigateTo <| Route.HomeComponentViewBigbitIntroduction Nothing targetID Nothing
                 )
 
             OnGetBigbitFailure apiError ->
@@ -2189,14 +2269,27 @@ update msg model shared =
                 -- TODO handle error.
                 doNothing
 
+            ViewBigbitGetExpandedStorySuccess story ->
+                ( model
+                , { shared
+                    | viewingStory = Just story
+                  }
+                , Cmd.none
+                )
+
+            ViewBigbitGetExpandedStoryFailure apiError ->
+                -- TODO handle error
+                doNothing
+
             ViewStoryGetExpandedStoryFailure apiError ->
                 -- TODO handle error.
                 doNothing
 
             ViewStoryGetExpandedStorySuccess expandedStory ->
-                ( updateViewStoryData <|
-                    ViewStoryData.setCurrentStory (Just expandedStory)
-                , shared
+                ( model
+                , { shared
+                    | viewingStory = Just expandedStory
+                  }
                 , Cmd.none
                 )
 
@@ -2634,19 +2727,19 @@ createViewSnipbitCodeEditor snipbit { route, user } =
     in
         Cmd.batch
             [ case route of
-                Route.HomeComponentViewSnipbitIntroduction _ ->
+                Route.HomeComponentViewSnipbitIntroduction _ _ ->
                     editorWithRange Nothing
 
-                Route.HomeComponentViewSnipbitConclusion _ ->
+                Route.HomeComponentViewSnipbitConclusion _ _ ->
                     editorWithRange Nothing
 
-                Route.HomeComponentViewSnipbitFrame mongoID frameNumber ->
+                Route.HomeComponentViewSnipbitFrame fromStoryID mongoID frameNumber ->
                     if frameNumber > Array.length snipbit.highlightedComments then
                         Route.modifyTo <|
-                            Route.HomeComponentViewSnipbitConclusion mongoID
+                            Route.HomeComponentViewSnipbitConclusion fromStoryID mongoID
                     else if frameNumber < 1 then
                         Route.modifyTo <|
-                            Route.HomeComponentViewSnipbitIntroduction mongoID
+                            Route.HomeComponentViewSnipbitIntroduction fromStoryID mongoID
                     else
                         (Array.get
                             (frameNumber - 1)
@@ -2680,7 +2773,7 @@ createViewBigbitCodeEditor bigbit { route, user } =
                 , selectAllowed = True
                 }
 
-        loadFileWithNoHighlight maybePath =
+        loadFileWithNoHighlight fromStoryID maybePath =
             case maybePath of
                 Nothing ->
                     blankEditor
@@ -2688,7 +2781,7 @@ createViewBigbitCodeEditor bigbit { route, user } =
                 Just somePath ->
                     case FS.getFile bigbit.fs somePath of
                         Nothing ->
-                            Route.modifyTo <| Route.HomeComponentViewBigbitIntroduction bigbit.id Nothing
+                            Route.modifyTo <| Route.HomeComponentViewBigbitIntroduction fromStoryID bigbit.id Nothing
 
                         Just (FS.File content { language }) ->
                             Ports.createCodeEditor
@@ -2704,16 +2797,16 @@ createViewBigbitCodeEditor bigbit { route, user } =
     in
         Cmd.batch
             [ case route of
-                Route.HomeComponentViewBigbitIntroduction mongoID maybePath ->
-                    loadFileWithNoHighlight maybePath
+                Route.HomeComponentViewBigbitIntroduction fromStoryID mongoID maybePath ->
+                    loadFileWithNoHighlight fromStoryID maybePath
 
-                Route.HomeComponentViewBigbitFrame mongoID frameNumber maybePath ->
+                Route.HomeComponentViewBigbitFrame fromStoryID mongoID frameNumber maybePath ->
                     case Array.get (frameNumber - 1) bigbit.highlightedComments of
                         Nothing ->
                             if frameNumber > (Array.length bigbit.highlightedComments) then
-                                Route.modifyTo <| Route.HomeComponentViewBigbitConclusion bigbit.id Nothing
+                                Route.modifyTo <| Route.HomeComponentViewBigbitConclusion fromStoryID bigbit.id Nothing
                             else
-                                Route.modifyTo <| Route.HomeComponentViewBigbitIntroduction bigbit.id Nothing
+                                Route.modifyTo <| Route.HomeComponentViewBigbitIntroduction fromStoryID bigbit.id Nothing
 
                         Just hc ->
                             case maybePath of
@@ -2736,10 +2829,10 @@ createViewBigbitCodeEditor bigbit { route, user } =
                                                 }
 
                                 Just absolutePath ->
-                                    loadFileWithNoHighlight maybePath
+                                    loadFileWithNoHighlight fromStoryID maybePath
 
-                Route.HomeComponentViewBigbitConclusion mongoID maybePath ->
-                    loadFileWithNoHighlight maybePath
+                Route.HomeComponentViewBigbitConclusion fromStoryID mongoID maybePath ->
+                    loadFileWithNoHighlight fromStoryID maybePath
 
                 _ ->
                     Cmd.none

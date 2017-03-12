@@ -28,4 +28,5 @@ defaultShared =
     , keysDown = KK.init
     , userStories = Nothing
     , userTidbits = Nothing
+    , viewingStory = Nothing
     }

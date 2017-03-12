@@ -66,6 +66,8 @@ type Msg
     | ViewSnipbitMarkAsIncomplete Completed.Completed
     | ViewSnipbitMarkAsIncompleteSuccess Completed.IsCompleted
     | ViewSnipbitMarkAsIncompleteFailure ApiError.ApiError
+    | ViewSnipbitGetExpandedStoryFailure ApiError.ApiError
+    | ViewSnipbitGetExpandedStorySuccess Story.ExpandedStory
     | BigbitGoToCodeTab
     | BigbitReset
     | BigbitUpdateName String
@@ -111,6 +113,8 @@ type Msg
     | ViewBigbitMarkAsIncomplete Completed.Completed
     | ViewBigbitMarkAsIncompleteSuccess Completed.IsCompleted
     | ViewBigbitMarkAsIncompleteFailure ApiError.ApiError
+    | ViewBigbitGetExpandedStoryFailure ApiError.ApiError
+    | ViewBigbitGetExpandedStorySuccess Story.ExpandedStory
     | ViewStoryGetExpandedStoryFailure ApiError.ApiError
     | ViewStoryGetExpandedStorySuccess Story.ExpandedStory
     | ProfileCancelEditName

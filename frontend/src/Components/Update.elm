@@ -323,20 +323,21 @@ handleKeyPress model =
                     (Route.navigateTo Route.HomeComponentCreateSnipbitCodeIntroduction)
                     (Route.navigateTo Route.HomeComponentCreateSnipbitLanguage)
 
-            Route.HomeComponentViewSnipbitIntroduction mongoID ->
+            Route.HomeComponentViewSnipbitIntroduction fromStoryID mongoID ->
                 viewSnipbitWatchForLeftAndRightArrow
                     Cmd.none
-                    (Route.navigateTo <| Route.HomeComponentViewSnipbitFrame mongoID 1)
+                    (Route.navigateTo <| Route.HomeComponentViewSnipbitFrame fromStoryID mongoID 1)
 
-            Route.HomeComponentViewSnipbitFrame mongoID frameNumber ->
+            Route.HomeComponentViewSnipbitFrame fromStoryID mongoID frameNumber ->
                 viewSnipbitWatchForLeftAndRightArrow
-                    (Route.navigateTo <| Route.HomeComponentViewSnipbitFrame mongoID (frameNumber - 1))
-                    (Route.navigateTo <| Route.HomeComponentViewSnipbitFrame mongoID (frameNumber + 1))
+                    (Route.navigateTo <| Route.HomeComponentViewSnipbitFrame fromStoryID mongoID (frameNumber - 1))
+                    (Route.navigateTo <| Route.HomeComponentViewSnipbitFrame fromStoryID mongoID (frameNumber + 1))
 
-            Route.HomeComponentViewSnipbitConclusion mongoID ->
+            Route.HomeComponentViewSnipbitConclusion fromStoryID mongoID ->
                 viewSnipbitWatchForLeftAndRightArrow
                     (Route.navigateTo <|
                         Route.HomeComponentViewSnipbitFrame
+                            fromStoryID
                             mongoID
                             (model.homeComponent.viewingSnipbit
                                 |> maybeMapWithDefault (.highlightedComments >> Array.length) 0
@@ -344,20 +345,21 @@ handleKeyPress model =
                     )
                     Cmd.none
 
-            Route.HomeComponentViewBigbitIntroduction mongoID _ ->
+            Route.HomeComponentViewBigbitIntroduction fromStoryID mongoID _ ->
                 viewBigbitWatchForLeftAndRightArrow
                     Cmd.none
-                    (Route.navigateTo <| Route.HomeComponentViewBigbitFrame mongoID 1 Nothing)
+                    (Route.navigateTo <| Route.HomeComponentViewBigbitFrame fromStoryID mongoID 1 Nothing)
 
-            Route.HomeComponentViewBigbitFrame mongoID frameNumber _ ->
+            Route.HomeComponentViewBigbitFrame fromStoryID mongoID frameNumber _ ->
                 viewBigbitWatchForLeftAndRightArrow
-                    (Route.navigateTo <| Route.HomeComponentViewBigbitFrame mongoID (frameNumber - 1) Nothing)
-                    (Route.navigateTo <| Route.HomeComponentViewBigbitFrame mongoID (frameNumber + 1) Nothing)
+                    (Route.navigateTo <| Route.HomeComponentViewBigbitFrame fromStoryID mongoID (frameNumber - 1) Nothing)
+                    (Route.navigateTo <| Route.HomeComponentViewBigbitFrame fromStoryID mongoID (frameNumber + 1) Nothing)
 
-            Route.HomeComponentViewBigbitConclusion mongoID _ ->
+            Route.HomeComponentViewBigbitConclusion fromStoryID mongoID _ ->
                 viewBigbitWatchForLeftAndRightArrow
                     (Route.navigateTo <|
                         Route.HomeComponentViewBigbitFrame
+                            fromStoryID
                             mongoID
                             (model.homeComponent.viewingBigbit
                                 |> maybeMapWithDefault (.highlightedComments >> Array.length) 0
@@ -500,22 +502,22 @@ handleLocationChange maybeRoute model =
                     Route.HomeComponentCreateSnipbitCodeFrame _ ->
                         triggerRouteHookOnHomeComponent
 
-                    Route.HomeComponentViewSnipbitIntroduction _ ->
+                    Route.HomeComponentViewSnipbitIntroduction _ _ ->
                         triggerRouteHookOnHomeComponent
 
-                    Route.HomeComponentViewSnipbitConclusion _ ->
+                    Route.HomeComponentViewSnipbitConclusion _ _ ->
                         triggerRouteHookOnHomeComponent
 
-                    Route.HomeComponentViewSnipbitFrame _ _ ->
+                    Route.HomeComponentViewSnipbitFrame _ _ _ ->
                         triggerRouteHookOnHomeComponent
 
-                    Route.HomeComponentViewBigbitIntroduction _ _ ->
+                    Route.HomeComponentViewBigbitIntroduction _ _ _ ->
                         triggerRouteHookOnHomeComponent
 
-                    Route.HomeComponentViewBigbitFrame _ _ _ ->
+                    Route.HomeComponentViewBigbitFrame _ _ _ _ ->
                         triggerRouteHookOnHomeComponent
 
-                    Route.HomeComponentViewBigbitConclusion _ _ ->
+                    Route.HomeComponentViewBigbitConclusion _ _ _ ->
                         triggerRouteHookOnHomeComponent
 
                     Route.HomeComponentViewStory _ ->
