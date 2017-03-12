@@ -29,6 +29,18 @@ getName tidbit =
             name
 
 
+{-| Gets the ID of a tidbit.
+-}
+getID : Tidbit -> String
+getID tidbit =
+    case tidbit of
+        Snipbit { id } ->
+            id
+
+        Bigbit { id } ->
+            id
+
+
 {-| Gets the date a tidbit was last modified.
 -}
 getLastModified : Tidbit -> Date.Date
@@ -44,11 +56,11 @@ getLastModified tidbit =
 {-| Gets the route-base for viewing the tidbit, still requires the ID to become
 a full `Route`.
 -}
-getTidbitRoute : Tidbit -> Route.Route
-getTidbitRoute tidbit =
+getTidbitRoute : Maybe String -> Tidbit -> Route.Route
+getTidbitRoute fromStoryID tidbit =
     case tidbit of
         Snipbit { id } ->
-            Route.HomeComponentViewSnipbitIntroduction id
+            Route.HomeComponentViewSnipbitIntroduction fromStoryID id
 
         Bigbit { id } ->
             Route.HomeComponentViewBigbitIntroduction id Nothing

@@ -25,6 +25,7 @@ import Models.ProfileData as ProfileData
 import Models.NewStoryData as NewStoryData
 import Models.StoryData as StoryData
 import Models.Tidbit as Tidbit
+import Models.Story as Story
 
 
 {-| A google-material-design check-icon.
@@ -142,13 +143,13 @@ viewSnipbitCommentBox snipbit relevantHC route =
         htmlIfNoRelevantHC =
             githubMarkdown [] <|
                 case route of
-                    Route.HomeComponentViewSnipbitIntroduction _ ->
+                    Route.HomeComponentViewSnipbitIntroduction _ _ ->
                         snipbit.introduction
 
-                    Route.HomeComponentViewSnipbitConclusion _ ->
+                    Route.HomeComponentViewSnipbitConclusion _ _ ->
                         snipbit.conclusion
 
-                    Route.HomeComponentViewSnipbitFrame _ frameNumber ->
+                    Route.HomeComponentViewSnipbitFrame _ _ frameNumber ->
                         (Array.get
                             (frameNumber - 1)
                             snipbit.highlightedComments
@@ -192,7 +193,9 @@ viewSnipbitCommentBox snipbit relevantHC route =
                                     (Array.get index relevantHC
                                         |> Maybe.map
                                             (ViewSnipbitJumpToFrame
-                                                << Route.HomeComponentViewSnipbitFrame snipbit.id
+                                                << Route.HomeComponentViewSnipbitFrame
+                                                    (Route.getFromStoryQueryParamOnViewSnipbitUrl route)
+                                                    snipbit.id
                                                 << ((+) 1)
                                                 << Tuple.first
                                             )
@@ -225,11 +228,46 @@ viewSnipbitView model shared =
         [ class "view-snipbit" ]
         [ div
             [ class "sub-bar" ]
-            [ button
-                [ class "sub-bar-button back-to-browse-button"
-                , onClick <| GoTo Route.HomeComponentBrowse
-                ]
-                [ text "Back to Browse" ]
+            [ case ( shared.viewingStory, model.viewingSnipbit ) of
+                ( Just story, Just snipbit ) ->
+                    case Story.getPreviousTidbitRoute snipbit.id story.id story.tidbits of
+                        Just previousTidbitRoute ->
+                            button
+                                [ class "sub-bar-button traverse-tidbit-button"
+                                , onClick <| GoTo previousTidbitRoute
+                                ]
+                                [ text "Previous Tidbit" ]
+
+                        _ ->
+                            Util.hiddenDiv
+
+                _ ->
+                    Util.hiddenDiv
+            , case shared.viewingStory of
+                Just story ->
+                    button
+                        [ class "sub-bar-button back-to-story-button"
+                        , onClick <| GoTo <| Route.HomeComponentViewStory story.id
+                        ]
+                        [ text "View Story" ]
+
+                _ ->
+                    Util.hiddenDiv
+            , case ( shared.viewingStory, model.viewingSnipbit ) of
+                ( Just story, Just snipbit ) ->
+                    case Story.getNextTidbitRoute snipbit.id story.id story.tidbits of
+                        Just nextTidbitRoute ->
+                            button
+                                [ class "sub-bar-button traverse-tidbit-button"
+                                , onClick <| GoTo nextTidbitRoute
+                                ]
+                                [ text "Next Tidbit" ]
+
+                        _ ->
+                            Util.hiddenDiv
+
+                _ ->
+                    Util.hiddenDiv
             , button
                 [ classList
                     [ ( "sub-bar-button view-relevant-ranges", True )
@@ -265,13 +303,13 @@ viewSnipbitView model shared =
                             [ class "sub-bar-button complete-button"
                             , onClick <| ViewSnipbitMarkAsIncomplete <| Completed.completedFromIsCompleted isCompleted user.id
                             ]
-                            [ text "Mark as Incomplete" ]
+                            [ text "Mark Snipbit as Incomplete" ]
                     else
                         button
                             [ class "sub-bar-button complete-button"
                             , onClick <| ViewSnipbitMarkAsComplete <| Completed.completedFromIsCompleted isCompleted user.id
                             ]
-                            [ text "Mark as Complete" ]
+                            [ text "Mark Snipbit as Complete" ]
 
                 _ ->
                     Util.hiddenDiv
@@ -290,7 +328,7 @@ viewSnipbitView model shared =
                                 [ ( "material-icons action-button", True )
                                 , ( "disabled-icon"
                                   , (case shared.route of
-                                        Route.HomeComponentViewSnipbitIntroduction _ ->
+                                        Route.HomeComponentViewSnipbitIntroduction _ _ ->
                                             True
 
                                         _ ->
@@ -304,11 +342,11 @@ viewSnipbitView model shared =
                                     NoOp
                                 else
                                     case shared.route of
-                                        Route.HomeComponentViewSnipbitConclusion mongoID ->
-                                            ViewSnipbitJumpToFrame <| Route.HomeComponentViewSnipbitFrame mongoID (Array.length snipbit.highlightedComments)
+                                        Route.HomeComponentViewSnipbitConclusion fromStoryID mongoID ->
+                                            ViewSnipbitJumpToFrame <| Route.HomeComponentViewSnipbitFrame fromStoryID mongoID (Array.length snipbit.highlightedComments)
 
-                                        Route.HomeComponentViewSnipbitFrame mongoID frameNumber ->
-                                            ViewSnipbitJumpToFrame <| Route.HomeComponentViewSnipbitFrame mongoID (frameNumber - 1)
+                                        Route.HomeComponentViewSnipbitFrame fromStoryID mongoID frameNumber ->
+                                            ViewSnipbitJumpToFrame <| Route.HomeComponentViewSnipbitFrame fromStoryID mongoID (frameNumber - 1)
 
                                         _ ->
                                             NoOp
@@ -319,12 +357,15 @@ viewSnipbitView model shared =
                                 if (Model.isViewSnipbitRHCTabOpen model) then
                                     NoOp
                                 else
-                                    GoTo <| Route.HomeComponentViewSnipbitIntroduction snipbit.id
+                                    GoTo <|
+                                        Route.HomeComponentViewSnipbitIntroduction
+                                            (Route.getFromStoryQueryParamOnViewSnipbitUrl shared.route)
+                                            snipbit.id
                             , classList
                                 [ ( "viewer-navbar-item", True )
                                 , ( "selected"
                                   , case shared.route of
-                                        Route.HomeComponentViewSnipbitIntroduction _ ->
+                                        Route.HomeComponentViewSnipbitIntroduction _ _ ->
                                             True
 
                                         _ ->
@@ -336,10 +377,10 @@ viewSnipbitView model shared =
                             [ text "Introduction" ]
                         , progressBar
                             (case shared.route of
-                                Route.HomeComponentViewSnipbitFrame _ frameNumber ->
+                                Route.HomeComponentViewSnipbitFrame _ _ frameNumber ->
                                     Just (frameNumber - 1)
 
-                                Route.HomeComponentViewSnipbitConclusion _ ->
+                                Route.HomeComponentViewSnipbitConclusion _ _ ->
                                     Just <| Array.length snipbit.highlightedComments
 
                                 _ ->
@@ -352,12 +393,15 @@ viewSnipbitView model shared =
                                 if (Model.isViewSnipbitRHCTabOpen model) then
                                     NoOp
                                 else
-                                    GoTo <| Route.HomeComponentViewSnipbitConclusion snipbit.id
+                                    GoTo <|
+                                        Route.HomeComponentViewSnipbitConclusion
+                                            (Route.getFromStoryQueryParamOnViewSnipbitUrl shared.route)
+                                            snipbit.id
                             , classList
                                 [ ( "viewer-navbar-item", True )
                                 , ( "selected"
                                   , case shared.route of
-                                        Route.HomeComponentViewSnipbitConclusion _ ->
+                                        Route.HomeComponentViewSnipbitConclusion _ _ ->
                                             True
 
                                         _ ->
@@ -372,7 +416,7 @@ viewSnipbitView model shared =
                                 [ ( "material-icons action-button", True )
                                 , ( "disabled-icon"
                                   , (case shared.route of
-                                        Route.HomeComponentViewSnipbitConclusion _ ->
+                                        Route.HomeComponentViewSnipbitConclusion _ _ ->
                                             True
 
                                         _ ->
@@ -386,11 +430,11 @@ viewSnipbitView model shared =
                                     NoOp
                                 else
                                     case shared.route of
-                                        Route.HomeComponentViewSnipbitIntroduction mongoID ->
-                                            ViewSnipbitJumpToFrame <| Route.HomeComponentViewSnipbitFrame mongoID 1
+                                        Route.HomeComponentViewSnipbitIntroduction fromStoryID mongoID ->
+                                            ViewSnipbitJumpToFrame <| Route.HomeComponentViewSnipbitFrame fromStoryID mongoID 1
 
-                                        Route.HomeComponentViewSnipbitFrame mongoID frameNumber ->
-                                            ViewSnipbitJumpToFrame <| Route.HomeComponentViewSnipbitFrame mongoID (frameNumber + 1)
+                                        Route.HomeComponentViewSnipbitFrame fromStoryID mongoID frameNumber ->
+                                            ViewSnipbitJumpToFrame <| Route.HomeComponentViewSnipbitFrame fromStoryID mongoID (frameNumber + 1)
 
                                         _ ->
                                             NoOp
@@ -551,11 +595,6 @@ viewBigbitView model shared =
             [ div
                 [ class "sub-bar" ]
                 [ button
-                    [ class "sub-bar-button back-to-browse-button"
-                    , onClick <| GoTo Route.HomeComponentBrowse
-                    ]
-                    [ text "Back to Browse" ]
-                , button
                     [ classList
                         [ ( "sub-bar-button explore-fs", True )
                         , ( "hidden"
@@ -606,13 +645,13 @@ viewBigbitView model shared =
                                 [ classList [ ( "sub-bar-button complete-button", True ) ]
                                 , onClick <| ViewBigbitMarkAsIncomplete <| Completed.completedFromIsCompleted isCompleted user.id
                                 ]
-                                [ text "Mark Tidbit as Incomplete" ]
+                                [ text "Mark Bigbit as Incomplete" ]
                         else
                             button
                                 [ classList [ ( "sub-bar-button complete-button", True ) ]
                                 , onClick <| ViewBigbitMarkAsComplete <| Completed.completedFromIsCompleted isCompleted user.id
                                 ]
-                                [ text "Mark Tidbit as Complete" ]
+                                [ text "Mark Bigbit as Complete" ]
 
                     _ ->
                         Util.hiddenDiv
@@ -752,7 +791,7 @@ viewBigbitView model shared =
 -}
 viewStoryView : Model -> Shared -> Html Msg
 viewStoryView model shared =
-    case model.viewStoryData.currentStory of
+    case shared.viewingStory of
         Nothing ->
             div
                 []
@@ -762,7 +801,7 @@ viewStoryView model shared =
             let
                 completedListForLoggedInUser : Maybe (List Bool)
                 completedListForLoggedInUser =
-                    case ( shared.user, model.viewStoryData.currentStory |> Maybe.andThen .userHasCompleted ) of
+                    case ( shared.user, shared.viewingStory |> Maybe.andThen .userHasCompleted ) of
                         ( Just user, Just hasCompletedList ) ->
                             Just hasCompletedList
 
@@ -776,21 +815,14 @@ viewStoryView model shared =
                         |> Maybe.andThen
                             (\index ->
                                 Util.getAt story.tidbits index
-                                    |> Maybe.map (Tidbit.getTidbitRoute >> (,) index)
+                                    |> Maybe.map (Tidbit.getTidbitRoute (Just story.id) >> (,) index)
                             )
             in
                 div
                     [ class "view-story-page" ]
                     [ Util.keyedDiv
                         [ class "sub-bar" ]
-                        [ ( "view-story-sub-bar-back-button"
-                          , button
-                                [ class "sub-bar-button back-to-browse-button"
-                                , onClick <| GoTo Route.HomeComponentBrowse
-                                ]
-                                [ text "Back to Browse" ]
-                          )
-                        , ( "view-story-next-tidbit-button"
+                        [ ( "view-story-next-tidbit-button"
                           , case nextTidbitInStory of
                                 Just ( index, routeForViewingTidbit ) ->
                                     button
@@ -856,7 +888,7 @@ viewStoryView model shared =
                                                 [ classList
                                                     [ ( "tidbit-box", True )
                                                     , ( "completed"
-                                                      , case model.viewStoryData.currentStory |> Maybe.andThen .userHasCompleted of
+                                                      , case shared.viewingStory |> Maybe.andThen .userHasCompleted of
                                                             Nothing ->
                                                                 False
 
@@ -873,7 +905,7 @@ viewStoryView model shared =
                                                     [ text <| toString <| index + 1 ]
                                                 , button
                                                     [ class "view-button"
-                                                    , onClick <| GoTo <| Tidbit.getTidbitRoute tidbit
+                                                    , onClick <| GoTo <| Tidbit.getTidbitRoute (Just story.id) tidbit
                                                     ]
                                                     [ text "view" ]
                                                 , i
@@ -895,13 +927,13 @@ displayViewForRoute model shared =
         Route.HomeComponentBrowse ->
             browseView model
 
-        Route.HomeComponentViewSnipbitIntroduction _ ->
+        Route.HomeComponentViewSnipbitIntroduction _ _ ->
             viewSnipbitView model shared
 
-        Route.HomeComponentViewSnipbitConclusion _ ->
+        Route.HomeComponentViewSnipbitConclusion _ _ ->
             viewSnipbitView model shared
 
-        Route.HomeComponentViewSnipbitFrame _ _ ->
+        Route.HomeComponentViewSnipbitFrame _ _ _ ->
             viewSnipbitView model shared
 
         Route.HomeComponentViewBigbitIntroduction _ _ ->
@@ -988,13 +1020,13 @@ navbar shared =
                 Route.HomeComponentBrowse ->
                     True
 
-                Route.HomeComponentViewSnipbitIntroduction _ ->
+                Route.HomeComponentViewSnipbitIntroduction _ _ ->
                     True
 
-                Route.HomeComponentViewSnipbitFrame _ _ ->
+                Route.HomeComponentViewSnipbitFrame _ _ _ ->
                     True
 
-                Route.HomeComponentViewSnipbitConclusion _ ->
+                Route.HomeComponentViewSnipbitConclusion _ _ ->
                     True
 
                 Route.HomeComponentViewBigbitIntroduction _ _ ->
@@ -1126,14 +1158,7 @@ createStoryView model shared =
                 [ class "create-story-page" ]
                 [ Util.keyedDiv
                     [ class "sub-bar" ]
-                    [ ( "create-story-page-sub-bar-back-button"
-                      , button
-                            [ class "sub-bar-button back-to-create-button"
-                            , onClick <| GoTo Route.HomeComponentCreate
-                            ]
-                            [ text "Back to Create" ]
-                      )
-                    , ( "create-story-page-sub-bar-view-story-button"
+                    [ ( "create-story-page-sub-bar-view-story-button"
                       , button
                             [ class "sub-bar-button "
                             , onClick <| GoTo <| Route.HomeComponentViewStory story.id
@@ -1232,7 +1257,7 @@ createStoryView model shared =
                                             [ text <| Tidbit.getTypeName tidbit ]
                                         , button
                                             [ class "view-tidbit"
-                                            , onClick <| GoTo <| Tidbit.getTidbitRoute tidbit
+                                            , onClick <| GoTo <| Tidbit.getTidbitRoute Nothing tidbit
                                             ]
                                             [ text "View" ]
                                         , button
@@ -1282,11 +1307,6 @@ createNewStoryView model shared =
                 (case editingStoryQueryParam of
                     Nothing ->
                         [ button
-                            [ class "sub-bar-button back-to-create-button"
-                            , onClick <| GoTo Route.HomeComponentCreate
-                            ]
-                            [ text "Back to Create" ]
-                        , button
                             [ class "sub-bar-button"
                             , onClick NewStoryReset
                             ]
@@ -2438,11 +2458,6 @@ createBigbitView model shared =
             [ div
                 [ class "sub-bar" ]
                 [ button
-                    [ class "sub-bar-button back-to-create-button"
-                    , onClick <| GoTo Route.HomeComponentCreate
-                    ]
-                    [ text "Back to Create" ]
-                , button
                     [ class "sub-bar-button"
                     , onClick <| BigbitReset
                     ]
@@ -3051,11 +3066,6 @@ createSnipbitView model shared =
             [ div
                 [ class "sub-bar" ]
                 [ button
-                    [ class "create-snipbit-back-button back-to-create-button"
-                    , onClick <| GoTo Route.HomeComponentCreate
-                    ]
-                    [ text "Back to Create" ]
-                , button
                     [ class "create-snipbit-reset-button"
                     , onClick <| SnipbitReset
                     ]

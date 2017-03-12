@@ -7,6 +7,7 @@ import Json.Decode as Decode
 import Json.Decode.Pipeline exposing (decode, required, optional, hardcoded)
 import Models.Tidbit as Tidbit
 import Models.TidbitPointer as TidbitPointer
+import Models.Route as Route
 
 
 {-| The story model.
@@ -163,3 +164,30 @@ blankStory =
     , lastModified = Date.fromTime 0
     , userHasCompleted = Nothing
     }
+
+
+{-| Given the ID of a tidbit and a list of tidbits, gets the route for the
+tidbit after the current one if one exists after.
+-}
+getNextTidbitRoute : String -> String -> List Tidbit.Tidbit -> Maybe Route.Route
+getNextTidbitRoute currentTidbitID currentStoryID storyTidbits =
+    case storyTidbits of
+        [] ->
+            Nothing
+
+        [ a ] ->
+            Nothing
+
+        head :: next :: rest ->
+            if Tidbit.getID head == currentTidbitID then
+                Just <| Tidbit.getTidbitRoute (Just currentStoryID) next
+            else
+                getNextTidbitRoute currentTidbitID currentStoryID (next :: rest)
+
+
+{-| Given the ID of a tidbit and a list of tidbits, gets the route for the
+tidbit before the current one if one exists before.
+-}
+getPreviousTidbitRoute : String -> String -> List Tidbit.Tidbit -> Maybe Route.Route
+getPreviousTidbitRoute currentTidbitID currentStoryID storyTidbits =
+    getNextTidbitRoute currentTidbitID currentStoryID (List.reverse storyTidbits)

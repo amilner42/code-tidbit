@@ -36,6 +36,7 @@ type alias Shared =
     , keysDown : KK.Model
     , userStories : Maybe (List Story.Story)
     , userTidbits : Maybe (List Tidbit.Tidbit)
+    , viewingStory : Maybe Story.ExpandedStory
     }
 
 
@@ -121,6 +122,7 @@ sharedCacheDecoder =
         |> required "keysDown" (Decode.succeed KK.init)
         |> required "userStories" (Decode.maybe <| Decode.list Story.storyDecoder)
         |> required "userTidbits" (Decode.maybe <| Decode.list Tidbit.decoder)
+        |> required "viewingStory" (Decode.maybe <| Story.expandedStoryDecoder)
 
 
 {-| Shared `cacheEncoder`.
@@ -134,4 +136,5 @@ sharedCacheEncoder shared =
         , ( "keysDown", Encode.null )
         , ( "userStories", justValueOrNull (Encode.list << List.map Story.storyEncoder) shared.userStories )
         , ( "userTidbits", justValueOrNull (Encode.list << List.map Tidbit.encoder) shared.userTidbits )
+        , ( "viewingStory", justValueOrNull Story.expandedStoryEncoder shared.viewingStory )
         ]

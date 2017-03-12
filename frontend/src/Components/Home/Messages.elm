@@ -66,6 +66,8 @@ type Msg
     | ViewSnipbitMarkAsIncomplete Completed.Completed
     | ViewSnipbitMarkAsIncompleteSuccess Completed.IsCompleted
     | ViewSnipbitMarkAsIncompleteFailure ApiError.ApiError
+    | ViewSnipbitGetExpandedStoryFailure ApiError.ApiError
+    | ViewSnipbitGetExpandedStorySuccess Story.ExpandedStory
     | BigbitGoToCodeTab
     | BigbitReset
     | BigbitUpdateName String

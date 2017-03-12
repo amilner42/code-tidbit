@@ -39,13 +39,13 @@ viewForRoute model =
             Route.HomeComponentBrowse ->
                 renderedHomeView
 
-            Route.HomeComponentViewSnipbitIntroduction _ ->
+            Route.HomeComponentViewSnipbitIntroduction _ _ ->
                 renderedHomeView
 
-            Route.HomeComponentViewSnipbitConclusion _ ->
+            Route.HomeComponentViewSnipbitConclusion _ _ ->
                 renderedHomeView
 
-            Route.HomeComponentViewSnipbitFrame _ _ ->
+            Route.HomeComponentViewSnipbitFrame _ _ _ ->
                 renderedHomeView
 
             Route.HomeComponentViewBigbitIntroduction _ _ ->

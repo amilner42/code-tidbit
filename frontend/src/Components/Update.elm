@@ -323,20 +323,21 @@ handleKeyPress model =
                     (Route.navigateTo Route.HomeComponentCreateSnipbitCodeIntroduction)
                     (Route.navigateTo Route.HomeComponentCreateSnipbitLanguage)
 
-            Route.HomeComponentViewSnipbitIntroduction mongoID ->
+            Route.HomeComponentViewSnipbitIntroduction fromStoryID mongoID ->
                 viewSnipbitWatchForLeftAndRightArrow
                     Cmd.none
-                    (Route.navigateTo <| Route.HomeComponentViewSnipbitFrame mongoID 1)
+                    (Route.navigateTo <| Route.HomeComponentViewSnipbitFrame fromStoryID mongoID 1)
 
-            Route.HomeComponentViewSnipbitFrame mongoID frameNumber ->
+            Route.HomeComponentViewSnipbitFrame fromStoryID mongoID frameNumber ->
                 viewSnipbitWatchForLeftAndRightArrow
-                    (Route.navigateTo <| Route.HomeComponentViewSnipbitFrame mongoID (frameNumber - 1))
-                    (Route.navigateTo <| Route.HomeComponentViewSnipbitFrame mongoID (frameNumber + 1))
+                    (Route.navigateTo <| Route.HomeComponentViewSnipbitFrame fromStoryID mongoID (frameNumber - 1))
+                    (Route.navigateTo <| Route.HomeComponentViewSnipbitFrame fromStoryID mongoID (frameNumber + 1))
 
-            Route.HomeComponentViewSnipbitConclusion mongoID ->
+            Route.HomeComponentViewSnipbitConclusion fromStoryID mongoID ->
                 viewSnipbitWatchForLeftAndRightArrow
                     (Route.navigateTo <|
                         Route.HomeComponentViewSnipbitFrame
+                            fromStoryID
                             mongoID
                             (model.homeComponent.viewingSnipbit
                                 |> maybeMapWithDefault (.highlightedComments >> Array.length) 0
@@ -500,13 +501,13 @@ handleLocationChange maybeRoute model =
                     Route.HomeComponentCreateSnipbitCodeFrame _ ->
                         triggerRouteHookOnHomeComponent
 
-                    Route.HomeComponentViewSnipbitIntroduction _ ->
+                    Route.HomeComponentViewSnipbitIntroduction _ _ ->
                         triggerRouteHookOnHomeComponent
 
-                    Route.HomeComponentViewSnipbitConclusion _ ->
+                    Route.HomeComponentViewSnipbitConclusion _ _ ->
                         triggerRouteHookOnHomeComponent
 
-                    Route.HomeComponentViewSnipbitFrame _ _ ->
+                    Route.HomeComponentViewSnipbitFrame _ _ _ ->
                         triggerRouteHookOnHomeComponent
 
                     Route.HomeComponentViewBigbitIntroduction _ _ ->

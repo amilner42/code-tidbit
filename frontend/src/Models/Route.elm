@@ -19,9 +19,9 @@ type alias MongoID =
 -}
 type Route
     = HomeComponentBrowse
-    | HomeComponentViewSnipbitIntroduction MongoID
-    | HomeComponentViewSnipbitConclusion MongoID
-    | HomeComponentViewSnipbitFrame MongoID Int
+    | HomeComponentViewSnipbitIntroduction (Maybe MongoID) MongoID
+    | HomeComponentViewSnipbitConclusion (Maybe MongoID) MongoID
+    | HomeComponentViewSnipbitFrame (Maybe MongoID) MongoID Int
     | HomeComponentViewBigbitIntroduction MongoID (Maybe FS.Path)
     | HomeComponentViewBigbitFrame MongoID Int (Maybe FS.Path)
     | HomeComponentViewBigbitConclusion MongoID (Maybe FS.Path)
@@ -63,7 +63,7 @@ matchers =
 
         -- Abstract
         viewSnipbit =
-            view </> s "snipbit" </> string
+            view </> s "snipbit" <?> qpFromStory </> string
 
         viewSnipbitIntroduction =
             viewSnipbit </> s "introduction"
@@ -156,16 +156,17 @@ matchers =
         homeComponentCreateNewStoryTags =
             createStory </> s "tags" <?> qpEditingStory
 
-        -- Query param
-        qpEditingStory =
-            stringParam "editingStory"
-
         homeComponentCreateStory =
             createStory </> string
 
-        -- Query param for the current active file.
+        qpEditingStory =
+            stringParam "editingStory"
+
         qpFile =
             stringParam "file"
+
+        qpFromStory =
+            stringParam "fromStory"
 
         profile =
             s "profile"
@@ -224,13 +225,13 @@ routeRequiresAuth route =
         WelcomeComponentRegister ->
             False
 
-        HomeComponentViewSnipbitIntroduction _ ->
+        HomeComponentViewSnipbitIntroduction _ _ ->
             False
 
-        HomeComponentViewSnipbitFrame _ _ ->
+        HomeComponentViewSnipbitFrame _ _ _ ->
             False
 
-        HomeComponentViewSnipbitConclusion _ ->
+        HomeComponentViewSnipbitConclusion _ _ ->
             False
 
         HomeComponentViewBigbitIntroduction _ _ ->
@@ -304,14 +305,24 @@ toHashUrl route =
             HomeComponentCreate ->
                 "create"
 
-            HomeComponentViewSnipbitIntroduction mongoID ->
-                "view/snipbit/" ++ mongoID ++ "/introduction"
+            HomeComponentViewSnipbitIntroduction qpStoryID mongoID ->
+                "view/snipbit/"
+                    ++ mongoID
+                    ++ "/introduction"
+                    ++ Util.queryParamsToString [ ( "fromStory", qpStoryID ) ]
 
-            HomeComponentViewSnipbitConclusion mongoID ->
-                "view/snipbit/" ++ mongoID ++ "/conclusion"
+            HomeComponentViewSnipbitConclusion qpStoryID mongoID ->
+                "view/snipbit/"
+                    ++ mongoID
+                    ++ "/conclusion"
+                    ++ Util.queryParamsToString [ ( "fromStory", qpStoryID ) ]
 
-            HomeComponentViewSnipbitFrame mongoID frameNumber ->
-                "view/snipbit/" ++ mongoID ++ "/frame/" ++ (toString frameNumber)
+            HomeComponentViewSnipbitFrame qpStoryID mongoID frameNumber ->
+                "view/snipbit/"
+                    ++ mongoID
+                    ++ "/frame/"
+                    ++ (toString frameNumber)
+                    ++ Util.queryParamsToString [ ( "fromStory", qpStoryID ) ]
 
             HomeComponentViewBigbitIntroduction mongoID qpFile ->
                 "view/bigbit/"
@@ -532,6 +543,25 @@ getEditingStoryQueryParamOnCreateNewStoryUrl route =
 
         HomeComponentCreateNewStoryTags qpEditingStory ->
             qpEditingStory
+
+        _ ->
+            Nothing
+
+
+{-| Returns the query parameter "fromStory" if viewing a snipbit and that query
+param is present.
+-}
+getFromStoryQueryParamOnViewSnipbitUrl : Route -> Maybe MongoID
+getFromStoryQueryParamOnViewSnipbitUrl route =
+    case route of
+        HomeComponentViewSnipbitIntroduction fromStoryID _ ->
+            fromStoryID
+
+        HomeComponentViewSnipbitFrame fromStoryID _ _ ->
+            fromStoryID
+
+        HomeComponentViewSnipbitConclusion fromStoryID _ ->
+            fromStoryID
 
         _ ->
             Nothing
