@@ -345,20 +345,21 @@ handleKeyPress model =
                     )
                     Cmd.none
 
-            Route.HomeComponentViewBigbitIntroduction mongoID _ ->
+            Route.HomeComponentViewBigbitIntroduction fromStoryID mongoID _ ->
                 viewBigbitWatchForLeftAndRightArrow
                     Cmd.none
-                    (Route.navigateTo <| Route.HomeComponentViewBigbitFrame mongoID 1 Nothing)
+                    (Route.navigateTo <| Route.HomeComponentViewBigbitFrame fromStoryID mongoID 1 Nothing)
 
-            Route.HomeComponentViewBigbitFrame mongoID frameNumber _ ->
+            Route.HomeComponentViewBigbitFrame fromStoryID mongoID frameNumber _ ->
                 viewBigbitWatchForLeftAndRightArrow
-                    (Route.navigateTo <| Route.HomeComponentViewBigbitFrame mongoID (frameNumber - 1) Nothing)
-                    (Route.navigateTo <| Route.HomeComponentViewBigbitFrame mongoID (frameNumber + 1) Nothing)
+                    (Route.navigateTo <| Route.HomeComponentViewBigbitFrame fromStoryID mongoID (frameNumber - 1) Nothing)
+                    (Route.navigateTo <| Route.HomeComponentViewBigbitFrame fromStoryID mongoID (frameNumber + 1) Nothing)
 
-            Route.HomeComponentViewBigbitConclusion mongoID _ ->
+            Route.HomeComponentViewBigbitConclusion fromStoryID mongoID _ ->
                 viewBigbitWatchForLeftAndRightArrow
                     (Route.navigateTo <|
                         Route.HomeComponentViewBigbitFrame
+                            fromStoryID
                             mongoID
                             (model.homeComponent.viewingBigbit
                                 |> maybeMapWithDefault (.highlightedComments >> Array.length) 0
@@ -510,13 +511,13 @@ handleLocationChange maybeRoute model =
                     Route.HomeComponentViewSnipbitFrame _ _ _ ->
                         triggerRouteHookOnHomeComponent
 
-                    Route.HomeComponentViewBigbitIntroduction _ _ ->
+                    Route.HomeComponentViewBigbitIntroduction _ _ _ ->
                         triggerRouteHookOnHomeComponent
 
-                    Route.HomeComponentViewBigbitFrame _ _ _ ->
+                    Route.HomeComponentViewBigbitFrame _ _ _ _ ->
                         triggerRouteHookOnHomeComponent
 
-                    Route.HomeComponentViewBigbitConclusion _ _ ->
+                    Route.HomeComponentViewBigbitConclusion _ _ _ ->
                         triggerRouteHookOnHomeComponent
 
                     Route.HomeComponentViewStory _ ->

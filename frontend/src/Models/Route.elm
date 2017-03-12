@@ -22,9 +22,9 @@ type Route
     | HomeComponentViewSnipbitIntroduction (Maybe MongoID) MongoID
     | HomeComponentViewSnipbitConclusion (Maybe MongoID) MongoID
     | HomeComponentViewSnipbitFrame (Maybe MongoID) MongoID Int
-    | HomeComponentViewBigbitIntroduction MongoID (Maybe FS.Path)
-    | HomeComponentViewBigbitFrame MongoID Int (Maybe FS.Path)
-    | HomeComponentViewBigbitConclusion MongoID (Maybe FS.Path)
+    | HomeComponentViewBigbitIntroduction (Maybe MongoID) MongoID (Maybe FS.Path)
+    | HomeComponentViewBigbitFrame (Maybe MongoID) MongoID Int (Maybe FS.Path)
+    | HomeComponentViewBigbitConclusion (Maybe MongoID) MongoID (Maybe FS.Path)
     | HomeComponentViewStory MongoID
     | HomeComponentCreate
     | HomeComponentCreateSnipbitName
@@ -75,7 +75,7 @@ matchers =
             viewSnipbit </> s "frame" </> int
 
         viewBigbit =
-            view </> s "bigbit" </> string
+            view </> s "bigbit" <?> qpFromStory </> string
 
         viewBigbitIntroduction =
             viewBigbit </> s "introduction" <?> qpFile
@@ -234,13 +234,13 @@ routeRequiresAuth route =
         HomeComponentViewSnipbitConclusion _ _ ->
             False
 
-        HomeComponentViewBigbitIntroduction _ _ ->
+        HomeComponentViewBigbitIntroduction _ _ _ ->
             False
 
-        HomeComponentViewBigbitFrame _ _ _ ->
+        HomeComponentViewBigbitFrame _ _ _ _ ->
             False
 
-        HomeComponentViewBigbitConclusion _ _ ->
+        HomeComponentViewBigbitConclusion _ _ _ ->
             False
 
         HomeComponentViewStory _ ->
@@ -324,25 +324,25 @@ toHashUrl route =
                     ++ (toString frameNumber)
                     ++ Util.queryParamsToString [ ( "fromStory", qpStoryID ) ]
 
-            HomeComponentViewBigbitIntroduction mongoID qpFile ->
+            HomeComponentViewBigbitIntroduction qpStoryID mongoID qpFile ->
                 "view/bigbit/"
                     ++ mongoID
                     ++ "/introduction/"
-                    ++ Util.queryParamsToString [ ( "file", qpFile ) ]
+                    ++ Util.queryParamsToString [ ( "file", qpFile ), ( "fromStory", qpStoryID ) ]
 
-            HomeComponentViewBigbitConclusion mongoID qpFile ->
+            HomeComponentViewBigbitConclusion qpStoryID mongoID qpFile ->
                 "view/bigbit/"
                     ++ mongoID
                     ++ "/conclusion/"
-                    ++ Util.queryParamsToString [ ( "file", qpFile ) ]
+                    ++ Util.queryParamsToString [ ( "file", qpFile ), ( "fromStory", qpStoryID ) ]
 
-            HomeComponentViewBigbitFrame mongoID frameNumber qpFile ->
+            HomeComponentViewBigbitFrame qpStoryID mongoID frameNumber qpFile ->
                 "view/bigbit/"
                     ++ mongoID
                     ++ "/frame/"
                     ++ (toString frameNumber)
                     ++ "/"
-                    ++ Util.queryParamsToString [ ( "file", qpFile ) ]
+                    ++ Util.queryParamsToString [ ( "file", qpFile ), ( "fromStory", qpStoryID ) ]
 
             HomeComponentViewStory mongoID ->
                 "view/story/" ++ mongoID
@@ -507,14 +507,14 @@ URL but with the file path added as a query param, otheriwse will do nothing.
 navigateToSameUrlWithFilePath : Maybe FS.Path -> Route -> Cmd msg
 navigateToSameUrlWithFilePath maybePath route =
     case route of
-        HomeComponentViewBigbitIntroduction mongoID _ ->
-            navigateTo <| HomeComponentViewBigbitIntroduction mongoID maybePath
+        HomeComponentViewBigbitIntroduction fromStoryID mongoID _ ->
+            navigateTo <| HomeComponentViewBigbitIntroduction fromStoryID mongoID maybePath
 
-        HomeComponentViewBigbitFrame mongoID frameNumber _ ->
-            navigateTo <| HomeComponentViewBigbitFrame mongoID frameNumber maybePath
+        HomeComponentViewBigbitFrame fromStoryID mongoID frameNumber _ ->
+            navigateTo <| HomeComponentViewBigbitFrame fromStoryID mongoID frameNumber maybePath
 
-        HomeComponentViewBigbitConclusion mongoID _ ->
-            navigateTo <| HomeComponentViewBigbitConclusion mongoID maybePath
+        HomeComponentViewBigbitConclusion fromStoryID mongoID _ ->
+            navigateTo <| HomeComponentViewBigbitConclusion fromStoryID mongoID maybePath
 
         HomeComponentCreateBigbitCodeIntroduction _ ->
             navigateTo <| HomeComponentCreateBigbitCodeIntroduction maybePath
@@ -561,6 +561,25 @@ getFromStoryQueryParamOnViewSnipbitUrl route =
             fromStoryID
 
         HomeComponentViewSnipbitConclusion fromStoryID _ ->
+            fromStoryID
+
+        _ ->
+            Nothing
+
+
+{-| Returns the query parameter "fromStory" if viewing a bigbit and that query
+param is present.
+-}
+getFromStoryQueryParamOnViewBigbitUrl : Route -> Maybe MongoID
+getFromStoryQueryParamOnViewBigbitUrl route =
+    case route of
+        HomeComponentViewBigbitIntroduction fromStoryID _ _ ->
+            fromStoryID
+
+        HomeComponentViewBigbitFrame fromStoryID _ _ _ ->
+            fromStoryID
+
+        HomeComponentViewBigbitConclusion fromStoryID _ _ ->
             fromStoryID
 
         _ ->

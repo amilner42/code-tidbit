@@ -316,7 +316,7 @@ viewSnipbitView model shared =
             ]
         , case model.viewingSnipbit of
             Nothing ->
-                text "LOADING"
+                Util.hiddenDiv
 
             Just snipbit ->
                 div
@@ -483,13 +483,13 @@ viewBigbitCommentBox bigbit maybeRHC route =
                 ]
             , githubMarkdown [ hidden <| not <| tutorialOpen ] <|
                 case route of
-                    Route.HomeComponentViewBigbitIntroduction _ _ ->
+                    Route.HomeComponentViewBigbitIntroduction _ _ _ ->
                         bigbit.introduction
 
-                    Route.HomeComponentViewBigbitConclusion _ _ ->
+                    Route.HomeComponentViewBigbitConclusion _ _ _ ->
                         bigbit.conclusion
 
-                    Route.HomeComponentViewBigbitFrame _ frameNumber _ ->
+                    Route.HomeComponentViewBigbitFrame _ _ frameNumber _ ->
                         (Array.get
                             (frameNumber - 1)
                             bigbit.highlightedComments
@@ -557,6 +557,7 @@ viewBigbitCommentBox bigbit maybeRHC route =
                                                 (ViewBigbitJumpToFrame
                                                     << (\frameNumber ->
                                                             Route.HomeComponentViewBigbitFrame
+                                                                (Route.getFromStoryQueryParamOnViewBigbitUrl route)
                                                                 bigbit.id
                                                                 frameNumber
                                                                 Nothing
@@ -594,7 +595,47 @@ viewBigbitView model shared =
             [ class "view-bigbit" ]
             [ div
                 [ class "sub-bar" ]
-                [ button
+                [ case ( shared.viewingStory, model.viewingBigbit ) of
+                    ( Just story, Just bigbit ) ->
+                        case Story.getPreviousTidbitRoute bigbit.id story.id story.tidbits of
+                            Just previousTidbitRoute ->
+                                button
+                                    [ class "sub-bar-button traverse-tidbit-button"
+                                    , onClick <| GoTo previousTidbitRoute
+                                    ]
+                                    [ text "Previous Tidbit" ]
+
+                            _ ->
+                                Util.hiddenDiv
+
+                    _ ->
+                        Util.hiddenDiv
+                , case shared.viewingStory of
+                    Just story ->
+                        button
+                            [ class "sub-bar-button back-to-story-button"
+                            , onClick <| GoTo <| Route.HomeComponentViewStory story.id
+                            ]
+                            [ text "View Story" ]
+
+                    _ ->
+                        Util.hiddenDiv
+                , case ( shared.viewingStory, model.viewingBigbit ) of
+                    ( Just story, Just bigbit ) ->
+                        case Story.getNextTidbitRoute bigbit.id story.id story.tidbits of
+                            Just nextTidbitRoute ->
+                                button
+                                    [ class "sub-bar-button traverse-tidbit-button"
+                                    , onClick <| GoTo nextTidbitRoute
+                                    ]
+                                    [ text "Next Tidbit" ]
+
+                            _ ->
+                                Util.hiddenDiv
+
+                    _ ->
+                        Util.hiddenDiv
+                , button
                     [ classList
                         [ ( "sub-bar-button explore-fs", True )
                         , ( "hidden"
@@ -660,7 +701,7 @@ viewBigbitView model shared =
                 Nothing ->
                     div
                         []
-                        [ text "LOADING" ]
+                        []
 
                 Just bigbit ->
                     div
@@ -675,7 +716,7 @@ viewBigbitView model shared =
                                             True
                                         else
                                             case shared.route of
-                                                Route.HomeComponentViewBigbitIntroduction _ _ ->
+                                                Route.HomeComponentViewBigbitIntroduction _ _ _ ->
                                                     True
 
                                                 _ ->
@@ -687,11 +728,11 @@ viewBigbitView model shared =
                                         NoOp
                                     else
                                         case shared.route of
-                                            Route.HomeComponentViewBigbitConclusion mongoID _ ->
-                                                ViewBigbitJumpToFrame <| Route.HomeComponentViewBigbitFrame mongoID (Array.length bigbit.highlightedComments) Nothing
+                                            Route.HomeComponentViewBigbitConclusion fromStoryID mongoID _ ->
+                                                ViewBigbitJumpToFrame <| Route.HomeComponentViewBigbitFrame fromStoryID mongoID (Array.length bigbit.highlightedComments) Nothing
 
-                                            Route.HomeComponentViewBigbitFrame mongoID frameNumber _ ->
-                                                ViewBigbitJumpToFrame <| Route.HomeComponentViewBigbitFrame mongoID (frameNumber - 1) Nothing
+                                            Route.HomeComponentViewBigbitFrame fromStoryID mongoID frameNumber _ ->
+                                                ViewBigbitJumpToFrame <| Route.HomeComponentViewBigbitFrame fromStoryID mongoID (frameNumber - 1) Nothing
 
                                             _ ->
                                                 NoOp
@@ -702,12 +743,16 @@ viewBigbitView model shared =
                                     if notGoingThroughTutorial then
                                         NoOp
                                     else
-                                        ViewBigbitJumpToFrame <| Route.HomeComponentViewBigbitIntroduction bigbit.id Nothing
+                                        ViewBigbitJumpToFrame <|
+                                            Route.HomeComponentViewBigbitIntroduction
+                                                (Route.getFromStoryQueryParamOnViewBigbitUrl shared.route)
+                                                bigbit.id
+                                                Nothing
                                 , classList
                                     [ ( "viewer-navbar-item", True )
                                     , ( "selected"
                                       , case shared.route of
-                                            Route.HomeComponentViewBigbitIntroduction _ _ ->
+                                            Route.HomeComponentViewBigbitIntroduction _ _ _ ->
                                                 True
 
                                             _ ->
@@ -719,10 +764,10 @@ viewBigbitView model shared =
                                 [ text "Introduction" ]
                             , progressBar
                                 (case shared.route of
-                                    Route.HomeComponentViewBigbitFrame _ frameNumber _ ->
+                                    Route.HomeComponentViewBigbitFrame _ _ frameNumber _ ->
                                         Just (frameNumber - 1)
 
-                                    Route.HomeComponentViewBigbitConclusion _ _ ->
+                                    Route.HomeComponentViewBigbitConclusion _ _ _ ->
                                         Just <| Array.length bigbit.highlightedComments
 
                                     _ ->
@@ -735,12 +780,16 @@ viewBigbitView model shared =
                                     if notGoingThroughTutorial then
                                         NoOp
                                     else
-                                        ViewBigbitJumpToFrame <| Route.HomeComponentViewBigbitConclusion bigbit.id Nothing
+                                        ViewBigbitJumpToFrame <|
+                                            Route.HomeComponentViewBigbitConclusion
+                                                (Route.getFromStoryQueryParamOnViewBigbitUrl shared.route)
+                                                bigbit.id
+                                                Nothing
                                 , classList
                                     [ ( "viewer-navbar-item", True )
                                     , ( "selected"
                                       , case shared.route of
-                                            Route.HomeComponentViewBigbitConclusion _ _ ->
+                                            Route.HomeComponentViewBigbitConclusion _ _ _ ->
                                                 True
 
                                             _ ->
@@ -758,7 +807,7 @@ viewBigbitView model shared =
                                             True
                                         else
                                             case shared.route of
-                                                Route.HomeComponentViewBigbitConclusion _ _ ->
+                                                Route.HomeComponentViewBigbitConclusion _ _ _ ->
                                                     True
 
                                                 _ ->
@@ -770,11 +819,13 @@ viewBigbitView model shared =
                                         NoOp
                                     else
                                         case shared.route of
-                                            Route.HomeComponentViewBigbitIntroduction mongoID _ ->
-                                                ViewBigbitJumpToFrame <| Route.HomeComponentViewBigbitFrame mongoID 1 Nothing
+                                            Route.HomeComponentViewBigbitIntroduction fromStoryID mongoID _ ->
+                                                ViewBigbitJumpToFrame <|
+                                                    Route.HomeComponentViewBigbitFrame fromStoryID mongoID 1 Nothing
 
-                                            Route.HomeComponentViewBigbitFrame mongoID frameNumber _ ->
-                                                ViewBigbitJumpToFrame <| Route.HomeComponentViewBigbitFrame mongoID (frameNumber + 1) Nothing
+                                            Route.HomeComponentViewBigbitFrame fromStoryID mongoID frameNumber _ ->
+                                                ViewBigbitJumpToFrame <|
+                                                    Route.HomeComponentViewBigbitFrame fromStoryID mongoID (frameNumber + 1) Nothing
 
                                             _ ->
                                                 NoOp
@@ -936,13 +987,13 @@ displayViewForRoute model shared =
         Route.HomeComponentViewSnipbitFrame _ _ _ ->
             viewSnipbitView model shared
 
-        Route.HomeComponentViewBigbitIntroduction _ _ ->
+        Route.HomeComponentViewBigbitIntroduction _ _ _ ->
             viewBigbitView model shared
 
-        Route.HomeComponentViewBigbitFrame _ _ _ ->
+        Route.HomeComponentViewBigbitFrame _ _ _ _ ->
             viewBigbitView model shared
 
-        Route.HomeComponentViewBigbitConclusion _ _ ->
+        Route.HomeComponentViewBigbitConclusion _ _ _ ->
             viewBigbitView model shared
 
         Route.HomeComponentViewStory _ ->
@@ -1029,13 +1080,13 @@ navbar shared =
                 Route.HomeComponentViewSnipbitConclusion _ _ ->
                     True
 
-                Route.HomeComponentViewBigbitIntroduction _ _ ->
+                Route.HomeComponentViewBigbitIntroduction _ _ _ ->
                     True
 
-                Route.HomeComponentViewBigbitFrame _ _ _ ->
+                Route.HomeComponentViewBigbitFrame _ _ _ _ ->
                     True
 
-                Route.HomeComponentViewBigbitConclusion _ _ ->
+                Route.HomeComponentViewBigbitConclusion _ _ _ ->
                     True
 
                 Route.HomeComponentViewStory _ ->

@@ -63,7 +63,7 @@ getTidbitRoute fromStoryID tidbit =
             Route.HomeComponentViewSnipbitIntroduction fromStoryID id
 
         Bigbit { id } ->
-            Route.HomeComponentViewBigbitIntroduction id Nothing
+            Route.HomeComponentViewBigbitIntroduction fromStoryID id Nothing
 
 
 {-| Gets the name for tidbit type.
