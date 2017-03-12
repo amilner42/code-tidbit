@@ -1394,6 +1394,13 @@
             }
         }
 
+        .empty-tidbit-box-for-flex-align {
+            width: 275px;
+            height: 0;
+            margin-left: 10px;
+            margin-right: 10px;
+        }
+
         .tidbit-box {
             box-sizing: border-box;
             display: inline-block;
@@ -1519,7 +1526,7 @@
                     text-align: center;
                     width: 100%;
                     display: block;
-                    height: 60px;
+                    height: 65px;
                     text-align: center;
                 }
             }

@@ -932,8 +932,8 @@ viewStoryView model shared =
 
                             _ ->
                                 div
-                                    []
-                                    (List.indexedMap
+                                    [ class "flex-box" ]
+                                    ((List.indexedMap
                                         (\index tidbit ->
                                             div
                                                 [ classList
@@ -965,6 +965,8 @@ viewStoryView model shared =
                                                 ]
                                         )
                                         story.tidbits
+                                     )
+                                        ++ emptyFlexBoxesForAlignment
                                     )
                         ]
                     ]
@@ -1254,8 +1256,8 @@ createStoryView model shared =
                             [ class "page-content-bar-line" ]
                             []
                         , div
-                            [ class "inline-block" ]
-                            (List.indexedMap
+                            [ class "flex-box" ]
+                            ((List.indexedMap
                                 (\index tidbit ->
                                     div
                                         [ class "tidbit-box" ]
@@ -1268,22 +1270,22 @@ createStoryView model shared =
                                         ]
                                 )
                                 story.tidbits
-                            )
-                        , div
-                            [ class "inline-block" ]
-                            (List.map
-                                (\tidbit ->
-                                    div
-                                        [ class "tidbit-box not-yet-added" ]
-                                        [ div
-                                            [ class "tidbit-box-name" ]
-                                            [ text <| Tidbit.getName tidbit ]
-                                        , button
-                                            [ onClick <| CreateStoryRemoveTidbit tidbit ]
-                                            [ text "don't add" ]
-                                        ]
-                                )
-                                model.storyData.tidbitsToAdd
+                             )
+                                ++ (List.map
+                                        (\tidbit ->
+                                            div
+                                                [ class "tidbit-box not-yet-added" ]
+                                                [ div
+                                                    [ class "tidbit-box-name" ]
+                                                    [ text <| Tidbit.getName tidbit ]
+                                                , button
+                                                    [ onClick <| CreateStoryRemoveTidbit tidbit ]
+                                                    [ text "don't add" ]
+                                                ]
+                                        )
+                                        model.storyData.tidbitsToAdd
+                                   )
+                                ++ emptyFlexBoxesForAlignment
                             )
                         ]
                     , div
@@ -1295,8 +1297,8 @@ createStoryView model shared =
                             [ class "page-content-bar-line" ]
                             []
                         , div
-                            []
-                            (List.map
+                            [ class "flex-box" ]
+                            ((List.map
                                 (\tidbit ->
                                     div
                                         [ class "tidbit-box" ]
@@ -1323,6 +1325,8 @@ createStoryView model shared =
                                     |> Util.sortByDate Tidbit.getLastModified
                                     |> List.reverse
                                 )
+                             )
+                                ++ emptyFlexBoxesForAlignment
                             )
                         ]
                     ]
@@ -1790,7 +1794,7 @@ createView model shared =
                             ]
                         , div
                             [ classList
-                                [ ( "boxes", True )
+                                [ ( "boxes flex-box", True )
                                 , ( "collapsed", not <| model.storyData.showAllStories )
                                 ]
                             ]
@@ -1817,6 +1821,7 @@ createView model shared =
                                         )
                                         (List.reverse <| Util.sortByDate .lastModified userStories)
                                    )
+                                ++ emptyFlexBoxesForAlignment
                             )
                         ]
     in
@@ -3139,3 +3144,14 @@ createSnipbitView model shared =
                 , viewForTab
                 ]
             ]
+
+
+{-| A semi-hack for flex-box justify-center but align-left.
+
+@REFER http://stackoverflow.com/questions/18744164/flex-box-align-last-row-to-grid
+-}
+emptyFlexBoxesForAlignment : List (Html Msg)
+emptyFlexBoxesForAlignment =
+    (List.repeat 10 <|
+        div [ class "empty-tidbit-box-for-flex-align" ] []
+    )

@@ -72,6 +72,12 @@ textarea:focus {
     display: inline-block;
 }
 
+.flex-box {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+}
+
 .gray-button {
     color: white;
     background-color: lightgrey;
