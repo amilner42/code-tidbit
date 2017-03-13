@@ -871,24 +871,34 @@ viewStoryView model shared =
             in
                 div
                     [ class "view-story-page" ]
-                    [ Util.keyedDiv
-                        [ class "sub-bar" ]
-                        [ ( "view-story-next-tidbit-button"
-                          , case nextTidbitInStory of
-                                Just ( index, routeForViewingTidbit ) ->
-                                    button
-                                        [ class "sub-bar-button next-tidbit-button"
-                                        , onClick <| GoTo routeForViewingTidbit
-                                        ]
-                                        [ text <| "Continue on Tidbit " ++ (toString <| index + 1) ]
+                    [ case nextTidbitInStory of
+                        Just _ ->
+                            Util.keyedDiv
+                                [ class "sub-bar" ]
+                                [ ( "view-story-next-tidbit-button"
+                                  , case nextTidbitInStory of
+                                        Just ( index, routeForViewingTidbit ) ->
+                                            button
+                                                [ class "sub-bar-button next-tidbit-button"
+                                                , onClick <| GoTo routeForViewingTidbit
+                                                ]
+                                                [ text <| "Continue on Tidbit " ++ (toString <| index + 1) ]
 
-                                _ ->
-                                    Util.hiddenDiv
-                          )
-                        ]
-                    , Util.keyedDiv
-                        [ class "sub-bar-ghost hidden" ]
-                        []
+                                        _ ->
+                                            Util.hiddenDiv
+                                  )
+                                ]
+
+                        _ ->
+                            Util.hiddenDiv
+                    , case nextTidbitInStory of
+                        Just _ ->
+                            Util.keyedDiv
+                                [ class "sub-bar-ghost hidden" ]
+                                []
+
+                        _ ->
+                            Util.hiddenDiv
                     , div
                         [ class "view-story-page-content" ]
                         [ div
@@ -958,10 +968,14 @@ viewStoryView model shared =
                                                     [ class "view-button"
                                                     , onClick <| GoTo <| Tidbit.getTidbitRoute (Just story.id) tidbit
                                                     ]
-                                                    [ text "view" ]
-                                                , i
-                                                    [ class "material-icons completed-icon" ]
-                                                    [ text "check" ]
+                                                    [ text "VIEW"
+                                                    ]
+                                                , div
+                                                    [ class "completed-icon-div" ]
+                                                    [ i
+                                                        [ class "material-icons completed-icon" ]
+                                                        [ text "check" ]
+                                                    ]
                                                 ]
                                         )
                                         story.tidbits
@@ -1265,8 +1279,16 @@ createStoryView model shared =
                                             [ class "tidbit-box-name" ]
                                             [ text <| Tidbit.getName tidbit ]
                                         , div
+                                            [ class "tidbit-box-type-name" ]
+                                            [ text <| Tidbit.getTypeName tidbit ]
+                                        , div
                                             [ class "tidbit-box-page-number" ]
                                             [ text <| toString <| index + 1 ]
+                                        , button
+                                            [ class "full-view-button"
+                                            , onClick <| GoTo <| Tidbit.getTidbitRoute Nothing tidbit
+                                            ]
+                                            [ text "VIEW" ]
                                         ]
                                 )
                                 story.tidbits
@@ -1278,9 +1300,14 @@ createStoryView model shared =
                                                 [ div
                                                     [ class "tidbit-box-name" ]
                                                     [ text <| Tidbit.getName tidbit ]
+                                                , div
+                                                    [ class "tidbit-box-type-name" ]
+                                                    [ text <| Tidbit.getTypeName tidbit ]
                                                 , button
-                                                    [ onClick <| CreateStoryRemoveTidbit tidbit ]
-                                                    [ text "don't add" ]
+                                                    [ class "remove-button"
+                                                    , onClick <| CreateStoryRemoveTidbit tidbit
+                                                    ]
+                                                    [ text "REMOVE" ]
                                                 ]
                                         )
                                         model.storyData.tidbitsToAdd
@@ -1312,12 +1339,12 @@ createStoryView model shared =
                                             [ class "view-tidbit"
                                             , onClick <| GoTo <| Tidbit.getTidbitRoute Nothing tidbit
                                             ]
-                                            [ text "View" ]
+                                            [ text "VIEW" ]
                                         , button
                                             [ class "add-tidbit"
                                             , onClick <| CreateStoryAddTidbit tidbit
                                             ]
-                                            [ text "Add" ]
+                                            [ text "ADD" ]
                                         ]
                                 )
                                 (userTidbits
@@ -1803,8 +1830,10 @@ createView model shared =
                                                     [ class "story-box-name" ]
                                                     [ text story.name ]
                                                 , button
-                                                    [ onClick <| GoTo <| Route.HomeComponentCreateStory story.id ]
-                                                    [ text "continue" ]
+                                                    [ class "continue-story-button"
+                                                    , onClick <| GoTo <| Route.HomeComponentCreateStory story.id
+                                                    ]
+                                                    [ text "CONTINUE" ]
                                                 ]
                                         )
                                         (List.reverse <| Util.sortByDate .lastModified userStories)
