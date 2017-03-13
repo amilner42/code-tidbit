@@ -871,24 +871,34 @@ viewStoryView model shared =
             in
                 div
                     [ class "view-story-page" ]
-                    [ Util.keyedDiv
-                        [ class "sub-bar" ]
-                        [ ( "view-story-next-tidbit-button"
-                          , case nextTidbitInStory of
-                                Just ( index, routeForViewingTidbit ) ->
-                                    button
-                                        [ class "sub-bar-button next-tidbit-button"
-                                        , onClick <| GoTo routeForViewingTidbit
-                                        ]
-                                        [ text <| "Continue on Tidbit " ++ (toString <| index + 1) ]
+                    [ case nextTidbitInStory of
+                        Just _ ->
+                            Util.keyedDiv
+                                [ class "sub-bar" ]
+                                [ ( "view-story-next-tidbit-button"
+                                  , case nextTidbitInStory of
+                                        Just ( index, routeForViewingTidbit ) ->
+                                            button
+                                                [ class "sub-bar-button next-tidbit-button"
+                                                , onClick <| GoTo routeForViewingTidbit
+                                                ]
+                                                [ text <| "Continue on Tidbit " ++ (toString <| index + 1) ]
 
-                                _ ->
-                                    Util.hiddenDiv
-                          )
-                        ]
-                    , Util.keyedDiv
-                        [ class "sub-bar-ghost hidden" ]
-                        []
+                                        _ ->
+                                            Util.hiddenDiv
+                                  )
+                                ]
+
+                        _ ->
+                            Util.hiddenDiv
+                    , case nextTidbitInStory of
+                        Just _ ->
+                            Util.keyedDiv
+                                [ class "sub-bar-ghost hidden" ]
+                                []
+
+                        _ ->
+                            Util.hiddenDiv
                     , div
                         [ class "view-story-page-content" ]
                         [ div
@@ -932,8 +942,8 @@ viewStoryView model shared =
 
                             _ ->
                                 div
-                                    []
-                                    (List.indexedMap
+                                    [ class "flex-box" ]
+                                    ((List.indexedMap
                                         (\index tidbit ->
                                             div
                                                 [ classList
@@ -958,13 +968,19 @@ viewStoryView model shared =
                                                     [ class "view-button"
                                                     , onClick <| GoTo <| Tidbit.getTidbitRoute (Just story.id) tidbit
                                                     ]
-                                                    [ text "view" ]
-                                                , i
-                                                    [ class "material-icons completed-icon" ]
-                                                    [ text "check" ]
+                                                    [ text "VIEW"
+                                                    ]
+                                                , div
+                                                    [ class "completed-icon-div" ]
+                                                    [ i
+                                                        [ class "material-icons completed-icon" ]
+                                                        [ text "check" ]
+                                                    ]
                                                 ]
                                         )
                                         story.tidbits
+                                     )
+                                        ++ emptyFlexBoxesForAlignment
                                     )
                         ]
                     ]
@@ -1254,8 +1270,8 @@ createStoryView model shared =
                             [ class "page-content-bar-line" ]
                             []
                         , div
-                            [ class "inline-block" ]
-                            (List.indexedMap
+                            [ class "flex-box" ]
+                            ((List.indexedMap
                                 (\index tidbit ->
                                     div
                                         [ class "tidbit-box" ]
@@ -1263,27 +1279,40 @@ createStoryView model shared =
                                             [ class "tidbit-box-name" ]
                                             [ text <| Tidbit.getName tidbit ]
                                         , div
+                                            [ class "tidbit-box-type-name" ]
+                                            [ text <| Tidbit.getTypeName tidbit ]
+                                        , div
                                             [ class "tidbit-box-page-number" ]
                                             [ text <| toString <| index + 1 ]
+                                        , button
+                                            [ class "full-view-button"
+                                            , onClick <| GoTo <| Tidbit.getTidbitRoute Nothing tidbit
+                                            ]
+                                            [ text "VIEW" ]
                                         ]
                                 )
                                 story.tidbits
-                            )
-                        , div
-                            [ class "inline-block" ]
-                            (List.map
-                                (\tidbit ->
-                                    div
-                                        [ class "tidbit-box not-yet-added" ]
-                                        [ div
-                                            [ class "tidbit-box-name" ]
-                                            [ text <| Tidbit.getName tidbit ]
-                                        , button
-                                            [ onClick <| CreateStoryRemoveTidbit tidbit ]
-                                            [ text "don't add" ]
-                                        ]
-                                )
-                                model.storyData.tidbitsToAdd
+                             )
+                                ++ (List.map
+                                        (\tidbit ->
+                                            div
+                                                [ class "tidbit-box not-yet-added" ]
+                                                [ div
+                                                    [ class "tidbit-box-name" ]
+                                                    [ text <| Tidbit.getName tidbit ]
+                                                , div
+                                                    [ class "tidbit-box-type-name" ]
+                                                    [ text <| Tidbit.getTypeName tidbit ]
+                                                , button
+                                                    [ class "remove-button"
+                                                    , onClick <| CreateStoryRemoveTidbit tidbit
+                                                    ]
+                                                    [ text "REMOVE" ]
+                                                ]
+                                        )
+                                        model.storyData.tidbitsToAdd
+                                   )
+                                ++ emptyFlexBoxesForAlignment
                             )
                         ]
                     , div
@@ -1295,8 +1324,8 @@ createStoryView model shared =
                             [ class "page-content-bar-line" ]
                             []
                         , div
-                            []
-                            (List.map
+                            [ class "flex-box" ]
+                            ((List.map
                                 (\tidbit ->
                                     div
                                         [ class "tidbit-box" ]
@@ -1310,12 +1339,12 @@ createStoryView model shared =
                                             [ class "view-tidbit"
                                             , onClick <| GoTo <| Tidbit.getTidbitRoute Nothing tidbit
                                             ]
-                                            [ text "View" ]
+                                            [ text "VIEW" ]
                                         , button
                                             [ class "add-tidbit"
                                             , onClick <| CreateStoryAddTidbit tidbit
                                             ]
-                                            [ text "Add" ]
+                                            [ text "ADD" ]
                                         ]
                                 )
                                 (userTidbits
@@ -1323,6 +1352,8 @@ createStoryView model shared =
                                     |> Util.sortByDate Tidbit.getLastModified
                                     |> List.reverse
                                 )
+                             )
+                                ++ emptyFlexBoxesForAlignment
                             )
                         ]
                     ]
@@ -1744,7 +1775,7 @@ createView model shared =
                         [ class "back-button"
                         , onClick <| ShowInfoFor Nothing
                         ]
-                        [ text "back" ]
+                        [ text "Back" ]
                     ]
                  else
                     [ div
@@ -1753,16 +1784,16 @@ createView model shared =
                     , div
                         [ class "create-select-tidbit-type-sub-title" ]
                         [ text subTitle ]
-                    , button
-                        [ class "info-button"
+                    , i
+                        [ class "material-icons info-icon"
                         , onClick <| ShowInfoFor <| Just tidbitType
                         ]
-                        [ text "more info" ]
+                        [ text "help_outline" ]
                     , button
                         [ class "select-button"
                         , onClick onClickMsg
                         ]
-                        [ text "create" ]
+                        [ text "CREATE" ]
                     ]
                 )
 
@@ -1775,22 +1806,10 @@ createView model shared =
 
                 Just userStories ->
                     div
-                        []
+                        [ class "develop-stories" ]
                         [ div
-                            [ class "show-all-stories-icon"
-                            , onClick CreateStoryToggleShowAllStories
-                            ]
-                            [ i
-                                [ classList
-                                    [ ( "material-icons", True )
-                                    , ( "showing-all-stories", model.storyData.showAllStories )
-                                    ]
-                                ]
-                                [ text "play_arrow" ]
-                            ]
-                        , div
                             [ classList
-                                [ ( "boxes", True )
+                                [ ( "boxes flex-box", True )
                                 , ( "collapsed", not <| model.storyData.showAllStories )
                                 ]
                             ]
@@ -1799,7 +1818,7 @@ createView model shared =
                                 , onClick <| GoTo <| Route.HomeComponentCreateNewStoryName Nothing
                                 ]
                                 [ i
-                                    [ class "material-icons no-stories-box-icon" ]
+                                    [ class "material-icons add-story-box-icon" ]
                                     [ text "add" ]
                                 ]
                              ]
@@ -1811,36 +1830,26 @@ createView model shared =
                                                     [ class "story-box-name" ]
                                                     [ text story.name ]
                                                 , button
-                                                    [ onClick <| GoTo <| Route.HomeComponentCreateStory story.id ]
-                                                    [ text "continue" ]
+                                                    [ class "continue-story-button"
+                                                    , onClick <| GoTo <| Route.HomeComponentCreateStory story.id
+                                                    ]
+                                                    [ text "CONTINUE" ]
                                                 ]
                                         )
                                         (List.reverse <| Util.sortByDate .lastModified userStories)
                                    )
+                                ++ emptyFlexBoxesForAlignment
                             )
                         ]
     in
         div
             [ class "create-page" ]
             [ div
-                [ class "create-bar" ]
-                [ div
-                    [ class "create-bar-title" ]
-                    [ text "Assemble Stories" ]
-                , div
-                    [ class "create-bar-line" ]
-                    []
-                , yourStoriesHtml
-                ]
+                [ class "title-banner" ]
+                [ text "CREATE TIDBIT" ]
             , div
-                [ class "create-bar" ]
-                [ div
-                    [ class "create-bar-title" ]
-                    [ text "Create Tidbits" ]
-                , div
-                    [ class "create-bar-line" ]
-                    []
-                , makeTidbitTypeBox
+                [ class "make-tidbits" ]
+                [ makeTidbitTypeBox
                     "SnipBit"
                     "Explain a chunk of code"
                     snipBitDescription
@@ -1862,6 +1871,10 @@ createView model shared =
                         [ text "We are working on it" ]
                     ]
                 ]
+            , div
+                [ class "title-banner story-banner" ]
+                [ text "DEVELOP STORY" ]
+            , yourStoriesHtml
             ]
 
 
@@ -3139,3 +3152,14 @@ createSnipbitView model shared =
                 , viewForTab
                 ]
             ]
+
+
+{-| A semi-hack for flex-box justify-center but align-left.
+
+@REFER http://stackoverflow.com/questions/18744164/flex-box-align-last-row-to-grid
+-}
+emptyFlexBoxesForAlignment : List (Html Msg)
+emptyFlexBoxesForAlignment =
+    (List.repeat 10 <|
+        div [ class "empty-tidbit-box-for-flex-align" ] []
+    )
