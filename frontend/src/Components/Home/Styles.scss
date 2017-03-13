@@ -428,6 +428,8 @@
                     position: relative;
                     border: 2px dotted $color2;
                     cursor: pointer;
+                    flex-grow: 1;
+                    max-width: 325px;
 
                     &:hover {
                         background-color: $color9;
@@ -1385,6 +1387,8 @@
             margin: 0 10px 20px 10px;
             border: 1px solid $color2;
             background-color: $color9;
+            flex-grow: 1;
+            max-width: 325px;
 
             .story-box-name {
                 box-sizing: border-box;
@@ -1440,6 +1444,8 @@
             height: 0;
             margin-left: 10px;
             margin-right: 10px;
+            flex-grow: 1;
+            max-width: 325px;
         }
 
         .tidbit-box {
@@ -1451,6 +1457,8 @@
             margin: 0 10px 20px 10px;
             border: 1px solid $color2;
             background-color: $color9;
+            flex-grow: 1;
+            max-width: 325px;
 
             .completed-icon {
                 position: absolute;
