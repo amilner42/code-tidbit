@@ -3,7 +3,7 @@
 import { omit } from "ramda";
 import * as kleen from "kleen";
 
-import { renameIDField, collection, ID } from '../db';
+import { renameIDField, collection, toMongoObjectID } from '../db';
 import { malformedFieldError, dropNullAndUndefinedProperties } from "../util";
 import { nonEmptyStringSchema, optional } from "./kleen-schemas";
 import { MongoID, ErrorCode } from '../types';
@@ -75,7 +75,7 @@ const updateUserSchema: kleen.objectSchema = {
  *  - Removes password
  *  - Rename `_id` to `id`
  */
-export const prepareUserForResponse = (user: User) => {
+export const prepareUserForResponse = (user: User): User => {
   delete user.password;
   renameIDField(user);
   return user;
@@ -89,14 +89,14 @@ export const userDBActions = {
   /**
    * Updates the basic informaton connected to a user.
    */
-  updateUser: (userID, userUpdateObject: UserUpdateObject): Promise<User> => {
+  updateUser: (userID: MongoID, userUpdateObject: UserUpdateObject): Promise<User> => {
     return kleen.validModel(updateUserSchema)(userUpdateObject)
     .then(() => {
       return collection("users");
     })
     .then((UserCollection) => {
       return UserCollection.findOneAndUpdate(
-        { _id: ID(userID) },
+        { _id: toMongoObjectID(userID) },
         { $set: dropNullAndUndefinedProperties(userUpdateObject) },
         { returnOriginal: false }
       );

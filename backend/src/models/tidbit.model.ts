@@ -48,7 +48,7 @@ export interface TidbitSearchFilter {
 /**
 * The schema for validating a `TidbitPointer`.
 */
-export const tidbitPointerSchema: kleen.typeSchema = {
+export const tidbitPointerSchema: kleen.objectSchema = {
   objectProperties: {
     "tidbitType": {
       primitiveType: kleen.kindOfPrimitive.number,

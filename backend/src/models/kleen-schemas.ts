@@ -17,8 +17,6 @@ type RestrictableSchema
   | kleen.referenceSchema
   | kleen.mapSchema;
 
-// Mutation Helpers START
-
 /**
  * Mutates a schema to allow undefined.
  *
@@ -51,18 +49,18 @@ export const optional = (schema: kleen.typeSchema): kleen.typeSchema => {
 /**
  * Mutates a schema to use the given restriction. Will overwrite previous
  * restrictions.
+ *
+ * @WARNING muates `schema`
  */
-export const withRestriction = (schema: RestrictableSchema , restriction: (any: any) => void | Promise<void>): kleen.typeSchema  => {
+export const withRestriction = (schema: RestrictableSchema , restriction: (any: any) => void | Promise<void>): RestrictableSchema  => {
   schema.restriction = restriction;
   return schema;
 }
 
-// Mutation helpers END
-
 /**
  * Helper for validifying an empty object.
  */
-export const emptyObjectSchema = (typeInvalidApiError: FrontendError): kleen.typeSchema => {
+export const emptyObjectSchema = (typeInvalidApiError: FrontendError): kleen.objectSchema => {
   return {
     objectProperties: {},
     typeFailureError: typeInvalidApiError
@@ -72,7 +70,7 @@ export const emptyObjectSchema = (typeInvalidApiError: FrontendError): kleen.typ
 /**
  * Helper for building kleen schemas that validate that string is not empty.
  */
-export const nonEmptyStringSchema = (emptyStringApiError: FrontendError, typeInvalidApiError: FrontendError): RestrictableSchema => {
+export const nonEmptyStringSchema = (emptyStringApiError: FrontendError, typeInvalidApiError: FrontendError): kleen.primitiveSchema => {
   return {
     primitiveType: kleen.kindOfPrimitive.string,
     restriction: (someString: string) => {
@@ -91,7 +89,7 @@ export const nonEmptyArraySchema =
   (arrayElementType: kleen.typeSchema,
   emptyArrayApiError: FrontendError,
   typeInvalidApiError: FrontendError)
-  : kleen.typeSchema => {
+  : kleen.arraySchema => {
 
   return {
     arrayElementType,
@@ -107,7 +105,7 @@ export const nonEmptyArraySchema =
 /**
 * For validifying ranges, including making sure they aren't empty.
 */
-export const rangeSchema = (emptyRangeErrorCode: ErrorCode): kleen.typeSchema => {
+export const rangeSchema = (emptyRangeErrorCode: ErrorCode): kleen.objectSchema => {
   return {
     objectProperties: {
       "startRow": {
@@ -142,7 +140,7 @@ export const rangeSchema = (emptyRangeErrorCode: ErrorCode): kleen.typeSchema =>
 /**
  * For validifying comments, including making sure they aren't empty.
  */
-export const commentSchema = (emptyCommentErrorCode: ErrorCode): kleen.typeSchema => {
+export const commentSchema = (emptyCommentErrorCode: ErrorCode): kleen.primitiveSchema => {
   return nonEmptyStringSchema(
     { errorCode: emptyCommentErrorCode, message: "Comments cannot be empty"},
     malformedFieldError("comment")
@@ -153,7 +151,7 @@ export const commentSchema = (emptyCommentErrorCode: ErrorCode): kleen.typeSchem
  * For validifying a language, doesn't check the language is a valid language
  * but does check that it isn't emtpy.
  */
-export const languageSchema = (emptyLanguageErrorCode: ErrorCode): kleen.typeSchema => {
+export const languageSchema = (emptyLanguageErrorCode: ErrorCode): kleen.primitiveSchema => {
   return nonEmptyStringSchema(
     { errorCode: emptyLanguageErrorCode, message: "Empty language is not a valid language." },
     malformedFieldError("language")
@@ -163,7 +161,7 @@ export const languageSchema = (emptyLanguageErrorCode: ErrorCode): kleen.typeSch
 /**
  * For validifying a name, makes sure the name is not too short or too long.
  */
-export const nameSchema = (emptyNameErrorCode: ErrorCode, nameTooLongErrorCode: ErrorCode): kleen.typeSchema => {
+export const nameSchema = (emptyNameErrorCode: ErrorCode, nameTooLongErrorCode: ErrorCode): kleen.primitiveSchema => {
   return {
     primitiveType: kleen.kindOfPrimitive.string,
     restriction: (name: string) => {
@@ -186,7 +184,7 @@ export const nameSchema = (emptyNameErrorCode: ErrorCode, nameTooLongErrorCode: 
 /**
  * For validifying a description, makes sure it is not empty.
  */
-export const descriptionSchema = (emptyDescriptionErrorCode: ErrorCode): kleen.typeSchema => {
+export const descriptionSchema = (emptyDescriptionErrorCode: ErrorCode): kleen.primitiveSchema => {
   return nonEmptyStringSchema(
     { errorCode: emptyDescriptionErrorCode, message: "Description cannot be empty."},
     malformedFieldError("description")
@@ -197,7 +195,7 @@ export const descriptionSchema = (emptyDescriptionErrorCode: ErrorCode): kleen.t
  * For validifying tags, making sure that there is at least one tag and that
  * every tag is not empty.
  */
-export const tagsSchema = (emptyTagErrorCode, noTagsErrorCode): kleen.typeSchema => {
+export const tagsSchema = (emptyTagErrorCode, noTagsErrorCode): kleen.arraySchema => {
   return nonEmptyArraySchema(
     nonEmptyStringSchema(
       {
@@ -217,7 +215,7 @@ export const tagsSchema = (emptyTagErrorCode, noTagsErrorCode): kleen.typeSchema
 /**
  * For validifying code, making sure that there is at least some code.
  */
-export const codeSchema = (codeEmptyErrorCode: ErrorCode): kleen.typeSchema => {
+export const codeSchema = (codeEmptyErrorCode: ErrorCode): kleen.primitiveSchema => {
   return nonEmptyStringSchema(
     { errorCode: codeEmptyErrorCode, message:  "You must have some code!" },
      malformedFieldError("code")
@@ -227,7 +225,7 @@ export const codeSchema = (codeEmptyErrorCode: ErrorCode): kleen.typeSchema => {
 /**
  * For validifying an introduction, makes sure it isn't empty.
  */
-export const introductionSchema = (emptyIntroErrorCode: ErrorCode): kleen.typeSchema => {
+export const introductionSchema = (emptyIntroErrorCode: ErrorCode): kleen.primitiveSchema => {
   return nonEmptyStringSchema(
     { errorCode: emptyIntroErrorCode, message: "You must have a non-empty introduction." },
      malformedFieldError("introduction")
@@ -237,7 +235,7 @@ export const introductionSchema = (emptyIntroErrorCode: ErrorCode): kleen.typeSc
 /**
  * For validifying a conclusion, makes sure that it isn't empty.
  */
-export const conclusionSchema = (emptyConclusionErrorCode: ErrorCode): kleen.typeSchema => {
+export const conclusionSchema = (emptyConclusionErrorCode: ErrorCode): kleen.primitiveSchema => {
   return nonEmptyStringSchema(
     { errorCode: emptyConclusionErrorCode, message: "You must have a non-empty conclusion." },
      malformedFieldError("conclusion")
@@ -251,10 +249,10 @@ export const conclusionSchema = (emptyConclusionErrorCode: ErrorCode): kleen.typ
  * '*' in them because mongo can't have periods in key names.
  */
 export const fileStructureSchema =
-  (fsMetadataSchema: kleen.typeSchema,
-  folderMetadataSchema: kleen.typeSchema,
-  fileMetadataSchema: kleen.typeSchema
-  ): kleen.typeSchema => {
+  ( fsMetadataSchema: kleen.typeSchema,
+    folderMetadataSchema: kleen.typeSchema,
+    fileMetadataSchema: kleen.typeSchema
+  ) : kleen.objectSchema => {
 
   const mapHasStarInKeys = (someMap: {[key: string]: any}): boolean => {
     for(let key in someMap) {
@@ -311,7 +309,7 @@ export const fileStructureSchema =
 /**
  * A mongo id schema, will error with `error`.
  */
-export const mongoStringIDSchema = (invalidMongoIDError: any): kleen.primitiveSchema => {
+export const mongoStringIDSchema = (invalidMongoIDError: FrontendError): kleen.primitiveSchema => {
   return {
     primitiveType: kleen.kindOfPrimitive.string,
     typeFailureError: invalidMongoIDError,

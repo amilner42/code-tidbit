@@ -3,9 +3,9 @@
 import * as kleen from "kleen";
 
 import { TidbitPointer, tidbitPointerSchema } from "./tidbit.model";
-import { MongoID, ErrorCode } from '../types';
+import { MongoID, MongoObjectID, ErrorCode } from '../types';
 import { mongoStringIDSchema } from './kleen-schemas';
-import { collection, ID, sameID } from '../db';
+import { collection, toMongoObjectID, sameID } from '../db';
 import { malformedFieldError } from '../util';
 
 
@@ -26,16 +26,16 @@ const completedToDBSearchForm = (completed: Completed): Completed => {
   return {
     tidbitPointer: {
       tidbitType: completed.tidbitPointer.tidbitType,
-      targetID: ID(completed.tidbitPointer.targetID)
+      targetID: toMongoObjectID(completed.tidbitPointer.targetID)
     },
-    user: ID(completed.user)
+    user: toMongoObjectID(completed.user)
   }
 };
 
 /**
  * Schema for validating a `Completed` incoming from the frontend.
  */
-const completedSchema: kleen.typeSchema = {
+const completedSchema: kleen.objectSchema = {
   objectProperties: {
     tidbitPointer: tidbitPointerSchema,
     user: mongoStringIDSchema(malformedFieldError("completed.user")),
@@ -57,8 +57,6 @@ const validCompletedAndUserPermission = (completed: Completed, userMakingRequest
         message: "You do not have permission to do this, stick to your own tidbits!"
       });
     }
-
-    return;
   });
 }
 
@@ -68,12 +66,10 @@ const validCompletedAndUserPermission = (completed: Completed, userMakingRequest
 export const completedDBActions = {
 
   /**
-   * Marks a tidbit as completed for a user.
-   *
-   * NOTE: Method is safe, running validation against `completed` and permission
-   *       checks to make sure the `userMakingRequest` is the one in `completed`.
+   * Marks a tidbit as completed for a user. Does validation and permission
+   * checks.
    */
-  addCompleted: (completed: Completed, userMakingRequest: MongoID): Promise<{ targetID: MongoID }> => {
+  addCompleted: (completed: Completed, userMakingRequest: MongoID): Promise<{ targetID: MongoObjectID }> => {
     return validCompletedAndUserPermission(completed, userMakingRequest)
     .then(() => {
       return collection("completed");
@@ -88,10 +84,9 @@ export const completedDBActions = {
         }
       );
     })
-    .then((upatedCompletedResult) => {
-      const updatedCompleted: Completed = upatedCompletedResult.value;
-      if(updatedCompleted) {
-        return { targetID: updatedCompleted._id }
+    .then((findAndModifyResult) => {
+      if(findAndModifyResult.value) {
+        return { targetID: findAndModifyResult.value._id }
       }
 
       return Promise.reject({
@@ -103,12 +98,9 @@ export const completedDBActions = {
 
   /**
    * Marks a tidbit as incomplete IF it was already marked as completed for that
-   * user, otherwise no changes are made.
+   * user, otherwise no changes are made. Does validation and permission checks.
    *
    * Returns [A promise to] true if the db was modified otherwise returns false.
-   *
-   * NOTE: Method is safe, running validation against `completed` and permission
-   *       checks to make sure the `userMakingRequest` is the one in `completed`.
    */
   removeCompleted: (completed: Completed, userMakingRequest: MongoID): Promise<boolean> => {
     return validCompletedAndUserPermission(completed, userMakingRequest)
@@ -130,10 +122,8 @@ export const completedDBActions = {
   },
 
   /**
-   * Returns [a promise to] true if the user has completed that tidbit.
-   *
-   * NOTE: Method is safe, running validation against `completed` and permission
-   *       checks to make sure the `userMakingRequest` is the one in `completed`.
+   * Returns [a promise to] true if the user has completed that tidbit. Does
+   * validation and permission checks.
    */
   isCompleted: (completed: Completed, userMakingRequest: MongoID): Promise<boolean> => {
     return validCompletedAndUserPermission(completed, userMakingRequest)

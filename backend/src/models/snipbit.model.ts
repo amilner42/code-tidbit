@@ -4,7 +4,7 @@ import * as kleen from "kleen";
 import moment from 'moment';
 
 import { malformedFieldError, isNullOrUndefined } from '../util';
-import { collection, renameIDField, ID } from '../db';
+import { collection, renameIDField, toMongoObjectID } from '../db';
 import { MongoID, MongoObjectID, ErrorCode, Language } from '../types';
 import { Range, emptyRange } from './range.model';
 import * as KS from './kleen-schemas';
@@ -56,7 +56,7 @@ interface InternalSnipbitSearchFilter {
 /**
 * Kleen schema for a HighlightComment.
 */
-const snipbitHighlightedCommentSchema: kleen.typeSchema = {
+const snipbitHighlightedCommentSchema: kleen.objectSchema = {
   objectProperties: {
     "comment": KS.commentSchema(ErrorCode.snipbitEmptyComment),
     "range": KS.rangeSchema(ErrorCode.snipbitEmptyRange)
@@ -66,7 +66,7 @@ const snipbitHighlightedCommentSchema: kleen.typeSchema = {
 /**
 * Kleen schema for a Snipbit.
 */
-const snipbitSchema: kleen.typeSchema = {
+const snipbitSchema: kleen.objectSchema = {
   objectProperties: {
     "language": KS.languageSchema(ErrorCode.snipbitInvalidLanguage),
     "name": KS.nameSchema(ErrorCode.snipbitEmptyName, ErrorCode.snipbitNameTooLong),
@@ -134,8 +134,8 @@ const prepareSnipbitForResponse = (snipbit: Snipbit): Promise<Snipbit> => {
   return new Promise((resolve, reject) => {
 
     collection("languages")
-    .then((languageCollection) => {
-      return languageCollection.findOne({ _id: ID(snipbit.language) }) as Promise<Language>;
+    .then<Language>((languageCollection) => {
+      return languageCollection.findOne({ _id: toMongoObjectID(snipbit.language) });
     })
     .then((language) => {
 
@@ -164,7 +164,7 @@ export const snipbitDBActions = {
    * Adds a new snipbit for a user. Handles all logic of converting snipbits to
    * proper format (attaching an author, converting languages).
    */
-  addNewSnipbit: (userID, snipbit): Promise<{ targetID: MongoID }> => {
+  addNewSnipbit: (userID: MongoID, snipbit: Snipbit): Promise<{ targetID: MongoObjectID }> => {
     return validifyAndUpdateSnipbit(snipbit)
     .then((updatedSnipbit: Snipbit) => {
       const dateNow = moment.utc().toDate();
@@ -177,8 +177,8 @@ export const snipbitDBActions = {
       .then((snipbitCollection) => {
         return snipbitCollection.insertOne(updatedSnipbit);
       })
-      .then((snipbit) => {
-        return { targetID: snipbit.insertedId.toHexString() };
+      .then((insertSnipbitResult) => {
+        return { targetID: insertSnipbitResult.insertedId };
       });
     });
   },
@@ -192,7 +192,7 @@ export const snipbitDBActions = {
       const mongoSearchFilter: InternalSnipbitSearchFilter = {};
 
       if(!isNullOrUndefined(filter.forUser)) {
-        mongoSearchFilter.author = ID(filter.forUser);
+        mongoSearchFilter.author = toMongoObjectID(filter.forUser);
       }
 
       return snipbitCollection.find(mongoSearchFilter).toArray();
@@ -209,7 +209,7 @@ export const snipbitDBActions = {
   getSnipbit: (snipbitID: MongoID): Promise<Snipbit> => {
     return collection("snipbits")
     .then<Snipbit>((snipbitCollection) => {
-      return snipbitCollection.findOne({ _id: ID(snipbitID)});
+      return snipbitCollection.findOne({ _id: toMongoObjectID(snipbitID)});
     })
     .then((snipbit) => {
 
@@ -230,7 +230,7 @@ export const snipbitDBActions = {
   hasSnipbit: (snipbitID: MongoID): Promise<boolean> => {
     return collection("snipbits")
     .then((snipbitCollection) => {
-      return snipbitCollection.count({ _id: ID(snipbitID)});
+      return snipbitCollection.count({ _id: toMongoObjectID(snipbitID)});
     })
     .then((numberOfSnipbitsWithID) => {
       return numberOfSnipbitsWithID > 0;

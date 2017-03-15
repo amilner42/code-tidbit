@@ -9,7 +9,7 @@ import { toPairs, contains, map }   from 'ramda';
 import passport from 'passport';
 
 import { APP_CONFIG } from '../app-config';
-import { ID, collection } from './db';
+import { toMongoObjectID, collection } from './db';
 import { loginStrategy, signUpStrategy } from './passport-local-auth-strategies';
 import { authlessRoutes, routes } from './routes';
 
@@ -61,7 +61,7 @@ const createExpressServer = () => {
     // Deserialize from the id.
     passport.deserializeUser(function(id, done) {
       collection("users")
-      .then((Users) => Users.findOne({"_id": ID(id)}))
+      .then((Users) => Users.findOne({"_id": toMongoObjectID(id)}))
       .then((User) => {
         if(!User) return done(null, false, {message: "User " + id + " does not exist"});
         done(null, User);

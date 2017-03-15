@@ -1,12 +1,11 @@
 /// Module for encapsulating helper functions for the Bigbit model.
 
 import * as kleen from "kleen";
-import { ObjectID } from 'mongodb';
 import moment from 'moment';
 
 import { malformedFieldError, asyncIdentity, isNullOrUndefined } from '../util';
-import { collection, renameIDField, ID } from '../db';
-import { MongoID, ErrorCode, Language } from '../types';
+import { collection, renameIDField, toMongoObjectID } from '../db';
+import { MongoID, MongoObjectID, ErrorCode, Language } from '../types';
 import { Range } from './range.model';
 import { FileStructure, metaMap, swapPeriodsWithStars } from './file-structure.model';
 import * as KS from './kleen-schemas';
@@ -52,16 +51,19 @@ export interface BigbitSearchFilter {
  * The internal search filter for querying the db.
  */
 interface InternalBigbitSearchFilter {
-  author?: ObjectID;
+  author?: MongoObjectID;
 };
 
 /**
  * Kleen schema for `BigbitHighlightedComment`.
  */
-const bigbitHighlightedCommentSchema: kleen.typeSchema = {
+const bigbitHighlightedCommentSchema: kleen.objectSchema = {
   objectProperties: {
     "file": KS.nonEmptyStringSchema(
-      { errorCode: ErrorCode.bigbitEmptyFilePath, message: "All bigbit highlighted comments cannot have an empty string for a file" },
+      {
+        errorCode: ErrorCode.bigbitEmptyFilePath,
+        message: "All bigbit highlighted comments cannot have an empty string for a file"
+      },
       malformedFieldError("file")
     ),
     "comment": KS.commentSchema(ErrorCode.bigbitEmptyComment),
@@ -73,7 +75,7 @@ const bigbitHighlightedCommentSchema: kleen.typeSchema = {
 /**
  * Kleen schema for a bigbit.
  */
-const bigbitSchema: kleen.typeSchema = {
+const bigbitSchema: kleen.objectSchema = {
   objectProperties: {
     "name": KS.nameSchema(ErrorCode.bigbitEmptyName, ErrorCode.bigbitNameTooLong),
     "description": KS.descriptionSchema(ErrorCode.bigbitEmptyDescription),
@@ -82,7 +84,10 @@ const bigbitSchema: kleen.typeSchema = {
     "conclusion": KS.conclusionSchema(ErrorCode.bigbitEmptyConclusion),
     "highlightedComments": KS.nonEmptyArraySchema(
       bigbitHighlightedCommentSchema,
-      { errorCode: ErrorCode.bigbitNoHighlightedComments, message: "You must have at least one highlighted comment."},
+      {
+        errorCode: ErrorCode.bigbitNoHighlightedComments,
+        message: "You must have at least one highlighted comment."
+      },
       malformedFieldError("bigbit.highlightedComments")
     ),
     "fs": KS.fileStructureSchema(
@@ -169,7 +174,7 @@ const prepareBigbitForResponse = (bigbit: Bigbit): Promise<Bigbit> => {
       asyncIdentity,
       (fileMetadata => {
         return new Promise<{language: string}>((resolve, reject) => {
-          languageCollection.findOne({ _id: ID(fileMetadata.language) })
+          languageCollection.findOne({ _id: toMongoObjectID(fileMetadata.language) })
           .then((language: Language) => {
             if(!language) {
               reject({
@@ -204,7 +209,7 @@ export const bigbitDBActions = {
    * changing the languages to the IDs and renaming files/folders to avoid
    * having a "." in them.
    */
-  addNewBigbit: (userID, bigbit): Promise<{ targetID: MongoID }> => {
+  addNewBigbit: (userID: MongoID, bigbit: Bigbit): Promise<{ targetID: MongoObjectID }> => {
     return validifyAndUpdateBigbit(bigbit)
     .then((updatedBigbit: Bigbit) => {
       const dateNow = moment.utc().toDate();
@@ -217,8 +222,8 @@ export const bigbitDBActions = {
       .then((bigbitCollection) => {
         return bigbitCollection.insertOne(updatedBigbit);
       })
-      .then((bigbit) => {
-        return { targetID: bigbit.insertedId.toHexString() };
+      .then((insertBigbitResult) => {
+        return { targetID: insertBigbitResult.insertedId };
       });
     });
   },
@@ -232,7 +237,7 @@ export const bigbitDBActions = {
       const mongoSearchFilter: InternalBigbitSearchFilter = {};
 
       if(!isNullOrUndefined(filter.forUser)) {
-        mongoSearchFilter.author = ID(filter.forUser);
+        mongoSearchFilter.author = toMongoObjectID(filter.forUser);
       }
 
       return bigbitCollection.find(mongoSearchFilter).toArray();
@@ -249,8 +254,8 @@ export const bigbitDBActions = {
    */
   getBigbit: (bigbitID: MongoID): Promise<Bigbit> => {
     return collection("bigbits")
-    .then((bigbitCollection) => {
-      return bigbitCollection.findOne({ _id: ID(bigbitID) }) as Promise<Bigbit>;
+    .then<Bigbit>((bigbitCollection) => {
+      return bigbitCollection.findOne({ _id: toMongoObjectID(bigbitID) });
     })
     .then((bigbit) => {
 
@@ -271,10 +276,10 @@ export const bigbitDBActions = {
   hasBigbit: (bigbitID: MongoID): Promise<boolean> => {
     return collection("bigbits")
     .then((bigbitCollection) => {
-      return bigbitCollection.count({ _id: ID(bigbitID) });
+      return bigbitCollection.count({ _id: toMongoObjectID(bigbitID) });
     })
     .then((numberOfBigbitsWithID) => {
       return numberOfBigbitsWithID > 0;
-    })
+    });
   }
 }

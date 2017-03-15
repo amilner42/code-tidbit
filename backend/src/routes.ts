@@ -16,18 +16,11 @@ import { internalError } from './util';
 
 
 /**
- * Returns true if the current user has the given `id`.
- */
-export const isUser = (req, id) => {
-  return req.user._id === id;
-};
-
-/**
  * Use in catch-blocks (eg. `.catch(handleError(res))`) to check and then send
  * outgoing errors. Will make sure all outgoing errors have the `FrontendError`
  * format.
  */
-export const handleError = (res: Response): ((error: FrontendError) => Promise<void>) => {
+const handleError = (res: Response): ((error: FrontendError) => Promise<void>) => {
   // Kleen schema for a FrontendError.
   const frontendErrorScheme: kleen.typeSchema = {
     objectProperties: {
@@ -58,7 +51,7 @@ export const handleError = (res: Response): ((error: FrontendError) => Promise<v
 /**
  * Sends the success object back to the server with a 200 status.
  */
-export const handleSuccess =  (res: Response): ((successObj) => void) => {
+const handleSuccess =  (res: Response): ((successObj) => void) => {
   return (successObj) => {
     res.status(200).json(successObj);
   }
@@ -69,7 +62,7 @@ export const handleSuccess =  (res: Response): ((successObj) => void) => {
  * directly upon success and we want to send a proper error message back to the
  * server upon failure.
  */
-export const handleAction = <successObj>(res: Response): ((action: Promise<successObj>) => Promise<void>) => {
+const handleAction = <successObj>(res: Response): ((action: Promise<successObj>) => Promise<void>) => {
   return (action) => {
     return action.then(handleSuccess(res)).catch(handleError(res));
   }

@@ -5,7 +5,7 @@ import * as kleen from "kleen";
 import { Collection } from 'mongodb';
 import moment from "moment";
 
-import { renameIDField, collection, ID } from '../db';
+import { renameIDField, collection, toMongoObjectID, toMongoStringID, sameID } from '../db';
 import { malformedFieldError, isNullOrUndefined } from '../util';
 import { mongoStringIDSchema, nameSchema, descriptionSchema, optional, tagsSchema, nonEmptyArraySchema } from "./kleen-schemas";
 import { MongoID, MongoObjectID, ErrorCode } from '../types';
@@ -19,12 +19,13 @@ import { Tidbit, TidbitPointer, TidbitType, tidbitPointerSchema, tidbitDBActions
  * Internal for staying DRY.
  */
 interface StoryBase {
-  _id?: MongoID;
-  id?: MongoID;
   author: MongoID;
   name: string;
   description: string;
   tags: string[];
+
+  _id?: MongoID;
+  id?: MongoID;
   createdAt?: Date;
   lastModified?: Date;
   userHasCompleted?: boolean[];
@@ -68,27 +69,10 @@ export interface StorySearchFilter {
 }
 
 /**
-* The schema for validating a story.
-*/
-const storySchema: kleen.typeSchema = {
-  objectProperties: {
-    "id": optional(mongoStringIDSchema(malformedFieldError("story.id"))),
-    "author": mongoStringIDSchema(malformedFieldError("author")),
-    "name": nameSchema(ErrorCode.storyNameEmpty, ErrorCode.storyNameTooLong),
-    "description": descriptionSchema(ErrorCode.storyDescriptionEmpty),
-    "tags": tagsSchema(ErrorCode.storyEmptyTag, ErrorCode.storyNoTags),
-    "tidbitPointers": {
-      arrayElementType: tidbitPointerSchema,
-      typeFailureError: malformedFieldError("tidbitPointers")
-    },
-  }
-};
-
-/**
  * The schema for validating the user-input for a new story or for editing the
  * information on an existing story.
  */
-const newStorySchema: kleen.typeSchema = {
+const newStorySchema: kleen.objectSchema = {
   objectProperties: {
     "name": nameSchema(ErrorCode.storyNameEmpty, ErrorCode.storyNameTooLong),
     "description": descriptionSchema(ErrorCode.storyDescriptionEmpty),
@@ -101,6 +85,8 @@ const newStorySchema: kleen.typeSchema = {
  * Prepares a story for the response.
  *
  * - Rename `_id` to `id`.
+ *
+ * @WARNING Mutates `story`
  */
 const prepareStoryForResponse = (story: Story): Story => {
   renameIDField(story);
@@ -111,6 +97,8 @@ const prepareStoryForResponse = (story: Story): Story => {
  * Prepares an expanded story for the response.
  *
  * - Rename `_id` to `id`.
+ *
+ * @WARNING Mutates `expandedStory`
  */
 const prepareExpandedStoryForResponse = (expandedStory: ExpandedStory): ExpandedStory => {
   renameIDField(expandedStory);
@@ -130,18 +118,8 @@ export const storyDBActions = {
 
     return Promise.all(story.tidbitPointers.map(tidbitDBActions.expandTidbitPointer))
     .then((tidbits) => {
-      const expandedStory: ExpandedStory = {
-        _id: story._id,
-        id: story.id,
-        name: story.name,
-        author: story.author,
-        description: story.description,
-        tags: story.tags,
-        tidbits: tidbits,
-        lastModified: story.lastModified,
-        createdAt: story.createdAt,
-        userHasCompleted: story.userHasCompleted
-      };
+      const storyBase: StoryBase = R.omit(["tidbitPointers"])(story);
+      const expandedStory: ExpandedStory = R.merge({ tidbits },  storyBase);
 
       return prepareExpandedStoryForResponse(expandedStory);
     });
@@ -156,7 +134,7 @@ export const storyDBActions = {
       const mongoSearchFilter: InternalStorySearchFilter = {};
 
       if(!isNullOrUndefined(filter.author)) {
-        mongoSearchFilter.author = ID(filter.author);
+        mongoSearchFilter.author = toMongoObjectID(filter.author);
       }
 
       return StoryCollection.find(mongoSearchFilter).toArray();
@@ -170,10 +148,10 @@ export const storyDBActions = {
    * Gets a single story from the database. If `expandStory` then the
    * `tidbitPointers` are expanded.
    */
-  getStory: (storyID: MongoID, expandStory: boolean, withCompletedForUser: MongoObjectID): Promise<Story | ExpandedStory> => {
+  getStory: (storyID: MongoID, expandStory: boolean, withCompletedForUser: MongoID): Promise<Story | ExpandedStory> => {
     return collection('stories')
-    .then((storyCollection) => {
-      return storyCollection.findOne({ _id: ID(storyID) }) as Promise<Story>;
+    .then<Story>((storyCollection) => {
+      return storyCollection.findOne({ _id: toMongoObjectID(storyID) });
     })
     .then((story) => {
       if(!story) {
@@ -189,7 +167,13 @@ export const storyDBActions = {
 
       return Promise.all<boolean>(
         story.tidbitPointers.map((tidbitPointer) => {
-          return completedDBActions.isCompleted({ tidbitPointer: tidbitPointer, user: withCompletedForUser.toHexString() } , withCompletedForUser);
+          return completedDBActions.isCompleted(
+            {
+              tidbitPointer: tidbitPointer,
+              user: toMongoStringID(withCompletedForUser)
+            },
+            withCompletedForUser
+          );
         })
       )
       .then((completedArray) => {
@@ -210,32 +194,26 @@ export const storyDBActions = {
   /**
    * Creates a new story for the user.
    */
-  createNewStory: (userID, newStory: NewStory): Promise<{ targetID: MongoID }> => {
+  createNewStory: (userID: MongoID, newStory: NewStory): Promise<{ targetID: MongoObjectID }> => {
     return kleen.validModel(newStorySchema)(newStory)
     .then(() => {
       return collection("stories");
     })
     .then((StoryCollection) => {
       const dateNow = moment.utc().toDate();
-
-      // Convert to a full `Story` by adding missing fields with defaults.
-      const story: Story = {
-        name: newStory.name,
-        description: newStory.description,
-        tags: newStory.tags,
-        // DB-added fields here:
-        //  - Author
-        //  - Add an empty array of tidbit pointers.
+      const defaultFields = {
         author: userID,
         tidbitPointers: [],
         createdAt: dateNow,
         lastModified: dateNow
       };
+      // Convert to a full `Story` by adding missing fields with defaults.
+      const story: Story = R.merge(newStory, defaultFields);
 
       return StoryCollection.insertOne(story);
     })
-    .then((story) => {
-      return { targetID: story.insertedId.toHexString() };
+    .then((insertStoryResult) => {
+      return { targetID: insertStoryResult.insertedId };
     });
   },
 
@@ -243,7 +221,7 @@ export const storyDBActions = {
    * Updates the information connected to a story. This will only allow the
    * author to edit the information.
    */
-  updateStoryInfo: (userID, storyID, editedInfo): Promise<{ targetID: MongoID }> => {
+  updateStoryInfo: (userID: MongoID, storyID: MongoID, editedInfo: NewStory): Promise<{ targetID: MongoObjectID }> => {
     return kleen.validModel(newStorySchema)(editedInfo)
     .then(() => {
       return collection('stories')
@@ -252,10 +230,10 @@ export const storyDBActions = {
       const dateNow = moment.utc().toDate();
 
       return storyCollection.findOneAndUpdate(
-        { _id: ID(storyID),
-          author: userID
+        { _id: toMongoObjectID(storyID),
+          author: toMongoObjectID(userID)
         },
-        { $set: Object.assign(editedInfo, { lastModified: dateNow }) },
+        { $set: R.merge(editedInfo, { lastModified: dateNow }) },
         {}
       );
     })
@@ -277,7 +255,7 @@ export const storyDBActions = {
    *  - Author of story is current user
    *  - `newTidbitPointers` point to actual tidbits.
    */
-  addTidbitPointersToStory: (userID, storyID, newTidbitPointers: TidbitPointer[]): Promise<ExpandedStory> => {
+  addTidbitPointersToStory: (userID: MongoID, storyID: MongoID, newTidbitPointers: TidbitPointer[]): Promise<ExpandedStory> => {
 
     const nonEmptyTidbitPointersSchema = nonEmptyArraySchema(
       tidbitPointerSchema,
@@ -293,7 +271,7 @@ export const storyDBActions = {
       return storyDBActions.getStory(storyID, false, null);
     })
     .then<boolean[]>((story) => {
-      if(!ID(story.author).equals(ID(userID))) {
+      if(!sameID(userID, story.author)) {
         return Promise.reject({
           message: "You can only edit your own stories",
           errorCode: ErrorCode.storyEditorMustBeAuthor
@@ -316,7 +294,7 @@ export const storyDBActions = {
       const dateNow = moment.utc().toDate();
 
       return storyCollection.findOneAndUpdate(
-        { _id: ID(storyID), author: userID },
+        { _id: toMongoObjectID(storyID), author: toMongoObjectID(userID) },
         { $push: { tidbitPointers: { $each: newTidbitPointers } }
         , $set: { lastModified: dateNow }
         },
