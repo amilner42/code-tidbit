@@ -205,7 +205,7 @@ postAddCompleted completed =
         (Completed.encoder completed)
 
 
-{-| Removs a `Completed` from the users list of completed tidbits.
+{-| Removes a `Completed` from the users list of completed tidbits.
 -}
 postRemoveCompleted : Completed.Completed -> (ApiError.ApiError -> b) -> (Bool -> b) -> Cmd b
 postRemoveCompleted completed =

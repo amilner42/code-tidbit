@@ -839,3 +839,31 @@ updateCreateDataHCAtIndex bigbit index hcUpdater =
         | highlightedComments =
             ArrayExtra.update index hcUpdater bigbit.highlightedComments
     }
+
+
+{-| The default create bigbit page data.
+-}
+defaultBigbitCreateData : BigbitCreateData
+defaultBigbitCreateData =
+    { name = ""
+    , description = ""
+    , tags = []
+    , tagInput = ""
+    , introduction = ""
+    , conclusion = ""
+    , fs =
+        (FS.emptyFS
+            { activeFile = Nothing
+            , openFS = False
+            , actionButtonState = Nothing
+            , actionButtonInput = ""
+            , actionButtonSubmitConfirmed = False
+            }
+            { isExpanded = True }
+        )
+    , highlightedComments =
+        Array.fromList
+            [ emptyBigbitHighlightCommentForCreate ]
+    , previewMarkdown =
+        False
+    }

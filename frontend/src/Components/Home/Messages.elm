@@ -1,7 +1,7 @@
 module Components.Home.Messages exposing (Msg(..))
 
 import Autocomplete as AC
-import Components.Home.Model exposing (TidbitType)
+import Components.Home.Model
 import Models.ApiError as ApiError
 import Models.BasicResponse as BasicResponse
 import Models.Completed as Completed
@@ -13,6 +13,7 @@ import Models.Snipbit as Snipbit
 import Models.User as User
 import Models.Story as Story
 import Models.Tidbit as Tidbit
+import Models.TidbitType as TidbitType
 import Elements.FileStructure as FS
 import Elements.Editor as Editor
 
@@ -26,7 +27,7 @@ type Msg
     | LogOut
     | OnLogOutFailure ApiError.ApiError
     | OnLogOutSuccess BasicResponse.BasicResponse
-    | ShowInfoFor (Maybe TidbitType)
+    | ShowInfoFor (Maybe TidbitType.TidbitType)
     | SnipbitGoToCodeTab
     | SnipbitUpdateLanguageQuery String
     | SnipbitUpdateACState AC.Msg

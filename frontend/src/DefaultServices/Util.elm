@@ -298,3 +298,11 @@ indexOfFirstFalse =
                         go (index + 1) xs
     in
         go 0
+
+
+{-| When running multiple updates, it can be cleaner aesthetically to have it as
+one list as opposed to using pipes.
+-}
+multipleUpdates : List (a -> a) -> (a -> a)
+multipleUpdates =
+    List.foldl (>>) identity

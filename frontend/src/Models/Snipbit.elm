@@ -7,7 +7,7 @@ import DefaultServices.Util as Util
 import Json.Encode as Encode
 import Json.Decode as Decode
 import Json.Decode.Pipeline exposing (decode, required, optional, hardcoded)
-import Elements.Editor exposing (Language, languageCacheDecoder, languageCacheEncoder)
+import Elements.Editor as Editor exposing (Language, languageCacheDecoder, languageCacheEncoder)
 import Models.HighlightedComment exposing (MaybeHighlightedComment, HighlightedComment, maybeHighlightedCommentCacheEncoder, maybeHighlightedCommentCacheDecoder, highlightedCommentEncoder, highlightedCommentDecoder)
 import Models.Range as Range
 import Models.Route as Route
@@ -357,3 +357,26 @@ previousFrameRange createData route =
 
         _ ->
             Nothing
+
+
+{-| The default create snipbit page data.
+-}
+defaultSnipbitCreateData : SnipbitCreateData
+defaultSnipbitCreateData =
+    { language = Nothing
+    , languageQueryACState = AC.empty
+    , languageListHowManyToShow = (List.length Editor.humanReadableListOfLanguages)
+    , languageQuery = ""
+    , name = ""
+    , description = ""
+    , tags = []
+    , tagInput = ""
+    , code = ""
+    , highlightedComments =
+        Array.fromList
+            [ { comment = Nothing, range = Nothing }
+            ]
+    , introduction = ""
+    , conclusion = ""
+    , previewMarkdown = False
+    }

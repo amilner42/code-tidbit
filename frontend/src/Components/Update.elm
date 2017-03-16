@@ -13,6 +13,8 @@ import DefaultServices.Util as Util exposing (maybeMapWithDefault)
 import Elements.Editor as Editor
 import Keyboard.Extra as KK
 import Models.Route as Route
+import Models.ViewSnipbitData as ViewSnipbitData
+import Models.ViewBigbitData as ViewBigbitData
 import Navigation
 import Ports
 import Task
@@ -271,7 +273,10 @@ handleKeyPress model =
 
         -- Makes sure to only activate arrow keys if in the tutorial.
         viewSnipbitWatchForLeftAndRightArrow onLeft onRight =
-            if HomeModel.isViewSnipbitRHCTabOpen model.homeComponent then
+            if
+                ViewSnipbitData.isViewSnipbitRHCTabOpen
+                    model.homeComponent.viewSnipbitData
+            then
                 doNothing
             else
                 watchForLeftAndRightArrow onLeft onRight
@@ -279,9 +284,9 @@ handleKeyPress model =
         -- Makes sure to only activate arrow keys if in the tutorial.
         viewBigbitWatchForLeftAndRightArrow onLeft onRight =
             if
-                HomeModel.isViewBigbitTutorialTabOpen
-                    model.homeComponent.viewingBigbit
-                    model.homeComponent.viewingBigbitRelevantHC
+                ViewBigbitData.isViewBigbitTutorialTabOpen
+                    model.homeComponent.viewBigbitData.viewingBigbit
+                    model.homeComponent.viewBigbitData.viewingBigbitRelevantHC
             then
                 watchForLeftAndRightArrow onLeft onRight
             else
@@ -339,7 +344,7 @@ handleKeyPress model =
                         Route.HomeComponentViewSnipbitFrame
                             fromStoryID
                             mongoID
-                            (model.homeComponent.viewingSnipbit
+                            (model.homeComponent.viewSnipbitData.viewingSnipbit
                                 |> maybeMapWithDefault (.highlightedComments >> Array.length) 0
                             )
                     )
@@ -361,7 +366,7 @@ handleKeyPress model =
                         Route.HomeComponentViewBigbitFrame
                             fromStoryID
                             mongoID
-                            (model.homeComponent.viewingBigbit
+                            (model.homeComponent.viewBigbitData.viewingBigbit
                                 |> maybeMapWithDefault (.highlightedComments >> Array.length) 0
                             )
                             Nothing

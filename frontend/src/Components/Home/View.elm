@@ -3,7 +3,7 @@ module Components.Home.View exposing (..)
 import Array
 import Autocomplete as AC
 import Components.Home.Messages exposing (Msg(..))
-import Components.Home.Model as Model exposing (Model, TidbitType(..), isViewBigbitRHCTabOpen, isViewBigbitFSTabOpen, isViewBigbitTutorialTabOpen, isViewBigbitFSOpen)
+import Components.Home.Model as Model exposing (Model)
 import Components.Home.Update exposing (filterLanguagesByQuery)
 import Components.Model exposing (Shared, kkUpdateWrapper)
 import DefaultServices.Util as Util exposing (maybeMapWithDefault)
@@ -26,6 +26,10 @@ import Models.NewStoryData as NewStoryData
 import Models.StoryData as StoryData
 import Models.Tidbit as Tidbit
 import Models.Story as Story
+import Models.ViewSnipbitData as ViewSnipbitData
+import Models.ViewBigbitData as ViewBigbitData
+import Models.ViewerRelevantHC as ViewerRelevantHC
+import Models.TidbitType exposing (TidbitType(..))
 
 
 {-| A google-material-design check-icon.
@@ -136,7 +140,7 @@ relevantHCTextAboveFrameSpecifyingPosition ( current, total ) =
 intro/conclusion/frame or the markdown with a few extra buttons for a selected
 range.
 -}
-viewSnipbitCommentBox : Snipbit.Snipbit -> Maybe Model.ViewingSnipbitRelevantHC -> Route.Route -> Html Msg
+viewSnipbitCommentBox : Snipbit.Snipbit -> Maybe ViewSnipbitData.ViewingSnipbitRelevantHC -> Route.Route -> Html Msg
 viewSnipbitCommentBox snipbit relevantHC route =
     let
         -- To display if no relevant HC.
@@ -172,7 +176,7 @@ viewSnipbitCommentBox snipbit relevantHC route =
                     Just index ->
                         div
                             [ class "view-relevant-hc" ]
-                            [ case Model.viewerRelevantHCurrentFramePair viewerRelevantHC of
+                            [ case ViewerRelevantHC.currentFramePair viewerRelevantHC of
                                 Nothing ->
                                     Util.hiddenDiv
 
@@ -181,7 +185,7 @@ viewSnipbitCommentBox snipbit relevantHC route =
                             , div
                                 [ classList
                                     [ ( "above-comment-block-button", True )
-                                    , ( "disabled", Model.viewerRelevantHCOnFirstFrame viewerRelevantHC )
+                                    , ( "disabled", ViewerRelevantHC.onFirstFrame viewerRelevantHC )
                                     ]
                                 , onClick ViewSnipbitPreviousRelevantHC
                                 ]
@@ -206,7 +210,7 @@ viewSnipbitCommentBox snipbit relevantHC route =
                             , div
                                 [ classList
                                     [ ( "above-comment-block-button next-button", True )
-                                    , ( "disabled", Model.viewerRelevantHCOnLastFrame viewerRelevantHC )
+                                    , ( "disabled", ViewerRelevantHC.onLastFrame viewerRelevantHC )
                                     ]
                                 , onClick ViewSnipbitNextRelevantHC
                                 ]
@@ -228,7 +232,7 @@ viewSnipbitView model shared =
         [ class "view-snipbit" ]
         [ div
             [ class "sub-bar" ]
-            [ case ( shared.viewingStory, model.viewingSnipbit ) of
+            [ case ( shared.viewingStory, model.viewSnipbitData.viewingSnipbit ) of
                 ( Just story, Just snipbit ) ->
                     case Story.getPreviousTidbitRoute snipbit.id story.id story.tidbits of
                         Just previousTidbitRoute ->
@@ -253,7 +257,7 @@ viewSnipbitView model shared =
 
                 _ ->
                     Util.hiddenDiv
-            , case ( shared.viewingStory, model.viewingSnipbit ) of
+            , case ( shared.viewingStory, model.viewSnipbitData.viewingSnipbit ) of
                 ( Just story, Just snipbit ) ->
                     case Story.getNextTidbitRoute snipbit.id story.id story.tidbits of
                         Just nextTidbitRoute ->
@@ -274,9 +278,9 @@ viewSnipbitView model shared =
                     , ( "hidden"
                       , not <|
                             maybeMapWithDefault
-                                Model.viewerRelevantHCHasFramesButNotBrowsing
+                                ViewerRelevantHC.hasFramesButNotBrowsing
                                 False
-                                model.viewingSnipbitRelevantHC
+                                model.viewSnipbitData.viewingSnipbitRelevantHC
                       )
                     ]
                 , onClick <| ViewSnipbitBrowseRelevantHC
@@ -288,15 +292,15 @@ viewSnipbitView model shared =
                     , ( "hidden"
                       , not <|
                             maybeMapWithDefault
-                                Model.viewerRelevantHCBrowsingFrames
+                                ViewerRelevantHC.browsingFrames
                                 False
-                                model.viewingSnipbitRelevantHC
+                                model.viewSnipbitData.viewingSnipbitRelevantHC
                       )
                     ]
                 , onClick <| ViewSnipbitCancelBrowseRelevantHC
                 ]
                 [ text "Close Related Frames" ]
-            , case ( shared.user, model.viewingSnipbitIsCompleted ) of
+            , case ( shared.user, model.viewSnipbitData.viewingSnipbitIsCompleted ) of
                 ( Just user, Just ({ complete } as isCompleted) ) ->
                     if complete then
                         button
@@ -314,7 +318,7 @@ viewSnipbitView model shared =
                 _ ->
                     Util.hiddenDiv
             ]
-        , case model.viewingSnipbit of
+        , case model.viewSnipbitData.viewingSnipbit of
             Nothing ->
                 Util.hiddenDiv
 
@@ -334,11 +338,11 @@ viewSnipbitView model shared =
                                         _ ->
                                             False
                                     )
-                                        || (Model.isViewSnipbitRHCTabOpen model)
+                                        || (ViewSnipbitData.isViewSnipbitRHCTabOpen model.viewSnipbitData)
                                   )
                                 ]
                             , onClick <|
-                                if (Model.isViewSnipbitRHCTabOpen model) then
+                                if ViewSnipbitData.isViewSnipbitRHCTabOpen model.viewSnipbitData then
                                     NoOp
                                 else
                                     case shared.route of
@@ -354,7 +358,7 @@ viewSnipbitView model shared =
                             [ text "arrow_back" ]
                         , div
                             [ onClick <|
-                                if (Model.isViewSnipbitRHCTabOpen model) then
+                                if ViewSnipbitData.isViewSnipbitRHCTabOpen model.viewSnipbitData then
                                     NoOp
                                 else
                                     GoTo <|
@@ -371,7 +375,7 @@ viewSnipbitView model shared =
                                         _ ->
                                             False
                                   )
-                                , ( "disabled", Model.isViewSnipbitRHCTabOpen model )
+                                , ( "disabled", ViewSnipbitData.isViewSnipbitRHCTabOpen model.viewSnipbitData )
                                 ]
                             ]
                             [ text "Introduction" ]
@@ -387,10 +391,10 @@ viewSnipbitView model shared =
                                     Nothing
                             )
                             (Array.length snipbit.highlightedComments)
-                            (Model.isViewSnipbitRHCTabOpen model)
+                            (ViewSnipbitData.isViewSnipbitRHCTabOpen model.viewSnipbitData)
                         , div
                             [ onClick <|
-                                if (Model.isViewSnipbitRHCTabOpen model) then
+                                if ViewSnipbitData.isViewSnipbitRHCTabOpen model.viewSnipbitData then
                                     NoOp
                                 else
                                     GoTo <|
@@ -407,7 +411,7 @@ viewSnipbitView model shared =
                                         _ ->
                                             False
                                   )
-                                , ( "disabled", Model.isViewSnipbitRHCTabOpen model )
+                                , ( "disabled", ViewSnipbitData.isViewSnipbitRHCTabOpen model.viewSnipbitData )
                                 ]
                             ]
                             [ text "Conclusion" ]
@@ -422,11 +426,11 @@ viewSnipbitView model shared =
                                         _ ->
                                             False
                                     )
-                                        || (Model.isViewSnipbitRHCTabOpen model)
+                                        || (ViewSnipbitData.isViewSnipbitRHCTabOpen model.viewSnipbitData)
                                   )
                                 ]
                             , onClick <|
-                                if (Model.isViewSnipbitRHCTabOpen model) then
+                                if (ViewSnipbitData.isViewSnipbitRHCTabOpen model.viewSnipbitData) then
                                     NoOp
                                 else
                                     case shared.route of
@@ -446,7 +450,7 @@ viewSnipbitView model shared =
                         [ class "comment-block" ]
                         [ viewSnipbitCommentBox
                             snipbit
-                            model.viewingSnipbitRelevantHC
+                            model.viewSnipbitData.viewingSnipbitRelevantHC
                             shared.route
                         ]
                     ]
@@ -457,17 +461,17 @@ viewSnipbitView model shared =
 intro/conclusion/frame, the FS, or the markdown with a few extra buttons for a
 selected range.
 -}
-viewBigbitCommentBox : Bigbit.Bigbit -> Maybe Model.ViewingBigbitRelevantHC -> Route.Route -> Html Msg
+viewBigbitCommentBox : Bigbit.Bigbit -> Maybe ViewBigbitData.ViewingBigbitRelevantHC -> Route.Route -> Html Msg
 viewBigbitCommentBox bigbit maybeRHC route =
     let
         rhcTabOpen =
-            isViewBigbitRHCTabOpen maybeRHC
+            ViewBigbitData.isViewBigbitRHCTabOpen maybeRHC
 
         fsTabOpen =
-            isViewBigbitFSTabOpen (Just bigbit) maybeRHC
+            ViewBigbitData.isViewBigbitFSTabOpen (Just bigbit) maybeRHC
 
         tutorialOpen =
-            isViewBigbitTutorialTabOpen (Just bigbit) maybeRHC
+            ViewBigbitData.isViewBigbitTutorialTabOpen (Just bigbit) maybeRHC
     in
         div
             [ class "comment-block" ]
@@ -529,7 +533,7 @@ viewBigbitCommentBox bigbit maybeRHC route =
                                 [ Util.hiddenDiv ]
 
                             Just index ->
-                                [ case Model.viewerRelevantHCurrentFramePair rhc of
+                                [ case ViewerRelevantHC.currentFramePair rhc of
                                     Nothing ->
                                         Util.hiddenDiv
 
@@ -543,7 +547,7 @@ viewBigbitCommentBox bigbit maybeRHC route =
                                 , div
                                     [ classList
                                         [ ( "above-comment-block-button", True )
-                                        , ( "disabled", Model.viewerRelevantHCOnFirstFrame rhc )
+                                        , ( "disabled", ViewerRelevantHC.onFirstFrame rhc )
                                         ]
                                     , onClick ViewBigbitPreviousRelevantHC
                                     ]
@@ -572,7 +576,7 @@ viewBigbitCommentBox bigbit maybeRHC route =
                                 , div
                                     [ classList
                                         [ ( "above-comment-block-button next-button", True )
-                                        , ( "disabled", Model.viewerRelevantHCOnLastFrame rhc )
+                                        , ( "disabled", ViewerRelevantHC.onLastFrame rhc )
                                         ]
                                     , onClick ViewBigbitNextRelevantHC
                                     ]
@@ -589,13 +593,16 @@ viewBigbitView model shared =
     let
         -- They can be on the FS or browsing RHC.
         notGoingThroughTutorial =
-            not <| isViewBigbitTutorialTabOpen model.viewingBigbit model.viewingBigbitRelevantHC
+            not <|
+                ViewBigbitData.isViewBigbitTutorialTabOpen
+                    model.viewBigbitData.viewingBigbit
+                    model.viewBigbitData.viewingBigbitRelevantHC
     in
         div
             [ class "view-bigbit" ]
             [ div
                 [ class "sub-bar" ]
-                [ case ( shared.viewingStory, model.viewingBigbit ) of
+                [ case ( shared.viewingStory, model.viewBigbitData.viewingBigbit ) of
                     ( Just story, Just bigbit ) ->
                         case Story.getPreviousTidbitRoute bigbit.id story.id story.tidbits of
                             Just previousTidbitRoute ->
@@ -620,7 +627,7 @@ viewBigbitView model shared =
 
                     _ ->
                         Util.hiddenDiv
-                , case ( shared.viewingStory, model.viewingBigbit ) of
+                , case ( shared.viewingStory, model.viewBigbitData.viewingBigbit ) of
                     ( Just story, Just bigbit ) ->
                         case Story.getNextTidbitRoute bigbit.id story.id story.tidbits of
                             Just nextTidbitRoute ->
@@ -639,14 +646,14 @@ viewBigbitView model shared =
                     [ classList
                         [ ( "sub-bar-button explore-fs", True )
                         , ( "hidden"
-                          , (isViewBigbitRHCTabOpen model.viewingBigbitRelevantHC)
-                                && (not <| isViewBigbitFSOpen model.viewingBigbit)
+                          , (ViewBigbitData.isViewBigbitRHCTabOpen model.viewBigbitData.viewingBigbitRelevantHC)
+                                && (not <| ViewBigbitData.isViewBigbitFSOpen model.viewBigbitData.viewingBigbit)
                           )
                         ]
                     , onClick <| ViewBigbitToggleFS
                     ]
                     [ text <|
-                        if isViewBigbitFSOpen model.viewingBigbit then
+                        if ViewBigbitData.isViewBigbitFSOpen model.viewBigbitData.viewingBigbit then
                             "Resume Tutorial"
                         else
                             "Explore File Structure"
@@ -657,9 +664,9 @@ viewBigbitView model shared =
                         , ( "hidden"
                           , not <|
                                 maybeMapWithDefault
-                                    Model.viewerRelevantHCHasFramesButNotBrowsing
+                                    ViewerRelevantHC.hasFramesButNotBrowsing
                                     False
-                                    model.viewingBigbitRelevantHC
+                                    model.viewBigbitData.viewingBigbitRelevantHC
                           )
                         ]
                     , onClick ViewBigbitBrowseRelevantHC
@@ -671,15 +678,15 @@ viewBigbitView model shared =
                         , ( "hidden"
                           , not <|
                                 maybeMapWithDefault
-                                    Model.viewerRelevantHCBrowsingFrames
+                                    ViewerRelevantHC.browsingFrames
                                     False
-                                    model.viewingBigbitRelevantHC
+                                    model.viewBigbitData.viewingBigbitRelevantHC
                           )
                         ]
                     , onClick ViewBigbitCancelBrowseRelevantHC
                     ]
                     [ text "Close Related Frames" ]
-                , case ( shared.user, model.viewingBigbitIsCompleted ) of
+                , case ( shared.user, model.viewBigbitData.viewingBigbitIsCompleted ) of
                     ( Just user, Just ({ complete } as isCompleted) ) ->
                         if complete then
                             button
@@ -697,7 +704,7 @@ viewBigbitView model shared =
                     _ ->
                         Util.hiddenDiv
                 ]
-            , case model.viewingBigbit of
+            , case model.viewBigbitData.viewingBigbit of
                 Nothing ->
                     div
                         []
@@ -833,7 +840,7 @@ viewBigbitView model shared =
                                 [ text "arrow_forward" ]
                             ]
                         , Editor.editor "view-bigbit-code-editor"
-                        , viewBigbitCommentBox bigbit model.viewingBigbitRelevantHC shared.route
+                        , viewBigbitCommentBox bigbit model.viewBigbitData.viewingBigbitRelevantHC shared.route
                         ]
             ]
 
@@ -1710,7 +1717,7 @@ profileView model shared =
                             ]
                             [ text "Log Out" ]
                         , div
-                            [ hidden <| Util.isNothing model.logOutError ]
+                            [ hidden <| Util.isNothing model.profileData.logOutError ]
                             [ text "Cannot log out right now, try again shortly." ]
                         ]
                     , div
@@ -1767,7 +1774,7 @@ createView model shared =
         makeTidbitTypeBox title subTitle description onClickMsg tidbitType =
             div
                 [ class "create-select-tidbit-type" ]
-                (if model.showInfoFor == (Just tidbitType) then
+                (if model.createData.showInfoFor == (Just tidbitType) then
                     [ div
                         [ class "description-text" ]
                         [ text description ]
