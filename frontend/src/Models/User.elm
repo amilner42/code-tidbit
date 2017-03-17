@@ -57,7 +57,7 @@ cacheDecoder =
         |> required "id" Decode.string
         |> required "name" Decode.string
         |> required "email" Decode.string
-        |> required "password" (Decode.maybe Decode.string)
+        |> optional "password" (Decode.maybe Decode.string) Nothing
         |> required "bio" Decode.string
 
 
