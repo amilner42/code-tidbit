@@ -229,7 +229,7 @@ viewSnipbitCommentBox snipbit relevantHC route =
 viewSnipbitView : Model -> Shared -> Html Msg
 viewSnipbitView model shared =
     div
-        [ class "view-snipbit" ]
+        [ class "view-snipbit-page" ]
         [ div
             [ class "sub-bar" ]
             [ case ( shared.viewingStory, model.viewSnipbitData.viewingSnipbit ) of
@@ -599,7 +599,7 @@ viewBigbitView model shared =
                     model.viewBigbitData.viewingBigbitRelevantHC
     in
         div
-            [ class "view-bigbit" ]
+            [ class "view-bigbit-page" ]
             [ div
                 [ class "sub-bar" ]
                 [ case ( shared.viewingStory, model.viewBigbitData.viewingBigbit ) of
