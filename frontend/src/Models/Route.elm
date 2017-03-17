@@ -1,6 +1,5 @@
 module Models.Route exposing (..)
 
-import Config
 import DefaultServices.Util as Util
 import Json.Decode as Decode
 import Json.Encode as Encode
@@ -286,13 +285,6 @@ defaultUnauthRoute =
     WelcomeComponentRegister
 
 
-{-| Converts a route to a url.
--}
-toUrl : Route -> String
-toUrl route =
-    Config.baseUrl ++ (toHashUrl route)
-
-
 {-| Converts a route to just the part of the url after (and including) the hash.
 -}
 toHashUrl : Route -> String
@@ -490,7 +482,7 @@ parseLocation location =
 -}
 navigateTo : Route -> Cmd msg
 navigateTo route =
-    Navigation.newUrl <| toUrl <| route
+    Navigation.newUrl <| toHashUrl <| route
 
 
 {-| Goes to a given route by modifying the current URL instead of adding a new
@@ -498,7 +490,7 @@ url to the browser history.
 -}
 modifyTo : Route -> Cmd msg
 modifyTo route =
-    Navigation.modifyUrl <| toUrl <| route
+    Navigation.modifyUrl <| toHashUrl <| route
 
 
 {-| For routes that have a file path query paramter, will  navigate to the same

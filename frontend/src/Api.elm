@@ -1,6 +1,5 @@
 module Api exposing (..)
 
-import Config exposing (apiBaseUrl)
 import DefaultServices.Http as HttpService
 import DefaultServices.Util as Util
 import Json.Decode as Decode
@@ -16,6 +15,13 @@ import Models.Story as Story
 import Models.User as User
 import Models.Tidbit as Tidbit
 import Models.TidbitPointer as TidbitPointer
+
+
+{-| All API endpoints sit on the `/api` route.
+-}
+apiBaseUrl : String
+apiBaseUrl =
+    "api/"
 
 
 {-| Helper for querying the API (GET), automatically adds the apiBaseUrl prefix.
