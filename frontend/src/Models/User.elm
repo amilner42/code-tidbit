@@ -1,8 +1,9 @@
 module Models.User exposing (..)
 
 import DefaultServices.Util exposing (justValueOrNull)
-import Json.Decode as Decode exposing (field)
 import Json.Encode as Encode
+import Json.Decode as Decode
+import Json.Decode.Pipeline exposing (decode, required, optional, hardcoded)
 
 
 {-| The User type.
@@ -52,12 +53,12 @@ decoder =
 -}
 cacheDecoder : Decode.Decoder User
 cacheDecoder =
-    Decode.map5 User
-        (field "id" Decode.string)
-        (field "name" Decode.string)
-        (field "email" Decode.string)
-        (Decode.maybe (field "password" Decode.string))
-        (field "bio" Decode.string)
+    decode User
+        |> required "id" Decode.string
+        |> required "name" Decode.string
+        |> required "email" Decode.string
+        |> required "password" (Decode.maybe Decode.string)
+        |> required "bio" Decode.string
 
 
 {-| The User `cacheEncoder`.

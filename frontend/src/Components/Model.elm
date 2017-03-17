@@ -120,7 +120,7 @@ sharedCacheDecoder =
         |> required "route" Route.cacheDecoder
         |> required "languages" (Decode.succeed Editor.humanReadableListOfLanguages)
         |> required "keysDown" (Decode.succeed KK.init)
-        |> required "userStories" (Decode.maybe <| Decode.list Story.storyDecoder)
+        |> required "userStories" (Decode.maybe <| Decode.list Story.decoder)
         |> required "userTidbits" (Decode.maybe <| Decode.list Tidbit.decoder)
         |> required "viewingStory" (Decode.maybe <| Story.expandedStoryDecoder)
 
@@ -134,7 +134,7 @@ sharedCacheEncoder shared =
         , ( "route", Route.cacheEncoder shared.route )
         , ( "languages", Encode.null )
         , ( "keysDown", Encode.null )
-        , ( "userStories", justValueOrNull (Encode.list << List.map Story.storyEncoder) shared.userStories )
+        , ( "userStories", justValueOrNull (Encode.list << List.map Story.encoder) shared.userStories )
         , ( "userTidbits", justValueOrNull (Encode.list << List.map Tidbit.encoder) shared.userTidbits )
         , ( "viewingStory", justValueOrNull Story.expandedStoryEncoder shared.viewingStory )
         ]

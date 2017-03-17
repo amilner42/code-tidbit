@@ -75,7 +75,10 @@ textarea:focus {
 .flex-box {
     display: flex;
     flex-wrap: wrap;
-    justify-content: space-between;
+
+    &.space-between {
+        justify-content: space-between;
+    }
 }
 
 .gray-button {

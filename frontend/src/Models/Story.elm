@@ -53,8 +53,8 @@ type alias NewStory =
 
 {-| Story encoder.
 -}
-storyEncoder : Story -> Encode.Value
-storyEncoder story =
+encoder : Story -> Encode.Value
+encoder story =
     Encode.object
         [ ( "id", Encode.string story.id )
         , ( "author", Encode.string story.author )
@@ -70,8 +70,8 @@ storyEncoder story =
 
 {-| Story decoder.
 -}
-storyDecoder : Decode.Decoder Story
-storyDecoder =
+decoder : Decode.Decoder Story
+decoder =
     decode Story
         |> required "id" Decode.string
         |> required "author" Decode.string

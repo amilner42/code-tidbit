@@ -532,8 +532,8 @@ navigateToSameUrlWithFilePath maybePath route =
 {-| Returns the query paramater "editingStory" if on the create new story routes
 and the parameter is present.
 -}
-getEditingStoryQueryParamOnCreateNewStoryUrl : Route -> Maybe MongoID
-getEditingStoryQueryParamOnCreateNewStoryUrl route =
+getEditingStoryQueryParamOnCreateNewStoryRoute : Route -> Maybe MongoID
+getEditingStoryQueryParamOnCreateNewStoryRoute route =
     case route of
         HomeComponentCreateNewStoryName qpEditingStory ->
             qpEditingStory
@@ -551,8 +551,8 @@ getEditingStoryQueryParamOnCreateNewStoryUrl route =
 {-| Returns the query parameter "fromStory" if viewing a snipbit and that query
 param is present.
 -}
-getFromStoryQueryParamOnViewSnipbitUrl : Route -> Maybe MongoID
-getFromStoryQueryParamOnViewSnipbitUrl route =
+getFromStoryQueryParamOnViewSnipbitRoute : Route -> Maybe MongoID
+getFromStoryQueryParamOnViewSnipbitRoute route =
     case route of
         HomeComponentViewSnipbitIntroduction fromStoryID _ ->
             fromStoryID
@@ -570,8 +570,8 @@ getFromStoryQueryParamOnViewSnipbitUrl route =
 {-| Returns the query parameter "fromStory" if viewing a bigbit and that query
 param is present.
 -}
-getFromStoryQueryParamOnViewBigbitUrl : Route -> Maybe MongoID
-getFromStoryQueryParamOnViewBigbitUrl route =
+getFromStoryQueryParamOnViewBigbitRoute : Route -> Maybe MongoID
+getFromStoryQueryParamOnViewBigbitRoute route =
     case route of
         HomeComponentViewBigbitIntroduction fromStoryID _ _ ->
             fromStoryID

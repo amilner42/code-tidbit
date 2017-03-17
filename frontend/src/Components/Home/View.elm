@@ -198,7 +198,7 @@ viewSnipbitCommentBox snipbit relevantHC route =
                                         |> Maybe.map
                                             (ViewSnipbitJumpToFrame
                                                 << Route.HomeComponentViewSnipbitFrame
-                                                    (Route.getFromStoryQueryParamOnViewSnipbitUrl route)
+                                                    (Route.getFromStoryQueryParamOnViewSnipbitRoute route)
                                                     snipbit.id
                                                 << ((+) 1)
                                                 << Tuple.first
@@ -363,7 +363,7 @@ viewSnipbitView model shared =
                                 else
                                     GoTo <|
                                         Route.HomeComponentViewSnipbitIntroduction
-                                            (Route.getFromStoryQueryParamOnViewSnipbitUrl shared.route)
+                                            (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
                                             snipbit.id
                             , classList
                                 [ ( "viewer-navbar-item", True )
@@ -399,7 +399,7 @@ viewSnipbitView model shared =
                                 else
                                     GoTo <|
                                         Route.HomeComponentViewSnipbitConclusion
-                                            (Route.getFromStoryQueryParamOnViewSnipbitUrl shared.route)
+                                            (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
                                             snipbit.id
                             , classList
                                 [ ( "viewer-navbar-item", True )
@@ -561,7 +561,7 @@ viewBigbitCommentBox bigbit maybeRHC route =
                                                 (ViewBigbitJumpToFrame
                                                     << (\frameNumber ->
                                                             Route.HomeComponentViewBigbitFrame
-                                                                (Route.getFromStoryQueryParamOnViewBigbitUrl route)
+                                                                (Route.getFromStoryQueryParamOnViewBigbitRoute route)
                                                                 bigbit.id
                                                                 frameNumber
                                                                 Nothing
@@ -706,9 +706,7 @@ viewBigbitView model shared =
                 ]
             , case model.viewBigbitData.viewingBigbit of
                 Nothing ->
-                    div
-                        []
-                        []
+                    Util.hiddenDiv
 
                 Just bigbit ->
                     div
@@ -752,7 +750,7 @@ viewBigbitView model shared =
                                     else
                                         ViewBigbitJumpToFrame <|
                                             Route.HomeComponentViewBigbitIntroduction
-                                                (Route.getFromStoryQueryParamOnViewBigbitUrl shared.route)
+                                                (Route.getFromStoryQueryParamOnViewBigbitRoute shared.route)
                                                 bigbit.id
                                                 Nothing
                                 , classList
@@ -789,7 +787,7 @@ viewBigbitView model shared =
                                     else
                                         ViewBigbitJumpToFrame <|
                                             Route.HomeComponentViewBigbitConclusion
-                                                (Route.getFromStoryQueryParamOnViewBigbitUrl shared.route)
+                                                (Route.getFromStoryQueryParamOnViewBigbitRoute shared.route)
                                                 bigbit.id
                                                 Nothing
                                 , classList
@@ -851,9 +849,7 @@ viewStoryView : Model -> Shared -> Html Msg
 viewStoryView model shared =
     case shared.viewingStory of
         Nothing ->
-            div
-                []
-                []
+            Util.hiddenDiv
 
         Just story ->
             let
@@ -924,15 +920,15 @@ viewStoryView model shared =
                                         ]
                                         [ progressBar
                                             (Just <|
-                                                List.sum <|
-                                                    List.map
-                                                        (\bool ->
-                                                            if bool then
-                                                                1
-                                                            else
-                                                                0
-                                                        )
-                                                        hasCompletedList
+                                                List.foldl
+                                                    (\currentBool totalComplete ->
+                                                        if currentBool then
+                                                            totalComplete + 1
+                                                        else
+                                                            totalComplete
+                                                    )
+                                                    0
+                                                    hasCompletedList
                                             )
                                             (List.length hasCompletedList)
                                             False
@@ -949,7 +945,7 @@ viewStoryView model shared =
 
                             _ ->
                                 div
-                                    [ class "flex-box" ]
+                                    [ class "flex-box space-between" ]
                                     ((List.indexedMap
                                         (\index tidbit ->
                                             div
@@ -1277,7 +1273,7 @@ createStoryView model shared =
                             [ class "page-content-bar-line" ]
                             []
                         , div
-                            [ class "flex-box" ]
+                            [ class "flex-box space-between" ]
                             ((List.indexedMap
                                 (\index tidbit ->
                                     div
@@ -1331,7 +1327,7 @@ createStoryView model shared =
                             [ class "page-content-bar-line" ]
                             []
                         , div
-                            [ class "flex-box" ]
+                            [ class "flex-box space-between" ]
                             ((List.map
                                 (\tidbit ->
                                     div
@@ -1379,7 +1375,7 @@ createNewStoryView model shared =
             shared.route
 
         editingStoryQueryParam =
-            Route.getEditingStoryQueryParamOnCreateNewStoryUrl shared.route
+            Route.getEditingStoryQueryParamOnCreateNewStoryRoute shared.route
 
         isEditingStory =
             Util.isNotNothing editingStoryQueryParam
@@ -1503,7 +1499,7 @@ createNewStoryView model shared =
                                 input
                                     [ placeholder "Name"
                                     , id "name-input"
-                                    , onInput (NewStoryUpdateName False)
+                                    , onInput NewStoryUpdateName
                                     , value model.newStoryData.newStory.name
                                     , Util.onKeydownPreventDefault
                                         (\key ->
@@ -1519,7 +1515,7 @@ createNewStoryView model shared =
                                 input
                                     [ placeholder "Edit Story Name"
                                     , id "name-input"
-                                    , onInput (NewStoryUpdateName True)
+                                    , onInput NewStoryEditingUpdateName
                                     , value model.newStoryData.editingStory.name
                                     , Util.onKeydownPreventDefault
                                         (\key ->
@@ -1540,7 +1536,7 @@ createNewStoryView model shared =
                                 textarea
                                     [ placeholder "Description"
                                     , id "description-input"
-                                    , onInput (NewStoryUpdateDescription False)
+                                    , onInput NewStoryUpdateDescription
                                     , value model.newStoryData.newStory.description
                                     , Util.onKeydownPreventDefault
                                         (\key ->
@@ -1556,7 +1552,7 @@ createNewStoryView model shared =
                                 textarea
                                     [ placeholder "Edit Story Description"
                                     , id "description-input"
-                                    , onInput (NewStoryUpdateDescription True)
+                                    , onInput NewStoryEditingUpdateDescription
                                     , value model.newStoryData.editingStory.description
                                     , Util.onKeydownPreventDefault
                                         (\key ->
@@ -1577,12 +1573,12 @@ createNewStoryView model shared =
                                 [ input
                                     [ placeholder "Tags"
                                     , id "tags-input"
-                                    , onInput (NewStoryUpdateTagInput False)
+                                    , onInput NewStoryUpdateTagInput
                                     , value model.newStoryData.tagInput
                                     , Util.onKeydownPreventDefault
                                         (\key ->
                                             if key == KK.Enter then
-                                                Just <| (NewStoryAddTag False) model.newStoryData.tagInput
+                                                Just <| NewStoryAddTag model.newStoryData.tagInput
                                             else if key == KK.Tab then
                                                 Just <| NoOp
                                             else
@@ -1590,19 +1586,22 @@ createNewStoryView model shared =
                                         )
                                     ]
                                     []
-                                , makeHTMLTags (NewStoryRemoveTag False) model.newStoryData.newStory.tags
+                                , makeHTMLTags
+                                    NewStoryRemoveTag
+                                    model.newStoryData.newStory.tags
                                 ]
 
                             Just _ ->
                                 [ input
                                     [ placeholder "Edit Story Tags"
                                     , id "tags-input"
-                                    , onInput (NewStoryUpdateTagInput True)
+                                    , onInput NewStoryEditingUpdateTagInput
                                     , value model.newStoryData.editingStoryTagInput
                                     , Util.onKeydownPreventDefault
                                         (\key ->
                                             if key == KK.Enter then
-                                                Just <| (NewStoryAddTag True) model.newStoryData.editingStoryTagInput
+                                                Just <|
+                                                    NewStoryEditingAddTag model.newStoryData.editingStoryTagInput
                                             else if key == KK.Tab then
                                                 Just <| NoOp
                                             else
@@ -1610,7 +1609,9 @@ createNewStoryView model shared =
                                         )
                                     ]
                                     []
-                                , makeHTMLTags (NewStoryRemoveTag True) model.newStoryData.editingStory.tags
+                                , makeHTMLTags
+                                    NewStoryEditingRemoveTag
+                                    model.newStoryData.editingStory.tags
                                 ]
                         )
 
@@ -1815,10 +1816,7 @@ createView model shared =
                     div
                         [ class "develop-stories" ]
                         [ div
-                            [ classList
-                                [ ( "boxes flex-box", True )
-                                , ( "collapsed", not <| model.storyData.showAllStories )
-                                ]
+                            [ classList [ ( "boxes flex-box space-between", True ) ]
                             ]
                             ([ div
                                 [ class "create-story-box"
@@ -2618,7 +2616,7 @@ createBigbitView model shared =
 
                 -- Should never happen
                 _ ->
-                    div [] []
+                    Util.hiddenDiv
             ]
 
 

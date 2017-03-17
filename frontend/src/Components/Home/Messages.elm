@@ -130,11 +130,16 @@ type Msg
     | ProfileSaveBioSuccess User.User
     | GetAccountStoriesFailure ApiError.ApiError
     | GetAccountStoriesSuccess (List Story.Story)
-    | NewStoryUpdateName Bool String
-    | NewStoryUpdateDescription Bool String
-    | NewStoryUpdateTagInput Bool String
-    | NewStoryAddTag Bool String
-    | NewStoryRemoveTag Bool String
+    | NewStoryUpdateName String
+    | NewStoryEditingUpdateName String
+    | NewStoryUpdateDescription String
+    | NewStoryEditingUpdateDescription String
+    | NewStoryUpdateTagInput String
+    | NewStoryEditingUpdateTagInput String
+    | NewStoryAddTag String
+    | NewStoryEditingAddTag String
+    | NewStoryRemoveTag String
+    | NewStoryEditingRemoveTag String
     | NewStoryReset
     | NewStoryPublish
     | NewStoryPublishSuccess IDResponse
@@ -153,4 +158,3 @@ type Msg
     | CreateStoryRemoveTidbit Tidbit.Tidbit
     | CreateStoryPublishAddedTidbits String (List Tidbit.Tidbit)
     | CreateStoryPublishAddedTidbitsFailure ApiError.ApiError
-    | CreateStoryToggleShowAllStories

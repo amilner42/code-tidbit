@@ -25,7 +25,7 @@ encoder : NewStoryData -> Encode.Value
 encoder newStoryData =
     Encode.object
         [ ( "newStory", Story.newStoryEncoder newStoryData.newStory )
-        , ( "editingStory", Story.storyEncoder newStoryData.editingStory )
+        , ( "editingStory", Story.encoder newStoryData.editingStory )
         , ( "tagInput", Encode.string newStoryData.tagInput )
         , ( "editingStoryTagInput", Encode.string newStoryData.editingStoryTagInput )
         ]
@@ -37,7 +37,7 @@ decoder : Decode.Decoder NewStoryData
 decoder =
     decode NewStoryData
         |> required "newStory" Story.newStoryDecoder
-        |> required "editingStory" Story.storyDecoder
+        |> required "editingStory" Story.decoder
         |> required "tagInput" Decode.string
         |> required "editingStoryTagInput" Decode.string
 

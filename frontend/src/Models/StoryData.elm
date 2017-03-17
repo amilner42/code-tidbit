@@ -13,7 +13,6 @@ import Models.Tidbit as Tidbit
 type alias StoryData =
     { currentStory : Maybe Story.ExpandedStory
     , tidbitsToAdd : List Tidbit.Tidbit
-    , showAllStories : Bool
     }
 
 
@@ -23,7 +22,6 @@ defaultStoryData : StoryData
 defaultStoryData =
     { currentStory = Nothing
     , tidbitsToAdd = []
-    , showAllStories = True
     }
 
 
@@ -34,7 +32,6 @@ encoder storyData =
     Encode.object
         [ ( "currentStory", Util.justValueOrNull Story.expandedStoryEncoder storyData.currentStory )
         , ( "tidbitsToAdd", Encode.list <| List.map Tidbit.encoder storyData.tidbitsToAdd )
-        , ( "showAllStories", Encode.bool storyData.showAllStories )
         ]
 
 
@@ -45,7 +42,6 @@ decoder =
     decode StoryData
         |> required "currentStory" (Decode.maybe Story.expandedStoryDecoder)
         |> required "tidbitsToAdd" (Decode.list Tidbit.decoder)
-        |> required "showAllStories" Decode.bool
 
 
 {-| Sets the `currentStory` to `expandedStory`.

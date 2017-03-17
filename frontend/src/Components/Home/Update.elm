@@ -230,7 +230,7 @@ update msg model shared =
                                             ViewSnipbitGetExpandedStoryFailure
                                             ViewSnipbitGetExpandedStorySuccess
                                 in
-                                    case Route.getFromStoryQueryParamOnViewSnipbitUrl shared.route of
+                                    case Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route of
                                         Just storyID ->
                                             if (Just storyID) == maybeViewingStoryID then
                                                 doNothing
@@ -338,7 +338,7 @@ update msg model shared =
                                             ViewBigbitGetExpandedStoryFailure
                                             ViewBigbitGetExpandedStorySuccess
                                 in
-                                    case Route.getFromStoryQueryParamOnViewBigbitUrl shared.route of
+                                    case Route.getFromStoryQueryParamOnViewBigbitRoute shared.route of
                                         Just fromStoryID ->
                                             if Just fromStoryID == maybeViewingStoryID then
                                                 doNothing
@@ -2265,42 +2265,55 @@ update msg model shared =
                         | userStories = Just userStories
                     }
 
-            NewStoryUpdateName isEditing newName ->
+            NewStoryUpdateName newName ->
                 justUpdateModel <|
-                    if isEditing then
-                        updateNewStoryData <| NewStoryData.updateEditName newName
-                    else
-                        updateNewStoryData <| NewStoryData.updateName newName
+                    updateNewStoryData <|
+                        NewStoryData.updateName newName
 
-            NewStoryUpdateDescription isEditing newDescription ->
+            NewStoryEditingUpdateName newName ->
                 justUpdateModel <|
-                    if isEditing then
-                        updateNewStoryData <|
-                            NewStoryData.updateEditDescription newDescription
-                    else
-                        updateNewStoryData <|
-                            NewStoryData.updateDescription newDescription
+                    updateNewStoryData <|
+                        NewStoryData.updateEditName newName
 
-            NewStoryUpdateTagInput isEditing newTagInput ->
+            NewStoryUpdateDescription newDescription ->
                 justUpdateModel <|
-                    if isEditing then
-                        updateNewStoryData <| NewStoryData.updateEditTagInput newTagInput
-                    else
-                        updateNewStoryData <| NewStoryData.updateTagInput newTagInput
+                    updateNewStoryData <|
+                        NewStoryData.updateDescription newDescription
 
-            NewStoryAddTag isEditing tagName ->
+            NewStoryEditingUpdateDescription newDescription ->
                 justUpdateModel <|
-                    if isEditing then
-                        updateNewStoryData <| NewStoryData.newEditTag tagName
-                    else
-                        updateNewStoryData <| NewStoryData.newTag tagName
+                    updateNewStoryData <|
+                        NewStoryData.updateEditDescription newDescription
 
-            NewStoryRemoveTag isEditing tagName ->
+            NewStoryUpdateTagInput newTagInput ->
                 justUpdateModel <|
-                    if isEditing then
-                        updateNewStoryData <| NewStoryData.removeEditTag tagName
-                    else
-                        updateNewStoryData <| NewStoryData.removeTag tagName
+                    updateNewStoryData <|
+                        NewStoryData.updateTagInput newTagInput
+
+            NewStoryEditingUpdateTagInput newTagInput ->
+                justUpdateModel <|
+                    updateNewStoryData <|
+                        NewStoryData.updateEditTagInput newTagInput
+
+            NewStoryAddTag tagName ->
+                justUpdateModel <|
+                    updateNewStoryData <|
+                        NewStoryData.newTag tagName
+
+            NewStoryEditingAddTag tagName ->
+                justUpdateModel <|
+                    updateNewStoryData <|
+                        NewStoryData.newEditTag tagName
+
+            NewStoryRemoveTag tagName ->
+                justUpdateModel <|
+                    updateNewStoryData <|
+                        NewStoryData.removeTag tagName
+
+            NewStoryEditingRemoveTag tagName ->
+                justUpdateModel <|
+                    updateNewStoryData <|
+                        NewStoryData.removeEditTag tagName
 
             NewStoryReset ->
                 ( updateNewStoryData <| always NewStoryData.defaultNewStoryData
@@ -2458,15 +2471,6 @@ update msg model shared =
             CreateStoryPublishAddedTidbitsFailure apiError ->
                 -- TODO handle error.
                 doNothing
-
-            CreateStoryToggleShowAllStories ->
-                justUpdateModel <|
-                    updateStoryData <|
-                        (\storyData ->
-                            { storyData
-                                | showAllStories = not storyData.showAllStories
-                            }
-                        )
 
 
 {-| Creates the code editor for the bigbit when browsing relevant HC.

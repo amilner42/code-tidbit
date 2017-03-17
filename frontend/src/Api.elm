@@ -46,7 +46,7 @@ getStories : List ( String, Maybe String ) -> (ApiError.ApiError -> b) -> (List 
 getStories queryParams =
     apiGet
         ("stories" ++ Util.queryParamsToString queryParams)
-        (Decode.list <| Story.storyDecoder)
+        (Decode.list <| Story.decoder)
 
 
 {-| Gets a single story.
@@ -55,7 +55,7 @@ getStory : String -> (ApiError.ApiError -> b) -> (Story.Story -> b) -> Cmd b
 getStory storyID =
     apiGet
         ("stories" :/: storyID)
-        Story.storyDecoder
+        Story.decoder
 
 
 {-| Gets a single expanded story.
