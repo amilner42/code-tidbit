@@ -168,3 +168,10 @@ const languages = [
 ];
 
 db.languages.insert(languages);
+
+// Initial Indexes
+
+db.completed.createIndex({ user: 1, tidbitPointer: 1});
+db.snipbits.createIndex({ author: 1 });
+db.bigbits.createIndex({ author: 1 });
+db.stories.createIndex({ author: 1 });

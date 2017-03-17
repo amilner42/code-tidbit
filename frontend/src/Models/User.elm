@@ -1,14 +1,16 @@
 module Models.User exposing (..)
 
 import DefaultServices.Util exposing (justValueOrNull)
-import Json.Decode as Decode exposing (field)
 import Json.Encode as Encode
+import Json.Decode as Decode
+import Json.Decode.Pipeline exposing (decode, required, optional, hardcoded)
 
 
 {-| The User type.
 -}
 type alias User =
-    { name : String
+    { id : String
+    , name : String
     , email : String
     , password : Maybe (String)
     , bio : String
@@ -51,11 +53,12 @@ decoder =
 -}
 cacheDecoder : Decode.Decoder User
 cacheDecoder =
-    Decode.map4 User
-        (field "name" Decode.string)
-        (field "email" Decode.string)
-        (Decode.maybe (field "password" Decode.string))
-        (field "bio" Decode.string)
+    decode User
+        |> required "id" Decode.string
+        |> required "name" Decode.string
+        |> required "email" Decode.string
+        |> optional "password" (Decode.maybe Decode.string) Nothing
+        |> required "bio" Decode.string
 
 
 {-| The User `cacheEncoder`.
@@ -63,7 +66,8 @@ cacheDecoder =
 cacheEncoder : User -> Encode.Value
 cacheEncoder user =
     Encode.object
-        [ ( "name", Encode.string user.name )
+        [ ( "id", Encode.string user.id )
+        , ( "name", Encode.string user.name )
         , ( "email", Encode.string user.email )
         , ( "password", Encode.null )
         , ( "bio", Encode.string user.bio )

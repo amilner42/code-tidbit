@@ -3,9 +3,10 @@
 import { omit } from "ramda";
 import * as kleen from "kleen";
 
-import { malformedFieldError } from "../util";
+import { renameIDField, collection, toMongoObjectID } from '../db';
+import { malformedFieldError, dropNullAndUndefinedProperties } from "../util";
 import { nonEmptyStringSchema, optional } from "./kleen-schemas";
-import { Model, MongoID, ErrorCode } from '../types';
+import { MongoID, ErrorCode } from '../types';
 
 
 /**
@@ -13,6 +14,7 @@ import { Model, MongoID, ErrorCode } from '../types';
  */
 export interface User {
   _id?: MongoID;
+  id?: MongoID;
   name: string;
   email: string;
   password: string;
@@ -48,18 +50,9 @@ export interface UserUpdateObject {
 }
 
 /**
- * The `User` model.
- */
-export const userModel: Model<User> = {
-  name: "user",
-  stripSensitiveDataForResponse: omit(['password', '_id'])
-};
-
-
-/**
  * The schema for updating a user.
  */
-export const updateUserSchema: kleen.objectSchema = {
+const updateUserSchema: kleen.objectSchema = {
   objectProperties: {
     "name": optional(
       nonEmptyStringSchema(
@@ -75,4 +68,48 @@ export const updateUserSchema: kleen.objectSchema = {
     )
   },
   typeFailureError: malformedFieldError("User Update Object")
+};
+
+/**
+ * Prepares the user for response.
+ *  - Removes password
+ *  - Rename `_id` to `id`
+ */
+export const prepareUserForResponse = (user: User): User => {
+  delete user.password;
+  renameIDField(user);
+  return user;
+};
+
+/**
+ * All db helpers for a user.
+ */
+export const userDBActions = {
+
+  /**
+   * Updates the basic informaton connected to a user.
+   */
+  updateUser: (userID: MongoID, userUpdateObject: UserUpdateObject): Promise<User> => {
+    return kleen.validModel(updateUserSchema)(userUpdateObject)
+    .then(() => {
+      return collection("users");
+    })
+    .then((UserCollection) => {
+      return UserCollection.findOneAndUpdate(
+        { _id: toMongoObjectID(userID) },
+        { $set: dropNullAndUndefinedProperties(userUpdateObject) },
+        { returnOriginal: false }
+      );
+    })
+    .then((updatedUserResult) => {
+      if(updatedUserResult.value) {
+        return prepareUserForResponse(updatedUserResult.value);
+      }
+
+      return Promise.reject({
+        errorCode: ErrorCode.internalError,
+        message: "We couldn't find your account."
+      });
+    });
+  }
 };

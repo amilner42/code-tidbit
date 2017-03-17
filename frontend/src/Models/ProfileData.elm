@@ -5,6 +5,7 @@ import DefaultServices.Util as Util
 import Json.Encode as Encode
 import Json.Decode as Decode
 import Json.Decode.Pipeline exposing (decode, required, optional, hardcoded)
+import Models.ApiError as ApiError
 
 
 {-| All data related to the profile page.
@@ -12,26 +13,8 @@ import Json.Decode.Pipeline exposing (decode, required, optional, hardcoded)
 type alias ProfileData =
     { accountName : Maybe (Editable.Editable String)
     , accountBio : Maybe (Editable.Editable String)
+    , logOutError : Maybe ApiError.ApiError
     }
-
-
-{-| ProfileData encoder.
--}
-encoder : ProfileData -> Encode.Value
-encoder profileData =
-    Encode.object
-        [ ( "accountName", Util.justValueOrNull (Editable.encoder Encode.string) profileData.accountName )
-        , ( "accountBio", Util.justValueOrNull (Editable.encoder Encode.string) profileData.accountBio )
-        ]
-
-
-{-| ProfileData decoder.
--}
-decoder : Decode.Decoder ProfileData
-decoder =
-    decode ProfileData
-        |> required "accountName" (Decode.maybe <| Editable.decoder Decode.string)
-        |> required "accountBio" (Decode.maybe <| Editable.decoder Decode.string)
 
 
 {-| Gets the current account name from the profile data if is not `Nothing`,
@@ -123,3 +106,34 @@ setAccountBioToNothing profileData =
 isEditingBio : ProfileData -> Bool
 isEditingBio =
     .accountBio >> Util.maybeMapWithDefault Editable.hasChanged False
+
+
+{-| The default profile page data.
+-}
+defaultProfileData : ProfileData
+defaultProfileData =
+    { accountName = Nothing
+    , accountBio = Nothing
+    , logOutError = Nothing
+    }
+
+
+{-| ProfileData encoder.
+-}
+encoder : ProfileData -> Encode.Value
+encoder profileData =
+    Encode.object
+        [ ( "accountName", Util.justValueOrNull (Editable.encoder Encode.string) profileData.accountName )
+        , ( "accountBio", Util.justValueOrNull (Editable.encoder Encode.string) profileData.accountBio )
+        , ( "logOutError", Encode.null )
+        ]
+
+
+{-| ProfileData decoder.
+-}
+decoder : Decode.Decoder ProfileData
+decoder =
+    decode ProfileData
+        |> required "accountName" (Decode.maybe <| Editable.decoder Decode.string)
+        |> required "accountBio" (Decode.maybe <| Editable.decoder Decode.string)
+        |> required "logOutError" (Decode.succeed Nothing)

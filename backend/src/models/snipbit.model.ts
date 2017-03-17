@@ -1,10 +1,11 @@
 /// Module for encapsulating helper functions for the Snipbit model.
 
 import * as kleen from "kleen";
+import moment from 'moment';
 
-import { malformedFieldError } from '../util';
-import { collection } from '../db';
-import { MongoID, ErrorCode, Language } from '../types';
+import { malformedFieldError, isNullOrUndefined } from '../util';
+import { collection, renameIDField, toMongoObjectID } from '../db';
+import { MongoID, MongoObjectID, ErrorCode, Language } from '../types';
 import { Range, emptyRange } from './range.model';
 import * as KS from './kleen-schemas';
 
@@ -26,6 +27,8 @@ export interface Snipbit {
   language: MongoID; // Backend converts language string to MongoID of language in DB.
   _id?: MongoID;
   author?: MongoID;
+  createdAt?: Date;
+  lastModified?: Date;
 }
 
 /**
@@ -37,9 +40,23 @@ export interface SnipbitHighlightedComment {
 }
 
 /**
+ * The search options for getting snipbits from the db.
+ */
+export interface SnipbitSearchFilter {
+  forUser?: MongoID;
+}
+
+/**
+ * The internal search filter for querying the DB.
+ */
+interface InternalSnipbitSearchFilter {
+  author?: MongoObjectID;
+}
+
+/**
 * Kleen schema for a HighlightComment.
 */
-const snipbitHighlightedCommentSchema: kleen.typeSchema = {
+const snipbitHighlightedCommentSchema: kleen.objectSchema = {
   objectProperties: {
     "comment": KS.commentSchema(ErrorCode.snipbitEmptyComment),
     "range": KS.rangeSchema(ErrorCode.snipbitEmptyRange)
@@ -49,7 +66,7 @@ const snipbitHighlightedCommentSchema: kleen.typeSchema = {
 /**
 * Kleen schema for a Snipbit.
 */
-const snipbitSchema: kleen.typeSchema = {
+const snipbitSchema: kleen.objectSchema = {
   objectProperties: {
     "language": KS.languageSchema(ErrorCode.snipbitInvalidLanguage),
     "name": KS.nameSchema(ErrorCode.snipbitEmptyName, ErrorCode.snipbitNameTooLong),
@@ -77,7 +94,7 @@ const snipbitSchema: kleen.typeSchema = {
  *
  * NOTE: This function does not attach an author.
  */
-export const validifyAndUpdateSnipbit = (snipbit: Snipbit): Promise<Snipbit> => {
+const validifyAndUpdateSnipbit = (snipbit: Snipbit): Promise<Snipbit> => {
 
   return new Promise<Snipbit>((resolve, reject) => {
 
@@ -103,4 +120,120 @@ export const validifyAndUpdateSnipbit = (snipbit: Snipbit): Promise<Snipbit> => 
     })
     .catch(reject);
   });
+};
+
+/**
+ * Prepares a snipbit for the frontend. This includes renaming the `_id` field
+ * as well as switching the language ID with the encoded name.
+ *
+ * @WARNING Mutates `snipbit`.
+ */
+const prepareSnipbitForResponse = (snipbit: Snipbit): Promise<Snipbit> => {
+  renameIDField(snipbit);
+
+  return new Promise((resolve, reject) => {
+
+    collection("languages")
+    .then<Language>((languageCollection) => {
+      return languageCollection.findOne({ _id: toMongoObjectID(snipbit.language) });
+    })
+    .then((language) => {
+
+      if(!language) {
+        reject({
+          errorCode: ErrorCode.internalError,
+          message: `Language ID ${snipbit.language} was invalid`
+        });
+        return;
+      }
+
+      // Update language to encoded language name.
+      snipbit.language = language.encodedName;
+      resolve(snipbit);
+    })
+    .catch(reject);
+  });
+};
+
+/**
+ * All the db helpers for a snipbit.
+ */
+export const snipbitDBActions = {
+
+  /**
+   * Adds a new snipbit for a user. Handles all logic of converting snipbits to
+   * proper format (attaching an author, converting languages).
+   */
+  addNewSnipbit: (userID: MongoID, snipbit: Snipbit): Promise<{ targetID: MongoObjectID }> => {
+    return validifyAndUpdateSnipbit(snipbit)
+    .then((updatedSnipbit: Snipbit) => {
+      const dateNow = moment.utc().toDate();
+
+      updatedSnipbit.author = userID;
+      updatedSnipbit.createdAt = dateNow;
+      updatedSnipbit.lastModified = dateNow;
+
+      return collection("snipbits")
+      .then((snipbitCollection) => {
+        return snipbitCollection.insertOne(updatedSnipbit);
+      })
+      .then((insertSnipbitResult) => {
+        return { targetID: insertSnipbitResult.insertedId };
+      });
+    });
+  },
+
+  /**
+   * Gets snipbits, customizable through the search filter.
+   */
+  getSnipbits: (filter: SnipbitSearchFilter): Promise<Snipbit[]> => {
+    return collection("snipbits")
+    .then((snipbitCollection) => {
+      const mongoSearchFilter: InternalSnipbitSearchFilter = {};
+
+      if(!isNullOrUndefined(filter.forUser)) {
+        mongoSearchFilter.author = toMongoObjectID(filter.forUser);
+      }
+
+      return snipbitCollection.find(mongoSearchFilter).toArray();
+    })
+    .then((snipbits) => {
+      return Promise.all(snipbits.map(prepareSnipbitForResponse));
+    });
+  },
+
+  /**
+   * Gets a snipbit from the database, handles all required transformations to
+   * get the snipbit in the proper format for the frontend.
+   */
+  getSnipbit: (snipbitID: MongoID): Promise<Snipbit> => {
+    return collection("snipbits")
+    .then<Snipbit>((snipbitCollection) => {
+      return snipbitCollection.findOne({ _id: toMongoObjectID(snipbitID)});
+    })
+    .then((snipbit) => {
+
+      if(!snipbit) {
+        return Promise.reject({
+          errorCode: ErrorCode.snipbitDoesNotExist,
+          message: `ID ${snipbitID} does not point to a snipbit.`
+        });
+      }
+
+      return prepareSnipbitForResponse(snipbit);
+    });
+  },
+
+  /**
+   * Checks if a snipbit exists.
+   */
+  hasSnipbit: (snipbitID: MongoID): Promise<boolean> => {
+    return collection("snipbits")
+    .then((snipbitCollection) => {
+      return snipbitCollection.count({ _id: toMongoObjectID(snipbitID)});
+    })
+    .then((numberOfSnipbitsWithID) => {
+      return numberOfSnipbitsWithID > 0;
+    });
+  }
 }

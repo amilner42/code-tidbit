@@ -5,29 +5,22 @@ import { Response } from "express";
 import * as kleen from "kleen";
 import passport from 'passport';
 
-import { APP_CONFIG } from '../app-config';
-import { User, userModel, updateUserSchema, UserUpdateObject } from './models/user.model';
-import { Snipbit, validifyAndUpdateSnipbit } from './models/snipbit.model';
-import { validifyAndUpdateBigbit, Bigbit } from './models/bigbit.model';
-import { swapPeriodsWithStars, metaMap } from './models/file-structure.model';
-import { AppRoutes, AppRoutesAuth, ErrorCode, FrontendError, Language } from './types';
-import { collection, ID } from './db';
-import { internalError, asyncIdentity, dropNullAndUndefinedProperties } from './util';
+import { completedDBActions } from "./models/completed.model";
+import { User, userDBActions, prepareUserForResponse } from './models/user.model';
+import { Snipbit, snipbitDBActions } from './models/snipbit.model';
+import { Bigbit, bigbitDBActions } from './models/bigbit.model';
+import { NewStory, storyDBActions } from "./models/story.model";
+import { tidbitDBActions } from './models/tidbit.model';
+import { AppRoutes, AppRoutesAuth, FrontendError } from './types';
+import { internalError } from './util';
 
-
-/**
- * Returns true if the current user has the given `id`.
- */
-export const isUser = (req, id) => {
-  return req.user._id === id;
-};
 
 /**
  * Use in catch-blocks (eg. `.catch(handleError(res))`) to check and then send
  * outgoing errors. Will make sure all outgoing errors have the `FrontendError`
  * format.
  */
-export const handleError = (res: Response): ((error: FrontendError) => Promise<void>) => {
+const handleError = (res: Response): ((error: FrontendError) => Promise<void>) => {
   // Kleen schema for a FrontendError.
   const frontendErrorScheme: kleen.typeSchema = {
     objectProperties: {
@@ -56,6 +49,26 @@ export const handleError = (res: Response): ((error: FrontendError) => Promise<v
 };
 
 /**
+ * Sends the success object back to the server with a 200 status.
+ */
+const handleSuccess =  (res: Response): ((successObj) => void) => {
+  return (successObj) => {
+    res.status(200).json(successObj);
+  }
+};
+
+/**
+ * Handles an action where we want to send the result object back to the server
+ * directly upon success and we want to send a proper error message back to the
+ * server upon failure.
+ */
+const handleAction = <successObj>(res: Response): ((action: Promise<successObj>) => Promise<void>) => {
+  return (action) => {
+    return action.then(handleSuccess(res)).catch(handleError(res));
+  }
+};
+
+/**
  * A dictionary matching the same format as `routes` that specifies whether
  * routes do not require authentication. By default, all routes require
  * authentication.
@@ -63,8 +76,13 @@ export const handleError = (res: Response): ((error: FrontendError) => Promise<v
 export const authlessRoutes: AppRoutesAuth = {
   '/register': { post: true },
   '/login': { post: true },
+  '/snipbits': { get: true },
   '/snipbits/:id': { get: true },
-  '/bigbits/:id': { get: true }
+  '/bigbits/': { get: true },
+  '/bigbits/:id': { get: true },
+  '/stories': { get: true },
+  '/stories/:id': { get: true },
+  '/tidbits': { get: true }
 };
 
 /**
@@ -100,7 +118,7 @@ export const routes: AppRoutes = {
             return;
           }
 
-          res.status(201).json(userModel.stripSensitiveDataForResponse(user));
+          res.status(201).json(prepareUserForResponse(user));
           return;
         });
       })(req, res, next);
@@ -133,45 +151,10 @@ export const routes: AppRoutes = {
             return next(err);
           }
 
-          res.status(200).json(userModel.stripSensitiveDataForResponse(user));
+          res.status(200).json(prepareUserForResponse(user));
           return;
         });
       })(req, res, next);
-    }
-  },
-
-  '/account': {
-    /**
-     * Returns the users account with sensitive data stripped.
-     */
-    get: (req, res, next) => {
-      res.status(200).json(userModel.stripSensitiveDataForResponse(req.user));
-      return;
-    },
-
-    /**
-     * Updates the user and returns the new updated user.
-     */
-    post: (req, res) => {
-      const userUpdateObject: UserUpdateObject = req.body;
-      const userID = req.user._id;
-
-      kleen.validModel(updateUserSchema)(userUpdateObject)
-      .then(() => {
-        return collection("users");
-      })
-      .then((UserCollection) => {
-        return UserCollection.findOneAndUpdate(
-          { _id: userID },
-          { $set: dropNullAndUndefinedProperties(userUpdateObject) },
-          { returnOriginal: false}
-        );
-      })
-      .then((updatedUserResult) => {
-        res.status(200).json(userModel.stripSensitiveDataForResponse(updatedUserResult.value));
-        return;
-      })
-      .catch(handleError(res));
     }
   },
 
@@ -193,53 +176,106 @@ export const routes: AppRoutes = {
     }
   },
 
+  '/account': {
+    /**
+     * Returns the users account with sensitive data stripped.
+     */
+    get: (req, res, next) => {
+      res.status(200).json(prepareUserForResponse(req.user));
+      return;
+    },
+
+    /**
+     * Updates the user and returns the new updated user.
+     */
+    post: (req, res) => {
+      const userUpdateObject = req.body;
+      const userID = req.user._id;
+
+      handleAction(res)(userDBActions.updateUser(userID, userUpdateObject));
+    }
+  },
+
+  '/account/addCompleted': {
+    /**
+     * Adds the tidbit as completed for the logged-in user, if it's already
+     * completed no changes are made.
+     */
+    post: (req, res) => {
+      const userID = req.user._id;
+      const completed = req.body;
+
+      handleAction(res)(completedDBActions.addCompleted(completed, userID));
+    }
+  },
+
+  '/account/removeCompleted': {
+    /**
+     * Removes the tidbit from the completed table for the logged-in user, no
+     * changes are made if the tidbit wasn't in the completed table to begin
+     * with.
+     */
+    post: (req, res) => {
+      const userID = req.user._id;
+      const completed = req.body;
+
+      handleAction(res)(completedDBActions.removeCompleted(completed, userID));
+    }
+  },
+
+  '/account/checkCompleted': {
+    /**
+     * Checks if a tidbit is completed for the logged-in user.
+     */
+    post: (req, res) => {
+      const userID = req.user._id;
+      const completed = req.body;
+
+      handleAction(res)(completedDBActions.isCompleted(completed, userID));
+    }
+  },
+
   '/snipbits': {
+    /**
+     * Gets snipbits, customizable through query params.
+     */
+    get: (req, res) => {
+      const queryParams = req.query;
+      const forUser = queryParams.forUser;
+
+      handleAction(res)(snipbitDBActions.getSnipbits({ forUser }));
+    },
+
     /**
      * Creates a new snipbit for the logged-in user.
      */
     post: (req, res) => {
-      const user: User = req.user;
+      const userID = req.user._id;
       const snipbit = req.body;
 
-      validifyAndUpdateSnipbit(snipbit)
-      .then((updatedSnipbit: Snipbit) => {
-        updatedSnipbit.author = user._id;
-
-        return collection("snipbits")
-        .then((snipbitCollection) => {
-          return snipbitCollection.insertOne(updatedSnipbit);
-        })
-        .then((snipbit) => {
-          res.status(200).json({ newID: snipbit.insertedId });
-          return;
-        });
-      })
-      .catch(handleError(res));
+      handleAction(res)(snipbitDBActions.addNewSnipbit(userID, snipbit));
     }
   },
 
   '/bigbits': {
     /**
+     * Gets bigbits, customizable through query params.
+     */
+    get: (req, res) => {
+      const queryParams = req.query;
+      const forUser = queryParams.forUser;
+
+      handleAction(res)(bigbitDBActions.getBigbits({ forUser }));
+    },
+
+    /**
      * Creates a new snipbit for the logged-in user.
      */
     post: (req, res) => {
-      const user: User = req.user;
+      const userID = req.user._id;
       const bigbit = req.body;
 
-      validifyAndUpdateBigbit(bigbit)
-      .then((updatedBigbit: Bigbit) => {
-        updatedBigbit.author = user._id;
-
-        return collection("bigbits")
-        .then((bigbitCollection) => {
-          return bigbitCollection.insertOne(updatedBigbit);
-        })
-        .then((bigbit) => {
-          res.status(200).json({ newID: bigbit.insertedId })
-          return;
-        });
-      })
-      .catch(handleError(res));
+      handleAction(res)(bigbitDBActions.addNewBigbit(userID, bigbit));
     }
   },
 
@@ -247,49 +283,12 @@ export const routes: AppRoutes = {
     /**
      * Gets a snipbit.
      */
-     get: (req, res) => {
+    get: (req, res) => {
       const params = req.params;
       const snipbitID = params["id"];
 
-      collection("snipbits")
-      .then((snipbitCollection) => {
-        return snipbitCollection.findOne({ _id: ID(snipbitID)}) as Promise<Snipbit>;
-      })
-      .then((snipbit) => {
-
-        if(!snipbit) {
-          res.status(400).json({
-            errorCode: ErrorCode.snipbitDoesNotExist,
-            message: `ID ${snipbitID} does not point to a snipbit.`
-          });
-          return;
-        }
-
-        // Rename `_id` field.
-        snipbit.id = snipbit._id;
-        delete snipbit._id;
-
-        // Update `language` to encoded language name.
-        return collection("languages")
-        .then((languageCollection) => {
-          return languageCollection.findOne({ _id: snipbit.language }) as Promise<Language>;
-        })
-        .then((language) => {
-
-          if(!language) {
-            res.status(400).json({
-              errorCode: ErrorCode.internalError,
-              message: `Language ID ${snipbit.language} was invalid`
-            });
-          }
-
-          // Update language to encoded language name.
-          snipbit.language = language.encodedName;
-          res.status(200).json(snipbit);
-        });
-      })
-      .catch(handleError(res));
-     }
+      handleAction(res)(snipbitDBActions.getSnipbit(snipbitID));
+    }
   },
 
   '/bigbits/:id': {
@@ -300,58 +299,87 @@ export const routes: AppRoutes = {
       const params = req.params;
       const bigbitID = params["id"];
 
-      collection("bigbits")
-      .then((bigbitCollection) => {
-        return bigbitCollection.findOne({ _id: ID(bigbitID) }) as Promise<Bigbit>;
-      })
-      .then((bigbit) => {
+      handleAction(res)(bigbitDBActions.getBigbit(bigbitID));
+    }
+  },
 
-        if(!bigbit) {
-          res.status(400).json({
-            errorCode: ErrorCode.bigbitDoesNotExist,
-            message: `ID ${bigbitID} does not point to a bigbit.`
-          });
-          return;
-        }
+  '/stories': {
 
-        // Rename id field.
-        bigbit.id = bigbit._id;
-        delete bigbit._id;
+    /**
+     * Get's stories, can customize query through query-params.
+     */
+    get: (req, res) => {
+      const userID = req.user._id;
+      const queryParams = req.query;
+      const author = queryParams.author;
 
-        return collection("languages")
-        .then((languageCollection) => {
-          // Swap all languageIDs with encoded language names.
-          return metaMap(
-            asyncIdentity,
-            asyncIdentity,
-            (fileMetadata => {
-              return new Promise<{language: string}>((resolve, reject) => {
-                languageCollection.findOne({ _id: ID(fileMetadata.language) })
-                .then((language: Language) => {
-                  if(!language) {
-                    reject({
-                      errorCode: ErrorCode.internalError,
-                      message: `Language ID ${fileMetadata.language} does not point to a language`
-                    });
-                    return;
-                  }
+      handleAction(res)(storyDBActions.getStories({ author }));
+    },
 
-                  resolve({ language: language.encodedName });
-                  return;
-                });
-              });
-            }),
-            bigbit.fs
-          );
-        })
-        .then((updatedFS) => {
-          // Switch to updated fs, which includes swapping '*' with '.'
-          bigbit.fs = swapPeriodsWithStars(false, updatedFS);
-          res.status(200).json(bigbit);
-          return;
-        });
-      })
-      .catch(handleError(res));
+    /**
+     * For creating a new story for the given user.
+     */
+    post: (req, res) => {
+      const newStory: NewStory  = req.body;
+      const userID = req.user._id;
+
+      handleAction(res)(storyDBActions.createNewStory(userID, newStory));
+    }
+  },
+
+  '/stories/:id': {
+    /**
+     * Gets a story from the db, customizable through query params.
+     */
+    get: (req, res) => {
+      const params = req.params;
+      const storyID = params.id;
+      const queryParams = req.query;
+      const expandStory = !!queryParams.expandStory;
+      const withCompleted = !!queryParams.withCompleted;
+      const userID = req.user ? req.user._id : null;
+
+      handleAction(res)(storyDBActions.getStory(storyID, expandStory, withCompleted ? userID : null ));
+    }
+  },
+
+  '/stories/:id/information': {
+    /**
+     * Updates the basic information connected to a story.
+     */
+    post: (req, res) => {
+      const params = req.params;
+      const storyID = params.id;
+      const userID = req.user._id;
+      const editedInfo = req.body;
+
+      handleAction(res)(storyDBActions.updateStoryInfo(userID, storyID, editedInfo));
+    }
+  },
+
+  '/stories/:id/addTidbits': {
+    /**
+     * Adds tidbits to an existing story.
+     */
+    post: (req, res) => {
+      const params = req.params;
+      const storyID = params.id;
+      const userID = req.user._id;
+      const newStoryTidbitPointers = req.body;
+
+      handleAction(res)(storyDBActions.addTidbitPointersToStory(userID, storyID, newStoryTidbitPointers));
+    }
+  },
+
+  '/tidbits': {
+    /**
+     * Gets all the tidbits, customizable through query params.
+     */
+    get: (req, res) => {
+      const queryParams = req.query;
+      const forUser = queryParams.forUser;
+
+      handleAction(res)(tidbitDBActions.getTidbits({ forUser }));
     }
   }
 }

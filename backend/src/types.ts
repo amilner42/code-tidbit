@@ -1,5 +1,6 @@
 /// Module for all typings specific to the app.
 
+import { ObjectID } from "mongodb";
 import { Handler } from "express";
 
 
@@ -39,28 +40,19 @@ export interface Language {
 }
 
 /**
- * A mongo ID.
+ * An alias for a mongo `ObjectID`.
  */
-export type MongoID = string;
+export type MongoObjectID = ObjectID;
 
 /**
- * All models (in `/models`) should export an implementation of this
- * interface.
+ * An alias for a `string`, representing a mongoID in string form.
  */
-export interface Model<T> {
+export type MongoStringID = string;
 
-  /**
-   * Unique name, should be identical to the name of interface `T`.
-   */
-  name: string;
-
-  /**
-   * Prior to responding to an HTTP request with a model, this method should
-   * be called to strip sensitive data, eg you don't wanna be sending the
-   * user his data with the password attached.
-   */
-  stripSensitiveDataForResponse: (model: T) => T;
-}
+/**
+ * A mongo ID in either string-form or ObjectID-form.
+ */
+export type MongoID = MongoStringID | MongoObjectID;
 
 /**
  * All ErrorCode are used for simpler programmatic communication between the
@@ -108,5 +100,15 @@ export enum ErrorCode {
   bigbitNoHighlightedComments,
   bigbitInvalidLanguage,
   bigbitDoesNotExist,
-  invalidBio
+  invalidBio,
+  storyNameEmpty,
+  storyNameTooLong,
+  storyDescriptionEmpty,
+  storyDescriptionTooLong,
+  storyInvalidTidbitType,
+  storyEmptyTag,
+  storyNoTags,
+  storyDoesNotExist,
+  storyEditorMustBeAuthor,
+  storyAddingNonExistantTidbit
 }

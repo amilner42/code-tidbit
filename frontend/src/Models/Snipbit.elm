@@ -2,11 +2,12 @@ module Models.Snipbit exposing (..)
 
 import Array
 import Autocomplete as AC
+import Date
 import DefaultServices.Util as Util
 import Json.Encode as Encode
 import Json.Decode as Decode
 import Json.Decode.Pipeline exposing (decode, required, optional, hardcoded)
-import Elements.Editor exposing (Language, languageCacheDecoder, languageCacheEncoder)
+import Elements.Editor as Editor exposing (Language, languageCacheDecoder, languageCacheEncoder)
 import Models.HighlightedComment exposing (MaybeHighlightedComment, HighlightedComment, maybeHighlightedCommentCacheEncoder, maybeHighlightedCommentCacheDecoder, highlightedCommentEncoder, highlightedCommentDecoder)
 import Models.Range as Range
 import Models.Route as Route
@@ -25,6 +26,8 @@ type alias Snipbit =
     , conclusion : String
     , highlightedComments : Array.Array HighlightedComment
     , author : String
+    , createdAt : Date.Date
+    , lastModified : Date.Date
     }
 
 
@@ -106,6 +109,8 @@ snipbitEncoder snipbit =
         snipbit
         [ ( "id", Encode.string snipbit.id )
         , ( "author", Encode.string snipbit.author )
+        , ( "createdAt", Util.dateEncoder snipbit.createdAt )
+        , ( "lastModified", Util.dateEncoder snipbit.lastModified )
         ]
 
 
@@ -124,6 +129,8 @@ snipbitDecoder =
         |> required "conclusion" Decode.string
         |> required "highlightedComments" (Decode.array highlightedCommentDecoder)
         |> required "author" Decode.string
+        |> required "createdAt" Util.dateDecoder
+        |> required "lastModified" Util.dateDecoder
 
 
 {-| Identical to the encoder, but used to follow naming conventions.
@@ -350,3 +357,26 @@ previousFrameRange createData route =
 
         _ ->
             Nothing
+
+
+{-| The default create snipbit page data.
+-}
+defaultSnipbitCreateData : SnipbitCreateData
+defaultSnipbitCreateData =
+    { language = Nothing
+    , languageQueryACState = AC.empty
+    , languageListHowManyToShow = (List.length Editor.humanReadableListOfLanguages)
+    , languageQuery = ""
+    , name = ""
+    , description = ""
+    , tags = []
+    , tagInput = ""
+    , code = ""
+    , highlightedComments =
+        Array.fromList
+            [ { comment = Nothing, range = Nothing }
+            ]
+    , introduction = ""
+    , conclusion = ""
+    , previewMarkdown = False
+    }

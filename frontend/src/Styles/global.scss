@@ -68,6 +68,19 @@ textarea:focus {
     position: relative;
 }
 
+.inline-block {
+    display: inline-block;
+}
+
+.flex-box {
+    display: flex;
+    flex-wrap: wrap;
+
+    &.space-between {
+        justify-content: space-between;
+    }
+}
+
 .gray-button {
     color: white;
     background-color: lightgrey;

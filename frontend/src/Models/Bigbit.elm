@@ -4,6 +4,7 @@ import Array
 import DefaultServices.ArrayExtra as ArrayExtra
 import Char
 import DefaultServices.Util as Util exposing (maybeMapWithDefault)
+import Date
 import Dict
 import Elements.Editor as Editor
 import Json.Encode as Encode
@@ -28,6 +29,8 @@ type alias Bigbit =
     , highlightedComments : Array.Array BigbitHighlightedCommentForPublication
     , author : String
     , id : String
+    , createdAt : Date.Date
+    , lastModified : Date.Date
     }
 
 
@@ -67,6 +70,8 @@ bigbitEncoder bigbit =
               )
             , ( "author", Encode.string bigbit.author )
             , ( "id", Encode.string bigbit.id )
+            , ( "createdAt", Util.dateEncoder bigbit.createdAt )
+            , ( "lastModified", Util.dateEncoder bigbit.lastModified )
             ]
 
 
@@ -97,6 +102,8 @@ bigbitDecoder =
             |> required "highlightedComments" (Decode.array bigbitHighlightedCommentForPublicationCacheDecoder)
             |> required "author" Decode.string
             |> required "id" Decode.string
+            |> required "createdAt" Util.dateDecoder
+            |> required "lastModified" Util.dateDecoder
 
 
 {-| Basic union to keep track of the current state of the action buttons in
@@ -767,17 +774,17 @@ current comment frame.
 viewPageCurrentActiveFile : Route.Route -> Bigbit -> Maybe FS.Path
 viewPageCurrentActiveFile route bigbit =
     case route of
-        Route.HomeComponentViewBigbitIntroduction _ maybePath ->
+        Route.HomeComponentViewBigbitIntroduction _ _ maybePath ->
             maybePath
 
-        Route.HomeComponentViewBigbitFrame _ frameNumber maybePath ->
+        Route.HomeComponentViewBigbitFrame _ _ frameNumber maybePath ->
             if Util.isNotNothing maybePath then
                 maybePath
             else
                 Array.get (frameNumber - 1) bigbit.highlightedComments
                     |> Maybe.map .file
 
-        Route.HomeComponentViewBigbitConclusion _ maybePath ->
+        Route.HomeComponentViewBigbitConclusion _ _ maybePath ->
             maybePath
 
         _ ->
@@ -831,4 +838,32 @@ updateCreateDataHCAtIndex bigbit index hcUpdater =
     { bigbit
         | highlightedComments =
             ArrayExtra.update index hcUpdater bigbit.highlightedComments
+    }
+
+
+{-| The default create bigbit page data.
+-}
+defaultBigbitCreateData : BigbitCreateData
+defaultBigbitCreateData =
+    { name = ""
+    , description = ""
+    , tags = []
+    , tagInput = ""
+    , introduction = ""
+    , conclusion = ""
+    , fs =
+        (FS.emptyFS
+            { activeFile = Nothing
+            , openFS = False
+            , actionButtonState = Nothing
+            , actionButtonInput = ""
+            , actionButtonSubmitConfirmed = False
+            }
+            { isExpanded = True }
+        )
+    , highlightedComments =
+        Array.fromList
+            [ emptyBigbitHighlightCommentForCreate ]
+    , previewMarkdown =
+        False
     }

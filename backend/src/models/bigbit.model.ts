@@ -1,10 +1,11 @@
 /// Module for encapsulating helper functions for the Bigbit model.
 
 import * as kleen from "kleen";
+import moment from 'moment';
 
-import { malformedFieldError, asyncIdentity } from '../util';
-import { collection } from '../db';
-import { MongoID, ErrorCode, Language } from '../types';
+import { malformedFieldError, asyncIdentity, isNullOrUndefined } from '../util';
+import { collection, renameIDField, toMongoObjectID } from '../db';
+import { MongoID, MongoObjectID, ErrorCode, Language } from '../types';
 import { Range } from './range.model';
 import { FileStructure, metaMap, swapPeriodsWithStars } from './file-structure.model';
 import * as KS from './kleen-schemas';
@@ -26,6 +27,8 @@ export interface Bigbit {
   _id?: MongoID;
   fs : FileStructure<{},{},{ language : MongoID }>; // FileStructure from the frontend has language in string form, backend converts it to the ID.
   author?: MongoID;
+  createdAt?: Date;
+  lastModified?: Date;
 };
 
 /**
@@ -38,12 +41,29 @@ export interface BigbitHighlightedComment {
 };
 
 /**
+ * The search options for getting bigbits from the db.
+ */
+export interface BigbitSearchFilter {
+  forUser?: MongoID;
+};
+
+/**
+ * The internal search filter for querying the db.
+ */
+interface InternalBigbitSearchFilter {
+  author?: MongoObjectID;
+};
+
+/**
  * Kleen schema for `BigbitHighlightedComment`.
  */
-const bigbitHighlightedCommentSchema: kleen.typeSchema = {
+const bigbitHighlightedCommentSchema: kleen.objectSchema = {
   objectProperties: {
     "file": KS.nonEmptyStringSchema(
-      { errorCode: ErrorCode.bigbitEmptyFilePath, message: "All bigbit highlighted comments cannot have an empty string for a file" },
+      {
+        errorCode: ErrorCode.bigbitEmptyFilePath,
+        message: "All bigbit highlighted comments cannot have an empty string for a file"
+      },
       malformedFieldError("file")
     ),
     "comment": KS.commentSchema(ErrorCode.bigbitEmptyComment),
@@ -55,7 +75,7 @@ const bigbitHighlightedCommentSchema: kleen.typeSchema = {
 /**
  * Kleen schema for a bigbit.
  */
-export const bigbitSchema: kleen.typeSchema = {
+const bigbitSchema: kleen.objectSchema = {
   objectProperties: {
     "name": KS.nameSchema(ErrorCode.bigbitEmptyName, ErrorCode.bigbitNameTooLong),
     "description": KS.descriptionSchema(ErrorCode.bigbitEmptyDescription),
@@ -64,7 +84,10 @@ export const bigbitSchema: kleen.typeSchema = {
     "conclusion": KS.conclusionSchema(ErrorCode.bigbitEmptyConclusion),
     "highlightedComments": KS.nonEmptyArraySchema(
       bigbitHighlightedCommentSchema,
-      { errorCode: ErrorCode.bigbitNoHighlightedComments, message: "You must have at least one highlighted comment."},
+      {
+        errorCode: ErrorCode.bigbitNoHighlightedComments,
+        message: "You must have at least one highlighted comment."
+      },
       malformedFieldError("bigbit.highlightedComments")
     ),
     "fs": KS.fileStructureSchema(
@@ -92,7 +115,7 @@ export const bigbitSchema: kleen.typeSchema = {
  *
  * NOTE: This function does not attach an author.
  */
-export const validifyAndUpdateBigbit = (bigbit: Bigbit) => {
+const validifyAndUpdateBigbit = (bigbit: Bigbit): Promise<Bigbit> => {
 
   return new Promise((resolve, reject) => {
 
@@ -130,4 +153,133 @@ export const validifyAndUpdateBigbit = (bigbit: Bigbit) => {
     })
     .catch(reject);
   });
+};
+
+/**
+ * Prepare a bigbit for the frontend, this includes:
+ *  - Renaming _id to id
+ *  - Switching languageIDs with language names.
+ *  - Reversing the folder/file-names to once again have '.'
+ *
+ * @WARNING Mutates `bigbit`.
+ */
+const prepareBigbitForResponse = (bigbit: Bigbit): Promise<Bigbit> => {
+  renameIDField(bigbit);
+
+  return collection("languages")
+  .then((languageCollection) => {
+    // Swap all languageIDs with encoded language names.
+    return metaMap(
+      asyncIdentity,
+      asyncIdentity,
+      (fileMetadata => {
+        return new Promise<{language: string}>((resolve, reject) => {
+          languageCollection.findOne({ _id: toMongoObjectID(fileMetadata.language) })
+          .then((language: Language) => {
+            if(!language) {
+              reject({
+                errorCode: ErrorCode.internalError,
+                message: `Language ID ${fileMetadata.language} does not point to a language`
+              });
+              return;
+            }
+
+            resolve({ language: language.encodedName });
+            return;
+          });
+        });
+      }),
+      bigbit.fs
+    );
+  })
+  .then((updatedFS) => {
+    // Switch to updated fs, which includes swapping '*' with '.'
+    bigbit.fs = swapPeriodsWithStars(false, updatedFS);
+    return bigbit;
+  });
+};
+
+/**
+ * All the db helpers for a bigbit.
+ */
+export const bigbitDBActions = {
+
+  /**
+   * Adds a new bigbit to the database for a user. Handles all the logic of
+   * changing the languages to the IDs and renaming files/folders to avoid
+   * having a "." in them.
+   */
+  addNewBigbit: (userID: MongoID, bigbit: Bigbit): Promise<{ targetID: MongoObjectID }> => {
+    return validifyAndUpdateBigbit(bigbit)
+    .then((updatedBigbit: Bigbit) => {
+      const dateNow = moment.utc().toDate();
+
+      updatedBigbit.author = userID;
+      updatedBigbit.createdAt = dateNow;
+      updatedBigbit.lastModified = dateNow;
+
+      return collection("bigbits")
+      .then((bigbitCollection) => {
+        return bigbitCollection.insertOne(updatedBigbit);
+      })
+      .then((insertBigbitResult) => {
+        return { targetID: insertBigbitResult.insertedId };
+      });
+    });
+  },
+
+  /**
+   * Gets bigbits, customizable through the search filter.
+   */
+  getBigbits: (filter: BigbitSearchFilter): Promise<Bigbit[]> => {
+    return collection("bigbits")
+    .then((bigbitCollection) => {
+      const mongoSearchFilter: InternalBigbitSearchFilter = {};
+
+      if(!isNullOrUndefined(filter.forUser)) {
+        mongoSearchFilter.author = toMongoObjectID(filter.forUser);
+      }
+
+      return bigbitCollection.find(mongoSearchFilter).toArray();
+    })
+    .then((bigbits) => {
+      return Promise.all(bigbits.map(prepareBigbitForResponse));
+    });
+  },
+
+  /**
+   * Gets a bigbit from the database, handles all the transformations to get the
+   * bigbit in the correct format for the frontend (reverse transformations of
+   * `addNewBigbit`).
+   */
+  getBigbit: (bigbitID: MongoID): Promise<Bigbit> => {
+    return collection("bigbits")
+    .then<Bigbit>((bigbitCollection) => {
+      return bigbitCollection.findOne({ _id: toMongoObjectID(bigbitID) });
+    })
+    .then((bigbit) => {
+
+      if(!bigbit) {
+        return Promise.reject({
+          errorCode: ErrorCode.bigbitDoesNotExist,
+          message: `ID ${bigbitID} does not point to a bigbit.`
+        });
+      }
+
+      return prepareBigbitForResponse(bigbit);
+    });
+  },
+
+  /**
+   * Checks if a bigbit exists.
+   */
+  hasBigbit: (bigbitID: MongoID): Promise<boolean> => {
+    return collection("bigbits")
+    .then((bigbitCollection) => {
+      return bigbitCollection.count({ _id: toMongoObjectID(bigbitID) });
+    })
+    .then((numberOfBigbitsWithID) => {
+      return numberOfBigbitsWithID > 0;
+    });
+  }
 }

@@ -1,15 +1,19 @@
 module Components.Home.Messages exposing (Msg(..))
 
 import Autocomplete as AC
-import Components.Home.Model exposing (TidbitType)
+import Components.Home.Model
 import Models.ApiError as ApiError
 import Models.BasicResponse as BasicResponse
-import Models.CreateTidbitResponse exposing (CreateTidbitResponse)
+import Models.Completed as Completed
+import Models.IDResponse exposing (IDResponse)
 import Models.Range as Range
 import Models.Route as Route
 import Models.Bigbit as Bigbit
 import Models.Snipbit as Snipbit
 import Models.User as User
+import Models.Story as Story
+import Models.Tidbit as Tidbit
+import Models.TidbitType as TidbitType
 import Elements.FileStructure as FS
 import Elements.Editor as Editor
 
@@ -23,7 +27,7 @@ type Msg
     | LogOut
     | OnLogOutFailure ApiError.ApiError
     | OnLogOutSuccess BasicResponse.BasicResponse
-    | ShowInfoFor (Maybe TidbitType)
+    | ShowInfoFor (Maybe TidbitType.TidbitType)
     | SnipbitGoToCodeTab
     | SnipbitUpdateLanguageQuery String
     | SnipbitUpdateACState AC.Msg
@@ -45,7 +49,7 @@ type Msg
     | SnipbitUpdateCode { newCode : String, deltaRange : Range.Range, action : String }
     | SnipbitPublish Snipbit.SnipbitForPublication
     | SnipbitJumpToLineFromPreviousFrame
-    | OnSnipbitPublishSuccess CreateTidbitResponse
+    | OnSnipbitPublishSuccess IDResponse
     | OnSnipbitPublishFailure ApiError.ApiError
     | OnGetSnipbitFailure ApiError.ApiError
     | OnGetSnipbitSuccess Snipbit.Snipbit
@@ -55,6 +59,16 @@ type Msg
     | ViewSnipbitNextRelevantHC
     | ViewSnipbitPreviousRelevantHC
     | ViewSnipbitJumpToFrame Route.Route
+    | ViewSnipbitGetCompletedSuccess Completed.IsCompleted
+    | ViewSnipbitGetCompletedFailure ApiError.ApiError
+    | ViewSnipbitMarkAsComplete Completed.Completed
+    | ViewSnipbitMarkAsCompleteSuccess Completed.IsCompleted
+    | ViewSnipbitMarkAsCompleteFailure ApiError.ApiError
+    | ViewSnipbitMarkAsIncomplete Completed.Completed
+    | ViewSnipbitMarkAsIncompleteSuccess Completed.IsCompleted
+    | ViewSnipbitMarkAsIncompleteFailure ApiError.ApiError
+    | ViewSnipbitGetExpandedStoryFailure ApiError.ApiError
+    | ViewSnipbitGetExpandedStorySuccess Story.ExpandedStory
     | BigbitGoToCodeTab
     | BigbitReset
     | BigbitUpdateName String
@@ -80,7 +94,7 @@ type Msg
     | BigbitPublish Bigbit.BigbitForPublication
     | BigbitJumpToLineFromPreviousFrame FS.Path
     | OnBigbitPublishFailure ApiError.ApiError
-    | OnBigbitPublishSuccess CreateTidbitResponse
+    | OnBigbitPublishSuccess IDResponse
     | OnGetBigbitFailure ApiError.ApiError
     | OnGetBigbitSuccess Bigbit.Bigbit
     | ViewBigbitToggleFS
@@ -92,6 +106,18 @@ type Msg
     | ViewBigbitNextRelevantHC
     | ViewBigbitPreviousRelevantHC
     | ViewBigbitJumpToFrame Route.Route
+    | ViewBigbitGetCompletedSuccess Completed.IsCompleted
+    | ViewBigbitGetCompletedFailure ApiError.ApiError
+    | ViewBigbitMarkAsComplete Completed.Completed
+    | ViewBigbitMarkAsCompleteSuccess Completed.IsCompleted
+    | ViewBigbitMarkAsCompleteFailure ApiError.ApiError
+    | ViewBigbitMarkAsIncomplete Completed.Completed
+    | ViewBigbitMarkAsIncompleteSuccess Completed.IsCompleted
+    | ViewBigbitMarkAsIncompleteFailure ApiError.ApiError
+    | ViewBigbitGetExpandedStoryFailure ApiError.ApiError
+    | ViewBigbitGetExpandedStorySuccess Story.ExpandedStory
+    | ViewStoryGetExpandedStoryFailure ApiError.ApiError
+    | ViewStoryGetExpandedStorySuccess Story.ExpandedStory
     | ProfileCancelEditName
     | ProfileUpdateName String String
     | ProfileSaveEditName
@@ -102,3 +128,33 @@ type Msg
     | ProfileSaveEditBio
     | ProfileSaveBioFailure ApiError.ApiError
     | ProfileSaveBioSuccess User.User
+    | GetAccountStoriesFailure ApiError.ApiError
+    | GetAccountStoriesSuccess (List Story.Story)
+    | NewStoryUpdateName String
+    | NewStoryEditingUpdateName String
+    | NewStoryUpdateDescription String
+    | NewStoryEditingUpdateDescription String
+    | NewStoryUpdateTagInput String
+    | NewStoryEditingUpdateTagInput String
+    | NewStoryAddTag String
+    | NewStoryEditingAddTag String
+    | NewStoryRemoveTag String
+    | NewStoryEditingRemoveTag String
+    | NewStoryReset
+    | NewStoryPublish
+    | NewStoryPublishSuccess IDResponse
+    | NewStoryPublishFailure ApiError.ApiError
+    | NewStoryGetEditingStoryFailure ApiError.ApiError
+    | NewStoryGetEditingStorySuccess Story.Story
+    | NewStoryCancelEdits String
+    | NewStorySaveEdits String
+    | NewStorySaveEditsFailure ApiError.ApiError
+    | NewStorySaveEditsSuccess IDResponse
+    | CreateStoryGetStoryFailure ApiError.ApiError
+    | CreateStoryGetStorySuccess Bool Story.ExpandedStory
+    | CreateStoryGetTidbitsFailure ApiError.ApiError
+    | CreateStoryGetTidbitsSuccess (List Tidbit.Tidbit)
+    | CreateStoryAddTidbit Tidbit.Tidbit
+    | CreateStoryRemoveTidbit Tidbit.Tidbit
+    | CreateStoryPublishAddedTidbits String (List Tidbit.Tidbit)
+    | CreateStoryPublishAddedTidbitsFailure ApiError.ApiError

@@ -1,8 +1,10 @@
 module DefaultServices.Util exposing (..)
 
+import Date
 import Dict
 import Dom
 import Html exposing (Html, Attribute)
+import Html.Keyed as Keyed
 import Html.Attributes exposing (hidden)
 import Html.Events exposing (Options, on, onWithOptions, keyCode, defaultOptions)
 import Json.Decode as Decode
@@ -222,3 +224,96 @@ maybeMapWithDefault : (a -> b) -> b -> Maybe a -> b
 maybeMapWithDefault func default maybeA =
     Maybe.map func maybeA
         |> Maybe.withDefault default
+
+
+{-| Date decoder.
+
+Will decode both dates in number-form and dates in ISO-string-form.
+-}
+dateDecoder : Decode.Decoder Date.Date
+dateDecoder =
+    let
+        decodeStringDate =
+            Decode.string
+                |> Decode.andThen
+                    (Date.fromString
+                        >> Result.map Decode.succeed
+                        >> Result.withDefault (Decode.fail "Error parsing date")
+                    )
+
+        decodeFloatDate =
+            Decode.float
+                |> Decode.map Date.fromTime
+    in
+        Decode.oneOf
+            [ decodeFloatDate, decodeStringDate ]
+
+
+{-| Encodes a date into number-form.
+
+NOTE: Compatible with `dateDecoder`.
+-}
+dateEncoder : Date.Date -> Encode.Value
+dateEncoder =
+    Encode.float << Date.toTime
+
+
+{-| Sorts a list by the date.
+-}
+sortByDate : (x -> Date.Date) -> List x -> List x
+sortByDate getDate =
+    List.sortBy (getDate >> Date.toTime)
+
+
+{-| Produces a keyed div.
+-}
+keyedDiv : List (Attribute msg) -> List ( String, Html msg ) -> Html msg
+keyedDiv =
+    Keyed.node "div"
+
+
+{-| Returns `Just` the element at the given index in the list,
+or `Nothing` if the list is not long enough.
+-}
+getAt : List a -> Int -> Maybe a
+getAt xs idx =
+    List.head <| List.drop idx xs
+
+
+{-| Get's the index of the first False in a list, otherwise returns nothing if
+the list does not contain a single False.
+-}
+indexOfFirstFalse : List Bool -> Maybe Int
+indexOfFirstFalse =
+    let
+        go index listOfBool =
+            case listOfBool of
+                [] ->
+                    Nothing
+
+                h :: xs ->
+                    if not h then
+                        Just index
+                    else
+                        go (index + 1) xs
+    in
+        go 0
+
+
+{-| When running multiple updates, it can be cleaner aesthetically to have it as
+one list as opposed to using pipes.
+-}
+multipleUpdates : List (a -> a) -> (a -> a)
+multipleUpdates =
+    List.foldl (>>) identity
+
+
+{-| For adding a string to a list of strings if it's not empty and it's also not
+already in the list.
+-}
+addUniqueNonEmptyString : String -> List String -> List String
+addUniqueNonEmptyString stringToAdd listOfStrings =
+    if String.isEmpty stringToAdd || List.member stringToAdd listOfStrings then
+        listOfStrings
+    else
+        stringToAdd :: listOfStrings

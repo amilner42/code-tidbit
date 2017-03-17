@@ -3,7 +3,7 @@ module Components.Home.View exposing (..)
 import Array
 import Autocomplete as AC
 import Components.Home.Messages exposing (Msg(..))
-import Components.Home.Model as Model exposing (Model, TidbitType(..), isViewBigbitRHCTabOpen, isViewBigbitFSTabOpen, isViewBigbitTutorialTabOpen, isViewBigbitFSOpen)
+import Components.Home.Model as Model exposing (Model)
 import Components.Home.Update exposing (filterLanguagesByQuery)
 import Components.Model exposing (Shared, kkUpdateWrapper)
 import DefaultServices.Util as Util exposing (maybeMapWithDefault)
@@ -17,10 +17,19 @@ import Models.Bigbit as Bigbit
 import Elements.FileStructure as FS
 import Elements.Markdown exposing (githubMarkdown)
 import Keyboard.Extra as KK
+import Models.Completed as Completed
 import Models.Range as Range
 import Models.Route as Route
 import Models.Snipbit as Snipbit
 import Models.ProfileData as ProfileData
+import Models.NewStoryData as NewStoryData
+import Models.StoryData as StoryData
+import Models.Tidbit as Tidbit
+import Models.Story as Story
+import Models.ViewSnipbitData as ViewSnipbitData
+import Models.ViewBigbitData as ViewBigbitData
+import Models.ViewerRelevantHC as ViewerRelevantHC
+import Models.TidbitType exposing (TidbitType(..))
 
 
 {-| A google-material-design check-icon.
@@ -77,30 +86,25 @@ markdownOr condition markdownText backUpHtml =
         backUpHtml
 
 
-{-| Builds a progress bar.
+{-| Builds a progress bar
 
-NOTE: Progress bar subtracts 1 from current frame, so to get 100% completion
-maybeCurrentFrame must be one bigger than maxFrame (eg, 11 / 10). This is done
-because we don't wanna count the current frame as complete.
+NOTE: If position is `Nothing`, it is assumed 0% is complete.
 -}
 progressBar : Maybe Int -> Int -> Bool -> Html Msg
-progressBar maybeCurrentFrame maxFrame isDisabled =
+progressBar maybePosition maxPosition isDisabled =
     let
         percentComplete =
-            case maybeCurrentFrame of
+            case maybePosition of
                 Nothing ->
                     0
 
                 Just currentFrame ->
-                    if (currentFrame - 1) == 0 then
-                        0
-                    else
-                        100 * (toFloat (currentFrame - 1)) / (toFloat maxFrame)
+                    100 * (toFloat currentFrame) / (toFloat maxPosition)
     in
         div
             [ classList
                 [ ( "progress-bar", True )
-                , ( "selected", Util.isNotNothing maybeCurrentFrame )
+                , ( "selected", Util.isNotNothing maybePosition )
                 , ( "disabled", isDisabled )
                 ]
             ]
@@ -136,20 +140,20 @@ relevantHCTextAboveFrameSpecifyingPosition ( current, total ) =
 intro/conclusion/frame or the markdown with a few extra buttons for a selected
 range.
 -}
-viewSnipbitCommentBox : Snipbit.Snipbit -> Maybe Model.ViewingSnipbitRelevantHC -> Route.Route -> Html Msg
+viewSnipbitCommentBox : Snipbit.Snipbit -> Maybe ViewSnipbitData.ViewingSnipbitRelevantHC -> Route.Route -> Html Msg
 viewSnipbitCommentBox snipbit relevantHC route =
     let
         -- To display if no relevant HC.
         htmlIfNoRelevantHC =
             githubMarkdown [] <|
                 case route of
-                    Route.HomeComponentViewSnipbitIntroduction _ ->
+                    Route.HomeComponentViewSnipbitIntroduction _ _ ->
                         snipbit.introduction
 
-                    Route.HomeComponentViewSnipbitConclusion _ ->
+                    Route.HomeComponentViewSnipbitConclusion _ _ ->
                         snipbit.conclusion
 
-                    Route.HomeComponentViewSnipbitFrame _ frameNumber ->
+                    Route.HomeComponentViewSnipbitFrame _ _ frameNumber ->
                         (Array.get
                             (frameNumber - 1)
                             snipbit.highlightedComments
@@ -172,7 +176,7 @@ viewSnipbitCommentBox snipbit relevantHC route =
                     Just index ->
                         div
                             [ class "view-relevant-hc" ]
-                            [ case Model.viewerRelevantHCurrentFramePair viewerRelevantHC of
+                            [ case ViewerRelevantHC.currentFramePair viewerRelevantHC of
                                 Nothing ->
                                     Util.hiddenDiv
 
@@ -181,7 +185,7 @@ viewSnipbitCommentBox snipbit relevantHC route =
                             , div
                                 [ classList
                                     [ ( "above-comment-block-button", True )
-                                    , ( "disabled", Model.viewerRelevantHCOnFirstFrame viewerRelevantHC )
+                                    , ( "disabled", ViewerRelevantHC.onFirstFrame viewerRelevantHC )
                                     ]
                                 , onClick ViewSnipbitPreviousRelevantHC
                                 ]
@@ -193,7 +197,9 @@ viewSnipbitCommentBox snipbit relevantHC route =
                                     (Array.get index relevantHC
                                         |> Maybe.map
                                             (ViewSnipbitJumpToFrame
-                                                << Route.HomeComponentViewSnipbitFrame snipbit.id
+                                                << Route.HomeComponentViewSnipbitFrame
+                                                    (Route.getFromStoryQueryParamOnViewSnipbitRoute route)
+                                                    snipbit.id
                                                 << ((+) 1)
                                                 << Tuple.first
                                             )
@@ -204,7 +210,7 @@ viewSnipbitCommentBox snipbit relevantHC route =
                             , div
                                 [ classList
                                     [ ( "above-comment-block-button next-button", True )
-                                    , ( "disabled", Model.viewerRelevantHCOnLastFrame viewerRelevantHC )
+                                    , ( "disabled", ViewerRelevantHC.onLastFrame viewerRelevantHC )
                                     ]
                                 , onClick ViewSnipbitNextRelevantHC
                                 ]
@@ -223,23 +229,58 @@ viewSnipbitCommentBox snipbit relevantHC route =
 viewSnipbitView : Model -> Shared -> Html Msg
 viewSnipbitView model shared =
     div
-        [ class "view-snipbit" ]
+        [ class "view-snipbit-page" ]
         [ div
             [ class "sub-bar" ]
-            [ button
-                [ class "sub-bar-button"
-                , onClick <| GoTo Route.HomeComponentBrowse
-                ]
-                [ text "Back" ]
+            [ case ( shared.viewingStory, model.viewSnipbitData.viewingSnipbit ) of
+                ( Just story, Just snipbit ) ->
+                    case Story.getPreviousTidbitRoute snipbit.id story.id story.tidbits of
+                        Just previousTidbitRoute ->
+                            button
+                                [ class "sub-bar-button traverse-tidbit-button"
+                                , onClick <| GoTo previousTidbitRoute
+                                ]
+                                [ text "Previous Tidbit" ]
+
+                        _ ->
+                            Util.hiddenDiv
+
+                _ ->
+                    Util.hiddenDiv
+            , case shared.viewingStory of
+                Just story ->
+                    button
+                        [ class "sub-bar-button back-to-story-button"
+                        , onClick <| GoTo <| Route.HomeComponentViewStory story.id
+                        ]
+                        [ text "View Story" ]
+
+                _ ->
+                    Util.hiddenDiv
+            , case ( shared.viewingStory, model.viewSnipbitData.viewingSnipbit ) of
+                ( Just story, Just snipbit ) ->
+                    case Story.getNextTidbitRoute snipbit.id story.id story.tidbits of
+                        Just nextTidbitRoute ->
+                            button
+                                [ class "sub-bar-button traverse-tidbit-button"
+                                , onClick <| GoTo nextTidbitRoute
+                                ]
+                                [ text "Next Tidbit" ]
+
+                        _ ->
+                            Util.hiddenDiv
+
+                _ ->
+                    Util.hiddenDiv
             , button
                 [ classList
                     [ ( "sub-bar-button view-relevant-ranges", True )
                     , ( "hidden"
                       , not <|
                             maybeMapWithDefault
-                                Model.viewerRelevantHCHasFramesButNotBrowsing
+                                ViewerRelevantHC.hasFramesButNotBrowsing
                                 False
-                                model.viewingSnipbitRelevantHC
+                                model.viewSnipbitData.viewingSnipbitRelevantHC
                       )
                     ]
                 , onClick <| ViewSnipbitBrowseRelevantHC
@@ -251,18 +292,35 @@ viewSnipbitView model shared =
                     , ( "hidden"
                       , not <|
                             maybeMapWithDefault
-                                Model.viewerRelevantHCBrowsingFrames
+                                ViewerRelevantHC.browsingFrames
                                 False
-                                model.viewingSnipbitRelevantHC
+                                model.viewSnipbitData.viewingSnipbitRelevantHC
                       )
                     ]
                 , onClick <| ViewSnipbitCancelBrowseRelevantHC
                 ]
                 [ text "Close Related Frames" ]
+            , case ( shared.user, model.viewSnipbitData.viewingSnipbitIsCompleted ) of
+                ( Just user, Just ({ complete } as isCompleted) ) ->
+                    if complete then
+                        button
+                            [ class "sub-bar-button complete-button"
+                            , onClick <| ViewSnipbitMarkAsIncomplete <| Completed.completedFromIsCompleted isCompleted user.id
+                            ]
+                            [ text "Mark Snipbit as Incomplete" ]
+                    else
+                        button
+                            [ class "sub-bar-button complete-button"
+                            , onClick <| ViewSnipbitMarkAsComplete <| Completed.completedFromIsCompleted isCompleted user.id
+                            ]
+                            [ text "Mark Snipbit as Complete" ]
+
+                _ ->
+                    Util.hiddenDiv
             ]
-        , case model.viewingSnipbit of
+        , case model.viewSnipbitData.viewingSnipbit of
             Nothing ->
-                text "LOADING"
+                Util.hiddenDiv
 
             Just snipbit ->
                 div
@@ -274,25 +332,25 @@ viewSnipbitView model shared =
                                 [ ( "material-icons action-button", True )
                                 , ( "disabled-icon"
                                   , (case shared.route of
-                                        Route.HomeComponentViewSnipbitIntroduction _ ->
+                                        Route.HomeComponentViewSnipbitIntroduction _ _ ->
                                             True
 
                                         _ ->
                                             False
                                     )
-                                        || (Model.isViewSnipbitRHCTabOpen model)
+                                        || (ViewSnipbitData.isViewSnipbitRHCTabOpen model.viewSnipbitData)
                                   )
                                 ]
                             , onClick <|
-                                if (Model.isViewSnipbitRHCTabOpen model) then
+                                if ViewSnipbitData.isViewSnipbitRHCTabOpen model.viewSnipbitData then
                                     NoOp
                                 else
                                     case shared.route of
-                                        Route.HomeComponentViewSnipbitConclusion mongoID ->
-                                            ViewSnipbitJumpToFrame <| Route.HomeComponentViewSnipbitFrame mongoID (Array.length snipbit.highlightedComments)
+                                        Route.HomeComponentViewSnipbitConclusion fromStoryID mongoID ->
+                                            ViewSnipbitJumpToFrame <| Route.HomeComponentViewSnipbitFrame fromStoryID mongoID (Array.length snipbit.highlightedComments)
 
-                                        Route.HomeComponentViewSnipbitFrame mongoID frameNumber ->
-                                            ViewSnipbitJumpToFrame <| Route.HomeComponentViewSnipbitFrame mongoID (frameNumber - 1)
+                                        Route.HomeComponentViewSnipbitFrame fromStoryID mongoID frameNumber ->
+                                            ViewSnipbitJumpToFrame <| Route.HomeComponentViewSnipbitFrame fromStoryID mongoID (frameNumber - 1)
 
                                         _ ->
                                             NoOp
@@ -300,54 +358,60 @@ viewSnipbitView model shared =
                             [ text "arrow_back" ]
                         , div
                             [ onClick <|
-                                if (Model.isViewSnipbitRHCTabOpen model) then
+                                if ViewSnipbitData.isViewSnipbitRHCTabOpen model.viewSnipbitData then
                                     NoOp
                                 else
-                                    GoTo <| Route.HomeComponentViewSnipbitIntroduction snipbit.id
+                                    GoTo <|
+                                        Route.HomeComponentViewSnipbitIntroduction
+                                            (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
+                                            snipbit.id
                             , classList
                                 [ ( "viewer-navbar-item", True )
                                 , ( "selected"
                                   , case shared.route of
-                                        Route.HomeComponentViewSnipbitIntroduction _ ->
+                                        Route.HomeComponentViewSnipbitIntroduction _ _ ->
                                             True
 
                                         _ ->
                                             False
                                   )
-                                , ( "disabled", Model.isViewSnipbitRHCTabOpen model )
+                                , ( "disabled", ViewSnipbitData.isViewSnipbitRHCTabOpen model.viewSnipbitData )
                                 ]
                             ]
                             [ text "Introduction" ]
                         , progressBar
                             (case shared.route of
-                                Route.HomeComponentViewSnipbitFrame _ frameNumber ->
-                                    Just frameNumber
+                                Route.HomeComponentViewSnipbitFrame _ _ frameNumber ->
+                                    Just (frameNumber - 1)
 
-                                Route.HomeComponentViewSnipbitConclusion _ ->
-                                    Just <| Array.length snipbit.highlightedComments + 1
+                                Route.HomeComponentViewSnipbitConclusion _ _ ->
+                                    Just <| Array.length snipbit.highlightedComments
 
                                 _ ->
                                     Nothing
                             )
                             (Array.length snipbit.highlightedComments)
-                            (Model.isViewSnipbitRHCTabOpen model)
+                            (ViewSnipbitData.isViewSnipbitRHCTabOpen model.viewSnipbitData)
                         , div
                             [ onClick <|
-                                if (Model.isViewSnipbitRHCTabOpen model) then
+                                if ViewSnipbitData.isViewSnipbitRHCTabOpen model.viewSnipbitData then
                                     NoOp
                                 else
-                                    GoTo <| Route.HomeComponentViewSnipbitConclusion snipbit.id
+                                    GoTo <|
+                                        Route.HomeComponentViewSnipbitConclusion
+                                            (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
+                                            snipbit.id
                             , classList
                                 [ ( "viewer-navbar-item", True )
                                 , ( "selected"
                                   , case shared.route of
-                                        Route.HomeComponentViewSnipbitConclusion _ ->
+                                        Route.HomeComponentViewSnipbitConclusion _ _ ->
                                             True
 
                                         _ ->
                                             False
                                   )
-                                , ( "disabled", Model.isViewSnipbitRHCTabOpen model )
+                                , ( "disabled", ViewSnipbitData.isViewSnipbitRHCTabOpen model.viewSnipbitData )
                                 ]
                             ]
                             [ text "Conclusion" ]
@@ -356,25 +420,25 @@ viewSnipbitView model shared =
                                 [ ( "material-icons action-button", True )
                                 , ( "disabled-icon"
                                   , (case shared.route of
-                                        Route.HomeComponentViewSnipbitConclusion _ ->
+                                        Route.HomeComponentViewSnipbitConclusion _ _ ->
                                             True
 
                                         _ ->
                                             False
                                     )
-                                        || (Model.isViewSnipbitRHCTabOpen model)
+                                        || (ViewSnipbitData.isViewSnipbitRHCTabOpen model.viewSnipbitData)
                                   )
                                 ]
                             , onClick <|
-                                if (Model.isViewSnipbitRHCTabOpen model) then
+                                if (ViewSnipbitData.isViewSnipbitRHCTabOpen model.viewSnipbitData) then
                                     NoOp
                                 else
                                     case shared.route of
-                                        Route.HomeComponentViewSnipbitIntroduction mongoID ->
-                                            ViewSnipbitJumpToFrame <| Route.HomeComponentViewSnipbitFrame mongoID 1
+                                        Route.HomeComponentViewSnipbitIntroduction fromStoryID mongoID ->
+                                            ViewSnipbitJumpToFrame <| Route.HomeComponentViewSnipbitFrame fromStoryID mongoID 1
 
-                                        Route.HomeComponentViewSnipbitFrame mongoID frameNumber ->
-                                            ViewSnipbitJumpToFrame <| Route.HomeComponentViewSnipbitFrame mongoID (frameNumber + 1)
+                                        Route.HomeComponentViewSnipbitFrame fromStoryID mongoID frameNumber ->
+                                            ViewSnipbitJumpToFrame <| Route.HomeComponentViewSnipbitFrame fromStoryID mongoID (frameNumber + 1)
 
                                         _ ->
                                             NoOp
@@ -386,7 +450,7 @@ viewSnipbitView model shared =
                         [ class "comment-block" ]
                         [ viewSnipbitCommentBox
                             snipbit
-                            model.viewingSnipbitRelevantHC
+                            model.viewSnipbitData.viewingSnipbitRelevantHC
                             shared.route
                         ]
                     ]
@@ -397,17 +461,17 @@ viewSnipbitView model shared =
 intro/conclusion/frame, the FS, or the markdown with a few extra buttons for a
 selected range.
 -}
-viewBigbitCommentBox : Bigbit.Bigbit -> Maybe Model.ViewingBigbitRelevantHC -> Route.Route -> Html Msg
+viewBigbitCommentBox : Bigbit.Bigbit -> Maybe ViewBigbitData.ViewingBigbitRelevantHC -> Route.Route -> Html Msg
 viewBigbitCommentBox bigbit maybeRHC route =
     let
         rhcTabOpen =
-            isViewBigbitRHCTabOpen maybeRHC
+            ViewBigbitData.isViewBigbitRHCTabOpen maybeRHC
 
         fsTabOpen =
-            isViewBigbitFSTabOpen (Just bigbit) maybeRHC
+            ViewBigbitData.isViewBigbitFSTabOpen (Just bigbit) maybeRHC
 
         tutorialOpen =
-            isViewBigbitTutorialTabOpen (Just bigbit) maybeRHC
+            ViewBigbitData.isViewBigbitTutorialTabOpen (Just bigbit) maybeRHC
     in
         div
             [ class "comment-block" ]
@@ -423,13 +487,13 @@ viewBigbitCommentBox bigbit maybeRHC route =
                 ]
             , githubMarkdown [ hidden <| not <| tutorialOpen ] <|
                 case route of
-                    Route.HomeComponentViewBigbitIntroduction _ _ ->
+                    Route.HomeComponentViewBigbitIntroduction _ _ _ ->
                         bigbit.introduction
 
-                    Route.HomeComponentViewBigbitConclusion _ _ ->
+                    Route.HomeComponentViewBigbitConclusion _ _ _ ->
                         bigbit.conclusion
 
-                    Route.HomeComponentViewBigbitFrame _ frameNumber _ ->
+                    Route.HomeComponentViewBigbitFrame _ _ frameNumber _ ->
                         (Array.get
                             (frameNumber - 1)
                             bigbit.highlightedComments
@@ -469,7 +533,7 @@ viewBigbitCommentBox bigbit maybeRHC route =
                                 [ Util.hiddenDiv ]
 
                             Just index ->
-                                [ case Model.viewerRelevantHCurrentFramePair rhc of
+                                [ case ViewerRelevantHC.currentFramePair rhc of
                                     Nothing ->
                                         Util.hiddenDiv
 
@@ -483,7 +547,7 @@ viewBigbitCommentBox bigbit maybeRHC route =
                                 , div
                                     [ classList
                                         [ ( "above-comment-block-button", True )
-                                        , ( "disabled", Model.viewerRelevantHCOnFirstFrame rhc )
+                                        , ( "disabled", ViewerRelevantHC.onFirstFrame rhc )
                                         ]
                                     , onClick ViewBigbitPreviousRelevantHC
                                     ]
@@ -497,6 +561,7 @@ viewBigbitCommentBox bigbit maybeRHC route =
                                                 (ViewBigbitJumpToFrame
                                                     << (\frameNumber ->
                                                             Route.HomeComponentViewBigbitFrame
+                                                                (Route.getFromStoryQueryParamOnViewBigbitRoute route)
                                                                 bigbit.id
                                                                 frameNumber
                                                                 Nothing
@@ -511,7 +576,7 @@ viewBigbitCommentBox bigbit maybeRHC route =
                                 , div
                                     [ classList
                                         [ ( "above-comment-block-button next-button", True )
-                                        , ( "disabled", Model.viewerRelevantHCOnLastFrame rhc )
+                                        , ( "disabled", ViewerRelevantHC.onLastFrame rhc )
                                         ]
                                     , onClick ViewBigbitNextRelevantHC
                                     ]
@@ -528,29 +593,67 @@ viewBigbitView model shared =
     let
         -- They can be on the FS or browsing RHC.
         notGoingThroughTutorial =
-            not <| isViewBigbitTutorialTabOpen model.viewingBigbit model.viewingBigbitRelevantHC
+            not <|
+                ViewBigbitData.isViewBigbitTutorialTabOpen
+                    model.viewBigbitData.viewingBigbit
+                    model.viewBigbitData.viewingBigbitRelevantHC
     in
         div
-            [ class "view-bigbit" ]
+            [ class "view-bigbit-page" ]
             [ div
                 [ class "sub-bar" ]
-                [ button
-                    [ class "sub-bar-button"
-                    , onClick <| GoTo Route.HomeComponentBrowse
-                    ]
-                    [ text "Back" ]
+                [ case ( shared.viewingStory, model.viewBigbitData.viewingBigbit ) of
+                    ( Just story, Just bigbit ) ->
+                        case Story.getPreviousTidbitRoute bigbit.id story.id story.tidbits of
+                            Just previousTidbitRoute ->
+                                button
+                                    [ class "sub-bar-button traverse-tidbit-button"
+                                    , onClick <| GoTo previousTidbitRoute
+                                    ]
+                                    [ text "Previous Tidbit" ]
+
+                            _ ->
+                                Util.hiddenDiv
+
+                    _ ->
+                        Util.hiddenDiv
+                , case shared.viewingStory of
+                    Just story ->
+                        button
+                            [ class "sub-bar-button back-to-story-button"
+                            , onClick <| GoTo <| Route.HomeComponentViewStory story.id
+                            ]
+                            [ text "View Story" ]
+
+                    _ ->
+                        Util.hiddenDiv
+                , case ( shared.viewingStory, model.viewBigbitData.viewingBigbit ) of
+                    ( Just story, Just bigbit ) ->
+                        case Story.getNextTidbitRoute bigbit.id story.id story.tidbits of
+                            Just nextTidbitRoute ->
+                                button
+                                    [ class "sub-bar-button traverse-tidbit-button"
+                                    , onClick <| GoTo nextTidbitRoute
+                                    ]
+                                    [ text "Next Tidbit" ]
+
+                            _ ->
+                                Util.hiddenDiv
+
+                    _ ->
+                        Util.hiddenDiv
                 , button
                     [ classList
                         [ ( "sub-bar-button explore-fs", True )
                         , ( "hidden"
-                          , (isViewBigbitRHCTabOpen model.viewingBigbitRelevantHC)
-                                && (not <| isViewBigbitFSOpen model.viewingBigbit)
+                          , (ViewBigbitData.isViewBigbitRHCTabOpen model.viewBigbitData.viewingBigbitRelevantHC)
+                                && (not <| ViewBigbitData.isViewBigbitFSOpen model.viewBigbitData.viewingBigbit)
                           )
                         ]
                     , onClick <| ViewBigbitToggleFS
                     ]
                     [ text <|
-                        if isViewBigbitFSOpen model.viewingBigbit then
+                        if ViewBigbitData.isViewBigbitFSOpen model.viewBigbitData.viewingBigbit then
                             "Resume Tutorial"
                         else
                             "Explore File Structure"
@@ -561,9 +664,9 @@ viewBigbitView model shared =
                         , ( "hidden"
                           , not <|
                                 maybeMapWithDefault
-                                    Model.viewerRelevantHCHasFramesButNotBrowsing
+                                    ViewerRelevantHC.hasFramesButNotBrowsing
                                     False
-                                    model.viewingBigbitRelevantHC
+                                    model.viewBigbitData.viewingBigbitRelevantHC
                           )
                         ]
                     , onClick ViewBigbitBrowseRelevantHC
@@ -575,20 +678,35 @@ viewBigbitView model shared =
                         , ( "hidden"
                           , not <|
                                 maybeMapWithDefault
-                                    Model.viewerRelevantHCBrowsingFrames
+                                    ViewerRelevantHC.browsingFrames
                                     False
-                                    model.viewingBigbitRelevantHC
+                                    model.viewBigbitData.viewingBigbitRelevantHC
                           )
                         ]
                     , onClick ViewBigbitCancelBrowseRelevantHC
                     ]
                     [ text "Close Related Frames" ]
+                , case ( shared.user, model.viewBigbitData.viewingBigbitIsCompleted ) of
+                    ( Just user, Just ({ complete } as isCompleted) ) ->
+                        if complete then
+                            button
+                                [ classList [ ( "sub-bar-button complete-button", True ) ]
+                                , onClick <| ViewBigbitMarkAsIncomplete <| Completed.completedFromIsCompleted isCompleted user.id
+                                ]
+                                [ text "Mark Bigbit as Incomplete" ]
+                        else
+                            button
+                                [ classList [ ( "sub-bar-button complete-button", True ) ]
+                                , onClick <| ViewBigbitMarkAsComplete <| Completed.completedFromIsCompleted isCompleted user.id
+                                ]
+                                [ text "Mark Bigbit as Complete" ]
+
+                    _ ->
+                        Util.hiddenDiv
                 ]
-            , case model.viewingBigbit of
+            , case model.viewBigbitData.viewingBigbit of
                 Nothing ->
-                    div
-                        []
-                        [ text "LOADING" ]
+                    Util.hiddenDiv
 
                 Just bigbit ->
                     div
@@ -603,7 +721,7 @@ viewBigbitView model shared =
                                             True
                                         else
                                             case shared.route of
-                                                Route.HomeComponentViewBigbitIntroduction _ _ ->
+                                                Route.HomeComponentViewBigbitIntroduction _ _ _ ->
                                                     True
 
                                                 _ ->
@@ -615,11 +733,11 @@ viewBigbitView model shared =
                                         NoOp
                                     else
                                         case shared.route of
-                                            Route.HomeComponentViewBigbitConclusion mongoID _ ->
-                                                ViewBigbitJumpToFrame <| Route.HomeComponentViewBigbitFrame mongoID (Array.length bigbit.highlightedComments) Nothing
+                                            Route.HomeComponentViewBigbitConclusion fromStoryID mongoID _ ->
+                                                ViewBigbitJumpToFrame <| Route.HomeComponentViewBigbitFrame fromStoryID mongoID (Array.length bigbit.highlightedComments) Nothing
 
-                                            Route.HomeComponentViewBigbitFrame mongoID frameNumber _ ->
-                                                ViewBigbitJumpToFrame <| Route.HomeComponentViewBigbitFrame mongoID (frameNumber - 1) Nothing
+                                            Route.HomeComponentViewBigbitFrame fromStoryID mongoID frameNumber _ ->
+                                                ViewBigbitJumpToFrame <| Route.HomeComponentViewBigbitFrame fromStoryID mongoID (frameNumber - 1) Nothing
 
                                             _ ->
                                                 NoOp
@@ -630,12 +748,16 @@ viewBigbitView model shared =
                                     if notGoingThroughTutorial then
                                         NoOp
                                     else
-                                        ViewBigbitJumpToFrame <| Route.HomeComponentViewBigbitIntroduction bigbit.id Nothing
+                                        ViewBigbitJumpToFrame <|
+                                            Route.HomeComponentViewBigbitIntroduction
+                                                (Route.getFromStoryQueryParamOnViewBigbitRoute shared.route)
+                                                bigbit.id
+                                                Nothing
                                 , classList
                                     [ ( "viewer-navbar-item", True )
                                     , ( "selected"
                                       , case shared.route of
-                                            Route.HomeComponentViewBigbitIntroduction _ _ ->
+                                            Route.HomeComponentViewBigbitIntroduction _ _ _ ->
                                                 True
 
                                             _ ->
@@ -647,11 +769,11 @@ viewBigbitView model shared =
                                 [ text "Introduction" ]
                             , progressBar
                                 (case shared.route of
-                                    Route.HomeComponentViewBigbitFrame _ frameNumber _ ->
-                                        Just frameNumber
+                                    Route.HomeComponentViewBigbitFrame _ _ frameNumber _ ->
+                                        Just (frameNumber - 1)
 
-                                    Route.HomeComponentViewBigbitConclusion _ _ ->
-                                        Just <| Array.length bigbit.highlightedComments + 1
+                                    Route.HomeComponentViewBigbitConclusion _ _ _ ->
+                                        Just <| Array.length bigbit.highlightedComments
 
                                     _ ->
                                         Nothing
@@ -663,12 +785,16 @@ viewBigbitView model shared =
                                     if notGoingThroughTutorial then
                                         NoOp
                                     else
-                                        ViewBigbitJumpToFrame <| Route.HomeComponentViewBigbitConclusion bigbit.id Nothing
+                                        ViewBigbitJumpToFrame <|
+                                            Route.HomeComponentViewBigbitConclusion
+                                                (Route.getFromStoryQueryParamOnViewBigbitRoute shared.route)
+                                                bigbit.id
+                                                Nothing
                                 , classList
                                     [ ( "viewer-navbar-item", True )
                                     , ( "selected"
                                       , case shared.route of
-                                            Route.HomeComponentViewBigbitConclusion _ _ ->
+                                            Route.HomeComponentViewBigbitConclusion _ _ _ ->
                                                 True
 
                                             _ ->
@@ -686,7 +812,7 @@ viewBigbitView model shared =
                                             True
                                         else
                                             case shared.route of
-                                                Route.HomeComponentViewBigbitConclusion _ _ ->
+                                                Route.HomeComponentViewBigbitConclusion _ _ _ ->
                                                     True
 
                                                 _ ->
@@ -698,11 +824,13 @@ viewBigbitView model shared =
                                         NoOp
                                     else
                                         case shared.route of
-                                            Route.HomeComponentViewBigbitIntroduction mongoID _ ->
-                                                ViewBigbitJumpToFrame <| Route.HomeComponentViewBigbitFrame mongoID 1 Nothing
+                                            Route.HomeComponentViewBigbitIntroduction fromStoryID mongoID _ ->
+                                                ViewBigbitJumpToFrame <|
+                                                    Route.HomeComponentViewBigbitFrame fromStoryID mongoID 1 Nothing
 
-                                            Route.HomeComponentViewBigbitFrame mongoID frameNumber _ ->
-                                                ViewBigbitJumpToFrame <| Route.HomeComponentViewBigbitFrame mongoID (frameNumber + 1) Nothing
+                                            Route.HomeComponentViewBigbitFrame fromStoryID mongoID frameNumber _ ->
+                                                ViewBigbitJumpToFrame <|
+                                                    Route.HomeComponentViewBigbitFrame fromStoryID mongoID (frameNumber + 1) Nothing
 
                                             _ ->
                                                 NoOp
@@ -710,9 +838,155 @@ viewBigbitView model shared =
                                 [ text "arrow_forward" ]
                             ]
                         , Editor.editor "view-bigbit-code-editor"
-                        , viewBigbitCommentBox bigbit model.viewingBigbitRelevantHC shared.route
+                        , viewBigbitCommentBox bigbit model.viewBigbitData.viewingBigbitRelevantHC shared.route
                         ]
             ]
+
+
+{-| The view for viewing a story.
+-}
+viewStoryView : Model -> Shared -> Html Msg
+viewStoryView model shared =
+    case shared.viewingStory of
+        Nothing ->
+            Util.hiddenDiv
+
+        Just story ->
+            let
+                completedListForLoggedInUser : Maybe (List Bool)
+                completedListForLoggedInUser =
+                    case ( shared.user, shared.viewingStory |> Maybe.andThen .userHasCompleted ) of
+                        ( Just user, Just hasCompletedList ) ->
+                            Just hasCompletedList
+
+                        _ ->
+                            Nothing
+
+                nextTidbitInStory : Maybe ( Int, Route.Route )
+                nextTidbitInStory =
+                    completedListForLoggedInUser
+                        |> Maybe.andThen Util.indexOfFirstFalse
+                        |> Maybe.andThen
+                            (\index ->
+                                Util.getAt story.tidbits index
+                                    |> Maybe.map (Tidbit.getTidbitRoute (Just story.id) >> (,) index)
+                            )
+            in
+                div
+                    [ class "view-story-page" ]
+                    [ case nextTidbitInStory of
+                        Just _ ->
+                            Util.keyedDiv
+                                [ class "sub-bar" ]
+                                [ ( "view-story-next-tidbit-button"
+                                  , case nextTidbitInStory of
+                                        Just ( index, routeForViewingTidbit ) ->
+                                            button
+                                                [ class "sub-bar-button next-tidbit-button"
+                                                , onClick <| GoTo routeForViewingTidbit
+                                                ]
+                                                [ text <| "Continue on Tidbit " ++ (toString <| index + 1) ]
+
+                                        _ ->
+                                            Util.hiddenDiv
+                                  )
+                                ]
+
+                        _ ->
+                            Util.hiddenDiv
+                    , case nextTidbitInStory of
+                        Just _ ->
+                            Util.keyedDiv
+                                [ class "sub-bar-ghost hidden" ]
+                                []
+
+                        _ ->
+                            Util.hiddenDiv
+                    , div
+                        [ class "view-story-page-content" ]
+                        [ div
+                            [ class "story-name" ]
+                            [ text story.name ]
+                        , case ( completedListForLoggedInUser, story.tidbits ) of
+                            ( Just hasCompletedList, h :: xs ) ->
+                                div
+                                    []
+                                    [ div
+                                        [ classList [ ( "progress-bar-title", True ) ]
+                                        ]
+                                        [ text "you've completed" ]
+                                    , div
+                                        [ classList [ ( "story-progress-bar-bar", True ) ]
+                                        ]
+                                        [ progressBar
+                                            (Just <|
+                                                List.foldl
+                                                    (\currentBool totalComplete ->
+                                                        if currentBool then
+                                                            totalComplete + 1
+                                                        else
+                                                            totalComplete
+                                                    )
+                                                    0
+                                                    hasCompletedList
+                                            )
+                                            (List.length hasCompletedList)
+                                            False
+                                        ]
+                                    ]
+
+                            _ ->
+                                Util.hiddenDiv
+                        , case story.tidbits of
+                            [] ->
+                                div
+                                    [ class "no-tidbit-text" ]
+                                    [ text "This story has no tidbits yet!" ]
+
+                            _ ->
+                                div
+                                    [ class "flex-box space-between" ]
+                                    ((List.indexedMap
+                                        (\index tidbit ->
+                                            div
+                                                [ classList
+                                                    [ ( "tidbit-box", True )
+                                                    , ( "completed"
+                                                      , case shared.viewingStory |> Maybe.andThen .userHasCompleted of
+                                                            Nothing ->
+                                                                False
+
+                                                            Just hasCompletedList ->
+                                                                Maybe.withDefault False (Util.getAt hasCompletedList index)
+                                                      )
+                                                    ]
+                                                ]
+                                                [ div
+                                                    [ class "tidbit-box-name" ]
+                                                    [ text <| Tidbit.getName tidbit ]
+                                                , div
+                                                    [ class "tidbit-box-page-number" ]
+                                                    [ text <| toString <| index + 1 ]
+                                                , button
+                                                    [ class "view-button"
+                                                    , onClick <| GoTo <| Tidbit.getTidbitRoute (Just story.id) tidbit
+                                                    ]
+                                                    [ text "VIEW"
+                                                    ]
+                                                , div
+                                                    [ class "completed-icon-div" ]
+                                                    [ i
+                                                        [ class "material-icons completed-icon" ]
+                                                        [ text "check" ]
+                                                    ]
+                                                ]
+                                        )
+                                        story.tidbits
+                                     )
+                                        ++ emptyFlexBoxesForAlignment
+                                    )
+                        ]
+                    ]
 
 
 {-| Displays the correct view based on the model.
@@ -723,23 +997,26 @@ displayViewForRoute model shared =
         Route.HomeComponentBrowse ->
             browseView model
 
-        Route.HomeComponentViewSnipbitIntroduction _ ->
+        Route.HomeComponentViewSnipbitIntroduction _ _ ->
             viewSnipbitView model shared
 
-        Route.HomeComponentViewSnipbitConclusion _ ->
+        Route.HomeComponentViewSnipbitConclusion _ _ ->
             viewSnipbitView model shared
 
-        Route.HomeComponentViewSnipbitFrame _ _ ->
+        Route.HomeComponentViewSnipbitFrame _ _ _ ->
             viewSnipbitView model shared
 
-        Route.HomeComponentViewBigbitIntroduction _ _ ->
+        Route.HomeComponentViewBigbitIntroduction _ _ _ ->
             viewBigbitView model shared
 
-        Route.HomeComponentViewBigbitFrame _ _ _ ->
+        Route.HomeComponentViewBigbitFrame _ _ _ _ ->
             viewBigbitView model shared
 
-        Route.HomeComponentViewBigbitConclusion _ _ ->
+        Route.HomeComponentViewBigbitConclusion _ _ _ ->
             viewBigbitView model shared
+
+        Route.HomeComponentViewStory _ ->
+            viewStoryView model shared
 
         Route.HomeComponentCreate ->
             createView model shared
@@ -786,6 +1063,18 @@ displayViewForRoute model shared =
         Route.HomeComponentProfile ->
             profileView model shared
 
+        Route.HomeComponentCreateNewStoryName _ ->
+            createNewStoryView model shared
+
+        Route.HomeComponentCreateNewStoryDescription _ ->
+            createNewStoryView model shared
+
+        Route.HomeComponentCreateNewStoryTags _ ->
+            createNewStoryView model shared
+
+        Route.HomeComponentCreateStory _ ->
+            createStoryView model shared
+
         -- This should never happen.
         _ ->
             browseView model
@@ -801,22 +1090,25 @@ navbar shared =
                 Route.HomeComponentBrowse ->
                     True
 
-                Route.HomeComponentViewSnipbitIntroduction _ ->
+                Route.HomeComponentViewSnipbitIntroduction _ _ ->
                     True
 
-                Route.HomeComponentViewSnipbitFrame _ _ ->
+                Route.HomeComponentViewSnipbitFrame _ _ _ ->
                     True
 
-                Route.HomeComponentViewSnipbitConclusion _ ->
+                Route.HomeComponentViewSnipbitConclusion _ _ ->
                     True
 
-                Route.HomeComponentViewBigbitIntroduction _ _ ->
+                Route.HomeComponentViewBigbitIntroduction _ _ _ ->
                     True
 
-                Route.HomeComponentViewBigbitFrame _ _ _ ->
+                Route.HomeComponentViewBigbitFrame _ _ _ _ ->
                     True
 
-                Route.HomeComponentViewBigbitConclusion _ _ ->
+                Route.HomeComponentViewBigbitConclusion _ _ _ ->
+                    True
+
+                Route.HomeComponentViewStory _ ->
                     True
 
                 _ ->
@@ -837,6 +1129,18 @@ navbar shared =
                     True
 
                 Route.HomeComponentCreateBigbitCodeConclusion _ ->
+                    True
+
+                Route.HomeComponentCreateStory _ ->
+                    True
+
+                Route.HomeComponentCreateNewStoryName _ ->
+                    True
+
+                Route.HomeComponentCreateNewStoryDescription _ ->
+                    True
+
+                Route.HomeComponentCreateNewStoryTags _ ->
                     True
 
                 _ ->
@@ -911,6 +1215,408 @@ navbar shared =
                 , onClick <| GoTo Route.WelcomeComponentLogin
                 ]
                 [ text "Login" ]
+            ]
+
+
+{-| The view for working on a story (adding tidbits).
+-}
+createStoryView : Model -> Shared -> Html Msg
+createStoryView model shared =
+    case ( model.storyData.currentStory, shared.userTidbits ) of
+        ( Just story, Just userTidbits ) ->
+            div
+                [ class "create-story-page" ]
+                [ Util.keyedDiv
+                    [ class "sub-bar" ]
+                    [ ( "create-story-page-sub-bar-view-story-button"
+                      , button
+                            [ class "sub-bar-button "
+                            , onClick <| GoTo <| Route.HomeComponentViewStory story.id
+                            ]
+                            [ text "View Story" ]
+                      )
+                    , ( "create-story-page-sub-bar-edit-info-button"
+                      , button
+                            [ class "sub-bar-button edit-information"
+                            , onClick <| GoTo <| Route.HomeComponentCreateNewStoryName <| Just story.id
+                            ]
+                            [ text "Edit Information" ]
+                      )
+                    , ( "create-story-page-sub-bar-add-tidbits-button"
+                      , case model.storyData.tidbitsToAdd of
+                            [] ->
+                                button
+                                    [ class "disabled-publish-button" ]
+                                    [ text "Add Tidbits" ]
+
+                            tidbits ->
+                                button
+                                    [ class "publish-button"
+                                    , onClick <| CreateStoryPublishAddedTidbits story.id tidbits
+                                    ]
+                                    [ text "Add Tidbits" ]
+                      )
+                    ]
+                , Util.keyedDiv
+                    [ class "sub-bar-ghost hidden" ]
+                    []
+                , div
+                    [ class "create-story-page-content" ]
+                    [ div
+                        [ class "page-content-bar" ]
+                        [ div
+                            [ class "page-content-bar-title"
+                            , id "story-tidbits-title"
+                            ]
+                            [ text "Story Tidbits" ]
+                        , div
+                            [ class "page-content-bar-line" ]
+                            []
+                        , div
+                            [ class "flex-box space-between" ]
+                            ((List.indexedMap
+                                (\index tidbit ->
+                                    div
+                                        [ class "tidbit-box" ]
+                                        [ div
+                                            [ class "tidbit-box-name" ]
+                                            [ text <| Tidbit.getName tidbit ]
+                                        , div
+                                            [ class "tidbit-box-type-name" ]
+                                            [ text <| Tidbit.getTypeName tidbit ]
+                                        , div
+                                            [ class "tidbit-box-page-number" ]
+                                            [ text <| toString <| index + 1 ]
+                                        , button
+                                            [ class "full-view-button"
+                                            , onClick <| GoTo <| Tidbit.getTidbitRoute Nothing tidbit
+                                            ]
+                                            [ text "VIEW" ]
+                                        ]
+                                )
+                                story.tidbits
+                             )
+                                ++ (List.map
+                                        (\tidbit ->
+                                            div
+                                                [ class "tidbit-box not-yet-added" ]
+                                                [ div
+                                                    [ class "tidbit-box-name" ]
+                                                    [ text <| Tidbit.getName tidbit ]
+                                                , div
+                                                    [ class "tidbit-box-type-name" ]
+                                                    [ text <| Tidbit.getTypeName tidbit ]
+                                                , button
+                                                    [ class "remove-button"
+                                                    , onClick <| CreateStoryRemoveTidbit tidbit
+                                                    ]
+                                                    [ text "REMOVE" ]
+                                                ]
+                                        )
+                                        model.storyData.tidbitsToAdd
+                                   )
+                                ++ emptyFlexBoxesForAlignment
+                            )
+                        ]
+                    , div
+                        [ class "page-content-bar" ]
+                        [ div
+                            [ class "page-content-bar-title" ]
+                            [ text "Your Tidbits" ]
+                        , div
+                            [ class "page-content-bar-line" ]
+                            []
+                        , div
+                            [ class "flex-box space-between" ]
+                            ((List.map
+                                (\tidbit ->
+                                    div
+                                        [ class "tidbit-box" ]
+                                        [ div
+                                            [ class "tidbit-box-name" ]
+                                            [ text <| Tidbit.getName tidbit ]
+                                        , div
+                                            [ class "tidbit-box-type-name" ]
+                                            [ text <| Tidbit.getTypeName tidbit ]
+                                        , button
+                                            [ class "view-tidbit"
+                                            , onClick <| GoTo <| Tidbit.getTidbitRoute Nothing tidbit
+                                            ]
+                                            [ text "VIEW" ]
+                                        , button
+                                            [ class "add-tidbit"
+                                            , onClick <| CreateStoryAddTidbit tidbit
+                                            ]
+                                            [ text "ADD" ]
+                                        ]
+                                )
+                                (userTidbits
+                                    |> StoryData.remainingTidbits (story.tidbits ++ model.storyData.tidbitsToAdd)
+                                    |> Util.sortByDate Tidbit.getLastModified
+                                    |> List.reverse
+                                )
+                             )
+                                ++ emptyFlexBoxesForAlignment
+                            )
+                        ]
+                    ]
+                ]
+
+        _ ->
+            Util.hiddenDiv
+
+
+{-| The view for creating a new story.
+-}
+createNewStoryView : Model -> Shared -> Html Msg
+createNewStoryView model shared =
+    let
+        currentRoute =
+            shared.route
+
+        editingStoryQueryParam =
+            Route.getEditingStoryQueryParamOnCreateNewStoryRoute shared.route
+
+        isEditingStory =
+            Util.isNotNothing editingStoryQueryParam
+
+        editingStoryLoaded =
+            (Just model.newStoryData.editingStory.id == editingStoryQueryParam)
+    in
+        div
+            [ class "new-story-page"
+            , hidden <| isEditingStory && not editingStoryLoaded
+            ]
+            [ div
+                [ class "sub-bar" ]
+                (case editingStoryQueryParam of
+                    Nothing ->
+                        [ button
+                            [ class "sub-bar-button"
+                            , onClick NewStoryReset
+                            ]
+                            [ text "Reset" ]
+                        , button
+                            [ classList
+                                [ ( "continue-button", True )
+                                , ( "publish-button", NewStoryData.newStoryDataReadyForPublication model.newStoryData )
+                                , ( "disabled-publish-button", not <| NewStoryData.newStoryDataReadyForPublication model.newStoryData )
+                                ]
+                            , onClick NewStoryPublish
+                            ]
+                            [ text "Proceed to Tidbit Selection" ]
+                        ]
+
+                    Just storyID ->
+                        [ button
+                            [ class "sub-bar-button"
+                            , onClick <| NewStoryCancelEdits storyID
+                            ]
+                            [ text "Cancel" ]
+                        , button
+                            [ classList
+                                [ ( "sub-bar-button save-changes", True )
+                                , ( "publish-button", NewStoryData.editingStoryDataReadyForSave model.newStoryData )
+                                , ( "disabled-publish-button", not <| NewStoryData.editingStoryDataReadyForSave model.newStoryData )
+                                ]
+                            , onClick <| NewStorySaveEdits storyID
+                            ]
+                            [ text "Save Changes" ]
+                        ]
+                )
+            , div
+                [ class "create-tidbit-navbar" ]
+                [ div
+                    [ classList
+                        [ ( "create-tidbit-tab", True )
+                        , ( "create-tidbit-selected-tab"
+                          , case currentRoute of
+                                Route.HomeComponentCreateNewStoryName _ ->
+                                    True
+
+                                _ ->
+                                    False
+                          )
+                        , ( "filled-in"
+                          , if isEditingStory then
+                                NewStoryData.editingNameTabFilledIn model.newStoryData
+                            else
+                                NewStoryData.nameTabFilledIn model.newStoryData
+                          )
+                        ]
+                    , onClick <| GoTo <| Route.HomeComponentCreateNewStoryName editingStoryQueryParam
+                    ]
+                    [ text "Name" ]
+                , div
+                    [ classList
+                        [ ( "create-tidbit-tab", True )
+                        , ( "create-tidbit-selected-tab"
+                          , case currentRoute of
+                                Route.HomeComponentCreateNewStoryDescription _ ->
+                                    True
+
+                                _ ->
+                                    False
+                          )
+                        , ( "filled-in"
+                          , if isEditingStory then
+                                NewStoryData.editingDescriptionTabFilledIn model.newStoryData
+                            else
+                                NewStoryData.descriptionTabFilledIn model.newStoryData
+                          )
+                        ]
+                    , onClick <| GoTo <| Route.HomeComponentCreateNewStoryDescription editingStoryQueryParam
+                    ]
+                    [ text "Description" ]
+                , div
+                    [ classList
+                        [ ( "create-tidbit-tab", True )
+                        , ( "create-tidbit-selected-tab"
+                          , case currentRoute of
+                                Route.HomeComponentCreateNewStoryTags _ ->
+                                    True
+
+                                _ ->
+                                    False
+                          )
+                        , ( "filled-in"
+                          , if isEditingStory then
+                                NewStoryData.editingTagsTabFilledIn model.newStoryData
+                            else
+                                NewStoryData.tagsTabFilledIn model.newStoryData
+                          )
+                        ]
+                    , onClick <| GoTo <| Route.HomeComponentCreateNewStoryTags editingStoryQueryParam
+                    ]
+                    [ text "Tags" ]
+                ]
+            , case currentRoute of
+                Route.HomeComponentCreateNewStoryName qpEditingStory ->
+                    div
+                        [ class "create-new-story-name" ]
+                        [ case qpEditingStory of
+                            Nothing ->
+                                input
+                                    [ placeholder "Name"
+                                    , id "name-input"
+                                    , onInput NewStoryUpdateName
+                                    , value model.newStoryData.newStory.name
+                                    , Util.onKeydownPreventDefault
+                                        (\key ->
+                                            if key == KK.Tab then
+                                                Just NoOp
+                                            else
+                                                Nothing
+                                        )
+                                    ]
+                                    []
+
+                            _ ->
+                                input
+                                    [ placeholder "Edit Story Name"
+                                    , id "name-input"
+                                    , onInput NewStoryEditingUpdateName
+                                    , value model.newStoryData.editingStory.name
+                                    , Util.onKeydownPreventDefault
+                                        (\key ->
+                                            if key == KK.Tab then
+                                                Just NoOp
+                                            else
+                                                Nothing
+                                        )
+                                    ]
+                                    []
+                        ]
+
+                Route.HomeComponentCreateNewStoryDescription qpEditingStory ->
+                    div
+                        [ class "create-new-story-description" ]
+                        [ case qpEditingStory of
+                            Nothing ->
+                                textarea
+                                    [ placeholder "Description"
+                                    , id "description-input"
+                                    , onInput NewStoryUpdateDescription
+                                    , value model.newStoryData.newStory.description
+                                    , Util.onKeydownPreventDefault
+                                        (\key ->
+                                            if key == KK.Tab then
+                                                Just NoOp
+                                            else
+                                                Nothing
+                                        )
+                                    ]
+                                    []
+
+                            Just editingStory ->
+                                textarea
+                                    [ placeholder "Edit Story Description"
+                                    , id "description-input"
+                                    , onInput NewStoryEditingUpdateDescription
+                                    , value model.newStoryData.editingStory.description
+                                    , Util.onKeydownPreventDefault
+                                        (\key ->
+                                            if key == KK.Tab then
+                                                Just NoOp
+                                            else
+                                                Nothing
+                                        )
+                                    ]
+                                    []
+                        ]
+
+                Route.HomeComponentCreateNewStoryTags qpEditingStory ->
+                    div
+                        [ class "create-new-story-tags" ]
+                        (case qpEditingStory of
+                            Nothing ->
+                                [ input
+                                    [ placeholder "Tags"
+                                    , id "tags-input"
+                                    , onInput NewStoryUpdateTagInput
+                                    , value model.newStoryData.tagInput
+                                    , Util.onKeydownPreventDefault
+                                        (\key ->
+                                            if key == KK.Enter then
+                                                Just <| NewStoryAddTag model.newStoryData.tagInput
+                                            else if key == KK.Tab then
+                                                Just <| NoOp
+                                            else
+                                                Nothing
+                                        )
+                                    ]
+                                    []
+                                , makeHTMLTags
+                                    NewStoryRemoveTag
+                                    model.newStoryData.newStory.tags
+                                ]
+
+                            Just _ ->
+                                [ input
+                                    [ placeholder "Edit Story Tags"
+                                    , id "tags-input"
+                                    , onInput NewStoryEditingUpdateTagInput
+                                    , value model.newStoryData.editingStoryTagInput
+                                    , Util.onKeydownPreventDefault
+                                        (\key ->
+                                            if key == KK.Enter then
+                                                Just <|
+                                                    NewStoryEditingAddTag model.newStoryData.editingStoryTagInput
+                                            else if key == KK.Tab then
+                                                Just <| NoOp
+                                            else
+                                                Nothing
+                                        )
+                                    ]
+                                    []
+                                , makeHTMLTags
+                                    NewStoryEditingRemoveTag
+                                    model.newStoryData.editingStory.tags
+                                ]
+                        )
+
+                _ ->
+                    Util.hiddenDiv
             ]
 
 
@@ -1012,7 +1718,7 @@ profileView model shared =
                             ]
                             [ text "Log Out" ]
                         , div
-                            [ hidden <| Util.isNothing model.logOutError ]
+                            [ hidden <| Util.isNothing model.profileData.logOutError ]
                             [ text "Cannot log out right now, try again shortly." ]
                         ]
                     , div
@@ -1069,18 +1775,15 @@ createView model shared =
         makeTidbitTypeBox title subTitle description onClickMsg tidbitType =
             div
                 [ class "create-select-tidbit-type" ]
-                (if model.showInfoFor == (Just tidbitType) then
+                (if model.createData.showInfoFor == (Just tidbitType) then
                     [ div
-                        [ class "description-title" ]
-                        [ text <| toString tidbitType ++ " Info" ]
-                    , div
                         [ class "description-text" ]
                         [ text description ]
                     , button
                         [ class "back-button"
                         , onClick <| ShowInfoFor Nothing
                         ]
-                        [ text "back" ]
+                        [ text "Back" ]
                     ]
                  else
                     [ div
@@ -1089,51 +1792,94 @@ createView model shared =
                     , div
                         [ class "create-select-tidbit-type-sub-title" ]
                         [ text subTitle ]
-                    , button
-                        [ class "info-button"
+                    , i
+                        [ class "material-icons info-icon"
                         , onClick <| ShowInfoFor <| Just tidbitType
                         ]
-                        [ text "more info" ]
+                        [ text "help_outline" ]
                     , button
                         [ class "select-button"
                         , onClick onClickMsg
                         ]
-                        [ text "select" ]
+                        [ text "CREATE" ]
                     ]
                 )
+
+        yourStoriesHtml : Html Msg
+        yourStoriesHtml =
+            case shared.userStories of
+                -- Should never happen.
+                Nothing ->
+                    Util.hiddenDiv
+
+                Just userStories ->
+                    div
+                        [ class "develop-stories" ]
+                        [ div
+                            [ classList [ ( "boxes flex-box space-between", True ) ]
+                            ]
+                            ([ div
+                                [ class "create-story-box"
+                                , onClick <| GoTo <| Route.HomeComponentCreateNewStoryName Nothing
+                                ]
+                                [ i
+                                    [ class "material-icons add-story-box-icon" ]
+                                    [ text "add" ]
+                                ]
+                             ]
+                                ++ (List.map
+                                        (\story ->
+                                            div
+                                                [ class "story-box" ]
+                                                [ div
+                                                    [ class "story-box-name" ]
+                                                    [ text story.name ]
+                                                , button
+                                                    [ class "continue-story-button"
+                                                    , onClick <| GoTo <| Route.HomeComponentCreateStory story.id
+                                                    ]
+                                                    [ text "CONTINUE" ]
+                                                ]
+                                        )
+                                        (List.reverse <| Util.sortByDate .lastModified userStories)
+                                   )
+                                ++ emptyFlexBoxesForAlignment
+                            )
+                        ]
     in
         div
-            []
+            [ class "create-page" ]
             [ div
-                []
-                [ h1
-                    [ class "create-select-tidbit-title" ]
-                    [ text "Select Tidbit Type" ]
+                [ class "title-banner" ]
+                [ text "CREATE TIDBIT" ]
+            , div
+                [ class "make-tidbits" ]
+                [ makeTidbitTypeBox
+                    "SnipBit"
+                    "Explain a chunk of code"
+                    snipBitDescription
+                    (GoTo Route.HomeComponentCreateSnipbitName)
+                    SnipBit
+                , makeTidbitTypeBox
+                    "BigBit"
+                    "Explain a full project"
+                    bigBitInfo
+                    (GoTo Route.HomeComponentCreateBigbitName)
+                    BigBit
                 , div
-                    [ class "create-select-tidbit-box" ]
-                    [ makeTidbitTypeBox
-                        "SnipBit"
-                        "Excellent for answering questions"
-                        snipBitDescription
-                        (GoTo Route.HomeComponentCreateSnipbitName)
-                        SnipBit
-                    , makeTidbitTypeBox
-                        "BigBit"
-                        "Designed for larger tutorials"
-                        bigBitInfo
-                        (GoTo Route.HomeComponentCreateBigbitName)
-                        BigBit
+                    [ class "create-select-tidbit-type-coming-soon" ]
+                    [ div
+                        [ class "coming-soon-text" ]
+                        [ text "More Coming Soon" ]
                     , div
-                        [ class "create-select-tidbit-type-coming-soon" ]
-                        [ div
-                            [ class "coming-soon-text" ]
-                            [ text "More Coming Soon" ]
-                        , div
-                            [ class "coming-soon-sub-text" ]
-                            [ text "We are working on it" ]
-                        ]
+                        [ class "coming-soon-sub-text" ]
+                        [ text "We are working on it" ]
                     ]
                 ]
+            , div
+                [ class "title-banner story-banner" ]
+                [ text "DEVELOP STORY" ]
+            , yourStoriesHtml
             ]
 
 
@@ -1782,11 +2528,6 @@ createBigbitView model shared =
                 [ class "sub-bar" ]
                 [ button
                     [ class "sub-bar-button"
-                    , onClick <| GoTo Route.HomeComponentCreate
-                    ]
-                    [ text "Back" ]
-                , button
-                    [ class "sub-bar-button"
                     , onClick <| BigbitReset
                     ]
                     [ text "Reset" ]
@@ -1875,7 +2616,7 @@ createBigbitView model shared =
 
                 -- Should never happen
                 _ ->
-                    div [] []
+                    Util.hiddenDiv
             ]
 
 
@@ -2394,11 +3135,6 @@ createSnipbitView model shared =
             [ div
                 [ class "sub-bar" ]
                 [ button
-                    [ class "create-snipbit-back-button"
-                    , onClick <| GoTo Route.HomeComponentCreate
-                    ]
-                    [ text "Back" ]
-                , button
                     [ class "create-snipbit-reset-button"
                     , onClick <| SnipbitReset
                     ]
@@ -2421,3 +3157,14 @@ createSnipbitView model shared =
                 , viewForTab
                 ]
             ]
+
+
+{-| A semi-hack for flex-box justify-center but align-left.
+
+@REFER http://stackoverflow.com/questions/18744164/flex-box-align-last-row-to-grid
+-}
+emptyFlexBoxesForAlignment : List (Html Msg)
+emptyFlexBoxesForAlignment =
+    (List.repeat 10 <|
+        div [ class "empty-tidbit-box-for-flex-align" ] []
+    )

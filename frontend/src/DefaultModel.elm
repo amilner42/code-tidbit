@@ -26,4 +26,7 @@ defaultShared =
     , route = Route.WelcomeComponentLogin
     , languages = Editor.humanReadableListOfLanguages
     , keysDown = KK.init
+    , userStories = Nothing
+    , userTidbits = Nothing
+    , viewingStory = Nothing
     }

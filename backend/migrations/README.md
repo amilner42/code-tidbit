@@ -5,7 +5,7 @@ start with a number (and be ordered) and have a meaningful name, ending in
 `.migration.js`, eg. `1-init.migration.js`.
 
 Migrations connect to the database through the `db` variable, eg `db.users`
-would get you the the users collection.
+would get you the users collection.
 
 ### Example Migration
 

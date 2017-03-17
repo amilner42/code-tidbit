@@ -138,13 +138,19 @@
                         display: inline-block;
                     }
 
-                    .account-bio {
-                    }
-
                     .logout-button {
                         position: absolute;
                         right: 10px;
                         top: 10px;
+                        background-color: $color1;
+                        color: white;
+                        opacity: 0.9;
+                        cursor: default;
+
+                        &:hover {
+                            opacity: 1;
+                            color: white;
+                        }
                     }
 
                     &.editor-card {
@@ -160,7 +166,7 @@
             }
         }
 
-        .view-bigbit {
+        .view-bigbit-page {
             height: 100%;
 
             .sub-bar {
@@ -188,7 +194,7 @@
             }
         }
 
-        .view-snipbit {
+        .view-snipbit-page {
             height: 100%;
 
             .sub-bar-button {
@@ -196,125 +202,250 @@
             }
         }
 
-        .create-select-tidbit-title {
-            color: $color6;
-            font-size: 52px;
-            text-align: center;
-        }
+        .new-story-page {
 
-        .create-select-tidbit-box {
-            width: $min-width-supported;
-            height: 100%;
-            position: relative;
-            display: block;
-            margin: auto;
+            .sub-bar {
+                .sub-bar-button {
+                    margin-left: 10px;
 
-            .create-select-tidbit-type-coming-soon {
-                @include light-box-shadow();
-                position: relative;
-                box-sizing: border-box;
-                display: inline-block;
-                width: 324px;
-                height: 324px;
-                float: left;
-
-                .coming-soon-text {
-                    position: absolute;
-                    top: 40%;
-                    left: 50%;
-                    transform: translate(-50%, -50%);
-                    font-size: 28px;
-                    color: $color4;
-                    width: 100%;
-                    text-align: center;
-                }
-
-                .coming-soon-sub-text {
-                    position: absolute;
-                    top: 50%;
-                    left: 50%;
-                    transform: translate(-50%, -50%);
-                    font-size: 16px;
-                    color: $color4;
-                }
-            }
-
-            .create-select-tidbit-type {
-                @include strong-box-shadow();
-                box-sizing: border-box;
-
-                position: relative;
-                display: inline-block;
-                width: 324px;
-                height: 324px;
-                margin-right: 25px;
-                background-color: white;
-                border: none;
-                font-size: 28px;
-                font-weight: 700;
-                color: $color5;
-                float: left;
-
-                .description-title {
-                    font-size: 22px;
-                    width: 300px;
-                    padding: 10px;
-                }
-
-                .description-text {
-                    font-size: 16px;
-                    width: 300px;
-                    padding: 10px;
-                    font-weight: normal;
-                }
-
-                .back-button {
-                    position: absolute;
-                    bottom: 10px;
-                    right: 10px;
-                }
-
-                .create-select-tidbit-type-title {
-                    position: absolute;
-                    top: 40%;
-                    left: 50%;
-                    transform: translate(-50%, -50%);
-                }
-
-                .create-select-tidbit-type-sub-title {
-                    position: absolute;
-                    top: 50%;
-                    left: 50%;
-                    font-size: 16px;
-                    width: 300px;
-                    text-align: center;
-                    transform: translate(-50%, -50%);
-                }
-
-                button {
-                    border: 2px solid $color1;
-                    border-radius: 15px;
-                    background-color: white;
-                    color: $color1;
-
-                    &:hover {
-                        color: white;
-                        background-color: $color1;
+                    &.save-changes {
+                        width: 140px;
                     }
                 }
 
-                .info-button {
-                    position: absolute;
-                    bottom: 10px;
-                    right: 60px;
-                    padding: 2px 5px 2px 5px;
+                .continue-button {
+                    width: 180px;
+                }
+            }
+
+            .create-tidbit-navbar {
+                width: 372px;
+            }
+
+            .create-new-story-name {
+                @extend .create-tidbit-x;
+
+                input {
+                    height: 53px;
+                    width: 800px;
+                }
+            }
+
+            .create-new-story-description {
+                @extend .create-tidbit-x;
+
+                textarea {
+                    height: 400px;
+                    width: 600px;
+                }
+            }
+
+            .create-new-story-tags {
+                @extend .create-tidbit-x;
+
+                input {
+                    height: 53px;
+                    width: 800px;
+                }
+            }
+
+            .create-new-story-tags {
+                @extend .create-tidbit-tags;
+            }
+        }
+
+        .create-page {
+            width: 100%;
+            padding-bottom: 5px;
+
+            .title-banner {
+                box-sizing: border-box;
+                width: 100%;
+                height: 75px;
+                color: white;
+                background-color: $color10;
+                text-align: center;
+                line-height: 50px;
+                padding-top: 20px;
+                font-size: 48px;
+                font-weight: 800;
+
+                &.story-banner {
+                    background-color: $color9;
+                    color: $color5;
+                    border-bottom: 1px solid $color2;
+                    margin-bottom: 10px;
+                    height: 85px;
+                }
+            }
+
+            .make-tidbits {
+                box-sizing: border-box;
+                display: flex;
+                justify-content: center;
+                height: 315px;
+                min-height: 315px;
+                padding: 20px;
+                background-color: $color10;
+                border-bottom: 1px solid #555;
+
+                .create-select-tidbit-type-coming-soon {
+                    @include light-box-shadow();
+                    position: relative;
+                    box-sizing: border-box;
+                    display: inline-block;
+                    width: 275px;
+                    height: 275px;
+                    float: left;
+                    margin-left: 10px;
+                    margin-right: 10px;
+                    background-color: white;
+                    flex-grow: 1;
+                    max-width: 300px;
+
+                    .coming-soon-text {
+                        position: absolute;
+                        top: 40%;
+                        left: 50%;
+                        transform: translate(-50%, -50%);
+                        font-size: 28px;
+                        color: $color4;
+                        width: 100%;
+                        text-align: center;
+                    }
+
+                    .coming-soon-sub-text {
+                        position: absolute;
+                        top: 50%;
+                        left: 50%;
+                        transform: translate(-50%, -50%);
+                        font-size: 16px;
+                        color: $color4;
+                        width: 275px;
+                        text-align: center;
+                    }
                 }
 
-                .select-button {
-                    position: absolute;
-                    bottom: 10px;
-                    right: 10px;
-                    padding: 2px 5px 2px 5px;
+                .create-select-tidbit-type {
+                    @include strong-box-shadow();
+                    box-sizing: border-box;
+
+                    position: relative;
+                    display: inline-block;
+                    flex-grow: 1;
+                    width: 275px;
+                    height: 275px;
+                    max-width: 300px;
+                    margin-left: 10px;
+                    margin-right: 10px;
+                    background-color: white;
+                    border: none;
+                    font-size: 28px;
+                    font-weight: 700;
+                    color: $color5;
+                    float: left;
+
+                    .description-text {
+                        box-sizing: border-box;
+                        font-size: 16px;
+                        width: 275px;
+                        padding: 10px;
+                        font-weight: normal;
+                    }
+
+                    .back-button {
+                        position: absolute;
+                        bottom: 10px;
+                        right: 10px;
+                        background-color: $color4;
+                    }
+
+                    .create-select-tidbit-type-title {
+                        position: absolute;
+                        top: 40%;
+                        left: 50%;
+                        transform: translate(-50%, -50%);
+                    }
+
+                    .create-select-tidbit-type-sub-title {
+                        position: absolute;
+                        top: 50%;
+                        left: 50%;
+                        font-size: 16px;
+                        width: 300px;
+                        text-align: center;
+                        transform: translate(-50%, -50%);
+                    }
+
+                    button {
+                        border: none;
+                        border-radius: 3px;
+                        color: white;
+                        background-color: $color1;
+                        padding: 3px 10px 3px 10px;
+                        width: 280px;
+                        height: 35px;
+                        opacity: 0.9;
+                        font-size: 18px;
+
+                        &:hover {
+                            opacity: 1;
+                        }
+                    }
+
+                    .info-icon {
+                        position: absolute;
+                        top: 5px;
+                        right: 5px;
+                        color: $color4;
+                        cursor: pointer;
+                    }
+
+                    .select-button {
+                        position: absolute;
+                        bottom: 10px;
+                        right: 10px;
+                    }
+                }
+            }
+
+            .develop-stories {
+                width: 85%;
+                min-width: 900px;
+                margin: auto;
+                margin-top: 20px;
+
+                .create-story-box {
+                    box-sizing: border-box;
+                    display: inline-block;
+                    position: relative;
+                    float: left;
+                    width: 275px;
+                    height: 275px;
+                    margin: 0 10px 20px 10px;
+                    position: relative;
+                    border: 2px dotted $color2;
+                    cursor: pointer;
+                    flex-grow: 1;
+                    max-width: 325px;
+
+                    &:hover {
+                        background-color: $color9;
+                        border-style: solid;
+
+                        .add-story-box-icon {
+                            color: $color5;
+                        }
+                    }
+
+                    .add-story-box-icon {
+                        position: absolute;
+                        top: 50%;
+                        left: 50%;
+                        transform: translate(-50%, -50%);
+                        font-size: 128px;
+                        color: $color2;
+                    }
                 }
             }
         }
@@ -462,7 +593,7 @@
                 @extend .create-tidbit-x;
 
                 input {
-                    height: 73px;
+                    height: 53px;
                     width: 800px;
                 }
             }
@@ -773,7 +904,7 @@
                 @extend .create-tidbit-x;
 
                 input {
-                    height: 73px;
+                    height: 53px;
                     width: 800px;
                 }
             }
@@ -872,6 +1003,7 @@
                 .create-snipbit-reset-button {
                     @extend .sub-bar-button;
                     margin-right: 10px;
+                    margin-left: 10px;
                 }
 
                 .create-snipbit-publish-button {
@@ -889,11 +1021,9 @@
 
             float: right;
             margin-right: 10px;
-            cursor: not-allowed;
-
-            &:hover {
-                @include light-box-shadow();
-            }
+            cursor: not-allowed !important;
+            box-shadow: none !important;
+            color: $color4;
         }
 
         .publish-button {
@@ -901,7 +1031,7 @@
 
             background-color: $color7 !important;
             color: white !important;
-            cursor: pointer;
+            cursor: pointer !important;
 
             &:hover {
                 background-color: $color7 !important;
@@ -1119,6 +1249,13 @@
             padding-top: 10px;
             border-bottom: 1px solid $color2;
 
+            &.sticky {
+                position: fixed;
+                top: 0;
+                left: 0;
+                z-index: 100;
+            }
+
             .sub-bar-button {
                 @include light-box-shadow();
 
@@ -1151,6 +1288,336 @@
                 &.previous-frame-location {
                     width: 160px;
                 }
+
+                &.complete-button {
+                    width: 180px;
+                }
+
+                &.next-tidbit-button {
+                    width: 160px;
+                }
+
+                &.back-to-story-button {
+                    width: 100px;
+                }
+
+                &.traverse-tidbit-button {
+                    width: 100px;
+                }
+            }
+        }
+
+        .sub-bar-ghost {
+            height: 60px; // sub-bar 50px + sub-bar-margin-bottom 10px
+            width: 100%;
+        }
+
+        .create-story-page {
+            height: 100%;
+
+            .sub-bar {
+
+                .sub-bar-button {
+                    margin-left: 10px;
+
+                    &.edit-information {
+                        width: 160px;
+                    }
+                }
+            }
+
+            .create-story-page-content {
+                @extend .page-content;
+            }
+        }
+
+        .page-content {
+            width: 85%;
+            min-width: 900px;
+            margin: auto;
+            padding-top: 10px;
+
+            .page-content-bar {
+                    width: 100%;
+                    min-height: 345px;
+                    position: relative;
+                    margin-top: 13px;
+
+                    .page-content-bar-title {
+                        position: relative;
+                        display: inline-block;
+                        left: 10px;
+                        font-size: 28px;
+                        font-weight: 600;
+                        color: $color6;
+                    }
+
+                    .page-content-bar-line {
+                        position: relative;
+                        width: 100%;
+                        border-bottom: 3px solid $color5;
+                        border-radius: 10px;
+                        margin: -2px 0 20px 0;
+
+                    }
+            }
+        }
+
+        // For containing stories/tidbit boxes.
+        .boxes {
+            box-sizing: border-box;
+            overflow-y: auto;
+            height: 100%;
+
+            &.collapsed {
+                height: 0px;
+                overflow-y: hidden;
+                margin-bottom: -295px;
+            }
+        }
+
+        .story-box {
+            box-sizing: border-box;
+            display: inline-block;
+            position: relative;
+            width: 275px;
+            height: 275px;
+            margin: 0 10px 20px 10px;
+            border: 1px solid $color2;
+            background-color: $color9;
+            flex-grow: 1;
+            max-width: 325px;
+
+            .story-box-name {
+                box-sizing: border-box;
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                width: 100%;
+                text-align: center;
+                font-weight: 700;
+                color: $color5;
+                font-size: 28px;
+                padding: 10px;
+            }
+
+            button {
+                position: absolute;
+                right: 10px;
+                bottom: 10px;
+                border: 1px solid $color2;
+                border-radius: 15px;
+                color: $color3;
+                background-color: white;
+                padding: 3px 10px 3px 10px;
+                cursor: pointer;
+
+                &:hover {
+                    color: $color1;
+                }
+            }
+
+            .continue-story-button {
+                width: 90%;
+                left: 5%;
+                right: 5%;
+                height: 30px;
+                border-radius: 3px;
+                background-color: $color1;
+                color: white;
+                opacity: 0.9;
+                font-size: 16px;
+                cursor: default;
+
+                &:hover {
+                    color: white;
+                    opacity: 1;
+                }
+            }
+        }
+
+        .empty-tidbit-box-for-flex-align {
+            width: 275px;
+            height: 0;
+            margin-left: 10px;
+            margin-right: 10px;
+            flex-grow: 1;
+            max-width: 325px;
+        }
+
+        .tidbit-box {
+            box-sizing: border-box;
+            display: inline-block;
+            position: relative;
+            width: 275px;
+            height: 275px;
+            margin: 0 10px 20px 10px;
+            border: 1px solid $color2;
+            background-color: $color9;
+            flex-grow: 1;
+            max-width: 325px;
+
+            .completed-icon {
+                position: absolute;
+                left: 10px;
+                bottom: 5px;
+                background-color: $color3;
+                display: none;
+                color: $color1;
+                font-size: 36px;
+            }
+
+            &.completed {
+                border: 1px solid $color1;
+                background-color: $color3;
+
+                .tidbit-box-name {
+                    color: white;
+                }
+
+                .completed-icon-div {
+                    position: absolute;
+                    right: 10px;
+                    top: 10px;
+
+                    .completed-icon {
+                        display: inline-block;
+                        left: -31px;
+                        top: -8px;
+                        bottom: 0;
+                    }
+                }
+            }
+
+            .tidbit-box-name {
+                box-sizing: border-box;
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                width: 100%;
+                text-align: center;
+                font-weight: 700;
+                color: $color5;
+                font-size: 28px;
+                padding: 10px;
+            }
+
+            .tidbit-box-page-number {
+                position: absolute;
+                top: 5px;
+                left: 10px;
+                font-size: 20px;
+                color: $color4;
+            }
+
+            .tidbit-box-type-name {
+                position: absolute;
+                top: 10px;
+                right: 10px;
+                font-size: 10px;
+                color: $color4;
+            }
+
+            button {
+                box-sizing: border-box;
+                position: absolute;
+                bottom: 10px;
+                border: 1px solid $color2;
+                background-color: $color1;
+                color: white;
+                padding: 3px 10px 3px 10px;
+                height: 30px;
+                opacity: 0.9;
+                font-size: 18px;
+                border-radius: 3px;
+
+                &:hover {
+                    opacity: 1;
+                }
+
+                &.view-button {
+                    background-color: white;
+                    color: $color1;
+                    width: 90%;
+                    left: 5%;
+                    right: 5%;
+                }
+
+                &.view-tidbit {
+                    left: 5%;
+                    width: 44%;
+                    background-color: white;
+                    color: $color1;
+
+                    &:hover {
+                        background-color: $color11;
+                    }
+                }
+
+                &.add-tidbit {
+                    right: 5%;
+                    width: 44%;
+                }
+
+                &.remove-button, &.full-view-button {
+                    width: 90%;
+                    left: 5%;
+                    right: 5%;
+                }
+
+                &.remove-button {
+                    bottom: 9px;
+                }
+            }
+
+            &.not-yet-added {
+                border: dotted 2px $color2;
+                opacity: 0.7;
+            }
+        }
+
+        .view-story-page {
+            width: 100%;
+            height: 100%;
+
+            .story-name {
+                color: $color6;
+                font-size: 48px;
+                text-align: center;
+                margin-bottom: 10px;
+                width: 100%;
+                font-weight: 600;
+            }
+
+            .progress-bar-title {
+                font-size: 12px;
+                width: 100%;
+                text-align: center;
+                color: $color4;
+            }
+
+            .sub-bar-button {
+                margin-left: 10px;
+            }
+
+            .view-story-page-content {
+                @extend .page-content;
+
+                .story-progress-bar-bar {
+                    text-align: center;
+                    width: 100%;
+                    display: block;
+                    height: 65px;
+                    text-align: center;
+                }
+            }
+
+            .no-tidbit-text {
+                text-align: center;
+                font-size: 22px;
+                margin-top: 200px;
             }
         }
     }
