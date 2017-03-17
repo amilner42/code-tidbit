@@ -1,5 +1,6 @@
 module Models.NewStoryData exposing (..)
 
+import DefaultServices.Util as Util
 import Json.Encode as Encode
 import Json.Decode as Decode
 import Json.Decode.Pipeline exposing (decode, required, optional, hardcoded)
@@ -143,16 +144,14 @@ newTag : String -> NewStoryData -> NewStoryData
 newTag newTag newStoryData =
     let
         modelWithNewTags =
-            if String.isEmpty newTag || List.member newTag newStoryData.newStory.tags then
+            updateNewStory
+                (\newStory ->
+                    { newStory
+                        | tags =
+                            Util.addUniqueNonEmptyString newTag newStory.tags
+                    }
+                )
                 newStoryData
-            else
-                updateNewStory
-                    (\newStory ->
-                        { newStory
-                            | tags = newStory.tags ++ [ newTag ]
-                        }
-                    )
-                    newStoryData
     in
         updateTagInput "" modelWithNewTags
 
@@ -163,16 +162,16 @@ newEditTag : String -> NewStoryData -> NewStoryData
 newEditTag newTag newStoryData =
     let
         modelWithNewTags =
-            if String.isEmpty newTag || List.member newTag newStoryData.editingStory.tags then
+            updateEditStory
+                (\editingStory ->
+                    { editingStory
+                        | tags =
+                            Util.addUniqueNonEmptyString
+                                newTag
+                                editingStory.tags
+                    }
+                )
                 newStoryData
-            else
-                updateEditStory
-                    (\editingStory ->
-                        { editingStory
-                            | tags = editingStory.tags ++ [ newTag ]
-                        }
-                    )
-                    newStoryData
     in
         updateEditTagInput "" modelWithNewTags
 

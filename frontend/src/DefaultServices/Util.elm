@@ -306,3 +306,14 @@ one list as opposed to using pipes.
 multipleUpdates : List (a -> a) -> (a -> a)
 multipleUpdates =
     List.foldl (>>) identity
+
+
+{-| For adding a string to a list of strings if it's not empty and it's also not
+already in the list.
+-}
+addUniqueNonEmptyString : String -> List String -> List String
+addUniqueNonEmptyString stringToAdd listOfStrings =
+    if String.isEmpty stringToAdd || List.member stringToAdd listOfStrings then
+        listOfStrings
+    else
+        stringToAdd :: listOfStrings

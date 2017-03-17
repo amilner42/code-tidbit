@@ -936,15 +936,9 @@ update msg model shared =
                             String.dropRight 1 newTagInput
 
                         newTags =
-                            if
-                                String.isEmpty newTag
-                                    || List.member
-                                        newTag
-                                        currentSnipbitCreateData.tags
-                            then
+                            Util.addUniqueNonEmptyString
+                                newTag
                                 currentSnipbitCreateData.tags
-                            else
-                                currentSnipbitCreateData.tags ++ [ newTag ]
                     in
                         justUpdateModel <|
                             updateSnipbitCreateData
@@ -974,15 +968,9 @@ update msg model shared =
                     updateSnipbitCreateData
                         { currentSnipbitCreateData
                             | tags =
-                                if
-                                    String.isEmpty tagName
-                                        || List.member
-                                            tagName
-                                            currentSnipbitCreateData.tags
-                                then
+                                Util.addUniqueNonEmptyString
+                                    tagName
                                     currentSnipbitCreateData.tags
-                                else
-                                    currentSnipbitCreateData.tags ++ [ tagName ]
                             , tagInput = ""
                         }
 
@@ -1411,15 +1399,9 @@ update msg model shared =
                             String.dropRight 1 newTagInput
 
                         newTags =
-                            if
-                                String.isEmpty newTag
-                                    || List.member
-                                        newTag
-                                        currentBigbitCreateData.tags
-                            then
+                            Util.addUniqueNonEmptyString
+                                newTag
                                 currentBigbitCreateData.tags
-                            else
-                                currentBigbitCreateData.tags ++ [ newTag ]
                     in
                         justUpdateModel <|
                             updateBigbitCreateData
@@ -1437,15 +1419,9 @@ update msg model shared =
             BigbitAddTag tagName ->
                 let
                     newTags =
-                        if
-                            String.isEmpty tagName
-                                || List.member
-                                    tagName
-                                    currentBigbitCreateData.tags
-                        then
+                        Util.addUniqueNonEmptyString
+                            tagName
                             currentBigbitCreateData.tags
-                        else
-                            currentBigbitCreateData.tags ++ [ tagName ]
                 in
                     justUpdateModel <|
                         updateBigbitCreateData
@@ -2288,12 +2264,20 @@ update msg model shared =
             NewStoryUpdateTagInput newTagInput ->
                 justUpdateModel <|
                     updateNewStoryData <|
-                        NewStoryData.updateTagInput newTagInput
+                        if String.endsWith " " newTagInput then
+                            NewStoryData.newTag <|
+                                String.dropRight 1 newTagInput
+                        else
+                            NewStoryData.updateTagInput newTagInput
 
             NewStoryEditingUpdateTagInput newTagInput ->
                 justUpdateModel <|
                     updateNewStoryData <|
-                        NewStoryData.updateEditTagInput newTagInput
+                        if String.endsWith " " newTagInput then
+                            NewStoryData.newEditTag <|
+                                String.dropRight 1 newTagInput
+                        else
+                            NewStoryData.updateEditTagInput newTagInput
 
             NewStoryAddTag tagName ->
                 justUpdateModel <|
