@@ -29,7 +29,7 @@
     "ramda": "^0.21.0",
     "request": "^2.69.0",
     "systemjs": "^0.19.16",
-    "yargs": "^3.32.0"
+    "yargs": "^7.0.2"
   },
   "devDependencies": {
     "babel-cli": "^6.10.1",
