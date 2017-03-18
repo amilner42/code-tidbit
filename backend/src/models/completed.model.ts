@@ -86,7 +86,7 @@ export const completedDBActions = {
     })
     .then((findAndModifyResult) => {
       if(findAndModifyResult.value) {
-        return { targetID: findAndModifyResult.value._id }
+        return Promise.resolve({ targetID: findAndModifyResult.value._id });
       }
 
       return Promise.reject({

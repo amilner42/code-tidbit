@@ -162,7 +162,7 @@ export const storyDBActions = {
       }
 
       if(!withCompletedForUser) {
-        return story;
+        return Promise.resolve(story);
       }
 
       return Promise.all<boolean>(
@@ -239,7 +239,7 @@ export const storyDBActions = {
     })
     .then((updateStoryResult) => {
       if(updateStoryResult.value) {
-        return { targetID: updateStoryResult.value._id };
+        return Promise.resolve({ targetID: updateStoryResult.value._id });
       }
 
       return Promise.reject({

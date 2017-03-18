@@ -54,7 +54,7 @@ export const metaMap = <a, b, c, a1, b1, c1>
         Bluebird.props(objectMap(folder.files, applyFile)),
         Bluebird.props(objectMap(folder.folders, applyFolder))
       ])
-      .then(([newFolderMetadata, newFiles, newFolders ]) => {
+      .then(([newFolderMetadata, newFiles, newFolders ]: [ any, any, any ]) => {
         resolve({
           files: newFiles,
           folders: newFolders,

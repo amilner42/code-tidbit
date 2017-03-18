@@ -103,7 +103,7 @@ export const userDBActions = {
     })
     .then((updatedUserResult) => {
       if(updatedUserResult.value) {
-        return prepareUserForResponse(updatedUserResult.value);
+        return Promise.resolve(prepareUserForResponse(updatedUserResult.value));
       }
 
       return Promise.reject({
