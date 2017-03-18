@@ -3,7 +3,7 @@
 
 import { MongoClient, Collection, ObjectID } from 'mongodb';
 
-import { APP_CONFIG } from '../app-config';
+import { APP_CONFIG } from './app-config';
 import { isNullOrUndefined } from './util';
 import { MongoID, MongoObjectID, MongoStringID } from './types';
 
@@ -11,7 +11,7 @@ import { MongoID, MongoObjectID, MongoStringID } from './types';
 /**
  * Promise will resolve to the db.
  */
-const DB_PROMISE = MongoClient.connect(APP_CONFIG.db.url);
+const DB_PROMISE = MongoClient.connect(APP_CONFIG.dbUrl);
 
 /**
  * Get a mongodb collection using the existing mongo connection.

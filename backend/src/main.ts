@@ -3,8 +3,8 @@
 import 'babel-polyfill';
 
 import { server } from './server';
-import { APP_CONFIG } from '../app-config';
+import { APP_CONFIG } from './app-config';
 
 
-server.listen(APP_CONFIG.app.port);
-console.log(`Running app on port ${APP_CONFIG.app.port}`);
+server.listen(APP_CONFIG.port);
+console.log(`Running app on port ${APP_CONFIG.port}`);

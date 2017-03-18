@@ -8,7 +8,7 @@ import path from 'path';
 import { toPairs, contains, map }   from 'ramda';
 import passport from 'passport';
 
-import { APP_CONFIG } from '../app-config';
+import { APP_CONFIG } from './app-config';
 import { toMongoObjectID, collection } from './db';
 import { loginStrategy, signUpStrategy } from './passport-local-auth-strategies';
 import { authlessRoutes, routes } from './routes';
@@ -94,13 +94,13 @@ const createExpressServer = () => {
   server.use(expressSession({
     saveUninitialized: true, // saved new sessions
     resave: false, // do not automatically write to the session store
-    store: new MONGO_STORE({url: APP_CONFIG.db.url}),
-    secret: APP_CONFIG.app.expressSessionSecretKey,
+    store: new MONGO_STORE({url: APP_CONFIG.dbUrl}),
+    secret: APP_CONFIG.sessionSecretKey,
     cookie : {
-      httpOnly: !APP_CONFIG.app.isHttps,
-      maxAge: APP_CONFIG.app.secondsBeforeReloginNeeded
+      httpOnly: !APP_CONFIG.isHttps,
+      maxAge: APP_CONFIG.sessionDuration
     },
-    name: APP_CONFIG.app.expressSessionCookieName
+    name: APP_CONFIG.sessionCookieName
   }));
 
   // This should be after `server.use(expressSession...`, or too many sessions
@@ -112,7 +112,7 @@ const createExpressServer = () => {
 
   // Add all API routes.
   map(([apiUrl, handlers]) => {
-    const apiUrlWithPrefix = `${APP_CONFIG.app.apiSuffix}${apiUrl}`;
+    const apiUrlWithPrefix = '/api' + apiUrl;
 
     map(([method, handler]: [string, any]) => {
       if(authlessRoutes[apiUrl] && authlessRoutes[apiUrl][method]) {
