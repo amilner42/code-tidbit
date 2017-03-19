@@ -8,7 +8,7 @@ import moment from "moment";
 import { renameIDField, collection, toMongoObjectID, toMongoStringID, sameID } from '../db';
 import { malformedFieldError, isNullOrUndefined } from '../util';
 import { mongoStringIDSchema, nameSchema, descriptionSchema, optional, tagsSchema, nonEmptyArraySchema } from "./kleen-schemas";
-import { MongoID, MongoObjectID, ErrorCode } from '../types';
+import { MongoID, MongoObjectID, ErrorCode, TargetID } from '../types';
 import { completedDBActions } from './completed.model';
 import { Snipbit, snipbitDBActions } from './snipbit.model';
 import { Bigbit, bigbitDBActions } from './bigbit.model';
@@ -128,7 +128,7 @@ export const storyDBActions = {
   /**
    * Gets stories from the db.
    */
-  getStories: (filter: StorySearchFilter) => {
+  getStories: (filter: StorySearchFilter): Promise<Story[]> => {
     return collection("stories")
     .then((StoryCollection) => {
       const mongoSearchFilter: InternalStorySearchFilter = {};
@@ -194,7 +194,7 @@ export const storyDBActions = {
   /**
    * Creates a new story for the user.
    */
-  createNewStory: (userID: MongoID, newStory: NewStory): Promise<{ targetID: MongoObjectID }> => {
+  createNewStory: (userID: MongoID, newStory: NewStory): Promise<TargetID> => {
     return kleen.validModel(newStorySchema)(newStory)
     .then(() => {
       return collection("stories");
@@ -221,7 +221,7 @@ export const storyDBActions = {
    * Updates the information connected to a story. This will only allow the
    * author to edit the information.
    */
-  updateStoryInfo: (userID: MongoID, storyID: MongoID, editedInfo: NewStory): Promise<{ targetID: MongoObjectID }> => {
+  updateStoryInfo: (userID: MongoID, storyID: MongoID, editedInfo: NewStory): Promise<TargetID> => {
     return kleen.validModel(newStorySchema)(editedInfo)
     .then(() => {
       return collection('stories')

@@ -1,16 +1,36 @@
 /// Module for all typings specific to the app.
 
 import { ObjectID } from "mongodb";
-import { Handler } from "express";
+import { Request, Response, NextFunction } from "express";
 
+/**
+ * To make the code more clear, we have route handlers return a promise to their
+ * value, if the handler resolves then we 200 the result back to the server, if
+ * it errors we 400 the error back to the server.
+ */
+export type RouteHandler = (req: Request, res: Response, next: NextFunction) => Promise<any>;
 
 /**
  * Format of the application's routes.
  */
 export interface AppRoutes {
   [routeUrl: string]: {
-    [methodType: string]: Handler;
+    [methodType: string]: RouteHandler;
   }
+}
+
+/**
+ * Often used in responses when we just want to return an ID.
+ */
+export interface TargetID {
+  targetID: MongoObjectID;
+}
+
+/**
+ * A basic response containing just a message.
+ */
+export interface BasicResponse {
+  message: string;
 }
 
 /**

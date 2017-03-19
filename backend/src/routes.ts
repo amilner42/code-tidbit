@@ -1,72 +1,17 @@
 /// Module for encapsaluting all routes for the API. Any complex logic in here
 /// should be moved to a seperate module.
 
-import { Response } from "express";
-import * as kleen from "kleen";
 import passport from 'passport';
 
 import { completedDBActions } from "./models/completed.model";
 import { User, userDBActions, prepareUserForResponse } from './models/user.model';
 import { Snipbit, snipbitDBActions } from './models/snipbit.model';
 import { Bigbit, bigbitDBActions } from './models/bigbit.model';
-import { NewStory, storyDBActions } from "./models/story.model";
-import { tidbitDBActions } from './models/tidbit.model';
-import { AppRoutes, AppRoutesAuth, FrontendError } from './types';
+import { Story, NewStory, ExpandedStory, storyDBActions } from "./models/story.model";
+import { Tidbit, tidbitDBActions } from './models/tidbit.model';
+import { AppRoutes, AppRoutesAuth, FrontendError, TargetID, ErrorCode, BasicResponse } from './types';
 import { internalError } from './util';
 
-
-/**
- * Use in catch-blocks (eg. `.catch(handleError(res))`) to check and then send
- * outgoing errors. Will make sure all outgoing errors have the `FrontendError`
- * format.
- */
-const handleError = (res: Response): ((error: FrontendError) => Promise<void>) => {
-  // Kleen schema for a FrontendError.
-  const frontendErrorScheme: kleen.typeSchema = {
-    objectProperties: {
-        "errorCode": {
-            primitiveType: kleen.kindOfPrimitive.number
-        },
-        "message": {
-            primitiveType: kleen.kindOfPrimitive.string
-        },
-    }
-  };
-
-  return (error) => {
-    return kleen.validModel(frontendErrorScheme)(error)
-    .then(() => {
-      res.status(400).json(error);
-    })
-    .catch(() => {
-      console.log("[LOG] Unknown error: " + error);
-
-      res.status(400).json(
-        internalError("An unknown internal error occured...")
-      );
-    });
-  };
-};
-
-/**
- * Sends the success object back to the server with a 200 status.
- */
-const handleSuccess =  (res: Response): ((successObj) => void) => {
-  return (successObj) => {
-    res.status(200).json(successObj);
-  }
-};
-
-/**
- * Handles an action where we want to send the result object back to the server
- * directly upon success and we want to send a proper error message back to the
- * server upon failure.
- */
-const handleAction = <successObj>(res: Response): ((action: Promise<successObj>) => Promise<void>) => {
-  return (action) => {
-    return action.then(handleSuccess(res)).catch(handleError(res));
-  }
-};
 
 /**
  * A dictionary matching the same format as `routes` that specifies whether
@@ -94,34 +39,34 @@ export const routes: AppRoutes = {
     /**
      * Register a user for the application, requires a username and password.
      */
-    post: (req, res, next) => {
+    post: (req, res, next): Promise<User> => {
 
-      passport.authenticate('sign-up', (err, user, info) => {
-        // A 500-like error.
-        if(err) {
-          next(err);
-          return;
-        }
+      return new Promise<User>((resolve, reject) => {
 
-        // If no user an error must have occured.
-        if(!user) {
-          res.status(400).json(
-            { message: info.message, errorCode: info.errorCode }
-          );
-          return;
-        }
-
-        // Log user in.
-        req.login(user, (err) => {
+        passport.authenticate('sign-up', (err, user, info) => {
+          // A 500-like error.
           if(err) {
-            next(err);
+            reject(internalError("There was an internal error signing-up (phase-1)"));
             return;
           }
 
-          res.status(201).json(prepareUserForResponse(user));
-          return;
-        });
-      })(req, res, next);
+          // If no user an error must have occured.
+          if(!user) {
+            reject({ errorCode: info.errorCode, message: info.message });
+            return;
+          }
+
+          // Log user in.
+          req.login(user, (err) => {
+            if(err) {
+              reject(internalError("There was an internal error signing-up (phase-2)"));
+              return;
+            }
+
+            resolve(prepareUserForResponse(user));
+          });
+        })(req, res, next);
+      });
     }
   },
 
@@ -129,32 +74,34 @@ export const routes: AppRoutes = {
     /**
      * Logs a user in and returns the user or a standard error + code.
      */
-    post: (req, res, next) => {
-      passport.authenticate('login', (err, user, info) => {
-        // A 500-like error
-        if (err) {
-          next(err);
-          return;
-        }
+    post: (req, res, next): Promise<User> => {
 
-        // If no user an error must have occured.
-        if (!user) {
-          res.status(400).json(
-            { message: info.message, errorCode: info.errorCode }
-          );
-          return;
-        }
+      return new Promise<User>((resolve, reject) => {
 
-        // Log user in.
-        req.login(user, (err) => {
+        passport.authenticate('login', (err, user, info) => {
+          // A 500-like error
           if (err) {
-            return next(err);
+            reject(internalError("There was an internal error logging-in (phase 1)"));
+            return;
           }
 
-          res.status(200).json(prepareUserForResponse(user));
-          return;
-        });
-      })(req, res, next);
+          // If no user an error must have occured.
+          if (!user) {
+            reject({ message: info.message, errorCode: info.errorCode });
+            return;
+          }
+
+          // Log user in.
+          req.login(user, (err) => {
+            if (err) {
+              reject(internalError("There was an internal error logging-in (phase 2)"));
+              return;
+            }
+
+            resolve(prepareUserForResponse(user));
+          });
+        })(req, res, next);
+      });
     }
   },
 
@@ -162,16 +109,19 @@ export const routes: AppRoutes = {
     /**
      * Logs the user out and clears the session cookie.
      */
-    get: (req, res) => {
-      // req.logout();
-      // http://stackoverflow.com/questions/13758207/why-is-passportjs-in-node-not-removing-session-on-logout
-      req.session.destroy(function (err) {
-        if(err) {
-          console.log("Err removing session, ", err);
-        }
-        res.clearCookie('connect.sid');
-        res.status(200).json({message: "Successfully logged out"});
-        return;
+    get: (req, res): Promise<BasicResponse> => {
+
+      return new Promise<BasicResponse>((resolve, reject) => {
+        // req.logout();
+        // http://stackoverflow.com/questions/13758207/why-is-passportjs-in-node-not-removing-session-on-logout
+        req.session.destroy(function (err) {
+          if(err) {
+            reject(internalError("Error removing session"));
+            return;
+          }
+          res.clearCookie('connect.sid');
+          resolve({ message: "Successfully logged out" });
+        });
       });
     }
   },
@@ -180,19 +130,18 @@ export const routes: AppRoutes = {
     /**
      * Returns the users account with sensitive data stripped.
      */
-    get: (req, res, next) => {
-      res.status(200).json(prepareUserForResponse(req.user));
-      return;
+    get: (req, res, next): Promise<User> => {
+      return Promise.resolve(prepareUserForResponse(req.user));
     },
 
     /**
      * Updates the user and returns the new updated user.
      */
-    post: (req, res) => {
+    post: (req, res): Promise<User> => {
       const userUpdateObject = req.body;
       const userID = req.user._id;
 
-      handleAction(res)(userDBActions.updateUser(userID, userUpdateObject));
+      return userDBActions.updateUser(userID, userUpdateObject);
     }
   },
 
@@ -201,11 +150,11 @@ export const routes: AppRoutes = {
      * Adds the tidbit as completed for the logged-in user, if it's already
      * completed no changes are made.
      */
-    post: (req, res) => {
+    post: (req, res): Promise<TargetID> => {
       const userID = req.user._id;
       const completed = req.body;
 
-      handleAction(res)(completedDBActions.addCompleted(completed, userID));
+      return completedDBActions.addCompleted(completed, userID);
     }
   },
 
@@ -215,11 +164,11 @@ export const routes: AppRoutes = {
      * changes are made if the tidbit wasn't in the completed table to begin
      * with.
      */
-    post: (req, res) => {
+    post: (req, res): Promise<boolean> => {
       const userID = req.user._id;
       const completed = req.body;
 
-      handleAction(res)(completedDBActions.removeCompleted(completed, userID));
+      return completedDBActions.removeCompleted(completed, userID);
     }
   },
 
@@ -227,11 +176,11 @@ export const routes: AppRoutes = {
     /**
      * Checks if a tidbit is completed for the logged-in user.
      */
-    post: (req, res) => {
+    post: (req, res): Promise<boolean> => {
       const userID = req.user._id;
       const completed = req.body;
 
-      handleAction(res)(completedDBActions.isCompleted(completed, userID));
+      return completedDBActions.isCompleted(completed, userID);
     }
   },
 
@@ -239,21 +188,21 @@ export const routes: AppRoutes = {
     /**
      * Gets snipbits, customizable through query params.
      */
-    get: (req, res) => {
+    get: (req, res): Promise<Snipbit[]> => {
       const queryParams = req.query;
       const forUser = queryParams.forUser;
 
-      handleAction(res)(snipbitDBActions.getSnipbits({ forUser }));
+      return snipbitDBActions.getSnipbits({ forUser });
     },
 
     /**
      * Creates a new snipbit for the logged-in user.
      */
-    post: (req, res) => {
+    post: (req, res): Promise<TargetID> => {
       const userID = req.user._id;
       const snipbit = req.body;
 
-      handleAction(res)(snipbitDBActions.addNewSnipbit(userID, snipbit));
+      return snipbitDBActions.addNewSnipbit(userID, snipbit);
     }
   },
 
@@ -261,21 +210,21 @@ export const routes: AppRoutes = {
     /**
      * Gets bigbits, customizable through query params.
      */
-    get: (req, res) => {
+    get: (req, res): Promise<Bigbit[]> => {
       const queryParams = req.query;
       const forUser = queryParams.forUser;
 
-      handleAction(res)(bigbitDBActions.getBigbits({ forUser }));
+      return bigbitDBActions.getBigbits({ forUser });
     },
 
     /**
      * Creates a new snipbit for the logged-in user.
      */
-    post: (req, res) => {
+    post: (req, res): Promise<TargetID> => {
       const userID = req.user._id;
       const bigbit = req.body;
 
-      handleAction(res)(bigbitDBActions.addNewBigbit(userID, bigbit));
+      return bigbitDBActions.addNewBigbit(userID, bigbit);
     }
   },
 
@@ -283,11 +232,11 @@ export const routes: AppRoutes = {
     /**
      * Gets a snipbit.
      */
-    get: (req, res) => {
+    get: (req, res): Promise<Snipbit> => {
       const params = req.params;
       const snipbitID = params["id"];
 
-      handleAction(res)(snipbitDBActions.getSnipbit(snipbitID));
+      return snipbitDBActions.getSnipbit(snipbitID);
     }
   },
 
@@ -295,11 +244,11 @@ export const routes: AppRoutes = {
     /**
      * Gets a bigbit.
      */
-    get: (req, res) => {
+    get: (req, res): Promise<Bigbit> => {
       const params = req.params;
       const bigbitID = params["id"];
 
-      handleAction(res)(bigbitDBActions.getBigbit(bigbitID));
+      return bigbitDBActions.getBigbit(bigbitID);
     }
   },
 
@@ -308,22 +257,22 @@ export const routes: AppRoutes = {
     /**
      * Get's stories, can customize query through query-params.
      */
-    get: (req, res) => {
+    get: (req, res): Promise<Story[]> => {
       const userID = req.user._id;
       const queryParams = req.query;
       const author = queryParams.author;
 
-      handleAction(res)(storyDBActions.getStories({ author }));
+      return storyDBActions.getStories({ author });
     },
 
     /**
      * For creating a new story for the given user.
      */
-    post: (req, res) => {
+    post: (req, res): Promise<TargetID> => {
       const newStory: NewStory  = req.body;
       const userID = req.user._id;
 
-      handleAction(res)(storyDBActions.createNewStory(userID, newStory));
+      return storyDBActions.createNewStory(userID, newStory);
     }
   },
 
@@ -331,7 +280,7 @@ export const routes: AppRoutes = {
     /**
      * Gets a story from the db, customizable through query params.
      */
-    get: (req, res) => {
+    get: (req, res): Promise<Story | ExpandedStory> => {
       const params = req.params;
       const storyID = params.id;
       const queryParams = req.query;
@@ -339,7 +288,7 @@ export const routes: AppRoutes = {
       const withCompleted = !!queryParams.withCompleted;
       const userID = req.user ? req.user._id : null;
 
-      handleAction(res)(storyDBActions.getStory(storyID, expandStory, withCompleted ? userID : null ));
+      return storyDBActions.getStory(storyID, expandStory, withCompleted ? userID : null );
     }
   },
 
@@ -347,13 +296,13 @@ export const routes: AppRoutes = {
     /**
      * Updates the basic information connected to a story.
      */
-    post: (req, res) => {
+    post: (req, res): Promise<TargetID> => {
       const params = req.params;
       const storyID = params.id;
       const userID = req.user._id;
       const editedInfo = req.body;
 
-      handleAction(res)(storyDBActions.updateStoryInfo(userID, storyID, editedInfo));
+      return storyDBActions.updateStoryInfo(userID, storyID, editedInfo);
     }
   },
 
@@ -361,13 +310,13 @@ export const routes: AppRoutes = {
     /**
      * Adds tidbits to an existing story.
      */
-    post: (req, res) => {
+    post: (req, res): Promise<ExpandedStory> => {
       const params = req.params;
       const storyID = params.id;
       const userID = req.user._id;
       const newStoryTidbitPointers = req.body;
 
-      handleAction(res)(storyDBActions.addTidbitPointersToStory(userID, storyID, newStoryTidbitPointers));
+      return storyDBActions.addTidbitPointersToStory(userID, storyID, newStoryTidbitPointers);
     }
   },
 
@@ -375,11 +324,11 @@ export const routes: AppRoutes = {
     /**
      * Gets all the tidbits, customizable through query params.
      */
-    get: (req, res) => {
+    get: (req, res): Promise<Tidbit[]> => {
       const queryParams = req.query;
       const forUser = queryParams.forUser;
 
-      handleAction(res)(tidbitDBActions.getTidbits({ forUser }));
+      return tidbitDBActions.getTidbits({ forUser });
     }
   }
 }

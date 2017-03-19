@@ -5,7 +5,7 @@ import moment from 'moment';
 
 import { malformedFieldError, isNullOrUndefined } from '../util';
 import { collection, renameIDField, toMongoObjectID } from '../db';
-import { MongoID, MongoObjectID, ErrorCode, Language } from '../types';
+import { MongoID, MongoObjectID, ErrorCode, Language, TargetID } from '../types';
 import { Range, emptyRange } from './range.model';
 import * as KS from './kleen-schemas';
 
@@ -164,7 +164,7 @@ export const snipbitDBActions = {
    * Adds a new snipbit for a user. Handles all logic of converting snipbits to
    * proper format (attaching an author, converting languages).
    */
-  addNewSnipbit: (userID: MongoID, snipbit: Snipbit): Promise<{ targetID: MongoObjectID }> => {
+  addNewSnipbit: (userID: MongoID, snipbit: Snipbit): Promise<TargetID> => {
     return validifyAndUpdateSnipbit(snipbit)
     .then((updatedSnipbit: Snipbit) => {
       const dateNow = moment.utc().toDate();

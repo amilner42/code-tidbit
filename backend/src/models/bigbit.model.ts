@@ -5,7 +5,7 @@ import moment from 'moment';
 
 import { malformedFieldError, asyncIdentity, isNullOrUndefined } from '../util';
 import { collection, renameIDField, toMongoObjectID } from '../db';
-import { MongoID, MongoObjectID, ErrorCode, Language } from '../types';
+import { MongoID, MongoObjectID, ErrorCode, Language, TargetID } from '../types';
 import { Range } from './range.model';
 import { FileStructure, metaMap, swapPeriodsWithStars } from './file-structure.model';
 import * as KS from './kleen-schemas';
@@ -209,7 +209,7 @@ export const bigbitDBActions = {
    * changing the languages to the IDs and renaming files/folders to avoid
    * having a "." in them.
    */
-  addNewBigbit: (userID: MongoID, bigbit: Bigbit): Promise<{ targetID: MongoObjectID }> => {
+  addNewBigbit: (userID: MongoID, bigbit: Bigbit): Promise<TargetID> => {
     return validifyAndUpdateBigbit(bigbit)
     .then((updatedBigbit: Bigbit) => {
       const dateNow = moment.utc().toDate();

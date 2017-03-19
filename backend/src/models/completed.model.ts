@@ -3,7 +3,7 @@
 import * as kleen from "kleen";
 
 import { TidbitPointer, tidbitPointerSchema } from "./tidbit.model";
-import { MongoID, MongoObjectID, ErrorCode } from '../types';
+import { MongoID, MongoObjectID, ErrorCode, TargetID } from '../types';
 import { mongoStringIDSchema } from './kleen-schemas';
 import { collection, toMongoObjectID, sameID } from '../db';
 import { malformedFieldError } from '../util';
@@ -69,7 +69,7 @@ export const completedDBActions = {
    * Marks a tidbit as completed for a user. Does validation and permission
    * checks.
    */
-  addCompleted: (completed: Completed, userMakingRequest: MongoID): Promise<{ targetID: MongoObjectID }> => {
+  addCompleted: (completed: Completed, userMakingRequest: MongoID): Promise<TargetID> => {
     return validCompletedAndUserPermission(completed, userMakingRequest)
     .then(() => {
       return collection("completed");
