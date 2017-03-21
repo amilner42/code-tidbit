@@ -7,10 +7,6 @@ import DefaultServices.Util as Util exposing (maybeMapWithDefault)
 import Date
 import Dict
 import Elements.Editor as Editor
-import Json.Encode as Encode
-import Json.Decode as Decode
-import Json.Decode.Pipeline exposing (decode, required, optional, hardcoded)
-import Models.HighlightedComment as HighlightedComment
 import Elements.FileStructure as FS
 import Models.Range as Range
 import Models.Route as Route
@@ -34,78 +30,6 @@ type alias Bigbit =
     }
 
 
-{-| Bigbit encoder.
--}
-bigbitEncoder : Bigbit -> Encode.Value
-bigbitEncoder bigbit =
-    let
-        encodeFS fs =
-            FS.encodeFS
-                (\fsMetadata ->
-                    Encode.object
-                        [ ( "openFS", Encode.bool fsMetadata.openFS ) ]
-                )
-                (\folderMetadata ->
-                    Encode.object
-                        [ ( "isExpanded", Encode.bool folderMetadata.isExpanded ) ]
-                )
-                (\fileMetadata ->
-                    Encode.object
-                        [ ( "language", Editor.languageCacheEncoder fileMetadata.language ) ]
-                )
-                fs
-    in
-        Encode.object
-            [ ( "name", Encode.string bigbit.name )
-            , ( "description", Encode.string bigbit.description )
-            , ( "tags", Encode.list <| List.map Encode.string bigbit.tags )
-            , ( "introduction", Encode.string bigbit.introduction )
-            , ( "conclusion", Encode.string bigbit.conclusion )
-            , ( "fs", encodeFS bigbit.fs )
-            , ( "highlightedComments"
-              , Encode.array <|
-                    Array.map
-                        bigbitHighlightedCommentForPublicationCacheEncoder
-                        bigbit.highlightedComments
-              )
-            , ( "author", Encode.string bigbit.author )
-            , ( "id", Encode.string bigbit.id )
-            , ( "createdAt", Util.dateEncoder bigbit.createdAt )
-            , ( "lastModified", Util.dateEncoder bigbit.lastModified )
-            ]
-
-
-{-| Bigbit decoder.
--}
-bigbitDecoder : Decode.Decoder Bigbit
-bigbitDecoder =
-    let
-        decodeFS =
-            FS.decodeFS
-                (decode (\isOpen -> { openFS = isOpen })
-                    |> optional "openFS" Decode.bool False
-                )
-                (decode (\isExpanded -> { isExpanded = isExpanded })
-                    |> optional "isExpanded" Decode.bool True
-                )
-                (decode BigbitCreateDataFileMetadata
-                    |> required "language" Editor.languageCacheDecoder
-                )
-    in
-        decode Bigbit
-            |> required "name" Decode.string
-            |> required "description" Decode.string
-            |> required "tags" (Decode.list Decode.string)
-            |> required "introduction" Decode.string
-            |> required "conclusion" Decode.string
-            |> required "fs" decodeFS
-            |> required "highlightedComments" (Decode.array bigbitHighlightedCommentForPublicationCacheDecoder)
-            |> required "author" Decode.string
-            |> required "id" Decode.string
-            |> required "createdAt" Util.dateDecoder
-            |> required "lastModified" Util.dateDecoder
-
-
 {-| Basic union to keep track of the current state of the action buttons in
 the file structure.
 -}
@@ -114,39 +38,6 @@ type FSActionButtonState
     | AddingFile
     | RemovingFolder
     | RemovingFile
-
-
-{-| FSActionButtonState `cacheEncoder`.
--}
-fsActionButtonStateCacheEncoder : FSActionButtonState -> Encode.Value
-fsActionButtonStateCacheEncoder =
-    toString >> Encode.string
-
-
-{-| FSActionButtonState `cacheDecoder`.
--}
-fsActionButtonStateCacheDecoder : Decode.Decoder FSActionButtonState
-fsActionButtonStateCacheDecoder =
-    let
-        fromStringDecoder encodedActionState =
-            case encodedActionState of
-                "AddingFile" ->
-                    Decode.succeed AddingFile
-
-                "AddingFolder" ->
-                    Decode.succeed AddingFolder
-
-                "RemovingFile" ->
-                    Decode.succeed RemovingFile
-
-                "RemovingFolder" ->
-                    Decode.succeed RemovingFolder
-
-                _ ->
-                    Decode.fail <| "Not a valid encoded action state: " ++ encodedActionState
-    in
-        Decode.string
-            |> Decode.andThen fromStringDecoder
 
 
 {-| A full bigbit ready for publication.
@@ -160,37 +51,6 @@ type alias BigbitForPublication =
     , fs : FS.FileStructure () () { language : Editor.Language }
     , highlightedComments : List BigbitHighlightedCommentForPublication
     }
-
-
-{-| BigbitForPublication `encoder`.
--}
-bigbitForPublicationEncoder : BigbitForPublication -> Encode.Value
-bigbitForPublicationEncoder bigbit =
-    let
-        encodeFS fs =
-            FS.encodeFS
-                (always <| Encode.object [])
-                (always <| Encode.object [])
-                (\fileMetadata ->
-                    Encode.object
-                        [ ( "language", Editor.languageCacheEncoder fileMetadata.language ) ]
-                )
-                fs
-    in
-        Encode.object
-            [ ( "name", Encode.string bigbit.name )
-            , ( "description", Encode.string bigbit.description )
-            , ( "tags", Encode.list <| List.map Encode.string bigbit.tags )
-            , ( "introduction", Encode.string bigbit.introduction )
-            , ( "conclusion", Encode.string bigbit.conclusion )
-            , ( "fs", encodeFS bigbit.fs )
-            , ( "highlightedComments"
-              , Encode.list <|
-                    List.map
-                        bigbitHighlightedCommentForPublicationCacheEncoder
-                        bigbit.highlightedComments
-              )
-            ]
 
 
 {-| The metadata connected to the FS.
@@ -227,27 +87,6 @@ type alias BigbitHighlightedCommentForPublication =
     }
 
 
-{-| BigbitHighlightedCommentForPublication `cacheEncoder`.
--}
-bigbitHighlightedCommentForPublicationCacheEncoder : BigbitHighlightedCommentForPublication -> Encode.Value
-bigbitHighlightedCommentForPublicationCacheEncoder hc =
-    Encode.object
-        [ ( "comment", Encode.string hc.comment )
-        , ( "range", Range.rangeCacheEncoder hc.range )
-        , ( "file", Encode.string hc.file )
-        ]
-
-
-{-| BigbitHighlightedCommentForPublication `cacheDecoder`.
--}
-bigbitHighlightedCommentForPublicationCacheDecoder : Decode.Decoder BigbitHighlightedCommentForPublication
-bigbitHighlightedCommentForPublicationCacheDecoder =
-    decode BigbitHighlightedCommentForPublication
-        |> required "comment" Decode.string
-        |> required "range" Range.rangeCacheDecoder
-        |> required "file" Decode.string
-
-
 {-| The highlighted comments on bigbits are different than regular highlighted
 comments (`Models/HighlightedComment`) because they also need to point to a
 file.
@@ -266,51 +105,6 @@ type alias FileAndRange =
     }
 
 
-{-| Creates an empty highlighted comment.
--}
-emptyBigbitHighlightCommentForCreate : BigbitHighlightedCommentForCreate
-emptyBigbitHighlightCommentForCreate =
-    { comment = ""
-    , fileAndRange = Nothing
-    }
-
-
-{-| BigbitHighlightedCommentForCreate `cacheEncoder`.
--}
-bigbitHighlightedCommentForCreateCacheEncoder : BigbitHighlightedCommentForCreate -> Encode.Value
-bigbitHighlightedCommentForCreateCacheEncoder hc =
-    Encode.object
-        [ ( "comment", Encode.string hc.comment )
-        , ( "fileAndRange"
-          , Util.justValueOrNull
-                (\fileAndRange ->
-                    Encode.object
-                        [ ( "range", Util.justValueOrNull Range.rangeCacheEncoder fileAndRange.range )
-                        , ( "file", Encode.string fileAndRange.file )
-                        ]
-                )
-                hc.fileAndRange
-          )
-        ]
-
-
-{-| BigbitHighlightedCommentForCreate `cacheDecoder`.
--}
-bigbitHighlightedCommentForCreateCacheDecoder : Decode.Decoder BigbitHighlightedCommentForCreate
-bigbitHighlightedCommentForCreateCacheDecoder =
-    let
-        decodeFileAndRange =
-            Decode.maybe
-                (decode FileAndRange
-                    |> required "range" (Decode.maybe Range.rangeCacheDecoder)
-                    |> required "file" Decode.string
-                )
-    in
-        decode BigbitHighlightedCommentForCreate
-            |> required "comment" Decode.string
-            |> required "fileAndRange" decodeFileAndRange
-
-
 {-| The data being stored for a bigbit being created.
 -}
 type alias BigbitCreateData =
@@ -324,77 +118,6 @@ type alias BigbitCreateData =
     , highlightedComments : Array.Array BigbitHighlightedCommentForCreate
     , previewMarkdown : Bool
     }
-
-
-{-| BigbitCreateData `cacheEncoder`.
--}
-bigbitCreateDataCacheEncoder : BigbitCreateData -> Encode.Value
-bigbitCreateDataCacheEncoder bigbitCreateData =
-    let
-        encodeFS =
-            FS.encodeFS
-                (\fsMetadata ->
-                    Encode.object
-                        [ ( "activeFile", Util.justValueOrNull Encode.string fsMetadata.activeFile )
-                        , ( "openFS", Encode.bool fsMetadata.openFS )
-                        , ( "actionButtonState", Util.justValueOrNull fsActionButtonStateCacheEncoder fsMetadata.actionButtonState )
-                        , ( "actionButtonInput", Encode.string fsMetadata.actionButtonInput )
-                        , ( "actionButtonSubmitConfirmed", Encode.bool fsMetadata.actionButtonSubmitConfirmed )
-                        ]
-                )
-                (\folderMetadata ->
-                    Encode.object
-                        [ ( "isExpanded", Encode.bool folderMetadata.isExpanded ) ]
-                )
-                (\fileMetadata ->
-                    Encode.object
-                        [ ( "language", Editor.languageCacheEncoder fileMetadata.language ) ]
-                )
-    in
-        Encode.object
-            [ ( "name", Encode.string bigbitCreateData.name )
-            , ( "description", Encode.string bigbitCreateData.description )
-            , ( "tags", Encode.list <| List.map Encode.string bigbitCreateData.tags )
-            , ( "tagInput", Encode.string bigbitCreateData.tagInput )
-            , ( "introduction", Encode.string bigbitCreateData.introduction )
-            , ( "conclusion", Encode.string bigbitCreateData.conclusion )
-            , ( "fs", encodeFS bigbitCreateData.fs )
-            , ( "highlightedComments", Encode.array <| Array.map bigbitHighlightedCommentForCreateCacheEncoder bigbitCreateData.highlightedComments )
-            , ( "previewMarkdown", Encode.bool bigbitCreateData.previewMarkdown )
-            ]
-
-
-{-| BigbitCreateData `cacheDecoder`.
--}
-bigbitCreateDataCacheDecoder : Decode.Decoder BigbitCreateData
-bigbitCreateDataCacheDecoder =
-    let
-        decodeFS =
-            FS.decodeFS
-                (decode BigbitCreateDataFSMetadata
-                    |> required "activeFile" (Decode.maybe Decode.string)
-                    |> required "openFS" Decode.bool
-                    |> required "actionButtonState" (Decode.maybe fsActionButtonStateCacheDecoder)
-                    |> required "actionButtonInput" Decode.string
-                    |> required "actionButtonSubmitConfirmed" Decode.bool
-                )
-                (decode BigbitCreateDataFolderMetadata
-                    |> required "isExpanded" Decode.bool
-                )
-                (decode BigbitCreateDataFileMetadata
-                    |> required "language" Editor.languageCacheDecoder
-                )
-    in
-        decode BigbitCreateData
-            |> required "name" Decode.string
-            |> required "description" Decode.string
-            |> required "tags" (Decode.list Decode.string)
-            |> required "tagInput" Decode.string
-            |> required "introduction" Decode.string
-            |> required "conclusion" Decode.string
-            |> required "fs" decodeFS
-            |> required "highlightedComments" (Decode.array bigbitHighlightedCommentForCreateCacheDecoder)
-            |> required "previewMarkdown" Decode.bool
 
 
 {-| Possible errors with input for creating a file.
@@ -431,6 +154,15 @@ type InvalidRemoveFolderName
     = RemoveFolderIsEmpty
     | RemoveFolderIsRootFolder
     | RemoveFolderDoesNotExist
+
+
+{-| Creates an empty highlighted comment.
+-}
+emptyBigbitHighlightCommentForCreate : BigbitHighlightedCommentForCreate
+emptyBigbitHighlightCommentForCreate =
+    { comment = ""
+    , fileAndRange = Nothing
+    }
 
 
 {-| Checks if the path has invalid characters.

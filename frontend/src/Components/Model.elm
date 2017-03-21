@@ -7,6 +7,10 @@ import Elements.Editor as Editor
 import Json.Encode as Encode
 import Json.Decode as Decode
 import Json.Decode.Pipeline exposing (decode, required, optional, hardcoded)
+import JSON.User
+import JSON.Route
+import JSON.Story
+import JSON.Tidbit
 import Models.Route as Route
 import Models.Story as Story
 import Models.User as User
@@ -116,13 +120,13 @@ cacheEncoder model =
 sharedCacheDecoder : Decode.Decoder Shared
 sharedCacheDecoder =
     decode Shared
-        |> required "user" (Decode.maybe (User.cacheDecoder))
-        |> required "route" Route.cacheDecoder
+        |> required "user" (Decode.maybe JSON.User.decoder)
+        |> required "route" JSON.Route.decoder
         |> required "languages" (Decode.succeed Editor.humanReadableListOfLanguages)
         |> required "keysDown" (Decode.succeed KK.init)
-        |> required "userStories" (Decode.maybe <| Decode.list Story.decoder)
-        |> required "userTidbits" (Decode.maybe <| Decode.list Tidbit.decoder)
-        |> required "viewingStory" (Decode.maybe <| Story.expandedStoryDecoder)
+        |> required "userStories" (Decode.maybe <| Decode.list JSON.Story.decoder)
+        |> required "userTidbits" (Decode.maybe <| Decode.list JSON.Tidbit.decoder)
+        |> required "viewingStory" (Decode.maybe <| JSON.Story.expandedStoryDecoder)
 
 
 {-| Shared `cacheEncoder`.
@@ -130,11 +134,11 @@ sharedCacheDecoder =
 sharedCacheEncoder : Shared -> Encode.Value
 sharedCacheEncoder shared =
     Encode.object
-        [ ( "user", justValueOrNull User.cacheEncoder shared.user )
-        , ( "route", Route.cacheEncoder shared.route )
+        [ ( "user", justValueOrNull JSON.User.safeEncoder shared.user )
+        , ( "route", JSON.Route.encoder shared.route )
         , ( "languages", Encode.null )
         , ( "keysDown", Encode.null )
-        , ( "userStories", justValueOrNull (Encode.list << List.map Story.encoder) shared.userStories )
-        , ( "userTidbits", justValueOrNull (Encode.list << List.map Tidbit.encoder) shared.userTidbits )
-        , ( "viewingStory", justValueOrNull Story.expandedStoryEncoder shared.viewingStory )
+        , ( "userStories", justValueOrNull (Encode.list << List.map JSON.Story.encoder) shared.userStories )
+        , ( "userTidbits", justValueOrNull (Encode.list << List.map JSON.Tidbit.encoder) shared.userTidbits )
+        , ( "viewingStory", justValueOrNull JSON.Story.expandedStoryEncoder shared.viewingStory )
         ]

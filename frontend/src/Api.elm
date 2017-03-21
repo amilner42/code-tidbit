@@ -5,6 +5,15 @@ import DefaultServices.Util as Util
 import Json.Decode as Decode
 import Json.Encode as Encode
 import Json.Decode.Pipeline exposing (decode, required, optional, hardcoded)
+import JSON.BasicResponse
+import JSON.Bigbit
+import JSON.Completed
+import JSON.IDResponse
+import JSON.User
+import JSON.Story
+import JSON.Snipbit
+import JSON.Tidbit
+import JSON.TidbitPointer
 import Models.ApiError as ApiError
 import Models.BasicResponse as BasicResponse
 import Models.Bigbit as Bigbit
@@ -42,7 +51,7 @@ apiPost url =
 -}
 getAccount : (ApiError.ApiError -> b) -> (User.User -> b) -> Cmd b
 getAccount =
-    apiGet "account" User.decoder
+    apiGet "account" JSON.User.decoder
 
 
 {-| Gets all the stories, you can use query params to customize the search.
@@ -52,7 +61,7 @@ getStories : List ( String, Maybe String ) -> (ApiError.ApiError -> b) -> (List 
 getStories queryParams =
     apiGet
         ("stories" ++ Util.queryParamsToString queryParams)
-        (Decode.list <| Story.decoder)
+        (Decode.list <| JSON.Story.decoder)
 
 
 {-| Gets a single story.
@@ -61,7 +70,7 @@ getStory : String -> (ApiError.ApiError -> b) -> (Story.Story -> b) -> Cmd b
 getStory storyID =
     apiGet
         ("stories" :/: storyID)
-        Story.decoder
+        JSON.Story.decoder
 
 
 {-| Gets a single expanded story.
@@ -70,7 +79,7 @@ getExpandedStory : String -> (ApiError.ApiError -> b) -> (Story.ExpandedStory ->
 getExpandedStory storyID =
     apiGet
         ("stories" :/: storyID ++ Util.queryParamsToString [ ( "expandStory", Just "true" ) ])
-        Story.expandedStoryDecoder
+        JSON.Story.expandedStoryDecoder
 
 
 {-| Gets a single expanded story with the completed list attached.
@@ -85,7 +94,7 @@ getExpandedStoryWithCompleted storyID =
                 , ( "withCompleted", Just "true" )
                 ]
         )
-        Story.expandedStoryDecoder
+        JSON.Story.expandedStoryDecoder
 
 
 {-| Queries the API to log the user out, which should send a response to delete
@@ -93,7 +102,7 @@ the cookies.
 -}
 getLogOut : (ApiError.ApiError -> b) -> (BasicResponse.BasicResponse -> b) -> Cmd b
 getLogOut =
-    apiGet "logOut" BasicResponse.decoder
+    apiGet "logOut" JSON.BasicResponse.decoder
 
 
 {-| For adding a slash in a URL.
@@ -107,14 +116,14 @@ getLogOut =
 -}
 getSnipbit : String -> (ApiError.ApiError -> b) -> (Snipbit.Snipbit -> b) -> Cmd b
 getSnipbit snipbitID =
-    apiGet ("snipbits" :/: snipbitID) Snipbit.snipbitDecoder
+    apiGet ("snipbits" :/: snipbitID) JSON.Snipbit.decoder
 
 
 {-| Get's a bigbit.
 -}
 getBigbit : String -> (ApiError.ApiError -> b) -> (Bigbit.Bigbit -> b) -> Cmd b
 getBigbit bigbitID =
-    apiGet ("bigbits" :/: bigbitID) Bigbit.bigbitDecoder
+    apiGet ("bigbits" :/: bigbitID) JSON.Bigbit.decoder
 
 
 {-| Gets tidbits, you can use query params to customize the search.
@@ -124,21 +133,21 @@ getTidbits : List ( String, Maybe String ) -> (ApiError.ApiError -> b) -> (List 
 getTidbits queryParams =
     apiGet
         ("tidbits" ++ (Util.queryParamsToString queryParams))
-        (Decode.list Tidbit.decoder)
+        (Decode.list JSON.Tidbit.decoder)
 
 
 {-| Logs user in and returns the user, unless invalid credentials.
 -}
 postLogin : User.UserForLogin -> (ApiError.ApiError -> b) -> (User.User -> b) -> Cmd b
 postLogin user =
-    apiPost "login" User.decoder (User.userLoginEncoder user)
+    apiPost "login" JSON.User.decoder (JSON.User.loginEncoder user)
 
 
 {-| Registers the user and returns the user, unless invalid new credentials.
 -}
 postRegister : User.UserForRegistration -> (ApiError.ApiError -> b) -> (User.User -> b) -> Cmd b
 postRegister user =
-    apiPost "register" User.decoder (User.userRegisterEncoder user)
+    apiPost "register" JSON.User.decoder (JSON.User.registerEncoder user)
 
 
 {-| Creates a new snipbit.
@@ -147,8 +156,8 @@ postCreateSnipbit : Snipbit.SnipbitForPublication -> (ApiError.ApiError -> b) ->
 postCreateSnipbit snipbit =
     apiPost
         "snipbits"
-        IDResponse.idResponseDecoder
-        (Snipbit.snipbitForPublicationEncoder snipbit)
+        JSON.IDResponse.decoder
+        (JSON.Snipbit.publicationEncoder snipbit)
 
 
 {-| Creates a new bigbit.
@@ -157,8 +166,8 @@ postCreateBigbit : Bigbit.BigbitForPublication -> (ApiError.ApiError -> b) -> (I
 postCreateBigbit bigbit =
     apiPost
         "bigbits"
-        IDResponse.idResponseDecoder
-        (Bigbit.bigbitForPublicationEncoder bigbit)
+        JSON.IDResponse.decoder
+        (JSON.Bigbit.publicationEncoder bigbit)
 
 
 {-| Updates a user.
@@ -167,8 +176,8 @@ postUpdateUser : User.UserUpdateRecord -> (ApiError.ApiError -> b) -> (User.User
 postUpdateUser updateRecord =
     apiPost
         "account"
-        User.decoder
-        (User.userUpdateRecordEncoder updateRecord)
+        JSON.User.decoder
+        (JSON.User.updateRecordEncoder updateRecord)
 
 
 {-| Creates a new story.
@@ -177,8 +186,8 @@ postCreateNewStory : Story.NewStory -> (ApiError.ApiError -> b) -> (IDResponse.I
 postCreateNewStory newStory =
     apiPost
         "stories"
-        IDResponse.idResponseDecoder
-        (Story.newStoryEncoder newStory)
+        JSON.IDResponse.decoder
+        (JSON.Story.newStoryEncoder newStory)
 
 
 {-| Updates the information for a story.
@@ -187,8 +196,8 @@ postUpdateStoryInformation : String -> Story.NewStory -> (ApiError.ApiError -> b
 postUpdateStoryInformation storyID newStoryInformation =
     apiPost
         ("stories" :/: storyID :/: "information")
-        IDResponse.idResponseDecoder
-        (Story.newStoryEncoder newStoryInformation)
+        JSON.IDResponse.decoder
+        (JSON.Story.newStoryEncoder newStoryInformation)
 
 
 {-| Updates a story with new tidbits.
@@ -197,8 +206,8 @@ postAddTidbitsToStory : String -> List TidbitPointer.TidbitPointer -> (ApiError.
 postAddTidbitsToStory storyID newTidbitPointers =
     apiPost
         ("stories" :/: storyID :/: "addTidbits")
-        Story.expandedStoryDecoder
-        (Encode.list <| List.map TidbitPointer.encoder newTidbitPointers)
+        JSON.Story.expandedStoryDecoder
+        (Encode.list <| List.map JSON.TidbitPointer.encoder newTidbitPointers)
 
 
 {-| Adds a new `Completed` to the list of things the user has completed.
@@ -207,8 +216,8 @@ postAddCompleted : Completed.Completed -> (ApiError.ApiError -> b) -> (IDRespons
 postAddCompleted completed =
     apiPost
         "account/addCompleted"
-        IDResponse.idResponseDecoder
-        (Completed.encoder completed)
+        JSON.IDResponse.decoder
+        (JSON.Completed.encoder completed)
 
 
 {-| Removes a `Completed` from the users list of completed tidbits.
@@ -218,7 +227,7 @@ postRemoveCompleted completed =
     apiPost
         "account/removeCompleted"
         Decode.bool
-        (Completed.encoder completed)
+        (JSON.Completed.encoder completed)
 
 
 {-| Checks if something is completed, does not modify the db.
@@ -228,7 +237,7 @@ postCheckCompleted completed =
     apiPost
         "account/checkCompleted"
         Decode.bool
-        (Completed.encoder completed)
+        (JSON.Completed.encoder completed)
 
 
 

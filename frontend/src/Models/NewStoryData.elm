@@ -1,9 +1,6 @@
 module Models.NewStoryData exposing (..)
 
 import DefaultServices.Util as Util
-import Json.Encode as Encode
-import Json.Decode as Decode
-import Json.Decode.Pipeline exposing (decode, required, optional, hardcoded)
 import Models.Story as Story
 
 
@@ -18,29 +15,6 @@ type alias NewStoryData =
     , tagInput : String
     , editingStoryTagInput : String
     }
-
-
-{-| NewStoryData encoder.
--}
-encoder : NewStoryData -> Encode.Value
-encoder newStoryData =
-    Encode.object
-        [ ( "newStory", Story.newStoryEncoder newStoryData.newStory )
-        , ( "editingStory", Story.encoder newStoryData.editingStory )
-        , ( "tagInput", Encode.string newStoryData.tagInput )
-        , ( "editingStoryTagInput", Encode.string newStoryData.editingStoryTagInput )
-        ]
-
-
-{-| NewStoryData decoder.
--}
-decoder : Decode.Decoder NewStoryData
-decoder =
-    decode NewStoryData
-        |> required "newStory" Story.newStoryDecoder
-        |> required "editingStory" Story.decoder
-        |> required "tagInput" Decode.string
-        |> required "editingStoryTagInput" Decode.string
 
 
 {-| Default new story data, completely empty.
