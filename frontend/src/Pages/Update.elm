@@ -1,13 +1,13 @@
-module Components.Update exposing (update, updateCacheIf)
+module Pages.Update exposing (update, updateCacheIf)
 
 import Array
 import Api
-import Components.Home.Update as HomeUpdate
-import Components.Home.Messages as HomeMessages
-import Components.Home.Model as HomeModel
-import Components.Messages exposing (Msg(..))
-import Components.Model exposing (Model, updateKeysDown, updateKeysDownWithKeys, kkUpdateWrapper)
-import Components.Welcome.Update as WelcomeUpdate
+import Pages.Home.Update as HomeUpdate
+import Pages.Home.Messages as HomeMessages
+import Pages.Home.Model as HomeModel
+import Pages.Messages exposing (Msg(..))
+import Pages.Model exposing (Model, updateKeysDown, updateKeysDownWithKeys, kkUpdateWrapper)
+import Pages.Welcome.Update as WelcomeUpdate
 import DefaultServices.LocalStorage as LocalStorage
 import DefaultServices.Util as Util exposing (maybeMapWithDefault)
 import Elements.Editor as Editor

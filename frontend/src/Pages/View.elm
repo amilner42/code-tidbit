@@ -1,11 +1,11 @@
-module Components.View exposing (view)
+module Pages.View exposing (view)
 
-import Components.Home.Model as HomeModel
-import Components.Home.View as HomeView
-import Components.Messages exposing (Msg(..))
-import Components.Model exposing (Model, Shared)
-import Components.Welcome.Model as WelcomeModel
-import Components.Welcome.View as WelcomeView
+import Pages.Home.Model as HomeModel
+import Pages.Home.View as HomeView
+import Pages.Messages exposing (Msg(..))
+import Pages.Model exposing (Model, Shared)
+import Pages.Welcome.Model as WelcomeModel
+import Pages.Welcome.View as WelcomeView
 import Html exposing (div)
 import Html.Attributes exposing (class)
 import Models.Route as Route

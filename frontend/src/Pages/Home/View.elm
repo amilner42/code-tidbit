@@ -1,11 +1,11 @@
-module Components.Home.View exposing (..)
+module Pages.Home.View exposing (..)
 
 import Array
 import Autocomplete as AC
-import Components.Home.Messages exposing (Msg(..))
-import Components.Home.Model as Model exposing (Model)
-import Components.Home.Update exposing (filterLanguagesByQuery)
-import Components.Model exposing (Shared, kkUpdateWrapper)
+import Pages.Home.Messages exposing (Msg(..))
+import Pages.Home.Model as Model exposing (Model)
+import Pages.Home.Update exposing (filterLanguagesByQuery)
+import Pages.Model exposing (Shared, kkUpdateWrapper)
 import DefaultServices.Util as Util exposing (maybeMapWithDefault)
 import DefaultServices.Editable as Editable
 import Dict

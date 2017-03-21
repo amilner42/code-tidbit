@@ -1,9 +1,9 @@
 module Subscriptions exposing (subscriptions)
 
 import Autocomplete as AC
-import Components.Home.Messages exposing (Msg(SnipbitUpdateACState))
-import Components.Messages exposing (Msg(HomeMessage, CodeEditorUpdate, CodeEditorSelectionUpdate, KeyboardExtraMessage))
-import Components.Model exposing (Model)
+import Pages.Home.Messages exposing (Msg(SnipbitUpdateACState))
+import Pages.Messages exposing (Msg(HomeMessage, CodeEditorUpdate, CodeEditorSelectionUpdate, KeyboardExtraMessage))
+import Pages.Model exposing (Model)
 import DefaultServices.LocalStorage as LocalStorage
 import Keyboard.Extra
 import Ports
@@ -11,7 +11,7 @@ import Ports
 
 {-| All the application subscriptions.
 -}
-subscriptions : Model -> Sub Components.Messages.Msg
+subscriptions : Model -> Sub Pages.Messages.Msg
 subscriptions model =
     Sub.batch
         [ Ports.onLoadModelFromLocalStorage LocalStorage.onLoadModel

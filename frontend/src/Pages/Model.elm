@@ -1,7 +1,7 @@
-module Components.Model exposing (..)
+module Pages.Model exposing (..)
 
-import Components.Home.Model as HomeModel
-import Components.Welcome.Model as WelcomeModel
+import Pages.Home.Model as HomeModel
+import Pages.Welcome.Model as WelcomeModel
 import DefaultServices.Util exposing (justValueOrNull)
 import Elements.Editor as Editor
 import Json.Encode as Encode

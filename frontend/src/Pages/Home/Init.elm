@@ -1,8 +1,8 @@
-module Components.Home.Init exposing (init)
+module Pages.Home.Init exposing (init)
 
 import Array
 import Autocomplete as AC
-import Components.Home.Model exposing (Model)
+import Pages.Home.Model exposing (Model)
 import Elements.Editor as Editor
 import Elements.FileStructure as FS
 import Models.CreateData as CreateData

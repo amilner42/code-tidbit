@@ -1,8 +1,8 @@
-module Components.Welcome.View exposing (view)
+module Pages.Welcome.View exposing (view)
 
-import Components.Model exposing (Shared)
-import Components.Welcome.Messages exposing (Msg(..))
-import Components.Welcome.Model exposing (Model)
+import Pages.Model exposing (Shared)
+import Pages.Welcome.Messages exposing (Msg(..))
+import Pages.Welcome.Model exposing (Model)
 import DefaultServices.Util as Util
 import Html exposing (Html, div, text, button, h1, input, a, img)
 import Html.Attributes exposing (class, placeholder, type_, value, hidden, disabled, classList, src)

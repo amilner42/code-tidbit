@@ -1,10 +1,10 @@
 port module Main exposing (..)
 
-import Components.Init exposing (init)
-import Components.Messages exposing (Msg(..))
-import Components.Model exposing (Model)
-import Components.Update exposing (update)
-import Components.View exposing (view)
+import Pages.Init exposing (init)
+import Pages.Messages exposing (Msg(..))
+import Pages.Model exposing (Model)
+import Pages.Update exposing (update)
+import Pages.View exposing (view)
 import Navigation
 import Subscriptions exposing (subscriptions)
 

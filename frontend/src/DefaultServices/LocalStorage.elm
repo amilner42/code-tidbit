@@ -1,7 +1,7 @@
 module DefaultServices.LocalStorage exposing (saveModel, onLoadModel, loadModel)
 
-import Components.Messages exposing (Msg(..))
-import Components.Model exposing (Model, cacheEncoder, cacheDecoder)
+import Pages.Messages exposing (Msg(..))
+import Pages.Model exposing (Model, cacheEncoder, cacheDecoder)
 import DefaultServices.Util as Util
 import Ports
 

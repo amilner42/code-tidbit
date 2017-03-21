@@ -1,4 +1,4 @@
-module Components.Welcome.Messages exposing (Msg(..))
+module Pages.Welcome.Messages exposing (Msg(..))
 
 import Models.ApiError as ApiError
 import Models.User exposing (User)

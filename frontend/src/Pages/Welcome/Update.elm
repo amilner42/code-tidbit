@@ -1,10 +1,10 @@
-module Components.Welcome.Update exposing (update)
+module Pages.Welcome.Update exposing (update)
 
 import Api
-import Components.Model exposing (Shared)
-import Components.Welcome.Init as WelcomeInit
-import Components.Welcome.Messages exposing (Msg(..))
-import Components.Welcome.Model exposing (Model)
+import Pages.Model exposing (Shared)
+import Pages.Welcome.Init as WelcomeInit
+import Pages.Welcome.Messages exposing (Msg(..))
+import Pages.Welcome.Model exposing (Model)
 import Models.ApiError as ApiError
 import Models.Route as Route
 

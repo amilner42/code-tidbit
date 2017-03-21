@@ -1,14 +1,14 @@
 module DefaultModel exposing (defaultModel, defaultShared)
 
-import Components.Home.Init as HomeInit
-import Components.Model as Model
-import Components.Welcome.Init as WelcomeInit
+import Pages.Home.Init as HomeInit
+import Pages.Model as Model
+import Pages.Welcome.Init as WelcomeInit
 import Elements.Editor as Editor
 import Models.Route as Route
 import Keyboard.Extra as KK
 
 
-{-| The default model (`Components/Model.elm`) for the application.
+{-| The default model (`Pages/Model.elm`) for the application.
 -}
 defaultModel : Model.Model
 defaultModel =

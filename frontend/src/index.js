@@ -5,9 +5,9 @@ require("./Styles/global.scss");
 require("./Styles/mixins.scss");
 require("./Styles/variables.scss");
 
-require("./Components/Styles.scss");
-require("./Components/Home/Styles.scss");
-require("./Components/Welcome/Styles.scss");
+require("./Pages/Styles.scss");
+require("./Pages/Home/Styles.scss");
+require("./Pages/Welcome/Styles.scss");
 
 require("./Elements/Editor.scss")
 require("./Elements/FileStructure.scss")

@@ -1,4 +1,4 @@
-module Components.Home.Model exposing (..)
+module Pages.Home.Model exposing (..)
 
 import Array
 import DefaultServices.Editable as Editable

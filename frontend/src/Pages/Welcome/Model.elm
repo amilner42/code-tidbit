@@ -1,4 +1,4 @@
-module Components.Welcome.Model exposing (Model, cacheEncoder, cacheDecoder)
+module Pages.Welcome.Model exposing (Model, cacheEncoder, cacheDecoder)
 
 import Json.Decode as Decode exposing (field)
 import Json.Encode as Encode

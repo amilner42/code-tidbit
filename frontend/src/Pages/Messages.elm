@@ -1,8 +1,8 @@
-module Components.Messages exposing (..)
+module Pages.Messages exposing (..)
 
-import Components.Home.Messages as HomeMessages
-import Components.Model exposing (Model)
-import Components.Welcome.Messages as WelcomeMessages
+import Pages.Home.Messages as HomeMessages
+import Pages.Model exposing (Model)
+import Pages.Welcome.Messages as WelcomeMessages
 import Keyboard.Extra
 import Models.ApiError as ApiError
 import Models.Range as Range

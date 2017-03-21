@@ -1,7 +1,7 @@
-module Components.Home.Messages exposing (Msg(..))
+module Pages.Home.Messages exposing (Msg(..))
 
 import Autocomplete as AC
-import Components.Home.Model
+import Pages.Home.Model
 import Models.ApiError as ApiError
 import Models.BasicResponse as BasicResponse
 import Models.Completed as Completed

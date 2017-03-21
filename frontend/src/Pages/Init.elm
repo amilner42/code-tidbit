@@ -1,8 +1,8 @@
-module Components.Init exposing (init)
+module Pages.Init exposing (init)
 
-import Components.Messages exposing (Msg(..))
-import Components.Model exposing (Model)
-import Components.Update exposing (updateCacheIf)
+import Pages.Messages exposing (Msg(..))
+import Pages.Model exposing (Model)
+import Pages.Update exposing (updateCacheIf)
 import DefaultModel exposing (defaultModel, defaultShared)
 import Models.Route as Route
 import Navigation

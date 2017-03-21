@@ -1,12 +1,12 @@
-module Components.Home.Update exposing (update, filterLanguagesByQuery)
+module Pages.Home.Update exposing (update, filterLanguagesByQuery)
 
 import Array
 import Api
 import Autocomplete as AC
-import Components.Home.Init as HomeInit
-import Components.Home.Messages exposing (Msg(..))
-import Components.Home.Model as Model exposing (Model)
-import Components.Model exposing (Shared)
+import Pages.Home.Init as HomeInit
+import Pages.Home.Messages exposing (Msg(..))
+import Pages.Home.Model as Model exposing (Model)
+import Pages.Model exposing (Shared)
 import Dom
 import Dict
 import DefaultModel exposing (defaultShared)
