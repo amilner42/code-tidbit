@@ -457,7 +457,7 @@ update msg model shared =
                                 ]
                 in
                     case shared.route of
-                        Route.HomeComponentCreate ->
+                        Route.CreatePage ->
                             case shared.user of
                                 -- Should never happen.
                                 Nothing ->
@@ -473,13 +473,13 @@ update msg model shared =
                                     else
                                         doNothing
 
-                        Route.HomeComponentViewSnipbitIntroduction _ mongoID ->
+                        Route.ViewSnipbitIntroductionPage _ mongoID ->
                             fetchOrRenderViewSnipbitData mongoID
 
-                        Route.HomeComponentViewSnipbitFrame _ mongoID _ ->
+                        Route.ViewSnipbitFramePage _ mongoID _ ->
                             fetchOrRenderViewSnipbitData mongoID
 
-                        Route.HomeComponentViewSnipbitConclusion _ mongoID ->
+                        Route.ViewSnipbitConclusionPage _ mongoID ->
                             fetchOrRenderViewSnipbitData mongoID
                                 |> withCmd
                                     (case ( shared.user, model.viewSnipbitData.viewingSnipbitIsCompleted ) of
@@ -497,13 +497,13 @@ update msg model shared =
                                             Cmd.none
                                     )
 
-                        Route.HomeComponentViewBigbitIntroduction _ mongoID _ ->
+                        Route.ViewBigbitIntroductionPage _ mongoID _ ->
                             fetchOrRenderViewBigbitData mongoID
 
-                        Route.HomeComponentViewBigbitFrame _ mongoID _ _ ->
+                        Route.ViewBigbitFramePage _ mongoID _ _ ->
                             fetchOrRenderViewBigbitData mongoID
 
-                        Route.HomeComponentViewBigbitConclusion _ mongoID _ ->
+                        Route.ViewBigbitConclusionPage _ mongoID _ ->
                             fetchOrRenderViewBigbitData mongoID
                                 |> withCmd
                                     (case ( shared.user, model.viewBigbitData.viewingBigbitIsCompleted ) of
@@ -521,38 +521,38 @@ update msg model shared =
                                             Cmd.none
                                     )
 
-                        Route.HomeComponentViewStory mongoID ->
+                        Route.ViewStoryPage mongoID ->
                             fetchOrRenderStory mongoID ( model, shared )
 
-                        Route.HomeComponentCreateBigbitName ->
+                        Route.CreateBigbitNamePage ->
                             focusOn "name-input"
 
-                        Route.HomeComponentCreateBigbitDescription ->
+                        Route.CreateBigbitDescriptionPage ->
                             focusOn "description-input"
 
-                        Route.HomeComponentCreateBigbitTags ->
+                        Route.CreateBigbitTagsPage ->
                             focusOn "tags-input"
 
-                        Route.HomeComponentCreateSnipbitName ->
+                        Route.CreateSnipbitNamePage ->
                             focusOn "name-input"
 
-                        Route.HomeComponentCreateSnipbitDescription ->
+                        Route.CreateSnipbitDescriptionPage ->
                             focusOn "description-input"
 
-                        Route.HomeComponentCreateSnipbitLanguage ->
+                        Route.CreateSnipbitLanguagePage ->
                             focusOn "language-query-input"
 
-                        Route.HomeComponentCreateSnipbitTags ->
+                        Route.CreateSnipbitTagsPage ->
                             focusOn "tags-input"
 
-                        Route.HomeComponentCreateSnipbitCodeIntroduction ->
+                        Route.CreateSnipbitCodeIntroductionPage ->
                             justProduceCmd <|
                                 Cmd.batch
                                     [ createCreateSnipbitEditor Nothing
                                     , Util.domFocus (\_ -> NoOp) "introduction-input"
                                     ]
 
-                        Route.HomeComponentCreateSnipbitCodeFrame frameNumber ->
+                        Route.CreateSnipbitCodeFramePage frameNumber ->
                             let
                                 -- 0 based indexing.
                                 frameIndex =
@@ -567,11 +567,11 @@ update msg model shared =
                                 if frameIndexTooLow then
                                     justProduceCmd <|
                                         Route.modifyTo
-                                            Route.HomeComponentCreateSnipbitCodeIntroduction
+                                            Route.CreateSnipbitCodeIntroductionPage
                                 else if frameIndexTooHigh then
                                     justProduceCmd <|
                                         Route.modifyTo
-                                            Route.HomeComponentCreateSnipbitCodeConclusion
+                                            Route.CreateSnipbitCodeConclusionPage
                                 else
                                     let
                                         -- Either the existing range, the range from
@@ -612,32 +612,32 @@ update msg model shared =
                                             ]
                                         )
 
-                        Route.HomeComponentCreateSnipbitCodeConclusion ->
+                        Route.CreateSnipbitCodeConclusionPage ->
                             justProduceCmd <|
                                 Cmd.batch
                                     [ createCreateSnipbitEditor Nothing
                                     , Util.domFocus (\_ -> NoOp) "conclusion-input"
                                     ]
 
-                        Route.HomeComponentCreateBigbitCodeIntroduction maybeFilePath ->
+                        Route.CreateBigbitCodeIntroductionPage maybeFilePath ->
                             justProduceCmd <|
                                 Cmd.batch
                                     [ createCreateBigbitEditorForCurrentFile
                                         Nothing
                                         maybeFilePath
-                                        (Route.HomeComponentCreateBigbitCodeIntroduction Nothing)
+                                        (Route.CreateBigbitCodeIntroductionPage Nothing)
                                     , Util.domFocus (\_ -> NoOp) "introduction-input"
                                     ]
 
-                        Route.HomeComponentCreateBigbitCodeFrame frameNumber maybeFilePath ->
+                        Route.CreateBigbitCodeFramePage frameNumber maybeFilePath ->
                             if frameNumber < 1 then
                                 justProduceCmd <|
                                     Route.modifyTo <|
-                                        Route.HomeComponentCreateBigbitCodeIntroduction Nothing
+                                        Route.CreateBigbitCodeIntroductionPage Nothing
                             else if frameNumber > (Array.length currentBigbitHighlightedComments) then
                                 justProduceCmd <|
                                     Route.modifyTo <|
-                                        Route.HomeComponentCreateBigbitCodeConclusion Nothing
+                                        Route.CreateBigbitCodeConclusionPage Nothing
                             else
                                 let
                                     newModel =
@@ -713,31 +713,31 @@ update msg model shared =
                                         [ createCreateBigbitEditorForCurrentFile
                                             maybeRangeToHighlight
                                             maybeFilePath
-                                            (Route.HomeComponentCreateBigbitCodeFrame frameNumber Nothing)
+                                            (Route.CreateBigbitCodeFramePage frameNumber Nothing)
                                         , Util.domFocus (\_ -> NoOp) "frame-input"
                                         ]
                                     )
 
-                        Route.HomeComponentCreateBigbitCodeConclusion maybeFilePath ->
+                        Route.CreateBigbitCodeConclusionPage maybeFilePath ->
                             justProduceCmd <|
                                 Cmd.batch
                                     [ createCreateBigbitEditorForCurrentFile
                                         Nothing
                                         maybeFilePath
-                                        (Route.HomeComponentCreateBigbitCodeConclusion Nothing)
+                                        (Route.CreateBigbitCodeConclusionPage Nothing)
                                     , Util.domFocus (\_ -> NoOp) "conclusion-input"
                                     ]
 
-                        Route.HomeComponentCreateNewStoryName qpEditingStory ->
+                        Route.CreateStoryNamePage qpEditingStory ->
                             getEditingStoryAndFocusOn "name-input" qpEditingStory
 
-                        Route.HomeComponentCreateNewStoryDescription qpEditingStory ->
+                        Route.CreateStoryDescriptionPage qpEditingStory ->
                             getEditingStoryAndFocusOn "description-input" qpEditingStory
 
-                        Route.HomeComponentCreateNewStoryTags qpEditingStory ->
+                        Route.CreateStoryTagsPage qpEditingStory ->
                             getEditingStoryAndFocusOn "tags-input" qpEditingStory
 
-                        Route.HomeComponentCreateStory storyID ->
+                        Route.DevelopStoryPage storyID ->
                             (if maybeMapWithDefault (.id >> ((==) storyID)) False model.storyData.currentStory then
                                 doNothing
                              else
@@ -792,7 +792,7 @@ update msg model shared =
             OnLogOutSuccess basicResponse ->
                 ( HomeInit.init
                 , defaultShared
-                , Route.navigateTo Route.WelcomeComponentRegister
+                , Route.navigateTo Route.RegisterPage
                 )
 
             ShowInfoFor maybeTidbitType ->
@@ -806,7 +806,7 @@ update msg model shared =
                         | previewMarkdown = False
                     }
                 , shared
-                , Route.navigateTo Route.HomeComponentCreateSnipbitCodeIntroduction
+                , Route.navigateTo Route.CreateSnipbitCodeIntroductionPage
                 )
 
             SnipbitUpdateLanguageQuery newLanguageQuery ->
@@ -914,7 +914,7 @@ update msg model shared =
                     newModel =
                         updateSnipbitCreateData <| .snipbitCreateData HomeInit.init
                 in
-                    ( newModel, shared, Route.navigateTo Route.HomeComponentCreateSnipbitName )
+                    ( newModel, shared, Route.navigateTo Route.CreateSnipbitNamePage )
 
             SnipbitUpdateName newName ->
                 justUpdateModel <|
@@ -977,13 +977,13 @@ update msg model shared =
 
             SnipbitNewRangeSelected newRange ->
                 case shared.route of
-                    Route.HomeComponentCreateSnipbitCodeIntroduction ->
+                    Route.CreateSnipbitCodeIntroductionPage ->
                         doNothing
 
-                    Route.HomeComponentCreateSnipbitCodeConclusion ->
+                    Route.CreateSnipbitCodeConclusionPage ->
                         doNothing
 
-                    Route.HomeComponentCreateSnipbitCodeFrame frameNumber ->
+                    Route.CreateSnipbitCodeFramePage frameNumber ->
                         let
                             frameIndex =
                                 frameNumber - 1
@@ -1037,7 +1037,7 @@ update msg model shared =
 
                     newMsg =
                         GoTo <|
-                            Route.HomeComponentCreateSnipbitCodeFrame <|
+                            Route.CreateSnipbitCodeFramePage <|
                                 Array.length
                                     newModel.snipbitCreateData.highlightedComments
                 in
@@ -1059,15 +1059,15 @@ update msg model shared =
                             }
                 in
                     case shared.route of
-                        Route.HomeComponentCreateSnipbitCodeIntroduction ->
+                        Route.CreateSnipbitCodeIntroductionPage ->
                             justUpdateModel <| newModel
 
-                        Route.HomeComponentCreateSnipbitCodeConclusion ->
+                        Route.CreateSnipbitCodeConclusionPage ->
                             justUpdateModel <| newModel
 
                         -- We need to go "down" a tab if the user was on the
                         -- last tab and they removed a tab.
-                        Route.HomeComponentCreateSnipbitCodeFrame frameNumber ->
+                        Route.CreateSnipbitCodeFramePage frameNumber ->
                             let
                                 frameIndex =
                                     frameNumber - 1
@@ -1075,7 +1075,7 @@ update msg model shared =
                                 if frameIndex >= (Array.length newHighlightedComments) then
                                     update
                                         (GoTo <|
-                                            Route.HomeComponentCreateSnipbitCodeFrame <|
+                                            Route.CreateSnipbitCodeFramePage <|
                                                 Array.length newHighlightedComments
                                         )
                                         newModel
@@ -1171,7 +1171,7 @@ update msg model shared =
 
             SnipbitJumpToLineFromPreviousFrame ->
                 case shared.route of
-                    Route.HomeComponentCreateSnipbitCodeFrame frameNumber ->
+                    Route.CreateSnipbitCodeFramePage frameNumber ->
                         ( updateSnipbitCreateData <|
                             { currentSnipbitCreateData
                                 | highlightedComments =
@@ -1198,7 +1198,7 @@ update msg model shared =
                 , { shared
                     | userTidbits = Nothing
                   }
-                , Route.navigateTo <| Route.HomeComponentViewSnipbitIntroduction Nothing targetID
+                , Route.navigateTo <| Route.ViewSnipbitIntroductionPage Nothing targetID
                 )
 
             OnSnipbitPublishFailure apiError ->
@@ -1370,13 +1370,13 @@ update msg model shared =
                                     )
                     }
                 , shared
-                , Route.navigateTo <| Route.HomeComponentCreateBigbitCodeIntroduction Nothing
+                , Route.navigateTo <| Route.CreateBigbitCodeIntroductionPage Nothing
                 )
 
             BigbitReset ->
                 ( updateBigbitCreateData <| .bigbitCreateData HomeInit.init
                 , shared
-                , Route.navigateTo Route.HomeComponentCreateBigbitName
+                , Route.navigateTo Route.CreateBigbitNamePage
                 )
 
             BigbitUpdateName newName ->
@@ -1561,7 +1561,7 @@ update msg model shared =
                     navigateIfRouteNowInvalid newFS newHighlightedComments =
                         let
                             redirectToIntro =
-                                Route.modifyTo <| Route.HomeComponentCreateBigbitCodeIntroduction Nothing
+                                Route.modifyTo <| Route.CreateBigbitCodeIntroductionPage Nothing
 
                             redirectIfFileRemoved =
                                 case Bigbit.createPageCurrentActiveFile shared.route of
@@ -1575,7 +1575,7 @@ update msg model shared =
                                             redirectToIntro
                         in
                             case shared.route of
-                                Route.HomeComponentCreateBigbitCodeFrame frameNumber _ ->
+                                Route.CreateBigbitCodeFramePage frameNumber _ ->
                                     if frameNumber > (Array.length newHighlightedComments) then
                                         redirectToIntro
                                     else
@@ -1800,7 +1800,7 @@ update msg model shared =
 
                     newCmd =
                         Route.navigateTo <|
-                            Route.HomeComponentCreateBigbitCodeFrame
+                            Route.CreateBigbitCodeFramePage
                                 (Array.length newModel.bigbitCreateData.highlightedComments)
                                 currentPath
                 in
@@ -1827,9 +1827,9 @@ update msg model shared =
                         -- them down one frame.
                         newRoute =
                             case shared.route of
-                                Route.HomeComponentCreateBigbitCodeFrame frameNumber filePath ->
+                                Route.CreateBigbitCodeFramePage frameNumber filePath ->
                                     Just <|
-                                        Route.HomeComponentCreateBigbitCodeFrame
+                                        Route.CreateBigbitCodeFramePage
                                             (if frameNumber == (Array.length currentBigbitHighlightedComments) then
                                                 (frameNumber - 1)
                                              else
@@ -1871,7 +1871,7 @@ update msg model shared =
 
             BigbitNewRangeSelected newRange ->
                 case shared.route of
-                    Route.HomeComponentCreateBigbitCodeFrame frameNumber currentPath ->
+                    Route.CreateBigbitCodeFramePage frameNumber currentPath ->
                         case Array.get (frameNumber - 1) currentBigbitHighlightedComments of
                             Nothing ->
                                 doNothing
@@ -1910,7 +1910,7 @@ update msg model shared =
 
             BigbitJumpToLineFromPreviousFrame filePath ->
                 case shared.route of
-                    Route.HomeComponentCreateBigbitCodeFrame frameNumber _ ->
+                    Route.CreateBigbitCodeFramePage frameNumber _ ->
                         ( updateBigbitCreateData <|
                             Bigbit.updateCreateDataHCAtIndex
                                 currentBigbitCreateData
@@ -1922,7 +1922,7 @@ update msg model shared =
                                 )
                         , shared
                         , Route.modifyTo <|
-                            Route.HomeComponentCreateBigbitCodeFrame frameNumber (Just filePath)
+                            Route.CreateBigbitCodeFramePage frameNumber (Just filePath)
                         )
 
                     _ ->
@@ -1940,7 +1940,7 @@ update msg model shared =
                     | userTidbits = Nothing
                   }
                 , Route.navigateTo <|
-                    Route.HomeComponentViewBigbitIntroduction Nothing targetID Nothing
+                    Route.ViewBigbitIntroductionPage Nothing targetID Nothing
                 )
 
             OnGetBigbitFailure apiError ->
@@ -2304,7 +2304,7 @@ update msg model shared =
                 ( updateNewStoryData <| always NewStoryData.defaultNewStoryData
                 , shared
                   -- The reset button only exists when there is no `qpEditingStory`.
-                , Route.navigateTo <| Route.HomeComponentCreateNewStoryName Nothing
+                , Route.navigateTo <| Route.CreateStoryNamePage Nothing
                 )
 
             NewStoryPublish ->
@@ -2328,7 +2328,7 @@ update msg model shared =
                 , { shared
                     | userStories = Nothing
                   }
-                , Route.navigateTo <| Route.HomeComponentCreateStory targetID
+                , Route.navigateTo <| Route.DevelopStoryPage targetID
                 )
 
             NewStoryGetEditingStoryFailure apiError ->
@@ -2348,13 +2348,13 @@ update msg model shared =
                         else
                             justProduceCmd <|
                                 Route.modifyTo <|
-                                    Route.HomeComponentCreate
+                                    Route.CreatePage
 
             NewStoryCancelEdits storyID ->
                 ( updateNewStoryData <|
                     NewStoryData.updateEditStory (always Story.blankStory)
                 , shared
-                , Route.navigateTo <| Route.HomeComponentCreateStory storyID
+                , Route.navigateTo <| Route.DevelopStoryPage storyID
                 )
 
             NewStorySaveEdits storyID ->
@@ -2384,7 +2384,7 @@ update msg model shared =
                 , { shared
                     | userStories = Nothing
                   }
-                , Route.navigateTo <| Route.HomeComponentCreateStory targetID
+                , Route.navigateTo <| Route.DevelopStoryPage targetID
                 )
 
             CreateStoryGetStoryFailure apiError ->
@@ -2418,7 +2418,7 @@ update msg model shared =
                             else
                                 ( model
                                 , newShared
-                                , Route.modifyTo Route.HomeComponentCreate
+                                , Route.modifyTo Route.CreatePage
                                 )
 
             CreateStoryGetTidbitsFailure apiError ->
@@ -2563,19 +2563,19 @@ createViewSnipbitCodeEditor snipbit { route, user } =
     in
         Cmd.batch
             [ case route of
-                Route.HomeComponentViewSnipbitIntroduction _ _ ->
+                Route.ViewSnipbitIntroductionPage _ _ ->
                     editorWithRange Nothing
 
-                Route.HomeComponentViewSnipbitConclusion _ _ ->
+                Route.ViewSnipbitConclusionPage _ _ ->
                     editorWithRange Nothing
 
-                Route.HomeComponentViewSnipbitFrame fromStoryID mongoID frameNumber ->
+                Route.ViewSnipbitFramePage fromStoryID mongoID frameNumber ->
                     if frameNumber > Array.length snipbit.highlightedComments then
                         Route.modifyTo <|
-                            Route.HomeComponentViewSnipbitConclusion fromStoryID mongoID
+                            Route.ViewSnipbitConclusionPage fromStoryID mongoID
                     else if frameNumber < 1 then
                         Route.modifyTo <|
-                            Route.HomeComponentViewSnipbitIntroduction fromStoryID mongoID
+                            Route.ViewSnipbitIntroductionPage fromStoryID mongoID
                     else
                         (Array.get
                             (frameNumber - 1)
@@ -2617,7 +2617,7 @@ createViewBigbitCodeEditor bigbit { route, user } =
                 Just somePath ->
                     case FS.getFile bigbit.fs somePath of
                         Nothing ->
-                            Route.modifyTo <| Route.HomeComponentViewBigbitIntroduction fromStoryID bigbit.id Nothing
+                            Route.modifyTo <| Route.ViewBigbitIntroductionPage fromStoryID bigbit.id Nothing
 
                         Just (FS.File content { language }) ->
                             Ports.createCodeEditor
@@ -2633,16 +2633,16 @@ createViewBigbitCodeEditor bigbit { route, user } =
     in
         Cmd.batch
             [ case route of
-                Route.HomeComponentViewBigbitIntroduction fromStoryID mongoID maybePath ->
+                Route.ViewBigbitIntroductionPage fromStoryID mongoID maybePath ->
                     loadFileWithNoHighlight fromStoryID maybePath
 
-                Route.HomeComponentViewBigbitFrame fromStoryID mongoID frameNumber maybePath ->
+                Route.ViewBigbitFramePage fromStoryID mongoID frameNumber maybePath ->
                     case Array.get (frameNumber - 1) bigbit.highlightedComments of
                         Nothing ->
                             if frameNumber > (Array.length bigbit.highlightedComments) then
-                                Route.modifyTo <| Route.HomeComponentViewBigbitConclusion fromStoryID bigbit.id Nothing
+                                Route.modifyTo <| Route.ViewBigbitConclusionPage fromStoryID bigbit.id Nothing
                             else
-                                Route.modifyTo <| Route.HomeComponentViewBigbitIntroduction fromStoryID bigbit.id Nothing
+                                Route.modifyTo <| Route.ViewBigbitIntroductionPage fromStoryID bigbit.id Nothing
 
                         Just hc ->
                             case maybePath of
@@ -2667,7 +2667,7 @@ createViewBigbitCodeEditor bigbit { route, user } =
                                 Just absolutePath ->
                                     loadFileWithNoHighlight fromStoryID maybePath
 
-                Route.HomeComponentViewBigbitConclusion fromStoryID mongoID maybePath ->
+                Route.ViewBigbitConclusionPage fromStoryID mongoID maybePath ->
                     loadFileWithNoHighlight fromStoryID maybePath
 
                 _ ->

@@ -57,10 +57,10 @@ getTidbitRoute : Maybe String -> Tidbit -> Route.Route
 getTidbitRoute fromStoryID tidbit =
     case tidbit of
         Snipbit { id } ->
-            Route.HomeComponentViewSnipbitIntroduction fromStoryID id
+            Route.ViewSnipbitIntroductionPage fromStoryID id
 
         Bigbit { id } ->
-            Route.HomeComponentViewBigbitIntroduction fromStoryID id Nothing
+            Route.ViewBigbitIntroductionPage fromStoryID id Nothing
 
 
 {-| Gets the name for tidbit type.

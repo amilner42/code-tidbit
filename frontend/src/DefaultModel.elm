@@ -23,7 +23,7 @@ defaultModel =
 defaultShared : Model.Shared
 defaultShared =
     { user = Nothing
-    , route = Route.WelcomeComponentLogin
+    , route = Route.LoginPage
     , languages = Editor.humanReadableListOfLanguages
     , keysDown = KK.init
     , userStories = Nothing

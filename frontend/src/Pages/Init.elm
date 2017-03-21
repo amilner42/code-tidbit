@@ -15,7 +15,7 @@ init location =
     let
         route =
             Maybe.withDefault
-                Route.HomeComponentBrowse
+                Route.BrowsePage
                 (Route.parseLocation location)
 
         defaultModelWithRoute : Model

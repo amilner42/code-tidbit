@@ -29,7 +29,7 @@ view model shared =
             [ class "logo-title-2" ]
             [ text "TIDBIT" ]
         , case shared.route of
-            Route.WelcomeComponentRegister ->
+            Route.RegisterPage ->
                 button
                     [ class "welcome-component-change-tab-button"
                     , onClick <| GoToLoginView
@@ -37,7 +37,7 @@ view model shared =
                     [ text "Login"
                     ]
 
-            Route.WelcomeComponentLogin ->
+            Route.LoginPage ->
                 button
                     [ class "welcome-component-change-tab-button"
                     , onClick <| GoToRegisterView
@@ -52,15 +52,15 @@ view model shared =
             [ classList
                 [ ( "welcome-component", True )
                 , ( "small-box-error"
-                  , (shared.route == Route.WelcomeComponentLogin)
+                  , (shared.route == Route.LoginPage)
                         && (Util.isNotNothing model.apiError)
                   )
                 , ( "small-box"
-                  , (shared.route == Route.WelcomeComponentLogin)
+                  , (shared.route == Route.LoginPage)
                         && (Util.isNothing model.apiError)
                   )
                 , ( "big-box-error"
-                  , (shared.route == Route.WelcomeComponentRegister)
+                  , (shared.route == Route.RegisterPage)
                         && (Util.isNotNothing model.apiError)
                   )
                 ]
@@ -249,10 +249,10 @@ registerView model =
 displayViewForRoute : Model -> Shared -> Html Msg
 displayViewForRoute model shared =
     case shared.route of
-        Route.WelcomeComponentLogin ->
+        Route.LoginPage ->
             loginView model
 
-        Route.WelcomeComponentRegister ->
+        Route.RegisterPage ->
             registerView model
 
         _ ->

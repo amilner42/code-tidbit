@@ -478,13 +478,13 @@ clearActionButtonInput =
 createPageCurrentActiveFile : Route.Route -> Maybe FS.Path
 createPageCurrentActiveFile route =
     case route of
-        Route.HomeComponentCreateBigbitCodeIntroduction maybePath ->
+        Route.CreateBigbitCodeIntroductionPage maybePath ->
             maybePath
 
-        Route.HomeComponentCreateBigbitCodeFrame _ maybePath ->
+        Route.CreateBigbitCodeFramePage _ maybePath ->
             maybePath
 
-        Route.HomeComponentCreateBigbitCodeConclusion maybePath ->
+        Route.CreateBigbitCodeConclusionPage maybePath ->
             maybePath
 
         _ ->
@@ -506,17 +506,17 @@ current comment frame.
 viewPageCurrentActiveFile : Route.Route -> Bigbit -> Maybe FS.Path
 viewPageCurrentActiveFile route bigbit =
     case route of
-        Route.HomeComponentViewBigbitIntroduction _ _ maybePath ->
+        Route.ViewBigbitIntroductionPage _ _ maybePath ->
             maybePath
 
-        Route.HomeComponentViewBigbitFrame _ _ frameNumber maybePath ->
+        Route.ViewBigbitFramePage _ _ frameNumber maybePath ->
             if Util.isNotNothing maybePath then
                 maybePath
             else
                 Array.get (frameNumber - 1) bigbit.highlightedComments
                     |> Maybe.map .file
 
-        Route.HomeComponentViewBigbitConclusion _ _ maybePath ->
+        Route.ViewBigbitConclusionPage _ _ maybePath ->
             maybePath
 
         _ ->
@@ -543,7 +543,7 @@ non-empty range.
 previousFrameRange : BigbitCreateData -> Route.Route -> Maybe ( FS.Path, Range.Range )
 previousFrameRange createData route =
     case route of
-        Route.HomeComponentCreateBigbitCodeFrame frameNumber _ ->
+        Route.CreateBigbitCodeFramePage frameNumber _ ->
             Array.get (frameNumber - 2) createData.highlightedComments
                 |> Maybe.andThen .fileAndRange
                 |> Maybe.andThen

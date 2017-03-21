@@ -82,7 +82,7 @@ updateCacheIf msg model shouldCache =
                             { model
                                 | shared =
                                     { shared
-                                        | route = Route.WelcomeComponentRegister
+                                        | route = Route.RegisterPage
                                     }
                             }
                     in
@@ -293,55 +293,55 @@ handleKeyPress model =
                 doNothing
     in
         case model.shared.route of
-            Route.HomeComponentCreateBigbitName ->
+            Route.CreateBigbitNamePage ->
                 watchForTabAndShiftTab
-                    (Route.navigateTo Route.HomeComponentCreateBigbitDescription)
+                    (Route.navigateTo Route.CreateBigbitDescriptionPage)
                     Cmd.none
 
-            Route.HomeComponentCreateBigbitDescription ->
+            Route.CreateBigbitDescriptionPage ->
                 watchForTabAndShiftTab
-                    (Route.navigateTo Route.HomeComponentCreateBigbitTags)
-                    (Route.navigateTo Route.HomeComponentCreateBigbitName)
+                    (Route.navigateTo Route.CreateBigbitTagsPage)
+                    (Route.navigateTo Route.CreateBigbitNamePage)
 
-            Route.HomeComponentCreateBigbitTags ->
+            Route.CreateBigbitTagsPage ->
                 watchForTabAndShiftTab
-                    (Route.navigateTo <| Route.HomeComponentCreateBigbitCodeIntroduction Nothing)
-                    (Route.navigateTo Route.HomeComponentCreateBigbitDescription)
+                    (Route.navigateTo <| Route.CreateBigbitCodeIntroductionPage Nothing)
+                    (Route.navigateTo Route.CreateBigbitDescriptionPage)
 
-            Route.HomeComponentCreateSnipbitName ->
+            Route.CreateSnipbitNamePage ->
                 watchForTabAndShiftTab
-                    (Route.navigateTo Route.HomeComponentCreateSnipbitDescription)
+                    (Route.navigateTo Route.CreateSnipbitDescriptionPage)
                     (Cmd.none)
 
-            Route.HomeComponentCreateSnipbitDescription ->
+            Route.CreateSnipbitDescriptionPage ->
                 watchForTabAndShiftTab
-                    (Route.navigateTo Route.HomeComponentCreateSnipbitLanguage)
-                    (Route.navigateTo Route.HomeComponentCreateSnipbitName)
+                    (Route.navigateTo Route.CreateSnipbitLanguagePage)
+                    (Route.navigateTo Route.CreateSnipbitNamePage)
 
-            Route.HomeComponentCreateSnipbitLanguage ->
+            Route.CreateSnipbitLanguagePage ->
                 watchForTabAndShiftTab
-                    (Route.navigateTo Route.HomeComponentCreateSnipbitTags)
-                    (Route.navigateTo Route.HomeComponentCreateSnipbitDescription)
+                    (Route.navigateTo Route.CreateSnipbitTagsPage)
+                    (Route.navigateTo Route.CreateSnipbitDescriptionPage)
 
-            Route.HomeComponentCreateSnipbitTags ->
+            Route.CreateSnipbitTagsPage ->
                 watchForTabAndShiftTab
-                    (Route.navigateTo Route.HomeComponentCreateSnipbitCodeIntroduction)
-                    (Route.navigateTo Route.HomeComponentCreateSnipbitLanguage)
+                    (Route.navigateTo Route.CreateSnipbitCodeIntroductionPage)
+                    (Route.navigateTo Route.CreateSnipbitLanguagePage)
 
-            Route.HomeComponentViewSnipbitIntroduction fromStoryID mongoID ->
+            Route.ViewSnipbitIntroductionPage fromStoryID mongoID ->
                 viewSnipbitWatchForLeftAndRightArrow
                     Cmd.none
-                    (Route.navigateTo <| Route.HomeComponentViewSnipbitFrame fromStoryID mongoID 1)
+                    (Route.navigateTo <| Route.ViewSnipbitFramePage fromStoryID mongoID 1)
 
-            Route.HomeComponentViewSnipbitFrame fromStoryID mongoID frameNumber ->
+            Route.ViewSnipbitFramePage fromStoryID mongoID frameNumber ->
                 viewSnipbitWatchForLeftAndRightArrow
-                    (Route.navigateTo <| Route.HomeComponentViewSnipbitFrame fromStoryID mongoID (frameNumber - 1))
-                    (Route.navigateTo <| Route.HomeComponentViewSnipbitFrame fromStoryID mongoID (frameNumber + 1))
+                    (Route.navigateTo <| Route.ViewSnipbitFramePage fromStoryID mongoID (frameNumber - 1))
+                    (Route.navigateTo <| Route.ViewSnipbitFramePage fromStoryID mongoID (frameNumber + 1))
 
-            Route.HomeComponentViewSnipbitConclusion fromStoryID mongoID ->
+            Route.ViewSnipbitConclusionPage fromStoryID mongoID ->
                 viewSnipbitWatchForLeftAndRightArrow
                     (Route.navigateTo <|
-                        Route.HomeComponentViewSnipbitFrame
+                        Route.ViewSnipbitFramePage
                             fromStoryID
                             mongoID
                             (model.homeComponent.viewSnipbitData.viewingSnipbit
@@ -350,20 +350,20 @@ handleKeyPress model =
                     )
                     Cmd.none
 
-            Route.HomeComponentViewBigbitIntroduction fromStoryID mongoID _ ->
+            Route.ViewBigbitIntroductionPage fromStoryID mongoID _ ->
                 viewBigbitWatchForLeftAndRightArrow
                     Cmd.none
-                    (Route.navigateTo <| Route.HomeComponentViewBigbitFrame fromStoryID mongoID 1 Nothing)
+                    (Route.navigateTo <| Route.ViewBigbitFramePage fromStoryID mongoID 1 Nothing)
 
-            Route.HomeComponentViewBigbitFrame fromStoryID mongoID frameNumber _ ->
+            Route.ViewBigbitFramePage fromStoryID mongoID frameNumber _ ->
                 viewBigbitWatchForLeftAndRightArrow
-                    (Route.navigateTo <| Route.HomeComponentViewBigbitFrame fromStoryID mongoID (frameNumber - 1) Nothing)
-                    (Route.navigateTo <| Route.HomeComponentViewBigbitFrame fromStoryID mongoID (frameNumber + 1) Nothing)
+                    (Route.navigateTo <| Route.ViewBigbitFramePage fromStoryID mongoID (frameNumber - 1) Nothing)
+                    (Route.navigateTo <| Route.ViewBigbitFramePage fromStoryID mongoID (frameNumber + 1) Nothing)
 
-            Route.HomeComponentViewBigbitConclusion fromStoryID mongoID _ ->
+            Route.ViewBigbitConclusionPage fromStoryID mongoID _ ->
                 viewBigbitWatchForLeftAndRightArrow
                     (Route.navigateTo <|
-                        Route.HomeComponentViewBigbitFrame
+                        Route.ViewBigbitFramePage
                             fromStoryID
                             mongoID
                             (model.homeComponent.viewBigbitData.viewingBigbit
@@ -373,20 +373,20 @@ handleKeyPress model =
                     )
                     Cmd.none
 
-            Route.HomeComponentCreateNewStoryName qpEditingStory ->
+            Route.CreateStoryNamePage qpEditingStory ->
                 watchForTabAndShiftTab
-                    (Route.navigateTo <| Route.HomeComponentCreateNewStoryDescription qpEditingStory)
+                    (Route.navigateTo <| Route.CreateStoryDescriptionPage qpEditingStory)
                     Cmd.none
 
-            Route.HomeComponentCreateNewStoryDescription qpEditingStory ->
+            Route.CreateStoryDescriptionPage qpEditingStory ->
                 watchForTabAndShiftTab
-                    (Route.navigateTo <| Route.HomeComponentCreateNewStoryTags qpEditingStory)
-                    (Route.navigateTo <| Route.HomeComponentCreateNewStoryName qpEditingStory)
+                    (Route.navigateTo <| Route.CreateStoryTagsPage qpEditingStory)
+                    (Route.navigateTo <| Route.CreateStoryNamePage qpEditingStory)
 
-            Route.HomeComponentCreateNewStoryTags qpEditingStory ->
+            Route.CreateStoryTagsPage qpEditingStory ->
                 watchForTabAndShiftTab
                     Cmd.none
-                    (Route.navigateTo <| Route.HomeComponentCreateNewStoryDescription qpEditingStory)
+                    (Route.navigateTo <| Route.CreateStoryDescriptionPage qpEditingStory)
 
             _ ->
                 doNothing
@@ -495,79 +495,79 @@ handleLocationChange maybeRoute model =
                 -- Handle general route-logic here, routes are a great way to be
                 -- able to trigger certain things (hooks).
                 case route of
-                    Route.HomeComponentCreate ->
+                    Route.CreatePage ->
                         triggerRouteHookOnHomeComponent
 
-                    Route.HomeComponentCreateSnipbitCodeIntroduction ->
+                    Route.CreateSnipbitCodeIntroductionPage ->
                         triggerRouteHookOnHomeComponent
 
-                    Route.HomeComponentCreateSnipbitCodeConclusion ->
+                    Route.CreateSnipbitCodeConclusionPage ->
                         triggerRouteHookOnHomeComponent
 
-                    Route.HomeComponentCreateSnipbitCodeFrame _ ->
+                    Route.CreateSnipbitCodeFramePage _ ->
                         triggerRouteHookOnHomeComponent
 
-                    Route.HomeComponentViewSnipbitIntroduction _ _ ->
+                    Route.ViewSnipbitIntroductionPage _ _ ->
                         triggerRouteHookOnHomeComponent
 
-                    Route.HomeComponentViewSnipbitConclusion _ _ ->
+                    Route.ViewSnipbitConclusionPage _ _ ->
                         triggerRouteHookOnHomeComponent
 
-                    Route.HomeComponentViewSnipbitFrame _ _ _ ->
+                    Route.ViewSnipbitFramePage _ _ _ ->
                         triggerRouteHookOnHomeComponent
 
-                    Route.HomeComponentViewBigbitIntroduction _ _ _ ->
+                    Route.ViewBigbitIntroductionPage _ _ _ ->
                         triggerRouteHookOnHomeComponent
 
-                    Route.HomeComponentViewBigbitFrame _ _ _ _ ->
+                    Route.ViewBigbitFramePage _ _ _ _ ->
                         triggerRouteHookOnHomeComponent
 
-                    Route.HomeComponentViewBigbitConclusion _ _ _ ->
+                    Route.ViewBigbitConclusionPage _ _ _ ->
                         triggerRouteHookOnHomeComponent
 
-                    Route.HomeComponentViewStory _ ->
+                    Route.ViewStoryPage _ ->
                         triggerRouteHookOnHomeComponent
 
-                    Route.HomeComponentCreateSnipbitName ->
+                    Route.CreateSnipbitNamePage ->
                         triggerRouteHookOnHomeComponent
 
-                    Route.HomeComponentCreateSnipbitDescription ->
+                    Route.CreateSnipbitDescriptionPage ->
                         triggerRouteHookOnHomeComponent
 
-                    Route.HomeComponentCreateSnipbitLanguage ->
+                    Route.CreateSnipbitLanguagePage ->
                         triggerRouteHookOnHomeComponent
 
-                    Route.HomeComponentCreateSnipbitTags ->
+                    Route.CreateSnipbitTagsPage ->
                         triggerRouteHookOnHomeComponent
 
-                    Route.HomeComponentCreateBigbitName ->
+                    Route.CreateBigbitNamePage ->
                         triggerRouteHookOnHomeComponent
 
-                    Route.HomeComponentCreateBigbitDescription ->
+                    Route.CreateBigbitDescriptionPage ->
                         triggerRouteHookOnHomeComponent
 
-                    Route.HomeComponentCreateBigbitTags ->
+                    Route.CreateBigbitTagsPage ->
                         triggerRouteHookOnHomeComponent
 
-                    Route.HomeComponentCreateBigbitCodeIntroduction _ ->
+                    Route.CreateBigbitCodeIntroductionPage _ ->
                         triggerRouteHookOnHomeComponent
 
-                    Route.HomeComponentCreateBigbitCodeFrame _ _ ->
+                    Route.CreateBigbitCodeFramePage _ _ ->
                         triggerRouteHookOnHomeComponent
 
-                    Route.HomeComponentCreateBigbitCodeConclusion _ ->
+                    Route.CreateBigbitCodeConclusionPage _ ->
                         triggerRouteHookOnHomeComponent
 
-                    Route.HomeComponentCreateNewStoryName _ ->
+                    Route.CreateStoryNamePage _ ->
                         triggerRouteHookOnHomeComponent
 
-                    Route.HomeComponentCreateNewStoryDescription _ ->
+                    Route.CreateStoryDescriptionPage _ ->
                         triggerRouteHookOnHomeComponent
 
-                    Route.HomeComponentCreateNewStoryTags _ ->
+                    Route.CreateStoryTagsPage _ ->
                         triggerRouteHookOnHomeComponent
 
-                    Route.HomeComponentCreateStory _ ->
+                    Route.DevelopStoryPage _ ->
                         triggerRouteHookOnHomeComponent
 
                     _ ->

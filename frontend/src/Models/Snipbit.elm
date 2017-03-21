@@ -190,7 +190,7 @@ non-empty range.
 previousFrameRange : SnipbitCreateData -> Route.Route -> Maybe Range.Range
 previousFrameRange createData route =
     case route of
-        Route.HomeComponentCreateSnipbitCodeFrame frameNumber ->
+        Route.CreateSnipbitCodeFramePage frameNumber ->
             Array.get (frameNumber - 2) createData.highlightedComments
                 |> Maybe.andThen .range
                 |> Maybe.andThen Range.nonEmptyRangeOrNothing

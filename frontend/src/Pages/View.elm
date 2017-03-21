@@ -30,91 +30,91 @@ viewForRoute model =
             homeView model.homeComponent model.shared
     in
         case model.shared.route of
-            Route.WelcomeComponentRegister ->
+            Route.RegisterPage ->
                 renderedWelcomeView
 
-            Route.WelcomeComponentLogin ->
+            Route.LoginPage ->
                 renderedWelcomeView
 
-            Route.HomeComponentBrowse ->
+            Route.BrowsePage ->
                 renderedHomeView
 
-            Route.HomeComponentViewSnipbitIntroduction _ _ ->
+            Route.ViewSnipbitIntroductionPage _ _ ->
                 renderedHomeView
 
-            Route.HomeComponentViewSnipbitConclusion _ _ ->
+            Route.ViewSnipbitConclusionPage _ _ ->
                 renderedHomeView
 
-            Route.HomeComponentViewSnipbitFrame _ _ _ ->
+            Route.ViewSnipbitFramePage _ _ _ ->
                 renderedHomeView
 
-            Route.HomeComponentViewBigbitIntroduction _ _ _ ->
+            Route.ViewBigbitIntroductionPage _ _ _ ->
                 renderedHomeView
 
-            Route.HomeComponentViewBigbitFrame _ _ _ _ ->
+            Route.ViewBigbitFramePage _ _ _ _ ->
                 renderedHomeView
 
-            Route.HomeComponentViewBigbitConclusion _ _ _ ->
+            Route.ViewBigbitConclusionPage _ _ _ ->
                 renderedHomeView
 
-            Route.HomeComponentViewStory _ ->
+            Route.ViewStoryPage _ ->
                 renderedHomeView
 
-            Route.HomeComponentCreate ->
+            Route.CreatePage ->
                 renderedHomeView
 
-            Route.HomeComponentCreateSnipbitName ->
+            Route.CreateSnipbitNamePage ->
                 renderedHomeView
 
-            Route.HomeComponentCreateSnipbitDescription ->
+            Route.CreateSnipbitDescriptionPage ->
                 renderedHomeView
 
-            Route.HomeComponentCreateSnipbitLanguage ->
+            Route.CreateSnipbitLanguagePage ->
                 renderedHomeView
 
-            Route.HomeComponentCreateSnipbitTags ->
+            Route.CreateSnipbitTagsPage ->
                 renderedHomeView
 
-            Route.HomeComponentCreateSnipbitCodeIntroduction ->
+            Route.CreateSnipbitCodeIntroductionPage ->
                 renderedHomeView
 
-            Route.HomeComponentCreateSnipbitCodeFrame _ ->
+            Route.CreateSnipbitCodeFramePage _ ->
                 renderedHomeView
 
-            Route.HomeComponentCreateSnipbitCodeConclusion ->
+            Route.CreateSnipbitCodeConclusionPage ->
                 renderedHomeView
 
-            Route.HomeComponentCreateBigbitName ->
+            Route.CreateBigbitNamePage ->
                 renderedHomeView
 
-            Route.HomeComponentCreateBigbitDescription ->
+            Route.CreateBigbitDescriptionPage ->
                 renderedHomeView
 
-            Route.HomeComponentCreateBigbitTags ->
+            Route.CreateBigbitTagsPage ->
                 renderedHomeView
 
-            Route.HomeComponentCreateBigbitCodeIntroduction _ ->
+            Route.CreateBigbitCodeIntroductionPage _ ->
                 renderedHomeView
 
-            Route.HomeComponentCreateBigbitCodeFrame _ _ ->
+            Route.CreateBigbitCodeFramePage _ _ ->
                 renderedHomeView
 
-            Route.HomeComponentCreateBigbitCodeConclusion _ ->
+            Route.CreateBigbitCodeConclusionPage _ ->
                 renderedHomeView
 
-            Route.HomeComponentCreateNewStoryName _ ->
+            Route.CreateStoryNamePage _ ->
                 renderedHomeView
 
-            Route.HomeComponentCreateNewStoryDescription _ ->
+            Route.CreateStoryDescriptionPage _ ->
                 renderedHomeView
 
-            Route.HomeComponentCreateNewStoryTags _ ->
+            Route.CreateStoryTagsPage _ ->
                 renderedHomeView
 
-            Route.HomeComponentCreateStory _ ->
+            Route.DevelopStoryPage _ ->
                 renderedHomeView
 
-            Route.HomeComponentProfile ->
+            Route.ProfilePage ->
                 renderedHomeView
 
 

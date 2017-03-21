@@ -147,13 +147,13 @@ viewSnipbitCommentBox snipbit relevantHC route =
         htmlIfNoRelevantHC =
             githubMarkdown [] <|
                 case route of
-                    Route.HomeComponentViewSnipbitIntroduction _ _ ->
+                    Route.ViewSnipbitIntroductionPage _ _ ->
                         snipbit.introduction
 
-                    Route.HomeComponentViewSnipbitConclusion _ _ ->
+                    Route.ViewSnipbitConclusionPage _ _ ->
                         snipbit.conclusion
 
-                    Route.HomeComponentViewSnipbitFrame _ _ frameNumber ->
+                    Route.ViewSnipbitFramePage _ _ frameNumber ->
                         (Array.get
                             (frameNumber - 1)
                             snipbit.highlightedComments
@@ -197,7 +197,7 @@ viewSnipbitCommentBox snipbit relevantHC route =
                                     (Array.get index relevantHC
                                         |> Maybe.map
                                             (ViewSnipbitJumpToFrame
-                                                << Route.HomeComponentViewSnipbitFrame
+                                                << Route.ViewSnipbitFramePage
                                                     (Route.getFromStoryQueryParamOnViewSnipbitRoute route)
                                                     snipbit.id
                                                 << ((+) 1)
@@ -251,7 +251,7 @@ viewSnipbitView model shared =
                 Just story ->
                     button
                         [ class "sub-bar-button back-to-story-button"
-                        , onClick <| GoTo <| Route.HomeComponentViewStory story.id
+                        , onClick <| GoTo <| Route.ViewStoryPage story.id
                         ]
                         [ text "View Story" ]
 
@@ -332,7 +332,7 @@ viewSnipbitView model shared =
                                 [ ( "material-icons action-button", True )
                                 , ( "disabled-icon"
                                   , (case shared.route of
-                                        Route.HomeComponentViewSnipbitIntroduction _ _ ->
+                                        Route.ViewSnipbitIntroductionPage _ _ ->
                                             True
 
                                         _ ->
@@ -346,11 +346,11 @@ viewSnipbitView model shared =
                                     NoOp
                                 else
                                     case shared.route of
-                                        Route.HomeComponentViewSnipbitConclusion fromStoryID mongoID ->
-                                            ViewSnipbitJumpToFrame <| Route.HomeComponentViewSnipbitFrame fromStoryID mongoID (Array.length snipbit.highlightedComments)
+                                        Route.ViewSnipbitConclusionPage fromStoryID mongoID ->
+                                            ViewSnipbitJumpToFrame <| Route.ViewSnipbitFramePage fromStoryID mongoID (Array.length snipbit.highlightedComments)
 
-                                        Route.HomeComponentViewSnipbitFrame fromStoryID mongoID frameNumber ->
-                                            ViewSnipbitJumpToFrame <| Route.HomeComponentViewSnipbitFrame fromStoryID mongoID (frameNumber - 1)
+                                        Route.ViewSnipbitFramePage fromStoryID mongoID frameNumber ->
+                                            ViewSnipbitJumpToFrame <| Route.ViewSnipbitFramePage fromStoryID mongoID (frameNumber - 1)
 
                                         _ ->
                                             NoOp
@@ -362,14 +362,14 @@ viewSnipbitView model shared =
                                     NoOp
                                 else
                                     GoTo <|
-                                        Route.HomeComponentViewSnipbitIntroduction
+                                        Route.ViewSnipbitIntroductionPage
                                             (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
                                             snipbit.id
                             , classList
                                 [ ( "viewer-navbar-item", True )
                                 , ( "selected"
                                   , case shared.route of
-                                        Route.HomeComponentViewSnipbitIntroduction _ _ ->
+                                        Route.ViewSnipbitIntroductionPage _ _ ->
                                             True
 
                                         _ ->
@@ -381,10 +381,10 @@ viewSnipbitView model shared =
                             [ text "Introduction" ]
                         , progressBar
                             (case shared.route of
-                                Route.HomeComponentViewSnipbitFrame _ _ frameNumber ->
+                                Route.ViewSnipbitFramePage _ _ frameNumber ->
                                     Just (frameNumber - 1)
 
-                                Route.HomeComponentViewSnipbitConclusion _ _ ->
+                                Route.ViewSnipbitConclusionPage _ _ ->
                                     Just <| Array.length snipbit.highlightedComments
 
                                 _ ->
@@ -398,14 +398,14 @@ viewSnipbitView model shared =
                                     NoOp
                                 else
                                     GoTo <|
-                                        Route.HomeComponentViewSnipbitConclusion
+                                        Route.ViewSnipbitConclusionPage
                                             (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
                                             snipbit.id
                             , classList
                                 [ ( "viewer-navbar-item", True )
                                 , ( "selected"
                                   , case shared.route of
-                                        Route.HomeComponentViewSnipbitConclusion _ _ ->
+                                        Route.ViewSnipbitConclusionPage _ _ ->
                                             True
 
                                         _ ->
@@ -420,7 +420,7 @@ viewSnipbitView model shared =
                                 [ ( "material-icons action-button", True )
                                 , ( "disabled-icon"
                                   , (case shared.route of
-                                        Route.HomeComponentViewSnipbitConclusion _ _ ->
+                                        Route.ViewSnipbitConclusionPage _ _ ->
                                             True
 
                                         _ ->
@@ -434,11 +434,11 @@ viewSnipbitView model shared =
                                     NoOp
                                 else
                                     case shared.route of
-                                        Route.HomeComponentViewSnipbitIntroduction fromStoryID mongoID ->
-                                            ViewSnipbitJumpToFrame <| Route.HomeComponentViewSnipbitFrame fromStoryID mongoID 1
+                                        Route.ViewSnipbitIntroductionPage fromStoryID mongoID ->
+                                            ViewSnipbitJumpToFrame <| Route.ViewSnipbitFramePage fromStoryID mongoID 1
 
-                                        Route.HomeComponentViewSnipbitFrame fromStoryID mongoID frameNumber ->
-                                            ViewSnipbitJumpToFrame <| Route.HomeComponentViewSnipbitFrame fromStoryID mongoID (frameNumber + 1)
+                                        Route.ViewSnipbitFramePage fromStoryID mongoID frameNumber ->
+                                            ViewSnipbitJumpToFrame <| Route.ViewSnipbitFramePage fromStoryID mongoID (frameNumber + 1)
 
                                         _ ->
                                             NoOp
@@ -487,13 +487,13 @@ viewBigbitCommentBox bigbit maybeRHC route =
                 ]
             , githubMarkdown [ hidden <| not <| tutorialOpen ] <|
                 case route of
-                    Route.HomeComponentViewBigbitIntroduction _ _ _ ->
+                    Route.ViewBigbitIntroductionPage _ _ _ ->
                         bigbit.introduction
 
-                    Route.HomeComponentViewBigbitConclusion _ _ _ ->
+                    Route.ViewBigbitConclusionPage _ _ _ ->
                         bigbit.conclusion
 
-                    Route.HomeComponentViewBigbitFrame _ _ frameNumber _ ->
+                    Route.ViewBigbitFramePage _ _ frameNumber _ ->
                         (Array.get
                             (frameNumber - 1)
                             bigbit.highlightedComments
@@ -560,7 +560,7 @@ viewBigbitCommentBox bigbit maybeRHC route =
                                             |> maybeMapWithDefault
                                                 (ViewBigbitJumpToFrame
                                                     << (\frameNumber ->
-                                                            Route.HomeComponentViewBigbitFrame
+                                                            Route.ViewBigbitFramePage
                                                                 (Route.getFromStoryQueryParamOnViewBigbitRoute route)
                                                                 bigbit.id
                                                                 frameNumber
@@ -621,7 +621,7 @@ viewBigbitView model shared =
                     Just story ->
                         button
                             [ class "sub-bar-button back-to-story-button"
-                            , onClick <| GoTo <| Route.HomeComponentViewStory story.id
+                            , onClick <| GoTo <| Route.ViewStoryPage story.id
                             ]
                             [ text "View Story" ]
 
@@ -721,7 +721,7 @@ viewBigbitView model shared =
                                             True
                                         else
                                             case shared.route of
-                                                Route.HomeComponentViewBigbitIntroduction _ _ _ ->
+                                                Route.ViewBigbitIntroductionPage _ _ _ ->
                                                     True
 
                                                 _ ->
@@ -733,11 +733,11 @@ viewBigbitView model shared =
                                         NoOp
                                     else
                                         case shared.route of
-                                            Route.HomeComponentViewBigbitConclusion fromStoryID mongoID _ ->
-                                                ViewBigbitJumpToFrame <| Route.HomeComponentViewBigbitFrame fromStoryID mongoID (Array.length bigbit.highlightedComments) Nothing
+                                            Route.ViewBigbitConclusionPage fromStoryID mongoID _ ->
+                                                ViewBigbitJumpToFrame <| Route.ViewBigbitFramePage fromStoryID mongoID (Array.length bigbit.highlightedComments) Nothing
 
-                                            Route.HomeComponentViewBigbitFrame fromStoryID mongoID frameNumber _ ->
-                                                ViewBigbitJumpToFrame <| Route.HomeComponentViewBigbitFrame fromStoryID mongoID (frameNumber - 1) Nothing
+                                            Route.ViewBigbitFramePage fromStoryID mongoID frameNumber _ ->
+                                                ViewBigbitJumpToFrame <| Route.ViewBigbitFramePage fromStoryID mongoID (frameNumber - 1) Nothing
 
                                             _ ->
                                                 NoOp
@@ -749,7 +749,7 @@ viewBigbitView model shared =
                                         NoOp
                                     else
                                         ViewBigbitJumpToFrame <|
-                                            Route.HomeComponentViewBigbitIntroduction
+                                            Route.ViewBigbitIntroductionPage
                                                 (Route.getFromStoryQueryParamOnViewBigbitRoute shared.route)
                                                 bigbit.id
                                                 Nothing
@@ -757,7 +757,7 @@ viewBigbitView model shared =
                                     [ ( "viewer-navbar-item", True )
                                     , ( "selected"
                                       , case shared.route of
-                                            Route.HomeComponentViewBigbitIntroduction _ _ _ ->
+                                            Route.ViewBigbitIntroductionPage _ _ _ ->
                                                 True
 
                                             _ ->
@@ -769,10 +769,10 @@ viewBigbitView model shared =
                                 [ text "Introduction" ]
                             , progressBar
                                 (case shared.route of
-                                    Route.HomeComponentViewBigbitFrame _ _ frameNumber _ ->
+                                    Route.ViewBigbitFramePage _ _ frameNumber _ ->
                                         Just (frameNumber - 1)
 
-                                    Route.HomeComponentViewBigbitConclusion _ _ _ ->
+                                    Route.ViewBigbitConclusionPage _ _ _ ->
                                         Just <| Array.length bigbit.highlightedComments
 
                                     _ ->
@@ -786,7 +786,7 @@ viewBigbitView model shared =
                                         NoOp
                                     else
                                         ViewBigbitJumpToFrame <|
-                                            Route.HomeComponentViewBigbitConclusion
+                                            Route.ViewBigbitConclusionPage
                                                 (Route.getFromStoryQueryParamOnViewBigbitRoute shared.route)
                                                 bigbit.id
                                                 Nothing
@@ -794,7 +794,7 @@ viewBigbitView model shared =
                                     [ ( "viewer-navbar-item", True )
                                     , ( "selected"
                                       , case shared.route of
-                                            Route.HomeComponentViewBigbitConclusion _ _ _ ->
+                                            Route.ViewBigbitConclusionPage _ _ _ ->
                                                 True
 
                                             _ ->
@@ -812,7 +812,7 @@ viewBigbitView model shared =
                                             True
                                         else
                                             case shared.route of
-                                                Route.HomeComponentViewBigbitConclusion _ _ _ ->
+                                                Route.ViewBigbitConclusionPage _ _ _ ->
                                                     True
 
                                                 _ ->
@@ -824,13 +824,13 @@ viewBigbitView model shared =
                                         NoOp
                                     else
                                         case shared.route of
-                                            Route.HomeComponentViewBigbitIntroduction fromStoryID mongoID _ ->
+                                            Route.ViewBigbitIntroductionPage fromStoryID mongoID _ ->
                                                 ViewBigbitJumpToFrame <|
-                                                    Route.HomeComponentViewBigbitFrame fromStoryID mongoID 1 Nothing
+                                                    Route.ViewBigbitFramePage fromStoryID mongoID 1 Nothing
 
-                                            Route.HomeComponentViewBigbitFrame fromStoryID mongoID frameNumber _ ->
+                                            Route.ViewBigbitFramePage fromStoryID mongoID frameNumber _ ->
                                                 ViewBigbitJumpToFrame <|
-                                                    Route.HomeComponentViewBigbitFrame fromStoryID mongoID (frameNumber + 1) Nothing
+                                                    Route.ViewBigbitFramePage fromStoryID mongoID (frameNumber + 1) Nothing
 
                                             _ ->
                                                 NoOp
@@ -994,85 +994,85 @@ viewStoryView model shared =
 displayViewForRoute : Model -> Shared -> Html Msg
 displayViewForRoute model shared =
     case shared.route of
-        Route.HomeComponentBrowse ->
+        Route.BrowsePage ->
             browseView model
 
-        Route.HomeComponentViewSnipbitIntroduction _ _ ->
+        Route.ViewSnipbitIntroductionPage _ _ ->
             viewSnipbitView model shared
 
-        Route.HomeComponentViewSnipbitConclusion _ _ ->
+        Route.ViewSnipbitConclusionPage _ _ ->
             viewSnipbitView model shared
 
-        Route.HomeComponentViewSnipbitFrame _ _ _ ->
+        Route.ViewSnipbitFramePage _ _ _ ->
             viewSnipbitView model shared
 
-        Route.HomeComponentViewBigbitIntroduction _ _ _ ->
+        Route.ViewBigbitIntroductionPage _ _ _ ->
             viewBigbitView model shared
 
-        Route.HomeComponentViewBigbitFrame _ _ _ _ ->
+        Route.ViewBigbitFramePage _ _ _ _ ->
             viewBigbitView model shared
 
-        Route.HomeComponentViewBigbitConclusion _ _ _ ->
+        Route.ViewBigbitConclusionPage _ _ _ ->
             viewBigbitView model shared
 
-        Route.HomeComponentViewStory _ ->
+        Route.ViewStoryPage _ ->
             viewStoryView model shared
 
-        Route.HomeComponentCreate ->
+        Route.CreatePage ->
             createView model shared
 
-        Route.HomeComponentCreateSnipbitName ->
+        Route.CreateSnipbitNamePage ->
             createSnipbitView model shared
 
-        Route.HomeComponentCreateSnipbitDescription ->
+        Route.CreateSnipbitDescriptionPage ->
             createSnipbitView model shared
 
-        Route.HomeComponentCreateSnipbitLanguage ->
+        Route.CreateSnipbitLanguagePage ->
             createSnipbitView model shared
 
-        Route.HomeComponentCreateSnipbitTags ->
+        Route.CreateSnipbitTagsPage ->
             createSnipbitView model shared
 
-        Route.HomeComponentCreateSnipbitCodeIntroduction ->
+        Route.CreateSnipbitCodeIntroductionPage ->
             createSnipbitView model shared
 
-        Route.HomeComponentCreateSnipbitCodeFrame _ ->
+        Route.CreateSnipbitCodeFramePage _ ->
             createSnipbitView model shared
 
-        Route.HomeComponentCreateSnipbitCodeConclusion ->
+        Route.CreateSnipbitCodeConclusionPage ->
             createSnipbitView model shared
 
-        Route.HomeComponentCreateBigbitName ->
+        Route.CreateBigbitNamePage ->
             createBigbitView model shared
 
-        Route.HomeComponentCreateBigbitDescription ->
+        Route.CreateBigbitDescriptionPage ->
             createBigbitView model shared
 
-        Route.HomeComponentCreateBigbitTags ->
+        Route.CreateBigbitTagsPage ->
             createBigbitView model shared
 
-        Route.HomeComponentCreateBigbitCodeIntroduction _ ->
+        Route.CreateBigbitCodeIntroductionPage _ ->
             createBigbitView model shared
 
-        Route.HomeComponentCreateBigbitCodeFrame _ _ ->
+        Route.CreateBigbitCodeFramePage _ _ ->
             createBigbitView model shared
 
-        Route.HomeComponentCreateBigbitCodeConclusion _ ->
+        Route.CreateBigbitCodeConclusionPage _ ->
             createBigbitView model shared
 
-        Route.HomeComponentProfile ->
+        Route.ProfilePage ->
             profileView model shared
 
-        Route.HomeComponentCreateNewStoryName _ ->
+        Route.CreateStoryNamePage _ ->
             createNewStoryView model shared
 
-        Route.HomeComponentCreateNewStoryDescription _ ->
+        Route.CreateStoryDescriptionPage _ ->
             createNewStoryView model shared
 
-        Route.HomeComponentCreateNewStoryTags _ ->
+        Route.CreateStoryTagsPage _ ->
             createNewStoryView model shared
 
-        Route.HomeComponentCreateStory _ ->
+        Route.DevelopStoryPage _ ->
             createStoryView model shared
 
         -- This should never happen.
@@ -1087,75 +1087,75 @@ navbar shared =
     let
         browseViewSelected =
             case shared.route of
-                Route.HomeComponentBrowse ->
+                Route.BrowsePage ->
                     True
 
-                Route.HomeComponentViewSnipbitIntroduction _ _ ->
+                Route.ViewSnipbitIntroductionPage _ _ ->
                     True
 
-                Route.HomeComponentViewSnipbitFrame _ _ _ ->
+                Route.ViewSnipbitFramePage _ _ _ ->
                     True
 
-                Route.HomeComponentViewSnipbitConclusion _ _ ->
+                Route.ViewSnipbitConclusionPage _ _ ->
                     True
 
-                Route.HomeComponentViewBigbitIntroduction _ _ _ ->
+                Route.ViewBigbitIntroductionPage _ _ _ ->
                     True
 
-                Route.HomeComponentViewBigbitFrame _ _ _ _ ->
+                Route.ViewBigbitFramePage _ _ _ _ ->
                     True
 
-                Route.HomeComponentViewBigbitConclusion _ _ _ ->
+                Route.ViewBigbitConclusionPage _ _ _ ->
                     True
 
-                Route.HomeComponentViewStory _ ->
+                Route.ViewStoryPage _ ->
                     True
 
                 _ ->
                     False
 
         profileViewSelected =
-            shared.route == Route.HomeComponentProfile
+            shared.route == Route.ProfilePage
 
         createViewSelected =
             case shared.route of
-                Route.HomeComponentCreateSnipbitCodeFrame _ ->
+                Route.CreateSnipbitCodeFramePage _ ->
                     True
 
-                Route.HomeComponentCreateBigbitCodeFrame _ _ ->
+                Route.CreateBigbitCodeFramePage _ _ ->
                     True
 
-                Route.HomeComponentCreateBigbitCodeIntroduction _ ->
+                Route.CreateBigbitCodeIntroductionPage _ ->
                     True
 
-                Route.HomeComponentCreateBigbitCodeConclusion _ ->
+                Route.CreateBigbitCodeConclusionPage _ ->
                     True
 
-                Route.HomeComponentCreateStory _ ->
+                Route.DevelopStoryPage _ ->
                     True
 
-                Route.HomeComponentCreateNewStoryName _ ->
+                Route.CreateStoryNamePage _ ->
                     True
 
-                Route.HomeComponentCreateNewStoryDescription _ ->
+                Route.CreateStoryDescriptionPage _ ->
                     True
 
-                Route.HomeComponentCreateNewStoryTags _ ->
+                Route.CreateStoryTagsPage _ ->
                     True
 
                 _ ->
                     (List.member
                         shared.route
-                        [ Route.HomeComponentCreate
-                        , Route.HomeComponentCreateSnipbitName
-                        , Route.HomeComponentCreateSnipbitDescription
-                        , Route.HomeComponentCreateSnipbitLanguage
-                        , Route.HomeComponentCreateSnipbitTags
-                        , Route.HomeComponentCreateSnipbitCodeIntroduction
-                        , Route.HomeComponentCreateSnipbitCodeConclusion
-                        , Route.HomeComponentCreateBigbitName
-                        , Route.HomeComponentCreateBigbitDescription
-                        , Route.HomeComponentCreateBigbitTags
+                        [ Route.CreatePage
+                        , Route.CreateSnipbitNamePage
+                        , Route.CreateSnipbitDescriptionPage
+                        , Route.CreateSnipbitLanguagePage
+                        , Route.CreateSnipbitTagsPage
+                        , Route.CreateSnipbitCodeIntroductionPage
+                        , Route.CreateSnipbitCodeConclusionPage
+                        , Route.CreateBigbitNamePage
+                        , Route.CreateBigbitDescriptionPage
+                        , Route.CreateBigbitTagsPage
                         ]
                     )
     in
@@ -1178,7 +1178,7 @@ navbar shared =
                     , ( "hidden", Util.isNothing shared.user )
                     , ( "selected", browseViewSelected )
                     ]
-                , onClick <| GoTo Route.HomeComponentBrowse
+                , onClick <| GoTo Route.BrowsePage
                 ]
                 [ text "Browse" ]
             , div
@@ -1187,7 +1187,7 @@ navbar shared =
                     , ( "hidden", Util.isNothing shared.user )
                     , ( "selected", createViewSelected )
                     ]
-                , onClick <| GoTo Route.HomeComponentCreate
+                , onClick <| GoTo Route.CreatePage
                 ]
                 [ text "Create" ]
             , div
@@ -1196,7 +1196,7 @@ navbar shared =
                     , ( "hidden", Util.isNothing shared.user )
                     , ( "selected", profileViewSelected )
                     ]
-                , onClick <| GoTo Route.HomeComponentProfile
+                , onClick <| GoTo Route.ProfilePage
                 ]
                 [ text "Profile" ]
             , div
@@ -1204,7 +1204,7 @@ navbar shared =
                     [ ( "nav-btn sign-up right", True )
                     , ( "hidden", Util.isNotNothing shared.user )
                     ]
-                , onClick <| GoTo Route.WelcomeComponentRegister
+                , onClick <| GoTo Route.RegisterPage
                 ]
                 [ text "Sign Up" ]
             , div
@@ -1212,7 +1212,7 @@ navbar shared =
                     [ ( "nav-btn login right", True )
                     , ( "hidden", Util.isNotNothing shared.user )
                     ]
-                , onClick <| GoTo Route.WelcomeComponentLogin
+                , onClick <| GoTo Route.LoginPage
                 ]
                 [ text "Login" ]
             ]
@@ -1231,14 +1231,14 @@ createStoryView model shared =
                     [ ( "create-story-page-sub-bar-view-story-button"
                       , button
                             [ class "sub-bar-button "
-                            , onClick <| GoTo <| Route.HomeComponentViewStory story.id
+                            , onClick <| GoTo <| Route.ViewStoryPage story.id
                             ]
                             [ text "View Story" ]
                       )
                     , ( "create-story-page-sub-bar-edit-info-button"
                       , button
                             [ class "sub-bar-button edit-information"
-                            , onClick <| GoTo <| Route.HomeComponentCreateNewStoryName <| Just story.id
+                            , onClick <| GoTo <| Route.CreateStoryNamePage <| Just story.id
                             ]
                             [ text "Edit Information" ]
                       )
@@ -1431,7 +1431,7 @@ createNewStoryView model shared =
                         [ ( "create-tidbit-tab", True )
                         , ( "create-tidbit-selected-tab"
                           , case currentRoute of
-                                Route.HomeComponentCreateNewStoryName _ ->
+                                Route.CreateStoryNamePage _ ->
                                     True
 
                                 _ ->
@@ -1444,7 +1444,7 @@ createNewStoryView model shared =
                                 NewStoryData.nameTabFilledIn model.newStoryData
                           )
                         ]
-                    , onClick <| GoTo <| Route.HomeComponentCreateNewStoryName editingStoryQueryParam
+                    , onClick <| GoTo <| Route.CreateStoryNamePage editingStoryQueryParam
                     ]
                     [ text "Name" ]
                 , div
@@ -1452,7 +1452,7 @@ createNewStoryView model shared =
                         [ ( "create-tidbit-tab", True )
                         , ( "create-tidbit-selected-tab"
                           , case currentRoute of
-                                Route.HomeComponentCreateNewStoryDescription _ ->
+                                Route.CreateStoryDescriptionPage _ ->
                                     True
 
                                 _ ->
@@ -1465,7 +1465,7 @@ createNewStoryView model shared =
                                 NewStoryData.descriptionTabFilledIn model.newStoryData
                           )
                         ]
-                    , onClick <| GoTo <| Route.HomeComponentCreateNewStoryDescription editingStoryQueryParam
+                    , onClick <| GoTo <| Route.CreateStoryDescriptionPage editingStoryQueryParam
                     ]
                     [ text "Description" ]
                 , div
@@ -1473,7 +1473,7 @@ createNewStoryView model shared =
                         [ ( "create-tidbit-tab", True )
                         , ( "create-tidbit-selected-tab"
                           , case currentRoute of
-                                Route.HomeComponentCreateNewStoryTags _ ->
+                                Route.CreateStoryTagsPage _ ->
                                     True
 
                                 _ ->
@@ -1486,12 +1486,12 @@ createNewStoryView model shared =
                                 NewStoryData.tagsTabFilledIn model.newStoryData
                           )
                         ]
-                    , onClick <| GoTo <| Route.HomeComponentCreateNewStoryTags editingStoryQueryParam
+                    , onClick <| GoTo <| Route.CreateStoryTagsPage editingStoryQueryParam
                     ]
                     [ text "Tags" ]
                 ]
             , case currentRoute of
-                Route.HomeComponentCreateNewStoryName qpEditingStory ->
+                Route.CreateStoryNamePage qpEditingStory ->
                     div
                         [ class "create-new-story-name" ]
                         [ case qpEditingStory of
@@ -1528,7 +1528,7 @@ createNewStoryView model shared =
                                     []
                         ]
 
-                Route.HomeComponentCreateNewStoryDescription qpEditingStory ->
+                Route.CreateStoryDescriptionPage qpEditingStory ->
                     div
                         [ class "create-new-story-description" ]
                         [ case qpEditingStory of
@@ -1565,7 +1565,7 @@ createNewStoryView model shared =
                                     []
                         ]
 
-                Route.HomeComponentCreateNewStoryTags qpEditingStory ->
+                Route.CreateStoryTagsPage qpEditingStory ->
                     div
                         [ class "create-new-story-tags" ]
                         (case qpEditingStory of
@@ -1820,7 +1820,7 @@ createView model shared =
                             ]
                             ([ div
                                 [ class "create-story-box"
-                                , onClick <| GoTo <| Route.HomeComponentCreateNewStoryName Nothing
+                                , onClick <| GoTo <| Route.CreateStoryNamePage Nothing
                                 ]
                                 [ i
                                     [ class "material-icons add-story-box-icon" ]
@@ -1836,7 +1836,7 @@ createView model shared =
                                                     [ text story.name ]
                                                 , button
                                                     [ class "continue-story-button"
-                                                    , onClick <| GoTo <| Route.HomeComponentCreateStory story.id
+                                                    , onClick <| GoTo <| Route.DevelopStoryPage story.id
                                                     ]
                                                     [ text "CONTINUE" ]
                                                 ]
@@ -1858,13 +1858,13 @@ createView model shared =
                     "SnipBit"
                     "Explain a chunk of code"
                     snipBitDescription
-                    (GoTo Route.HomeComponentCreateSnipbitName)
+                    (GoTo Route.CreateSnipbitNamePage)
                     SnipBit
                 , makeTidbitTypeBox
                     "BigBit"
                     "Explain a full project"
                     bigBitInfo
-                    (GoTo Route.HomeComponentCreateBigbitName)
+                    (GoTo Route.CreateBigbitNamePage)
                     BigBit
                 , div
                     [ class "create-select-tidbit-type-coming-soon" ]
@@ -1916,11 +1916,11 @@ createBigbitView model shared =
                     [ classList
                         [ ( "create-tidbit-tab", True )
                         , ( "create-tidbit-selected-tab"
-                          , currentRoute == Route.HomeComponentCreateBigbitName
+                          , currentRoute == Route.CreateBigbitNamePage
                           )
                         , ( "filled-in", Util.isNotNothing <| Bigbit.createDataNameFilledIn model.bigbitCreateData )
                         ]
-                    , onClick <| GoTo Route.HomeComponentCreateBigbitName
+                    , onClick <| GoTo Route.CreateBigbitNamePage
                     ]
                     [ text "Name"
                     , checkIcon
@@ -1929,11 +1929,11 @@ createBigbitView model shared =
                     [ classList
                         [ ( "create-tidbit-tab", True )
                         , ( "create-tidbit-selected-tab"
-                          , currentRoute == Route.HomeComponentCreateBigbitDescription
+                          , currentRoute == Route.CreateBigbitDescriptionPage
                           )
                         , ( "filled-in", Util.isNotNothing <| Bigbit.createDataDescriptionFilledIn model.bigbitCreateData )
                         ]
-                    , onClick <| GoTo Route.HomeComponentCreateBigbitDescription
+                    , onClick <| GoTo Route.CreateBigbitDescriptionPage
                     ]
                     [ text "Description"
                     , checkIcon
@@ -1942,11 +1942,11 @@ createBigbitView model shared =
                     [ classList
                         [ ( "create-tidbit-tab", True )
                         , ( "create-tidbit-selected-tab"
-                          , currentRoute == Route.HomeComponentCreateBigbitTags
+                          , currentRoute == Route.CreateBigbitTagsPage
                           )
                         , ( "filled-in", Util.isNotNothing <| Bigbit.createDataTagsFilledIn model.bigbitCreateData )
                         ]
-                    , onClick <| GoTo Route.HomeComponentCreateBigbitTags
+                    , onClick <| GoTo Route.CreateBigbitTagsPage
                     ]
                     [ text "Tags"
                     , checkIcon
@@ -1956,13 +1956,13 @@ createBigbitView model shared =
                         [ ( "create-tidbit-tab", True )
                         , ( "create-tidbit-selected-tab"
                           , case currentRoute of
-                                Route.HomeComponentCreateBigbitCodeFrame _ _ ->
+                                Route.CreateBigbitCodeFramePage _ _ ->
                                     True
 
-                                Route.HomeComponentCreateBigbitCodeIntroduction _ ->
+                                Route.CreateBigbitCodeIntroductionPage _ ->
                                     True
 
-                                Route.HomeComponentCreateBigbitCodeConclusion _ ->
+                                Route.CreateBigbitCodeConclusionPage _ ->
                                     True
 
                                 _ ->
@@ -1988,13 +1988,13 @@ createBigbitView model shared =
 
                 ( introTab, conclusionTab, frameTab ) =
                     case shared.route of
-                        Route.HomeComponentCreateBigbitCodeIntroduction _ ->
+                        Route.CreateBigbitCodeIntroductionPage _ ->
                             ( True, False, Nothing )
 
-                        Route.HomeComponentCreateBigbitCodeFrame frameNumber _ ->
+                        Route.CreateBigbitCodeFramePage frameNumber _ ->
                             ( False, False, Just frameNumber )
 
-                        Route.HomeComponentCreateBigbitCodeConclusion _ ->
+                        Route.CreateBigbitCodeConclusionPage _ ->
                             ( False, True, Nothing )
 
                         _ ->
@@ -2310,7 +2310,7 @@ createBigbitView model shared =
                                         text "Preview Markdown"
                                     ]
                                 , case shared.route of
-                                    Route.HomeComponentCreateBigbitCodeIntroduction _ ->
+                                    Route.CreateBigbitCodeIntroductionPage _ ->
                                         markdownOr
                                             markdownOpen
                                             model.bigbitCreateData.introduction
@@ -2332,11 +2332,11 @@ createBigbitView model shared =
                                                                 else if KK.isOneKeyPressed KK.Tab newKeysDown then
                                                                     Just <|
                                                                         GoTo <|
-                                                                            Route.HomeComponentCreateBigbitCodeFrame
+                                                                            Route.CreateBigbitCodeFramePage
                                                                                 1
                                                                                 (Bigbit.createPageGetActiveFileForFrame 1 model.bigbitCreateData)
                                                                 else if KK.isTwoKeysPressed KK.Tab KK.Shift newKeysDown then
-                                                                    Just <| GoTo <| Route.HomeComponentCreateBigbitTags
+                                                                    Just <| GoTo <| Route.CreateBigbitTagsPage
                                                                 else
                                                                     Nothing
                                                             else
@@ -2346,7 +2346,7 @@ createBigbitView model shared =
                                                 []
                                             )
 
-                                    Route.HomeComponentCreateBigbitCodeFrame frameNumber _ ->
+                                    Route.CreateBigbitCodeFramePage frameNumber _ ->
                                         let
                                             frameText =
                                                 (Array.get
@@ -2377,7 +2377,7 @@ createBigbitView model shared =
                                                                     else if KK.isOneKeyPressed KK.Tab newKeysDown then
                                                                         Just <|
                                                                             GoTo <|
-                                                                                Route.HomeComponentCreateBigbitCodeFrame
+                                                                                Route.CreateBigbitCodeFramePage
                                                                                     (frameNumber + 1)
                                                                                     (Bigbit.createPageGetActiveFileForFrame
                                                                                         (frameNumber + 1)
@@ -2386,7 +2386,7 @@ createBigbitView model shared =
                                                                     else if KK.isTwoKeysPressed KK.Tab KK.Shift newKeysDown then
                                                                         Just <|
                                                                             GoTo <|
-                                                                                Route.HomeComponentCreateBigbitCodeFrame
+                                                                                Route.CreateBigbitCodeFramePage
                                                                                     (frameNumber - 1)
                                                                                     (Bigbit.createPageGetActiveFileForFrame
                                                                                         (frameNumber - 1)
@@ -2401,7 +2401,7 @@ createBigbitView model shared =
                                                     []
                                                 )
 
-                                    Route.HomeComponentCreateBigbitCodeConclusion _ ->
+                                    Route.CreateBigbitCodeConclusionPage _ ->
                                         markdownOr
                                             markdownOpen
                                             model.bigbitCreateData.conclusion
@@ -2425,7 +2425,7 @@ createBigbitView model shared =
                                                                 else if KK.isTwoKeysPressed KK.Tab KK.Shift newKeysDown then
                                                                     Just <|
                                                                         GoTo <|
-                                                                            Route.HomeComponentCreateBigbitCodeFrame
+                                                                            Route.CreateBigbitCodeFramePage
                                                                                 (Array.length model.bigbitCreateData.highlightedComments)
                                                                                 (Bigbit.createPageGetActiveFileForFrame
                                                                                     (Array.length model.bigbitCreateData.highlightedComments)
@@ -2456,7 +2456,7 @@ createBigbitView model shared =
                                                     [ classList [ ( "selected-frame", (Just <| index + 1) == frameTab ) ]
                                                     , onClick <|
                                                         GoTo <|
-                                                            Route.HomeComponentCreateBigbitCodeFrame
+                                                            Route.CreateBigbitCodeFramePage
                                                                 (index + 1)
                                                                 (Bigbit.createPageGetActiveFileForFrame
                                                                     (index + 1)
@@ -2475,7 +2475,7 @@ createBigbitView model shared =
                                     , hidden <| fsOpen || markdownOpen
                                     ]
                                     [ button
-                                        [ onClick <| GoTo <| Route.HomeComponentCreateBigbitCodeIntroduction Nothing
+                                        [ onClick <| GoTo <| Route.CreateBigbitCodeIntroductionPage Nothing
                                         , classList
                                             [ ( "introduction-button", True )
                                             , ( "selected-frame", introTab )
@@ -2483,7 +2483,7 @@ createBigbitView model shared =
                                         ]
                                         [ text "Introduction" ]
                                     , button
-                                        [ onClick <| GoTo <| Route.HomeComponentCreateBigbitCodeConclusion Nothing
+                                        [ onClick <| GoTo <| Route.CreateBigbitCodeConclusionPage Nothing
                                         , classList
                                             [ ( "conclusion-button", True )
                                             , ( "selected-frame", conclusionTab )
@@ -2545,7 +2545,7 @@ createBigbitView model shared =
                 ]
             , createBigbitNavbar
             , case shared.route of
-                Route.HomeComponentCreateBigbitName ->
+                Route.CreateBigbitNamePage ->
                     div
                         [ class "create-bigbit-name" ]
                         [ input
@@ -2564,7 +2564,7 @@ createBigbitView model shared =
                             []
                         ]
 
-                Route.HomeComponentCreateBigbitDescription ->
+                Route.CreateBigbitDescriptionPage ->
                     div
                         [ class "create-bigbit-description" ]
                         [ textarea
@@ -2583,7 +2583,7 @@ createBigbitView model shared =
                             []
                         ]
 
-                Route.HomeComponentCreateBigbitTags ->
+                Route.CreateBigbitTagsPage ->
                     div
                         [ class "create-tidbit-tags" ]
                         [ input
@@ -2605,13 +2605,13 @@ createBigbitView model shared =
                         , makeHTMLTags BigbitRemoveTag model.bigbitCreateData.tags
                         ]
 
-                Route.HomeComponentCreateBigbitCodeIntroduction _ ->
+                Route.CreateBigbitCodeIntroductionPage _ ->
                     bigbitCodeTab
 
-                Route.HomeComponentCreateBigbitCodeFrame frameNumber _ ->
+                Route.CreateBigbitCodeFramePage frameNumber _ ->
                     bigbitCodeTab
 
-                Route.HomeComponentCreateBigbitCodeConclusion _ ->
+                Route.CreateBigbitCodeConclusionPage _ ->
                     bigbitCodeTab
 
                 -- Should never happen
@@ -2680,11 +2680,11 @@ createSnipbitView model shared =
                     [ classList
                         [ ( "create-tidbit-tab", True )
                         , ( "create-tidbit-selected-tab"
-                          , currentRoute == Route.HomeComponentCreateSnipbitName
+                          , currentRoute == Route.CreateSnipbitNamePage
                           )
                         , ( "filled-in", Util.isNotNothing <| Snipbit.createDataNameFilledIn model.snipbitCreateData )
                         ]
-                    , onClick <| GoTo Route.HomeComponentCreateSnipbitName
+                    , onClick <| GoTo Route.CreateSnipbitNamePage
                     ]
                     [ text "Name"
                     , checkIcon
@@ -2693,11 +2693,11 @@ createSnipbitView model shared =
                     [ classList
                         [ ( "create-tidbit-tab", True )
                         , ( "create-tidbit-selected-tab"
-                          , currentRoute == Route.HomeComponentCreateSnipbitDescription
+                          , currentRoute == Route.CreateSnipbitDescriptionPage
                           )
                         , ( "filled-in", Util.isNotNothing <| Snipbit.createDataDescriptionFilledIn model.snipbitCreateData )
                         ]
-                    , onClick <| GoTo Route.HomeComponentCreateSnipbitDescription
+                    , onClick <| GoTo Route.CreateSnipbitDescriptionPage
                     ]
                     [ text "Description"
                     , checkIcon
@@ -2706,11 +2706,11 @@ createSnipbitView model shared =
                     [ classList
                         [ ( "create-tidbit-tab", True )
                         , ( "create-tidbit-selected-tab"
-                          , currentRoute == Route.HomeComponentCreateSnipbitLanguage
+                          , currentRoute == Route.CreateSnipbitLanguagePage
                           )
                         , ( "filled-in", Util.isNotNothing <| model.snipbitCreateData.language )
                         ]
-                    , onClick <| GoTo Route.HomeComponentCreateSnipbitLanguage
+                    , onClick <| GoTo Route.CreateSnipbitLanguagePage
                     ]
                     [ text "Language"
                     , checkIcon
@@ -2719,11 +2719,11 @@ createSnipbitView model shared =
                     [ classList
                         [ ( "create-tidbit-tab", True )
                         , ( "create-tidbit-selected-tab"
-                          , currentRoute == Route.HomeComponentCreateSnipbitTags
+                          , currentRoute == Route.CreateSnipbitTagsPage
                           )
                         , ( "filled-in", Util.isNotNothing <| Snipbit.createDataTagsFilledIn model.snipbitCreateData )
                         ]
-                    , onClick <| GoTo Route.HomeComponentCreateSnipbitTags
+                    , onClick <| GoTo Route.CreateSnipbitTagsPage
                     ]
                     [ text "Tags"
                     , checkIcon
@@ -2733,13 +2733,13 @@ createSnipbitView model shared =
                         [ ( "create-tidbit-tab", True )
                         , ( "create-tidbit-selected-tab"
                           , case currentRoute of
-                                Route.HomeComponentCreateSnipbitCodeIntroduction ->
+                                Route.CreateSnipbitCodeIntroductionPage ->
                                     True
 
-                                Route.HomeComponentCreateSnipbitCodeConclusion ->
+                                Route.CreateSnipbitCodeConclusionPage ->
                                     True
 
-                                Route.HomeComponentCreateSnipbitCodeFrame _ ->
+                                Route.CreateSnipbitCodeFramePage _ ->
                                     True
 
                                 _ ->
@@ -2871,7 +2871,7 @@ createSnipbitView model shared =
                                 text "Markdown Preview"
                             ]
                         , case shared.route of
-                            Route.HomeComponentCreateSnipbitCodeIntroduction ->
+                            Route.CreateSnipbitCodeIntroductionPage ->
                                 markdownOr
                                     markdownOpen
                                     model.snipbitCreateData.introduction
@@ -2890,9 +2890,9 @@ createSnipbitView model shared =
                                                         if newKeysDown == shared.keysDown then
                                                             Just NoOp
                                                         else if KK.isOneKeyPressed KK.Tab newKeysDown then
-                                                            Just <| GoTo <| Route.HomeComponentCreateSnipbitCodeFrame 1
+                                                            Just <| GoTo <| Route.CreateSnipbitCodeFramePage 1
                                                         else if KK.isTwoKeysPressed KK.Tab KK.Shift newKeysDown then
-                                                            Just <| GoTo <| Route.HomeComponentCreateSnipbitTags
+                                                            Just <| GoTo <| Route.CreateSnipbitTagsPage
                                                         else
                                                             Nothing
                                                     else
@@ -2902,7 +2902,7 @@ createSnipbitView model shared =
                                         []
                                     )
 
-                            Route.HomeComponentCreateSnipbitCodeFrame frameNumber ->
+                            Route.CreateSnipbitCodeFramePage frameNumber ->
                                 let
                                     frameIndex =
                                         frameNumber - 1
@@ -2936,9 +2936,9 @@ createSnipbitView model shared =
                                                             if newKeysDown == shared.keysDown then
                                                                 Just NoOp
                                                             else if KK.isOneKeyPressed KK.Tab newKeysDown then
-                                                                Just <| GoTo <| Route.HomeComponentCreateSnipbitCodeFrame (frameNumber + 1)
+                                                                Just <| GoTo <| Route.CreateSnipbitCodeFramePage (frameNumber + 1)
                                                             else if KK.isTwoKeysPressed KK.Tab KK.Shift newKeysDown then
-                                                                Just <| GoTo <| Route.HomeComponentCreateSnipbitCodeFrame (frameNumber - 1)
+                                                                Just <| GoTo <| Route.CreateSnipbitCodeFramePage (frameNumber - 1)
                                                             else
                                                                 Nothing
                                                         else
@@ -2948,7 +2948,7 @@ createSnipbitView model shared =
                                             []
                                         )
 
-                            Route.HomeComponentCreateSnipbitCodeConclusion ->
+                            Route.CreateSnipbitCodeConclusionPage ->
                                 markdownOr
                                     markdownOpen
                                     model.snipbitCreateData.conclusion
@@ -2971,7 +2971,7 @@ createSnipbitView model shared =
                                                         else if KK.isTwoKeysPressed KK.Tab KK.Shift newKeysDown then
                                                             Just <|
                                                                 GoTo <|
-                                                                    Route.HomeComponentCreateSnipbitCodeFrame
+                                                                    Route.CreateSnipbitCodeFramePage
                                                                         (Array.length model.snipbitCreateData.highlightedComments)
                                                         else
                                                             Nothing
@@ -3000,12 +3000,12 @@ createSnipbitView model shared =
                                             button
                                                 [ onClick <|
                                                     GoTo <|
-                                                        Route.HomeComponentCreateSnipbitCodeFrame
+                                                        Route.CreateSnipbitCodeFramePage
                                                             (index + 1)
                                                 , classList
                                                     [ ( "selected-frame"
                                                       , shared.route
-                                                            == (Route.HomeComponentCreateSnipbitCodeFrame <|
+                                                            == (Route.CreateSnipbitCodeFramePage <|
                                                                     index
                                                                         + 1
                                                                )
@@ -3023,11 +3023,11 @@ createSnipbitView model shared =
                             ]
                             [ button
                                 [ onClick <|
-                                    GoTo Route.HomeComponentCreateSnipbitCodeIntroduction
+                                    GoTo Route.CreateSnipbitCodeIntroductionPage
                                 , classList
                                     [ ( "selected-frame"
                                       , shared.route
-                                            == Route.HomeComponentCreateSnipbitCodeIntroduction
+                                            == Route.CreateSnipbitCodeIntroductionPage
                                       )
                                     , ( "introduction-button", True )
                                     ]
@@ -3035,11 +3035,11 @@ createSnipbitView model shared =
                                 [ text "Introduction" ]
                             , button
                                 [ onClick <|
-                                    GoTo Route.HomeComponentCreateSnipbitCodeConclusion
+                                    GoTo Route.CreateSnipbitCodeConclusionPage
                                 , classList
                                     [ ( "selected-frame"
                                       , shared.route
-                                            == Route.HomeComponentCreateSnipbitCodeConclusion
+                                            == Route.CreateSnipbitCodeConclusionPage
                                       )
                                     , ( "conclusion-button", True )
                                     ]
@@ -3071,9 +3071,9 @@ createSnipbitView model shared =
                         [ div
                             [ class "above-editor-text" ]
                             [ text <|
-                                if currentRoute == Route.HomeComponentCreateSnipbitCodeIntroduction then
+                                if currentRoute == Route.CreateSnipbitCodeIntroductionPage then
                                     "Snipbit introductions do not link to highlights, but you can browse and edit your code"
-                                else if currentRoute == Route.HomeComponentCreateSnipbitCodeConclusion then
+                                else if currentRoute == Route.CreateSnipbitCodeConclusionPage then
                                     "Snipbit conclusions do not link to highlights, but you can browse and edit your code"
                                 else
                                     ""
@@ -3086,25 +3086,25 @@ createSnipbitView model shared =
         viewForTab : Html Msg
         viewForTab =
             case currentRoute of
-                Route.HomeComponentCreateSnipbitName ->
+                Route.CreateSnipbitNamePage ->
                     nameView
 
-                Route.HomeComponentCreateSnipbitDescription ->
+                Route.CreateSnipbitDescriptionPage ->
                     descriptionView
 
-                Route.HomeComponentCreateSnipbitLanguage ->
+                Route.CreateSnipbitLanguagePage ->
                     languageView
 
-                Route.HomeComponentCreateSnipbitTags ->
+                Route.CreateSnipbitTagsPage ->
                     tagsView
 
-                Route.HomeComponentCreateSnipbitCodeIntroduction ->
+                Route.CreateSnipbitCodeIntroductionPage ->
                     tidbitView
 
-                Route.HomeComponentCreateSnipbitCodeConclusion ->
+                Route.CreateSnipbitCodeConclusionPage ->
                     tidbitView
 
-                Route.HomeComponentCreateSnipbitCodeFrame _ ->
+                Route.CreateSnipbitCodeFramePage _ ->
                     tidbitView
 
                 -- Default to name view.

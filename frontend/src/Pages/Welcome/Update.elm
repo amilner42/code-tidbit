@@ -98,7 +98,7 @@ update msg model shared =
                 newShared =
                     { shared
                         | user = Just newUser
-                        , route = Route.HomeComponentBrowse
+                        , route = Route.BrowsePage
                     }
             in
                 ( WelcomeInit.init, newShared, Route.navigateTo newShared.route )
@@ -120,7 +120,7 @@ update msg model shared =
                 newShared =
                     { shared
                         | user = Just newUser
-                        , route = Route.HomeComponentBrowse
+                        , route = Route.BrowsePage
                     }
             in
                 ( WelcomeInit.init, newShared, Route.navigateTo newShared.route )
@@ -137,13 +137,13 @@ update msg model shared =
         GoToLoginView ->
             ( wipeError model
             , shared
-            , Route.navigateTo Route.WelcomeComponentLogin
+            , Route.navigateTo Route.LoginPage
             )
 
         GoToRegisterView ->
             ( wipeError model
             , shared
-            , Route.navigateTo Route.WelcomeComponentRegister
+            , Route.navigateTo Route.RegisterPage
             )
 
 
