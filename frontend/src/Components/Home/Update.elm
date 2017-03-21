@@ -16,6 +16,7 @@ import DefaultServices.Editable as Editable
 import Elements.Editor as Editor
 import Elements.FileStructure as FS
 import Json.Decode as Decode
+import JSON.Language as JSONLanguage
 import Models.Bigbit as Bigbit
 import Models.Completed as Completed
 import Models.Snipbit as Snipbit
@@ -876,7 +877,7 @@ update msg model shared =
                             -- Selecting a language.
                             Just encodedLang ->
                                 Util.quote
-                                    >> Decode.decodeString Editor.languageCacheDecoder
+                                    >> Decode.decodeString JSONLanguage.decoder
                                     >> Result.toMaybe
                                 <|
                                     encodedLang

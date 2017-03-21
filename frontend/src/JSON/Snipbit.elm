@@ -7,8 +7,8 @@ import Json.Encode as Encode
 import Json.Decode as Decode
 import Json.Decode.Pipeline exposing (decode, required, optional, hardcoded)
 import JSON.HighlightedComment as JSONHC
+import JSON.Language as JSONLanguage
 import Models.Snipbit exposing (..)
-import Elements.Editor as Editor exposing (languageCacheDecoder, languageCacheEncoder)
 
 
 {-| For DRY code to create encoders for `Snipbit` and `SnipbitForPublication`.
@@ -16,7 +16,7 @@ import Elements.Editor as Editor exposing (languageCacheDecoder, languageCacheEn
 createSnipbitEncoder model extraFields =
     Encode.object <|
         List.concat
-            [ [ ( "language", languageCacheEncoder model.language )
+            [ [ ( "language", JSONLanguage.encoder model.language )
               , ( "name", Encode.string model.name )
               , ( "description", Encode.string model.description )
               , ( "tags", Encode.list <| List.map Encode.string model.tags )
@@ -50,7 +50,7 @@ decoder : Decode.Decoder Snipbit
 decoder =
     decode Snipbit
         |> required "id" Decode.string
-        |> required "language" languageCacheDecoder
+        |> required "language" JSONLanguage.decoder
         |> required "name" Decode.string
         |> required "description" Decode.string
         |> required "tags" (Decode.list Decode.string)
@@ -75,7 +75,7 @@ publicationEncoder snipbitForPublication =
 publicationDecoder : Decode.Decoder SnipbitForPublication
 publicationDecoder =
     decode SnipbitForPublication
-        |> required "language" languageCacheDecoder
+        |> required "language" JSONLanguage.decoder
         |> required "name" Decode.string
         |> required "description" Decode.string
         |> required "tags" (Decode.list Decode.string)
@@ -91,12 +91,12 @@ createDataEncoder : SnipbitCreateData -> Encode.Value
 createDataEncoder snipbitCreateData =
     Encode.object
         [ ( "language"
-          , Util.justValueOrNull
-                languageCacheEncoder
-                snipbitCreateData.language
+          , Util.justValueOrNull JSONLanguage.encoder snipbitCreateData.language
           )
         , ( "languageQueryACState", Encode.null )
-        , ( "languageListHowManyToShow", Encode.int snipbitCreateData.languageListHowManyToShow )
+        , ( "languageListHowManyToShow"
+          , Encode.int snipbitCreateData.languageListHowManyToShow
+          )
         , ( "languageQuery", Encode.string snipbitCreateData.languageQuery )
         , ( "name", Encode.string snipbitCreateData.name )
         , ( "description", Encode.string snipbitCreateData.description )
@@ -122,7 +122,7 @@ createDataEncoder snipbitCreateData =
 createDataDecoder : Decode.Decoder SnipbitCreateData
 createDataDecoder =
     decode SnipbitCreateData
-        |> required "language" (Decode.maybe languageCacheDecoder)
+        |> required "language" (Decode.maybe JSONLanguage.decoder)
         |> required "languageQueryACState" (Decode.succeed AC.empty)
         |> required "languageListHowManyToShow" (Decode.int)
         |> required "languageQuery" Decode.string

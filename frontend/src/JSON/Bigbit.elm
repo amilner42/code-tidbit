@@ -6,10 +6,10 @@ import Json.Encode as Encode
 import Json.Decode as Decode
 import Json.Decode.Pipeline exposing (decode, required, optional, hardcoded)
 import JSON.Range as JSONRange
+import JSON.Language as JSONLanguage
+import JSON.FileStructure as JSONFS
 import Models.Bigbit exposing (..)
 import Models.Range as Range
-import Elements.FileStructure as FS
-import Elements.Editor as Editor
 
 
 {-| `Bigbit` encoder.
@@ -18,7 +18,7 @@ encoder : Bigbit -> Encode.Value
 encoder bigbit =
     let
         encodeFS fs =
-            FS.encodeFS
+            JSONFS.encodeFS
                 (\fsMetadata ->
                     Encode.object
                         [ ( "openFS", Encode.bool fsMetadata.openFS ) ]
@@ -29,7 +29,7 @@ encoder bigbit =
                 )
                 (\fileMetadata ->
                     Encode.object
-                        [ ( "language", Editor.languageCacheEncoder fileMetadata.language ) ]
+                        [ ( "language", JSONLanguage.encoder fileMetadata.language ) ]
                 )
                 fs
     in
@@ -59,7 +59,7 @@ decoder : Decode.Decoder Bigbit
 decoder =
     let
         decodeFS =
-            FS.decodeFS
+            JSONFS.decodeFS
                 (decode (\isOpen -> { openFS = isOpen })
                     |> optional "openFS" Decode.bool False
                 )
@@ -67,7 +67,7 @@ decoder =
                     |> optional "isExpanded" Decode.bool True
                 )
                 (decode BigbitCreateDataFileMetadata
-                    |> required "language" Editor.languageCacheDecoder
+                    |> required "language" JSONLanguage.decoder
                 )
     in
         decode Bigbit
@@ -123,12 +123,12 @@ publicationEncoder : BigbitForPublication -> Encode.Value
 publicationEncoder bigbit =
     let
         encodeFS fs =
-            FS.encodeFS
+            JSONFS.encodeFS
                 (always <| Encode.object [])
                 (always <| Encode.object [])
                 (\fileMetadata ->
                     Encode.object
-                        [ ( "language", Editor.languageCacheEncoder fileMetadata.language ) ]
+                        [ ( "language", JSONLanguage.encoder fileMetadata.language ) ]
                 )
                 fs
     in
@@ -211,7 +211,7 @@ createDataEncoder : BigbitCreateData -> Encode.Value
 createDataEncoder bigbitCreateData =
     let
         encodeFS =
-            FS.encodeFS
+            JSONFS.encodeFS
                 (\fsMetadata ->
                     Encode.object
                         [ ( "activeFile", Util.justValueOrNull Encode.string fsMetadata.activeFile )
@@ -227,7 +227,7 @@ createDataEncoder bigbitCreateData =
                 )
                 (\fileMetadata ->
                     Encode.object
-                        [ ( "language", Editor.languageCacheEncoder fileMetadata.language ) ]
+                        [ ( "language", JSONLanguage.encoder fileMetadata.language ) ]
                 )
     in
         Encode.object
@@ -249,7 +249,7 @@ createDataDecoder : Decode.Decoder BigbitCreateData
 createDataDecoder =
     let
         decodeFS =
-            FS.decodeFS
+            JSONFS.decodeFS
                 (decode BigbitCreateDataFSMetadata
                     |> required "activeFile" (Decode.maybe Decode.string)
                     |> required "openFS" Decode.bool
@@ -261,7 +261,7 @@ createDataDecoder =
                     |> required "isExpanded" Decode.bool
                 )
                 (decode BigbitCreateDataFileMetadata
-                    |> required "language" Editor.languageCacheDecoder
+                    |> required "language" JSONLanguage.decoder
                 )
     in
         decode BigbitCreateData
