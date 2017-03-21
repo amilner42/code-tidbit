@@ -1,9 +1,6 @@
 module Models.ViewBigbitData exposing (..)
 
 import DefaultServices.Util as Util exposing (maybeMapWithDefault)
-import Json.Encode as Encode
-import Json.Decode as Decode
-import Json.Decode.Pipeline exposing (decode, required, optional, hardcoded)
 import Models.Bigbit as Bigbit
 import Models.Completed as Completed
 import Models.ViewerRelevantHC as ViewerRelevantHC
@@ -115,40 +112,3 @@ isViewBigbitTutorialTabOpen maybeBigbit maybeRHC =
 defaultViewBigbitData : ViewBigbitData
 defaultViewBigbitData =
     ViewBigbitData Nothing Nothing Nothing
-
-
-{-| ViewingBigbitRelevantHC `cacheEncoder`.
--}
-viewingBigbitRelevantHCCacheEncoder : ViewingBigbitRelevantHC -> Encode.Value
-viewingBigbitRelevantHCCacheEncoder =
-    ViewerRelevantHC.encoder Bigbit.bigbitHighlightedCommentForPublicationCacheEncoder
-
-
-{-| ViewingBigbitRelevantHC `cacheDecoder`.
--}
-viewingBigbitRelevantHCCacheDecoder : Decode.Decoder ViewingBigbitRelevantHC
-viewingBigbitRelevantHCCacheDecoder =
-    ViewerRelevantHC.decoder Bigbit.bigbitHighlightedCommentForPublicationCacheDecoder
-
-
-{-| ViewBigbitData encoder.
--}
-encoder : ViewBigbitData -> Encode.Value
-encoder viewBigbitData =
-    Encode.object
-        [ ( "viewingBigbit", Util.justValueOrNull Bigbit.bigbitEncoder viewBigbitData.viewingBigbit )
-        , ( "viewingBigbitIsCompleted", Util.justValueOrNull Completed.isCompletedEncoder viewBigbitData.viewingBigbitIsCompleted )
-        , ( "viewingBigbitRelevantHC"
-          , Util.justValueOrNull viewingBigbitRelevantHCCacheEncoder viewBigbitData.viewingBigbitRelevantHC
-          )
-        ]
-
-
-{-| ViewBigbitData decoder.
--}
-decoder : Decode.Decoder ViewBigbitData
-decoder =
-    decode ViewBigbitData
-        |> required "viewingBigbit" (Decode.maybe Bigbit.bigbitDecoder)
-        |> required "viewingBigbitIsCompleted" (Decode.maybe Completed.isCompletedDecoder)
-        |> required "viewingBigbitRelevantHC" (Decode.maybe viewingBigbitRelevantHCCacheDecoder)

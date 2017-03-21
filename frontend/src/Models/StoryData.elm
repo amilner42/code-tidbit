@@ -1,9 +1,5 @@
 module Models.StoryData exposing (..)
 
-import DefaultServices.Util as Util
-import Json.Encode as Encode
-import Json.Decode as Decode
-import Json.Decode.Pipeline exposing (decode, required, optional, hardcoded)
 import Models.Story as Story
 import Models.Tidbit as Tidbit
 
@@ -23,25 +19,6 @@ defaultStoryData =
     { currentStory = Nothing
     , tidbitsToAdd = []
     }
-
-
-{-| StoryData encoder.
--}
-encoder : StoryData -> Encode.Value
-encoder storyData =
-    Encode.object
-        [ ( "currentStory", Util.justValueOrNull Story.expandedStoryEncoder storyData.currentStory )
-        , ( "tidbitsToAdd", Encode.list <| List.map Tidbit.encoder storyData.tidbitsToAdd )
-        ]
-
-
-{-| StoryData decoder.
--}
-decoder : Decode.Decoder StoryData
-decoder =
-    decode StoryData
-        |> required "currentStory" (Decode.maybe Story.expandedStoryDecoder)
-        |> required "tidbitsToAdd" (Decode.list Tidbit.decoder)
 
 
 {-| Sets the `currentStory` to `expandedStory`.

@@ -1,8 +1,6 @@
 module Models.Route exposing (..)
 
 import DefaultServices.Util as Util
-import Json.Decode as Decode
-import Json.Encode as Encode
 import Elements.FileStructure as FS
 import Navigation
 import UrlParser exposing (Parser, s, (</>), (<?>), oneOf, map, top, int, string, stringParam)
@@ -406,51 +404,6 @@ toHashUrl route =
 
             WelcomeComponentRegister ->
                 "welcome/register"
-
-
-{-| The Route `cacheEncoder`.
--}
-cacheEncoder : Route -> Encode.Value
-cacheEncoder =
-    toHashUrl >> Encode.string
-
-
-{-| The Route `cacheDecoder`.
--}
-cacheDecoder : Decode.Decoder Route
-cacheDecoder =
-    let
-        {- Creates a fake location ignoring everything except the hash so we can
-           use `parseHash` from the urlParser library to do the route parsing
-           for us.
-        -}
-        fakeLocation hash =
-            { href = ""
-            , protocol = ""
-            , host = ""
-            , hostname = ""
-            , port_ = ""
-            , pathname = ""
-            , search = ""
-            , hash = hash
-            , origin = ""
-            , password = ""
-            , username = ""
-            }
-
-        fromStringDecoder encodedHash =
-            let
-                maybeRoute =
-                    parseLocation <| fakeLocation encodedHash
-            in
-                case maybeRoute of
-                    Nothing ->
-                        Decode.fail <| encodedHash ++ " is not a valid encoded hash!"
-
-                    Just aRoute ->
-                        Decode.succeed aRoute
-    in
-        Decode.andThen fromStringDecoder Decode.string
 
 
 {-| Attempts to parse a location into a route.
