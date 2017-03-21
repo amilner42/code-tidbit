@@ -7,76 +7,88 @@ import Json.Decode.Pipeline exposing (decode, required, optional, hardcoded)
 import Elements.FileStructure exposing (..)
 
 
-{-| Encodes a file given the metadata encoder.
+{-| `File` encoder.
+
+Requires encoder for `fileMetadata`.
 -}
-encodeFile : (fileMetadata -> Encode.Value) -> File fileMetadata -> Encode.Value
-encodeFile fileMetadataEncoder (File content fileMetadata) =
+fileEncoder : (fileMetadata -> Encode.Value) -> File fileMetadata -> Encode.Value
+fileEncoder fileMetadataEncoder (File content fileMetadata) =
     Encode.object
         [ ( "content", Encode.string content )
         , ( "fileMetadata", fileMetadataEncoder fileMetadata )
         ]
 
 
-{-| Encodes a folder given the metadata encoders.
+{-| `Folder` encoder.
+
+Requires encoder for `folderMetadata` and `fileMetadata`.
 -}
-encodeFolder :
+folderEncoder :
     (folderMetadata -> Encode.Value)
     -> (fileMetadata -> Encode.Value)
     -> Folder folderMetadata fileMetadata
     -> Encode.Value
-encodeFolder folderMetadataEncoder fileMetadataEncoder (Folder files folders folderMetadata) =
+folderEncoder folderMetadataEncoder fileMetadataEncoder (Folder files folders folderMetadata) =
     Encode.object
-        [ ( "files", Util.encodeStringDict (encodeFile fileMetadataEncoder) files )
-        , ( "folders", Util.encodeStringDict (encodeFolder folderMetadataEncoder fileMetadataEncoder) folders )
+        [ ( "files", Util.encodeStringDict (fileEncoder fileMetadataEncoder) files )
+        , ( "folders", Util.encodeStringDict (folderEncoder folderMetadataEncoder fileMetadataEncoder) folders )
         , ( "folderMetadata", folderMetadataEncoder folderMetadata )
         ]
 
 
-{-| Encodes the FS given the metadata encoders.
+{-| `FileStructure` encoder.
+
+Requires `fsMetadata`/`folderMetadata`/`fileMetadata` encoders.
 -}
-encodeFS :
+encoder :
     (fsMetadata -> Encode.Value)
     -> (folderMetadata -> Encode.Value)
     -> (fileMetadata -> Encode.Value)
     -> FileStructure fsMetadata folderMetadata fileMetadata
     -> Encode.Value
-encodeFS fsMetadataEncoder folderMetadataEncoder fileMetadataEncoder (FileStructure rootFolder fsMetadata) =
+encoder fsMetadataEncoder folderMetadataEncoder fileMetadataEncoder (FileStructure rootFolder fsMetadata) =
     Encode.object
-        [ ( "rootFolder", encodeFolder folderMetadataEncoder fileMetadataEncoder rootFolder )
+        [ ( "rootFolder", folderEncoder folderMetadataEncoder fileMetadataEncoder rootFolder )
         , ( "fsMetadata", fsMetadataEncoder fsMetadata )
         ]
 
 
-{-| Decodes a file given the metadata decoder.
+{-| `File` decoder.
+
+Requires `fileMetadata` encoder.
 -}
-decodeFile : Decode.Decoder fileMetadata -> Decode.Decoder (File fileMetadata)
-decodeFile fileMetadataDecoder =
+fileDecoder : Decode.Decoder fileMetadata -> Decode.Decoder (File fileMetadata)
+fileDecoder fileMetadataDecoder =
     decode File
         |> required "content" Decode.string
         |> required "fileMetadata" fileMetadataDecoder
 
 
-{-| Decodes a folder given the metadata decoders.
+{-| `Folder` decoder.
+
+Requires decoder for `fileMetadata` and `folderMetadata`.
 -}
-decodeFolder :
+folderDecoder :
     Decode.Decoder folderMetadata
     -> Decode.Decoder fileMetadata
     -> Decode.Decoder (Folder folderMetadata fileMetadata)
-decodeFolder folderMetadataDecoder fileMetadataDecoder =
+folderDecoder folderMetadataDecoder fileMetadataDecoder =
     decode Folder
-        |> required "files" (Util.decodeStringDict (decodeFile fileMetadataDecoder))
-        |> required "folders" (Util.decodeStringDict (Decode.lazy (\_ -> (decodeFolder folderMetadataDecoder fileMetadataDecoder))))
+        |> required "files" (Util.decodeStringDict (fileDecoder fileMetadataDecoder))
+        |> required "folders" (Util.decodeStringDict (Decode.lazy (\_ -> (folderDecoder folderMetadataDecoder fileMetadataDecoder))))
         |> required "folderMetadata" folderMetadataDecoder
 
 
-{-| Decodes the FS given the metadata decoders.
+{-| `FileStructure` decoder.
+
+Requires `fsMetadata`/`folderMetadata`/`fileMetadata` decoders.
 -}
-decodeFS :
+decoder :
     Decode.Decoder fsMetadata
     -> Decode.Decoder folderMetadata
     -> Decode.Decoder fileMetadata
     -> Decode.Decoder (FileStructure fsMetadata folderMetadata fileMetadata)
-decodeFS fsMetadataDecoder folderMetadataDecoder fileMetadataDecoder =
+decoder fsMetadataDecoder folderMetadataDecoder fileMetadataDecoder =
     decode FileStructure
-        |> required "rootFolder" (decodeFolder folderMetadataDecoder fileMetadataDecoder)
+        |> required "rootFolder" (folderDecoder folderMetadataDecoder fileMetadataDecoder)
         |> required "fsMetadata" fsMetadataDecoder

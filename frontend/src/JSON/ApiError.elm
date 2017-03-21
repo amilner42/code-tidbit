@@ -159,7 +159,7 @@ fromErrorCode errorCode =
             InternalError
 
 
-{-| `BackendError` decoder.
+{-| `ApiError` decoder.
 -}
 decoder : Decode.Decoder ApiError
 decoder =

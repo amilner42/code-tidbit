@@ -183,4 +183,5 @@ decoder =
                 _ ->
                     Decode.fail <| encodedLanguage ++ " is not a valid encoded string."
     in
-        Decode.andThen fromStringDecoder Decode.string
+        Decode.string
+            |> Decode.andThen fromStringDecoder

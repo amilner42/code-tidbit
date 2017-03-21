@@ -6,14 +6,14 @@ import DefaultServices.Util as Util exposing (maybeMapWithDefault)
 import Json.Decode as Decode exposing (field)
 import Json.Encode as Encode
 import Json.Decode.Pipeline exposing (decode, required, optional, hardcoded)
-import JSON.Bigbit as JSONBigbit
-import JSON.CreateData as JSONCreateData
-import JSON.NewStoryData as JSONNewStoryData
-import JSON.ProfileData as JSONProfileData
-import JSON.StoryData as JSONStoryData
-import JSON.Snipbit as JSONSnipbit
-import JSON.ViewBigbitData as JSONViewBigbitData
-import JSON.ViewSnipbitData as JSONViewSnipbitData
+import JSON.Bigbit
+import JSON.CreateData
+import JSON.NewStoryData
+import JSON.ProfileData
+import JSON.StoryData
+import JSON.Snipbit
+import JSON.ViewBigbitData
+import JSON.ViewSnipbitData
 import Models.ApiError as ApiError
 import Models.Bigbit as Bigbit
 import Models.Snipbit as Snipbit
@@ -46,14 +46,14 @@ type alias Model =
 cacheEncoder : Model -> Encode.Value
 cacheEncoder model =
     Encode.object
-        [ ( "createData", JSONCreateData.encoder model.createData )
-        , ( "viewSnipbitData", JSONViewSnipbitData.encoder model.viewSnipbitData )
-        , ( "viewBigbitData", JSONViewBigbitData.encoder model.viewBigbitData )
-        , ( "snipbitCreateData", JSONSnipbit.createDataEncoder model.snipbitCreateData )
-        , ( "bigbitCreateData", JSONBigbit.createDataEncoder model.bigbitCreateData )
-        , ( "profileData", JSONProfileData.encoder model.profileData )
-        , ( "newStoryData", JSONNewStoryData.encoder model.newStoryData )
-        , ( "storyData", JSONStoryData.encoder model.storyData )
+        [ ( "createData", JSON.CreateData.encoder model.createData )
+        , ( "viewSnipbitData", JSON.ViewSnipbitData.encoder model.viewSnipbitData )
+        , ( "viewBigbitData", JSON.ViewBigbitData.encoder model.viewBigbitData )
+        , ( "snipbitCreateData", JSON.Snipbit.createDataEncoder model.snipbitCreateData )
+        , ( "bigbitCreateData", JSON.Bigbit.createDataEncoder model.bigbitCreateData )
+        , ( "profileData", JSON.ProfileData.encoder model.profileData )
+        , ( "newStoryData", JSON.NewStoryData.encoder model.newStoryData )
+        , ( "storyData", JSON.StoryData.encoder model.storyData )
         ]
 
 
@@ -62,11 +62,11 @@ cacheEncoder model =
 cacheDecoder : Decode.Decoder Model
 cacheDecoder =
     decode Model
-        |> required "createData" JSONCreateData.decoder
-        |> required "viewSnipbitData" JSONViewSnipbitData.decoder
-        |> required "viewBigbitData" JSONViewBigbitData.decoder
-        |> required "snipbitCreateData" JSONSnipbit.createDataDecoder
-        |> required "bigbitCreateData" JSONBigbit.createDataDecoder
-        |> required "profileData" JSONProfileData.decoder
-        |> required "newStoryData" JSONNewStoryData.decoder
-        |> required "storyData" JSONStoryData.decoder
+        |> required "createData" JSON.CreateData.decoder
+        |> required "viewSnipbitData" JSON.ViewSnipbitData.decoder
+        |> required "viewBigbitData" JSON.ViewBigbitData.decoder
+        |> required "snipbitCreateData" JSON.Snipbit.createDataDecoder
+        |> required "bigbitCreateData" JSON.Bigbit.createDataDecoder
+        |> required "profileData" JSON.ProfileData.decoder
+        |> required "newStoryData" JSON.NewStoryData.decoder
+        |> required "storyData" JSON.StoryData.decoder

@@ -3,7 +3,7 @@ module JSON.Completed exposing (..)
 import Json.Encode as Encode
 import Json.Decode as Decode
 import Json.Decode.Pipeline exposing (decode, required, optional, hardcoded)
-import JSON.TidbitPointer as JSONTidbitPointer
+import JSON.TidbitPointer
 import Models.Completed exposing (..)
 
 
@@ -12,7 +12,7 @@ import Models.Completed exposing (..)
 encoder : Completed -> Encode.Value
 encoder completed =
     Encode.object
-        [ ( "tidbitPointer", JSONTidbitPointer.encoder completed.tidbitPointer )
+        [ ( "tidbitPointer", JSON.TidbitPointer.encoder completed.tidbitPointer )
         , ( "user", Encode.string completed.user )
         ]
 
@@ -22,7 +22,7 @@ encoder completed =
 decoder : Decode.Decoder Completed
 decoder =
     decode Completed
-        |> required "tidbitPointer" JSONTidbitPointer.decoder
+        |> required "tidbitPointer" JSON.TidbitPointer.decoder
         |> required "user" Decode.string
 
 
@@ -31,7 +31,7 @@ decoder =
 isCompletedEncoder : IsCompleted -> Encode.Value
 isCompletedEncoder isCompleted =
     Encode.object
-        [ ( "tidbitPointer", JSONTidbitPointer.encoder isCompleted.tidbitPointer )
+        [ ( "tidbitPointer", JSON.TidbitPointer.encoder isCompleted.tidbitPointer )
         , ( "complete", Encode.bool isCompleted.complete )
         ]
 
@@ -41,5 +41,5 @@ isCompletedEncoder isCompleted =
 isCompletedDecoder : Decode.Decoder IsCompleted
 isCompletedDecoder =
     decode IsCompleted
-        |> required "tidbitPointer" JSONTidbitPointer.decoder
+        |> required "tidbitPointer" JSON.TidbitPointer.decoder
         |> required "complete" Decode.bool

@@ -4,8 +4,8 @@ import DefaultServices.Util as Util
 import Json.Encode as Encode
 import Json.Decode as Decode
 import Json.Decode.Pipeline exposing (decode, required, optional, hardcoded)
-import JSON.Tidbit as JSONTidbit
-import JSON.TidbitPointer as JSONTidbitPointer
+import JSON.Tidbit
+import JSON.TidbitPointer
 import Models.Story exposing (..)
 
 
@@ -19,7 +19,7 @@ encoder story =
         , ( "name", Encode.string story.name )
         , ( "description", Encode.string story.description )
         , ( "tags", Encode.list <| List.map Encode.string story.tags )
-        , ( "tidbitPointers", Encode.list <| List.map JSONTidbitPointer.encoder story.tidbitPointers )
+        , ( "tidbitPointers", Encode.list <| List.map JSON.TidbitPointer.encoder story.tidbitPointers )
         , ( "createdAt", Util.dateEncoder story.createdAt )
         , ( "lastModified", Util.dateEncoder story.lastModified )
         , ( "userHasCompleted", Util.justValueOrNull (Encode.list << List.map Encode.bool) story.userHasCompleted )
@@ -36,7 +36,7 @@ decoder =
         |> required "name" Decode.string
         |> required "description" Decode.string
         |> required "tags" (Decode.list Decode.string)
-        |> required "tidbitPointers" (Decode.list JSONTidbitPointer.decoder)
+        |> required "tidbitPointers" (Decode.list JSON.TidbitPointer.decoder)
         |> required "createdAt" Util.dateDecoder
         |> required "lastModified" Util.dateDecoder
         |> optional "userHasCompleted" (Decode.maybe <| Decode.list Decode.bool) Nothing
@@ -52,7 +52,7 @@ expandedStoryEncoder expandedStory =
         , ( "name", Encode.string expandedStory.name )
         , ( "description", Encode.string expandedStory.description )
         , ( "tags", Encode.list <| List.map Encode.string expandedStory.tags )
-        , ( "tidbits", Encode.list <| List.map JSONTidbit.encoder expandedStory.tidbits )
+        , ( "tidbits", Encode.list <| List.map JSON.Tidbit.encoder expandedStory.tidbits )
         , ( "createdAt", Util.dateEncoder expandedStory.createdAt )
         , ( "lastModified", Util.dateEncoder expandedStory.lastModified )
         , ( "userHasCompleted", Util.justValueOrNull (Encode.list << List.map Encode.bool) expandedStory.userHasCompleted )
@@ -69,7 +69,7 @@ expandedStoryDecoder =
         |> required "name" Decode.string
         |> required "description" Decode.string
         |> required "tags" (Decode.list Decode.string)
-        |> required "tidbits" (Decode.list JSONTidbit.decoder)
+        |> required "tidbits" (Decode.list JSON.Tidbit.decoder)
         |> required "createdAt" Util.dateDecoder
         |> required "lastModified" Util.dateDecoder
         |> optional "userHasCompleted" (Decode.maybe <| Decode.list Decode.bool) Nothing

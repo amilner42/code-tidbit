@@ -4,9 +4,9 @@ import DefaultServices.Util as Util
 import Json.Encode as Encode
 import Json.Decode as Decode
 import Json.Decode.Pipeline exposing (decode, required, optional, hardcoded)
-import JSON.Bigbit as JSONBigbit
-import JSON.Completed as JSONCompleted
-import JSON.ViewerRelevantHC as JSONViewerRelevantHC
+import JSON.Bigbit
+import JSON.Completed
+import JSON.ViewerRelevantHC
 import Models.ViewBigbitData exposing (..)
 
 
@@ -14,14 +14,14 @@ import Models.ViewBigbitData exposing (..)
 -}
 relevantHCEncoder : ViewingBigbitRelevantHC -> Encode.Value
 relevantHCEncoder =
-    JSONViewerRelevantHC.encoder JSONBigbit.publicationHighlightedCommentEncoder
+    JSON.ViewerRelevantHC.encoder JSON.Bigbit.publicationHighlightedCommentEncoder
 
 
 {-| `ViewingBigbitRelevantHC` decoder.
 -}
 relevantHCDecoder : Decode.Decoder ViewingBigbitRelevantHC
 relevantHCDecoder =
-    JSONViewerRelevantHC.decoder JSONBigbit.publicationHighlightedCommentDecoder
+    JSON.ViewerRelevantHC.decoder JSON.Bigbit.publicationHighlightedCommentDecoder
 
 
 {-| `ViewBigbitData` encoder.
@@ -30,10 +30,10 @@ encoder : ViewBigbitData -> Encode.Value
 encoder viewBigbitData =
     Encode.object
         [ ( "viewingBigbit"
-          , Util.justValueOrNull JSONBigbit.encoder viewBigbitData.viewingBigbit
+          , Util.justValueOrNull JSON.Bigbit.encoder viewBigbitData.viewingBigbit
           )
         , ( "viewingBigbitIsCompleted"
-          , Util.justValueOrNull JSONCompleted.isCompletedEncoder viewBigbitData.viewingBigbitIsCompleted
+          , Util.justValueOrNull JSON.Completed.isCompletedEncoder viewBigbitData.viewingBigbitIsCompleted
           )
         , ( "viewingBigbitRelevantHC"
           , Util.justValueOrNull relevantHCEncoder viewBigbitData.viewingBigbitRelevantHC
@@ -46,6 +46,6 @@ encoder viewBigbitData =
 decoder : Decode.Decoder ViewBigbitData
 decoder =
     decode ViewBigbitData
-        |> required "viewingBigbit" (Decode.maybe JSONBigbit.decoder)
-        |> required "viewingBigbitIsCompleted" (Decode.maybe JSONCompleted.isCompletedDecoder)
+        |> required "viewingBigbit" (Decode.maybe JSON.Bigbit.decoder)
+        |> required "viewingBigbitIsCompleted" (Decode.maybe JSON.Completed.isCompletedDecoder)
         |> required "viewingBigbitRelevantHC" (Decode.maybe relevantHCDecoder)

@@ -48,4 +48,5 @@ decoder =
                     Just aRoute ->
                         Decode.succeed aRoute
     in
-        Decode.andThen fromStringDecoder Decode.string
+        Decode.string
+            |> Decode.andThen fromStringDecoder

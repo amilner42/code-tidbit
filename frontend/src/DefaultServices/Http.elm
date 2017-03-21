@@ -3,7 +3,7 @@ module DefaultServices.Http exposing (get, post)
 import Http
 import Json.Decode as Decode
 import Json.Encode as Encode
-import JSON.ApiError as JSONApiError
+import JSON.ApiError
 import Models.ApiError as ApiError
 
 
@@ -30,7 +30,7 @@ handleHttpResult onApiError onApiSuccess httpResult =
                     ApiError.RawTimeout
 
                 Http.BadStatus { body } ->
-                    case Decode.decodeString JSONApiError.decoder body of
+                    case Decode.decodeString JSON.ApiError.decoder body of
                         Ok apiError ->
                             apiError
 

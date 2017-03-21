@@ -4,7 +4,7 @@ import DefaultServices.Util as Util
 import Json.Encode as Encode
 import Json.Decode as Decode
 import Json.Decode.Pipeline exposing (decode, required, optional, hardcoded)
-import JSON.TidbitType as JSONTidbitType
+import JSON.TidbitType
 import Models.CreateData exposing (..)
 
 
@@ -13,7 +13,7 @@ import Models.CreateData exposing (..)
 encoder : CreateData -> Encode.Value
 encoder createData =
     Encode.object
-        [ ( "showInfoFor", Util.justValueOrNull JSONTidbitType.encoder createData.showInfoFor )
+        [ ( "showInfoFor", Util.justValueOrNull JSON.TidbitType.encoder createData.showInfoFor )
         ]
 
 
@@ -22,4 +22,4 @@ encoder createData =
 decoder : Decode.Decoder CreateData
 decoder =
     decode CreateData
-        |> required "showInfoFor" (Decode.maybe JSONTidbitType.decoder)
+        |> required "showInfoFor" (Decode.maybe JSON.TidbitType.decoder)

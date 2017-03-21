@@ -6,8 +6,8 @@ import DefaultServices.Util as Util
 import Json.Encode as Encode
 import Json.Decode as Decode
 import Json.Decode.Pipeline exposing (decode, required, optional, hardcoded)
-import JSON.HighlightedComment as JSONHC
-import JSON.Language as JSONLanguage
+import JSON.HighlightedComment
+import JSON.Language
 import Models.Snipbit exposing (..)
 
 
@@ -16,7 +16,7 @@ import Models.Snipbit exposing (..)
 createSnipbitEncoder model extraFields =
     Encode.object <|
         List.concat
-            [ [ ( "language", JSONLanguage.encoder model.language )
+            [ [ ( "language", JSON.Language.encoder model.language )
               , ( "name", Encode.string model.name )
               , ( "description", Encode.string model.description )
               , ( "tags", Encode.list <| List.map Encode.string model.tags )
@@ -24,7 +24,7 @@ createSnipbitEncoder model extraFields =
               , ( "introduction", Encode.string model.introduction )
               , ( "conclusion", Encode.string model.conclusion )
               , ( "highlightedComments"
-                , Encode.array <| Array.map JSONHC.encoder model.highlightedComments
+                , Encode.array <| Array.map JSON.HighlightedComment.encoder model.highlightedComments
                 )
               ]
             , extraFields
@@ -50,14 +50,14 @@ decoder : Decode.Decoder Snipbit
 decoder =
     decode Snipbit
         |> required "id" Decode.string
-        |> required "language" JSONLanguage.decoder
+        |> required "language" JSON.Language.decoder
         |> required "name" Decode.string
         |> required "description" Decode.string
         |> required "tags" (Decode.list Decode.string)
         |> required "code" Decode.string
         |> required "introduction" Decode.string
         |> required "conclusion" Decode.string
-        |> required "highlightedComments" (Decode.array JSONHC.decoder)
+        |> required "highlightedComments" (Decode.array JSON.HighlightedComment.decoder)
         |> required "author" Decode.string
         |> required "createdAt" Util.dateDecoder
         |> required "lastModified" Util.dateDecoder
@@ -75,14 +75,14 @@ publicationEncoder snipbitForPublication =
 publicationDecoder : Decode.Decoder SnipbitForPublication
 publicationDecoder =
     decode SnipbitForPublication
-        |> required "language" JSONLanguage.decoder
+        |> required "language" JSON.Language.decoder
         |> required "name" Decode.string
         |> required "description" Decode.string
         |> required "tags" (Decode.list Decode.string)
         |> required "code" Decode.string
         |> required "introduction" Decode.string
         |> required "conclusion" Decode.string
-        |> required "highlightedComments" (Decode.array JSONHC.decoder)
+        |> required "highlightedComments" (Decode.array JSON.HighlightedComment.decoder)
 
 
 {-| `SnipbitCreateData` encoder.
@@ -91,7 +91,7 @@ createDataEncoder : SnipbitCreateData -> Encode.Value
 createDataEncoder snipbitCreateData =
     Encode.object
         [ ( "language"
-          , Util.justValueOrNull JSONLanguage.encoder snipbitCreateData.language
+          , Util.justValueOrNull JSON.Language.encoder snipbitCreateData.language
           )
         , ( "languageQueryACState", Encode.null )
         , ( "languageListHowManyToShow"
@@ -108,7 +108,7 @@ createDataEncoder snipbitCreateData =
         , ( "highlightedComments"
           , Encode.array <|
                 Array.map
-                    JSONHC.maybeEncoder
+                    JSON.HighlightedComment.maybeEncoder
                     snipbitCreateData.highlightedComments
           )
         , ( "introduction", Encode.string snipbitCreateData.introduction )
@@ -122,7 +122,7 @@ createDataEncoder snipbitCreateData =
 createDataDecoder : Decode.Decoder SnipbitCreateData
 createDataDecoder =
     decode SnipbitCreateData
-        |> required "language" (Decode.maybe JSONLanguage.decoder)
+        |> required "language" (Decode.maybe JSON.Language.decoder)
         |> required "languageQueryACState" (Decode.succeed AC.empty)
         |> required "languageListHowManyToShow" (Decode.int)
         |> required "languageQuery" Decode.string
@@ -131,7 +131,7 @@ createDataDecoder =
         |> required "tags" (Decode.list Decode.string)
         |> required "tagInput" Decode.string
         |> required "code" Decode.string
-        |> required "highlightedComments" (Decode.array JSONHC.maybeDecoder)
+        |> required "highlightedComments" (Decode.array JSON.HighlightedComment.maybeDecoder)
         |> required "introduction" Decode.string
         |> required "conclusion" Decode.string
         |> required "previewMarkdown" Decode.bool

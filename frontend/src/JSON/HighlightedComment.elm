@@ -4,7 +4,7 @@ import DefaultServices.Util as Util
 import Json.Encode as Encode
 import Json.Decode as Decode
 import Json.Decode.Pipeline exposing (decode, required, optional, hardcoded)
-import JSON.Range as JSONRange
+import JSON.Range
 import Models.HighlightedComment exposing (..)
 import Models.Range as Range
 
@@ -14,7 +14,7 @@ import Models.Range as Range
 encoder : HighlightedComment -> Encode.Value
 encoder hc =
     Encode.object
-        [ ( "range", JSONRange.encoder hc.range )
+        [ ( "range", JSON.Range.encoder hc.range )
         , ( "comment", Encode.string hc.comment )
         ]
 
@@ -23,9 +23,9 @@ encoder hc =
 -}
 decoder : Decode.Decoder HighlightedComment
 decoder =
-    Decode.map2 HighlightedComment
-        (Decode.field "range" JSONRange.decoder)
-        (Decode.field "comment" Decode.string)
+    decode HighlightedComment
+        |> required "range" JSON.Range.decoder
+        |> required "comment" Decode.string
 
 
 {-| `MaybeHighlightedComment` encoder.
@@ -35,7 +35,7 @@ maybeEncoder maybeHighlightedComment =
     Encode.object
         [ ( "range"
           , Util.justValueOrNull
-                JSONRange.encoder
+                JSON.Range.encoder
                 maybeHighlightedComment.range
           )
         , ( "comment"
@@ -51,5 +51,5 @@ maybeEncoder maybeHighlightedComment =
 maybeDecoder : Decode.Decoder MaybeHighlightedComment
 maybeDecoder =
     decode MaybeHighlightedComment
-        |> required "range" (Decode.maybe JSONRange.decoder)
+        |> required "range" (Decode.maybe JSON.Range.decoder)
         |> required "comment" (Decode.maybe Decode.string)
