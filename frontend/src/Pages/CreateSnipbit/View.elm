@@ -3,16 +3,16 @@ module Pages.CreateSnipbit.View exposing (..)
 import Array
 import Autocomplete as AC
 import DefaultServices.Util as Util
+import Elements.Editor as Editor
+import Elements.Tags exposing (tags)
 import Html exposing (Html, div, text, button, hr, textarea, input)
 import Html.Attributes exposing (class, classList, disabled, hidden, value, id, placeholder)
 import Html.Events exposing (onClick, onInput)
-import Elements.Editor as Editor
-import Elements.Tags exposing (tags)
-import Models.Route as Route
-import Pages.CreateSnipbit.Model exposing (..)
-import Pages.CreateSnipbit.Messages exposing (..)
-import Pages.Model exposing (Shared, kkUpdateWrapper)
 import Keyboard.Extra as KK
+import Models.Route as Route
+import Pages.CreateSnipbit.Messages exposing (..)
+import Pages.CreateSnipbit.Model exposing (..)
+import Pages.Model exposing (Shared, kkUpdateWrapper)
 
 
 {-| `CreateSnipbit` view.

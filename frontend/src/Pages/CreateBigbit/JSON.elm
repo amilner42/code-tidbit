@@ -2,15 +2,15 @@ module Pages.CreateBigbit.JSON exposing (..)
 
 import Array
 import DefaultServices.Util as Util
-import Json.Encode as Encode
+import JSON.Bigbit exposing (publicationHighlightedCommentEncoder)
+import JSON.FileStructure
+import JSON.Language
+import JSON.Range
 import Json.Decode as Decode
 import Json.Decode.Pipeline exposing (decode, required, optional, hardcoded)
-import JSON.Bigbit exposing (publicationHighlightedCommentEncoder)
-import JSON.Range
-import JSON.Language
-import JSON.FileStructure
-import Models.Range as Range
+import Json.Encode as Encode
 import Models.Bigbit exposing (BigbitCreateDataFolderMetadata, BigbitCreateDataFileMetadata)
+import Models.Range as Range
 import Pages.CreateBigbit.Model exposing (..)
 
 

@@ -1,10 +1,10 @@
 module JSON.FileStructure exposing (..)
 
 import DefaultServices.Util as Util
-import Json.Encode as Encode
+import Elements.FileStructure exposing (..)
 import Json.Decode as Decode
 import Json.Decode.Pipeline exposing (decode, required, optional, hardcoded)
-import Elements.FileStructure exposing (..)
+import Json.Encode as Encode
 
 
 {-| `File` encoder.

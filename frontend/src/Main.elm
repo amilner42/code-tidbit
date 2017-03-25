@@ -1,11 +1,11 @@
 port module Main exposing (..)
 
+import Navigation
 import Pages.Init exposing (init)
 import Pages.Messages exposing (Msg(..))
 import Pages.Model exposing (Model)
 import Pages.Update exposing (update)
 import Pages.View exposing (view)
-import Navigation
 import Subscriptions exposing (subscriptions)
 
 

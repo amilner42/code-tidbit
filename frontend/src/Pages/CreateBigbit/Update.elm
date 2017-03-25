@@ -1,9 +1,9 @@
 module Pages.CreateBigbit.Update exposing (..)
 
-import Array
 import Api
-import Dict
+import Array
 import DefaultServices.Util as Util exposing (maybeMapWithDefault, togglePreviewMarkdown)
+import Dict
 import Elements.Editor as Editor
 import Elements.FileStructure as FS
 import Models.Bigbit as Bigbit

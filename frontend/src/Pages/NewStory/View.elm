@@ -5,11 +5,11 @@ import Elements.Tags exposing (tags)
 import Html exposing (Html, div, text, input, textarea, button)
 import Html.Attributes exposing (class, classList, placeholder, value, id, hidden)
 import Html.Events exposing (onClick, onInput)
-import Pages.NewStory.Model exposing (..)
-import Pages.NewStory.Messages exposing (..)
-import Pages.Model exposing (Shared)
-import Models.Route as Route
 import Keyboard.Extra as KK
+import Models.Route as Route
+import Pages.Model exposing (Shared)
+import Pages.NewStory.Messages exposing (..)
+import Pages.NewStory.Model exposing (..)
 
 
 {-| The view for creating a new story.

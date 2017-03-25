@@ -4,9 +4,9 @@ import DefaultServices.Util as Util
 import Html exposing (Html, div, button, text, input, i, textarea)
 import Html.Attributes exposing (class, classList, hidden, placeholder, value)
 import Html.Events exposing (onClick, onInput)
-import Pages.Profile.Model exposing (..)
-import Pages.Profile.Messages exposing (..)
 import Pages.Model exposing (Shared)
+import Pages.Profile.Messages exposing (..)
+import Pages.Profile.Model exposing (..)
 
 
 {-| `Profile` view.

@@ -2,9 +2,9 @@ module DefaultServices.Editable exposing (..)
 
 -- Inspired by Corey: https://gist.github.com/coreyhaines/cf40b7dca8916b77878c97fdb5c8184e
 
-import Json.Encode as Encode
 import Json.Decode as Decode
 import Json.Decode.Pipeline exposing (decode, required, optional, hardcoded)
+import Json.Encode as Encode
 
 
 {-| An editable is an item which is either being edited or not being edited.

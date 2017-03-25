@@ -6,16 +6,16 @@ import Autocomplete as AC
 import DefaultServices.ArrayExtra as ArrayExtra
 import DefaultServices.Util as Util exposing (togglePreviewMarkdown, maybeMapWithDefault)
 import Elements.Editor as Editor
-import Json.Decode as Decode
 import JSON.Language
+import Json.Decode as Decode
+import Models.Range as Range
+import Models.Route as Route
+import Models.User as User
 import Pages.CreateSnipbit.Init exposing (..)
-import Pages.CreateSnipbit.Model exposing (..)
 import Pages.CreateSnipbit.Messages exposing (..)
+import Pages.CreateSnipbit.Model exposing (..)
 import Pages.Model exposing (Shared)
 import Ports
-import Models.Route as Route
-import Models.Range as Range
-import Models.User as User
 
 
 {-| `CreateSnipbit` update.

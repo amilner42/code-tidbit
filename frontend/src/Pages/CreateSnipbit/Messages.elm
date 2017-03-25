@@ -1,11 +1,11 @@
 module Pages.CreateSnipbit.Messages exposing (..)
 
 import Autocomplete as AC
-import Pages.CreateSnipbit.Model exposing (..)
 import Models.ApiError as ApiError
 import Models.IDResponse exposing (IDResponse)
 import Models.Range as Range
 import Models.Route as Route
+import Pages.CreateSnipbit.Model exposing (..)
 
 
 {-| `CreateSnipbit` msg.

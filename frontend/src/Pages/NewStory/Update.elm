@@ -2,12 +2,12 @@ module Pages.NewStory.Update exposing (..)
 
 import Api
 import DefaultServices.Util as Util
-import Pages.NewStory.Init exposing (..)
-import Pages.NewStory.Model exposing (..)
-import Pages.NewStory.Messages exposing (..)
-import Pages.Model exposing (Shared)
 import Models.Route as Route
 import Models.Story as Story
+import Pages.Model exposing (Shared)
+import Pages.NewStory.Init exposing (..)
+import Pages.NewStory.Messages exposing (..)
+import Pages.NewStory.Model exposing (..)
 
 
 {-| `NewStory` update.

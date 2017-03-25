@@ -1,11 +1,11 @@
 module Pages.ViewSnipbit.Messages exposing (..)
 
-import Models.Range as Range
-import Models.Completed as Completed
 import Models.ApiError as ApiError
-import Models.Story as Story
-import Models.Snipbit as Snipbit
+import Models.Completed as Completed
+import Models.Range as Range
 import Models.Route as Route
+import Models.Snipbit as Snipbit
+import Models.Story as Story
 
 
 {-| `ViewSnipbit` msg.

@@ -5,13 +5,13 @@ import Array
 import DefaultServices.Util as Util exposing (maybeMapWithDefault)
 import Elements.Editor as Editor
 import Elements.FileStructure as FS
-import Models.Completed as Completed
 import Models.Bigbit as Bigbit
+import Models.Completed as Completed
 import Models.Range as Range
 import Models.Route as Route
+import Models.TidbitPointer as TidbitPointer
 import Models.User as User
 import Models.ViewerRelevantHC as ViewerRelevantHC
-import Models.TidbitPointer as TidbitPointer
 import Pages.Model exposing (Shared)
 import Pages.ViewBigbit.Messages exposing (Msg(..))
 import Pages.ViewBigbit.Model exposing (..)

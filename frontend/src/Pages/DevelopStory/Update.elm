@@ -2,11 +2,11 @@ module Pages.DevelopStory.Update exposing (..)
 
 import Api
 import DefaultServices.Util as Util exposing (maybeMapWithDefault)
-import Pages.DevelopStory.Model exposing (..)
-import Pages.DevelopStory.Messages exposing (..)
-import Pages.Model exposing (Shared)
 import Models.Route as Route
 import Models.Tidbit as Tidbit
+import Pages.DevelopStory.Messages exposing (..)
+import Pages.DevelopStory.Model exposing (..)
+import Pages.Model exposing (Shared)
 import Ports
 
 

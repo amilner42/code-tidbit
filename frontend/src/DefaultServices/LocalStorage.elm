@@ -1,9 +1,9 @@
 module DefaultServices.LocalStorage exposing (saveModel, onLoadModel, loadModel)
 
+import DefaultServices.Util as Util
+import Pages.JSON exposing (encoder, decoder)
 import Pages.Messages exposing (Msg(..))
 import Pages.Model exposing (Model)
-import Pages.JSON exposing (encoder, decoder)
-import DefaultServices.Util as Util
 import Ports
 
 

@@ -1,8 +1,8 @@
 module Pages.Profile.Messages exposing (..)
 
 import Models.ApiError as ApiError
-import Models.User as User
 import Models.BasicResponse as BasicResponse
+import Models.User as User
 
 
 {-| `Profile` msg.

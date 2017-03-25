@@ -4,11 +4,11 @@ import DefaultServices.Util as Util
 import Html exposing (Html, div, text, button, i)
 import Html.Attributes exposing (class, classList)
 import Html.Events exposing (onClick)
-import Pages.Create.Model exposing (..)
-import Pages.Create.Messages exposing (..)
-import Pages.Model exposing (Shared)
-import Models.TidbitType exposing (TidbitType(..))
 import Models.Route as Route
+import Models.TidbitType exposing (TidbitType(..))
+import Pages.Create.Messages exposing (..)
+import Pages.Create.Model exposing (..)
+import Pages.Model exposing (Shared)
 
 
 {-| `Create` view.

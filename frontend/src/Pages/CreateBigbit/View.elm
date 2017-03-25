@@ -2,26 +2,26 @@ module Pages.CreateBigbit.View exposing (..)
 
 import Array
 import Autocomplete as AC
-import DefaultServices.Util as Util exposing (maybeMapWithDefault, togglePreviewMarkdown)
 import DefaultServices.Editable as Editable
+import DefaultServices.Util as Util exposing (maybeMapWithDefault, togglePreviewMarkdown)
 import Dict
 import Elements.Editor as Editor
+import Elements.FileStructure as FS
 import Elements.ProgressBar exposing (progressBar)
 import Elements.Tags exposing (tags)
 import Html exposing (Html, div, text, textarea, button, input, h1, h3, img, hr, i)
 import Html.Attributes exposing (class, classList, disabled, placeholder, value, hidden, id, src, style)
 import Html.Events exposing (onClick, onInput)
-import Models.Bigbit as Bigbit
-import Elements.FileStructure as FS
 import Keyboard.Extra as KK
+import Models.Bigbit as Bigbit
 import Models.Completed as Completed
 import Models.Range as Range
 import Models.Route as Route
 import Models.Snipbit as Snipbit
-import Models.Tidbit as Tidbit
 import Models.Story as Story
-import Models.ViewerRelevantHC as ViewerRelevantHC
+import Models.Tidbit as Tidbit
 import Models.TidbitType exposing (TidbitType(..))
+import Models.ViewerRelevantHC as ViewerRelevantHC
 import Pages.CreateBigbit.Messages exposing (..)
 import Pages.CreateBigbit.Model exposing (..)
 import Pages.Model exposing (Shared, kkUpdateWrapper)

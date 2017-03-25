@@ -2,21 +2,21 @@ module Pages.ViewBigbit.View exposing (..)
 
 import Array
 import DefaultServices.Util as Util exposing (maybeMapWithDefault)
-import Elements.ProgressBar exposing (progressBar)
 import Elements.Editor as Editor
 import Elements.FileStructure as FS
 import Elements.Markdown exposing (githubMarkdown)
+import Elements.ProgressBar exposing (progressBar)
 import Html exposing (Html, div, button, text, i)
 import Html.Attributes exposing (class, classList, hidden)
 import Html.Events exposing (onClick)
 import Models.Bigbit as Bigbit
 import Models.Completed as Completed
 import Models.Route as Route
-import Models.ViewerRelevantHC as ViewerRelevantHC
 import Models.Story as Story
-import Pages.ViewBigbit.Model exposing (..)
-import Pages.ViewBigbit.Messages exposing (..)
+import Models.ViewerRelevantHC as ViewerRelevantHC
 import Pages.Model exposing (Shared)
+import Pages.ViewBigbit.Messages exposing (..)
+import Pages.ViewBigbit.Model exposing (..)
 
 
 {-| `ViewBigbit` view.

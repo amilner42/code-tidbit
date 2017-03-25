@@ -1,9 +1,9 @@
 module Pages.Create.Messages exposing (..)
 
 import Models.ApiError as ApiError
-import Models.TidbitType as TidbitType
 import Models.Route as Route
 import Models.Story as Story
+import Models.TidbitType as TidbitType
 
 
 {-| `Create` msg.

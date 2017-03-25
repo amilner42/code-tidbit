@@ -8,14 +8,14 @@ import Elements.ProgressBar exposing (progressBar)
 import Html exposing (Html, div, text, button, i)
 import Html.Attributes exposing (class, classList, disabled, hidden, id)
 import Html.Events exposing (onClick)
-import Pages.Model exposing (Shared)
-import Pages.ViewSnipbit.Model exposing (..)
-import Pages.ViewSnipbit.Messages exposing (Msg(..))
 import Models.Completed as Completed
-import Models.Story as Story
-import Models.Snipbit as Snipbit
 import Models.Route as Route
+import Models.Snipbit as Snipbit
+import Models.Story as Story
 import Models.ViewerRelevantHC as ViewerRelevantHC
+import Pages.Model exposing (Shared)
+import Pages.ViewSnipbit.Messages exposing (Msg(..))
+import Pages.ViewSnipbit.Model exposing (..)
 
 
 {-| `ViewSnipbit` view.

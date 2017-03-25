@@ -2,11 +2,11 @@ module JSON.Snipbit exposing (..)
 
 import Array
 import DefaultServices.Util as Util
-import Json.Encode as Encode
-import Json.Decode as Decode
-import Json.Decode.Pipeline exposing (decode, required, optional, hardcoded)
 import JSON.HighlightedComment
 import JSON.Language
+import Json.Decode as Decode
+import Json.Decode.Pipeline exposing (decode, required, optional, hardcoded)
+import Json.Encode as Encode
 import Models.Snipbit exposing (..)
 
 

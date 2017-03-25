@@ -1,10 +1,10 @@
 module Pages.Profile.JSON exposing (..)
 
-import DefaultServices.Util as Util
 import DefaultServices.Editable as Editable
-import Json.Encode as Encode
+import DefaultServices.Util as Util
 import Json.Decode as Decode
 import Json.Decode.Pipeline exposing (decode, required, optional, hardcoded)
+import Json.Encode as Encode
 import Pages.Profile.Model exposing (..)
 
 

@@ -1,10 +1,10 @@
 module Pages.Create.JSON exposing (..)
 
 import DefaultServices.Util as Util
-import Json.Encode as Encode
+import JSON.TidbitType
 import Json.Decode as Decode
 import Json.Decode.Pipeline exposing (decode, required, optional, hardcoded)
-import JSON.TidbitType
+import Json.Encode as Encode
 import Pages.Create.Model exposing (..)
 
 

@@ -1,19 +1,19 @@
 module Pages.ViewSnipbit.Update exposing (..)
 
-import Array
 import Api
+import Array
 import DefaultServices.Util as Util exposing (maybeMapWithDefault)
 import Elements.Editor as Editor
-import Pages.Model exposing (Shared)
-import Pages.ViewSnipbit.Messages exposing (Msg(..))
-import Pages.ViewSnipbit.Model exposing (..)
 import Models.Completed as Completed
 import Models.Range as Range
 import Models.Route as Route
-import Models.ViewerRelevantHC as ViewerRelevantHC
-import Models.User as User
 import Models.Snipbit as Snipbit
 import Models.TidbitPointer as TidbitPointer
+import Models.User as User
+import Models.ViewerRelevantHC as ViewerRelevantHC
+import Pages.Model exposing (Shared)
+import Pages.ViewSnipbit.Messages exposing (Msg(..))
+import Pages.ViewSnipbit.Model exposing (..)
 import Ports
 
 

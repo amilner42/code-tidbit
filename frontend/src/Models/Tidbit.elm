@@ -1,9 +1,9 @@
 module Models.Tidbit exposing (..)
 
 import Date as Date
-import Models.Snipbit as SnipbitModel
 import Models.Bigbit as BigbitModel
 import Models.Route as Route
+import Models.Snipbit as SnipbitModel
 import Models.TidbitPointer as TidbitPointer
 
 

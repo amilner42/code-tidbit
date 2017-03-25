@@ -1,20 +1,20 @@
 module Pages.Model exposing (..)
 
-import Pages.Welcome.Model as WelcomeModel
-import Pages.ViewBigbit.Model as ViewBigbitModel
-import Pages.ViewSnipbit.Model as ViewSnipbitModel
-import Pages.Profile.Model as ProfileModel
-import Pages.NewStory.Model as NewStoryModel
-import Pages.Create.Model as CreateModel
-import Pages.DevelopStory.Model as DevelopStoryModel
-import Pages.CreateSnipbit.Model as CreateSnipbitModel
-import Pages.CreateBigbit.Model as CreateBigbitModel
 import Elements.Editor as Editor
+import Keyboard.Extra as KK
 import Models.Route as Route
 import Models.Story as Story
-import Models.User as User
 import Models.Tidbit as Tidbit
-import Keyboard.Extra as KK
+import Models.User as User
+import Pages.Create.Model as CreateModel
+import Pages.CreateBigbit.Model as CreateBigbitModel
+import Pages.CreateSnipbit.Model as CreateSnipbitModel
+import Pages.DevelopStory.Model as DevelopStoryModel
+import Pages.NewStory.Model as NewStoryModel
+import Pages.Profile.Model as ProfileModel
+import Pages.ViewBigbit.Model as ViewBigbitModel
+import Pages.ViewSnipbit.Model as ViewSnipbitModel
+import Pages.Welcome.Model as WelcomeModel
 
 
 {-| `Base` model.

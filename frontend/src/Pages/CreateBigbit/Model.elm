@@ -6,9 +6,9 @@ import DefaultServices.ArrayExtra as ArrayExtra
 import DefaultServices.Util as Util exposing (maybeMapWithDefault)
 import Elements.Editor as Editor
 import Elements.FileStructure as FS
+import Models.Bigbit exposing (BigbitCreateDataFolderMetadata, BigbitCreateDataFileMetadata, BigbitHighlightedCommentForPublication)
 import Models.Range as Range
 import Models.Route as Route
-import Models.Bigbit exposing (BigbitCreateDataFolderMetadata, BigbitCreateDataFileMetadata, BigbitHighlightedCommentForPublication)
 
 
 {-| `CreateBigbit` model.

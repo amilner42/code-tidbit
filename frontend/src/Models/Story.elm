@@ -1,9 +1,9 @@
 module Models.Story exposing (..)
 
 import Date
+import Models.Route as Route
 import Models.Tidbit as Tidbit
 import Models.TidbitPointer as TidbitPointer
-import Models.Route as Route
 
 
 {-| The story model.

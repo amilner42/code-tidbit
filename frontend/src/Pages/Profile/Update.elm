@@ -2,12 +2,12 @@ module Pages.Profile.Update exposing (..)
 
 import Api
 import DefaultServices.Editable as Editable
-import Pages.DefaultModel exposing (defaultShared)
-import Pages.Profile.Model exposing (..)
-import Pages.Profile.Messages exposing (..)
-import Pages.Model exposing (Shared)
-import Models.User exposing (defaultUserUpdateRecord)
 import Models.Route as Route
+import Models.User exposing (defaultUserUpdateRecord)
+import Pages.DefaultModel exposing (defaultShared)
+import Pages.Model exposing (Shared)
+import Pages.Profile.Messages exposing (..)
+import Pages.Profile.Model exposing (..)
 
 
 {-| `Profile` update.

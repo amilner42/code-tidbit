@@ -1,9 +1,9 @@
 module Pages.DevelopStory.Messages exposing (..)
 
 import Models.ApiError as ApiError
+import Models.Route as Route
 import Models.Story as Story
 import Models.Tidbit as Tidbit
-import Models.Route as Route
 
 
 {-| `DevelopStory` msg.

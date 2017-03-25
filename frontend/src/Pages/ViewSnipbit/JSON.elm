@@ -1,13 +1,13 @@
 module Pages.ViewSnipbit.JSON exposing (..)
 
 import DefaultServices.Util as Util
-import Json.Encode as Encode
-import Json.Decode as Decode
-import Json.Decode.Pipeline exposing (decode, required, optional, hardcoded)
 import JSON.Completed
 import JSON.HighlightedComment
 import JSON.Snipbit
 import JSON.ViewerRelevantHC
+import Json.Decode as Decode
+import Json.Decode.Pipeline exposing (decode, required, optional, hardcoded)
+import Json.Encode as Encode
 import Pages.ViewSnipbit.Model exposing (..)
 
 

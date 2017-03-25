@@ -1,11 +1,11 @@
 module Subscriptions exposing (subscriptions)
 
 import Autocomplete as AC
+import DefaultServices.LocalStorage as LocalStorage
+import Keyboard.Extra
 import Pages.CreateSnipbit.Messages exposing (Msg(SnipbitUpdateACState))
 import Pages.Messages exposing (..)
 import Pages.Model exposing (Model)
-import DefaultServices.LocalStorage as LocalStorage
-import Keyboard.Extra
 import Ports
 
 

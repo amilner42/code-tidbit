@@ -1,9 +1,9 @@
 module DefaultServices.Http exposing (get, post)
 
 import Http
+import JSON.ApiError
 import Json.Decode as Decode
 import Json.Encode as Encode
-import JSON.ApiError
 import Models.ApiError as ApiError
 
 

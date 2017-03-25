@@ -1,12 +1,12 @@
 module Pages.CreateBigbit.Messages exposing (..)
 
+import Elements.Editor as Editor
+import Elements.FileStructure as FS
 import Models.ApiError as ApiError
+import Models.Bigbit as Bigbit
 import Models.IDResponse exposing (IDResponse)
 import Models.Range as Range
 import Models.Route as Route
-import Models.Bigbit as Bigbit
-import Elements.FileStructure as FS
-import Elements.Editor as Editor
 import Pages.CreateBigbit.Model exposing (..)
 
 

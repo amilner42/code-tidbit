@@ -2,8 +2,8 @@ module Pages.NewStory.Messages exposing (..)
 
 import Models.ApiError as ApiError
 import Models.IDResponse as IDResponse
-import Models.Story as Story
 import Models.Route as Route
+import Models.Story as Story
 
 
 {-| `NewStory` msg.

@@ -1,9 +1,9 @@
 module JSON.Completed exposing (..)
 
-import Json.Encode as Encode
+import JSON.TidbitPointer
 import Json.Decode as Decode
 import Json.Decode.Pipeline exposing (decode, required, optional, hardcoded)
-import JSON.TidbitPointer
+import Json.Encode as Encode
 import Models.Completed exposing (..)
 
 

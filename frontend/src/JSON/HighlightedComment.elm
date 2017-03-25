@@ -1,10 +1,10 @@
 module JSON.HighlightedComment exposing (..)
 
 import DefaultServices.Util as Util
-import Json.Encode as Encode
+import JSON.Range
 import Json.Decode as Decode
 import Json.Decode.Pipeline exposing (decode, required, optional, hardcoded)
-import JSON.Range
+import Json.Encode as Encode
 import Models.HighlightedComment exposing (..)
 import Models.Range as Range
 

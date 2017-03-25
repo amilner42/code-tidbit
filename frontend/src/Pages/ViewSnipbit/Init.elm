@@ -1,6 +1,6 @@
 module Pages.ViewSnipbit.Init exposing (..)
 
-import Pages.ViewSnipbit.Model exposing (Model)
+import Pages.ViewSnipbit.Model exposing (..)
 
 
 {-| `ViewSnipbit` init.

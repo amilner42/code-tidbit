@@ -11,8 +11,8 @@ import Html.Keyed as Keyed
 import Json.Decode as Decode
 import Json.Encode as Encode
 import Keyboard.Extra as KK
-import Task
 import Set
+import Task
 
 
 {-| Useful for encoding, turns maybes into nulls / there actual value.

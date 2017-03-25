@@ -1,9 +1,9 @@
 module JSON.User exposing (..)
 
 import DefaultServices.Util as Util exposing (justValueOrNull)
-import Json.Encode as Encode
 import Json.Decode as Decode
 import Json.Decode.Pipeline exposing (decode, required, optional, hardcoded)
+import Json.Encode as Encode
 import Models.User exposing (..)
 
 
