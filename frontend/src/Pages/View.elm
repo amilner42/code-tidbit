@@ -1,43 +1,45 @@
 module Pages.View exposing (view)
 
 import DefaultServices.Util as Util
-import Pages.CreateBigbit.Model as HomeModel
-import Pages.CreateBigbit.View as HomeView
-import Pages.Messages exposing (Msg(..))
-import Pages.Model exposing (Model, Shared)
-import Pages.Welcome.Model as WelcomeModel
-import Pages.Welcome.View as WelcomeView
-import Pages.ViewSnipbit.Model as ViewSnipbitModel
-import Pages.ViewSnipbit.View as ViewSnipbitView
-import Pages.ViewBigbit.Model as ViewBigbitModel
-import Pages.ViewBigbit.View as ViewBigbitView
-import Pages.ViewStory.View as ViewStoryView
-import Pages.Profile.Model as ProfileModel
-import Pages.Profile.View as ProfileView
-import Pages.NewStory.Model as NewStoryModel
-import Pages.NewStory.View as NewStoryView
-import Pages.Create.Model as CreateModel
-import Pages.Create.View as CreateView
-import Pages.DevelopStory.Model as DevelopStoryModel
-import Pages.DevelopStory.View as DevelopStoryView
-import Pages.CreateSnipbit.Model as CreateSnipbitModel
-import Pages.CreateSnipbit.View as CreateSnipbitView
-import Pages.CreateBigbit.Model as CreateBigbitModel
-import Pages.CreateBigbit.View as CreateBigbitView
 import Html exposing (Html, div, img, text)
 import Html.Attributes exposing (class, src, classList)
 import Html.Events exposing (onClick)
 import Models.Route as Route
+import Pages.Create.Model as CreateModel
+import Pages.Create.View as CreateView
+import Pages.CreateBigbit.Model as CreateBigbitModel
+import Pages.CreateBigbit.Model as HomeModel
+import Pages.CreateBigbit.View as CreateBigbitView
+import Pages.CreateBigbit.View as HomeView
+import Pages.CreateSnipbit.Model as CreateSnipbitModel
+import Pages.CreateSnipbit.View as CreateSnipbitView
+import Pages.DevelopStory.Model as DevelopStoryModel
+import Pages.DevelopStory.View as DevelopStoryView
+import Pages.Messages exposing (Msg(..))
+import Pages.Model exposing (Model, Shared)
+import Pages.NewStory.Model as NewStoryModel
+import Pages.NewStory.View as NewStoryView
+import Pages.Profile.Model as ProfileModel
+import Pages.Profile.View as ProfileView
+import Pages.ViewBigbit.Model as ViewBigbitModel
+import Pages.ViewBigbit.View as ViewBigbitView
+import Pages.ViewSnipbit.Model as ViewSnipbitModel
+import Pages.ViewSnipbit.View as ViewSnipbitView
+import Pages.ViewStory.View as ViewStoryView
+import Pages.Welcome.Model as WelcomeModel
+import Pages.Welcome.View as WelcomeView
 
 
-{-| Html entry point - this is the top level view.
+{-| `Base` view.
+
+NOTE: This is the Html entry point to the entire application.
 -}
 view : Model -> Html.Html Msg
 view model =
     div
-        [ class "base-component-wrapper" ]
+        [ class "base-page-wrapper" ]
         [ div
-            [ class "base-component" ]
+            [ class "base-page" ]
             [ navbarIfOnRoute model.shared
             , viewForRoute model
             ]

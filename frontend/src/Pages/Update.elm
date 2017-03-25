@@ -1,51 +1,55 @@
 module Pages.Update exposing (update, updateCacheIf)
 
-import Array
 import Api
-import Pages.Messages exposing (Msg(..))
-import Pages.Model exposing (Model, updateKeysDown, updateKeysDownWithKeys, kkUpdateWrapper)
-import Pages.ViewSnipbit.Messages as ViewSnipbitMessages
-import Pages.ViewSnipbit.Update as ViewSnipbitUpdate
-import Pages.ViewSnipbit.Model as ViewSnipbitModel
-import Pages.ViewBigbit.Messages as ViewBigbitMessages
-import Pages.ViewBigbit.Update as ViewBigbitUpdate
-import Pages.ViewBigbit.Model as ViewBigbitModel
-import Pages.ViewStory.Messages as ViewStoryMessages
-import Pages.ViewStory.Update as ViewStoryUpdate
-import Pages.Profile.Messages as ProfileMessages
-import Pages.Profile.Update as ProfileUpdate
-import Pages.NewStory.Messages as NewStoryMessages
-import Pages.NewStory.Update as NewStoryUpdate
-import Pages.Create.Messages as CreateMessages
-import Pages.Create.Update as CreateUpdate
-import Pages.DevelopStory.Messages as DevelopStoryMessages
-import Pages.DevelopStory.Update as DevelopStoryUpdate
-import Pages.CreateSnipbit.Messages as CreateSnipbitMessages
-import Pages.CreateSnipbit.Update as CreateSnipbitUpdate
-import Pages.CreateBigbit.Update as CreateBigbitUpdate
-import Pages.CreateBigbit.Messages as CreateBigbitMessages
-import Pages.CreateBigbit.Model as CreateBigbitModel
-import Pages.Welcome.Update as WelcomeUpdate
+import Array
 import DefaultServices.LocalStorage as LocalStorage
 import DefaultServices.Util as Util exposing (maybeMapWithDefault)
 import Elements.Editor as Editor
 import Keyboard.Extra as KK
 import Models.Route as Route
 import Navigation
+import Pages.Create.Messages as CreateMessages
+import Pages.Create.Update as CreateUpdate
+import Pages.CreateBigbit.Messages as CreateBigbitMessages
+import Pages.CreateBigbit.Model as CreateBigbitModel
+import Pages.CreateBigbit.Update as CreateBigbitUpdate
+import Pages.CreateSnipbit.Messages as CreateSnipbitMessages
+import Pages.CreateSnipbit.Update as CreateSnipbitUpdate
+import Pages.DevelopStory.Messages as DevelopStoryMessages
+import Pages.DevelopStory.Update as DevelopStoryUpdate
+import Pages.Messages exposing (Msg(..))
+import Pages.Model exposing (Model, updateKeysDown, updateKeysDownWithKeys, kkUpdateWrapper)
+import Pages.NewStory.Messages as NewStoryMessages
+import Pages.NewStory.Update as NewStoryUpdate
+import Pages.Profile.Messages as ProfileMessages
+import Pages.Profile.Update as ProfileUpdate
+import Pages.ViewBigbit.Messages as ViewBigbitMessages
+import Pages.ViewBigbit.Model as ViewBigbitModel
+import Pages.ViewBigbit.Update as ViewBigbitUpdate
+import Pages.ViewSnipbit.Messages as ViewSnipbitMessages
+import Pages.ViewSnipbit.Model as ViewSnipbitModel
+import Pages.ViewSnipbit.Update as ViewSnipbitUpdate
+import Pages.ViewStory.Messages as ViewStoryMessages
+import Pages.ViewStory.Update as ViewStoryUpdate
+import Pages.Welcome.Update as WelcomeUpdate
 import Ports
 import Task
 
 
-{-| Base Component Update.
+{-| `Base` update.
 -}
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     updateCacheIf msg model True
 
 
-{-| Sometimes we don't want to save to the cache, for example when the website
+{-| Wrapper around `update` allowing to cache the model in local storage.
+
+NOTE: Sometimes we don't want to save to the cache, for example when the website
 originally loads if we save to cache we end up loading what we saved (the
-default model) instead of what was in their before.
+default model) instead of what was in there before. As well, we may in the
+future allow users to turn off automatic cacheing, so this function easily
+allows to control that.
 -}
 updateCacheIf : Msg -> Model -> Bool -> ( Model, Cmd Msg )
 updateCacheIf msg model shouldCache =

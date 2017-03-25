@@ -1,14 +1,14 @@
 module Pages.Init exposing (init)
 
-import Pages.Messages exposing (Msg(..))
-import Pages.Model exposing (Model)
-import Pages.Update exposing (updateCacheIf)
-import DefaultModel exposing (defaultModel, defaultShared)
 import Models.Route as Route
 import Navigation
+import Pages.DefaultModel exposing (..)
+import Pages.Messages exposing (..)
+import Pages.Model exposing (..)
+import Pages.Update exposing (..)
 
 
-{-| Base Component Init.
+{-| `Base` init.
 -}
 init : Navigation.Location -> ( Model, Cmd Msg )
 init location =

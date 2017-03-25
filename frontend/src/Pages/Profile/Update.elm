@@ -2,7 +2,7 @@ module Pages.Profile.Update exposing (..)
 
 import Api
 import DefaultServices.Editable as Editable
-import DefaultModel exposing (defaultShared)
+import Pages.DefaultModel exposing (defaultShared)
 import Pages.Profile.Model exposing (..)
 import Pages.Profile.Messages exposing (..)
 import Pages.Model exposing (Shared)

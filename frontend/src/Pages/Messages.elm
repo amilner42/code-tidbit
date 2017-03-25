@@ -1,25 +1,25 @@
 module Pages.Messages exposing (..)
 
-import Pages.Model exposing (Model)
-import Pages.Welcome.Messages as WelcomeMessages
-import Pages.ViewSnipbit.Messages as ViewSnipbitMessages
-import Pages.ViewBigbit.Messages as ViewBigbitMessages
-import Pages.ViewStory.Messages as ViewStoryMessages
-import Pages.Profile.Messages as ProfileMessages
-import Pages.NewStory.Messages as NewStoryMessages
-import Pages.Create.Messages as CreateMessages
-import Pages.DevelopStory.Messages as DevelopStoryMessages
-import Pages.CreateSnipbit.Messages as CreateSnipbitMessages
-import Pages.CreateBigbit.Messages as CreateBigbitMessages
 import Keyboard.Extra
 import Models.ApiError as ApiError
 import Models.Range as Range
 import Models.Route as Route
 import Models.User exposing (User)
 import Navigation
+import Pages.Create.Messages as CreateMessages
+import Pages.CreateBigbit.Messages as CreateBigbitMessages
+import Pages.CreateSnipbit.Messages as CreateSnipbitMessages
+import Pages.DevelopStory.Messages as DevelopStoryMessages
+import Pages.Model exposing (Model)
+import Pages.NewStory.Messages as NewStoryMessages
+import Pages.Profile.Messages as ProfileMessages
+import Pages.ViewBigbit.Messages as ViewBigbitMessages
+import Pages.ViewSnipbit.Messages as ViewSnipbitMessages
+import Pages.ViewStory.Messages as ViewStoryMessages
+import Pages.Welcome.Messages as WelcomeMessages
 
 
-{-| `Base` Msg.
+{-| `Base` msg.
 -}
 type Msg
     = NoOp
