@@ -8,7 +8,7 @@ import Html.Events exposing (onClick)
 import Models.Route as Route
 import Models.Tidbit as Tidbit
 import Pages.Model exposing (Shared)
-import Pages.ViewStory.Messages exposing (Msg(..))
+import Pages.ViewStory.Messages exposing (..)
 
 
 {-| `ViewStory` view.
@@ -37,7 +37,8 @@ view shared =
                         |> Maybe.andThen
                             (\index ->
                                 Util.getAt story.tidbits index
-                                    |> Maybe.map (Tidbit.getTidbitRoute (Just story.id) >> (,) index)
+                                    |> Maybe.map
+                                        (Tidbit.getTidbitRoute (Just story.id) >> (,) index)
                             )
             in
                 div
@@ -53,7 +54,10 @@ view shared =
                                                 [ class "sub-bar-button next-tidbit-button"
                                                 , onClick <| GoTo routeForViewingTidbit
                                                 ]
-                                                [ text <| "Continue on Tidbit " ++ (toString <| index + 1) ]
+                                                [ text <|
+                                                    "Continue on Tidbit "
+                                                        ++ (toString <| index + 1)
+                                                ]
 
                                         _ ->
                                             Util.hiddenDiv
@@ -120,12 +124,20 @@ view shared =
                                                 [ classList
                                                     [ ( "tidbit-box", True )
                                                     , ( "completed"
-                                                      , case shared.viewingStory |> Maybe.andThen .userHasCompleted of
+                                                      , case
+                                                            shared.viewingStory
+                                                                |> Maybe.andThen .userHasCompleted
+                                                        of
                                                             Nothing ->
                                                                 False
 
                                                             Just hasCompletedList ->
-                                                                Maybe.withDefault False (Util.getAt hasCompletedList index)
+                                                                Maybe.withDefault
+                                                                    False
+                                                                    (Util.getAt
+                                                                        hasCompletedList
+                                                                        index
+                                                                    )
                                                       )
                                                     ]
                                                 ]
@@ -137,7 +149,11 @@ view shared =
                                                     [ text <| toString <| index + 1 ]
                                                 , button
                                                     [ class "view-button"
-                                                    , onClick <| GoTo <| Tidbit.getTidbitRoute (Just story.id) tidbit
+                                                    , onClick <|
+                                                        GoTo <|
+                                                            Tidbit.getTidbitRoute
+                                                                (Just story.id)
+                                                                tidbit
                                                     ]
                                                     [ text "VIEW"
                                                     ]

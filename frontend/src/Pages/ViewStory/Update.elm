@@ -3,7 +3,7 @@ module Pages.ViewStory.Update exposing (..)
 import Api
 import Models.Route as Route
 import Pages.Model exposing (Shared)
-import Pages.ViewStory.Messages exposing (Msg(..))
+import Pages.ViewStory.Messages exposing (..)
 import Ports
 
 
@@ -28,27 +28,22 @@ update msg shared =
             OnRouteHit route ->
                 case route of
                     Route.ViewStoryPage mongoID ->
-                        ( { shared
-                            | viewingStory = Nothing
-                          }
+                        ( { shared | viewingStory = Nothing }
                         , Cmd.batch
                             [ Ports.smoothScrollToSubBar
                             , Api.getExpandedStoryWithCompleted
                                 mongoID
-                                ViewStoryGetExpandedStoryFailure
-                                ViewStoryGetExpandedStorySuccess
+                                GetExpandedStoryFailure
+                                GetExpandedStorySuccess
                             ]
                         )
 
                     _ ->
                         doNothing
 
-            ViewStoryGetExpandedStoryFailure apiError ->
+            GetExpandedStoryFailure apiError ->
                 -- TODO handle error.
                 doNothing
 
-            ViewStoryGetExpandedStorySuccess expandedStory ->
-                justSetShared <|
-                    { shared
-                        | viewingStory = Just expandedStory
-                    }
+            GetExpandedStorySuccess expandedStory ->
+                justSetShared <| { shared | viewingStory = Just expandedStory }
