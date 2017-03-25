@@ -4,7 +4,7 @@ import Models.ApiError as ApiError
 import Models.User exposing (User)
 
 
-{-| Welcome Component Msg.
+{-| `Welcome` msg.
 -}
 type Msg
     = Register

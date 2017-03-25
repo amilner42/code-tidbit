@@ -1,0 +1,128 @@
+@import '../../Styles/global';
+@import '../../Styles/mixins';
+@import '../../Styles/variables';
+
+
+.create-snipbit {
+
+    height: 100%;
+
+    .create-tidbit-navbar {
+        width: 620px;
+    }
+
+    .create-snipbit-name {
+        @extend .create-tidbit-x;
+
+        input {
+            height: 53px;
+            width: 800px;
+        }
+    }
+
+    .create-snipbit-description {
+        @extend .create-tidbit-x;
+
+        .create-snipbit-description-box {
+            height: 400px;
+            width: 600px;
+        }
+    }
+
+    .create-snipbit-language {
+        @extend .create-tidbit-x;
+
+        input {
+            height: 53px;
+            width: 300px;
+        }
+
+        button {
+            position: relative;
+            display: block;
+            width: 300px;
+            height: 30px;
+            border-radius: 5px;
+            border: none;
+            margin: -15px auto 0 auto;
+            background-color: $color4;
+            color: white;
+            font-size: 14px;
+        }
+
+        ul.lang-select-ac {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        .lang-select-ac {
+            box-sizing: border-box;
+            position: relative;
+            height: 390px;
+            overflow-y: auto;
+            overflow-x: hidden;
+            width: 300px;
+            display: block;
+            margin: -15px auto 0 auto;
+            z-index: 1000;
+
+            .lang-select-ac-item {
+                @include no-select();
+                box-sizing: border-box;
+                z-index: 1000;
+                list-style-type: none;
+                color: $color4;
+                border: 1px solid $color2;
+                width: 300px;
+                height: 33px;
+                margin-bottom: 3px;
+                text-align: center;
+                line-height: 33px;
+                font-size: 18px;
+                margin-left: 0;
+                padding-left: 0;
+
+                &.key-selected {
+                    background-color: $color3;
+                    color: $color6;
+                    border-color: $color1;
+                }
+
+                &:hover {
+                    cursor: pointer;
+                }
+            }
+        }
+    }
+
+    .create-snipbit-code {
+        @extend .create-tidbit-code;
+
+        .preview-markdown {
+            @extend .above-comment-block-button;
+            right: 0;
+        }
+    }
+
+    .sub-bar {
+
+        .create-snipbit-back-button {
+            @extend .sub-bar-button;
+            margin: 0 10px 0 10px;
+        }
+
+        .create-snipbit-reset-button {
+            @extend .sub-bar-button;
+            margin-right: 10px;
+            margin-left: 10px;
+        }
+
+        .create-snipbit-publish-button {
+            @extend .publish-button;
+        }
+
+        .create-snipbit-disabled-publish-button {
+            @extend .disabled-publish-button;
+        }
+    }
+}

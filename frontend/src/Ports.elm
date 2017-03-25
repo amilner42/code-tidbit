@@ -23,6 +23,21 @@ port loadModelFromLocalStorage : () -> Cmd msg
 port doScrolling : { querySelector : String, duration : Int, extraScroll : Int } -> Cmd msg
 
 
+{-| Smooth-scrolls to the bottom.
+-}
+smoothScrollToBottom : Cmd msg
+smoothScrollToBottom =
+    doScrolling
+        { querySelector = ".invisible-bottom", duration = 500, extraScroll = 0 }
+
+
+{-| Smooth-scrolls to the subbar, effectively hiding the top navbar.
+-}
+smoothScrollToSubBar : Cmd msg
+smoothScrollToSubBar =
+    doScrolling { querySelector = ".sub-bar", duration = 500, extraScroll = 0 }
+
+
 {-| Upon loading the model from local storage.
 -}
 port onLoadModelFromLocalStorage : (String -> msg) -> Sub msg

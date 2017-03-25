@@ -1,0 +1,38 @@
+@import '../Styles/variables';
+@import '../Styles/mixins';
+
+
+.progress-bar {
+    @include no-select();
+
+    position: relative;
+    display: inline-block;
+    width: 150px;
+    height: 30px;
+    line-height: 30px;
+    border: 1px solid $color2;
+    padding: 5px;
+    color: $color6;
+
+    .progress-bar-completion-bar {
+        position: absolute;
+        height: 100%;
+        background-color: $color3;
+        z-index: -1;
+        left: 0;
+        top: 0;
+
+        &.disabled {
+            background-color: $color2;
+        }
+    }
+
+    &.selected {
+        border-color: $color1;
+    }
+
+    &.disabled {
+        border-color: $color2;
+        color: $color8;
+    }
+}

@@ -2,19 +2,35 @@ module Pages.Update exposing (update, updateCacheIf)
 
 import Array
 import Api
-import Pages.Home.Update as HomeUpdate
-import Pages.Home.Messages as HomeMessages
-import Pages.Home.Model as HomeModel
 import Pages.Messages exposing (Msg(..))
 import Pages.Model exposing (Model, updateKeysDown, updateKeysDownWithKeys, kkUpdateWrapper)
+import Pages.ViewSnipbit.Messages as ViewSnipbitMessages
+import Pages.ViewSnipbit.Update as ViewSnipbitUpdate
+import Pages.ViewSnipbit.Model as ViewSnipbitModel
+import Pages.ViewBigbit.Messages as ViewBigbitMessages
+import Pages.ViewBigbit.Update as ViewBigbitUpdate
+import Pages.ViewBigbit.Model as ViewBigbitModel
+import Pages.ViewStory.Messages as ViewStoryMessages
+import Pages.ViewStory.Update as ViewStoryUpdate
+import Pages.Profile.Messages as ProfileMessages
+import Pages.Profile.Update as ProfileUpdate
+import Pages.NewStory.Messages as NewStoryMessages
+import Pages.NewStory.Update as NewStoryUpdate
+import Pages.Create.Messages as CreateMessages
+import Pages.Create.Update as CreateUpdate
+import Pages.DevelopStory.Messages as DevelopStoryMessages
+import Pages.DevelopStory.Update as DevelopStoryUpdate
+import Pages.CreateSnipbit.Messages as CreateSnipbitMessages
+import Pages.CreateSnipbit.Update as CreateSnipbitUpdate
+import Pages.CreateBigbit.Update as CreateBigbitUpdate
+import Pages.CreateBigbit.Messages as CreateBigbitMessages
+import Pages.CreateBigbit.Model as CreateBigbitModel
 import Pages.Welcome.Update as WelcomeUpdate
 import DefaultServices.LocalStorage as LocalStorage
 import DefaultServices.Util as Util exposing (maybeMapWithDefault)
 import Elements.Editor as Editor
 import Keyboard.Extra as KK
 import Models.Route as Route
-import Models.ViewSnipbitData as ViewSnipbitData
-import Models.ViewBigbitData as ViewBigbitData
 import Navigation
 import Ports
 import Task
@@ -37,9 +53,6 @@ updateCacheIf msg model shouldCache =
         shared =
             model.shared
 
-        currentHomeComponent =
-            model.homeComponent
-
         doNothing =
             ( model, Cmd.none )
 
@@ -47,6 +60,9 @@ updateCacheIf msg model shouldCache =
             case msg of
                 NoOp ->
                     doNothing
+
+                GoTo route ->
+                    ( model, Route.navigateTo route )
 
                 OnLocationChange location ->
                     let
@@ -88,44 +104,170 @@ updateCacheIf msg model shouldCache =
                     in
                         ( newModel, Route.navigateTo newModel.shared.route )
 
-                HomeMessage subMsg ->
-                    let
-                        ( newHomeModel, newShared, newSubMsg ) =
-                            HomeUpdate.update
-                                subMsg
-                                model.homeComponent
-                                model.shared
-
-                        newModel =
-                            { model
-                                | homeComponent = newHomeModel
-                                , shared = newShared
-                            }
-                    in
-                        ( newModel, Cmd.map HomeMessage newSubMsg )
-
                 WelcomeMessage subMsg ->
                     let
                         ( newWelcomeModel, newShared, newSubMsg ) =
                             WelcomeUpdate.update
                                 subMsg
-                                model.welcomeComponent
+                                model.welcomePage
                                 model.shared
 
                         newModel =
                             { model
-                                | welcomeComponent = newWelcomeModel
+                                | welcomePage = newWelcomeModel
                                 , shared = newShared
                             }
                     in
                         ( newModel, Cmd.map WelcomeMessage newSubMsg )
 
+                ViewSnipbitMessage subMsg ->
+                    let
+                        ( newViewSnipbitModel, newShared, newSubMsg ) =
+                            ViewSnipbitUpdate.update
+                                subMsg
+                                model.viewSnipbitPage
+                                model.shared
+
+                        newModel =
+                            { model
+                                | viewSnipbitPage = newViewSnipbitModel
+                                , shared = newShared
+                            }
+                    in
+                        ( newModel, Cmd.map ViewSnipbitMessage newSubMsg )
+
+                ViewBigbitMessage subMsg ->
+                    let
+                        ( newViewBigbitModel, newShared, newSubMsg ) =
+                            ViewBigbitUpdate.update
+                                subMsg
+                                model.viewBigbitPage
+                                model.shared
+
+                        newModel =
+                            { model
+                                | viewBigbitPage = newViewBigbitModel
+                                , shared = newShared
+                            }
+                    in
+                        ( newModel, Cmd.map ViewBigbitMessage newSubMsg )
+
+                ViewStoryMessage subMsg ->
+                    let
+                        ( newShared, newSubMsg ) =
+                            ViewStoryUpdate.update
+                                subMsg
+                                model.shared
+
+                        newModel =
+                            { model
+                                | shared = newShared
+                            }
+                    in
+                        ( newModel, Cmd.map ViewStoryMessage newSubMsg )
+
+                ProfileMessage subMsg ->
+                    let
+                        ( newProfileModel, newShared, newSubMsg ) =
+                            ProfileUpdate.update
+                                subMsg
+                                model.profilePage
+                                model.shared
+
+                        newModel =
+                            { model
+                                | profilePage = newProfileModel
+                                , shared = newShared
+                            }
+                    in
+                        ( newModel, Cmd.map ProfileMessage newSubMsg )
+
+                NewStoryMessage subMsg ->
+                    let
+                        ( newNewStoryModel, newShared, newSubMsg ) =
+                            NewStoryUpdate.update
+                                subMsg
+                                model.newStoryPage
+                                model.shared
+
+                        newModel =
+                            { model
+                                | newStoryPage = newNewStoryModel
+                                , shared = newShared
+                            }
+                    in
+                        ( newModel, Cmd.map NewStoryMessage newSubMsg )
+
+                CreateMessage subMsg ->
+                    let
+                        ( newCreateModel, newShared, newSubMsg ) =
+                            CreateUpdate.update
+                                subMsg
+                                model.createPage
+                                model.shared
+
+                        newModel =
+                            { model
+                                | createPage = newCreateModel
+                                , shared = newShared
+                            }
+                    in
+                        ( newModel, Cmd.map CreateMessage newSubMsg )
+
+                DevelopStoryMessage subMsg ->
+                    let
+                        ( newDevelopStoryModel, newShared, newSubMsg ) =
+                            DevelopStoryUpdate.update
+                                subMsg
+                                model.developStoryPage
+                                model.shared
+
+                        newModel =
+                            { model
+                                | developStoryPage = newDevelopStoryModel
+                                , shared = newShared
+                            }
+                    in
+                        ( newModel, Cmd.map DevelopStoryMessage newSubMsg )
+
+                CreateSnipbitMessage subMsg ->
+                    let
+                        ( newCreateSnipbitModel, newShared, newSubMsg ) =
+                            CreateSnipbitUpdate.update
+                                subMsg
+                                model.createSnipbitPage
+                                model.shared
+
+                        newModel =
+                            { model
+                                | createSnipbitPage = newCreateSnipbitModel
+                                , shared = newShared
+                            }
+                    in
+                        ( newModel, Cmd.map CreateSnipbitMessage newSubMsg )
+
+                CreateBigbitMessage subMsg ->
+                    let
+                        ( newCreateBigbitModel, newShared, newSubMsg ) =
+                            CreateBigbitUpdate.update
+                                subMsg
+                                model.createBigbitPage
+                                model.shared
+
+                        newModel =
+                            { model
+                                | createBigbitPage = newCreateBigbitModel
+                                , shared = newShared
+                            }
+                    in
+                        ( newModel, Cmd.map CreateBigbitMessage newSubMsg )
+
                 CodeEditorUpdate { id, value, deltaRange, action } ->
                     case id of
                         "create-snipbit-code-editor" ->
                             (updateCacheIf
-                                (HomeMessage <|
-                                    HomeMessages.SnipbitUpdateCode
+                                (CreateSnipbitMessage <|
+                                    CreateSnipbitMessages.SnipbitUpdateCode
                                         { newCode = value
                                         , deltaRange = deltaRange
                                         , action = action
@@ -137,8 +279,8 @@ updateCacheIf msg model shouldCache =
 
                         "create-bigbit-code-editor" ->
                             (updateCacheIf
-                                (HomeMessage <|
-                                    HomeMessages.BigbitUpdateCode
+                                (CreateBigbitMessage <|
+                                    CreateBigbitMessages.BigbitUpdateCode
                                         { newCode = value
                                         , deltaRange = deltaRange
                                         , action = action
@@ -155,8 +297,8 @@ updateCacheIf msg model shouldCache =
                     case id of
                         "create-snipbit-code-editor" ->
                             (updateCacheIf
-                                (HomeMessage <|
-                                    HomeMessages.SnipbitNewRangeSelected range
+                                (CreateSnipbitMessage <|
+                                    CreateSnipbitMessages.SnipbitNewRangeSelected range
                                 )
                                 model
                                 shouldCache
@@ -164,8 +306,8 @@ updateCacheIf msg model shouldCache =
 
                         "create-bigbit-code-editor" ->
                             (updateCacheIf
-                                (HomeMessage <|
-                                    HomeMessages.BigbitNewRangeSelected range
+                                (CreateBigbitMessage <|
+                                    CreateBigbitMessages.BigbitNewRangeSelected range
                                 )
                                 model
                                 shouldCache
@@ -173,8 +315,8 @@ updateCacheIf msg model shouldCache =
 
                         "view-snipbit-code-editor" ->
                             (updateCacheIf
-                                (HomeMessage <|
-                                    HomeMessages.ViewSnipbitRangeSelected range
+                                (ViewSnipbitMessage <|
+                                    ViewSnipbitMessages.ViewSnipbitRangeSelected range
                                 )
                                 model
                                 shouldCache
@@ -182,8 +324,8 @@ updateCacheIf msg model shouldCache =
 
                         "view-bigbit-code-editor" ->
                             (updateCacheIf
-                                (HomeMessage <|
-                                    HomeMessages.ViewBigbitRangeSelected range
+                                (ViewBigbitMessage <|
+                                    ViewBigbitMessages.ViewBigbitRangeSelected range
                                 )
                                 model
                                 shouldCache
@@ -274,8 +416,8 @@ handleKeyPress model =
         -- Makes sure to only activate arrow keys if in the tutorial.
         viewSnipbitWatchForLeftAndRightArrow onLeft onRight =
             if
-                ViewSnipbitData.isViewSnipbitRHCTabOpen
-                    model.homeComponent.viewSnipbitData
+                ViewSnipbitModel.isViewSnipbitRHCTabOpen
+                    model.viewSnipbitPage
             then
                 doNothing
             else
@@ -284,9 +426,9 @@ handleKeyPress model =
         -- Makes sure to only activate arrow keys if in the tutorial.
         viewBigbitWatchForLeftAndRightArrow onLeft onRight =
             if
-                ViewBigbitData.isViewBigbitTutorialTabOpen
-                    model.homeComponent.viewBigbitData.viewingBigbit
-                    model.homeComponent.viewBigbitData.viewingBigbitRelevantHC
+                ViewBigbitModel.isViewBigbitTutorialTabOpen
+                    model.viewBigbitPage.viewingBigbit
+                    model.viewBigbitPage.viewingBigbitRelevantHC
             then
                 watchForLeftAndRightArrow onLeft onRight
             else
@@ -344,7 +486,7 @@ handleKeyPress model =
                         Route.ViewSnipbitFramePage
                             fromStoryID
                             mongoID
-                            (model.homeComponent.viewSnipbitData.viewingSnipbit
+                            (model.viewSnipbitPage.viewingSnipbit
                                 |> maybeMapWithDefault (.highlightedComments >> Array.length) 0
                             )
                     )
@@ -366,7 +508,7 @@ handleKeyPress model =
                         Route.ViewBigbitFramePage
                             fromStoryID
                             mongoID
-                            (model.homeComponent.viewBigbitData.viewingBigbit
+                            (model.viewBigbitPage.viewingBigbit
                                 |> maybeMapWithDefault (.highlightedComments >> Array.length) 0
                             )
                             Nothing
@@ -415,8 +557,7 @@ need to specify `routesNotNeedingAuth`, `defaultUnauthRoute`, and
 routes that don't exist (just goes `back` to the route they were on before).
 
 Aside from auth logic, nothing else should be put here otherwise it gets
-crowded. Trigger route hooks on the sub-components and let them hande the
-logic.
+crowded. Trigger route hooks on the sub-pages and let them hande the logic.
 -}
 handleLocationChange : Maybe Route.Route -> Model -> ( Model, Cmd Msg )
 handleLocationChange maybeRoute model =
@@ -484,11 +625,83 @@ handleLocationChange maybeRoute model =
                                     in
                                         ( newModel, newCmd )
 
-                triggerRouteHookOnHomeComponent =
+                triggerRouteHookOnViewSnipbitPage =
                     ( newModel
                     , Cmd.batch
                         [ newCmd
-                        , Util.cmdFromMsg <| HomeMessage HomeMessages.OnRouteHit
+                        , Util.cmdFromMsg <|
+                            ViewSnipbitMessage <|
+                                ViewSnipbitMessages.OnRouteHit route
+                        ]
+                    )
+
+                triggerRouteHookOnViewBigbitPage =
+                    ( newModel
+                    , Cmd.batch
+                        [ newCmd
+                        , Util.cmdFromMsg <|
+                            ViewBigbitMessage <|
+                                ViewBigbitMessages.OnRouteHit route
+                        ]
+                    )
+
+                triggerRouteHookOnViewStoryPage =
+                    ( newModel
+                    , Cmd.batch
+                        [ newCmd
+                        , Util.cmdFromMsg <|
+                            ViewStoryMessage <|
+                                ViewStoryMessages.OnRouteHit route
+                        ]
+                    )
+
+                triggerRouteHookOnNewStoryPage =
+                    ( newModel
+                    , Cmd.batch
+                        [ newCmd
+                        , Util.cmdFromMsg <|
+                            NewStoryMessage <|
+                                NewStoryMessages.OnRouteHit route
+                        ]
+                    )
+
+                triggerRouteHookOnCreatePage =
+                    ( newModel
+                    , Cmd.batch
+                        [ newCmd
+                        , Util.cmdFromMsg <|
+                            CreateMessage <|
+                                CreateMessages.OnRouteHit route
+                        ]
+                    )
+
+                triggerRouteHookOnDevelopStoryPage =
+                    ( newModel
+                    , Cmd.batch
+                        [ newCmd
+                        , Util.cmdFromMsg <|
+                            DevelopStoryMessage <|
+                                DevelopStoryMessages.OnRouteHit route
+                        ]
+                    )
+
+                triggerRouteHookOnCreateSnipbitPage =
+                    ( newModel
+                    , Cmd.batch
+                        [ newCmd
+                        , Util.cmdFromMsg <|
+                            CreateSnipbitMessage <|
+                                CreateSnipbitMessages.OnRouteHit route
+                        ]
+                    )
+
+                triggerRouteHookOnCreateBigbitPage =
+                    ( newModel
+                    , Cmd.batch
+                        [ newCmd
+                        , Util.cmdFromMsg <|
+                            CreateBigbitMessage <|
+                                CreateBigbitMessages.OnRouteHit route
                         ]
                     )
             in
@@ -496,79 +709,79 @@ handleLocationChange maybeRoute model =
                 -- able to trigger certain things (hooks).
                 case route of
                     Route.CreatePage ->
-                        triggerRouteHookOnHomeComponent
-
-                    Route.CreateSnipbitCodeIntroductionPage ->
-                        triggerRouteHookOnHomeComponent
-
-                    Route.CreateSnipbitCodeConclusionPage ->
-                        triggerRouteHookOnHomeComponent
-
-                    Route.CreateSnipbitCodeFramePage _ ->
-                        triggerRouteHookOnHomeComponent
+                        triggerRouteHookOnCreatePage
 
                     Route.ViewSnipbitIntroductionPage _ _ ->
-                        triggerRouteHookOnHomeComponent
+                        triggerRouteHookOnViewSnipbitPage
 
                     Route.ViewSnipbitConclusionPage _ _ ->
-                        triggerRouteHookOnHomeComponent
+                        triggerRouteHookOnViewSnipbitPage
 
                     Route.ViewSnipbitFramePage _ _ _ ->
-                        triggerRouteHookOnHomeComponent
+                        triggerRouteHookOnViewSnipbitPage
 
                     Route.ViewBigbitIntroductionPage _ _ _ ->
-                        triggerRouteHookOnHomeComponent
+                        triggerRouteHookOnViewBigbitPage
 
                     Route.ViewBigbitFramePage _ _ _ _ ->
-                        triggerRouteHookOnHomeComponent
+                        triggerRouteHookOnViewBigbitPage
 
                     Route.ViewBigbitConclusionPage _ _ _ ->
-                        triggerRouteHookOnHomeComponent
+                        triggerRouteHookOnViewBigbitPage
 
                     Route.ViewStoryPage _ ->
-                        triggerRouteHookOnHomeComponent
+                        triggerRouteHookOnViewStoryPage
 
                     Route.CreateSnipbitNamePage ->
-                        triggerRouteHookOnHomeComponent
+                        triggerRouteHookOnCreateSnipbitPage
 
                     Route.CreateSnipbitDescriptionPage ->
-                        triggerRouteHookOnHomeComponent
+                        triggerRouteHookOnCreateSnipbitPage
 
                     Route.CreateSnipbitLanguagePage ->
-                        triggerRouteHookOnHomeComponent
+                        triggerRouteHookOnCreateSnipbitPage
 
                     Route.CreateSnipbitTagsPage ->
-                        triggerRouteHookOnHomeComponent
+                        triggerRouteHookOnCreateSnipbitPage
+
+                    Route.CreateSnipbitCodeIntroductionPage ->
+                        triggerRouteHookOnCreateSnipbitPage
+
+                    Route.CreateSnipbitCodeConclusionPage ->
+                        triggerRouteHookOnCreateSnipbitPage
+
+                    Route.CreateSnipbitCodeFramePage _ ->
+                        triggerRouteHookOnCreateSnipbitPage
 
                     Route.CreateBigbitNamePage ->
-                        triggerRouteHookOnHomeComponent
+                        triggerRouteHookOnCreateBigbitPage
 
                     Route.CreateBigbitDescriptionPage ->
-                        triggerRouteHookOnHomeComponent
+                        triggerRouteHookOnCreateBigbitPage
 
                     Route.CreateBigbitTagsPage ->
-                        triggerRouteHookOnHomeComponent
+                        triggerRouteHookOnCreateBigbitPage
 
                     Route.CreateBigbitCodeIntroductionPage _ ->
-                        triggerRouteHookOnHomeComponent
+                        triggerRouteHookOnCreateBigbitPage
 
                     Route.CreateBigbitCodeFramePage _ _ ->
-                        triggerRouteHookOnHomeComponent
+                        triggerRouteHookOnCreateBigbitPage
 
                     Route.CreateBigbitCodeConclusionPage _ ->
-                        triggerRouteHookOnHomeComponent
+                        triggerRouteHookOnCreateBigbitPage
 
                     Route.CreateStoryNamePage _ ->
-                        triggerRouteHookOnHomeComponent
+                        triggerRouteHookOnNewStoryPage
 
                     Route.CreateStoryDescriptionPage _ ->
-                        triggerRouteHookOnHomeComponent
+                        triggerRouteHookOnNewStoryPage
 
                     Route.CreateStoryTagsPage _ ->
-                        triggerRouteHookOnHomeComponent
+                        triggerRouteHookOnNewStoryPage
 
                     Route.DevelopStoryPage _ ->
-                        triggerRouteHookOnHomeComponent
+                        triggerRouteHookOnDevelopStoryPage
 
                     _ ->
                         ( newModel, newCmd )

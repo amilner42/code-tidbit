@@ -1,8 +1,8 @@
 module Subscriptions exposing (subscriptions)
 
 import Autocomplete as AC
-import Pages.Home.Messages exposing (Msg(SnipbitUpdateACState))
-import Pages.Messages exposing (Msg(HomeMessage, CodeEditorUpdate, CodeEditorSelectionUpdate, KeyboardExtraMessage))
+import Pages.CreateSnipbit.Messages exposing (Msg(SnipbitUpdateACState))
+import Pages.Messages exposing (..)
 import Pages.Model exposing (Model)
 import DefaultServices.LocalStorage as LocalStorage
 import Keyboard.Extra
@@ -17,6 +17,6 @@ subscriptions model =
         [ Ports.onLoadModelFromLocalStorage LocalStorage.onLoadModel
         , Ports.onCodeEditorUpdate CodeEditorUpdate
         , Ports.onCodeEditorSelectionUpdate CodeEditorSelectionUpdate
-        , Sub.map (HomeMessage << SnipbitUpdateACState) AC.subscription
+        , Sub.map (CreateSnipbitMessage << SnipbitUpdateACState) AC.subscription
         , Sub.map KeyboardExtraMessage Keyboard.Extra.subscriptions
         ]

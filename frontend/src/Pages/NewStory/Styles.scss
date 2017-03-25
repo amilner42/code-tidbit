@@ -1,0 +1,54 @@
+@import '../../Styles/global';
+
+
+.new-story-page {
+
+    .sub-bar {
+        .sub-bar-button {
+            margin-left: 10px;
+
+            &.save-changes {
+                width: 140px;
+            }
+        }
+
+        .continue-button {
+            width: 180px;
+        }
+    }
+
+    .create-tidbit-navbar {
+        width: 372px;
+    }
+
+    .create-new-story-name {
+        @extend .create-tidbit-x;
+
+        input {
+            height: 53px;
+            width: 800px;
+        }
+    }
+
+    .create-new-story-description {
+        @extend .create-tidbit-x;
+
+        textarea {
+            height: 400px;
+            width: 600px;
+        }
+    }
+
+    .create-new-story-tags {
+        @extend .create-tidbit-x;
+
+        input {
+            height: 53px;
+            width: 500px;
+        }
+    }
+
+    .create-new-story-tags {
+        @extend .create-tidbit-tags;
+    }
+}

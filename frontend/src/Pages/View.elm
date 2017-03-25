@@ -1,14 +1,51 @@
 module Pages.View exposing (view)
 
-import Pages.Home.Model as HomeModel
-import Pages.Home.View as HomeView
+import DefaultServices.Util as Util
+import Pages.CreateBigbit.Model as HomeModel
+import Pages.CreateBigbit.View as HomeView
 import Pages.Messages exposing (Msg(..))
 import Pages.Model exposing (Model, Shared)
 import Pages.Welcome.Model as WelcomeModel
 import Pages.Welcome.View as WelcomeView
-import Html exposing (div)
-import Html.Attributes exposing (class)
+import Pages.ViewSnipbit.Model as ViewSnipbitModel
+import Pages.ViewSnipbit.View as ViewSnipbitView
+import Pages.ViewBigbit.Model as ViewBigbitModel
+import Pages.ViewBigbit.View as ViewBigbitView
+import Pages.ViewStory.View as ViewStoryView
+import Pages.Profile.Model as ProfileModel
+import Pages.Profile.View as ProfileView
+import Pages.NewStory.Model as NewStoryModel
+import Pages.NewStory.View as NewStoryView
+import Pages.Create.Model as CreateModel
+import Pages.Create.View as CreateView
+import Pages.DevelopStory.Model as DevelopStoryModel
+import Pages.DevelopStory.View as DevelopStoryView
+import Pages.CreateSnipbit.Model as CreateSnipbitModel
+import Pages.CreateSnipbit.View as CreateSnipbitView
+import Pages.CreateBigbit.Model as CreateBigbitModel
+import Pages.CreateBigbit.View as CreateBigbitView
+import Html exposing (Html, div, img, text)
+import Html.Attributes exposing (class, src, classList)
+import Html.Events exposing (onClick)
 import Models.Route as Route
+
+
+{-| Html entry point - this is the top level view.
+-}
+view : Model -> Html.Html Msg
+view model =
+    div
+        [ class "base-component-wrapper" ]
+        [ div
+            [ class "base-component" ]
+            [ navbarIfOnRoute model.shared
+            , viewForRoute model
+            ]
+          -- Used for smooth scrolling to the bottom.
+        , div
+            [ class "invisible-bottom" ]
+            []
+        ]
 
 
 {-| Loads the correct view depending on the route we are on.
@@ -23,126 +60,343 @@ change is good and updated the model, and now we just need to render it.
 viewForRoute : Model -> Html.Html Msg
 viewForRoute model =
     let
-        renderedWelcomeView =
-            welcomeView model.welcomeComponent model.shared
+        welcomePage =
+            welcomeView model.welcomePage model.shared
 
-        renderedHomeView =
-            homeView model.homeComponent model.shared
+        viewSnipbitPage =
+            viewSnipbitView model.viewSnipbitPage model.shared
+
+        viewBigbitPage =
+            viewBigbitView model.viewBigbitPage model.shared
+
+        viewStoryPage =
+            viewStoryView model.shared
+
+        profilePage =
+            profileView model.profilePage model.shared
+
+        newStoryPage =
+            newStoryView model.newStoryPage model.shared
+
+        createPage =
+            createView model.createPage model.shared
+
+        developStoryPage =
+            developStoryView model.developStoryPage model.shared
+
+        createSnipbitPage =
+            createSnipbitView model.createSnipbitPage model.shared
+
+        createBigbitPage =
+            createBigbitView model.createBigbitPage model.shared
     in
         case model.shared.route of
             Route.RegisterPage ->
-                renderedWelcomeView
+                welcomePage
 
             Route.LoginPage ->
-                renderedWelcomeView
+                welcomePage
 
             Route.BrowsePage ->
-                renderedHomeView
+                div [] []
 
             Route.ViewSnipbitIntroductionPage _ _ ->
-                renderedHomeView
+                viewSnipbitPage
 
             Route.ViewSnipbitConclusionPage _ _ ->
-                renderedHomeView
+                viewSnipbitPage
 
             Route.ViewSnipbitFramePage _ _ _ ->
-                renderedHomeView
+                viewSnipbitPage
 
             Route.ViewBigbitIntroductionPage _ _ _ ->
-                renderedHomeView
+                viewBigbitPage
 
             Route.ViewBigbitFramePage _ _ _ _ ->
-                renderedHomeView
+                viewBigbitPage
 
             Route.ViewBigbitConclusionPage _ _ _ ->
-                renderedHomeView
+                viewBigbitPage
 
             Route.ViewStoryPage _ ->
-                renderedHomeView
+                viewStoryPage
 
             Route.CreatePage ->
-                renderedHomeView
+                createPage
 
             Route.CreateSnipbitNamePage ->
-                renderedHomeView
+                createSnipbitPage
 
             Route.CreateSnipbitDescriptionPage ->
-                renderedHomeView
+                createSnipbitPage
 
             Route.CreateSnipbitLanguagePage ->
-                renderedHomeView
+                createSnipbitPage
 
             Route.CreateSnipbitTagsPage ->
-                renderedHomeView
+                createSnipbitPage
 
             Route.CreateSnipbitCodeIntroductionPage ->
-                renderedHomeView
+                createSnipbitPage
 
             Route.CreateSnipbitCodeFramePage _ ->
-                renderedHomeView
+                createSnipbitPage
 
             Route.CreateSnipbitCodeConclusionPage ->
-                renderedHomeView
+                createSnipbitPage
 
             Route.CreateBigbitNamePage ->
-                renderedHomeView
+                createBigbitPage
 
             Route.CreateBigbitDescriptionPage ->
-                renderedHomeView
+                createBigbitPage
 
             Route.CreateBigbitTagsPage ->
-                renderedHomeView
+                createBigbitPage
 
             Route.CreateBigbitCodeIntroductionPage _ ->
-                renderedHomeView
+                createBigbitPage
 
             Route.CreateBigbitCodeFramePage _ _ ->
-                renderedHomeView
+                createBigbitPage
 
             Route.CreateBigbitCodeConclusionPage _ ->
-                renderedHomeView
+                createBigbitPage
 
             Route.CreateStoryNamePage _ ->
-                renderedHomeView
+                newStoryPage
 
             Route.CreateStoryDescriptionPage _ ->
-                renderedHomeView
+                newStoryPage
 
             Route.CreateStoryTagsPage _ ->
-                renderedHomeView
+                newStoryPage
 
             Route.DevelopStoryPage _ ->
-                renderedHomeView
+                developStoryPage
 
             Route.ProfilePage ->
-                renderedHomeView
+                profilePage
 
 
-{-| The welcome view.
+{-| `Welcome` view.
 -}
 welcomeView : WelcomeModel.Model -> Shared -> Html.Html Msg
 welcomeView welcomeModel shared =
     Html.map WelcomeMessage (WelcomeView.view welcomeModel shared)
 
 
-{-| The home view.
+{-| `ViewSnipbit` view.
 -}
-homeView : HomeModel.Model -> Shared -> Html.Html Msg
-homeView homeModel shared =
-    Html.map HomeMessage (HomeView.view homeModel shared)
+viewSnipbitView : ViewSnipbitModel.Model -> Shared -> Html.Html Msg
+viewSnipbitView viewSnipbitModel shared =
+    Html.map ViewSnipbitMessage <| ViewSnipbitView.view viewSnipbitModel shared
 
 
-{-| Base component view.
+{-| `ViewBigbit` view.
 -}
-view : Model -> Html.Html Msg
-view model =
-    div
-        [ class "base-component-wrapper" ]
-        [ div
-            [ class "base-component" ]
-            [ viewForRoute model ]
-          -- Used for smooth scrolling to the bottom.
-        , div
-            [ class "invisible-bottom" ]
-            []
-        ]
+viewBigbitView : ViewBigbitModel.Model -> Shared -> Html.Html Msg
+viewBigbitView viewBigbitModel shared =
+    Html.map ViewBigbitMessage <| ViewBigbitView.view viewBigbitModel shared
+
+
+{-| `ViewStory` view.
+-}
+viewStoryView : Shared -> Html.Html Msg
+viewStoryView shared =
+    Html.map ViewStoryMessage <| ViewStoryView.view shared
+
+
+{-| `Profile` view.
+-}
+profileView : ProfileModel.Model -> Shared -> Html.Html Msg
+profileView profileModel shared =
+    Html.map ProfileMessage <| ProfileView.view profileModel shared
+
+
+{-| `NewStory` view.
+-}
+newStoryView : NewStoryModel.Model -> Shared -> Html.Html Msg
+newStoryView newStoryModel shared =
+    Html.map NewStoryMessage <| NewStoryView.view newStoryModel shared
+
+
+{-| `Create` view.
+-}
+createView : CreateModel.Model -> Shared -> Html.Html Msg
+createView createModel shared =
+    Html.map CreateMessage <| CreateView.view createModel shared
+
+
+{-| `DevelopStory` view.
+-}
+developStoryView : DevelopStoryModel.Model -> Shared -> Html.Html Msg
+developStoryView developStoryModel shared =
+    Html.map DevelopStoryMessage <| DevelopStoryView.view developStoryModel shared
+
+
+{-| `CreateSnipbit` view.
+-}
+createSnipbitView : CreateSnipbitModel.Model -> Shared -> Html.Html Msg
+createSnipbitView createSnipbitModel shared =
+    Html.map CreateSnipbitMessage <| CreateSnipbitView.view createSnipbitModel shared
+
+
+{-| `CreateBigbit` view.
+-}
+createBigbitView : CreateBigbitModel.Model -> Shared -> Html.Html Msg
+createBigbitView createBigbitModel shared =
+    Html.map CreateBigbitMessage (CreateBigbitView.view createBigbitModel shared)
+
+
+{-| Displays the navbar if the route is not on the welcome page.
+-}
+navbarIfOnRoute : Shared -> Html Msg
+navbarIfOnRoute shared =
+    case shared.route of
+        Route.LoginPage ->
+            Util.hiddenDiv
+
+        Route.RegisterPage ->
+            Util.hiddenDiv
+
+        _ ->
+            navbar shared
+
+
+{-| Horizontal navbar to go above the views.
+-}
+navbar : Shared -> Html Msg
+navbar shared =
+    let
+        browseViewSelected =
+            case shared.route of
+                Route.BrowsePage ->
+                    True
+
+                Route.ViewSnipbitIntroductionPage _ _ ->
+                    True
+
+                Route.ViewSnipbitFramePage _ _ _ ->
+                    True
+
+                Route.ViewSnipbitConclusionPage _ _ ->
+                    True
+
+                Route.ViewBigbitIntroductionPage _ _ _ ->
+                    True
+
+                Route.ViewBigbitFramePage _ _ _ _ ->
+                    True
+
+                Route.ViewBigbitConclusionPage _ _ _ ->
+                    True
+
+                Route.ViewStoryPage _ ->
+                    True
+
+                _ ->
+                    False
+
+        profileViewSelected =
+            shared.route == Route.ProfilePage
+
+        createViewSelected =
+            case shared.route of
+                Route.CreateSnipbitCodeFramePage _ ->
+                    True
+
+                Route.CreateBigbitCodeFramePage _ _ ->
+                    True
+
+                Route.CreateBigbitCodeIntroductionPage _ ->
+                    True
+
+                Route.CreateBigbitCodeConclusionPage _ ->
+                    True
+
+                Route.DevelopStoryPage _ ->
+                    True
+
+                Route.CreateStoryNamePage _ ->
+                    True
+
+                Route.CreateStoryDescriptionPage _ ->
+                    True
+
+                Route.CreateStoryTagsPage _ ->
+                    True
+
+                _ ->
+                    (List.member
+                        shared.route
+                        [ Route.CreatePage
+                        , Route.CreateSnipbitNamePage
+                        , Route.CreateSnipbitDescriptionPage
+                        , Route.CreateSnipbitLanguagePage
+                        , Route.CreateSnipbitTagsPage
+                        , Route.CreateSnipbitCodeIntroductionPage
+                        , Route.CreateSnipbitCodeConclusionPage
+                        , Route.CreateBigbitNamePage
+                        , Route.CreateBigbitDescriptionPage
+                        , Route.CreateBigbitTagsPage
+                        ]
+                    )
+    in
+        div [ class "nav" ]
+            [ img
+                [ class "logo"
+                , src "assets/ct-logo.png"
+                ]
+                []
+            , div
+                [ classList
+                    [ ( "nav-btn left code-tidbit", True )
+                    , ( "hidden", Util.isNotNothing shared.user )
+                    ]
+                ]
+                [ text "Code Tidbit" ]
+            , div
+                [ classList
+                    [ ( "nav-btn left", True )
+                    , ( "hidden", Util.isNothing shared.user )
+                    , ( "selected", browseViewSelected )
+                    ]
+                , onClick <| GoTo Route.BrowsePage
+                ]
+                [ text "Browse" ]
+            , div
+                [ classList
+                    [ ( "nav-btn left", True )
+                    , ( "hidden", Util.isNothing shared.user )
+                    , ( "selected", createViewSelected )
+                    ]
+                , onClick <| GoTo Route.CreatePage
+                ]
+                [ text "Create" ]
+            , div
+                [ classList
+                    [ ( "nav-btn right", True )
+                    , ( "hidden", Util.isNothing shared.user )
+                    , ( "selected", profileViewSelected )
+                    ]
+                , onClick <| GoTo Route.ProfilePage
+                ]
+                [ text "Profile" ]
+            , div
+                [ classList
+                    [ ( "nav-btn sign-up right", True )
+                    , ( "hidden", Util.isNotNothing shared.user )
+                    ]
+                , onClick <| GoTo Route.RegisterPage
+                ]
+                [ text "Sign Up" ]
+            , div
+                [ classList
+                    [ ( "nav-btn login right", True )
+                    , ( "hidden", Util.isNotNothing shared.user )
+                    ]
+                , onClick <| GoTo Route.LoginPage
+                ]
+                [ text "Login" ]
+            ]

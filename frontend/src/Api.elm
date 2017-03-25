@@ -24,6 +24,10 @@ import Models.Story as Story
 import Models.User as User
 import Models.Tidbit as Tidbit
 import Models.TidbitPointer as TidbitPointer
+import Pages.CreateSnipbit.JSON as CreateSnipbitJSON
+import Pages.CreateSnipbit.Model as CreateSnipbitModel
+import Pages.CreateBigbit.Model as CreateBigbitModel
+import Pages.CreateBigbit.JSON as CreateBigbitJSON
 
 
 {-| All API endpoints sit on the `/api` route.
@@ -152,22 +156,22 @@ postRegister user =
 
 {-| Creates a new snipbit.
 -}
-postCreateSnipbit : Snipbit.SnipbitForPublication -> (ApiError.ApiError -> b) -> (IDResponse.IDResponse -> b) -> Cmd b
+postCreateSnipbit : CreateSnipbitModel.SnipbitForPublication -> (ApiError.ApiError -> b) -> (IDResponse.IDResponse -> b) -> Cmd b
 postCreateSnipbit snipbit =
     apiPost
         "snipbits"
         JSON.IDResponse.decoder
-        (JSON.Snipbit.publicationEncoder snipbit)
+        (CreateSnipbitJSON.publicationEncoder snipbit)
 
 
 {-| Creates a new bigbit.
 -}
-postCreateBigbit : Bigbit.BigbitForPublication -> (ApiError.ApiError -> b) -> (IDResponse.IDResponse -> b) -> Cmd b
+postCreateBigbit : CreateBigbitModel.BigbitForPublication -> (ApiError.ApiError -> b) -> (IDResponse.IDResponse -> b) -> Cmd b
 postCreateBigbit bigbit =
     apiPost
         "bigbits"
         JSON.IDResponse.decoder
-        (JSON.Bigbit.publicationEncoder bigbit)
+        (CreateBigbitJSON.publicationEncoder bigbit)
 
 
 {-| Updates a user.

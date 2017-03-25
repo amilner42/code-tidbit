@@ -3,7 +3,7 @@ module Pages.Welcome.Init exposing (init)
 import Pages.Welcome.Model exposing (Model)
 
 
-{-| Welcome Component Init.
+{-| `Welcome` init.
 -}
 init : Model
 init =

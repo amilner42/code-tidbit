@@ -3,10 +3,11 @@ module DefaultServices.Util exposing (..)
 import Date
 import Dict
 import Dom
-import Html exposing (Html, Attribute)
-import Html.Keyed as Keyed
-import Html.Attributes exposing (hidden)
+import Elements.Markdown exposing (githubMarkdown)
+import Html exposing (Html, Attribute, div, i, text)
+import Html.Attributes exposing (hidden, class)
 import Html.Events exposing (Options, on, onWithOptions, keyCode, defaultOptions)
+import Html.Keyed as Keyed
 import Json.Decode as Decode
 import Json.Encode as Encode
 import Keyboard.Extra as KK
@@ -317,3 +318,42 @@ addUniqueNonEmptyString stringToAdd listOfStrings =
         listOfStrings
     else
         stringToAdd :: listOfStrings
+
+
+{-| A semi-hack for flex-box justify-center but align-left.
+
+@REFER http://stackoverflow.com/questions/18744164/flex-box-align-last-row-to-grid
+-}
+emptyFlexBoxesForAlignment : List (Html msg)
+emptyFlexBoxesForAlignment =
+    (List.repeat 10 <|
+        div [ class "empty-tidbit-box-for-flex-align" ] []
+    )
+
+
+{-| Renders markdown if condition is true, otherwise the backup html.
+-}
+markdownOr : Bool -> String -> Html msg -> Html msg
+markdownOr condition markdownText backUpHtml =
+    if condition then
+        githubMarkdown [] markdownText
+    else
+        backUpHtml
+
+
+{-| A google-material-design check-icon.
+-}
+checkIcon : Html msg
+checkIcon =
+    i
+        [ class "material-icons check-icon" ]
+        [ text "check" ]
+
+
+{-| Helper for flipping the previewMarkdown field of any record.
+-}
+togglePreviewMarkdown : { a | previewMarkdown : Bool } -> { a | previewMarkdown : Bool }
+togglePreviewMarkdown record =
+    { record
+        | previewMarkdown = not record.previewMarkdown
+    }

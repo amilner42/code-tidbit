@@ -11,7 +11,7 @@ import Models.ApiError as ApiError
 import Models.Route as Route
 
 
-{-| Welcome Component View.
+{-| `Welcome` view.
 -}
 view : Model -> Shared -> Html Msg
 view model shared =

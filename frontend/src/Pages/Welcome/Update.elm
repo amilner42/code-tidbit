@@ -9,7 +9,7 @@ import Models.ApiError as ApiError
 import Models.Route as Route
 
 
-{-| Welcome Component Update.
+{-| `Welcome` update.
 -}
 update : Msg -> Model -> Shared -> ( Model, Shared, Cmd Msg )
 update msg model shared =

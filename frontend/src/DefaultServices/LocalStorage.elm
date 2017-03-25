@@ -1,7 +1,8 @@
 module DefaultServices.LocalStorage exposing (saveModel, onLoadModel, loadModel)
 
 import Pages.Messages exposing (Msg(..))
-import Pages.Model exposing (Model, cacheEncoder, cacheDecoder)
+import Pages.Model exposing (Model)
+import Pages.JSON exposing (encoder, decoder)
 import DefaultServices.Util as Util
 import Ports
 
@@ -50,14 +51,14 @@ import Ports
 -}
 saveModel : Model -> Cmd msg
 saveModel model =
-    Ports.saveModelToLocalStorage <| cacheEncoder <| model
+    Ports.saveModelToLocalStorage <| encoder <| model
 
 
 {-| Will be used for the port subscription.
 -}
 onLoadModel : String -> Msg
 onLoadModel modelAsStringFromStorage =
-    case (Util.fromJsonString cacheDecoder modelAsStringFromStorage) of
+    case (Util.fromJsonString decoder modelAsStringFromStorage) of
         Ok model ->
             OnLoadModelFromLocalStorageSuccess model
 

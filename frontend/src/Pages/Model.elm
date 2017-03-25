@@ -1,16 +1,15 @@
 module Pages.Model exposing (..)
 
-import Pages.Home.Model as HomeModel
 import Pages.Welcome.Model as WelcomeModel
-import DefaultServices.Util exposing (justValueOrNull)
+import Pages.ViewBigbit.Model as ViewBigbitModel
+import Pages.ViewSnipbit.Model as ViewSnipbitModel
+import Pages.Profile.Model as ProfileModel
+import Pages.NewStory.Model as NewStoryModel
+import Pages.Create.Model as CreateModel
+import Pages.DevelopStory.Model as DevelopStoryModel
+import Pages.CreateSnipbit.Model as CreateSnipbitModel
+import Pages.CreateBigbit.Model as CreateBigbitModel
 import Elements.Editor as Editor
-import Json.Encode as Encode
-import Json.Decode as Decode
-import Json.Decode.Pipeline exposing (decode, required, optional, hardcoded)
-import JSON.User
-import JSON.Route
-import JSON.Story
-import JSON.Tidbit
 import Models.Route as Route
 import Models.Story as Story
 import Models.User as User
@@ -18,20 +17,28 @@ import Models.Tidbit as Tidbit
 import Keyboard.Extra as KK
 
 
-{-| Base Component Model.
+{-| `Base` model.
 
-The base component will have nested inside it the state of every individual
-component as well as `shared`, which will be passed to all components so they
-can share data.
+The base page will have nested inside it the state of every individual page as
+well as `shared`, which will be passed to all pages so they can share data.
 -}
 type alias Model =
     { shared : Shared
-    , homeComponent : HomeModel.Model
-    , welcomeComponent : WelcomeModel.Model
+    , welcomePage : WelcomeModel.Model
+    , viewSnipbitPage : ViewSnipbitModel.Model
+    , viewBigbitPage : ViewBigbitModel.Model
+    , profilePage : ProfileModel.Model
+    , newStoryPage : NewStoryModel.Model
+    , createPage : CreateModel.Model
+    , developStoryPage : DevelopStoryModel.Model
+    , createSnipbitPage : CreateSnipbitModel.Model
+    , createBigbitPage : CreateBigbitModel.Model
     }
 
 
-{-| All data shared between components.
+{-| `Shared` model.
+
+All data shared between pages.
 -}
 type alias Shared =
     { user : Maybe (User.User)
@@ -92,53 +99,3 @@ updateKeysDown newKeysDown model =
 updateKeysDownWithKeys : List KK.Key -> Model -> Model
 updateKeysDownWithKeys newKeys =
     updateKeysDown (List.map (Just << KK.toCode) newKeys)
-
-
-{-| Base Component `cacheDecoder`.
--}
-cacheDecoder : Decode.Decoder Model
-cacheDecoder =
-    decode Model
-        |> required "shared" sharedCacheDecoder
-        |> required "homeComponent" (HomeModel.cacheDecoder)
-        |> required "welcomeComponent" (WelcomeModel.cacheDecoder)
-
-
-{-| Base Component `cacheEncoder`.
--}
-cacheEncoder : Model -> Encode.Value
-cacheEncoder model =
-    Encode.object
-        [ ( "shared", sharedCacheEncoder model.shared )
-        , ( "homeComponent", HomeModel.cacheEncoder model.homeComponent )
-        , ( "welcomeComponent", WelcomeModel.cacheEncoder model.welcomeComponent )
-        ]
-
-
-{-| Shared `cacheDecoder`.
--}
-sharedCacheDecoder : Decode.Decoder Shared
-sharedCacheDecoder =
-    decode Shared
-        |> required "user" (Decode.maybe JSON.User.decoder)
-        |> required "route" JSON.Route.decoder
-        |> required "languages" (Decode.succeed Editor.humanReadableListOfLanguages)
-        |> required "keysDown" (Decode.succeed KK.init)
-        |> required "userStories" (Decode.maybe <| Decode.list JSON.Story.decoder)
-        |> required "userTidbits" (Decode.maybe <| Decode.list JSON.Tidbit.decoder)
-        |> required "viewingStory" (Decode.maybe <| JSON.Story.expandedStoryDecoder)
-
-
-{-| Shared `cacheEncoder`.
--}
-sharedCacheEncoder : Shared -> Encode.Value
-sharedCacheEncoder shared =
-    Encode.object
-        [ ( "user", justValueOrNull JSON.User.safeEncoder shared.user )
-        , ( "route", JSON.Route.encoder shared.route )
-        , ( "languages", Encode.null )
-        , ( "keysDown", Encode.null )
-        , ( "userStories", justValueOrNull (Encode.list << List.map JSON.Story.encoder) shared.userStories )
-        , ( "userTidbits", justValueOrNull (Encode.list << List.map JSON.Tidbit.encoder) shared.userTidbits )
-        , ( "viewingStory", justValueOrNull JSON.Story.expandedStoryEncoder shared.viewingStory )
-        ]

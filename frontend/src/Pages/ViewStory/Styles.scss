@@ -1,0 +1,46 @@
+@import '../../Styles/variables';
+@import '../../Styles/global';
+
+
+.view-story-page {
+    width: 100%;
+    height: 100%;
+
+    .story-name {
+        color: $color6;
+        font-size: 48px;
+        text-align: center;
+        margin-bottom: 10px;
+        width: 100%;
+        font-weight: 600;
+    }
+
+    .progress-bar-title {
+        font-size: 12px;
+        width: 100%;
+        text-align: center;
+        color: $color4;
+    }
+
+    .sub-bar-button {
+        margin-left: 10px;
+    }
+
+    .view-story-page-content {
+        @extend .page-content;
+
+        .story-progress-bar-bar {
+            text-align: center;
+            width: 100%;
+            display: block;
+            height: 65px;
+            text-align: center;
+        }
+    }
+
+    .no-tidbit-text {
+        text-align: center;
+        font-size: 22px;
+        margin-top: 200px;
+    }
+}

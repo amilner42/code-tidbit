@@ -2,6 +2,8 @@ module Models.ViewerRelevantHC exposing (..)
 
 import Array
 import DefaultServices.Util as Util
+import Html exposing (Html, div, text)
+import Html.Attributes exposing (class)
 
 
 {-| The relevant highlighted comments for a selected range as well as the
@@ -86,3 +88,22 @@ goToPreviousFrame vr =
             else
                 Maybe.map ((flip (-)) 1) vr.currentHC
     }
+
+
+{-| Helper for creating the text above the RHC specifying how many found and
+what RHC we are on currently.
+-}
+relevantHCTextAboveFrameSpecifyingPosition : ( Int, Int ) -> Html msg
+relevantHCTextAboveFrameSpecifyingPosition ( current, total ) =
+    div
+        [ class "above-comment-block-text" ]
+        [ if total == 1 then
+            text "Only this frame is related to your selection"
+          else
+            text <|
+                "On frame "
+                    ++ (toString current)
+                    ++ " of the "
+                    ++ (toString total)
+                    ++ " frames that are related to your selection"
+        ]
