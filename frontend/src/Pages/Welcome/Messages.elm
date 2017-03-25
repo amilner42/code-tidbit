@@ -1,20 +1,20 @@
-module Pages.Welcome.Messages exposing (Msg(..))
+module Pages.Welcome.Messages exposing (..)
 
-import Models.ApiError as ApiError
+import Models.ApiError exposing (ApiError)
+import Models.Route exposing (Route)
 import Models.User exposing (User)
 
 
 {-| `Welcome` msg.
 -}
 type Msg
-    = Register
+    = GoTo Route
+    | Register
     | OnRegisterSuccess User
-    | OnRegisterFailure ApiError.ApiError
+    | OnRegisterFailure ApiError
     | Login
     | OnLoginSuccess User
-    | OnLoginFailure ApiError.ApiError
-    | GoToRegisterView
-    | GoToLoginView
+    | OnLoginFailure ApiError
     | OnPasswordInput String
     | OnConfirmPasswordInput String
     | OnEmailInput String

@@ -1,14 +1,14 @@
 module Pages.Welcome.View exposing (view)
 
-import Pages.Model exposing (Shared)
-import Pages.Welcome.Messages exposing (Msg(..))
-import Pages.Welcome.Model exposing (Model)
 import DefaultServices.Util as Util
 import Html exposing (Html, div, text, button, h1, input, a, img)
 import Html.Attributes exposing (class, placeholder, type_, value, hidden, disabled, classList, src)
 import Html.Events exposing (onClick, onInput)
 import Models.ApiError as ApiError
 import Models.Route as Route
+import Pages.Model exposing (Shared)
+import Pages.Welcome.Messages exposing (..)
+import Pages.Welcome.Model exposing (..)
 
 
 {-| `Welcome` view.
@@ -16,7 +16,7 @@ import Models.Route as Route
 view : Model -> Shared -> Html Msg
 view model shared =
     div
-        [ class "welcome-component-wrapper" ]
+        [ class "welcome-page-wrapper" ]
         [ img
             [ class "logo"
             , src "assets/ct-logo.png"
@@ -31,26 +31,25 @@ view model shared =
         , case shared.route of
             Route.RegisterPage ->
                 button
-                    [ class "welcome-component-change-tab-button"
-                    , onClick <| GoToLoginView
+                    [ class "welcome-page-change-tab-button"
+                    , onClick <| GoTo Route.LoginPage
                     ]
                     [ text "Login"
                     ]
 
             Route.LoginPage ->
                 button
-                    [ class "welcome-component-change-tab-button"
-                    , onClick <| GoToRegisterView
+                    [ class "welcome-page-change-tab-button"
+                    , onClick <| GoTo Route.RegisterPage
                     ]
                     [ text "Register"
                     ]
 
-            -- Should never happen
             _ ->
-                div [] []
+                Util.hiddenDiv
         , div
             [ classList
-                [ ( "welcome-component", True )
+                [ ( "welcome-page", True )
                 , ( "small-box-error"
                   , (shared.route == Route.LoginPage)
                         && (Util.isNotNothing model.apiError)
@@ -65,10 +64,7 @@ view model shared =
                   )
                 ]
             ]
-            [ div
-                []
-                [ displayViewForRoute model shared
-                ]
+            [ displayViewForRoute model shared
             ]
         ]
 
@@ -256,5 +252,4 @@ displayViewForRoute model shared =
             registerView model
 
         _ ->
-            -- TODO think about this case, although it should never happen.
-            loginView model
+            Util.hiddenDiv

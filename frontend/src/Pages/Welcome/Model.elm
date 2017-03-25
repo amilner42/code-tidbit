@@ -1,6 +1,6 @@
 module Pages.Welcome.Model exposing (..)
 
-import Models.ApiError as ApiError
+import Models.ApiError exposing (ApiError)
 
 
 {-| `Welcome` model.
@@ -10,5 +10,5 @@ type alias Model =
     , email : String
     , password : String
     , confirmPassword : String
-    , apiError : Maybe (ApiError.ApiError)
+    , apiError : Maybe ApiError
     }

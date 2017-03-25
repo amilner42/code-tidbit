@@ -1,6 +1,6 @@
-module Pages.Welcome.Init exposing (init)
+module Pages.Welcome.Init exposing (..)
 
-import Pages.Welcome.Model exposing (Model)
+import Pages.Welcome.Model exposing (..)
 
 
 {-| `Welcome` init.

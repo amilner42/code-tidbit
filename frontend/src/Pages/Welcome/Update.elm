@@ -1,160 +1,78 @@
 module Pages.Welcome.Update exposing (update)
 
 import Api
-import Pages.Model exposing (Shared)
-import Pages.Welcome.Init as WelcomeInit
-import Pages.Welcome.Messages exposing (Msg(..))
-import Pages.Welcome.Model exposing (Model)
 import Models.ApiError as ApiError
 import Models.Route as Route
+import Pages.Model exposing (Shared)
+import Pages.Welcome.Init exposing (..)
+import Pages.Welcome.Messages exposing (..)
+import Pages.Welcome.Model exposing (..)
 
 
 {-| `Welcome` update.
 -}
 update : Msg -> Model -> Shared -> ( Model, Shared, Cmd Msg )
 update msg model shared =
-    case msg of
-        OnPasswordInput newPassword ->
-            let
-                newModel =
-                    wipeError
-                        { model
-                            | password = newPassword
-                        }
-            in
-                ( newModel, shared, Cmd.none )
+    let
+        justSetModel newModel =
+            ( newModel, shared, Cmd.none )
 
-        OnConfirmPasswordInput newConfirmPassword ->
-            let
-                newModel =
-                    wipeError
-                        { model
-                            | confirmPassword = newConfirmPassword
-                        }
-            in
-                ( newModel, shared, Cmd.none )
+        justProduceCmd newCmd =
+            ( model, shared, newCmd )
+    in
+        case msg of
+            -- On top of going to a route, wipes the errors on the welcome page.
+            GoTo route ->
+                ( wipeError model, shared, Route.navigateTo route )
 
-        OnEmailInput newEmail ->
-            let
-                newModel =
-                    wipeError
-                        { model
-                            | email = newEmail
-                        }
-            in
-                ( newModel, shared, Cmd.none )
+            OnPasswordInput newPassword ->
+                justSetModel <| wipeError { model | password = newPassword }
 
-        OnNameInput newName ->
-            let
-                newModel =
-                    wipeError
-                        { model
-                            | name = newName
-                        }
-            in
-                ( newModel, shared, Cmd.none )
+            OnConfirmPasswordInput newConfirmPassword ->
+                justSetModel <| wipeError { model | confirmPassword = newConfirmPassword }
 
-        Register ->
-            let
-                passwordsMatch =
-                    model.password == model.confirmPassword
+            OnEmailInput newEmail ->
+                justSetModel <| wipeError { model | email = newEmail }
 
-                user =
-                    { name = model.name
-                    , email = model.email
-                    , password = model.password
-                    }
+            OnNameInput newName ->
+                justSetModel <| wipeError { model | name = newName }
 
-                newModelIfPasswordsDontMatch =
-                    { model
-                        | apiError =
-                            Just ApiError.PasswordDoesNotMatchConfirmPassword
-                    }
-            in
-                case passwordsMatch of
-                    True ->
-                        ( model
-                        , shared
-                        , Api.postRegister
-                            user
+            Register ->
+                if model.password == model.confirmPassword then
+                    justProduceCmd <|
+                        Api.postRegister
+                            { name = model.name
+                            , email = model.email
+                            , password = model.password
+                            }
                             OnRegisterFailure
                             OnRegisterSuccess
-                        )
+                else
+                    justSetModel
+                        { model | apiError = Just ApiError.PasswordDoesNotMatchConfirmPassword }
 
-                    False ->
-                        ( newModelIfPasswordsDontMatch, shared, Cmd.none )
+            OnRegisterFailure newApiError ->
+                justSetModel { model | apiError = Just newApiError }
 
-        OnRegisterFailure newApiError ->
-            let
-                newModel =
-                    { model
-                        | apiError = Just newApiError
-                    }
-            in
-                ( newModel, shared, Cmd.none )
+            OnRegisterSuccess newUser ->
+                ( init, { shared | user = Just newUser }, Route.navigateTo Route.BrowsePage )
 
-        OnRegisterSuccess newUser ->
-            let
-                newShared =
-                    { shared
-                        | user = Just newUser
-                        , route = Route.BrowsePage
-                    }
-            in
-                ( WelcomeInit.init, newShared, Route.navigateTo newShared.route )
+            Login ->
+                justProduceCmd <|
+                    Api.postLogin
+                        { email = model.email, password = model.password }
+                        OnLoginFailure
+                        OnLoginSuccess
 
-        Login ->
-            let
-                user =
-                    { email = model.email
-                    , password = model.password
-                    }
-            in
-                ( model
-                , shared
-                , Api.postLogin user OnLoginFailure OnLoginSuccess
-                )
+            OnLoginSuccess newUser ->
+                ( init, { shared | user = Just newUser }, Route.navigateTo Route.BrowsePage )
 
-        OnLoginSuccess newUser ->
-            let
-                newShared =
-                    { shared
-                        | user = Just newUser
-                        , route = Route.BrowsePage
-                    }
-            in
-                ( WelcomeInit.init, newShared, Route.navigateTo newShared.route )
-
-        OnLoginFailure newApiError ->
-            let
-                newModel =
-                    { model
-                        | apiError = Just newApiError
-                    }
-            in
-                ( newModel, shared, Cmd.none )
-
-        GoToLoginView ->
-            ( wipeError model
-            , shared
-            , Route.navigateTo Route.LoginPage
-            )
-
-        GoToRegisterView ->
-            ( wipeError model
-            , shared
-            , Route.navigateTo Route.RegisterPage
-            )
+            OnLoginFailure newApiError ->
+                justSetModel { model | apiError = Just newApiError }
 
 
 {-| Sets the `apiError` on the `model` to `Nothing`.
 -}
 wipeError : Model -> Model
 wipeError model =
-    let
-        newModel =
-            { model
-                | apiError = Nothing
-            }
-    in
-        newModel
+    { model | apiError = Nothing }
