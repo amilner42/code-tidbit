@@ -27,11 +27,7 @@ and putting the editable in edit mode.
 -}
 setName : String -> String -> Model -> Model
 setName originalName newName model =
-    { model
-        | accountName =
-            Just <|
-                Editable.Editing { originalValue = originalName, buffer = newName }
-    }
+    { model | accountName = Just <| Editable.Editing { originalValue = originalName, buffer = newName } }
 
 
 {-| Returns true if the name is currently being edited and has a new value
@@ -46,18 +42,14 @@ isEditingName =
 -}
 cancelEditingName : Model -> Model
 cancelEditingName model =
-    { model
-        | accountName = Maybe.map (Editable.cancelEditing) model.accountName
-    }
+    { model | accountName = Maybe.map (Editable.cancelEditing) model.accountName }
 
 
 {-| Sets the accountName to `Nothing`.
 -}
 setAccountNameToNothing : Model -> Model
 setAccountNameToNothing model =
-    { model
-        | accountName = Nothing
-    }
+    { model | accountName = Nothing }
 
 
 {-| Gets the current account bio from the profile data if it is not `Nothing`,
@@ -73,29 +65,21 @@ and putting the editable in edit mode.
 -}
 setBio : String -> String -> Model -> Model
 setBio originalBio newBio model =
-    { model
-        | accountBio =
-            Just <|
-                Editable.Editing { originalValue = originalBio, buffer = newBio }
-    }
+    { model | accountBio = Just <| Editable.Editing { originalValue = originalBio, buffer = newBio } }
 
 
 {-| Cancels editing the bio.
 -}
 cancelEditingBio : Model -> Model
 cancelEditingBio model =
-    { model
-        | accountBio = Maybe.map (Editable.cancelEditing) model.accountBio
-    }
+    { model | accountBio = Maybe.map (Editable.cancelEditing) model.accountBio }
 
 
 {-| Sets the accountBio to `Nothing`
 -}
 setAccountBioToNothing : Model -> Model
 setAccountBioToNothing model =
-    { model
-        | accountBio = Nothing
-    }
+    { model | accountBio = Nothing }
 
 
 {-| Returns true if the bio is being edited (and has changed).

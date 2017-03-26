@@ -46,7 +46,7 @@ view model shared =
                                 [ class "profile-card-sub-box-content"
                                 , placeholder "Preferred Name"
                                 , value <| getNameWithDefault model user.name
-                                , onInput <| ProfileUpdateName user.name
+                                , onInput <| OnEditName user.name
                                 ]
                                 []
                             , i
@@ -54,7 +54,7 @@ view model shared =
                                     [ ( "material-icons", True )
                                     , ( "hidden", not <| isEditingName model )
                                     ]
-                                , onClick ProfileCancelEditName
+                                , onClick CancelEditedName
                                 ]
                                 [ text "cancel" ]
                             , i
@@ -62,7 +62,7 @@ view model shared =
                                     [ ( "material-icons", True )
                                     , ( "hidden", not <| isEditingName model )
                                     ]
-                                , onClick ProfileSaveEditName
+                                , onClick SaveEditedName
                                 ]
                                 [ text "check_circle" ]
                             ]
@@ -78,7 +78,7 @@ view model shared =
                                 [ class "profile-card-sub-box-content bio-textarea"
                                 , placeholder "Tell everyone about yourself..."
                                 , value <| getBioWithDefault model user.bio
-                                , onInput <| ProfileUpdateBio user.bio
+                                , onInput <| OnEditBio user.bio
                                 ]
                                 []
                             , div
@@ -88,7 +88,7 @@ view model shared =
                                         [ ( "material-icons", True )
                                         , ( "hidden", not <| isEditingBio model )
                                         ]
-                                    , onClick ProfileCancelEditBio
+                                    , onClick CancelEditedBio
                                     ]
                                     [ text "cancel" ]
                                 , i
@@ -96,7 +96,7 @@ view model shared =
                                         [ ( "material-icons", True )
                                         , ( "hidden", not <| isEditingBio model )
                                         ]
-                                    , onClick ProfileSaveEditBio
+                                    , onClick SaveEditedBio
                                     ]
                                     [ text "check_circle" ]
                                 ]

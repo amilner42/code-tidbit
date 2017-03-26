@@ -28,13 +28,13 @@ update msg model shared =
             ( model, shared, newCmd )
     in
         case msg of
-            ProfileCancelEditName ->
-                justUpdateModel cancelEditingName
-
-            ProfileUpdateName originalName newName ->
+            OnEditName originalName newName ->
                 justUpdateModel <| setName originalName newName
 
-            ProfileSaveEditName ->
+            CancelEditedName ->
+                justUpdateModel cancelEditingName
+
+            SaveEditedName ->
                 case model.accountName of
                     Nothing ->
                         doNothing
@@ -42,31 +42,27 @@ update msg model shared =
                     Just editableName ->
                         justProduceCmd <|
                             Api.postUpdateUser
-                                { defaultUserUpdateRecord
-                                    | name = Just <| Editable.getBuffer editableName
-                                }
-                                ProfileSaveNameFailure
-                                ProfileSaveNameSuccess
+                                { defaultUserUpdateRecord | name = Just <| Editable.getBuffer editableName }
+                                OnSaveEditedNameFailure
+                                OnSaveEditedNameSuccess
 
-            ProfileSaveNameFailure apiError ->
-                -- TODO handle failure.
-                doNothing
-
-            ProfileSaveNameSuccess updatedUser ->
+            OnSaveEditedNameSuccess updatedUser ->
                 ( setAccountNameToNothing model
-                , { shared
-                    | user = Just updatedUser
-                  }
+                , { shared | user = Just updatedUser }
                 , Cmd.none
                 )
 
-            ProfileCancelEditBio ->
-                justUpdateModel cancelEditingBio
+            OnSaveEditedNameFailure apiError ->
+                -- TODO handle failure.
+                doNothing
 
-            ProfileUpdateBio originalBio newBio ->
+            OnEditBio originalBio newBio ->
                 justUpdateModel <| setBio originalBio newBio
 
-            ProfileSaveEditBio ->
+            CancelEditedBio ->
+                justUpdateModel cancelEditingBio
+
+            SaveEditedBio ->
                 case model.accountBio of
                     Nothing ->
                         doNothing
@@ -74,34 +70,22 @@ update msg model shared =
                     Just editableBio ->
                         justProduceCmd <|
                             Api.postUpdateUser
-                                { defaultUserUpdateRecord
-                                    | bio = Just <| Editable.getBuffer editableBio
-                                }
-                                ProfileSaveBioFailure
-                                ProfileSaveBioSuccess
+                                { defaultUserUpdateRecord | bio = Just <| Editable.getBuffer editableBio }
+                                OnSaveBioEditedFailure
+                                OnSaveEditedBioSuccess
 
-            ProfileSaveBioFailure apiError ->
-                -- TODO handle error.
-                doNothing
-
-            ProfileSaveBioSuccess updatedUser ->
+            OnSaveEditedBioSuccess updatedUser ->
                 ( setAccountBioToNothing model
-                , { shared
-                    | user = Just updatedUser
-                  }
+                , { shared | user = Just updatedUser }
                 , Cmd.none
                 )
 
+            OnSaveBioEditedFailure apiError ->
+                -- TODO handle error.
+                doNothing
+
             LogOut ->
                 justProduceCmd <| Api.getLogOut OnLogOutFailure OnLogOutSuccess
-
-            OnLogOutFailure apiError ->
-                justUpdateModel <|
-                    (\currentProfileData ->
-                        { currentProfileData
-                            | logOutError = Just apiError
-                        }
-                    )
 
             OnLogOutSuccess basicResponse ->
                 -- TODO this should send a message up (out-msg pattern) to the
@@ -110,3 +94,6 @@ update msg model shared =
                 , defaultShared
                 , Route.navigateTo Route.RegisterPage
                 )
+
+            OnLogOutFailure apiError ->
+                justSetModel <| { model | logOutError = Just apiError }
