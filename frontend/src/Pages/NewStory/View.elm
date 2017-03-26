@@ -39,7 +39,7 @@ view model shared =
                     Nothing ->
                         [ button
                             [ class "sub-bar-button"
-                            , onClick NewStoryReset
+                            , onClick Reset
                             ]
                             [ text "Reset" ]
                         , button
@@ -48,7 +48,7 @@ view model shared =
                                 , ( "publish-button", newStoryDataReadyForPublication model )
                                 , ( "disabled-publish-button", not <| newStoryDataReadyForPublication model )
                                 ]
-                            , onClick NewStoryPublish
+                            , onClick Publish
                             ]
                             [ text "Proceed to Tidbit Selection" ]
                         ]
@@ -56,7 +56,7 @@ view model shared =
                     Just storyID ->
                         [ button
                             [ class "sub-bar-button"
-                            , onClick <| NewStoryCancelEdits storyID
+                            , onClick <| CancelEdits storyID
                             ]
                             [ text "Cancel" ]
                         , button
@@ -65,7 +65,7 @@ view model shared =
                                 , ( "publish-button", editingStoryDataReadyForSave model )
                                 , ( "disabled-publish-button", not <| editingStoryDataReadyForSave model )
                                 ]
-                            , onClick <| NewStorySaveEdits storyID
+                            , onClick <| SaveEdits storyID
                             ]
                             [ text "Save Changes" ]
                         ]
@@ -145,7 +145,7 @@ view model shared =
                                 input
                                     [ placeholder "Name"
                                     , id "name-input"
-                                    , onInput NewStoryUpdateName
+                                    , onInput OnUpdateName
                                     , value model.newStory.name
                                     , Util.onKeydownPreventDefault
                                         (\key ->
@@ -161,7 +161,7 @@ view model shared =
                                 input
                                     [ placeholder "Edit Story Name"
                                     , id "name-input"
-                                    , onInput NewStoryEditingUpdateName
+                                    , onInput OnEditingUpdateName
                                     , value model.editingStory.name
                                     , Util.onKeydownPreventDefault
                                         (\key ->
@@ -182,7 +182,7 @@ view model shared =
                                 textarea
                                     [ placeholder "Description"
                                     , id "description-input"
-                                    , onInput NewStoryUpdateDescription
+                                    , onInput OnUpdateDescription
                                     , value model.newStory.description
                                     , Util.onKeydownPreventDefault
                                         (\key ->
@@ -198,7 +198,7 @@ view model shared =
                                 textarea
                                     [ placeholder "Edit Story Description"
                                     , id "description-input"
-                                    , onInput NewStoryEditingUpdateDescription
+                                    , onInput OnEditingUpdateDescription
                                     , value model.editingStory.description
                                     , Util.onKeydownPreventDefault
                                         (\key ->
@@ -219,12 +219,12 @@ view model shared =
                                 [ input
                                     [ placeholder "Tags"
                                     , id "tags-input"
-                                    , onInput NewStoryUpdateTagInput
+                                    , onInput OnUpdateTagInput
                                     , value model.tagInput
                                     , Util.onKeydownPreventDefault
                                         (\key ->
                                             if key == KK.Enter then
-                                                Just <| NewStoryAddTag model.tagInput
+                                                Just <| AddTag model.tagInput
                                             else if key == KK.Tab then
                                                 Just <| NoOp
                                             else
@@ -233,7 +233,7 @@ view model shared =
                                     ]
                                     []
                                 , tags
-                                    NewStoryRemoveTag
+                                    RemoveTag
                                     model.newStory.tags
                                 ]
 
@@ -241,13 +241,13 @@ view model shared =
                                 [ input
                                     [ placeholder "Edit Story Tags"
                                     , id "tags-input"
-                                    , onInput NewStoryEditingUpdateTagInput
+                                    , onInput OnEditingUpdateTagInput
                                     , value model.editingStoryTagInput
                                     , Util.onKeydownPreventDefault
                                         (\key ->
                                             if key == KK.Enter then
                                                 Just <|
-                                                    NewStoryEditingAddTag model.editingStoryTagInput
+                                                    EditingAddTag model.editingStoryTagInput
                                             else if key == KK.Tab then
                                                 Just <| NoOp
                                             else
@@ -256,7 +256,7 @@ view model shared =
                                     ]
                                     []
                                 , tags
-                                    NewStoryEditingRemoveTag
+                                    EditingRemoveTag
                                     model.editingStory.tags
                                 ]
                         )

@@ -51,8 +51,8 @@ update msg model shared =
                                         else
                                             Api.getStory
                                                 storyID
-                                                NewStoryGetEditingStoryFailure
-                                                NewStoryGetEditingStorySuccess
+                                                OnGetEditingStoryFailure
+                                                OnGetEditingStorySuccess
                                 ]
                 in
                     case route of
@@ -68,80 +68,7 @@ update msg model shared =
                         _ ->
                             doNothing
 
-            NewStoryUpdateName newName ->
-                justUpdateModel <| updateName newName
-
-            NewStoryEditingUpdateName newName ->
-                justUpdateModel <| updateEditName newName
-
-            NewStoryUpdateDescription newDescription ->
-                justUpdateModel <| updateDescription newDescription
-
-            NewStoryEditingUpdateDescription newDescription ->
-                justUpdateModel <| updateEditDescription newDescription
-
-            NewStoryUpdateTagInput newTagInput ->
-                justUpdateModel <|
-                    if String.endsWith " " newTagInput then
-                        newTag <|
-                            String.dropRight 1 newTagInput
-                    else
-                        updateTagInput newTagInput
-
-            NewStoryEditingUpdateTagInput newTagInput ->
-                justUpdateModel <|
-                    if String.endsWith " " newTagInput then
-                        newEditTag <|
-                            String.dropRight 1 newTagInput
-                    else
-                        updateEditTagInput newTagInput
-
-            NewStoryAddTag tagName ->
-                justUpdateModel <| newTag tagName
-
-            NewStoryEditingAddTag tagName ->
-                justUpdateModel <| newEditTag tagName
-
-            NewStoryRemoveTag tagName ->
-                justUpdateModel <| removeTag tagName
-
-            NewStoryEditingRemoveTag tagName ->
-                justUpdateModel <| removeEditTag tagName
-
-            NewStoryReset ->
-                ( init
-                , shared
-                  -- The reset button only exists when there is no `qpEditingStory`.
-                , Route.navigateTo <| Route.CreateStoryNamePage Nothing
-                )
-
-            NewStoryPublish ->
-                if newStoryDataReadyForPublication model then
-                    justProduceCmd <|
-                        Api.postCreateNewStory
-                            model.newStory
-                            NewStoryPublishFailure
-                            NewStoryPublishSuccess
-                else
-                    doNothing
-
-            NewStoryPublishFailure apiError ->
-                -- TODO handle error.
-                doNothing
-
-            NewStoryPublishSuccess { targetID } ->
-                ( init
-                , { shared
-                    | userStories = Nothing
-                  }
-                , Route.navigateTo <| Route.DevelopStoryPage targetID
-                )
-
-            NewStoryGetEditingStoryFailure apiError ->
-                -- TODO handle error.
-                doNothing
-
-            NewStoryGetEditingStorySuccess story ->
+            OnGetEditingStorySuccess story ->
                 case shared.user of
                     Nothing ->
                         doNothing
@@ -152,13 +79,82 @@ update msg model shared =
                         else
                             justProduceCmd <| Route.modifyTo <| Route.CreatePage
 
-            NewStoryCancelEdits storyID ->
+            OnGetEditingStoryFailure apiError ->
+                -- TODO handle error.
+                doNothing
+
+            OnUpdateName newName ->
+                justUpdateModel <| updateName newName
+
+            OnEditingUpdateName newName ->
+                justUpdateModel <| updateEditName newName
+
+            OnUpdateDescription newDescription ->
+                justUpdateModel <| updateDescription newDescription
+
+            OnEditingUpdateDescription newDescription ->
+                justUpdateModel <| updateEditDescription newDescription
+
+            OnUpdateTagInput newTagInput ->
+                justUpdateModel <|
+                    if String.endsWith " " newTagInput then
+                        newTag <| String.dropRight 1 newTagInput
+                    else
+                        updateTagInput newTagInput
+
+            OnEditingUpdateTagInput newTagInput ->
+                justUpdateModel <|
+                    if String.endsWith " " newTagInput then
+                        newEditTag <| String.dropRight 1 newTagInput
+                    else
+                        updateEditTagInput newTagInput
+
+            AddTag tagName ->
+                justUpdateModel <| newTag tagName
+
+            EditingAddTag tagName ->
+                justUpdateModel <| newEditTag tagName
+
+            RemoveTag tagName ->
+                justUpdateModel <| removeTag tagName
+
+            EditingRemoveTag tagName ->
+                justUpdateModel <| removeEditTag tagName
+
+            Reset ->
+                ( init
+                , shared
+                  -- The reset button only exists when there is no `qpEditingStory`.
+                , Route.navigateTo <| Route.CreateStoryNamePage Nothing
+                )
+
+            Publish ->
+                if newStoryDataReadyForPublication model then
+                    justProduceCmd <|
+                        Api.postCreateNewStory
+                            model.newStory
+                            OnPublishFailure
+                            OnPublishSuccess
+                else
+                    doNothing
+
+            OnPublishSuccess { targetID } ->
+                ( init
+                , { shared | userStories = Nothing }
+                , Route.navigateTo <| Route.DevelopStoryPage targetID
+                )
+
+            OnPublishFailure apiError ->
+                -- TODO handle error.
+                doNothing
+
+            CancelEdits storyID ->
                 ( updateEditStory (always Story.blankStory) model
                 , shared
                 , Route.navigateTo <| Route.DevelopStoryPage storyID
                 )
 
-            NewStorySaveEdits storyID ->
+            SaveEdits storyID ->
                 let
                     editingStory =
                         model.editingStory
@@ -173,17 +169,15 @@ update msg model shared =
                         Api.postUpdateStoryInformation
                             storyID
                             editingStoryInformation
-                            NewStorySaveEditsFailure
-                            NewStorySaveEditsSuccess
+                            OnSaveEditsFailure
+                            OnSaveEditsSuccess
 
-            NewStorySaveEditsFailure apiError ->
-                -- TODO handle error.
-                doNothing
-
-            NewStorySaveEditsSuccess { targetID } ->
+            OnSaveEditsSuccess { targetID } ->
                 ( model
-                , { shared
-                    | userStories = Nothing
-                  }
+                , { shared | userStories = Nothing }
                 , Route.navigateTo <| Route.DevelopStoryPage targetID
                 )
+
+            OnSaveEditsFailure apiError ->
+                -- TODO handle error.
+                doNothing

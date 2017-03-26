@@ -1,34 +1,34 @@
 module Pages.NewStory.Messages exposing (..)
 
-import Models.ApiError as ApiError
-import Models.IDResponse as IDResponse
-import Models.Route as Route
-import Models.Story as Story
+import Models.ApiError exposing (ApiError)
+import Models.IDResponse exposing (IDResponse)
+import Models.Route exposing (Route)
+import Models.Story exposing (Story)
 
 
 {-| `NewStory` msg.
 -}
 type Msg
     = NoOp
-    | GoTo Route.Route
-    | OnRouteHit Route.Route
-    | NewStoryUpdateName String
-    | NewStoryEditingUpdateName String
-    | NewStoryUpdateDescription String
-    | NewStoryEditingUpdateDescription String
-    | NewStoryUpdateTagInput String
-    | NewStoryEditingUpdateTagInput String
-    | NewStoryAddTag String
-    | NewStoryEditingAddTag String
-    | NewStoryRemoveTag String
-    | NewStoryEditingRemoveTag String
-    | NewStoryReset
-    | NewStoryPublish
-    | NewStoryPublishSuccess IDResponse.IDResponse
-    | NewStoryPublishFailure ApiError.ApiError
-    | NewStoryGetEditingStoryFailure ApiError.ApiError
-    | NewStoryGetEditingStorySuccess Story.Story
-    | NewStoryCancelEdits String
-    | NewStorySaveEdits String
-    | NewStorySaveEditsFailure ApiError.ApiError
-    | NewStorySaveEditsSuccess IDResponse.IDResponse
+    | GoTo Route
+    | OnRouteHit Route
+    | OnGetEditingStorySuccess Story
+    | OnGetEditingStoryFailure ApiError
+    | OnUpdateName String
+    | OnEditingUpdateName String
+    | OnUpdateDescription String
+    | OnEditingUpdateDescription String
+    | OnUpdateTagInput String
+    | OnEditingUpdateTagInput String
+    | AddTag String
+    | EditingAddTag String
+    | RemoveTag String
+    | EditingRemoveTag String
+    | Reset
+    | Publish
+    | OnPublishSuccess IDResponse
+    | OnPublishFailure ApiError
+    | CancelEdits String
+    | SaveEdits String
+    | OnSaveEditsSuccess IDResponse
+    | OnSaveEditsFailure ApiError

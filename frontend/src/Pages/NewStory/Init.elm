@@ -1,6 +1,6 @@
 module Pages.NewStory.Init exposing (..)
 
-import Models.Story as Story
+import Models.Story exposing (blankStory, defaultNewStory)
 import Pages.NewStory.Model exposing (..)
 
 
@@ -8,8 +8,8 @@ import Pages.NewStory.Model exposing (..)
 -}
 init : Model
 init =
-    { newStory = Story.defaultNewStory
-    , editingStory = Story.blankStory
+    { newStory = defaultNewStory
+    , editingStory = blankStory
     , tagInput = ""
     , editingStoryTagInput = ""
     }

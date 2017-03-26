@@ -18,84 +18,56 @@ type alias Model =
 -}
 updateNewStory : (Story.NewStory -> Story.NewStory) -> Model -> Model
 updateNewStory newStoryUpdater newStoryData =
-    { newStoryData
-        | newStory = newStoryUpdater newStoryData.newStory
-    }
+    { newStoryData | newStory = newStoryUpdater newStoryData.newStory }
 
 
 {-| Updates the `editingStory`.
 -}
 updateEditStory : (Story.Story -> Story.Story) -> Model -> Model
 updateEditStory editingStoryUpdater newStoryData =
-    { newStoryData
-        | editingStory = editingStoryUpdater newStoryData.editingStory
-    }
+    { newStoryData | editingStory = editingStoryUpdater newStoryData.editingStory }
 
 
 {-| Updates the `name` in `newStory`.
 -}
 updateName : String -> Model -> Model
 updateName newName =
-    updateNewStory
-        (\newStory ->
-            { newStory
-                | name = newName
-            }
-        )
+    updateNewStory (\newStory -> { newStory | name = newName })
 
 
 {-| Updates the `name` in `editingStory`.
 -}
 updateEditName : String -> Model -> Model
 updateEditName newName =
-    updateEditStory
-        (\editingStory ->
-            { editingStory
-                | name = newName
-            }
-        )
+    updateEditStory (\editingStory -> { editingStory | name = newName })
 
 
 {-| Updates the `description` in `newStory`.
 -}
 updateDescription : String -> Model -> Model
 updateDescription newDescription =
-    updateNewStory
-        (\newStory ->
-            { newStory
-                | description = newDescription
-            }
-        )
+    updateNewStory (\newStory -> { newStory | description = newDescription })
 
 
 {-| Updates the `description` in `editingStory`.
 -}
 updateEditDescription : String -> Model -> Model
 updateEditDescription newDescription =
-    updateEditStory
-        (\editingStory ->
-            { editingStory
-                | description = newDescription
-            }
-        )
+    updateEditStory (\editingStory -> { editingStory | description = newDescription })
 
 
 {-| Updates the `tagInput`.
 -}
 updateTagInput : String -> Model -> Model
 updateTagInput newTagInput newStoryData =
-    { newStoryData
-        | tagInput = newTagInput
-    }
+    { newStoryData | tagInput = newTagInput }
 
 
 {-| Updates the `editingStoryTagInput`.
 -}
 updateEditTagInput : String -> Model -> Model
 updateEditTagInput newTagInput newStoryData =
-    { newStoryData
-        | editingStoryTagInput = newTagInput
-    }
+    { newStoryData | editingStoryTagInput = newTagInput }
 
 
 {-| Adds a new tag to the `newStory` if it's unique and not empty.
@@ -105,12 +77,7 @@ newTag newTag newStoryData =
     let
         modelWithNewTags =
             updateNewStory
-                (\newStory ->
-                    { newStory
-                        | tags =
-                            Util.addUniqueNonEmptyString newTag newStory.tags
-                    }
-                )
+                (\newStory -> { newStory | tags = Util.addUniqueNonEmptyString newTag newStory.tags })
                 newStoryData
     in
         updateTagInput "" modelWithNewTags
@@ -123,14 +90,7 @@ newEditTag newTag newStoryData =
     let
         modelWithNewTags =
             updateEditStory
-                (\editingStory ->
-                    { editingStory
-                        | tags =
-                            Util.addUniqueNonEmptyString
-                                newTag
-                                editingStory.tags
-                    }
-                )
+                (\editingStory -> { editingStory | tags = Util.addUniqueNonEmptyString newTag editingStory.tags })
                 newStoryData
     in
         updateEditTagInput "" modelWithNewTags
@@ -140,24 +100,14 @@ newEditTag newTag newStoryData =
 -}
 removeTag : String -> Model -> Model
 removeTag oldTag =
-    updateNewStory
-        (\newStory ->
-            { newStory
-                | tags = List.filter ((/=) oldTag) newStory.tags
-            }
-        )
+    updateNewStory (\newStory -> { newStory | tags = List.filter ((/=) oldTag) newStory.tags })
 
 
 {-| Removes a tag from the `editingStory` if it exists in the tags.
 -}
 removeEditTag : String -> Model -> Model
 removeEditTag oldTag =
-    updateEditStory
-        (\editingStory ->
-            { editingStory
-                | tags = List.filter ((/=) oldTag) editingStory.tags
-            }
-        )
+    updateEditStory (\editingStory -> { editingStory | tags = List.filter ((/=) oldTag) editingStory.tags })
 
 
 {-| Returns True if the name tab is fileld in.
@@ -206,9 +156,7 @@ editingTagsTabFilledIn =
 -}
 newStoryDataReadyForPublication : Model -> Bool
 newStoryDataReadyForPublication newStoryData =
-    nameTabFilledIn newStoryData
-        && descriptionTabFilledIn newStoryData
-        && tagsTabFilledIn newStoryData
+    nameTabFilledIn newStoryData && descriptionTabFilledIn newStoryData && tagsTabFilledIn newStoryData
 
 
 {-| Returns true if the editing story data is ready to be saved.

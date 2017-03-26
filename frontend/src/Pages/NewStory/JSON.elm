@@ -8,7 +8,7 @@ import Models.Story as Story
 import Pages.NewStory.Model exposing (..)
 
 
-{-| `NewStoryModel` encoder.
+{-| `NewStory` encoder.
 -}
 encoder : Model -> Encode.Value
 encoder model =
@@ -20,7 +20,7 @@ encoder model =
         ]
 
 
-{-| `NewStoryModel` decoder.
+{-| `NewStory` decoder.
 -}
 decoder : Decode.Decoder Model
 decoder =
