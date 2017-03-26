@@ -33,17 +33,17 @@ update msg shared =
                             [ Ports.smoothScrollToSubBar
                             , Api.getExpandedStoryWithCompleted
                                 mongoID
-                                GetExpandedStoryFailure
-                                GetExpandedStorySuccess
+                                OnGetExpandedStoryFailure
+                                OnGetExpandedStorySuccess
                             ]
                         )
 
                     _ ->
                         doNothing
 
-            GetExpandedStoryFailure apiError ->
+            OnGetExpandedStorySuccess expandedStory ->
+                justSetShared <| { shared | viewingStory = Just expandedStory }
+
+            OnGetExpandedStoryFailure apiError ->
                 -- TODO handle error.
                 doNothing
-
-            GetExpandedStorySuccess expandedStory ->
-                justSetShared <| { shared | viewingStory = Just expandedStory }

@@ -10,5 +10,5 @@ import Models.Story exposing (ExpandedStory)
 type Msg
     = GoTo Route
     | OnRouteHit Route
-    | GetExpandedStoryFailure ApiError
-    | GetExpandedStorySuccess ExpandedStory
+    | OnGetExpandedStorySuccess ExpandedStory
+    | OnGetExpandedStoryFailure ApiError
