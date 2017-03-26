@@ -83,7 +83,7 @@ view model shared =
                                 && (not <| isViewBigbitFSOpen model.viewingBigbit)
                           )
                         ]
-                    , onClick <| ViewBigbitToggleFS
+                    , onClick <| ToggleFS
                     ]
                     [ text <|
                         if isViewBigbitFSOpen model.viewingBigbit then
@@ -102,7 +102,7 @@ view model shared =
                                     model.viewingBigbitRelevantHC
                           )
                         ]
-                    , onClick ViewBigbitBrowseRelevantHC
+                    , onClick BrowseRelevantHC
                     ]
                     [ text "Browse Related Frames" ]
                 , button
@@ -116,7 +116,7 @@ view model shared =
                                     model.viewingBigbitRelevantHC
                           )
                         ]
-                    , onClick ViewBigbitCancelBrowseRelevantHC
+                    , onClick CancelBrowseRelevantHC
                     ]
                     [ text "Close Related Frames" ]
                 , case ( shared.user, model.viewingBigbitIsCompleted ) of
@@ -124,13 +124,13 @@ view model shared =
                         if complete then
                             button
                                 [ classList [ ( "sub-bar-button complete-button", True ) ]
-                                , onClick <| ViewBigbitMarkAsIncomplete <| Completed.completedFromIsCompleted isCompleted user.id
+                                , onClick <| MarkAsIncomplete <| Completed.completedFromIsCompleted isCompleted user.id
                                 ]
                                 [ text "Mark Bigbit as Incomplete" ]
                         else
                             button
                                 [ classList [ ( "sub-bar-button complete-button", True ) ]
-                                , onClick <| ViewBigbitMarkAsComplete <| Completed.completedFromIsCompleted isCompleted user.id
+                                , onClick <| MarkAsComplete <| Completed.completedFromIsCompleted isCompleted user.id
                                 ]
                                 [ text "Mark Bigbit as Complete" ]
 
@@ -167,10 +167,20 @@ view model shared =
                                     else
                                         case shared.route of
                                             Route.ViewBigbitConclusionPage fromStoryID mongoID _ ->
-                                                ViewBigbitJumpToFrame <| Route.ViewBigbitFramePage fromStoryID mongoID (Array.length bigbit.highlightedComments) Nothing
+                                                JumpToFrame <|
+                                                    Route.ViewBigbitFramePage
+                                                        fromStoryID
+                                                        mongoID
+                                                        (Array.length bigbit.highlightedComments)
+                                                        Nothing
 
                                             Route.ViewBigbitFramePage fromStoryID mongoID frameNumber _ ->
-                                                ViewBigbitJumpToFrame <| Route.ViewBigbitFramePage fromStoryID mongoID (frameNumber - 1) Nothing
+                                                JumpToFrame <|
+                                                    Route.ViewBigbitFramePage
+                                                        fromStoryID
+                                                        mongoID
+                                                        (frameNumber - 1)
+                                                        Nothing
 
                                             _ ->
                                                 NoOp
@@ -181,7 +191,7 @@ view model shared =
                                     if notGoingThroughTutorial then
                                         NoOp
                                     else
-                                        ViewBigbitJumpToFrame <|
+                                        JumpToFrame <|
                                             Route.ViewBigbitIntroductionPage
                                                 (Route.getFromStoryQueryParamOnViewBigbitRoute shared.route)
                                                 bigbit.id
@@ -218,7 +228,7 @@ view model shared =
                                     if notGoingThroughTutorial then
                                         NoOp
                                     else
-                                        ViewBigbitJumpToFrame <|
+                                        JumpToFrame <|
                                             Route.ViewBigbitConclusionPage
                                                 (Route.getFromStoryQueryParamOnViewBigbitRoute shared.route)
                                                 bigbit.id
@@ -258,12 +268,16 @@ view model shared =
                                     else
                                         case shared.route of
                                             Route.ViewBigbitIntroductionPage fromStoryID mongoID _ ->
-                                                ViewBigbitJumpToFrame <|
+                                                JumpToFrame <|
                                                     Route.ViewBigbitFramePage fromStoryID mongoID 1 Nothing
 
                                             Route.ViewBigbitFramePage fromStoryID mongoID frameNumber _ ->
-                                                ViewBigbitJumpToFrame <|
-                                                    Route.ViewBigbitFramePage fromStoryID mongoID (frameNumber + 1) Nothing
+                                                JumpToFrame <|
+                                                    Route.ViewBigbitFramePage
+                                                        fromStoryID
+                                                        mongoID
+                                                        (frameNumber + 1)
+                                                        Nothing
 
                                             _ ->
                                                 NoOp
@@ -333,8 +347,8 @@ viewBigbitCommentBox bigbit maybeRHC route =
                                 |> Maybe.map (FS.isSameFilePath absolutePath)
                                 |> Maybe.withDefault False
                         )
-                    , fileSelectedMsg = ViewBigbitSelectFile
-                    , folderSelectedMsg = ViewBigbitToggleFolder
+                    , fileSelectedMsg = SelectFile
+                    , folderSelectedMsg = ToggleFolder
                     }
                     bigbit.fs
                 ]
@@ -368,7 +382,7 @@ viewBigbitCommentBox bigbit maybeRHC route =
                                         [ ( "above-comment-block-button", True )
                                         , ( "disabled", ViewerRelevantHC.onFirstFrame rhc )
                                         ]
-                                    , onClick ViewBigbitPreviousRelevantHC
+                                    , onClick PreviousRelevantHC
                                     ]
                                     [ text "Previous" ]
                                 , div
@@ -377,7 +391,7 @@ viewBigbitCommentBox bigbit maybeRHC route =
                                     , onClick
                                         (Array.get index rhc.relevantHC
                                             |> maybeMapWithDefault
-                                                (ViewBigbitJumpToFrame
+                                                (JumpToFrame
                                                     << (\frameNumber ->
                                                             Route.ViewBigbitFramePage
                                                                 (Route.getFromStoryQueryParamOnViewBigbitRoute route)
@@ -397,7 +411,7 @@ viewBigbitCommentBox bigbit maybeRHC route =
                                         [ ( "above-comment-block-button next-button", True )
                                         , ( "disabled", ViewerRelevantHC.onLastFrame rhc )
                                         ]
-                                    , onClick ViewBigbitNextRelevantHC
+                                    , onClick NextRelevantHC
                                     ]
                                     [ text "Next" ]
                                 ]

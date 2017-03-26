@@ -13,7 +13,7 @@ import Models.TidbitPointer as TidbitPointer
 import Models.User as User
 import Models.ViewerRelevantHC as ViewerRelevantHC
 import Pages.Model exposing (Shared)
-import Pages.ViewBigbit.Messages exposing (Msg(..))
+import Pages.ViewBigbit.Messages exposing (..)
 import Pages.ViewBigbit.Model exposing (..)
 import Ports
 
@@ -113,8 +113,8 @@ update msg model shared =
                                         , shared
                                         , Api.postCheckCompletedWrapper
                                             (Completed.Completed currentTidbitPointer userID)
-                                            ViewBigbitGetCompletedFailure
-                                            ViewBigbitGetCompletedSuccess
+                                            OnGetCompletedFailure
+                                            OnGetCompletedSuccess
                                         )
                                 in
                                     case ( shared.user, model.viewingBigbitIsCompleted ) of
@@ -142,8 +142,8 @@ update msg model shared =
                                     getStory storyID =
                                         Api.getExpandedStoryWithCompleted
                                             storyID
-                                            ViewBigbitGetExpandedStoryFailure
-                                            ViewBigbitGetExpandedStorySuccess
+                                            OnGetExpandedStoryFailure
+                                            OnGetExpandedStorySuccess
                                 in
                                     case Route.getFromStoryQueryParamOnViewBigbitRoute shared.route of
                                         Just fromStoryID ->
@@ -151,17 +151,13 @@ update msg model shared =
                                                 doNothing
                                             else
                                                 ( model
-                                                , { shared
-                                                    | viewingStory = Nothing
-                                                  }
+                                                , { shared | viewingStory = Nothing }
                                                 , getStory fromStoryID
                                                 )
 
                                         _ ->
                                             ( model
-                                            , { shared
-                                                | viewingStory = Nothing
-                                              }
+                                            , { shared | viewingStory = Nothing }
                                             , Cmd.none
                                             )
                         in
@@ -188,7 +184,10 @@ update msg model shared =
                                                     Completed.completedFromIsCompleted isCompleted user.id
                                             in
                                                 if isCompleted.complete == False then
-                                                    Api.postAddCompletedWrapper completed ViewBigbitMarkAsCompleteFailure ViewBigbitMarkAsCompleteSuccess
+                                                    Api.postAddCompletedWrapper
+                                                        completed
+                                                        OnMarkAsCompleteFailure
+                                                        OnMarkAsCompleteSuccess
                                                 else
                                                     Cmd.none
 
@@ -199,9 +198,34 @@ update msg model shared =
                         _ ->
                             doNothing
 
-            OnGetBigbitFailure apiError ->
-                -- TODO handle get bigbit failure.
-                doNothing
+            OnRangeSelected selectedRange ->
+                case model.viewingBigbit of
+                    Nothing ->
+                        doNothing
+
+                    Just aBigbit ->
+                        if Range.isEmptyRange selectedRange then
+                            justUpdateModel <| setViewingBigbitRelevantHC Nothing
+                        else
+                            aBigbit.highlightedComments
+                                |> Array.indexedMap (,)
+                                |> Array.filter
+                                    (\hc ->
+                                        (Tuple.second hc |> .range |> Range.overlappingRanges selectedRange)
+                                            && (Tuple.second hc
+                                                    |> .file
+                                                    |> Just
+                                                    |> (==) (Bigbit.viewPageCurrentActiveFile shared.route aBigbit)
+                                               )
+                                    )
+                                |> (\relevantHC ->
+                                        justUpdateModel <|
+                                            setViewingBigbitRelevantHC <|
+                                                Just
+                                                    { currentHC = Nothing
+                                                    , relevantHC = relevantHC
+                                                    }
+                                   )
 
             OnGetBigbitSuccess bigbit ->
                 ( Util.multipleUpdates
@@ -213,7 +237,25 @@ update msg model shared =
                 , createViewBigbitCodeEditor bigbit shared
                 )
 
-            ViewBigbitToggleFS ->
+            OnGetBigbitFailure apiError ->
+                -- TODO handle get bigbit failure.
+                doNothing
+
+            OnGetCompletedSuccess isCompleted ->
+                justUpdateModel <| setViewingBigbitIsCompleted <| Just isCompleted
+
+            OnGetCompletedFailure apiError ->
+                -- TODO handle error.
+                doNothing
+
+            OnGetExpandedStorySuccess story ->
+                justSetShared { shared | viewingStory = Just story }
+
+            OnGetExpandedStoryFailure apiError ->
+                -- TODO handle error
+                doNothing
+
+            ToggleFS ->
                 let
                     -- We have a `not` because we toggle the fs state.
                     fsJustOpened =
@@ -243,11 +285,10 @@ update msg model shared =
                         Route.navigateToSameUrlWithFilePath Nothing shared.route
                     )
 
-            ViewBigbitSelectFile absolutePath ->
-                justProduceCmd <|
-                    Route.navigateToSameUrlWithFilePath (Just absolutePath) shared.route
+            SelectFile absolutePath ->
+                justProduceCmd <| Route.navigateToSameUrlWithFilePath (Just absolutePath) shared.route
 
-            ViewBigbitToggleFolder absolutePath ->
+            ToggleFolder absolutePath ->
                 justUpdateModel <|
                     updateViewingBigbit <|
                         (\currentViewingBigbit ->
@@ -257,33 +298,7 @@ update msg model shared =
                             }
                         )
 
-            ViewBigbitRangeSelected selectedRange ->
-                case model.viewingBigbit of
-                    Nothing ->
-                        doNothing
-
-                    Just aBigbit ->
-                        if Range.isEmptyRange selectedRange then
-                            justUpdateModel <|
-                                setViewingBigbitRelevantHC Nothing
-                        else
-                            aBigbit.highlightedComments
-                                |> Array.indexedMap (,)
-                                |> Array.filter
-                                    (\hc ->
-                                        (Tuple.second hc |> .range |> Range.overlappingRanges selectedRange)
-                                            && (Tuple.second hc |> .file |> Just |> (==) (Bigbit.viewPageCurrentActiveFile shared.route aBigbit))
-                                    )
-                                |> (\relevantHC ->
-                                        justUpdateModel <|
-                                            setViewingBigbitRelevantHC <|
-                                                Just
-                                                    { currentHC = Nothing
-                                                    , relevantHC = relevantHC
-                                                    }
-                                   )
-
-            ViewBigbitBrowseRelevantHC ->
+            BrowseRelevantHC ->
                 let
                     newModel =
                         updateViewingBigbitRelevantHC
@@ -302,7 +317,7 @@ update msg model shared =
                         shared.user
                     )
 
-            ViewBigbitCancelBrowseRelevantHC ->
+            CancelBrowseRelevantHC ->
                 ( setViewingBigbitRelevantHC Nothing model
                 , shared
                   -- Trigger route hook again, `modify` because we don't want to
@@ -310,12 +325,10 @@ update msg model shared =
                 , Route.modifyTo shared.route
                 )
 
-            ViewBigbitNextRelevantHC ->
+            NextRelevantHC ->
                 let
                     newModel =
-                        updateViewingBigbitRelevantHC
-                            ViewerRelevantHC.goToNextFrame
-                            model
+                        updateViewingBigbitRelevantHC ViewerRelevantHC.goToNextFrame model
                 in
                     ( newModel
                     , shared
@@ -325,12 +338,10 @@ update msg model shared =
                         shared.user
                     )
 
-            ViewBigbitPreviousRelevantHC ->
+            PreviousRelevantHC ->
                 let
                     newModel =
-                        updateViewingBigbitRelevantHC
-                            ViewerRelevantHC.goToPreviousFrame
-                            model
+                        updateViewingBigbitRelevantHC ViewerRelevantHC.goToPreviousFrame model
                 in
                     ( newModel
                     , shared
@@ -340,7 +351,7 @@ update msg model shared =
                         shared.user
                     )
 
-            ViewBigbitJumpToFrame route ->
+            JumpToFrame route ->
                 ( Util.multipleUpdates
                     [ updateViewingBigbit
                         (\currentViewingBigbit ->
@@ -355,55 +366,32 @@ update msg model shared =
                 , Route.navigateTo route
                 )
 
-            ViewBigbitGetCompletedSuccess isCompleted ->
-                justUpdateModel <|
-                    setViewingBigbitIsCompleted <|
-                        Just isCompleted
-
-            ViewBigbitGetCompletedFailure apiError ->
-                -- TODO handle error.
-                doNothing
-
-            ViewBigbitMarkAsComplete completed ->
+            MarkAsComplete completed ->
                 justProduceCmd <|
                     Api.postAddCompletedWrapper
                         completed
-                        ViewBigbitMarkAsCompleteFailure
-                        ViewBigbitMarkAsCompleteSuccess
+                        OnMarkAsCompleteFailure
+                        OnMarkAsCompleteSuccess
 
-            ViewBigbitMarkAsCompleteSuccess isCompleted ->
-                justUpdateModel <|
-                    setViewingBigbitIsCompleted <|
-                        Just isCompleted
+            OnMarkAsCompleteSuccess isCompleted ->
+                justUpdateModel <| setViewingBigbitIsCompleted <| Just isCompleted
 
-            ViewBigbitMarkAsCompleteFailure apiError ->
+            OnMarkAsCompleteFailure apiError ->
                 -- TODO handle error.
                 doNothing
 
-            ViewBigbitMarkAsIncomplete completed ->
+            MarkAsIncomplete completed ->
                 justProduceCmd <|
                     Api.postRemoveCompletedWrapper
                         completed
-                        ViewBigbitMarkAsIncompleteFailure
-                        ViewBigbitMarkAsIncompleteSuccess
+                        OnMarkAsIncompleteFailure
+                        OnMarkAsIncompleteSuccess
 
-            ViewBigbitMarkAsIncompleteSuccess isCompleted ->
-                justUpdateModel <|
-                    setViewingBigbitIsCompleted <|
-                        Just isCompleted
+            OnMarkAsIncompleteSuccess isCompleted ->
+                justUpdateModel <| setViewingBigbitIsCompleted <| Just isCompleted
 
-            ViewBigbitMarkAsIncompleteFailure apiError ->
+            OnMarkAsIncompleteFailure apiError ->
                 -- TODO handle error.
-                doNothing
-
-            ViewBigbitGetExpandedStorySuccess story ->
-                justSetShared
-                    { shared
-                        | viewingStory = Just story
-                    }
-
-            ViewBigbitGetExpandedStoryFailure apiError ->
-                -- TODO handle error
                 doNothing
 
 

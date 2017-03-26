@@ -329,7 +329,7 @@ updateCacheIf msg model shouldCache =
                         "view-bigbit-code-editor" ->
                             (updateCacheIf
                                 (ViewBigbitMessage <|
-                                    ViewBigbitMessages.ViewBigbitRangeSelected range
+                                    ViewBigbitMessages.OnRangeSelected range
                                 )
                                 model
                                 shouldCache
