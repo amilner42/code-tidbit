@@ -7,6 +7,6 @@ import Pages.DevelopStory.Model exposing (..)
 -}
 init : Model
 init =
-    { currentStory = Nothing
+    { story = Nothing
     , tidbitsToAdd = []
     }

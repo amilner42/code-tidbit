@@ -37,23 +37,15 @@ update msg model shared =
             OnRouteHit route ->
                 case route of
                     Route.DevelopStoryPage storyID ->
-                        (if
-                            maybeMapWithDefault
-                                (.id >> ((==) storyID))
-                                False
-                                model.currentStory
-                         then
+                        (if maybeMapWithDefault (.id >> ((==) storyID)) False model.story then
                             doNothing
                          else
                             ( { model
-                                | currentStory = Nothing
+                                | story = Nothing
                                 , tidbitsToAdd = []
                               }
                             , shared
-                            , Api.getExpandedStory
-                                storyID
-                                CreateStoryGetStoryFailure
-                                (CreateStoryGetStorySuccess False)
+                            , Api.getExpandedStory storyID OnGetStoryFailure (OnGetStorySuccess False)
                             )
                         )
                             |> withCmd
@@ -62,8 +54,8 @@ update msg model shared =
                                         ( True, Just user ) ->
                                             Api.getTidbits
                                                 [ ( "forUser", Just user.id ) ]
-                                                CreateStoryGetTidbitsFailure
-                                                CreateStoryGetTidbitsSuccess
+                                                OnGetTidbitsFailure
+                                                OnGetTidbitsSuccess
 
                                         _ ->
                                             Cmd.none
@@ -78,18 +70,12 @@ update msg model shared =
                     _ ->
                         doNothing
 
-            CreateStoryGetStoryFailure apiError ->
-                -- TODO handle error
-                doNothing
-
-            CreateStoryGetStorySuccess resetUserStories expandedStory ->
+            OnGetStorySuccess resetUserStories expandedStory ->
                 let
                     -- Resets stories if needed.
                     newShared =
                         if resetUserStories then
-                            { shared
-                                | userStories = Nothing
-                            }
+                            { shared | userStories = Nothing }
                         else
                             shared
                 in
@@ -102,7 +88,7 @@ update msg model shared =
                             -- If this is indeed the author, then stay on page,
                             -- otherwise redirect.
                             if user.id == expandedStory.author then
-                                ( setCurrentStory expandedStory model
+                                ( setStory expandedStory model
                                 , newShared
                                 , Cmd.none
                                 )
@@ -112,34 +98,35 @@ update msg model shared =
                                 , Route.modifyTo Route.CreatePage
                                 )
 
-            CreateStoryGetTidbitsFailure apiError ->
+            OnGetStoryFailure apiError ->
+                -- TODO handle error
+                doNothing
+
+            OnGetTidbitsSuccess tidbits ->
+                justSetShared { shared | userTidbits = Just tidbits }
+
+            OnGetTidbitsFailure apiError ->
                 -- Handle error.
                 doNothing
 
-            CreateStoryGetTidbitsSuccess tidbits ->
-                justSetShared
-                    { shared
-                        | userTidbits = Just tidbits
-                    }
-
-            CreateStoryAddTidbit tidbit ->
+            AddTidbit tidbit ->
                 justUpdateModel <| addTidbit tidbit
 
-            CreateStoryRemoveTidbit tidbit ->
+            RemoveTidbit tidbit ->
                 justUpdateModel <| removeTidbit tidbit
 
-            CreateStoryPublishAddedTidbits storyID tidbits ->
+            PublishAddedTidbits storyID tidbits ->
                 if List.length tidbits > 0 then
                     justProduceCmd <|
                         Api.postAddTidbitsToStory
                             storyID
                             (List.map Tidbit.compressTidbit tidbits)
-                            CreateStoryPublishAddedTidbitsFailure
-                            (CreateStoryGetStorySuccess True)
+                            OnPublishAddedTidbitsFailure
+                            (OnGetStorySuccess True)
                 else
                     -- Should never happen.
                     doNothing
 
-            CreateStoryPublishAddedTidbitsFailure apiError ->
+            OnPublishAddedTidbitsFailure apiError ->
                 -- TODO handle error.
                 doNothing

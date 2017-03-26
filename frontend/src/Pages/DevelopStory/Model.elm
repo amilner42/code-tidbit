@@ -7,19 +7,19 @@ import Models.Tidbit as Tidbit
 {-| `DevelopStory` model.
 -}
 type alias Model =
-    { currentStory : Maybe Story.ExpandedStory
+    { story : Maybe Story.ExpandedStory
     , tidbitsToAdd : List Tidbit.Tidbit
     }
 
 
-{-| Sets the `currentStory` to `expandedStory`.
+{-| Sets the `story` to `expandedStory`.
 
 NOTE: This also clears the `tidbitsToAdd` field.
 -}
-setCurrentStory : Story.ExpandedStory -> Model -> Model
-setCurrentStory expandedStory storyData =
+setStory : Story.ExpandedStory -> Model -> Model
+setStory expandedStory storyData =
     { storyData
-        | currentStory = Just expandedStory
+        | story = Just expandedStory
         , tidbitsToAdd = []
     }
 
@@ -41,15 +41,11 @@ addTidbit tidbit storyData =
 -}
 removeTidbit : Tidbit.Tidbit -> Model -> Model
 removeTidbit tidbit storyData =
-    { storyData
-        | tidbitsToAdd =
-            List.filter ((/=) tidbit) storyData.tidbitsToAdd
-    }
+    { storyData | tidbitsToAdd = List.filter ((/=) tidbit) storyData.tidbitsToAdd }
 
 
 {-| Returns a list of tidbits which are not members of `currentStories`.
 -}
 remainingTidbits : List Tidbit.Tidbit -> List Tidbit.Tidbit -> List Tidbit.Tidbit
 remainingTidbits currentStories =
-    List.filter
-        (not << (flip List.member) currentStories)
+    List.filter (not << (flip List.member) currentStories)

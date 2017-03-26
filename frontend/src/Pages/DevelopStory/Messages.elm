@@ -1,21 +1,21 @@
 module Pages.DevelopStory.Messages exposing (..)
 
-import Models.ApiError as ApiError
-import Models.Route as Route
-import Models.Story as Story
-import Models.Tidbit as Tidbit
+import Models.ApiError exposing (ApiError)
+import Models.Route exposing (Route)
+import Models.Story exposing (ExpandedStory)
+import Models.Tidbit exposing (Tidbit)
 
 
 {-| `DevelopStory` msg.
 -}
 type Msg
-    = GoTo Route.Route
-    | OnRouteHit Route.Route
-    | CreateStoryGetStoryFailure ApiError.ApiError
-    | CreateStoryGetStorySuccess Bool Story.ExpandedStory
-    | CreateStoryGetTidbitsFailure ApiError.ApiError
-    | CreateStoryGetTidbitsSuccess (List Tidbit.Tidbit)
-    | CreateStoryAddTidbit Tidbit.Tidbit
-    | CreateStoryRemoveTidbit Tidbit.Tidbit
-    | CreateStoryPublishAddedTidbits String (List Tidbit.Tidbit)
-    | CreateStoryPublishAddedTidbitsFailure ApiError.ApiError
+    = GoTo Route
+    | OnRouteHit Route
+    | OnGetStorySuccess Bool ExpandedStory
+    | OnGetStoryFailure ApiError
+    | OnGetTidbitsSuccess (List Tidbit)
+    | OnGetTidbitsFailure ApiError
+    | AddTidbit Tidbit
+    | RemoveTidbit Tidbit
+    | PublishAddedTidbits String (List Tidbit)
+    | OnPublishAddedTidbitsFailure ApiError

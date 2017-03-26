@@ -9,28 +9,20 @@ import Json.Encode as Encode
 import Pages.DevelopStory.Model exposing (..)
 
 
-{-| `DevelopStoryModel` encoder.
+{-| `DevelopStory` encoder.
 -}
 encoder : Model -> Encode.Value
 encoder storyData =
     Encode.object
-        [ ( "currentStory"
-          , Util.justValueOrNull
-                JSON.Story.expandedStoryEncoder
-                storyData.currentStory
-          )
-        , ( "tidbitsToAdd"
-          , Encode.list <| List.map JSON.Tidbit.encoder storyData.tidbitsToAdd
-          )
+        [ ( "story", Util.justValueOrNull JSON.Story.expandedStoryEncoder storyData.story )
+        , ( "tidbitsToAdd", Encode.list <| List.map JSON.Tidbit.encoder storyData.tidbitsToAdd )
         ]
 
 
-{-| `DevelopStoryModel` decoder.
+{-| `DevelopStory` decoder.
 -}
 decoder : Decode.Decoder Model
 decoder =
     decode Model
-        |> required "currentStory"
-            (Decode.maybe JSON.Story.expandedStoryDecoder)
-        |> required "tidbitsToAdd"
-            (Decode.list JSON.Tidbit.decoder)
+        |> required "story" (Decode.maybe JSON.Story.expandedStoryDecoder)
+        |> required "tidbitsToAdd" (Decode.list JSON.Tidbit.decoder)

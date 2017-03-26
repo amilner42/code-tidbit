@@ -15,7 +15,7 @@ import Pages.Model exposing (Shared)
 -}
 view : Model -> Shared -> Html Msg
 view model shared =
-    case ( model.currentStory, shared.userTidbits ) of
+    case ( model.story, shared.userTidbits ) of
         ( Just story, Just userTidbits ) ->
             div
                 [ class "create-story-page" ]
@@ -45,7 +45,7 @@ view model shared =
                             tidbits ->
                                 button
                                     [ class "publish-button"
-                                    , onClick <| CreateStoryPublishAddedTidbits story.id tidbits
+                                    , onClick <| PublishAddedTidbits story.id tidbits
                                     ]
                                     [ text "Add Tidbits" ]
                       )
@@ -101,7 +101,7 @@ view model shared =
                                                     [ text <| Tidbit.getTypeName tidbit ]
                                                 , button
                                                     [ class "remove-button"
-                                                    , onClick <| CreateStoryRemoveTidbit tidbit
+                                                    , onClick <| RemoveTidbit tidbit
                                                     ]
                                                     [ text "REMOVE" ]
                                                 ]
@@ -138,7 +138,7 @@ view model shared =
                                             [ text "VIEW" ]
                                         , button
                                             [ class "add-tidbit"
-                                            , onClick <| CreateStoryAddTidbit tidbit
+                                            , onClick <| AddTidbit tidbit
                                             ]
                                             [ text "ADD" ]
                                         ]
