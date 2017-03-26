@@ -77,7 +77,7 @@ view model shared =
                                 model.viewingSnipbitRelevantHC
                       )
                     ]
-                , onClick <| ViewSnipbitBrowseRelevantHC
+                , onClick <| BrowseRelevantHC
                 ]
                 [ text "Browse Related Frames" ]
             , button
@@ -91,7 +91,7 @@ view model shared =
                                 model.viewingSnipbitRelevantHC
                       )
                     ]
-                , onClick <| ViewSnipbitCancelBrowseRelevantHC
+                , onClick <| CancelBrowseRelevantHC
                 ]
                 [ text "Close Related Frames" ]
             , case ( shared.user, model.viewingSnipbitIsCompleted ) of
@@ -99,13 +99,13 @@ view model shared =
                     if complete then
                         button
                             [ class "sub-bar-button complete-button"
-                            , onClick <| ViewSnipbitMarkAsIncomplete <| Completed.completedFromIsCompleted isCompleted user.id
+                            , onClick <| MarkAsIncomplete <| Completed.completedFromIsCompleted isCompleted user.id
                             ]
                             [ text "Mark Snipbit as Incomplete" ]
                     else
                         button
                             [ class "sub-bar-button complete-button"
-                            , onClick <| ViewSnipbitMarkAsComplete <| Completed.completedFromIsCompleted isCompleted user.id
+                            , onClick <| MarkAsComplete <| Completed.completedFromIsCompleted isCompleted user.id
                             ]
                             [ text "Mark Snipbit as Complete" ]
 
@@ -141,14 +141,14 @@ view model shared =
                                 else
                                     case shared.route of
                                         Route.ViewSnipbitConclusionPage fromStoryID mongoID ->
-                                            ViewSnipbitJumpToFrame <|
+                                            JumpToFrame <|
                                                 Route.ViewSnipbitFramePage
                                                     fromStoryID
                                                     mongoID
                                                     (Array.length snipbit.highlightedComments)
 
                                         Route.ViewSnipbitFramePage fromStoryID mongoID frameNumber ->
-                                            ViewSnipbitJumpToFrame <|
+                                            JumpToFrame <|
                                                 Route.ViewSnipbitFramePage
                                                     fromStoryID
                                                     mongoID
@@ -237,18 +237,11 @@ view model shared =
                                 else
                                     case shared.route of
                                         Route.ViewSnipbitIntroductionPage fromStoryID mongoID ->
-                                            ViewSnipbitJumpToFrame <|
-                                                Route.ViewSnipbitFramePage
-                                                    fromStoryID
-                                                    mongoID
-                                                    1
+                                            JumpToFrame <| Route.ViewSnipbitFramePage fromStoryID mongoID 1
 
                                         Route.ViewSnipbitFramePage fromStoryID mongoID frameNumber ->
-                                            ViewSnipbitJumpToFrame <|
-                                                Route.ViewSnipbitFramePage
-                                                    fromStoryID
-                                                    mongoID
-                                                    (frameNumber + 1)
+                                            JumpToFrame <|
+                                                Route.ViewSnipbitFramePage fromStoryID mongoID (frameNumber + 1)
 
                                         _ ->
                                             NoOp
@@ -258,11 +251,7 @@ view model shared =
                     , Editor.editor "view-snipbit-code-editor"
                     , div
                         [ class "comment-block" ]
-                        [ commentBox
-                            snipbit
-                            model.viewingSnipbitRelevantHC
-                            shared.route
-                        ]
+                        [ commentBox snipbit model.viewingSnipbitRelevantHC shared.route ]
                     ]
         ]
 
@@ -312,16 +301,13 @@ commentBox snipbit relevantHC route =
                                     Util.hiddenDiv
 
                                 Just currentFramePair ->
-                                    ViewerRelevantHC.relevantHCTextAboveFrameSpecifyingPosition
-                                        currentFramePair
+                                    ViewerRelevantHC.relevantHCTextAboveFrameSpecifyingPosition currentFramePair
                             , div
                                 [ classList
                                     [ ( "above-comment-block-button", True )
-                                    , ( "disabled"
-                                      , ViewerRelevantHC.onFirstFrame viewerRelevantHC
-                                      )
+                                    , ( "disabled", ViewerRelevantHC.onFirstFrame viewerRelevantHC )
                                     ]
-                                , onClick ViewSnipbitPreviousRelevantHC
+                                , onClick PreviousRelevantHC
                                 ]
                                 [ text "Previous" ]
                             , div
@@ -330,7 +316,7 @@ commentBox snipbit relevantHC route =
                                 , onClick
                                     (Array.get index relevantHC
                                         |> Maybe.map
-                                            (ViewSnipbitJumpToFrame
+                                            (JumpToFrame
                                                 << Route.ViewSnipbitFramePage
                                                     (Route.getFromStoryQueryParamOnViewSnipbitRoute route)
                                                     snipbit.id
@@ -344,11 +330,9 @@ commentBox snipbit relevantHC route =
                             , div
                                 [ classList
                                     [ ( "above-comment-block-button next-button", True )
-                                    , ( "disabled"
-                                      , ViewerRelevantHC.onLastFrame viewerRelevantHC
-                                      )
+                                    , ( "disabled", ViewerRelevantHC.onLastFrame viewerRelevantHC )
                                     ]
-                                , onClick ViewSnipbitNextRelevantHC
+                                , onClick NextRelevantHC
                                 ]
                                 [ text "Next" ]
                             , githubMarkdown

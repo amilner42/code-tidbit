@@ -320,7 +320,7 @@ updateCacheIf msg model shouldCache =
                         "view-snipbit-code-editor" ->
                             (updateCacheIf
                                 (ViewSnipbitMessage <|
-                                    ViewSnipbitMessages.ViewSnipbitRangeSelected range
+                                    ViewSnipbitMessages.OnRangeSelected range
                                 )
                                 model
                                 shouldCache

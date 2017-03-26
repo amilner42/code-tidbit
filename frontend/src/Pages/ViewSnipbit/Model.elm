@@ -22,6 +22,16 @@ type alias ViewingSnipbitRelevantHC =
     ViewerRelevantHC.ViewerRelevantHC HC.HighlightedComment
 
 
+{-| Returns true if the user is browsing the snipbit viewer relevant HC.
+-}
+isViewSnipbitRHCTabOpen : Model -> Bool
+isViewSnipbitRHCTabOpen model =
+    maybeMapWithDefault
+        ViewerRelevantHC.browsingFrames
+        False
+        model.viewingSnipbitRelevantHC
+
+
 {-| `viewingSnipbit` field updater.
 -}
 updateViewingSnipbit : (Snipbit.Snipbit -> Snipbit.Snipbit) -> Model -> Model
@@ -74,13 +84,3 @@ setViewingSnipbitRelevantHC maybeRelevantHC model =
     { model
         | viewingSnipbitRelevantHC = maybeRelevantHC
     }
-
-
-{-| Returns true if the user is browsing the snipbit viewer relevant HC.
--}
-isViewSnipbitRHCTabOpen : Model -> Bool
-isViewSnipbitRHCTabOpen model =
-    maybeMapWithDefault
-        ViewerRelevantHC.browsingFrames
-        False
-        model.viewingSnipbitRelevantHC

@@ -116,8 +116,8 @@ update msg model shared =
                                         , shared
                                         , Api.postCheckCompletedWrapper
                                             (Completed.Completed currentTidbitPointer userID)
-                                            ViewSnipbitGetCompletedFailure
-                                            ViewSnipbitGetCompletedSuccess
+                                            OnGetCompletedFailure
+                                            OnGetCompletedSuccess
                                         )
                                 in
                                     case ( shared.user, model.viewingSnipbitIsCompleted ) of
@@ -146,8 +146,8 @@ update msg model shared =
                                     getStory storyID =
                                         Api.getExpandedStoryWithCompleted
                                             storyID
-                                            ViewSnipbitGetExpandedStoryFailure
-                                            ViewSnipbitGetExpandedStorySuccess
+                                            OnGetExpandedStoryFailure
+                                            OnGetExpandedStorySuccess
                                 in
                                     case Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route of
                                         Just storyID ->
@@ -189,10 +189,15 @@ update msg model shared =
                                         ( Just user, Just isCompleted ) ->
                                             let
                                                 completed =
-                                                    Completed.completedFromIsCompleted isCompleted user.id
+                                                    Completed.completedFromIsCompleted
+                                                        isCompleted
+                                                        user.id
                                             in
                                                 if isCompleted.complete == False then
-                                                    Api.postAddCompletedWrapper completed ViewSnipbitMarkAsCompleteFailure ViewSnipbitMarkAsCompleteSuccess
+                                                    Api.postAddCompletedWrapper
+                                                        completed
+                                                        OnMarkAsCompleteFailure
+                                                        OnMarkAsCompleteSuccess
                                                 else
                                                     Cmd.none
 
@@ -203,7 +208,10 @@ update msg model shared =
                         _ ->
                             doNothing
 
-            OnGetSnipbitFailure apiError ->
+            OnGetCompletedSuccess isCompleted ->
+                justUpdateModel <| setViewingSnipbitIsCompleted <| Just isCompleted
+
+            OnGetCompletedFailure apiError ->
                 -- TODO handle error.
                 doNothing
 
@@ -217,19 +225,33 @@ update msg model shared =
                 , createViewSnipbitCodeEditor snipbit shared
                 )
 
-            ViewSnipbitRangeSelected selectedRange ->
+            OnGetSnipbitFailure apiError ->
+                -- TODO handle error.
+                doNothing
+
+            OnGetExpandedStorySuccess expandedStory ->
+                justSetShared { shared | viewingStory = Just expandedStory }
+
+            OnGetExpandedStoryFailure apiError ->
+                -- TODO handle error.
+                doNothing
+
+            OnRangeSelected selectedRange ->
                 case model.viewingSnipbit of
                     Nothing ->
                         doNothing
 
                     Just aSnipbit ->
                         if Range.isEmptyRange selectedRange then
-                            justUpdateModel <|
-                                setViewingSnipbitRelevantHC Nothing
+                            justUpdateModel <| setViewingSnipbitRelevantHC Nothing
                         else
                             aSnipbit.highlightedComments
                                 |> Array.indexedMap (,)
-                                |> Array.filter (Tuple.second >> .range >> (Range.overlappingRanges selectedRange))
+                                |> Array.filter
+                                    (Tuple.second
+                                        >> .range
+                                        >> (Range.overlappingRanges selectedRange)
+                                    )
                                 |> (\relevantHC ->
                                         justUpdateModel <|
                                             setViewingSnipbitRelevantHC <|
@@ -239,15 +261,11 @@ update msg model shared =
                                                     }
                                    )
 
-            ViewSnipbitBrowseRelevantHC ->
+            BrowseRelevantHC ->
                 let
                     newModel =
                         updateViewingSnipbitRelevantHC
-                            (\currentRelevantHC ->
-                                { currentRelevantHC
-                                    | currentHC = Just 0
-                                }
-                            )
+                            (\currentRelevantHC -> { currentRelevantHC | currentHC = Just 0 })
                             model
                 in
                     ( newModel
@@ -258,7 +276,7 @@ update msg model shared =
                         shared.user
                     )
 
-            ViewSnipbitCancelBrowseRelevantHC ->
+            CancelBrowseRelevantHC ->
                 ( setViewingSnipbitRelevantHC Nothing model
                 , shared
                   -- Trigger route hook again, `modify` because we don't want to
@@ -266,12 +284,10 @@ update msg model shared =
                 , Route.modifyTo shared.route
                 )
 
-            ViewSnipbitNextRelevantHC ->
+            NextRelevantHC ->
                 let
                     newModel =
-                        updateViewingSnipbitRelevantHC
-                            ViewerRelevantHC.goToNextFrame
-                            model
+                        updateViewingSnipbitRelevantHC ViewerRelevantHC.goToNextFrame model
                 in
                     ( newModel
                     , shared
@@ -281,12 +297,10 @@ update msg model shared =
                         shared.user
                     )
 
-            ViewSnipbitPreviousRelevantHC ->
+            PreviousRelevantHC ->
                 let
                     newModel =
-                        updateViewingSnipbitRelevantHC
-                            ViewerRelevantHC.goToPreviousFrame
-                            model
+                        updateViewingSnipbitRelevantHC ViewerRelevantHC.goToPreviousFrame model
                 in
                     ( newModel
                     , shared
@@ -296,62 +310,32 @@ update msg model shared =
                         shared.user
                     )
 
-            ViewSnipbitJumpToFrame route ->
+            JumpToFrame route ->
                 ( setViewingSnipbitRelevantHC Nothing model
                 , shared
                 , Route.navigateTo route
                 )
 
-            ViewSnipbitGetCompletedSuccess isCompleted ->
-                justUpdateModel <|
-                    setViewingSnipbitIsCompleted <|
-                        Just isCompleted
+            MarkAsComplete completed ->
+                justProduceCmd <| Api.postAddCompletedWrapper completed OnMarkAsCompleteFailure OnMarkAsCompleteSuccess
 
-            ViewSnipbitGetCompletedFailure apiError ->
+            OnMarkAsCompleteSuccess isCompleted ->
+                justUpdateModel <| setViewingSnipbitIsCompleted <| Just isCompleted
+
+            OnMarkAsCompleteFailure apiError ->
                 -- TODO handle error.
                 doNothing
 
-            ViewSnipbitMarkAsComplete completed ->
+            MarkAsIncomplete completed ->
                 justProduceCmd <|
-                    Api.postAddCompletedWrapper
-                        completed
-                        ViewSnipbitMarkAsCompleteFailure
-                        ViewSnipbitMarkAsCompleteSuccess
+                    Api.postRemoveCompletedWrapper completed OnMarkAsIncompleteFailure OnMarkAsIncompleteSuccess
 
-            ViewSnipbitMarkAsCompleteSuccess isCompleted ->
-                justUpdateModel <|
-                    setViewingSnipbitIsCompleted <|
-                        Just isCompleted
+            OnMarkAsIncompleteSuccess isCompleted ->
+                justUpdateModel <| setViewingSnipbitIsCompleted <| Just isCompleted
 
-            ViewSnipbitMarkAsCompleteFailure apiError ->
+            OnMarkAsIncompleteFailure apiError ->
                 -- TODO handle error.
                 doNothing
-
-            ViewSnipbitMarkAsIncomplete completed ->
-                justProduceCmd <|
-                    Api.postRemoveCompletedWrapper
-                        completed
-                        ViewSnipbitMarkAsIncompleteFailure
-                        ViewSnipbitMarkAsIncompleteSuccess
-
-            ViewSnipbitMarkAsIncompleteSuccess isCompleted ->
-                justUpdateModel <|
-                    setViewingSnipbitIsCompleted <|
-                        Just isCompleted
-
-            ViewSnipbitMarkAsIncompleteFailure apiError ->
-                -- TODO handle error.
-                doNothing
-
-            ViewSnipbitGetExpandedStoryFailure apiError ->
-                -- TODO handle error.
-                doNothing
-
-            ViewSnipbitGetExpandedStorySuccess expandedStory ->
-                justSetShared
-                    { shared
-                        | viewingStory = Just expandedStory
-                    }
 
 
 {-| Creates the editor for the snipbit.

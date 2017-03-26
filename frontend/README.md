@@ -97,21 +97,23 @@ Each page has the following files:
 - Subscriptions.elm
   - All subscriptions should be in this module
 
-### Style Conventions
+### Project Style Conventions
 
 Thanks to [elm-format](https://github.com/avh4/elm-format)
 99% of formatting is done automatically! There are only a few things to keep
 in mind outside of elm-format to make your code as clear as possible.
 
+1. Line length of 120 chars.
+  - Use your discretion when long-lines improves readability and when multi-lining improves it. 120 is the cap.
 1. No ghost imports (unused imports)
-1. Imports should all be sorted alphabetically
+1. Imports should all be sorted case-sensitive natural-sorting.
 1. Imports should not be multi-lined (it's ok if it's long)
 1. `module <name> exposing` should be multi-lined if it is to long
   - This is multi-lined because:
     - it's first so it's less disruptive if it's multi-lined.
     - it's more likely to be helpful to see what a module exports so it's
       actually worth the extra lines.
-1. Pick a line-length and stick to it, you should either use 80 (what I use) or
-   100, those are relatively standard. With elm-format handling formatting
-   automatically, you need only "break the line" and re-run elm-format to have
-   it automatically make the formatting correct for a short-line format.
+1. Messages (`type Msg`) that are reactive should be "onX" while messages that are commanding should be `x`. Eg.
+  - getX
+  - onGetXSuccess
+  - onGetXFailure

@@ -11,6 +11,31 @@ import Json.Encode as Encode
 import Pages.ViewSnipbit.Model exposing (..)
 
 
+{-| `ViewSnipbit` encoder.
+-}
+encoder : Model -> Encode.Value
+encoder viewSnipbitData =
+    Encode.object
+        [ ( "viewingSnipbit", Util.justValueOrNull JSON.Snipbit.encoder viewSnipbitData.viewingSnipbit )
+        , ( "viewingSnipbitIsCompleted"
+          , Util.justValueOrNull JSON.Completed.isCompletedEncoder viewSnipbitData.viewingSnipbitIsCompleted
+          )
+        , ( "viewingSnipbitRelevantHC"
+          , Util.justValueOrNull relevantHCEncoder viewSnipbitData.viewingSnipbitRelevantHC
+          )
+        ]
+
+
+{-| `ViewSnipbit` decoder.
+-}
+decoder : Decode.Decoder Model
+decoder =
+    decode Model
+        |> required "viewingSnipbit" (Decode.maybe JSON.Snipbit.decoder)
+        |> required "viewingSnipbitIsCompleted" (Decode.maybe JSON.Completed.isCompletedDecoder)
+        |> required "viewingSnipbitRelevantHC" (Decode.maybe relevantHCDecoder)
+
+
 {-| `ViewingSnipbitRelevantHC` encoder.
 -}
 relevantHCEncoder : ViewingSnipbitRelevantHC -> Encode.Value
@@ -23,39 +48,3 @@ relevantHCEncoder =
 relevantHCDecoder : Decode.Decoder ViewingSnipbitRelevantHC
 relevantHCDecoder =
     JSON.ViewerRelevantHC.decoder JSON.HighlightedComment.decoder
-
-
-{-| `ViewSnipbitModel` encoder.
--}
-encoder : Model -> Encode.Value
-encoder viewSnipbitData =
-    Encode.object
-        [ ( "viewingSnipbit"
-          , Util.justValueOrNull
-                JSON.Snipbit.encoder
-                viewSnipbitData.viewingSnipbit
-          )
-        , ( "viewingSnipbitIsCompleted"
-          , Util.justValueOrNull
-                JSON.Completed.isCompletedEncoder
-                viewSnipbitData.viewingSnipbitIsCompleted
-          )
-        , ( "viewingSnipbitRelevantHC"
-          , Util.justValueOrNull
-                relevantHCEncoder
-                viewSnipbitData.viewingSnipbitRelevantHC
-          )
-        ]
-
-
-{-| `ViewSnipbitModel` decoder.
--}
-decoder : Decode.Decoder Model
-decoder =
-    decode Model
-        |> required "viewingSnipbit"
-            (Decode.maybe JSON.Snipbit.decoder)
-        |> required "viewingSnipbitIsCompleted"
-            (Decode.maybe JSON.Completed.isCompletedDecoder)
-        |> required "viewingSnipbitRelevantHC"
-            (Decode.maybe relevantHCDecoder)
