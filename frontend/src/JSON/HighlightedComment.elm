@@ -33,16 +33,8 @@ decoder =
 maybeEncoder : MaybeHighlightedComment -> Encode.Value
 maybeEncoder maybeHighlightedComment =
     Encode.object
-        [ ( "range"
-          , Util.justValueOrNull
-                JSON.Range.encoder
-                maybeHighlightedComment.range
-          )
-        , ( "comment"
-          , Util.justValueOrNull
-                Encode.string
-                maybeHighlightedComment.comment
-          )
+        [ ( "range", Util.justValueOrNull JSON.Range.encoder maybeHighlightedComment.range )
+        , ( "comment", Util.justValueOrNull Encode.string maybeHighlightedComment.comment )
         ]
 
 

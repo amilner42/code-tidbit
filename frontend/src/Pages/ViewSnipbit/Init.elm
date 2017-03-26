@@ -7,7 +7,7 @@ import Pages.ViewSnipbit.Model exposing (..)
 -}
 init : Model
 init =
-    { viewingSnipbit = Nothing
-    , viewingSnipbitIsCompleted = Nothing
-    , viewingSnipbitRelevantHC = Nothing
+    { snipbit = Nothing
+    , isCompleted = Nothing
+    , relevantHC = Nothing
     }

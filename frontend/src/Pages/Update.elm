@@ -490,7 +490,7 @@ handleKeyPress model =
                         Route.ViewSnipbitFramePage
                             fromStoryID
                             mongoID
-                            (model.viewSnipbitPage.viewingSnipbit
+                            (model.viewSnipbitPage.snipbit
                                 |> maybeMapWithDefault (.highlightedComments >> Array.length) 0
                             )
                     )

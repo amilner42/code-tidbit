@@ -91,7 +91,7 @@ update msg model shared =
                                             OnGetSnipbitSuccess
                                         )
                                 in
-                                    case model.viewingSnipbit of
+                                    case model.snipbit of
                                         Nothing ->
                                             getSnipbit mongoID
 
@@ -120,7 +120,7 @@ update msg model shared =
                                             OnGetCompletedSuccess
                                         )
                                 in
-                                    case ( shared.user, model.viewingSnipbitIsCompleted ) of
+                                    case ( shared.user, model.isCompleted ) of
                                         ( Just user, Nothing ) ->
                                             getSnipbitIsCompleted user.id
 
@@ -185,7 +185,7 @@ update msg model shared =
                         Route.ViewSnipbitConclusionPage _ mongoID ->
                             fetchOrRenderViewSnipbitData mongoID
                                 |> withCmd
-                                    (case ( shared.user, model.viewingSnipbitIsCompleted ) of
+                                    (case ( shared.user, model.isCompleted ) of
                                         ( Just user, Just isCompleted ) ->
                                             let
                                                 completed =
@@ -237,7 +237,7 @@ update msg model shared =
                 doNothing
 
             OnRangeSelected selectedRange ->
-                case model.viewingSnipbit of
+                case model.snipbit of
                     Nothing ->
                         doNothing
 
@@ -271,8 +271,8 @@ update msg model shared =
                     ( newModel
                     , shared
                     , createViewSnipbitHCCodeEditor
-                        newModel.viewingSnipbit
-                        newModel.viewingSnipbitRelevantHC
+                        newModel.snipbit
+                        newModel.relevantHC
                         shared.user
                     )
 
@@ -292,8 +292,8 @@ update msg model shared =
                     ( newModel
                     , shared
                     , createViewSnipbitHCCodeEditor
-                        newModel.viewingSnipbit
-                        newModel.viewingSnipbitRelevantHC
+                        newModel.snipbit
+                        newModel.relevantHC
                         shared.user
                     )
 
@@ -305,8 +305,8 @@ update msg model shared =
                     ( newModel
                     , shared
                     , createViewSnipbitHCCodeEditor
-                        newModel.viewingSnipbit
-                        newModel.viewingSnipbitRelevantHC
+                        newModel.snipbit
+                        newModel.relevantHC
                         shared.user
                     )
 

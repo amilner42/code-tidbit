@@ -1,25 +1,25 @@
 module Pages.ViewSnipbit.Model exposing (..)
 
 import DefaultServices.Util as Util exposing (maybeMapWithDefault)
-import Models.Completed as Completed
-import Models.HighlightedComment as HC
-import Models.Snipbit as Snipbit
-import Models.ViewerRelevantHC as ViewerRelevantHC
+import Models.Completed exposing (IsCompleted)
+import Models.HighlightedComment exposing (HighlightedComment)
+import Models.Snipbit exposing (Snipbit)
+import Models.ViewerRelevantHC exposing (ViewerRelevantHC, browsingFrames)
 
 
 {-| `ViewSnipbit` model.
 -}
 type alias Model =
-    { viewingSnipbit : Maybe Snipbit.Snipbit
-    , viewingSnipbitIsCompleted : Maybe Completed.IsCompleted
-    , viewingSnipbitRelevantHC : Maybe ViewingSnipbitRelevantHC
+    { snipbit : Maybe Snipbit
+    , isCompleted : Maybe IsCompleted
+    , relevantHC : Maybe ViewingSnipbitRelevantHC
     }
 
 
 {-| Used when viewing a snipbit and the user highlights part of the code.
 -}
 type alias ViewingSnipbitRelevantHC =
-    ViewerRelevantHC.ViewerRelevantHC HC.HighlightedComment
+    ViewerRelevantHC HighlightedComment
 
 
 {-| Returns true if the user is browsing the snipbit viewer relevant HC.
@@ -27,60 +27,48 @@ type alias ViewingSnipbitRelevantHC =
 isViewSnipbitRHCTabOpen : Model -> Bool
 isViewSnipbitRHCTabOpen model =
     maybeMapWithDefault
-        ViewerRelevantHC.browsingFrames
+        browsingFrames
         False
-        model.viewingSnipbitRelevantHC
+        model.relevantHC
 
 
-{-| `viewingSnipbit` field updater.
+{-| `snipbit` field updater.
 -}
-updateViewingSnipbit : (Snipbit.Snipbit -> Snipbit.Snipbit) -> Model -> Model
+updateViewingSnipbit : (Snipbit -> Snipbit) -> Model -> Model
 updateViewingSnipbit updater model =
-    { model
-        | viewingSnipbit = Maybe.map updater model.viewingSnipbit
-    }
+    { model | snipbit = Maybe.map updater model.snipbit }
 
 
-{-| `viewingSnipbitIsCompleted` field updater.
+{-| `isCompleted` field updater.
 -}
-updateViewingSnipbitIsCompleted : (Completed.IsCompleted -> Completed.IsCompleted) -> Model -> Model
+updateViewingSnipbitIsCompleted : (IsCompleted -> IsCompleted) -> Model -> Model
 updateViewingSnipbitIsCompleted updater model =
-    { model
-        | viewingSnipbitIsCompleted = Maybe.map updater model.viewingSnipbitIsCompleted
-    }
+    { model | isCompleted = Maybe.map updater model.isCompleted }
 
 
-{-| `viewingSnipbitRelevantHC` field updater.
+{-| `relevantHC` field updater.
 -}
 updateViewingSnipbitRelevantHC : (ViewingSnipbitRelevantHC -> ViewingSnipbitRelevantHC) -> Model -> Model
 updateViewingSnipbitRelevantHC updater model =
-    { model
-        | viewingSnipbitRelevantHC = Maybe.map updater model.viewingSnipbitRelevantHC
-    }
+    { model | relevantHC = Maybe.map updater model.relevantHC }
 
 
-{-| `viewingSnipbit` field setter.
+{-| `snipbit` field setter.
 -}
-setViewingSnipbit : Maybe Snipbit.Snipbit -> Model -> Model
+setViewingSnipbit : Maybe Snipbit -> Model -> Model
 setViewingSnipbit maybeSnipbit model =
-    { model
-        | viewingSnipbit = maybeSnipbit
-    }
+    { model | snipbit = maybeSnipbit }
 
 
-{-| `viewingSnipbitIsCompleted` field setter.
+{-| `isCompleted` field setter.
 -}
-setViewingSnipbitIsCompleted : Maybe Completed.IsCompleted -> Model -> Model
+setViewingSnipbitIsCompleted : Maybe IsCompleted -> Model -> Model
 setViewingSnipbitIsCompleted maybeIsCompleted model =
-    { model
-        | viewingSnipbitIsCompleted = maybeIsCompleted
-    }
+    { model | isCompleted = maybeIsCompleted }
 
 
-{-| `viewingSnipbitRelevantHC` field setter.
+{-| `relevantHC` field setter.
 -}
 setViewingSnipbitRelevantHC : Maybe ViewingSnipbitRelevantHC -> Model -> Model
 setViewingSnipbitRelevantHC maybeRelevantHC model =
-    { model
-        | viewingSnipbitRelevantHC = maybeRelevantHC
-    }
+    { model | relevantHC = maybeRelevantHC }

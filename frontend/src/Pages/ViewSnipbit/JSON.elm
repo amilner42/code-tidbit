@@ -16,13 +16,9 @@ import Pages.ViewSnipbit.Model exposing (..)
 encoder : Model -> Encode.Value
 encoder viewSnipbitData =
     Encode.object
-        [ ( "viewingSnipbit", Util.justValueOrNull JSON.Snipbit.encoder viewSnipbitData.viewingSnipbit )
-        , ( "viewingSnipbitIsCompleted"
-          , Util.justValueOrNull JSON.Completed.isCompletedEncoder viewSnipbitData.viewingSnipbitIsCompleted
-          )
-        , ( "viewingSnipbitRelevantHC"
-          , Util.justValueOrNull relevantHCEncoder viewSnipbitData.viewingSnipbitRelevantHC
-          )
+        [ ( "snipbit", Util.justValueOrNull JSON.Snipbit.encoder viewSnipbitData.snipbit )
+        , ( "isCompleted", Util.justValueOrNull JSON.Completed.isCompletedEncoder viewSnipbitData.isCompleted )
+        , ( "relevantHC", Util.justValueOrNull relevantHCEncoder viewSnipbitData.relevantHC )
         ]
 
 
@@ -31,9 +27,9 @@ encoder viewSnipbitData =
 decoder : Decode.Decoder Model
 decoder =
     decode Model
-        |> required "viewingSnipbit" (Decode.maybe JSON.Snipbit.decoder)
-        |> required "viewingSnipbitIsCompleted" (Decode.maybe JSON.Completed.isCompletedDecoder)
-        |> required "viewingSnipbitRelevantHC" (Decode.maybe relevantHCDecoder)
+        |> required "snipbit" (Decode.maybe JSON.Snipbit.decoder)
+        |> required "isCompleted" (Decode.maybe JSON.Completed.isCompletedDecoder)
+        |> required "relevantHC" (Decode.maybe relevantHCDecoder)
 
 
 {-| `ViewingSnipbitRelevantHC` encoder.

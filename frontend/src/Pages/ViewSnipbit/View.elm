@@ -26,7 +26,7 @@ view model shared =
         [ class "view-snipbit-page" ]
         [ div
             [ class "sub-bar" ]
-            [ case ( shared.viewingStory, model.viewingSnipbit ) of
+            [ case ( shared.viewingStory, model.snipbit ) of
                 ( Just story, Just snipbit ) ->
                     case Story.getPreviousTidbitRoute snipbit.id story.id story.tidbits of
                         Just previousTidbitRoute ->
@@ -51,7 +51,7 @@ view model shared =
 
                 _ ->
                     Util.hiddenDiv
-            , case ( shared.viewingStory, model.viewingSnipbit ) of
+            , case ( shared.viewingStory, model.snipbit ) of
                 ( Just story, Just snipbit ) ->
                     case Story.getNextTidbitRoute snipbit.id story.id story.tidbits of
                         Just nextTidbitRoute ->
@@ -74,7 +74,7 @@ view model shared =
                             maybeMapWithDefault
                                 ViewerRelevantHC.hasFramesButNotBrowsing
                                 False
-                                model.viewingSnipbitRelevantHC
+                                model.relevantHC
                       )
                     ]
                 , onClick <| BrowseRelevantHC
@@ -88,13 +88,13 @@ view model shared =
                             maybeMapWithDefault
                                 ViewerRelevantHC.browsingFrames
                                 False
-                                model.viewingSnipbitRelevantHC
+                                model.relevantHC
                       )
                     ]
                 , onClick <| CancelBrowseRelevantHC
                 ]
                 [ text "Close Related Frames" ]
-            , case ( shared.user, model.viewingSnipbitIsCompleted ) of
+            , case ( shared.user, model.isCompleted ) of
                 ( Just user, Just ({ complete } as isCompleted) ) ->
                     if complete then
                         button
@@ -112,7 +112,7 @@ view model shared =
                 _ ->
                     Util.hiddenDiv
             ]
-        , case model.viewingSnipbit of
+        , case model.snipbit of
             Nothing ->
                 Util.hiddenDiv
 
@@ -251,7 +251,7 @@ view model shared =
                     , Editor.editor "view-snipbit-code-editor"
                     , div
                         [ class "comment-block" ]
-                        [ commentBox snipbit model.viewingSnipbitRelevantHC shared.route ]
+                        [ commentBox snipbit model.relevantHC shared.route ]
                     ]
         ]
 
