@@ -37,8 +37,7 @@ view shared =
                         |> Maybe.andThen
                             (\index ->
                                 Util.getAt story.tidbits index
-                                    |> Maybe.map
-                                        (Tidbit.getTidbitRoute (Just story.id) >> (,) index)
+                                    |> Maybe.map (Tidbit.getTidbitRoute (Just story.id) >> (,) index)
                             )
             in
                 div
@@ -54,9 +53,7 @@ view shared =
                                                 [ class "sub-bar-button next-tidbit-button"
                                                 , onClick <| GoTo routeForViewingTidbit
                                                 ]
-                                                [ text <|
-                                                    "Continue on Tidbit "
-                                                        ++ (toString <| index + 1)
+                                                [ text <| "Continue on Tidbit " ++ (toString <| index + 1)
                                                 ]
 
                                         _ ->
@@ -124,20 +121,14 @@ view shared =
                                                 [ classList
                                                     [ ( "tidbit-box", True )
                                                     , ( "completed"
-                                                      , case
-                                                            shared.viewingStory
-                                                                |> Maybe.andThen .userHasCompleted
-                                                        of
+                                                      , case shared.viewingStory |> Maybe.andThen .userHasCompleted of
                                                             Nothing ->
                                                                 False
 
                                                             Just hasCompletedList ->
                                                                 Maybe.withDefault
                                                                     False
-                                                                    (Util.getAt
-                                                                        hasCompletedList
-                                                                        index
-                                                                    )
+                                                                    (Util.getAt hasCompletedList index)
                                                       )
                                                     ]
                                                 ]

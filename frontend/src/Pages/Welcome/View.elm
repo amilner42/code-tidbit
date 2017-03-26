@@ -50,18 +50,9 @@ view model shared =
         , div
             [ classList
                 [ ( "welcome-page", True )
-                , ( "small-box-error"
-                  , (shared.route == Route.LoginPage)
-                        && (Util.isNotNothing model.apiError)
-                  )
-                , ( "small-box"
-                  , (shared.route == Route.LoginPage)
-                        && (Util.isNothing model.apiError)
-                  )
-                , ( "big-box-error"
-                  , (shared.route == Route.RegisterPage)
-                        && (Util.isNotNothing model.apiError)
-                  )
+                , ( "small-box-error", (shared.route == Route.LoginPage) && (Util.isNotNothing model.apiError) )
+                , ( "small-box", (shared.route == Route.LoginPage) && (Util.isNothing model.apiError) )
+                , ( "big-box-error", (shared.route == Route.RegisterPage) && (Util.isNotNothing model.apiError) )
                 ]
             ]
             [ displayViewForRoute model shared

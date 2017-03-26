@@ -59,10 +59,7 @@ update msg model shared =
 
             Login ->
                 justProduceCmd <|
-                    Api.postLogin
-                        { email = model.email, password = model.password }
-                        OnLoginFailure
-                        OnLoginSuccess
+                    Api.postLogin { email = model.email, password = model.password } OnLoginFailure OnLoginSuccess
 
             OnLoginSuccess newUser ->
                 ( init, { shared | user = Just newUser }, Route.navigateTo Route.BrowsePage )
