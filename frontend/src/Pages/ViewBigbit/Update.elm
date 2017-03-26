@@ -83,18 +83,18 @@ update msg model shared =
                             handleGetBigbit ( model, shared ) =
                                 let
                                     getBigbit mongoID =
-                                        ( setViewingBigbit Nothing model
+                                        ( setBigbit Nothing model
                                         , shared
                                         , Api.getBigbit mongoID OnGetBigbitFailure OnGetBigbitSuccess
                                         )
                                 in
-                                    case model.viewingBigbit of
+                                    case model.bigbit of
                                         Nothing ->
                                             getBigbit mongoID
 
                                         Just bigbit ->
                                             if bigbit.id == mongoID then
-                                                ( setViewingBigbitRelevantHC Nothing model
+                                                ( setRelevantHC Nothing model
                                                 , shared
                                                 , createViewBigbitCodeEditor bigbit shared
                                                 )
@@ -109,7 +109,7 @@ update msg model shared =
 
                                     -- Command for fetching the `isCompleted`
                                     getBigbitIsCompleted userID =
-                                        ( setViewingBigbitIsCompleted Nothing model
+                                        ( setIsCompleted Nothing model
                                         , shared
                                         , Api.postCheckCompletedWrapper
                                             (Completed.Completed currentTidbitPointer userID)
@@ -117,7 +117,7 @@ update msg model shared =
                                             OnGetCompletedSuccess
                                         )
                                 in
-                                    case ( shared.user, model.viewingBigbitIsCompleted ) of
+                                    case ( shared.user, model.isCompleted ) of
                                         ( Just user, Just currentCompleted ) ->
                                             if currentCompleted.tidbitPointer == currentTidbitPointer then
                                                 doNothing
@@ -177,7 +177,7 @@ update msg model shared =
                         Route.ViewBigbitConclusionPage _ mongoID _ ->
                             fetchOrRenderViewBigbitData mongoID
                                 |> withCmd
-                                    (case ( shared.user, model.viewingBigbitIsCompleted ) of
+                                    (case ( shared.user, model.isCompleted ) of
                                         ( Just user, Just isCompleted ) ->
                                             let
                                                 completed =
@@ -199,13 +199,13 @@ update msg model shared =
                             doNothing
 
             OnRangeSelected selectedRange ->
-                case model.viewingBigbit of
+                case model.bigbit of
                     Nothing ->
                         doNothing
 
                     Just aBigbit ->
                         if Range.isEmptyRange selectedRange then
-                            justUpdateModel <| setViewingBigbitRelevantHC Nothing
+                            justUpdateModel <| setRelevantHC Nothing
                         else
                             aBigbit.highlightedComments
                                 |> Array.indexedMap (,)
@@ -220,7 +220,7 @@ update msg model shared =
                                     )
                                 |> (\relevantHC ->
                                         justUpdateModel <|
-                                            setViewingBigbitRelevantHC <|
+                                            setRelevantHC <|
                                                 Just
                                                     { currentHC = Nothing
                                                     , relevantHC = relevantHC
@@ -229,8 +229,8 @@ update msg model shared =
 
             OnGetBigbitSuccess bigbit ->
                 ( Util.multipleUpdates
-                    [ setViewingBigbit <| Just bigbit
-                    , setViewingBigbitRelevantHC Nothing
+                    [ setBigbit <| Just bigbit
+                    , setRelevantHC Nothing
                     ]
                     model
                 , shared
@@ -242,7 +242,7 @@ update msg model shared =
                 doNothing
 
             OnGetCompletedSuccess isCompleted ->
-                justUpdateModel <| setViewingBigbitIsCompleted <| Just isCompleted
+                justUpdateModel <| setIsCompleted <| Just isCompleted
 
             OnGetCompletedFailure apiError ->
                 -- TODO handle error.
@@ -259,18 +259,18 @@ update msg model shared =
                 let
                     -- We have a `not` because we toggle the fs state.
                     fsJustOpened =
-                        model.viewingBigbit
+                        model.bigbit
                             |> Maybe.map (not << Bigbit.isFSOpen << .fs)
                             |> Maybe.withDefault False
                 in
                     ( Util.multipleUpdates
-                        [ updateViewingBigbit
+                        [ updateBigbit
                             (\currentViewingBigbit ->
                                 { currentViewingBigbit
                                     | fs = Bigbit.toggleFS currentViewingBigbit.fs
                                 }
                             )
-                        , setViewingBigbitRelevantHC Nothing
+                        , setRelevantHC Nothing
                         ]
                         model
                     , shared
@@ -278,7 +278,7 @@ update msg model shared =
                         Route.navigateToSameUrlWithFilePath
                             (Maybe.andThen
                                 (Bigbit.viewPageCurrentActiveFile shared.route)
-                                model.viewingBigbit
+                                model.bigbit
                             )
                             shared.route
                       else
@@ -290,7 +290,7 @@ update msg model shared =
 
             ToggleFolder absolutePath ->
                 justUpdateModel <|
-                    updateViewingBigbit <|
+                    updateBigbit <|
                         (\currentViewingBigbit ->
                             { currentViewingBigbit
                                 | fs =
@@ -301,7 +301,7 @@ update msg model shared =
             BrowseRelevantHC ->
                 let
                     newModel =
-                        updateViewingBigbitRelevantHC
+                        updateRelevantHC
                             (\currentRelevantHC ->
                                 { currentRelevantHC
                                     | currentHC = Just 0
@@ -312,13 +312,13 @@ update msg model shared =
                     ( newModel
                     , shared
                     , createViewBigbitHCCodeEditor
-                        newModel.viewingBigbit
-                        newModel.viewingBigbitRelevantHC
+                        newModel.bigbit
+                        newModel.relevantHC
                         shared.user
                     )
 
             CancelBrowseRelevantHC ->
-                ( setViewingBigbitRelevantHC Nothing model
+                ( setRelevantHC Nothing model
                 , shared
                   -- Trigger route hook again, `modify` because we don't want to
                   -- have the same page twice in the history.
@@ -328,38 +328,38 @@ update msg model shared =
             NextRelevantHC ->
                 let
                     newModel =
-                        updateViewingBigbitRelevantHC ViewerRelevantHC.goToNextFrame model
+                        updateRelevantHC ViewerRelevantHC.goToNextFrame model
                 in
                     ( newModel
                     , shared
                     , createViewBigbitHCCodeEditor
-                        newModel.viewingBigbit
-                        newModel.viewingBigbitRelevantHC
+                        newModel.bigbit
+                        newModel.relevantHC
                         shared.user
                     )
 
             PreviousRelevantHC ->
                 let
                     newModel =
-                        updateViewingBigbitRelevantHC ViewerRelevantHC.goToPreviousFrame model
+                        updateRelevantHC ViewerRelevantHC.goToPreviousFrame model
                 in
                     ( newModel
                     , shared
                     , createViewBigbitHCCodeEditor
-                        newModel.viewingBigbit
-                        newModel.viewingBigbitRelevantHC
+                        newModel.bigbit
+                        newModel.relevantHC
                         shared.user
                     )
 
             JumpToFrame route ->
                 ( Util.multipleUpdates
-                    [ updateViewingBigbit
+                    [ updateBigbit
                         (\currentViewingBigbit ->
                             { currentViewingBigbit
                                 | fs = Bigbit.closeFS currentViewingBigbit.fs
                             }
                         )
-                    , setViewingBigbitRelevantHC Nothing
+                    , setRelevantHC Nothing
                     ]
                     model
                 , shared
@@ -374,7 +374,7 @@ update msg model shared =
                         OnMarkAsCompleteSuccess
 
             OnMarkAsCompleteSuccess isCompleted ->
-                justUpdateModel <| setViewingBigbitIsCompleted <| Just isCompleted
+                justUpdateModel <| setIsCompleted <| Just isCompleted
 
             OnMarkAsCompleteFailure apiError ->
                 -- TODO handle error.
@@ -388,7 +388,7 @@ update msg model shared =
                         OnMarkAsIncompleteSuccess
 
             OnMarkAsIncompleteSuccess isCompleted ->
-                justUpdateModel <| setViewingBigbitIsCompleted <| Just isCompleted
+                justUpdateModel <| setIsCompleted <| Just isCompleted
 
             OnMarkAsIncompleteFailure apiError ->
                 -- TODO handle error.

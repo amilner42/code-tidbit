@@ -430,9 +430,9 @@ handleKeyPress model =
         -- Makes sure to only activate arrow keys if in the tutorial.
         viewBigbitWatchForLeftAndRightArrow onLeft onRight =
             if
-                ViewBigbitModel.isViewBigbitTutorialTabOpen
-                    model.viewBigbitPage.viewingBigbit
-                    model.viewBigbitPage.viewingBigbitRelevantHC
+                ViewBigbitModel.isBigbitTutorialTabOpen
+                    model.viewBigbitPage.bigbit
+                    model.viewBigbitPage.relevantHC
             then
                 watchForLeftAndRightArrow onLeft onRight
             else
@@ -512,7 +512,7 @@ handleKeyPress model =
                         Route.ViewBigbitFramePage
                             fromStoryID
                             mongoID
-                            (model.viewBigbitPage.viewingBigbit
+                            (model.viewBigbitPage.bigbit
                                 |> maybeMapWithDefault (.highlightedComments >> Array.length) 0
                             )
                             Nothing

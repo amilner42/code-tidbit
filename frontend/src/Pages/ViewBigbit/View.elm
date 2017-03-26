@@ -27,15 +27,15 @@ view model shared =
         -- They can be on the FS or browsing RHC.
         notGoingThroughTutorial =
             not <|
-                isViewBigbitTutorialTabOpen
-                    model.viewingBigbit
-                    model.viewingBigbitRelevantHC
+                isBigbitTutorialTabOpen
+                    model.bigbit
+                    model.relevantHC
     in
         div
             [ class "view-bigbit-page" ]
             [ div
                 [ class "sub-bar" ]
-                [ case ( shared.viewingStory, model.viewingBigbit ) of
+                [ case ( shared.viewingStory, model.bigbit ) of
                     ( Just story, Just bigbit ) ->
                         case Story.getPreviousTidbitRoute bigbit.id story.id story.tidbits of
                             Just previousTidbitRoute ->
@@ -60,7 +60,7 @@ view model shared =
 
                     _ ->
                         Util.hiddenDiv
-                , case ( shared.viewingStory, model.viewingBigbit ) of
+                , case ( shared.viewingStory, model.bigbit ) of
                     ( Just story, Just bigbit ) ->
                         case Story.getNextTidbitRoute bigbit.id story.id story.tidbits of
                             Just nextTidbitRoute ->
@@ -78,15 +78,12 @@ view model shared =
                 , button
                     [ classList
                         [ ( "sub-bar-button explore-fs", True )
-                        , ( "hidden"
-                          , (isViewBigbitRHCTabOpen model.viewingBigbitRelevantHC)
-                                && (not <| isViewBigbitFSOpen model.viewingBigbit)
-                          )
+                        , ( "hidden", (isBigbitRHCTabOpen model.relevantHC) && (not <| isBigbitFSOpen model.bigbit) )
                         ]
                     , onClick <| ToggleFS
                     ]
                     [ text <|
-                        if isViewBigbitFSOpen model.viewingBigbit then
+                        if isBigbitFSOpen model.bigbit then
                             "Resume Tutorial"
                         else
                             "Explore File Structure"
@@ -99,7 +96,7 @@ view model shared =
                                 maybeMapWithDefault
                                     ViewerRelevantHC.hasFramesButNotBrowsing
                                     False
-                                    model.viewingBigbitRelevantHC
+                                    model.relevantHC
                           )
                         ]
                     , onClick BrowseRelevantHC
@@ -113,13 +110,13 @@ view model shared =
                                 maybeMapWithDefault
                                     ViewerRelevantHC.browsingFrames
                                     False
-                                    model.viewingBigbitRelevantHC
+                                    model.relevantHC
                           )
                         ]
                     , onClick CancelBrowseRelevantHC
                     ]
                     [ text "Close Related Frames" ]
-                , case ( shared.user, model.viewingBigbitIsCompleted ) of
+                , case ( shared.user, model.isCompleted ) of
                     ( Just user, Just ({ complete } as isCompleted) ) ->
                         if complete then
                             button
@@ -137,7 +134,7 @@ view model shared =
                     _ ->
                         Util.hiddenDiv
                 ]
-            , case model.viewingBigbit of
+            , case model.bigbit of
                 Nothing ->
                     Util.hiddenDiv
 
@@ -285,7 +282,7 @@ view model shared =
                                 [ text "arrow_forward" ]
                             ]
                         , Editor.editor "view-bigbit-code-editor"
-                        , viewBigbitCommentBox bigbit model.viewingBigbitRelevantHC shared.route
+                        , viewBigbitCommentBox bigbit model.relevantHC shared.route
                         ]
             ]
 
@@ -298,13 +295,13 @@ viewBigbitCommentBox : Bigbit.Bigbit -> Maybe ViewingBigbitRelevantHC -> Route.R
 viewBigbitCommentBox bigbit maybeRHC route =
     let
         rhcTabOpen =
-            isViewBigbitRHCTabOpen maybeRHC
+            isBigbitRHCTabOpen maybeRHC
 
         fsTabOpen =
-            isViewBigbitFSTabOpen (Just bigbit) maybeRHC
+            isBigbitFSTabOpen (Just bigbit) maybeRHC
 
         tutorialOpen =
-            isViewBigbitTutorialTabOpen (Just bigbit) maybeRHC
+            isBigbitTutorialTabOpen (Just bigbit) maybeRHC
     in
         div
             [ class "comment-block" ]

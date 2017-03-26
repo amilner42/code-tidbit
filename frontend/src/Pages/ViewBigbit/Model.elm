@@ -9,9 +9,9 @@ import Models.ViewerRelevantHC exposing (ViewerRelevantHC, browsingFrames)
 {-| All the data for viewing a bigbit.
 -}
 type alias Model =
-    { viewingBigbit : Maybe Bigbit
-    , viewingBigbitIsCompleted : Maybe IsCompleted
-    , viewingBigbitRelevantHC : Maybe ViewingBigbitRelevantHC
+    { bigbit : Maybe Bigbit
+    , isCompleted : Maybe IsCompleted
+    , relevantHC : Maybe ViewingBigbitRelevantHC
     }
 
 
@@ -21,73 +21,73 @@ type alias ViewingBigbitRelevantHC =
     ViewerRelevantHC BigbitHighlightedCommentForPublication
 
 
-{-| `viewingBigbit` field updater.
+{-| `bigbit` field updater.
 -}
-updateViewingBigbit : (Bigbit -> Bigbit) -> Model -> Model
-updateViewingBigbit updater model =
-    { model | viewingBigbit = Maybe.map updater model.viewingBigbit }
+updateBigbit : (Bigbit -> Bigbit) -> Model -> Model
+updateBigbit updater model =
+    { model | bigbit = Maybe.map updater model.bigbit }
 
 
-{-| `viewingBigbitIsCompleted` field updater.
+{-| `isCompleted` field updater.
 -}
-updateViewingBigbitIsCompleted : (IsCompleted -> IsCompleted) -> Model -> Model
-updateViewingBigbitIsCompleted updater model =
-    { model | viewingBigbitIsCompleted = Maybe.map updater model.viewingBigbitIsCompleted }
+updateIsCompleted : (IsCompleted -> IsCompleted) -> Model -> Model
+updateIsCompleted updater model =
+    { model | isCompleted = Maybe.map updater model.isCompleted }
 
 
-{-| `viewingBigbitRelevantHC` field updater.
+{-| `relevantHC` field updater.
 -}
-updateViewingBigbitRelevantHC : (ViewingBigbitRelevantHC -> ViewingBigbitRelevantHC) -> Model -> Model
-updateViewingBigbitRelevantHC updater model =
-    { model | viewingBigbitRelevantHC = Maybe.map updater model.viewingBigbitRelevantHC }
+updateRelevantHC : (ViewingBigbitRelevantHC -> ViewingBigbitRelevantHC) -> Model -> Model
+updateRelevantHC updater model =
+    { model | relevantHC = Maybe.map updater model.relevantHC }
 
 
-{-| Sets `viewingBigbit`.
+{-| Sets `bigbit`.
 -}
-setViewingBigbit : Maybe Bigbit -> Model -> Model
-setViewingBigbit maybeBigbit model =
-    { model | viewingBigbit = maybeBigbit }
+setBigbit : Maybe Bigbit -> Model -> Model
+setBigbit maybeBigbit model =
+    { model | bigbit = maybeBigbit }
 
 
-{-| Sets `viewingBigbitIsCompleted`.
+{-| Sets `isCompleted`.
 -}
-setViewingBigbitIsCompleted : Maybe IsCompleted -> Model -> Model
-setViewingBigbitIsCompleted maybeIsCompleted model =
-    { model | viewingBigbitIsCompleted = maybeIsCompleted }
+setIsCompleted : Maybe IsCompleted -> Model -> Model
+setIsCompleted maybeIsCompleted model =
+    { model | isCompleted = maybeIsCompleted }
 
 
-{-| Sets `viewingBigbit`.
+{-| Sets `bigbit`.
 -}
-setViewingBigbitRelevantHC : Maybe ViewingBigbitRelevantHC -> Model -> Model
-setViewingBigbitRelevantHC maybeRelevantHC model =
-    { model | viewingBigbitRelevantHC = maybeRelevantHC }
+setRelevantHC : Maybe ViewingBigbitRelevantHC -> Model -> Model
+setRelevantHC maybeRelevantHC model =
+    { model | relevantHC = maybeRelevantHC }
 
 
 {-| Returns true if the user is currently browsing the RHC.
 -}
-isViewBigbitRHCTabOpen : Maybe ViewingBigbitRelevantHC -> Bool
-isViewBigbitRHCTabOpen =
+isBigbitRHCTabOpen : Maybe ViewingBigbitRelevantHC -> Bool
+isBigbitRHCTabOpen =
     maybeMapWithDefault browsingFrames False
 
 
 {-| Returns true if the user is currently browsing the FS.
 -}
-isViewBigbitFSTabOpen : Maybe Bigbit -> Maybe ViewingBigbitRelevantHC -> Bool
-isViewBigbitFSTabOpen maybeBigbit maybeRHC =
-    (not <| isViewBigbitRHCTabOpen maybeRHC) && isViewBigbitFSOpen maybeBigbit
+isBigbitFSTabOpen : Maybe Bigbit -> Maybe ViewingBigbitRelevantHC -> Bool
+isBigbitFSTabOpen maybeBigbit maybeRHC =
+    (not <| isBigbitRHCTabOpen maybeRHC) && isBigbitFSOpen maybeBigbit
 
 
-{-| Returns true if the FS is open, this ISNT the same as the FS tab being open,
+{-| Returns true if the FS is open, this is NOT the same as the FS tab being open,
 the FS can be open but have the browsing-rhc over-top it.
 -}
-isViewBigbitFSOpen : Maybe Bigbit -> Bool
-isViewBigbitFSOpen =
+isBigbitFSOpen : Maybe Bigbit -> Bool
+isBigbitFSOpen =
     Maybe.map .fs
         >> maybeMapWithDefault isFSOpen False
 
 
 {-| Returns true if the user is currently browsing the tutorial.
 -}
-isViewBigbitTutorialTabOpen : Maybe Bigbit -> Maybe ViewingBigbitRelevantHC -> Bool
-isViewBigbitTutorialTabOpen maybeBigbit maybeRHC =
-    (not <| isViewBigbitRHCTabOpen maybeRHC) && (not <| isViewBigbitFSTabOpen maybeBigbit maybeRHC)
+isBigbitTutorialTabOpen : Maybe Bigbit -> Maybe ViewingBigbitRelevantHC -> Bool
+isBigbitTutorialTabOpen maybeBigbit maybeRHC =
+    (not <| isBigbitRHCTabOpen maybeRHC) && (not <| isBigbitFSTabOpen maybeBigbit maybeRHC)

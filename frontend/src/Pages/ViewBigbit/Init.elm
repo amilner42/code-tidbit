@@ -7,7 +7,7 @@ import Pages.ViewBigbit.Model exposing (Model)
 -}
 init : Model
 init =
-    { viewingBigbit = Nothing
-    , viewingBigbitIsCompleted = Nothing
-    , viewingBigbitRelevantHC = Nothing
+    { bigbit = Nothing
+    , isCompleted = Nothing
+    , relevantHC = Nothing
     }

@@ -15,11 +15,9 @@ import Pages.ViewBigbit.Model exposing (..)
 encoder : Model -> Encode.Value
 encoder viewBigbitData =
     Encode.object
-        [ ( "viewingBigbit", Util.justValueOrNull JSON.Bigbit.encoder viewBigbitData.viewingBigbit )
-        , ( "viewingBigbitIsCompleted"
-          , Util.justValueOrNull JSON.Completed.isCompletedEncoder viewBigbitData.viewingBigbitIsCompleted
-          )
-        , ( "viewingBigbitRelevantHC", Util.justValueOrNull relevantHCEncoder viewBigbitData.viewingBigbitRelevantHC )
+        [ ( "bigbit", Util.justValueOrNull JSON.Bigbit.encoder viewBigbitData.bigbit )
+        , ( "isCompleted", Util.justValueOrNull JSON.Completed.isCompletedEncoder viewBigbitData.isCompleted )
+        , ( "relevantHC", Util.justValueOrNull relevantHCEncoder viewBigbitData.relevantHC )
         ]
 
 
@@ -28,22 +26,20 @@ encoder viewBigbitData =
 decoder : Decode.Decoder Model
 decoder =
     decode Model
-        |> required "viewingBigbit" (Decode.maybe JSON.Bigbit.decoder)
-        |> required "viewingBigbitIsCompleted" (Decode.maybe JSON.Completed.isCompletedDecoder)
-        |> required "viewingBigbitRelevantHC" (Decode.maybe relevantHCDecoder)
+        |> required "bigbit" (Decode.maybe JSON.Bigbit.decoder)
+        |> required "isCompleted" (Decode.maybe JSON.Completed.isCompletedDecoder)
+        |> required "relevantHC" (Decode.maybe relevantHCDecoder)
 
 
 {-| `ViewingBigbitRelevantHC` encoder.
 -}
 relevantHCEncoder : ViewingBigbitRelevantHC -> Encode.Value
 relevantHCEncoder =
-    JSON.ViewerRelevantHC.encoder
-        JSON.Bigbit.publicationHighlightedCommentEncoder
+    JSON.ViewerRelevantHC.encoder JSON.Bigbit.publicationHighlightedCommentEncoder
 
 
 {-| `ViewingBigbitRelevantHC` decoder.
 -}
 relevantHCDecoder : Decode.Decoder ViewingBigbitRelevantHC
 relevantHCDecoder =
-    JSON.ViewerRelevantHC.decoder
-        JSON.Bigbit.publicationHighlightedCommentDecoder
+    JSON.ViewerRelevantHC.decoder JSON.Bigbit.publicationHighlightedCommentDecoder
