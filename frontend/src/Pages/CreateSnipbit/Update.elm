@@ -67,8 +67,7 @@ update msg model shared =
                                 ]
 
                     focusOn theID =
-                        justProduceCmd <|
-                            Util.domFocus (\_ -> NoOp) theID
+                        justProduceCmd <| Util.domFocus (\_ -> NoOp) theID
                 in
                     case route of
                         Route.CreateSnipbitNamePage ->
@@ -103,22 +102,15 @@ update msg model shared =
                                     frameIndex < 0
                             in
                                 if frameIndexTooLow then
-                                    justProduceCmd <|
-                                        Route.modifyTo
-                                            Route.CreateSnipbitCodeIntroductionPage
+                                    justProduceCmd <| Route.modifyTo Route.CreateSnipbitCodeIntroductionPage
                                 else if frameIndexTooHigh then
-                                    justProduceCmd <|
-                                        Route.modifyTo
-                                            Route.CreateSnipbitCodeConclusionPage
+                                    justProduceCmd <| Route.modifyTo Route.CreateSnipbitCodeConclusionPage
                                 else
                                     let
                                         -- Either the existing range, the range from
                                         -- the previous frame collapsed, or Nothing.
                                         newHCRange =
-                                            ((Array.get
-                                                frameIndex
-                                                model.highlightedComments
-                                             )
+                                            (Array.get frameIndex model.highlightedComments)
                                                 |> Maybe.andThen .range
                                                 |> (\maybeRange ->
                                                         case maybeRange of
@@ -129,17 +121,12 @@ update msg model shared =
                                                             Just range ->
                                                                 Just range
                                                    )
-                                            )
                                     in
                                         ( { model
                                             | highlightedComments =
                                                 ArrayExtra.update
                                                     frameIndex
-                                                    (\currentHC ->
-                                                        { currentHC
-                                                            | range = newHCRange
-                                                        }
-                                                    )
+                                                    (\currentHC -> { currentHC | range = newHCRange })
                                                     model.highlightedComments
                                           }
                                         , shared
@@ -159,21 +146,38 @@ update msg model shared =
                         _ ->
                             doNothing
 
-            SnipbitGoToCodeTab ->
-                ( { model
-                    | previewMarkdown = False
-                  }
-                , shared
-                , Route.navigateTo Route.CreateSnipbitCodeIntroductionPage
-                )
+            OnRangeSelected newRange ->
+                case shared.route of
+                    Route.CreateSnipbitCodeIntroductionPage ->
+                        doNothing
 
-            SnipbitUpdateLanguageQuery newLanguageQuery ->
-                justSetModel <|
-                    { model
-                        | languageQuery = newLanguageQuery
-                    }
+                    Route.CreateSnipbitCodeConclusionPage ->
+                        doNothing
 
-            SnipbitUpdateACState acMsg ->
+                    Route.CreateSnipbitCodeFramePage frameNumber ->
+                        let
+                            frameIndex =
+                                frameNumber - 1
+                        in
+                            case (Array.get frameIndex currentHighlightedComments) of
+                                Nothing ->
+                                    doNothing
+
+                                Just currentFrameHighlightedComment ->
+                                    let
+                                        newFrame =
+                                            { currentFrameHighlightedComment | range = Just newRange }
+
+                                        newHighlightedComments =
+                                            Array.set frameIndex newFrame currentHighlightedComments
+                                    in
+                                        justSetModel { model | highlightedComments = newHighlightedComments }
+
+                    -- Should never happen (highlighting when not on the editor pages).
+                    _ ->
+                        doNothing
+
+            OnUpdateACState acMsg ->
                 let
                     ( newACState, maybeMsg ) =
                         AC.update
@@ -187,18 +191,16 @@ update msg model shared =
                             )
 
                     newModel =
-                        { model
-                            | languageQueryACState = newACState
-                        }
+                        { model | languageQueryACState = newACState }
                 in
                     case maybeMsg of
                         Nothing ->
-                            justSetModel <| newModel
+                            justSetModel newModel
 
                         Just updateMsg ->
                             update updateMsg newModel shared
 
-            SnipbitUpdateACWrap toTop ->
+            OnUpdateACWrap toTop ->
                 justSetModel
                     { model
                         | languageQueryACState =
@@ -208,15 +210,130 @@ update msg model shared =
                                 AC.resetToFirstItem
                             )
                                 acUpdateConfig
-                                (filterLanguagesByQuery
-                                    model.languageQuery
-                                    shared.languages
-                                )
+                                (filterLanguagesByQuery model.languageQuery shared.languages)
                                 model.languageListHowManyToShow
                                 model.languageQueryACState
                     }
 
-            SnipbitSelectLanguage maybeEncodedLang ->
+            -- On top of updating the code, we need to check that no highlights
+            -- are now out of range. If highlights are now out of range we
+            -- minimize them to the greatest size they can be whilst still being
+            -- in range.
+            OnUpdateCode { newCode, action, deltaRange } ->
+                let
+                    currentCode =
+                        model.code
+
+                    newHighlightedComments =
+                        Array.map
+                            (\comment ->
+                                case comment.range of
+                                    Nothing ->
+                                        comment
+
+                                    Just aRange ->
+                                        { comment
+                                            | range =
+                                                Just <|
+                                                    Range.getNewRangeAfterDelta
+                                                        currentCode
+                                                        newCode
+                                                        action
+                                                        deltaRange
+                                                        aRange
+                                        }
+                            )
+                            currentHighlightedComments
+                in
+                    justSetModel
+                        { model
+                            | code = newCode
+                            , highlightedComments = newHighlightedComments
+                        }
+
+            GoToCodeTab ->
+                ( { model | previewMarkdown = False }
+                , shared
+                , Route.navigateTo Route.CreateSnipbitCodeIntroductionPage
+                )
+
+            Reset ->
+                ( init, shared, Route.navigateTo Route.CreateSnipbitNamePage )
+
+            AddFrame ->
+                let
+                    newModel =
+                        { model
+                            | highlightedComments =
+                                (Array.push { range = Nothing, comment = Nothing } currentHighlightedComments)
+                        }
+
+                    newMsg =
+                        GoTo <| Route.CreateSnipbitCodeFramePage <| Array.length newModel.highlightedComments
+                in
+                    update newMsg newModel shared
+
+            RemoveFrame ->
+                let
+                    newHighlightedComments =
+                        Array.slice 0 (Array.length currentHighlightedComments - 1) currentHighlightedComments
+
+                    newModel =
+                        { model | highlightedComments = newHighlightedComments }
+                in
+                    case shared.route of
+                        Route.CreateSnipbitCodeIntroductionPage ->
+                            justSetModel newModel
+
+                        Route.CreateSnipbitCodeConclusionPage ->
+                            justSetModel newModel
+
+                        -- We need to go "down" a tab if the user was on the
+                        -- last tab and they removed a tab.
+                        Route.CreateSnipbitCodeFramePage frameNumber ->
+                            let
+                                frameIndex =
+                                    frameNumber - 1
+                            in
+                                if frameIndex >= (Array.length newHighlightedComments) then
+                                    update
+                                        (GoTo <|
+                                            Route.CreateSnipbitCodeFramePage <|
+                                                Array.length newHighlightedComments
+                                        )
+                                        newModel
+                                        shared
+                                else
+                                    justSetModel newModel
+
+                        -- Should never happen.
+                        _ ->
+                            justSetModel newModel
+
+            TogglePreviewMarkdown ->
+                justSetModel <| Util.togglePreviewMarkdown model
+
+            JumpToLineFromPreviousFrame ->
+                case shared.route of
+                    Route.CreateSnipbitCodeFramePage frameNumber ->
+                        ( { model
+                            | highlightedComments =
+                                ArrayExtra.update
+                                    (frameNumber - 1)
+                                    (\hc -> { hc | range = Nothing })
+                                    model.highlightedComments
+                          }
+                        , shared
+                        , Route.modifyTo shared.route
+                        )
+
+                    _ ->
+                        doNothing
+
+            OnUpdateLanguageQuery newLanguageQuery ->
+                justSetModel { model | languageQuery = newLanguageQuery }
+
+            SelectLanguage maybeEncodedLang ->
                 let
                     language =
                         case maybeEncodedLang of
@@ -256,169 +373,40 @@ update msg model shared =
                 in
                     ( newModel, shared, newCmd )
 
-            SnipbitReset ->
-                ( init, shared, Route.navigateTo Route.CreateSnipbitNamePage )
+            OnUpdateName newName ->
+                justSetModel { model | name = newName }
 
-            SnipbitUpdateName newName ->
-                justSetModel
-                    { model
-                        | name = newName
-                    }
+            OnUpdateDescription newDescription ->
+                justSetModel { model | description = newDescription }
 
-            SnipbitUpdateDescription newDescription ->
-                justSetModel
-                    { model
-                        | description = newDescription
-                    }
-
-            SnipbitUpdateTagInput newTagInput ->
+            OnUpdateTagInput newTagInput ->
                 if String.endsWith " " newTagInput then
                     let
                         newTag =
                             String.dropRight 1 newTagInput
 
                         newTags =
-                            Util.addUniqueNonEmptyString
-                                newTag
-                                model.tags
+                            Util.addUniqueNonEmptyString newTag model.tags
                     in
-                        justSetModel <|
+                        justSetModel
                             { model
                                 | tagInput = ""
                                 , tags = newTags
                             }
                 else
-                    justSetModel <|
-                        { model
-                            | tagInput = newTagInput
-                        }
+                    justSetModel { model | tagInput = newTagInput }
 
-            SnipbitRemoveTag tagName ->
-                justSetModel <|
-                    { model
-                        | tags =
-                            List.filter
-                                (\aTag -> aTag /= tagName)
-                                model.tags
-                    }
+            RemoveTag tagName ->
+                justSetModel { model | tags = List.filter (\aTag -> aTag /= tagName) model.tags }
 
-            SnipbitAddTag tagName ->
-                justSetModel <|
+            AddTag tagName ->
+                justSetModel
                     { model
-                        | tags =
-                            Util.addUniqueNonEmptyString
-                                tagName
-                                model.tags
+                        | tags = Util.addUniqueNonEmptyString tagName model.tags
                         , tagInput = ""
                     }
 
-            SnipbitNewRangeSelected newRange ->
-                case shared.route of
-                    Route.CreateSnipbitCodeIntroductionPage ->
-                        doNothing
-
-                    Route.CreateSnipbitCodeConclusionPage ->
-                        doNothing
-
-                    Route.CreateSnipbitCodeFramePage frameNumber ->
-                        let
-                            frameIndex =
-                                frameNumber - 1
-                        in
-                            case (Array.get frameIndex currentHighlightedComments) of
-                                Nothing ->
-                                    doNothing
-
-                                Just currentFrameHighlightedComment ->
-                                    let
-                                        newFrame =
-                                            { currentFrameHighlightedComment
-                                                | range = Just newRange
-                                            }
-
-                                        newHighlightedComments =
-                                            Array.set
-                                                frameIndex
-                                                newFrame
-                                                currentHighlightedComments
-                                    in
-                                        justSetModel <|
-                                            { model
-                                                | highlightedComments = newHighlightedComments
-                                            }
-
-                    -- Should never really happen (highlighting when not on
-                    -- the editor pages).
-                    _ ->
-                        doNothing
-
-            SnipbitTogglePreviewMarkdown ->
-                justSetModel <|
-                    Util.togglePreviewMarkdown model
-
-            SnipbitAddFrame ->
-                let
-                    newModel =
-                        { model
-                            | highlightedComments =
-                                (Array.push
-                                    { range = Nothing, comment = Nothing }
-                                    currentHighlightedComments
-                                )
-                        }
-
-                    newMsg =
-                        GoTo <|
-                            Route.CreateSnipbitCodeFramePage <|
-                                Array.length
-                                    newModel.highlightedComments
-                in
-                    update newMsg newModel shared
-
-            SnipbitRemoveFrame ->
-                let
-                    newHighlightedComments =
-                        Array.slice
-                            0
-                            (Array.length currentHighlightedComments - 1)
-                            currentHighlightedComments
-
-                    newModel =
-                        { model
-                            | highlightedComments =
-                                newHighlightedComments
-                        }
-                in
-                    case shared.route of
-                        Route.CreateSnipbitCodeIntroductionPage ->
-                            justSetModel newModel
-
-                        Route.CreateSnipbitCodeConclusionPage ->
-                            justSetModel newModel
-
-                        -- We need to go "down" a tab if the user was on the
-                        -- last tab and they removed a tab.
-                        Route.CreateSnipbitCodeFramePage frameNumber ->
-                            let
-                                frameIndex =
-                                    frameNumber - 1
-                            in
-                                if frameIndex >= (Array.length newHighlightedComments) then
-                                    update
-                                        (GoTo <|
-                                            Route.CreateSnipbitCodeFramePage <|
-                                                Array.length newHighlightedComments
-                                        )
-                                        newModel
-                                        shared
-                                else
-                                    justSetModel newModel
-
-                        -- Should never happen.
-                        _ ->
-                            justSetModel newModel
-
-            SnipbitUpdateFrameComment index newComment ->
+            OnUpdateFrameComment index newComment ->
                 case Array.get index currentHighlightedComments of
                     Nothing ->
                         doNothing
@@ -426,107 +414,29 @@ update msg model shared =
                     Just highlightComment ->
                         let
                             newHighlightComment =
-                                { highlightComment
-                                    | comment = Just newComment
-                                }
+                                { highlightComment | comment = Just newComment }
 
                             newHighlightedComments =
-                                Array.set
-                                    index
-                                    newHighlightComment
-                                    currentHighlightedComments
+                                Array.set index newHighlightComment currentHighlightedComments
                         in
-                            justSetModel
-                                { model
-                                    | highlightedComments = newHighlightedComments
-                                }
+                            justSetModel { model | highlightedComments = newHighlightedComments }
 
-            SnipbitUpdateIntroduction newIntro ->
-                justSetModel
-                    { model
-                        | introduction = newIntro
-                    }
+            OnUpdateIntroduction newIntro ->
+                justSetModel { model | introduction = newIntro }
 
-            SnipbitUpdateConclusion newConclusion ->
-                justSetModel
-                    { model
-                        | conclusion = newConclusion
-                    }
+            OnUpdateConclusion newConclusion ->
+                justSetModel { model | conclusion = newConclusion }
 
-            -- On top of updating the code, we need to check that no highlights
-            -- are now out of range. If highlights are now out of range we
-            -- minimize them to the greatest size they can be whilst still being
-            -- in range.
-            SnipbitUpdateCode { newCode, action, deltaRange } ->
-                let
-                    currentCode =
-                        model.code
+            Publish snipbit ->
+                justProduceCmd <| Api.postCreateSnipbit snipbit OnPublishFailure OnPublishSuccess
 
-                    newHighlightedComments =
-                        Array.map
-                            (\comment ->
-                                case comment.range of
-                                    Nothing ->
-                                        comment
-
-                                    Just aRange ->
-                                        { comment
-                                            | range =
-                                                Just <|
-                                                    Range.getNewRangeAfterDelta
-                                                        currentCode
-                                                        newCode
-                                                        action
-                                                        deltaRange
-                                                        aRange
-                                        }
-                            )
-                            currentHighlightedComments
-                in
-                    justSetModel
-                        { model
-                            | code = newCode
-                            , highlightedComments = newHighlightedComments
-                        }
-
-            SnipbitPublish snipbit ->
-                justProduceCmd <|
-                    Api.postCreateSnipbit
-                        snipbit
-                        OnSnipbitPublishFailure
-                        OnSnipbitPublishSuccess
-
-            SnipbitJumpToLineFromPreviousFrame ->
-                case shared.route of
-                    Route.CreateSnipbitCodeFramePage frameNumber ->
-                        ( { model
-                            | highlightedComments =
-                                ArrayExtra.update
-                                    (frameNumber - 1)
-                                    (\hc ->
-                                        { hc
-                                            | range = Nothing
-                                        }
-                                    )
-                                    model.highlightedComments
-                          }
-                        , shared
-                        , Route.modifyTo shared.route
-                        )
-
-                    _ ->
-                        doNothing
-
-            OnSnipbitPublishSuccess { targetID } ->
+            OnPublishSuccess { targetID } ->
                 ( init
-                , { shared
-                    | userTidbits = Nothing
-                  }
-                , Route.navigateTo <|
-                    Route.ViewSnipbitIntroductionPage Nothing targetID
+                , { shared | userTidbits = Nothing }
+                , Route.navigateTo <| Route.ViewSnipbitIntroductionPage Nothing targetID
                 )
 
-            OnSnipbitPublishFailure apiError ->
+            OnPublishFailure apiError ->
                 -- TODO Handle Publish Failures.
                 doNothing
 
@@ -555,14 +465,14 @@ acUpdateConfig =
                         if Util.isNothing maybeID then
                             Nothing
                         else
-                            Just <| SnipbitSelectLanguage maybeID
+                            Just <| SelectLanguage maybeID
                     else
                         Nothing
-            , onTooLow = Just <| SnipbitUpdateACWrap False
-            , onTooHigh = Just <| SnipbitUpdateACWrap True
+            , onTooLow = Just <| OnUpdateACWrap False
+            , onTooHigh = Just <| OnUpdateACWrap True
             , onMouseClick =
                 \id ->
-                    Just <| SnipbitSelectLanguage <| Just id
+                    Just <| SelectLanguage <| Just id
             , onMouseLeave = \_ -> Nothing
             , onMouseEnter = \_ -> Nothing
             , separateSelections = False

@@ -1,10 +1,10 @@
 module Pages.CreateSnipbit.Messages exposing (..)
 
 import Autocomplete as AC
-import Models.ApiError as ApiError
+import Models.ApiError exposing (ApiError)
 import Models.IDResponse exposing (IDResponse)
-import Models.Range as Range
-import Models.Route as Route
+import Models.Range exposing (Range)
+import Models.Route exposing (Route)
 import Pages.CreateSnipbit.Model exposing (..)
 
 
@@ -12,28 +12,28 @@ import Pages.CreateSnipbit.Model exposing (..)
 -}
 type Msg
     = NoOp
-    | GoTo Route.Route
-    | OnRouteHit Route.Route
-    | SnipbitGoToCodeTab
-    | SnipbitUpdateLanguageQuery String
-    | SnipbitUpdateACState AC.Msg
-    | SnipbitUpdateACWrap Bool
-    | SnipbitSelectLanguage (Maybe String)
-    | SnipbitReset
-    | SnipbitUpdateName String
-    | SnipbitUpdateDescription String
-    | SnipbitUpdateTagInput String
-    | SnipbitRemoveTag String
-    | SnipbitAddTag String
-    | SnipbitNewRangeSelected Range.Range
-    | SnipbitTogglePreviewMarkdown
-    | SnipbitAddFrame
-    | SnipbitRemoveFrame
-    | SnipbitUpdateFrameComment Int String
-    | SnipbitUpdateIntroduction String
-    | SnipbitUpdateConclusion String
-    | SnipbitUpdateCode { newCode : String, deltaRange : Range.Range, action : String }
-    | SnipbitPublish SnipbitForPublication
-    | SnipbitJumpToLineFromPreviousFrame
-    | OnSnipbitPublishSuccess IDResponse
-    | OnSnipbitPublishFailure ApiError.ApiError
+    | GoTo Route
+    | OnRouteHit Route
+    | OnRangeSelected Range
+    | OnUpdateACState AC.Msg
+    | OnUpdateACWrap Bool
+    | OnUpdateCode { newCode : String, deltaRange : Range, action : String }
+    | GoToCodeTab
+    | Reset
+    | AddFrame
+    | RemoveFrame
+    | TogglePreviewMarkdown
+    | JumpToLineFromPreviousFrame
+    | OnUpdateLanguageQuery String
+    | SelectLanguage (Maybe String)
+    | OnUpdateName String
+    | OnUpdateDescription String
+    | OnUpdateTagInput String
+    | RemoveTag String
+    | AddTag String
+    | OnUpdateFrameComment Int String
+    | OnUpdateIntroduction String
+    | OnUpdateConclusion String
+    | Publish SnipbitForPublication
+    | OnPublishSuccess IDResponse
+    | OnPublishFailure ApiError

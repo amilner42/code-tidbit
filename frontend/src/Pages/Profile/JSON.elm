@@ -11,10 +11,10 @@ import Pages.Profile.Model exposing (..)
 {-| `Profile` encoder.
 -}
 encoder : Model -> Encode.Value
-encoder profileData =
+encoder model =
     Encode.object
-        [ ( "accountName", Util.justValueOrNull (Editable.encoder Encode.string) profileData.accountName )
-        , ( "accountBio", Util.justValueOrNull (Editable.encoder Encode.string) profileData.accountBio )
+        [ ( "accountName", Util.justValueOrNull (Editable.encoder Encode.string) model.accountName )
+        , ( "accountBio", Util.justValueOrNull (Editable.encoder Encode.string) model.accountBio )
         , ( "logOutError", Encode.null )
         ]
 

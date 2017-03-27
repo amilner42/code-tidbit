@@ -14,11 +14,11 @@ import Pages.ViewSnipbit.Model exposing (..)
 {-| `ViewSnipbit` encoder.
 -}
 encoder : Model -> Encode.Value
-encoder viewSnipbitData =
+encoder model =
     Encode.object
-        [ ( "snipbit", Util.justValueOrNull JSON.Snipbit.encoder viewSnipbitData.snipbit )
-        , ( "isCompleted", Util.justValueOrNull JSON.Completed.isCompletedEncoder viewSnipbitData.isCompleted )
-        , ( "relevantHC", Util.justValueOrNull relevantHCEncoder viewSnipbitData.relevantHC )
+        [ ( "snipbit", Util.justValueOrNull JSON.Snipbit.encoder model.snipbit )
+        , ( "isCompleted", Util.justValueOrNull JSON.Completed.isCompletedEncoder model.isCompleted )
+        , ( "relevantHC", Util.justValueOrNull relevantHCEncoder model.relevantHC )
         ]
 
 

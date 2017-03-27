@@ -44,65 +44,58 @@ type alias SnipbitForPublication =
 
 {-| Returns the filled-in name or `Nothing`.
 -}
-createDataNameFilledIn : Model -> Maybe String
-createDataNameFilledIn =
+nameFilledIn : Model -> Maybe String
+nameFilledIn =
     .name >> Util.justNonEmptyString
 
 
 {-| Returns the filled-in description or `Nothing`.
 -}
-createDataDescriptionFilledIn : Model -> Maybe String
-createDataDescriptionFilledIn =
+descriptionFilledIn : Model -> Maybe String
+descriptionFilledIn =
     .description >> Util.justNonEmptyString
 
 
 {-| Returns the filled-in tags or `Nothing`.
 -}
-createDataTagsFilledIn : Model -> Maybe (List String)
-createDataTagsFilledIn =
+tagsFilledIn : Model -> Maybe (List String)
+tagsFilledIn =
     .tags >> Util.justNonEmptyList
 
 
 {-| Returns the filled-in code or `Nothing`.
 -}
-createDataCodeFilledIn : Model -> Maybe String
-createDataCodeFilledIn =
+codeFilledIn : Model -> Maybe String
+codeFilledIn =
     .code >> Util.justNonEmptyString
 
 
 {-| Returns the filled-in introduction or `Nothing`.
 -}
-createDataIntroductionFilledIn : Model -> Maybe String
-createDataIntroductionFilledIn =
+introductionFilledIn : Model -> Maybe String
+introductionFilledIn =
     .introduction >> Util.justNonEmptyString
 
 
 {-| Returns the filled-in conclusion or `Nothing`.
 -}
-createDataConclusionFilledIn : Model -> Maybe String
-createDataConclusionFilledIn =
+conclusionFilledIn : Model -> Maybe String
+conclusionFilledIn =
     .conclusion >> Util.justNonEmptyString
 
 
 {-| Returns the filled in highlighted comments or `Nothing`.
 -}
-createDataHighlightedCommentsFilledIn : Model -> Maybe (Array.Array HighlightedComment)
-createDataHighlightedCommentsFilledIn =
+highlightedCommentsFilledIn : Model -> Maybe (Array.Array HighlightedComment)
+highlightedCommentsFilledIn =
     .highlightedComments
         >> (Array.foldr
                 (\maybeHC previousHC ->
                     case ( maybeHC.range, maybeHC.comment ) of
                         ( Just aRange, Just aComment ) ->
-                            if
-                                (String.length aComment > 0)
-                                    && (not <| Range.isEmptyRange aRange)
-                            then
+                            if (String.length aComment > 0) && (not <| Range.isEmptyRange aRange) then
                                 Maybe.map
-                                    ((::)
-                                        { range = aRange
-                                        , comment = aComment
-                                        }
-                                    )
+                                    ((::) { range = aRange, comment = aComment })
                                     previousHC
                             else
                                 Nothing
@@ -117,14 +110,9 @@ createDataHighlightedCommentsFilledIn =
 
 {-| Checks if all the data in the code tab is filled in.
 -}
-createDataCodeTabFilledIn : Model -> Bool
-createDataCodeTabFilledIn createData =
-    case
-        ( createDataIntroductionFilledIn createData
-        , createDataConclusionFilledIn createData
-        , createDataHighlightedCommentsFilledIn createData
-        )
-    of
+codeTabFilledIn : Model -> Bool
+codeTabFilledIn model =
+    case ( introductionFilledIn model, conclusionFilledIn model, highlightedCommentsFilledIn model ) of
         ( Just _, Just _, Just _ ) ->
             True
 
@@ -132,41 +120,31 @@ createDataCodeTabFilledIn createData =
             False
 
 
-{-| Given the createData, returns the publication data if everything is filled
-out, otherwise returns `Nothing`.
+{-| Given the model, returns the publication data if everything is filled out, otherwise returns `Nothing`.
 -}
-createDataToPublicationData : Model -> Maybe SnipbitForPublication
-createDataToPublicationData createData =
+toPublicationData : Model -> Maybe SnipbitForPublication
+toPublicationData model =
     case
-        ( createDataNameFilledIn createData
-        , createDataDescriptionFilledIn createData
-        , createData.language
-        , createDataTagsFilledIn createData
-        , createDataCodeFilledIn createData
-        , createDataIntroductionFilledIn createData
-        , createDataConclusionFilledIn createData
-        , createDataHighlightedCommentsFilledIn createData
+        ( nameFilledIn model
+        , descriptionFilledIn model
+        , model.language
+        , tagsFilledIn model
+        , codeFilledIn model
+        , introductionFilledIn model
+        , conclusionFilledIn model
+        , highlightedCommentsFilledIn model
         )
     of
         ( Just name, Just description, Just language, Just tags, Just code, Just introduction, Just conclusion, Just highlightedComments ) ->
             Just <|
-                SnipbitForPublication
-                    language
-                    name
-                    description
-                    tags
-                    code
-                    introduction
-                    conclusion
-                    highlightedComments
+                SnipbitForPublication language name description tags code introduction conclusion highlightedComments
 
         _ ->
             Nothing
 
 
-{-| Gets the range from the previous frame's selected range if we're on a route
-which has a previous frame (Code Frame 2+) and the previous frame has a selected
-non-empty range.
+{-| Gets the range from the previous frame's selected range if we're on a route which has a previous frame
+(Code Frame 2+) and the previous frame has a selected non-empty range.
 -}
 previousFrameRange : Model -> Route.Route -> Maybe Range.Range
 previousFrameRange model route =
@@ -191,6 +169,5 @@ filterLanguagesByQuery query =
     in
         List.filter
             (\langPair ->
-                (containsQuery <| Tuple.second langPair)
-                    || (containsQuery <| toString <| Tuple.first langPair)
+                (containsQuery <| Tuple.second langPair) || (containsQuery <| toString <| Tuple.first langPair)
             )

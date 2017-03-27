@@ -271,7 +271,7 @@ updateCacheIf msg model shouldCache =
                         "create-snipbit-code-editor" ->
                             (updateCacheIf
                                 (CreateSnipbitMessage <|
-                                    CreateSnipbitMessages.SnipbitUpdateCode
+                                    CreateSnipbitMessages.OnUpdateCode
                                         { newCode = value
                                         , deltaRange = deltaRange
                                         , action = action
@@ -302,7 +302,7 @@ updateCacheIf msg model shouldCache =
                         "create-snipbit-code-editor" ->
                             (updateCacheIf
                                 (CreateSnipbitMessage <|
-                                    CreateSnipbitMessages.SnipbitNewRangeSelected range
+                                    CreateSnipbitMessages.OnRangeSelected range
                                 )
                                 model
                                 shouldCache

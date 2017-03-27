@@ -12,10 +12,10 @@ import Pages.DevelopStory.Model exposing (..)
 {-| `DevelopStory` encoder.
 -}
 encoder : Model -> Encode.Value
-encoder storyData =
+encoder model =
     Encode.object
-        [ ( "story", Util.justValueOrNull JSON.Story.expandedStoryEncoder storyData.story )
-        , ( "tidbitsToAdd", Encode.list <| List.map JSON.Tidbit.encoder storyData.tidbitsToAdd )
+        [ ( "story", Util.justValueOrNull JSON.Story.expandedStoryEncoder model.story )
+        , ( "tidbitsToAdd", Encode.list <| List.map JSON.Tidbit.encoder model.tidbitsToAdd )
         ]
 
 

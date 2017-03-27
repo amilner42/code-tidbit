@@ -13,11 +13,11 @@ import Pages.ViewBigbit.Model exposing (..)
 {-| `ViewBigbit` encoder.
 -}
 encoder : Model -> Encode.Value
-encoder viewBigbitData =
+encoder model =
     Encode.object
-        [ ( "bigbit", Util.justValueOrNull JSON.Bigbit.encoder viewBigbitData.bigbit )
-        , ( "isCompleted", Util.justValueOrNull JSON.Completed.isCompletedEncoder viewBigbitData.isCompleted )
-        , ( "relevantHC", Util.justValueOrNull relevantHCEncoder viewBigbitData.relevantHC )
+        [ ( "bigbit", Util.justValueOrNull JSON.Bigbit.encoder model.bigbit )
+        , ( "isCompleted", Util.justValueOrNull JSON.Completed.isCompletedEncoder model.isCompleted )
+        , ( "relevantHC", Util.justValueOrNull relevantHCEncoder model.relevantHC )
         ]
 
 
