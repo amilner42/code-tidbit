@@ -2,14 +2,14 @@ module Pages.CreateBigbit.JSON exposing (..)
 
 import Array
 import DefaultServices.Util as Util
-import JSON.Bigbit exposing (publicationHighlightedCommentEncoder)
+import JSON.Bigbit exposing (highlightedCommentEncoder)
 import JSON.FileStructure
 import JSON.Language
 import JSON.Range
 import Json.Decode as Decode
 import Json.Decode.Pipeline exposing (decode, required, optional, hardcoded)
 import Json.Encode as Encode
-import Models.Bigbit exposing (BigbitCreateDataFolderMetadata, BigbitCreateDataFileMetadata)
+import Models.Bigbit exposing (FolderMetadata, FileMetadata)
 import Models.Range as Range
 import Pages.CreateBigbit.Model exposing (..)
 
@@ -57,17 +57,17 @@ decoder =
     let
         fsDecoder =
             JSON.FileStructure.decoder
-                (decode BigbitCreateDataFSMetadata
+                (decode FSMetadata
                     |> required "activeFile" (Decode.maybe Decode.string)
                     |> required "openFS" Decode.bool
                     |> required "actionButtonState" (Decode.maybe fsActionButtonStateDecoder)
                     |> required "actionButtonInput" Decode.string
                     |> required "actionButtonSubmitConfirmed" Decode.bool
                 )
-                (decode BigbitCreateDataFolderMetadata
+                (decode FolderMetadata
                     |> required "isExpanded" Decode.bool
                 )
-                (decode BigbitCreateDataFileMetadata
+                (decode FileMetadata
                     |> required "language" JSON.Language.decoder
                 )
     in
@@ -135,15 +135,13 @@ publicationEncoder bigbit =
             , ( "introduction", Encode.string bigbit.introduction )
             , ( "conclusion", Encode.string bigbit.conclusion )
             , ( "fs", fsEncoder bigbit.fs )
-            , ( "highlightedComments"
-              , Encode.list <| List.map publicationHighlightedCommentEncoder bigbit.highlightedComments
-              )
+            , ( "highlightedComments", Encode.list <| List.map highlightedCommentEncoder bigbit.highlightedComments )
             ]
 
 
-{-| `BigbitHighlightedCommentForCreate` encoder.
+{-| `HighlightedCommentForCreate` encoder.
 -}
-createHighlightedCommentEncoder : BigbitHighlightedCommentForCreate -> Encode.Value
+createHighlightedCommentEncoder : HighlightedCommentForCreate -> Encode.Value
 createHighlightedCommentEncoder hc =
     Encode.object
         [ ( "comment", Encode.string hc.comment )
@@ -160,9 +158,9 @@ createHighlightedCommentEncoder hc =
         ]
 
 
-{-| `BigbitHighlightedCommentForCreate` decoder.
+{-| `HighlightedCommentForCreate` decoder.
 -}
-createHighlightedCommentDecoder : Decode.Decoder BigbitHighlightedCommentForCreate
+createHighlightedCommentDecoder : Decode.Decoder HighlightedCommentForCreate
 createHighlightedCommentDecoder =
     let
         decodeFileAndRange =
@@ -172,6 +170,6 @@ createHighlightedCommentDecoder =
                     |> required "file" Decode.string
                 )
     in
-        decode BigbitHighlightedCommentForCreate
+        decode HighlightedCommentForCreate
             |> required "comment" Decode.string
             |> required "fileAndRange" decodeFileAndRange

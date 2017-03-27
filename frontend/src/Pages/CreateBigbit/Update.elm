@@ -300,7 +300,7 @@ update msg model shared =
                     newModel =
                         { model
                             | highlightedComments =
-                                Array.push emptyBigbitHighlightCommentForCreate currentBigbitHighlightedComments
+                                Array.push emptyHighlightCommentForCreate currentBigbitHighlightedComments
                         }
 
                     newCmd =
@@ -511,7 +511,7 @@ update msg model shared =
                             |> (\remainingArray ->
                                     if Array.length remainingArray == 0 then
                                         Array.fromList
-                                            [ emptyBigbitHighlightCommentForCreate ]
+                                            [ emptyHighlightCommentForCreate ]
                                     else
                                         remainingArray
                                )

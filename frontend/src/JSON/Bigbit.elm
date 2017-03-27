@@ -18,18 +18,9 @@ encoder bigbit =
     let
         fsEncoder fs =
             JSON.FileStructure.encoder
-                (\fsMetadata ->
-                    Encode.object
-                        [ ( "openFS", Encode.bool fsMetadata.openFS ) ]
-                )
-                (\folderMetadata ->
-                    Encode.object
-                        [ ( "isExpanded", Encode.bool folderMetadata.isExpanded ) ]
-                )
-                (\fileMetadata ->
-                    Encode.object
-                        [ ( "language", JSON.Language.encoder fileMetadata.language ) ]
-                )
+                (\fsMetadata -> Encode.object [ ( "openFS", Encode.bool fsMetadata.openFS ) ])
+                (\folderMetadata -> Encode.object [ ( "isExpanded", Encode.bool folderMetadata.isExpanded ) ])
+                (\fileMetadata -> Encode.object [ ( "language", JSON.Language.encoder fileMetadata.language ) ])
                 fs
     in
         Encode.object
@@ -39,12 +30,7 @@ encoder bigbit =
             , ( "introduction", Encode.string bigbit.introduction )
             , ( "conclusion", Encode.string bigbit.conclusion )
             , ( "fs", fsEncoder bigbit.fs )
-            , ( "highlightedComments"
-              , Encode.array <|
-                    Array.map
-                        publicationHighlightedCommentEncoder
-                        bigbit.highlightedComments
-              )
+            , ( "highlightedComments", Encode.array <| Array.map highlightedCommentEncoder bigbit.highlightedComments )
             , ( "author", Encode.string bigbit.author )
             , ( "id", Encode.string bigbit.id )
             , ( "createdAt", Util.dateEncoder bigbit.createdAt )
@@ -65,7 +51,7 @@ decoder =
                 (decode (\isExpanded -> { isExpanded = isExpanded })
                     |> optional "isExpanded" Decode.bool True
                 )
-                (decode BigbitCreateDataFileMetadata
+                (decode FileMetadata
                     |> required "language" JSON.Language.decoder
                 )
     in
@@ -76,17 +62,17 @@ decoder =
             |> required "introduction" Decode.string
             |> required "conclusion" Decode.string
             |> required "fs" fsDecoder
-            |> required "highlightedComments" (Decode.array publicationHighlightedCommentDecoder)
+            |> required "highlightedComments" (Decode.array highlightedCommentDecoder)
             |> required "author" Decode.string
             |> required "id" Decode.string
             |> required "createdAt" Util.dateDecoder
             |> required "lastModified" Util.dateDecoder
 
 
-{-| `BigbitHighlightedCommentForPublication` encoder.
+{-| `HighlightedComment` encoder.
 -}
-publicationHighlightedCommentEncoder : BigbitHighlightedCommentForPublication -> Encode.Value
-publicationHighlightedCommentEncoder hc =
+highlightedCommentEncoder : HighlightedComment -> Encode.Value
+highlightedCommentEncoder hc =
     Encode.object
         [ ( "comment", Encode.string hc.comment )
         , ( "range", JSON.Range.encoder hc.range )
@@ -94,11 +80,11 @@ publicationHighlightedCommentEncoder hc =
         ]
 
 
-{-| `BigbitHighlightedCommentForPublication` decoder.
+{-| `HighlightedComment` decoder.
 -}
-publicationHighlightedCommentDecoder : Decode.Decoder BigbitHighlightedCommentForPublication
-publicationHighlightedCommentDecoder =
-    decode BigbitHighlightedCommentForPublication
+highlightedCommentDecoder : Decode.Decoder HighlightedComment
+highlightedCommentDecoder =
+    decode HighlightedComment
         |> required "comment" Decode.string
         |> required "range" JSON.Range.decoder
         |> required "file" Decode.string

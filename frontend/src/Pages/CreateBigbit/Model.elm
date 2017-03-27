@@ -6,7 +6,7 @@ import DefaultServices.ArrayExtra as ArrayExtra
 import DefaultServices.Util as Util exposing (maybeMapWithDefault)
 import Elements.Editor as Editor
 import Elements.FileStructure as FS
-import Models.Bigbit exposing (BigbitCreateDataFolderMetadata, BigbitCreateDataFileMetadata, BigbitHighlightedCommentForPublication)
+import Models.Bigbit exposing (FolderMetadata, FileMetadata, HighlightedComment)
 import Models.Range as Range
 import Models.Route as Route
 
@@ -20,9 +20,36 @@ type alias Model =
     , tagInput : String
     , introduction : String
     , conclusion : String
-    , fs : FS.FileStructure BigbitCreateDataFSMetadata BigbitCreateDataFolderMetadata BigbitCreateDataFileMetadata
-    , highlightedComments : Array.Array BigbitHighlightedCommentForCreate
+    , fs : FS.FileStructure FSMetadata FolderMetadata FileMetadata
+    , highlightedComments : Array.Array HighlightedCommentForCreate
     , previewMarkdown : Bool
+    }
+
+
+{-| The metadata connected to the FS.
+-}
+type alias FSMetadata =
+    { activeFile : Maybe FS.Path
+    , openFS : Bool
+    , actionButtonState : Maybe FSActionButtonState
+    , actionButtonInput : String
+    , actionButtonSubmitConfirmed : Bool
+    }
+
+
+{-| The highlighted comments used during bigbit creation.
+-}
+type alias HighlightedCommentForCreate =
+    { comment : String
+    , fileAndRange : Maybe FileAndRange
+    }
+
+
+{-| A file and a range, used in bigbit highlighted comments.
+-}
+type alias FileAndRange =
+    { range : Maybe Range.Range
+    , file : FS.Path
     }
 
 
@@ -35,7 +62,7 @@ type alias BigbitForPublication =
     , introduction : String
     , conclusion : String
     , fs : FS.FileStructure () () { language : Editor.Language }
-    , highlightedComments : List BigbitHighlightedCommentForPublication
+    , highlightedComments : List HighlightedComment
     }
 
 
@@ -47,35 +74,6 @@ type FSActionButtonState
     | AddingFile
     | RemovingFolder
     | RemovingFile
-
-
-{-| The metadata connected to the FS.
--}
-type alias BigbitCreateDataFSMetadata =
-    { activeFile : Maybe FS.Path
-    , openFS : Bool
-    , actionButtonState : Maybe FSActionButtonState
-    , actionButtonInput : String
-    , actionButtonSubmitConfirmed : Bool
-    }
-
-
-{-| The highlighted comments on bigbits are different than regular highlighted
-comments (`Models/HighlightedComment`) because they also need to point to a
-file.
--}
-type alias BigbitHighlightedCommentForCreate =
-    { comment : String
-    , fileAndRange : Maybe FileAndRange
-    }
-
-
-{-| A file and a range, used in bigbit highlighted comments.
--}
-type alias FileAndRange =
-    { range : Maybe Range.Range
-    , file : FS.Path
-    }
 
 
 {-| Possible errors with input for creating a file.
@@ -265,10 +263,9 @@ conclusionFilledIn =
     .conclusion >> Util.justNonEmptyString
 
 
-{-| Returns the filled-in highlighted comments [in publication form] or
-`Nothing`.
+{-| Returns the filled-in highlighted comments [in publication form] or `Nothing`.
 -}
-highlightedCommentsFilledIn : Model -> Maybe (List BigbitHighlightedCommentForPublication)
+highlightedCommentsFilledIn : Model -> Maybe (List HighlightedComment)
 highlightedCommentsFilledIn =
     .highlightedComments
         >> (Array.foldr
@@ -351,14 +348,10 @@ getActiveFileForFrame frameNumber bigbit =
         |> Maybe.map .file
 
 
-{-| Sets one of the highlighted comments at position `index` to it's new value,
-if the `index` has no value then the createData is returned unchanged.
+{-| Sets one of the highlighted comments at position `index` to it's new value, if the `index` has no value then the
+createData is returned unchanged.
 -}
-updateHCAtIndex :
-    Model
-    -> Int
-    -> (BigbitHighlightedCommentForCreate -> BigbitHighlightedCommentForCreate)
-    -> Model
+updateHCAtIndex : Model -> Int -> (HighlightedCommentForCreate -> HighlightedCommentForCreate) -> Model
 updateHCAtIndex bigbit index hcUpdater =
     { bigbit | highlightedComments = ArrayExtra.update index hcUpdater bigbit.highlightedComments }
 
@@ -375,23 +368,20 @@ fsActionStateEquals maybeActionState =
 
 {-| Creates an empty folder.
 -}
-defaultEmptyFolder : FS.Folder BigbitCreateDataFolderMetadata BigbitCreateDataFileMetadata
+defaultEmptyFolder : FS.Folder FolderMetadata FileMetadata
 defaultEmptyFolder =
     FS.emptyFolder { isExpanded = True }
 
 
 {-| Clears the action button input.
 -}
-clearActionButtonInput :
-    FS.FileStructure BigbitCreateDataFSMetadata b c
-    -> FS.FileStructure BigbitCreateDataFSMetadata b c
+clearActionButtonInput : FS.FileStructure FSMetadata b c -> FS.FileStructure FSMetadata b c
 clearActionButtonInput =
     FS.updateFSMetadata (\fsMetadata -> { fsMetadata | actionButtonInput = "" })
 
 
-{-| Gets the range from the previous frame's selected range if we're on a route
-which has a previous frame (Code Frame 2+) and the previous frame has a selected
-non-empty range.
+{-| Gets the range from the previous frame's selected range if we're on a route which has a previous frame
+(Code Frame 2+) and the previous frame has a selected non-empty range.
 -}
 previousFrameRange : Model -> Route.Route -> Maybe ( FS.Path, Range.Range )
 previousFrameRange model route =

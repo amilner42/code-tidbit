@@ -35,11 +35,11 @@ decoder =
 -}
 relevantHCEncoder : ViewingBigbitRelevantHC -> Encode.Value
 relevantHCEncoder =
-    JSON.ViewerRelevantHC.encoder JSON.Bigbit.publicationHighlightedCommentEncoder
+    JSON.ViewerRelevantHC.encoder JSON.Bigbit.highlightedCommentEncoder
 
 
 {-| `ViewingBigbitRelevantHC` decoder.
 -}
 relevantHCDecoder : Decode.Decoder ViewingBigbitRelevantHC
 relevantHCDecoder =
-    JSON.ViewerRelevantHC.decoder JSON.Bigbit.publicationHighlightedCommentDecoder
+    JSON.ViewerRelevantHC.decoder JSON.Bigbit.highlightedCommentDecoder

@@ -26,15 +26,15 @@ init =
             , actionButtonSubmitConfirmed = False
             }
             { isExpanded = True }
-    , highlightedComments = Array.fromList [ emptyBigbitHighlightCommentForCreate ]
+    , highlightedComments = Array.fromList [ emptyHighlightCommentForCreate ]
     , previewMarkdown = False
     }
 
 
 {-| Creates an empty highlighted comment.
 -}
-emptyBigbitHighlightCommentForCreate : BigbitHighlightedCommentForCreate
-emptyBigbitHighlightCommentForCreate =
+emptyHighlightCommentForCreate : HighlightedCommentForCreate
+emptyHighlightCommentForCreate =
     { comment = ""
     , fileAndRange = Nothing
     }

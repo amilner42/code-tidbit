@@ -1,7 +1,7 @@
 module Pages.ViewBigbit.Model exposing (..)
 
 import DefaultServices.Util as Util exposing (maybeMapWithDefault)
-import Models.Bigbit exposing (Bigbit, BigbitHighlightedCommentForPublication, isFSOpen)
+import Models.Bigbit exposing (Bigbit, HighlightedComment, isFSOpen)
 import Models.Completed exposing (IsCompleted)
 import Models.ViewerRelevantHC exposing (ViewerRelevantHC, browsingFrames)
 
@@ -18,7 +18,7 @@ type alias Model =
 {-| Used when viewing a bigbit and the user highlights part of the code.
 -}
 type alias ViewingBigbitRelevantHC =
-    ViewerRelevantHC BigbitHighlightedCommentForPublication
+    ViewerRelevantHC HighlightedComment
 
 
 {-| `bigbit` field updater.
