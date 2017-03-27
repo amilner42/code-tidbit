@@ -320,8 +320,7 @@ update msg model shared =
             CancelBrowseRelevantHC ->
                 ( setRelevantHC Nothing model
                 , shared
-                  -- Trigger route hook again, `modify` because we don't want to
-                  -- have the same page twice in the history.
+                  -- Trigger route hook again, `modify` because we don't want to have the same page twice in history.
                 , Route.modifyTo shared.route
                 )
 
@@ -397,8 +396,7 @@ update msg model shared =
 
 {-| Creates the code editor for the bigbit when browsing relevant HC.
 
-This will only create the editor if the state of the model (the `Maybe`s) makes
-it appropriate to render the editor.
+This will only create the editor if the state of the model (the `Maybe`s) makes it appropriate to render the editor.
 -}
 createViewBigbitHCCodeEditor : Maybe Bigbit.Bigbit -> Maybe ViewingBigbitRelevantHC -> Maybe User.User -> Cmd msg
 createViewBigbitHCCodeEditor maybeBigbit maybeRHC user =

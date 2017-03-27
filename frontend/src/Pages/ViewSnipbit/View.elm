@@ -256,9 +256,8 @@ view model shared =
         ]
 
 
-{-| Gets the comment box for the view snipbit page, can be the markdown for the
-intro/conclusion/frame or the markdown with a few extra buttons for a selected
-range.
+{-| Gets the comment box for the view snipbit page, can be the markdown for the intro/conclusion/frame or the markdown
+with a few extra buttons for a selected range.
 -}
 commentBox : Snipbit.Snipbit -> Maybe ViewingSnipbitRelevantHC -> Route.Route -> Html Msg
 commentBox snipbit relevantHC route =

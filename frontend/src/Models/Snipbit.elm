@@ -32,8 +32,7 @@ type alias HighlightedComment =
     }
 
 
-{-| A maybe highlighted comment, currently used for the creation of highlighted
-comments in snipbits.
+{-| A maybe highlighted comment, currently used for the creation of highlighted comments in snipbits.
 -}
 type alias MaybeHighlightedComment =
     { range : Maybe Range

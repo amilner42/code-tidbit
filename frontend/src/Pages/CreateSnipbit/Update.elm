@@ -215,10 +215,8 @@ update msg model shared =
                                 model.languageQueryACState
                     }
 
-            -- On top of updating the code, we need to check that no highlights
-            -- are now out of range. If highlights are now out of range we
-            -- minimize them to the greatest size they can be whilst still being
-            -- in range.
+            -- On top of updating the code, we need to check that no highlights are now out of range. If highlights are
+            -- now out of range we minimize them to the greatest size they can be whilst still being in range.
             OnUpdateCode { newCode, action, deltaRange } ->
                 let
                     currentCode =
@@ -288,8 +286,7 @@ update msg model shared =
                         Route.CreateSnipbitCodeConclusionPage ->
                             justSetModel newModel
 
-                        -- We need to go "down" a tab if the user was on the
-                        -- last tab and they removed a tab.
+                        -- We need to go "down" a tab if the user was on the last tab and they removed a tab.
                         Route.CreateSnipbitCodeFramePage frameNumber ->
                             let
                                 frameIndex =
@@ -349,8 +346,7 @@ update msg model shared =
                                 <|
                                     encodedLang
 
-                    -- If the user wants to select a new language, we help them
-                    -- by focussing the input box.
+                    -- If the user wants to select a new language, we help them by focussing the input box.
                     newCmd =
                         if Util.isNothing language then
                             Util.domFocus (always NoOp) "language-query-input"

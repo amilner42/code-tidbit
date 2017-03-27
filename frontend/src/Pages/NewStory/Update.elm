@@ -33,8 +33,8 @@ update msg model shared =
 
             OnRouteHit route ->
                 let
-                    -- If the ID of the current editingStory is different, we
-                    -- need to get the info of the story that we are editing.
+                    -- If the ID of the current editingStory is different, we need to get the info of the story that we
+                    -- are editing.
                     -- TODO ISSUE#99 Update to check cache if it is expired.
                     getEditingStoryAndFocusOn theID qpEditingStory =
                         justProduceCmd <|

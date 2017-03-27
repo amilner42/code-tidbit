@@ -18,9 +18,8 @@ encoder =
 decoder : Decode.Decoder Route
 decoder =
     let
-        {- Creates a fake location ignoring everything except the hash so we can
-           use `parseHash` from the urlParser library to do the route parsing
-           for us.
+        {- Creates a fake location ignoring everything except the hash so we can use `parseHash` from the urlParser
+           library to do the route parsing for us.
         -}
         fakeLocation hash =
             { href = ""

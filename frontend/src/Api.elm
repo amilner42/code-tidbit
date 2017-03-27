@@ -58,8 +58,8 @@ getAccount =
     apiGet "account" JSON.User.decoder
 
 
-{-| Gets all the stories, you can use query params to customize the search.
-Refer to the backend route to see what the options are.
+{-| Gets all the stories, you can use query params to customize the search. Refer to the backend route to see what the
+options are.
 -}
 getStories : List ( String, Maybe String ) -> (ApiError.ApiError -> b) -> (List Story.Story -> b) -> Cmd b
 getStories queryParams =
@@ -101,8 +101,7 @@ getExpandedStoryWithCompleted storyID =
         JSON.Story.expandedStoryDecoder
 
 
-{-| Queries the API to log the user out, which should send a response to delete
-the cookies.
+{-| Queries the API to log the user out, which should send a response to delete the cookies.
 -}
 getLogOut : (ApiError.ApiError -> b) -> (BasicResponse.BasicResponse -> b) -> Cmd b
 getLogOut =
@@ -130,8 +129,7 @@ getBigbit bigbitID =
     apiGet ("bigbits" :/: bigbitID) JSON.Bigbit.decoder
 
 
-{-| Gets tidbits, you can use query params to customize the search.
-Refer to the backend to see what the options are.
+{-| Gets tidbits, you can use query params to customize the search. Refer to the backend to see what the options are.
 -}
 getTidbits : List ( String, Maybe String ) -> (ApiError.ApiError -> b) -> (List Tidbit.Tidbit -> b) -> Cmd b
 getTidbits queryParams =
@@ -248,8 +246,7 @@ postCheckCompleted completed =
 -- API Request Wrappers
 
 
-{-| Wrapper around `postAddCompleted`, returns the result in `IsComplete` form
-using the input to get that information.
+{-| Wrapper around `postAddCompleted`, returns the result in `IsComplete` form using the input to get that information.
 -}
 postAddCompletedWrapper : Completed.Completed -> (ApiError.ApiError -> b) -> (Completed.IsCompleted -> b) -> Cmd b
 postAddCompletedWrapper completed handleError handleSuccess =
@@ -259,8 +256,8 @@ postAddCompletedWrapper completed handleError handleSuccess =
         (always <| handleSuccess <| Completed.IsCompleted completed.tidbitPointer True)
 
 
-{-| Wrapper around `postRemoveCompleted`, returns the result in `IsComplete`
-form using the input to get that information.
+{-| Wrapper around `postRemoveCompleted`, returns the result in `IsComplete` form using the input to get that
+information.
 -}
 postRemoveCompletedWrapper : Completed.Completed -> (ApiError.ApiError -> b) -> (Completed.IsCompleted -> b) -> Cmd b
 postRemoveCompletedWrapper completed handleError handleSuccess =
@@ -270,8 +267,8 @@ postRemoveCompletedWrapper completed handleError handleSuccess =
         (always <| handleSuccess <| Completed.IsCompleted completed.tidbitPointer False)
 
 
-{-| Wrapper around `postCheckCompleted`, returns the result in `IsComplete` form
-using the input to get that information.
+{-| Wrapper around `postCheckCompleted`, returns the result in `IsComplete` form using the input to get that
+information.
 -}
 postCheckCompletedWrapper : Completed.Completed -> (ApiError.ApiError -> b) -> (Completed.IsCompleted -> b) -> Cmd b
 postCheckCompletedWrapper completed handleError handleSuccess =

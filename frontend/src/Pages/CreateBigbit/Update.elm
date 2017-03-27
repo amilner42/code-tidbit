@@ -51,8 +51,6 @@ update msg model shared =
             GoTo route ->
                 justProduceCmd <| Route.navigateTo route
 
-            -- Recieves route hits from the router and handles the logic of the
-            -- route hooks.
             OnRouteHit route ->
                 let
                     createCreateBigbitEditorForCurrentFile maybeRange maybeFilePath backupRoute =
@@ -191,8 +189,7 @@ update msg model shared =
                         _ ->
                             doNothing
 
-            -- Update the code and also check if any ranges are out of range
-            -- and update those ranges.
+            -- Update the code and also check if any ranges are out of range and update those ranges.
             OnUpdateCode { newCode, action, deltaRange } ->
                 case createBigbitPageCurrentActiveFile shared.route of
                     Nothing ->
@@ -323,8 +320,7 @@ update msg model shared =
                         newModel =
                             { model | highlightedComments = newHighlightedComments }
 
-                        -- Have to make sure if they are on the last frame it pushes
-                        -- them down one frame.
+                        -- Have to make sure if they are on the last frame it pushes them down one frame.
                         newRoute =
                             case shared.route of
                                 Route.CreateBigbitCodeFramePage frameNumber filePath ->
@@ -489,12 +485,11 @@ update msg model shared =
                             |> FS.getFSMetadata
                             |> .actionButtonState
 
-                    {- Filters the highlighted comments to make sure non of them
-                       point to non-existant files. Used when removing
-                       files/folders.
+                    {- Filters the highlighted comments to make sure non of them point to non-existant files. Used
+                       when removing files/folders.
 
-                       NOTE: If all comments are filtered out, adds a blank one
-                             because we always want at least one comment.
+                       NOTE: If all comments are filtered out, adds a blank one because we always want at least one
+                             comment.
                     -}
                     getNewHighlightedComments hc newFS =
                         (Array.filter
@@ -516,8 +511,8 @@ update msg model shared =
                                         remainingArray
                                )
 
-                    {- After removing files/folders the current URL can become
-                       invalid, this function redirects to intro if needed.
+                    {- After removing files/folders the current URL can become invalid, this function redirects to
+                       intro if needed.
                     -}
                     navigateIfRouteNowInvalid newFS newHighlightedComments =
                         let

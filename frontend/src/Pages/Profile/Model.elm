@@ -14,24 +14,21 @@ type alias Model =
     }
 
 
-{-| Gets the current account name from the profile data if is not `Nothing`,
-otherwise simply returns the backup name.
+{-| Gets the current account name from the profile data if is not `Nothing`, otherwise simply returns the backup name.
 -}
 getNameWithDefault : Model -> String -> String
 getNameWithDefault model backupName =
     Util.maybeMapWithDefault Editable.getBuffer backupName model.accountName
 
 
-{-| Sets the name for `accountName`. This include initializing if it's `Nothing`
-and putting the editable in edit mode.
+{-| Sets the name for `accountName`. This include initializing if it's `Nothing` and putting the editable in edit mode.
 -}
 setName : String -> String -> Model -> Model
 setName originalName newName model =
     { model | accountName = Just <| Editable.Editing { originalValue = originalName, buffer = newName } }
 
 
-{-| Returns true if the name is currently being edited and has a new value
-compared to the original.
+{-| Returns true if the name is currently being edited and has a new value compared to the original.
 -}
 isEditingName : Model -> Bool
 isEditingName =
@@ -52,16 +49,14 @@ setAccountNameToNothing model =
     { model | accountName = Nothing }
 
 
-{-| Gets the current account bio from the profile data if it is not `Nothing`,
-otherwise simply returns the backup name.
+{-| Gets the current account bio from the profile data if it is not `Nothing`, otherwise simply returns the backup name.
 -}
 getBioWithDefault : Model -> String -> String
 getBioWithDefault model backupBio =
     Util.maybeMapWithDefault Editable.getBuffer backupBio model.accountBio
 
 
-{-| Sets the bio for `accountBio`. This includes initializing if it's `Nothing`
-and putting the editable in edit mode.
+{-| Sets the bio for `accountBio`. This includes initializing if it's `Nothing` and putting the editable in edit mode.
 -}
 setBio : String -> String -> Model -> Model
 setBio originalBio newBio model =

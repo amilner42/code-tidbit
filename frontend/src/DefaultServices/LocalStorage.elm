@@ -8,11 +8,10 @@ import Ports
 
 
 {-
-   This module will not be needed soon, they are working on a cool localStorage
-   cache system for elm, shoudl be released soon.
+   This module will not be needed soon, they are working on a cool localStorage cache system for elm, should be
+   released soon.
 
-   This module requires a couple ports in the ports module and a script must be
-   added to the index page.
+   This module requires a couple ports in the ports module and a script must be added to the index page.
 
    HTML (on index):
 

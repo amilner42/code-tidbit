@@ -88,8 +88,8 @@ update msg model shared =
                 justProduceCmd <| Api.getLogOut OnLogOutFailure OnLogOutSuccess
 
             OnLogOutSuccess basicResponse ->
-                -- TODO this should send a message up (out-msg pattern) to the
-                -- base update which will clear all component data.
+                -- TODO this should send a message up (out-msg pattern) to the base update which will clear all
+                -- component data.
                 ( model
                 , defaultShared
                 , Route.navigateTo Route.RegisterPage

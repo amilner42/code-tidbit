@@ -66,8 +66,7 @@ type alias BigbitForPublication =
     }
 
 
-{-| Basic union to keep track of the current state of the action buttons in
-the file structure.
+{-| Basic union to keep track of the current state of the action buttons in the file structure.
 -}
 type FSActionButtonState
     = AddingFolder

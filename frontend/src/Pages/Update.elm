@@ -45,11 +45,9 @@ update msg model =
 
 {-| Wrapper around `update` allowing to cache the model in local storage.
 
-NOTE: Sometimes we don't want to save to the cache, for example when the website
-originally loads if we save to cache we end up loading what we saved (the
-default model) instead of what was in there before. As well, we may in the
-future allow users to turn off automatic cacheing, so this function easily
-allows to control that.
+NOTE: Sometimes we don't want to save to the cache, for example when the website originally loads if we save to cache we
+      end up loading what we saved (the default model) instead of what was in there before. As well, we may in the
+      future allow users to turn off automatic cacheing, so this function easily allows to control that.
 -}
 updateCacheIf : Msg -> Model -> Bool -> ( Model, Cmd Msg )
 updateCacheIf msg model shouldCache =
@@ -346,8 +344,7 @@ updateCacheIf msg model shouldCache =
                         modelWithNewKeys =
                             updateKeysDown newKeysDown model
                     in
-                        -- Key held, but no new key clicked. Get rid of this if
-                        -- we need hotkeys with key-holds.
+                        -- Key held, but no new key clicked. Get rid of this if we need hotkeys with key-holds.
                         if model.shared.keysDown == newKeysDown then
                             doNothing
                         else
@@ -371,12 +368,10 @@ updateCacheIf msg model shouldCache =
                 ( newModel, newCmd )
 
 
-{-| Logic for handling new key-press, all keys currently pressed exist in
-`shared.keysDown`.
+{-| Logic for handling new key-press, all keys currently pressed exist in `shared.keysDown`.
 
-NOTE: This doesn't require that a specific element be focussed, put logic for
-route hotkeys here, if you want a hotkey only if a certain element is focussed,
-stick to putting that on the element itself.
+NOTE: This doesn't require that a specific element be focussed, put logic for route hotkeys here, if you want a hotkey
+      only if a certain element is focussed, stick to putting that on the element itself.
 -}
 handleKeyPress : Model -> ( Model, Cmd Msg )
 handleKeyPress model =
@@ -538,8 +533,7 @@ handleKeyPress model =
                 doNothing
 
 
-{-| Logic for handling new key-release, all keys currently pressed available in
-`shared.keysDown`.
+{-| Logic for handling new key-release, all keys currently pressed available in `shared.keysDown`.
 -}
 handleKeyRelease : KK.Key -> Model -> ( Model, Cmd Msg )
 handleKeyRelease releasedKey model =
@@ -553,15 +547,13 @@ getUser () =
     Api.getAccount OnGetUserFailure OnGetUserSuccess
 
 
-{-| Updates the model `route` field when the route is updated. This function
-handles the cases where the user is logged in and goes to an unauth-page like
-welcome or where the user isn't logged in and goes to an auth-page. You simply
-need to specify `routesNotNeedingAuth`, `defaultUnauthRoute`, and
-`defaultAuthRoute` in your `Routes` model. It also handles users going to
-routes that don't exist (just goes `back` to the route they were on before).
+{-| Updates the model `route` field when the route is updated. This function handles the cases where the user is logged
+in and goes to an unauth-page like welcome or where the user isn't logged in and goes to an auth-page. You simply need
+to specify `routesNotNeedingAuth`, `defaultUnauthRoute`, and `defaultAuthRoute` in your `Routes` model. It also handles
+users going to routes that don't exist (just goes `back` to the route they were on before).
 
-Aside from auth logic, nothing else should be put here otherwise it gets
-crowded. Trigger route hooks on the sub-pages and let them hande the logic.
+Aside from auth logic, nothing else should be put here otherwise it gets crowded. Trigger route hooks on the sub-pages
+and let them hande the logic.
 -}
 handleLocationChange : Maybe Route.Route -> Model -> ( Model, Cmd Msg )
 handleLocationChange maybeRoute model =

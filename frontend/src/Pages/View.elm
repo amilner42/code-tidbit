@@ -52,12 +52,10 @@ view model =
 
 {-| Loads the correct view depending on the route we are on.
 
-NOTE: The way we structure the routing we don't need to do ANY checking here
-to see if the route being loaded is correct (eg. maybe their loading a route
-that needs auth but they're not logged in) because that logic is already
-handled in `handleLocationChange`. At the point this function is called, the
-user has already changed their route, we've already approved that the route
-change is good and updated the model, and now we just need to render it.
+NOTE: The way we structure the routing we don't need to do ANY checking here to see if the route being loaded is correct
+      (eg. maybe their loading a route that needs auth but they're not logged in) because that logic is already handled
+      in `handleLocationChange`. At the point this function is called, the user has already changed their route, we've
+      already approved that the route change is good and updated the model, and now we just need to render it.
 -}
 viewForRoute : Model -> Html.Html Msg
 viewForRoute model =

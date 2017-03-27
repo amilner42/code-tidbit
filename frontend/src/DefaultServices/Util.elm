@@ -104,8 +104,7 @@ onKeydown =
 
 {-| Event handler for `keyDown` events that also `preventDefault`.
 
-WARNING: It'll only prevent default if your function returns a message not
-`Nothing`.
+WARNING: It'll only prevent default if your function returns a message not `Nothing`.
 -}
 onKeydownPreventDefault : (KK.Key -> Maybe msg) -> Attribute msg
 onKeydownPreventDefault =
@@ -174,8 +173,7 @@ resultToBool result =
             True
 
 
-{-| Given a bunch of maybe query params, turns it into a string of the query
-params that are actually there.
+{-| Given a bunch of maybe query params, turns it into a string of the query params that are actually there.
 
 Eg.
   []  -> ""
@@ -229,7 +227,7 @@ maybeMapWithDefault func default maybeA =
 
 {-| Date decoder.
 
-Will decode both dates in number-form and dates in ISO-string-form.
+NOTE: Will decode both dates in number-form and dates in ISO-string-form.
 -}
 dateDecoder : Decode.Decoder Date.Date
 dateDecoder =
@@ -273,16 +271,15 @@ keyedDiv =
     Keyed.node "div"
 
 
-{-| Returns `Just` the element at the given index in the list,
-or `Nothing` if the list is not long enough.
+{-| Returns `Just` the element at the given index in the list, or `Nothing` if the list is not long enough.
 -}
 getAt : List a -> Int -> Maybe a
 getAt xs idx =
     List.head <| List.drop idx xs
 
 
-{-| Get's the index of the first False in a list, otherwise returns nothing if
-the list does not contain a single False.
+{-| Get's the index of the first `False` in a list, otherwise returns `Nothing` if the list does not contain a single
+`False`.
 -}
 indexOfFirstFalse : List Bool -> Maybe Int
 indexOfFirstFalse =
@@ -301,16 +298,14 @@ indexOfFirstFalse =
         go 0
 
 
-{-| When running multiple updates, it can be cleaner aesthetically to have it as
-one list as opposed to using pipes.
+{-| When running multiple updates, it can be cleaner aesthetically to have it as one list as opposed to using pipes.
 -}
 multipleUpdates : List (a -> a) -> (a -> a)
 multipleUpdates =
     List.foldl (>>) identity
 
 
-{-| For adding a string to a list of strings if it's not empty and it's also not
-already in the list.
+{-| For adding a string to a list of strings if it's not empty and it's also not already in the list.
 -}
 addUniqueNonEmptyString : String -> List String -> List String
 addUniqueNonEmptyString stringToAdd listOfStrings =
@@ -326,9 +321,7 @@ addUniqueNonEmptyString stringToAdd listOfStrings =
 -}
 emptyFlexBoxesForAlignment : List (Html msg)
 emptyFlexBoxesForAlignment =
-    (List.repeat 10 <|
-        div [ class "empty-tidbit-box-for-flex-align" ] []
-    )
+    List.repeat 10 <| div [ class "empty-tidbit-box-for-flex-align" ] []
 
 
 {-| Renders markdown if condition is true, otherwise the backup html.
@@ -345,15 +338,11 @@ markdownOr condition markdownText backUpHtml =
 -}
 checkIcon : Html msg
 checkIcon =
-    i
-        [ class "material-icons check-icon" ]
-        [ text "check" ]
+    i [ class "material-icons check-icon" ] [ text "check" ]
 
 
 {-| Helper for flipping the previewMarkdown field of any record.
 -}
 togglePreviewMarkdown : { a | previewMarkdown : Bool } -> { a | previewMarkdown : Bool }
 togglePreviewMarkdown record =
-    { record
-        | previewMarkdown = not record.previewMarkdown
-    }
+    { record | previewMarkdown = not record.previewMarkdown }

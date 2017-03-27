@@ -50,8 +50,7 @@ getLastModified tidbit =
             lastModified
 
 
-{-| Gets the route-base for viewing the tidbit, still requires the ID to become
-a full `Route`.
+{-| Gets the route-base for viewing the tidbit, still requires the ID to become a full `Route`.
 -}
 getTidbitRoute : Maybe String -> Tidbit -> Route.Route
 getTidbitRoute fromStoryID tidbit =

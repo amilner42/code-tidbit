@@ -279,8 +279,7 @@ update msg model shared =
             CancelBrowseRelevantHC ->
                 ( setViewingSnipbitRelevantHC Nothing model
                 , shared
-                  -- Trigger route hook again, `modify` because we don't want to
-                  -- have the same page twice in the history.
+                  -- Trigger route hook again, `modify` because we don't want to have the same page twice in history.
                 , Route.modifyTo shared.route
                 )
 
@@ -388,8 +387,7 @@ createViewSnipbitCodeEditor snipbit { route, user } =
 
 {-| Creates the code editor for the snipbit when browsing the relevant HC.
 
-This will only create the editor if the state of the model (the `Maybe`s) makes
-it appropriate to render the editor.
+This will only create the editor if the state of the model (the `Maybe`s) makes it appropriate to render the editor.
 -}
 createViewSnipbitHCCodeEditor : Maybe Snipbit.Snipbit -> Maybe ViewingSnipbitRelevantHC -> Maybe User.User -> Cmd msg
 createViewSnipbitHCCodeEditor maybeSnipbit maybeRHC user =

@@ -77,8 +77,8 @@ isBigbitFSTabOpen maybeBigbit maybeRHC =
     (not <| isBigbitRHCTabOpen maybeRHC) && isBigbitFSOpen maybeBigbit
 
 
-{-| Returns true if the FS is open, this is NOT the same as the FS tab being open,
-the FS can be open but have the browsing-rhc over-top it.
+{-| Returns true if the FS is open, this is NOT the same as the FS tab being open, the FS can be open but have the
+browsing-rhc over-top it.
 -}
 isBigbitFSOpen : Maybe Bigbit -> Bool
 isBigbitFSOpen =

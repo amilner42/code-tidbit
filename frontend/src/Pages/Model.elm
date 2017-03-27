@@ -19,8 +19,8 @@ import Pages.Welcome.Model as WelcomeModel
 
 {-| `Base` model.
 
-The base page will have nested inside it the state of every individual page as
-well as `shared`, which will be passed to all pages so they can share data.
+The base page will have nested inside it the state of every individual page as well as `shared`, which will be passed to
+all pages so they can share data.
 -}
 type alias Model =
     { shared : Shared
@@ -53,10 +53,9 @@ type alias Shared =
 
 {-| A wrapper around KK.update to handle extra logic.
 
-Extra Logic: When someone clicks shift-tab, they could let go of the tab but
-keep their hand on the shift and click the tab again to "double-shift-tab" to
-allow this behaviour, every shift tab we reset it as if it was the first
-shift-tab clicked.
+Extra Logic: When someone clicks shift-tab, they could let go of the tab but keep their hand on the shift and click the
+tab again to "double-shift-tab" to allow this behaviour, every shift tab we reset it as if it was the first shift-tab
+clicked.
 -}
 kkUpdateWrapper : KK.Msg -> KK.Model -> KK.Model
 kkUpdateWrapper keyMsg keysDown =

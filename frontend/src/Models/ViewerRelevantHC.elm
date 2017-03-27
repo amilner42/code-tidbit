@@ -6,9 +6,8 @@ import Html exposing (Html, div, text)
 import Html.Attributes exposing (class)
 
 
-{-| The relevant highlighted comments for a selected range as well as the
-as a field (`currentHC`) for keeping track of the current HC that the user is
-reading.
+{-| The relevant highlighted comments for a selected range as well as the as a field (`currentHC`) for keeping track of
+the current HC that the user is reading.
 -}
 type alias ViewerRelevantHC hcType =
     { currentHC : Maybe Int
@@ -56,8 +55,7 @@ browsingFrames vr =
     Util.isNotNothing <| currentFramePair vr
 
 
-{-| Returns true if the viewer has relevant HC to be browsed but the user is
-currently not browsing any.
+{-| Returns true if the viewer has relevant HC to be browsed but the user is currently not browsing any.
 -}
 hasFramesButNotBrowsing : ViewerRelevantHC a -> Bool
 hasFramesButNotBrowsing vr =
@@ -90,8 +88,7 @@ goToPreviousFrame vr =
     }
 
 
-{-| Helper for creating the text above the RHC specifying how many found and
-what RHC we are on currently.
+{-| Helper for creating the text above the RHC specifying how many found and what RHC we are on currently.
 -}
 relevantHCTextAboveFrameSpecifyingPosition : ( Int, Int ) -> Html msg
 relevantHCTextAboveFrameSpecifyingPosition ( current, total ) =

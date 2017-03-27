@@ -85,8 +85,7 @@ update msg model shared =
                             doNothing
 
                         Just user ->
-                            -- If this is indeed the author, then stay on page,
-                            -- otherwise redirect.
+                            -- If this is indeed the author, then stay on page, otherwise redirect.
                             if user.id == expandedStory.author then
                                 ( setStory expandedStory model
                                 , newShared

@@ -287,9 +287,8 @@ view model shared =
             ]
 
 
-{-| Gets the comment box for the view bigbit page, can be the markdown for the
-intro/conclusion/frame, the FS, or the markdown with a few extra buttons for a
-selected range.
+{-| Gets the comment box for the view bigbit page, can be the markdown for the intro/conclusion/frame, the FS, or the
+markdown with a few extra buttons for a selected range.
 -}
 viewBigbitCommentBox : Bigbit.Bigbit -> Maybe ViewingBigbitRelevantHC -> Route.Route -> Html Msg
 viewBigbitCommentBox bigbit maybeRHC route =

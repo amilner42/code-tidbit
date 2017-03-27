@@ -250,9 +250,8 @@ routeRequiresAuth route =
 
 {-| Returns `True` iff the route requires that the user not be authenticated.
 
-NOTE: This is NOT the same as `not routeRequiresAuth` as there are routes
-that the user can access both logged-in and logged-out, these are specifically
-the routes that you must be logged-out to access.
+NOTE: This is NOT the same as `not routeRequiresAuth` as there are routes that the user can access both logged-in and
+      logged-out, these are specifically the routes that you must be logged-out to access.
 -}
 routeRequiresNotAuth : Route -> Bool
 routeRequiresNotAuth route =
@@ -436,16 +435,15 @@ navigateTo route =
     Navigation.newUrl <| toHashUrl <| route
 
 
-{-| Goes to a given route by modifying the current URL instead of adding a new
-url to the browser history.
+{-| Goes to a given route by modifying the current URL instead of adding a new url to the browser history.
 -}
 modifyTo : Route -> Cmd msg
 modifyTo route =
     Navigation.modifyUrl <| toHashUrl <| route
 
 
-{-| For routes that have a file path query paramter, will  navigate to the same
-URL but with the file path added as a query param, otheriwse will do nothing.
+{-| For routes that have a file path query paramter, will  navigate to the same URL but with the file path added as a
+query param, otheriwse will do nothing.
 -}
 navigateToSameUrlWithFilePath : Maybe FS.Path -> Route -> Cmd msg
 navigateToSameUrlWithFilePath maybePath route =
@@ -472,8 +470,7 @@ navigateToSameUrlWithFilePath maybePath route =
             Cmd.none
 
 
-{-| Returns the query paramater "editingStory" if on the create new story routes
-and the parameter is present.
+{-| Returns the query paramater "editingStory" if on the create new story routes and the parameter is present.
 -}
 getEditingStoryQueryParamOnCreateNewStoryRoute : Route -> Maybe MongoID
 getEditingStoryQueryParamOnCreateNewStoryRoute route =
@@ -491,8 +488,7 @@ getEditingStoryQueryParamOnCreateNewStoryRoute route =
             Nothing
 
 
-{-| Returns the query parameter "fromStory" if viewing a snipbit and that query
-param is present.
+{-| Returns the query parameter "fromStory" if viewing a snipbit and that query param is present.
 -}
 getFromStoryQueryParamOnViewSnipbitRoute : Route -> Maybe MongoID
 getFromStoryQueryParamOnViewSnipbitRoute route =
@@ -510,8 +506,7 @@ getFromStoryQueryParamOnViewSnipbitRoute route =
             Nothing
 
 
-{-| Returns the query parameter "fromStory" if viewing a bigbit and that query
-param is present.
+{-| Returns the query parameter "fromStory" if viewing a bigbit and that query param is present.
 -}
 getFromStoryQueryParamOnViewBigbitRoute : Route -> Maybe MongoID
 getFromStoryQueryParamOnViewBigbitRoute route =
