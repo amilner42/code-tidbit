@@ -284,7 +284,7 @@ updateCacheIf msg model shouldCache =
                         "create-bigbit-code-editor" ->
                             (updateCacheIf
                                 (CreateBigbitMessage <|
-                                    CreateBigbitMessages.BigbitUpdateCode
+                                    CreateBigbitMessages.OnUpdateCode
                                         { newCode = value
                                         , deltaRange = deltaRange
                                         , action = action
@@ -311,7 +311,7 @@ updateCacheIf msg model shouldCache =
                         "create-bigbit-code-editor" ->
                             (updateCacheIf
                                 (CreateBigbitMessage <|
-                                    CreateBigbitMessages.BigbitNewRangeSelected range
+                                    CreateBigbitMessages.OnRangeSelected range
                                 )
                                 model
                                 shouldCache

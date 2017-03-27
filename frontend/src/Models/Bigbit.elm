@@ -9,7 +9,6 @@ import Dict
 import Elements.Editor as Editor
 import Elements.FileStructure as FS
 import Models.Range as Range
-import Models.Route as Route
 
 
 {-| A Bigbit as seen in the database, with a few extra fields thrown in the FS
@@ -103,28 +102,3 @@ toggleFSFolder absolutePath fs =
                 }
         )
         fs
-
-
-{-| The current active path (on view page) determined from the route or the
-current comment frame.
-
--- TODO MOVE
--}
-viewPageCurrentActiveFile : Route.Route -> Bigbit -> Maybe FS.Path
-viewPageCurrentActiveFile route bigbit =
-    case route of
-        Route.ViewBigbitIntroductionPage _ _ maybePath ->
-            maybePath
-
-        Route.ViewBigbitFramePage _ _ frameNumber maybePath ->
-            if Util.isNotNothing maybePath then
-                maybePath
-            else
-                Array.get (frameNumber - 1) bigbit.highlightedComments
-                    |> Maybe.map .file
-
-        Route.ViewBigbitConclusionPage _ _ maybePath ->
-            maybePath
-
-        _ ->
-            Nothing

@@ -232,44 +232,44 @@ isValidRemoveFolderInput absolutePath fs =
 
 {-| Returns the filled-in name or `Nothing`.
 -}
-createDataNameFilledIn : Model -> Maybe String
-createDataNameFilledIn =
+nameFilledIn : Model -> Maybe String
+nameFilledIn =
     .name >> Util.justNonEmptyString
 
 
 {-| Returns the filled-in description or `Nothing`.
 -}
-createDataDescriptionFilledIn : Model -> Maybe String
-createDataDescriptionFilledIn =
+descriptionFilledIn : Model -> Maybe String
+descriptionFilledIn =
     .description >> Util.justNonEmptyString
 
 
 {-| Returns the filled-in tags or `Nothing`.
 -}
-createDataTagsFilledIn : Model -> Maybe (List String)
-createDataTagsFilledIn =
+tagsFilledIn : Model -> Maybe (List String)
+tagsFilledIn =
     .tags >> Util.justNonEmptyList
 
 
 {-| Returns the filled-in introduction or `Nothing`.
 -}
-createDataIntroductionFilledIn : Model -> Maybe String
-createDataIntroductionFilledIn =
+introductionFilledIn : Model -> Maybe String
+introductionFilledIn =
     .introduction >> Util.justNonEmptyString
 
 
 {-| Returns the filled-in conclusion or `Nothing`.
 -}
-createDataConclusionFilledIn : Model -> Maybe String
-createDataConclusionFilledIn =
+conclusionFilledIn : Model -> Maybe String
+conclusionFilledIn =
     .conclusion >> Util.justNonEmptyString
 
 
 {-| Returns the filled-in highlighted comments [in publication form] or
 `Nothing`.
 -}
-createDataHighlightedCommentsFilledIn : Model -> Maybe (List BigbitHighlightedCommentForPublication)
-createDataHighlightedCommentsFilledIn =
+highlightedCommentsFilledIn : Model -> Maybe (List BigbitHighlightedCommentForPublication)
+highlightedCommentsFilledIn =
     .highlightedComments
         >> (Array.foldr
                 (\hc currentList ->
@@ -304,14 +304,9 @@ createDataHighlightedCommentsFilledIn =
 
 {-| Returns true if all data in the code tab is filled-in.
 -}
-createDataCodeTabFilledIn : Model -> Bool
-createDataCodeTabFilledIn createData =
-    case
-        ( createDataIntroductionFilledIn createData
-        , createDataConclusionFilledIn createData
-        , createDataHighlightedCommentsFilledIn createData
-        )
-    of
+codeTabFilledIn : Model -> Bool
+codeTabFilledIn model =
+    case ( introductionFilledIn model, conclusionFilledIn model, highlightedCommentsFilledIn model ) of
         ( Just _, Just _, Just _ ) ->
             True
 
@@ -319,18 +314,17 @@ createDataCodeTabFilledIn createData =
             False
 
 
-{-| Given the create data, returns BigbitForPublication if the data is
-completely filled out, otherwise returns Nothing.
+{-| Given the model, returns BigbitForPublication if the data is completely filled out, otherwise returns `Nothing`.
 -}
-createDataToPublicationData : Model -> Maybe BigbitForPublication
-createDataToPublicationData createData =
+toPublicationData : Model -> Maybe BigbitForPublication
+toPublicationData model =
     case
-        ( createDataNameFilledIn createData
-        , createDataDescriptionFilledIn createData
-        , createDataTagsFilledIn createData
-        , createDataIntroductionFilledIn createData
-        , createDataConclusionFilledIn createData
-        , createDataHighlightedCommentsFilledIn createData
+        ( nameFilledIn model
+        , descriptionFilledIn model
+        , tagsFilledIn model
+        , introductionFilledIn model
+        , conclusionFilledIn model
+        , highlightedCommentsFilledIn model
         )
     of
         ( Just name, Just description, Just tags, Just introduction, Just conclusion, Just hc ) ->
@@ -341,28 +335,8 @@ createDataToPublicationData createData =
                     tags
                     introduction
                     conclusion
-                    (createData.fs
-                        |> FS.metaMap (always ()) (always ()) (identity)
-                    )
+                    (model.fs |> FS.metaMap (always ()) (always ()) (identity))
                     hc
-
-        _ ->
-            Nothing
-
-
-{-| The current active path (on create page) determined from the route.
--}
-createPageCurrentActiveFile : Route.Route -> Maybe FS.Path
-createPageCurrentActiveFile route =
-    case route of
-        Route.CreateBigbitCodeIntroductionPage maybePath ->
-            maybePath
-
-        Route.CreateBigbitCodeFramePage _ maybePath ->
-            maybePath
-
-        Route.CreateBigbitCodeConclusionPage maybePath ->
-            maybePath
 
         _ ->
             Nothing
@@ -370,8 +344,8 @@ createPageCurrentActiveFile route =
 
 {-| Gets the active file (on create page) for a specific frame.
 -}
-createPageGetActiveFileForFrame : Int -> Model -> Maybe FS.Path
-createPageGetActiveFileForFrame frameNumber bigbit =
+getActiveFileForFrame : Int -> Model -> Maybe FS.Path
+getActiveFileForFrame frameNumber bigbit =
     Array.get (frameNumber - 1) bigbit.highlightedComments
         |> Maybe.andThen .fileAndRange
         |> Maybe.map .file
@@ -380,21 +354,21 @@ createPageGetActiveFileForFrame frameNumber bigbit =
 {-| Sets one of the highlighted comments at position `index` to it's new value,
 if the `index` has no value then the createData is returned unchanged.
 -}
-updateCreateDataHCAtIndex :
+updateHCAtIndex :
     Model
     -> Int
     -> (BigbitHighlightedCommentForCreate -> BigbitHighlightedCommentForCreate)
     -> Model
-updateCreateDataHCAtIndex bigbit index hcUpdater =
-    { bigbit
-        | highlightedComments =
-            ArrayExtra.update index hcUpdater bigbit.highlightedComments
-    }
+updateHCAtIndex bigbit index hcUpdater =
+    { bigbit | highlightedComments = ArrayExtra.update index hcUpdater bigbit.highlightedComments }
 
 
 {-| Checks equality against the current state of `actionButtonState`.
 -}
-fsActionStateEquals : Maybe FSActionButtonState -> FS.FileStructure { a | actionButtonState : Maybe FSActionButtonState } b c -> Bool
+fsActionStateEquals :
+    Maybe FSActionButtonState
+    -> FS.FileStructure { a | actionButtonState : Maybe FSActionButtonState } b c
+    -> Bool
 fsActionStateEquals maybeActionState =
     FS.getFSMetadata >> .actionButtonState >> (==) maybeActionState
 
@@ -408,14 +382,11 @@ defaultEmptyFolder =
 
 {-| Clears the action button input.
 -}
-clearActionButtonInput : FS.FileStructure BigbitCreateDataFSMetadata b c -> FS.FileStructure BigbitCreateDataFSMetadata b c
+clearActionButtonInput :
+    FS.FileStructure BigbitCreateDataFSMetadata b c
+    -> FS.FileStructure BigbitCreateDataFSMetadata b c
 clearActionButtonInput =
-    FS.updateFSMetadata
-        (\fsMetadata ->
-            { fsMetadata
-                | actionButtonInput = ""
-            }
-        )
+    FS.updateFSMetadata (\fsMetadata -> { fsMetadata | actionButtonInput = "" })
 
 
 {-| Gets the range from the previous frame's selected range if we're on a route
@@ -423,10 +394,10 @@ which has a previous frame (Code Frame 2+) and the previous frame has a selected
 non-empty range.
 -}
 previousFrameRange : Model -> Route.Route -> Maybe ( FS.Path, Range.Range )
-previousFrameRange createData route =
+previousFrameRange model route =
     case route of
         Route.CreateBigbitCodeFramePage frameNumber _ ->
-            Array.get (frameNumber - 2) createData.highlightedComments
+            Array.get (frameNumber - 2) model.highlightedComments
                 |> Maybe.andThen .fileAndRange
                 |> Maybe.andThen
                     (\{ file, range } ->
@@ -447,10 +418,4 @@ setActionButtonSubmitConfirmed :
     -> FS.FileStructure { a | actionButtonSubmitConfirmed : Bool } b c
     -> FS.FileStructure { a | actionButtonSubmitConfirmed : Bool } b c
 setActionButtonSubmitConfirmed newConfirmValue fs =
-    fs
-        |> FS.updateFSMetadata
-            (\fsMetadata ->
-                { fsMetadata
-                    | actionButtonSubmitConfirmed = newConfirmValue
-                }
-            )
+    fs |> FS.updateFSMetadata (\fsMetadata -> { fsMetadata | actionButtonSubmitConfirmed = newConfirmValue })

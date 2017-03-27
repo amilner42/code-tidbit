@@ -14,7 +14,7 @@ import Models.Range as Range
 import Pages.CreateBigbit.Model exposing (..)
 
 
-{-| `CreateBigbitModel` encoder.
+{-| `CreateBigbit` encoder.
 -}
 encoder : Model -> Encode.Value
 encoder model =
@@ -23,39 +23,17 @@ encoder model =
             JSON.FileStructure.encoder
                 (\fsMetadata ->
                     Encode.object
-                        [ ( "activeFile"
-                          , Util.justValueOrNull
-                                Encode.string
-                                fsMetadata.activeFile
-                          )
+                        [ ( "activeFile", Util.justValueOrNull Encode.string fsMetadata.activeFile )
                         , ( "openFS", Encode.bool fsMetadata.openFS )
                         , ( "actionButtonState"
-                          , Util.justValueOrNull
-                                fsActionButtonStateEncoder
-                                fsMetadata.actionButtonState
+                          , Util.justValueOrNull fsActionButtonStateEncoder fsMetadata.actionButtonState
                           )
-                        , ( "actionButtonInput"
-                          , Encode.string fsMetadata.actionButtonInput
-                          )
-                        , ( "actionButtonSubmitConfirmed"
-                          , Encode.bool fsMetadata.actionButtonSubmitConfirmed
-                          )
+                        , ( "actionButtonInput", Encode.string fsMetadata.actionButtonInput )
+                        , ( "actionButtonSubmitConfirmed", Encode.bool fsMetadata.actionButtonSubmitConfirmed )
                         ]
                 )
-                (\folderMetadata ->
-                    Encode.object
-                        [ ( "isExpanded"
-                          , Encode.bool folderMetadata.isExpanded
-                          )
-                        ]
-                )
-                (\fileMetadata ->
-                    Encode.object
-                        [ ( "language"
-                          , JSON.Language.encoder fileMetadata.language
-                          )
-                        ]
-                )
+                (\folderMetadata -> Encode.object [ ( "isExpanded", Encode.bool folderMetadata.isExpanded ) ])
+                (\fileMetadata -> Encode.object [ ( "language", JSON.Language.encoder fileMetadata.language ) ])
     in
         Encode.object
             [ ( "name", Encode.string model.name )
@@ -66,16 +44,13 @@ encoder model =
             , ( "conclusion", Encode.string model.conclusion )
             , ( "fs", fsEncoder model.fs )
             , ( "highlightedComments"
-              , Encode.array <|
-                    Array.map
-                        createHighlightedCommentEncoder
-                        model.highlightedComments
+              , Encode.array <| Array.map createHighlightedCommentEncoder model.highlightedComments
               )
             , ( "previewMarkdown", Encode.bool model.previewMarkdown )
             ]
 
 
-{-| `CreateBigbitModel` decoder.
+{-| `CreateBigbit` decoder.
 -}
 decoder : Decode.Decoder Model
 decoder =
@@ -85,8 +60,7 @@ decoder =
                 (decode BigbitCreateDataFSMetadata
                     |> required "activeFile" (Decode.maybe Decode.string)
                     |> required "openFS" Decode.bool
-                    |> required "actionButtonState"
-                        (Decode.maybe fsActionButtonStateDecoder)
+                    |> required "actionButtonState" (Decode.maybe fsActionButtonStateDecoder)
                     |> required "actionButtonInput" Decode.string
                     |> required "actionButtonSubmitConfirmed" Decode.bool
                 )
@@ -105,8 +79,7 @@ decoder =
             |> required "introduction" Decode.string
             |> required "conclusion" Decode.string
             |> required "fs" fsDecoder
-            |> required "highlightedComments"
-                (Decode.array createHighlightedCommentDecoder)
+            |> required "highlightedComments" (Decode.array createHighlightedCommentDecoder)
             |> required "previewMarkdown" Decode.bool
 
 
@@ -137,9 +110,7 @@ fsActionButtonStateDecoder =
                     Decode.succeed RemovingFolder
 
                 _ ->
-                    Decode.fail <|
-                        "Not a valid encoded action state: "
-                            ++ encodedActionState
+                    Decode.fail <| "Not a valid encoded action state: " ++ encodedActionState
     in
         Decode.string
             |> Decode.andThen fromStringDecoder
@@ -154,13 +125,7 @@ publicationEncoder bigbit =
             JSON.FileStructure.encoder
                 (always <| Encode.object [])
                 (always <| Encode.object [])
-                (\fileMetadata ->
-                    Encode.object
-                        [ ( "language"
-                          , JSON.Language.encoder fileMetadata.language
-                          )
-                        ]
-                )
+                (\fileMetadata -> Encode.object [ ( "language", JSON.Language.encoder fileMetadata.language ) ])
                 fs
     in
         Encode.object
@@ -171,10 +136,7 @@ publicationEncoder bigbit =
             , ( "conclusion", Encode.string bigbit.conclusion )
             , ( "fs", fsEncoder bigbit.fs )
             , ( "highlightedComments"
-              , Encode.list <|
-                    List.map
-                        publicationHighlightedCommentEncoder
-                        bigbit.highlightedComments
+              , Encode.list <| List.map publicationHighlightedCommentEncoder bigbit.highlightedComments
               )
             ]
 
@@ -189,11 +151,7 @@ createHighlightedCommentEncoder hc =
           , Util.justValueOrNull
                 (\fileAndRange ->
                     Encode.object
-                        [ ( "range"
-                          , Util.justValueOrNull
-                                JSON.Range.encoder
-                                fileAndRange.range
-                          )
+                        [ ( "range", Util.justValueOrNull JSON.Range.encoder fileAndRange.range )
                         , ( "file", Encode.string fileAndRange.file )
                         ]
                 )

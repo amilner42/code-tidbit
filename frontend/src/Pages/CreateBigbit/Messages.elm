@@ -1,12 +1,11 @@
 module Pages.CreateBigbit.Messages exposing (..)
 
-import Elements.Editor as Editor
+import Elements.Editor exposing (Language)
 import Elements.FileStructure as FS
-import Models.ApiError as ApiError
-import Models.Bigbit as Bigbit
+import Models.ApiError exposing (ApiError)
 import Models.IDResponse exposing (IDResponse)
-import Models.Range as Range
-import Models.Route as Route
+import Models.Range exposing (Range)
+import Models.Route exposing (Route)
 import Pages.CreateBigbit.Model exposing (..)
 
 
@@ -14,31 +13,31 @@ import Pages.CreateBigbit.Model exposing (..)
 -}
 type Msg
     = NoOp
-    | OnRouteHit Route.Route
-    | GoTo Route.Route
-    | BigbitGoToCodeTab
-    | BigbitReset
-    | BigbitUpdateName String
-    | BigbitUpdateDescription String
-    | BigbitUpdateTagInput String
-    | BigbitAddTag String
-    | BigbitRemoveTag String
-    | BigbitUpdateIntroduction String
-    | BigbitUpdateConclusion String
-    | BigbitToggleFS
-    | BigbitFSToggleFolder FS.Path
-    | BigbitTogglePreviewMarkdown
-    | BigbitUpdateActionButtonState (Maybe FSActionButtonState)
-    | BigbitUpdateActionInput String
-    | BigbitSubmitActionInput
-    | BigbitAddFile FS.Path Editor.Language
-    | BigbitUpdateCode { newCode : String, deltaRange : Range.Range, action : String }
-    | BigbitFileSelected FS.Path
-    | BigbitAddFrame
-    | BigbitRemoveFrame
-    | BigbitUpdateFrameComment Int String
-    | BigbitNewRangeSelected Range.Range
-    | BigbitPublish BigbitForPublication
-    | BigbitJumpToLineFromPreviousFrame FS.Path
-    | OnBigbitPublishFailure ApiError.ApiError
-    | OnBigbitPublishSuccess IDResponse
+    | GoTo Route
+    | OnRouteHit Route
+    | OnUpdateCode { newCode : String, deltaRange : Range, action : String }
+    | OnRangeSelected Range
+    | GoToCodeTab
+    | Reset
+    | AddFrame
+    | RemoveFrame
+    | ToggleFS
+    | ToggleFolder FS.Path
+    | SelectFile FS.Path
+    | TogglePreviewMarkdown
+    | AddFile FS.Path Language
+    | JumpToLineFromPreviousFrame FS.Path
+    | OnUpdateName String
+    | OnUpdateDescription String
+    | OnUpdateTagInput String
+    | AddTag String
+    | RemoveTag String
+    | OnUpdateIntroduction String
+    | OnUpdateFrameComment Int String
+    | OnUpdateConclusion String
+    | UpdateActionButtonState (Maybe FSActionButtonState)
+    | OnUpdateActionInput String
+    | SubmitActionInput
+    | Publish BigbitForPublication
+    | OnPublishSuccess IDResponse
+    | OnPublishFailure ApiError

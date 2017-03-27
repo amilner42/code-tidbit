@@ -8,7 +8,7 @@ import Elements.Editor as Editor
 import Elements.FileStructure as FS
 import Models.Bigbit as Bigbit
 import Models.Range as Range
-import Models.Route as Route
+import Models.Route as Route exposing (createBigbitPageCurrentActiveFile)
 import Models.User as User
 import Pages.CreateBigbit.Init exposing (..)
 import Pages.CreateBigbit.Messages exposing (..)
@@ -47,6 +47,9 @@ update msg model shared =
         case msg of
             NoOp ->
                 doNothing
+
+            GoTo route ->
+                justProduceCmd <| Route.navigateTo route
 
             -- Recieves route hits from the router and handles the logic of the
             -- route hooks.
@@ -87,8 +90,7 @@ update msg model shared =
                             ]
 
                     focusOn theID =
-                        justProduceCmd <|
-                            Util.domFocus (\_ -> NoOp) theID
+                        justProduceCmd <| Util.domFocus (\_ -> NoOp) theID
                 in
                     case route of
                         Route.CreateBigbitNamePage ->
@@ -112,74 +114,53 @@ update msg model shared =
 
                         Route.CreateBigbitCodeFramePage frameNumber maybeFilePath ->
                             if frameNumber < 1 then
-                                justProduceCmd <|
-                                    Route.modifyTo <|
-                                        Route.CreateBigbitCodeIntroductionPage Nothing
+                                justProduceCmd <| Route.modifyTo <| Route.CreateBigbitCodeIntroductionPage Nothing
                             else if frameNumber > (Array.length currentBigbitHighlightedComments) then
-                                justProduceCmd <|
-                                    Route.modifyTo <|
-                                        Route.CreateBigbitCodeConclusionPage Nothing
+                                justProduceCmd <| Route.modifyTo <| Route.CreateBigbitCodeConclusionPage Nothing
                             else
                                 let
-                                    newModel =
+                                    -- Update the HC if the route has a file path.
+                                    hcUpdaterIfOnFilePath currentHighlightedComment filePath =
+                                        case currentHighlightedComment.fileAndRange of
+                                            -- Brand new frame, attempting to use range of previous frame.
+                                            Nothing ->
+                                                { currentHighlightedComment
+                                                    | fileAndRange =
+                                                        Just
+                                                            { range =
+                                                                case previousFrameRange model shared.route of
+                                                                    Nothing ->
+                                                                        Nothing
+
+                                                                    Just ( prevFilePath, range ) ->
+                                                                        if FS.isSameFilePath filePath prevFilePath then
+                                                                            Just <| Range.collapseRange range
+                                                                        else
+                                                                            Nothing
+                                                            , file = filePath
+                                                            }
+                                                }
+
+                                            -- Refreshed/changed file path for current frame.
+                                            Just fileAndRange ->
+                                                if FS.isSameFilePath fileAndRange.file filePath then
+                                                    currentHighlightedComment
+                                                else
+                                                    { currentHighlightedComment
+                                                        | fileAndRange = Just { range = Nothing, file = filePath }
+                                                    }
+
+                                    -- Update the HC depending on the `maybeFilePath`.
+                                    hcUpdater currentHighlightedComment =
                                         case maybeFilePath of
                                             Nothing ->
-                                                case Array.get (frameNumber - 1) currentBigbitHighlightedComments of
-                                                    Nothing ->
-                                                        model
-
-                                                    Just currentHighlightedComment ->
-                                                        { model
-                                                            | highlightedComments =
-                                                                Array.set
-                                                                    (frameNumber - 1)
-                                                                    { currentHighlightedComment
-                                                                        | fileAndRange = Nothing
-                                                                    }
-                                                                    currentBigbitHighlightedComments
-                                                        }
+                                                { currentHighlightedComment | fileAndRange = Nothing }
 
                                             Just filePath ->
-                                                case Array.get (frameNumber - 1) currentBigbitHighlightedComments of
-                                                    Nothing ->
-                                                        model
+                                                hcUpdaterIfOnFilePath currentHighlightedComment filePath
 
-                                                    Just currentHighlightedComment ->
-                                                        { model
-                                                            | highlightedComments =
-                                                                Array.set
-                                                                    (frameNumber - 1)
-                                                                    (case currentHighlightedComment.fileAndRange of
-                                                                        Nothing ->
-                                                                            { currentHighlightedComment
-                                                                                | fileAndRange =
-                                                                                    Just
-                                                                                        { range =
-                                                                                            case previousFrameRange model shared.route of
-                                                                                                Nothing ->
-                                                                                                    Nothing
-
-                                                                                                Just ( _, range ) ->
-                                                                                                    Just <|
-                                                                                                        Range.collapseRange range
-                                                                                        , file = filePath
-                                                                                        }
-                                                                            }
-
-                                                                        Just fileAndRange ->
-                                                                            if FS.isSameFilePath fileAndRange.file filePath then
-                                                                                currentHighlightedComment
-                                                                            else
-                                                                                { currentHighlightedComment
-                                                                                    | fileAndRange =
-                                                                                        Just
-                                                                                            { range = Nothing
-                                                                                            , file = filePath
-                                                                                            }
-                                                                                }
-                                                                    )
-                                                                    currentBigbitHighlightedComments
-                                                        }
+                                    newModel =
+                                        updateHCAtIndex model (frameNumber - 1) hcUpdater
 
                                     maybeRangeToHighlight =
                                         Array.get (frameNumber - 1) newModel.highlightedComments
@@ -210,118 +191,256 @@ update msg model shared =
                         _ ->
                             doNothing
 
-            GoTo route ->
-                justProduceCmd <| Route.navigateTo route
+            -- Update the code and also check if any ranges are out of range
+            -- and update those ranges.
+            OnUpdateCode { newCode, action, deltaRange } ->
+                case createBigbitPageCurrentActiveFile shared.route of
+                    Nothing ->
+                        doNothing
 
-            BigbitGoToCodeTab ->
+                    Just filePath ->
+                        let
+                            currentCode =
+                                FS.getFile model.fs filePath
+                                    |> maybeMapWithDefault (\(FS.File content _) -> content) ""
+
+                            newFS =
+                                model.fs
+                                    |> FS.updateFile
+                                        filePath
+                                        (\(FS.File content fileMetadata) -> FS.File newCode fileMetadata)
+
+                            newHC =
+                                Array.map
+                                    (\comment ->
+                                        case comment.fileAndRange of
+                                            Nothing ->
+                                                comment
+
+                                            Just { file, range } ->
+                                                if FS.isSameFilePath file filePath then
+                                                    case range of
+                                                        Nothing ->
+                                                            comment
+
+                                                        Just aRange ->
+                                                            { comment
+                                                                | fileAndRange =
+                                                                    Just
+                                                                        { file = file
+                                                                        , range =
+                                                                            Just <|
+                                                                                Range.getNewRangeAfterDelta
+                                                                                    currentCode
+                                                                                    newCode
+                                                                                    action
+                                                                                    deltaRange
+                                                                                    aRange
+                                                                        }
+                                                            }
+                                                else
+                                                    comment
+                                    )
+                                    currentBigbitHighlightedComments
+                        in
+                            justSetModel
+                                { model
+                                    | fs = newFS
+                                    , highlightedComments = newHC
+                                }
+
+            OnRangeSelected newRange ->
+                case shared.route of
+                    Route.CreateBigbitCodeFramePage frameNumber currentPath ->
+                        case Array.get (frameNumber - 1) currentBigbitHighlightedComments of
+                            Nothing ->
+                                doNothing
+
+                            Just highlightedComment ->
+                                case highlightedComment.fileAndRange of
+                                    Nothing ->
+                                        doNothing
+
+                                    Just fileAndRange ->
+                                        justSetModel
+                                            { model
+                                                | highlightedComments =
+                                                    Array.set
+                                                        (frameNumber - 1)
+                                                        { highlightedComment
+                                                            | fileAndRange =
+                                                                Just { fileAndRange | range = Just newRange }
+                                                        }
+                                                        currentBigbitHighlightedComments
+                                            }
+
+                    _ ->
+                        doNothing
+
+            GoToCodeTab ->
                 ( { model
                     | previewMarkdown = False
-                    , fs =
-                        model.fs
-                            |> FS.updateFSMetadata
-                                (\fsMetadata ->
-                                    { fsMetadata
-                                        | openFS = False
-                                    }
-                                )
+                    , fs = model.fs |> FS.updateFSMetadata (\fsMetadata -> { fsMetadata | openFS = False })
                   }
                 , shared
                 , Route.navigateTo <| Route.CreateBigbitCodeIntroductionPage Nothing
                 )
 
-            BigbitReset ->
+            Reset ->
                 ( init
                 , shared
                 , Route.navigateTo Route.CreateBigbitNamePage
                 )
 
-            BigbitUpdateName newName ->
+            AddFrame ->
+                let
+                    currentPath =
+                        createBigbitPageCurrentActiveFile shared.route
+
+                    newModel =
+                        { model
+                            | highlightedComments =
+                                Array.push emptyBigbitHighlightCommentForCreate currentBigbitHighlightedComments
+                        }
+
+                    newCmd =
+                        Route.navigateTo <|
+                            Route.CreateBigbitCodeFramePage (Array.length newModel.highlightedComments) currentPath
+                in
+                    ( newModel, shared, newCmd )
+
+            RemoveFrame ->
+                if Array.length currentBigbitHighlightedComments == 1 then
+                    doNothing
+                else
+                    let
+                        newHighlightedComments =
+                            Array.slice
+                                0
+                                (Array.length currentBigbitHighlightedComments - 1)
+                                currentBigbitHighlightedComments
+
+                        newModel =
+                            { model | highlightedComments = newHighlightedComments }
+
+                        -- Have to make sure if they are on the last frame it pushes
+                        -- them down one frame.
+                        newRoute =
+                            case shared.route of
+                                Route.CreateBigbitCodeFramePage frameNumber filePath ->
+                                    Just <|
+                                        Route.CreateBigbitCodeFramePage
+                                            (if frameNumber == (Array.length currentBigbitHighlightedComments) then
+                                                (frameNumber - 1)
+                                             else
+                                                frameNumber
+                                            )
+                                            filePath
+
+                                _ ->
+                                    Nothing
+
+                        newCmd =
+                            maybeMapWithDefault Route.modifyTo Cmd.none newRoute
+                    in
+                        ( newModel, shared, newCmd )
+
+            ToggleFS ->
+                justSetModel { model | fs = Bigbit.toggleFS model.fs }
+
+            ToggleFolder folderPath ->
+                justSetModel { model | fs = Bigbit.toggleFSFolder folderPath model.fs }
+
+            SelectFile absolutePath ->
+                justProduceCmd <| Route.navigateToSameUrlWithFilePath (Just absolutePath) shared.route
+
+            TogglePreviewMarkdown ->
+                justUpdateModel togglePreviewMarkdown
+
+            AddFile absolutePath language ->
                 justSetModel <|
                     { model
-                        | name = newName
+                        | fs =
+                            model.fs
+                                |> (FS.addFile
+                                        { overwriteExisting = False
+                                        , forceCreateDirectories = Just <| always defaultEmptyFolder
+                                        }
+                                        absolutePath
+                                        (FS.emptyFile { language = language })
+                                   )
+                                |> clearActionButtonInput
                     }
 
-            BigbitUpdateDescription newDescription ->
-                justSetModel <|
-                    { model
-                        | description = newDescription
-                    }
+            JumpToLineFromPreviousFrame filePath ->
+                case shared.route of
+                    Route.CreateBigbitCodeFramePage frameNumber _ ->
+                        ( updateHCAtIndex
+                            model
+                            (frameNumber - 1)
+                            (\hcAtIndex -> { hcAtIndex | fileAndRange = Nothing })
+                        , shared
+                        , Route.modifyTo <| Route.CreateBigbitCodeFramePage frameNumber (Just filePath)
+                        )
 
-            BigbitUpdateTagInput newTagInput ->
+                    _ ->
+                        doNothing
+
+            OnUpdateName newName ->
+                justSetModel { model | name = newName }
+
+            OnUpdateDescription newDescription ->
+                justSetModel { model | description = newDescription }
+
+            OnUpdateTagInput newTagInput ->
                 if String.endsWith " " newTagInput then
                     let
                         newTag =
                             String.dropRight 1 newTagInput
 
                         newTags =
-                            Util.addUniqueNonEmptyString
-                                newTag
-                                model.tags
+                            Util.addUniqueNonEmptyString newTag model.tags
                     in
-                        justSetModel <|
+                        justSetModel
                             { model
                                 | tags = newTags
                                 , tagInput = ""
                             }
                 else
-                    justSetModel <|
-                        { model
-                            | tagInput = newTagInput
-                        }
+                    justSetModel { model | tagInput = newTagInput }
 
-            BigbitAddTag tagName ->
-                let
-                    newTags =
-                        Util.addUniqueNonEmptyString
-                            tagName
-                            model.tags
-                in
-                    justSetModel <|
-                        { model
-                            | tags = newTags
-                            , tagInput = ""
-                        }
-
-            BigbitRemoveTag tagName ->
-                let
-                    newTags =
-                        List.filter
-                            (\tag -> tag /= tagName)
-                            model.tags
-                in
-                    justSetModel
-                        { model
-                            | tags = newTags
-                        }
-
-            BigbitUpdateIntroduction newIntro ->
+            AddTag tagName ->
                 justSetModel
                     { model
-                        | introduction = newIntro
+                        | tags = Util.addUniqueNonEmptyString tagName model.tags
+                        , tagInput = ""
                     }
 
-            BigbitUpdateConclusion newConclusion ->
-                justSetModel
-                    { model
-                        | conclusion = newConclusion
-                    }
+            RemoveTag tagName ->
+                justSetModel { model | tags = List.filter (\tag -> tag /= tagName) model.tags }
 
-            BigbitToggleFS ->
-                justSetModel
-                    { model
-                        | fs = Bigbit.toggleFS model.fs
-                    }
+            OnUpdateIntroduction newIntro ->
+                justSetModel { model | introduction = newIntro }
 
-            BigbitFSToggleFolder folderPath ->
-                justSetModel
-                    { model
-                        | fs = Bigbit.toggleFSFolder folderPath model.fs
-                    }
+            OnUpdateFrameComment frameNumber newComment ->
+                case Array.get (frameNumber - 1) currentBigbitHighlightedComments of
+                    Nothing ->
+                        doNothing
 
-            BigbitTogglePreviewMarkdown ->
-                justUpdateModel togglePreviewMarkdown
+                    Just highlightedComment ->
+                        justSetModel
+                            { model
+                                | highlightedComments =
+                                    Array.set
+                                        (frameNumber - 1)
+                                        { highlightedComment | comment = newComment }
+                                        currentBigbitHighlightedComments
+                            }
 
-            BigbitUpdateActionButtonState newActionState ->
+            OnUpdateConclusion newConclusion ->
+                justSetModel { model | conclusion = newConclusion }
+
+            UpdateActionButtonState newActionState ->
                 ( { model
                     | fs =
                         model.fs
@@ -341,7 +460,7 @@ update msg model shared =
                 , Util.domFocus (always NoOp) "fs-action-input-box"
                 )
 
-            BigbitUpdateActionInput newActionButtonInput ->
+            OnUpdateActionInput newActionButtonInput ->
                 justSetModel
                     { model
                         | fs =
@@ -355,7 +474,7 @@ update msg model shared =
                                     )
                     }
 
-            BigbitSubmitActionInput ->
+            SubmitActionInput ->
                 let
                     fs =
                         model.fs
@@ -406,7 +525,7 @@ update msg model shared =
                                 Route.modifyTo <| Route.CreateBigbitCodeIntroductionPage Nothing
 
                             redirectIfFileRemoved =
-                                case createPageCurrentActiveFile shared.route of
+                                case createBigbitPageCurrentActiveFile shared.route of
                                     Nothing ->
                                         Cmd.none
 
@@ -442,7 +561,7 @@ update msg model shared =
                                             Ok language ->
                                                 let
                                                     ( newModel, _, newCmd ) =
-                                                        update (BigbitAddFile absolutePath language) model shared
+                                                        update (AddFile absolutePath language) model shared
                                                 in
                                                     ( newModel, newCmd )
 
@@ -457,7 +576,8 @@ update msg model shared =
                                                         fs
                                                             |> FS.addFolder
                                                                 { overwriteExisting = False
-                                                                , forceCreateDirectories = Just <| always defaultEmptyFolder
+                                                                , forceCreateDirectories =
+                                                                    Just <| always defaultEmptyFolder
                                                                 }
                                                                 absolutePath
                                                                 (FS.Folder Dict.empty Dict.empty { isExpanded = True })
@@ -480,7 +600,9 @@ update msg model shared =
                                                                 |> clearActionButtonInput
 
                                                         newHighlightedComments =
-                                                            getNewHighlightedComments currentBigbitHighlightedComments newFS
+                                                            getNewHighlightedComments
+                                                                currentBigbitHighlightedComments
+                                                                newFS
                                                     in
                                                         ( { model
                                                             | fs = newFS
@@ -489,11 +611,7 @@ update msg model shared =
                                                         , navigateIfRouteNowInvalid newFS newHighlightedComments
                                                         )
                                                 else
-                                                    ( { model
-                                                        | fs =
-                                                            fs
-                                                                |> setActionButtonSubmitConfirmed True
-                                                      }
+                                                    ( { model | fs = fs |> setActionButtonSubmitConfirmed True }
                                                     , Cmd.none
                                                     )
 
@@ -511,7 +629,9 @@ update msg model shared =
                                                                 |> clearActionButtonInput
 
                                                         newHighlightedComments =
-                                                            getNewHighlightedComments currentBigbitHighlightedComments newFS
+                                                            getNewHighlightedComments
+                                                                currentBigbitHighlightedComments
+                                                                newFS
                                                     in
                                                         ( { model
                                                             | fs = newFS
@@ -520,253 +640,21 @@ update msg model shared =
                                                         , navigateIfRouteNowInvalid newFS newHighlightedComments
                                                         )
                                                 else
-                                                    ( { model
-                                                        | fs =
-                                                            fs
-                                                                |> setActionButtonSubmitConfirmed True
-                                                      }
+                                                    ( { model | fs = fs |> setActionButtonSubmitConfirmed True }
                                                     , Cmd.none
                                                     )
                 in
-                    ( newModel
-                    , shared
-                    , newCmd
-                    )
-
-            BigbitAddFile absolutePath language ->
-                justSetModel <|
-                    { model
-                        | fs =
-                            model.fs
-                                |> (FS.addFile
-                                        { overwriteExisting = False
-                                        , forceCreateDirectories = Just <| always defaultEmptyFolder
-                                        }
-                                        absolutePath
-                                        (FS.emptyFile { language = language })
-                                   )
-                                |> clearActionButtonInput
-                    }
-
-            -- Update the code and also check if any ranges are out of range
-            -- and update those ranges.
-            BigbitUpdateCode { newCode, action, deltaRange } ->
-                case createPageCurrentActiveFile shared.route of
-                    Nothing ->
-                        doNothing
-
-                    Just filePath ->
-                        let
-                            currentCode =
-                                FS.getFile model.fs filePath
-                                    |> maybeMapWithDefault
-                                        (\(FS.File content _) ->
-                                            content
-                                        )
-                                        ""
-
-                            newFS =
-                                model.fs
-                                    |> FS.updateFile
-                                        filePath
-                                        (\(FS.File content fileMetadata) ->
-                                            FS.File
-                                                newCode
-                                                fileMetadata
-                                        )
-
-                            newHC =
-                                Array.map
-                                    (\comment ->
-                                        case comment.fileAndRange of
-                                            Nothing ->
-                                                comment
-
-                                            Just { file, range } ->
-                                                if FS.isSameFilePath file filePath then
-                                                    case range of
-                                                        Nothing ->
-                                                            comment
-
-                                                        Just aRange ->
-                                                            { comment
-                                                                | fileAndRange =
-                                                                    Just
-                                                                        { file = file
-                                                                        , range =
-                                                                            Just <|
-                                                                                Range.getNewRangeAfterDelta
-                                                                                    currentCode
-                                                                                    newCode
-                                                                                    action
-                                                                                    deltaRange
-                                                                                    aRange
-                                                                        }
-                                                            }
-                                                else
-                                                    comment
-                                    )
-                                    currentBigbitHighlightedComments
-                        in
-                            justSetModel <|
-                                { model
-                                    | fs = newFS
-                                    , highlightedComments = newHC
-                                }
-
-            BigbitFileSelected absolutePath ->
-                justProduceCmd <|
-                    Route.navigateToSameUrlWithFilePath (Just absolutePath) shared.route
-
-            BigbitAddFrame ->
-                let
-                    currentPath =
-                        createPageCurrentActiveFile shared.route
-
-                    newModel =
-                        { model
-                            | highlightedComments =
-                                (Array.push
-                                    emptyBigbitHighlightCommentForCreate
-                                    currentBigbitHighlightedComments
-                                )
-                        }
-
-                    newCmd =
-                        Route.navigateTo <|
-                            Route.CreateBigbitCodeFramePage
-                                (Array.length newModel.highlightedComments)
-                                currentPath
-                in
                     ( newModel, shared, newCmd )
 
-            BigbitRemoveFrame ->
-                if Array.length currentBigbitHighlightedComments == 1 then
-                    doNothing
-                else
-                    let
-                        newHighlightedComments =
-                            Array.slice
-                                0
-                                (Array.length currentBigbitHighlightedComments - 1)
-                                currentBigbitHighlightedComments
+            Publish bigbit ->
+                justProduceCmd <| Api.postCreateBigbit bigbit OnPublishFailure OnPublishSuccess
 
-                        newModel =
-                            { model
-                                | highlightedComments = newHighlightedComments
-                            }
+            OnPublishSuccess { targetID } ->
+                ( init
+                , { shared | userTidbits = Nothing }
+                , Route.navigateTo <| Route.ViewBigbitIntroductionPage Nothing targetID Nothing
+                )
 
-                        -- Have to make sure if they are on the last frame it pushes
-                        -- them down one frame.
-                        newRoute =
-                            case shared.route of
-                                Route.CreateBigbitCodeFramePage frameNumber filePath ->
-                                    Just <|
-                                        Route.CreateBigbitCodeFramePage
-                                            (if frameNumber == (Array.length currentBigbitHighlightedComments) then
-                                                (frameNumber - 1)
-                                             else
-                                                frameNumber
-                                            )
-                                            filePath
-
-                                _ ->
-                                    Nothing
-
-                        newCmd =
-                            Maybe.map Route.modifyTo newRoute
-                                |> Maybe.withDefault Cmd.none
-                    in
-                        ( newModel, shared, newCmd )
-
-            BigbitUpdateFrameComment frameNumber newComment ->
-                case Array.get (frameNumber - 1) currentBigbitHighlightedComments of
-                    Nothing ->
-                        doNothing
-
-                    Just highlightedComment ->
-                        let
-                            newHighlightedComment =
-                                { highlightedComment
-                                    | comment = newComment
-                                }
-
-                            newHighlightedComments =
-                                Array.set (frameNumber - 1)
-                                    newHighlightedComment
-                                    currentBigbitHighlightedComments
-                        in
-                            justSetModel <|
-                                { model
-                                    | highlightedComments = newHighlightedComments
-                                }
-
-            BigbitNewRangeSelected newRange ->
-                case shared.route of
-                    Route.CreateBigbitCodeFramePage frameNumber currentPath ->
-                        case Array.get (frameNumber - 1) currentBigbitHighlightedComments of
-                            Nothing ->
-                                doNothing
-
-                            Just highlightedComment ->
-                                case highlightedComment.fileAndRange of
-                                    Nothing ->
-                                        doNothing
-
-                                    Just fileAndRange ->
-                                        justSetModel
-                                            { model
-                                                | highlightedComments =
-                                                    Array.set
-                                                        (frameNumber - 1)
-                                                        { highlightedComment
-                                                            | fileAndRange =
-                                                                Just
-                                                                    { fileAndRange
-                                                                        | range = Just newRange
-                                                                    }
-                                                        }
-                                                        currentBigbitHighlightedComments
-                                            }
-
-                    _ ->
-                        doNothing
-
-            BigbitPublish bigbit ->
-                justProduceCmd <|
-                    Api.postCreateBigbit
-                        bigbit
-                        OnBigbitPublishFailure
-                        OnBigbitPublishSuccess
-
-            BigbitJumpToLineFromPreviousFrame filePath ->
-                case shared.route of
-                    Route.CreateBigbitCodeFramePage frameNumber _ ->
-                        ( updateCreateDataHCAtIndex
-                            model
-                            (frameNumber - 1)
-                            (\hcAtIndex ->
-                                { hcAtIndex
-                                    | fileAndRange = Nothing
-                                }
-                            )
-                        , shared
-                        , Route.modifyTo <|
-                            Route.CreateBigbitCodeFramePage frameNumber (Just filePath)
-                        )
-
-                    _ ->
-                        doNothing
-
-            OnBigbitPublishFailure apiError ->
+            OnPublishFailure apiError ->
                 -- TODO Handle bigbit publish failures.
                 doNothing
-
-            OnBigbitPublishSuccess { targetID } ->
-                ( init
-                , { shared
-                    | userTidbits = Nothing
-                  }
-                , Route.navigateTo <|
-                    Route.ViewBigbitIntroductionPage Nothing targetID Nothing
-                )

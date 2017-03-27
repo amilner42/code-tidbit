@@ -215,7 +215,7 @@ update msg model shared =
                                             && (Tuple.second hc
                                                     |> .file
                                                     |> Just
-                                                    |> (==) (Bigbit.viewPageCurrentActiveFile shared.route aBigbit)
+                                                    |> (==) (Route.viewBigbitPageCurrentActiveFile shared.route aBigbit)
                                                )
                                     )
                                 |> (\relevantHC ->
@@ -277,7 +277,7 @@ update msg model shared =
                     , if fsJustOpened then
                         Route.navigateToSameUrlWithFilePath
                             (Maybe.andThen
-                                (Bigbit.viewPageCurrentActiveFile shared.route)
+                                (Route.viewBigbitPageCurrentActiveFile shared.route)
                                 model.bigbit
                             )
                             shared.route

@@ -26,8 +26,7 @@ init =
             , actionButtonSubmitConfirmed = False
             }
             { isExpanded = True }
-    , highlightedComments =
-        Array.fromList [ emptyBigbitHighlightCommentForCreate ]
+    , highlightedComments = Array.fromList [ emptyBigbitHighlightCommentForCreate ]
     , previewMarkdown = False
     }
 

@@ -1,7 +1,9 @@
 module Models.Route exposing (..)
 
+import Array
 import DefaultServices.Util as Util
 import Elements.FileStructure as FS
+import Models.Bigbit as Bigbit
 import Navigation
 import UrlParser exposing (Parser, s, (</>), (<?>), oneOf, map, top, int, string, stringParam)
 
@@ -522,6 +524,46 @@ getFromStoryQueryParamOnViewBigbitRoute route =
 
         ViewBigbitConclusionPage fromStoryID _ _ ->
             fromStoryID
+
+        _ ->
+            Nothing
+
+
+{-| The current active path determined from the route.
+-}
+createBigbitPageCurrentActiveFile : Route -> Maybe FS.Path
+createBigbitPageCurrentActiveFile route =
+    case route of
+        CreateBigbitCodeIntroductionPage maybePath ->
+            maybePath
+
+        CreateBigbitCodeFramePage _ maybePath ->
+            maybePath
+
+        CreateBigbitCodeConclusionPage maybePath ->
+            maybePath
+
+        _ ->
+            Nothing
+
+
+{-| The current active path determined from the route and the current comment frame.
+-}
+viewBigbitPageCurrentActiveFile : Route -> Bigbit.Bigbit -> Maybe FS.Path
+viewBigbitPageCurrentActiveFile route bigbit =
+    case route of
+        ViewBigbitIntroductionPage _ _ maybePath ->
+            maybePath
+
+        ViewBigbitFramePage _ _ frameNumber maybePath ->
+            if Util.isNotNothing maybePath then
+                maybePath
+            else
+                Array.get (frameNumber - 1) bigbit.highlightedComments
+                    |> Maybe.map .file
+
+        ViewBigbitConclusionPage _ _ maybePath ->
+            maybePath
 
         _ ->
             Nothing

@@ -308,7 +308,7 @@ viewBigbitCommentBox bigbit maybeRHC route =
             [ div
                 [ class "above-editor-text" ]
                 [ text <|
-                    case Bigbit.viewPageCurrentActiveFile route bigbit of
+                    case Route.viewBigbitPageCurrentActiveFile route bigbit of
                         Nothing ->
                             "No File Selected"
 
@@ -340,7 +340,7 @@ viewBigbitCommentBox bigbit maybeRHC route =
                 [ FS.fileStructure
                     { isFileSelected =
                         (\absolutePath ->
-                            Bigbit.viewPageCurrentActiveFile route bigbit
+                            Route.viewBigbitPageCurrentActiveFile route bigbit
                                 |> Maybe.map (FS.isSameFilePath absolutePath)
                                 |> Maybe.withDefault False
                         )
