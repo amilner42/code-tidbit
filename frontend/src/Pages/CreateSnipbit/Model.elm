@@ -4,9 +4,9 @@ import Array
 import Autocomplete as AC
 import DefaultServices.Util as Util
 import Elements.Editor as Editor exposing (Language)
-import Models.HighlightedComment exposing (MaybeHighlightedComment, HighlightedComment)
 import Models.Range as Range
 import Models.Route as Route
+import Models.Snipbit exposing (MaybeHighlightedComment, HighlightedComment)
 
 
 {-| `CreateSnipbit` model.

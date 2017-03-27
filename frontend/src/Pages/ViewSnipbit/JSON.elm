@@ -2,7 +2,6 @@ module Pages.ViewSnipbit.JSON exposing (..)
 
 import DefaultServices.Util as Util
 import JSON.Completed
-import JSON.HighlightedComment
 import JSON.Snipbit
 import JSON.ViewerRelevantHC
 import Json.Decode as Decode
@@ -36,11 +35,11 @@ decoder =
 -}
 relevantHCEncoder : ViewingSnipbitRelevantHC -> Encode.Value
 relevantHCEncoder =
-    JSON.ViewerRelevantHC.encoder JSON.HighlightedComment.encoder
+    JSON.ViewerRelevantHC.encoder JSON.Snipbit.hcEncoder
 
 
 {-| `ViewingSnipbitRelevantHC` decoder.
 -}
 relevantHCDecoder : Decode.Decoder ViewingSnipbitRelevantHC
 relevantHCDecoder =
-    JSON.ViewerRelevantHC.decoder JSON.HighlightedComment.decoder
+    JSON.ViewerRelevantHC.decoder JSON.Snipbit.hcDecoder

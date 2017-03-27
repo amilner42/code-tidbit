@@ -3,8 +3,8 @@ module Pages.CreateSnipbit.JSON exposing (..)
 import Array
 import Autocomplete as AC
 import DefaultServices.Util as Util
-import JSON.HighlightedComment
 import JSON.Language
+import JSON.Snipbit
 import Json.Decode as Decode
 import Json.Decode.Pipeline exposing (decode, required, optional, hardcoded)
 import Json.Encode as Encode
@@ -26,7 +26,7 @@ encoder model =
         , ( "tagInput", Encode.string model.tagInput )
         , ( "code", Encode.string model.code )
         , ( "highlightedComments"
-          , Encode.array <| Array.map JSON.HighlightedComment.maybeEncoder model.highlightedComments
+          , Encode.array <| Array.map JSON.Snipbit.maybeHCEncoder model.highlightedComments
           )
         , ( "introduction", Encode.string model.introduction )
         , ( "conclusion", Encode.string model.conclusion )
@@ -48,7 +48,7 @@ decoder =
         |> required "tags" (Decode.list Decode.string)
         |> required "tagInput" Decode.string
         |> required "code" Decode.string
-        |> required "highlightedComments" (Decode.array JSON.HighlightedComment.maybeDecoder)
+        |> required "highlightedComments" (Decode.array JSON.Snipbit.maybeHCDecoder)
         |> required "introduction" Decode.string
         |> required "conclusion" Decode.string
         |> required "previewMarkdown" Decode.bool
@@ -67,7 +67,7 @@ publicationEncoder snipbitForPublication =
         , ( "introduction", Encode.string snipbitForPublication.introduction )
         , ( "conclusion", Encode.string snipbitForPublication.conclusion )
         , ( "highlightedComments"
-          , Encode.array <| Array.map JSON.HighlightedComment.encoder snipbitForPublication.highlightedComments
+          , Encode.array <| Array.map JSON.Snipbit.hcEncoder snipbitForPublication.highlightedComments
           )
         ]
 
@@ -84,4 +84,4 @@ publicationDecoder =
         |> required "code" Decode.string
         |> required "introduction" Decode.string
         |> required "conclusion" Decode.string
-        |> required "highlightedComments" (Decode.array JSON.HighlightedComment.decoder)
+        |> required "highlightedComments" (Decode.array JSON.Snipbit.hcDecoder)

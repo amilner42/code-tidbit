@@ -2,8 +2,7 @@ module Pages.ViewSnipbit.Model exposing (..)
 
 import DefaultServices.Util as Util exposing (maybeMapWithDefault)
 import Models.Completed exposing (IsCompleted)
-import Models.HighlightedComment exposing (HighlightedComment)
-import Models.Snipbit exposing (Snipbit)
+import Models.Snipbit exposing (Snipbit, HighlightedComment)
 import Models.ViewerRelevantHC exposing (ViewerRelevantHC, browsingFrames)
 
 
