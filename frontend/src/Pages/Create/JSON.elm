@@ -8,18 +8,16 @@ import Json.Encode as Encode
 import Pages.Create.Model exposing (..)
 
 
-{-| `CreateModel` encoder.
+{-| `Create` encoder.
 -}
 encoder : Model -> Encode.Value
 encoder model =
     Encode.object
-        [ ( "showInfoFor"
-          , Util.justValueOrNull JSON.TidbitType.encoder model.showInfoFor
-          )
+        [ ( "showInfoFor", Util.justValueOrNull JSON.TidbitType.encoder model.showInfoFor )
         ]
 
 
-{-| `CreateModel` decoder.
+{-| `Create` decoder.
 -}
 decoder : Decode.Decoder Model
 decoder =

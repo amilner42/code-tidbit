@@ -14,6 +14,4 @@ type alias Model =
 -}
 setShowInfoFor : Maybe TidbitType.TidbitType -> Model -> Model
 setShowInfoFor maybeTidbitType model =
-    { model
-        | showInfoFor = maybeTidbitType
-    }
+    { model | showInfoFor = maybeTidbitType }

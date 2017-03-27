@@ -42,23 +42,20 @@ update msg model shared =
                                     justProduceCmd <|
                                         Api.getStories
                                             [ ( "author", Just user.id ) ]
-                                            GetAccountStoriesFailure
-                                            GetAccountStoriesSuccess
+                                            OnGetAccountStoriesFailure
+                                            OnGetAccountStoriesSuccess
                                 else
                                     doNothing
 
                     _ ->
                         doNothing
 
-            ShowInfoFor maybeTidbitType ->
-                justUpdateModel <| setShowInfoFor maybeTidbitType
+            OnGetAccountStoriesSuccess userStories ->
+                justSetShared { shared | userStories = Just userStories }
 
-            GetAccountStoriesFailure apiError ->
+            OnGetAccountStoriesFailure apiError ->
                 -- TODO handle error.
                 doNothing
 
-            GetAccountStoriesSuccess userStories ->
-                justSetShared <|
-                    { shared
-                        | userStories = Just userStories
-                    }
+            ShowInfoFor maybeTidbitType ->
+                justUpdateModel <| setShowInfoFor maybeTidbitType
