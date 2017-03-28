@@ -2,6 +2,7 @@ module Pages.ViewBigbit.Update exposing (..)
 
 import Api
 import Array
+import DefaultServices.CommonSubPageUtil exposing (CommonSubPageUtil)
 import DefaultServices.Util as Util exposing (maybeMapWithDefault)
 import Elements.Editor as Editor
 import Elements.FileStructure as FS
@@ -20,378 +21,344 @@ import Ports
 
 {-| `ViewBigbit` update.
 -}
-update : Msg -> Model -> Shared -> ( Model, Shared, Cmd Msg )
-update msg model shared =
-    let
-        doNothing =
-            ( model, shared, Cmd.none )
+update : CommonSubPageUtil Model Shared Msg -> Msg -> Model -> Shared -> ( Model, Shared, Cmd Msg )
+update ({ doNothing, justSetModel, justUpdateModel, justSetShared, justProduceCmd } as common) msg model shared =
+    case msg of
+        NoOp ->
+            doNothing
 
-        justSetModel newModel =
-            ( newModel, shared, Cmd.none )
+        GoTo route ->
+            ( model, shared, Route.navigateTo route )
 
-        justSetShared newShared =
-            ( model, newShared, Cmd.none )
-
-        justProduceCmd newCmd =
-            ( model, shared, newCmd )
-
-        justUpdateModel modelUpdater =
-            ( modelUpdater model, shared, Cmd.none )
-
-        withCmd : Cmd Msg -> ( Model, Shared, Cmd Msg ) -> ( Model, Shared, Cmd Msg )
-        withCmd withCmd ( newModel, newShared, newCmd ) =
-            ( newModel, newShared, Cmd.batch [ newCmd, withCmd ] )
-
-        -- For when you need to do multiple things all which change model/shared/cmd.
-        handleAll : List (( Model, Shared ) -> ( Model, Shared, Cmd Msg )) -> ( Model, Shared, Cmd Msg )
-        handleAll =
+        OnRouteHit route ->
             let
-                go ( lastModel, lastShared, lastCmd ) listOfThingsToHandle =
-                    case listOfThingsToHandle of
-                        [] ->
-                            ( lastModel, lastShared, lastCmd )
+                {- Get's data for viewing bigbit as required:
+                      - May need to fetch tidbit itself
+                      - May need to fetch story
+                      - May need to fetch if the tidbit is completed by the user.
 
-                        handleCurrent :: xs ->
-                            go (withCmd lastCmd (handleCurrent ( lastModel, lastShared ))) xs
-            in
-                go ( model, shared, Cmd.none )
-    in
-        case msg of
-            NoOp ->
-                doNothing
+                   TODO ISSUE#99 Update to check cache if it is expired.
+                -}
+                fetchOrRenderViewBigbitData mongoID =
+                    let
+                        currentTidbitPointer =
+                            TidbitPointer.TidbitPointer
+                                TidbitPointer.Bigbit
+                                mongoID
 
-            GoTo route ->
-                ( model, shared, Route.navigateTo route )
+                        -- Handle getting bigbit if needed.
+                        handleGetBigbit ( model, shared ) =
+                            let
+                                getBigbit mongoID =
+                                    ( setBigbit Nothing model
+                                    , shared
+                                    , Api.getBigbit mongoID OnGetBigbitFailure OnGetBigbitSuccess
+                                    )
+                            in
+                                case model.bigbit of
+                                    Nothing ->
+                                        getBigbit mongoID
 
-            OnRouteHit route ->
-                let
-                    {- Get's data for viewing bigbit as required:
-                          - May need to fetch tidbit itself
-                          - May need to fetch story
-                          - May need to fetch if the tidbit is completed by the user.
-
-                       TODO ISSUE#99 Update to check cache if it is expired.
-                    -}
-                    fetchOrRenderViewBigbitData mongoID =
-                        let
-                            currentTidbitPointer =
-                                TidbitPointer.TidbitPointer
-                                    TidbitPointer.Bigbit
-                                    mongoID
-
-                            -- Handle getting bigbit if needed.
-                            handleGetBigbit ( model, shared ) =
-                                let
-                                    getBigbit mongoID =
-                                        ( setBigbit Nothing model
-                                        , shared
-                                        , Api.getBigbit mongoID OnGetBigbitFailure OnGetBigbitSuccess
-                                        )
-                                in
-                                    case model.bigbit of
-                                        Nothing ->
+                                    Just bigbit ->
+                                        if bigbit.id == mongoID then
+                                            ( setRelevantHC Nothing model
+                                            , shared
+                                            , createViewBigbitCodeEditor bigbit shared
+                                            )
+                                        else
                                             getBigbit mongoID
 
-                                        Just bigbit ->
-                                            if bigbit.id == mongoID then
-                                                ( setRelevantHC Nothing model
-                                                , shared
-                                                , createViewBigbitCodeEditor bigbit shared
-                                                )
-                                            else
-                                                getBigbit mongoID
+                        -- Handle getting bigbit is-completed if needed.
+                        handleGetBigbitIsCompleted ( model, shared ) =
+                            let
+                                doNothing =
+                                    ( model, shared, Cmd.none )
 
-                            -- Handle getting bigbit is-completed if needed.
-                            handleGetBigbitIsCompleted ( model, shared ) =
-                                let
-                                    doNothing =
-                                        ( model, shared, Cmd.none )
-
-                                    -- Command for fetching the `isCompleted`
-                                    getBigbitIsCompleted userID =
-                                        ( setIsCompleted Nothing model
-                                        , shared
-                                        , Api.postCheckCompletedWrapper
-                                            (Completed.Completed currentTidbitPointer userID)
-                                            OnGetCompletedFailure
-                                            OnGetCompletedSuccess
-                                        )
-                                in
-                                    case ( shared.user, model.isCompleted ) of
-                                        ( Just user, Just currentCompleted ) ->
-                                            if currentCompleted.tidbitPointer == currentTidbitPointer then
-                                                doNothing
-                                            else
-                                                getBigbitIsCompleted user.id
-
-                                        ( Just user, Nothing ) ->
+                                -- Command for fetching the `isCompleted`
+                                getBigbitIsCompleted userID =
+                                    ( setIsCompleted Nothing model
+                                    , shared
+                                    , Api.postCheckCompletedWrapper
+                                        (Completed.Completed currentTidbitPointer userID)
+                                        OnGetCompletedFailure
+                                        OnGetCompletedSuccess
+                                    )
+                            in
+                                case ( shared.user, model.isCompleted ) of
+                                    ( Just user, Just currentCompleted ) ->
+                                        if currentCompleted.tidbitPointer == currentTidbitPointer then
+                                            doNothing
+                                        else
                                             getBigbitIsCompleted user.id
 
-                                        _ ->
+                                    ( Just user, Nothing ) ->
+                                        getBigbitIsCompleted user.id
+
+                                    _ ->
+                                        doNothing
+
+                        handleGetStoryForBigbit : ( Model, Shared ) -> ( Model, Shared, Cmd Msg )
+                        handleGetStoryForBigbit ( model, shared ) =
+                            let
+                                doNothing =
+                                    ( model, shared, Cmd.none )
+
+                                maybeViewingStoryID =
+                                    Maybe.map .id shared.viewingStory
+
+                                getStory storyID =
+                                    Api.getExpandedStoryWithCompleted
+                                        storyID
+                                        OnGetExpandedStoryFailure
+                                        OnGetExpandedStorySuccess
+                            in
+                                case Route.getFromStoryQueryParamOnViewBigbitRoute shared.route of
+                                    Just fromStoryID ->
+                                        if Just fromStoryID == maybeViewingStoryID then
                                             doNothing
-
-                            handleGetStoryForBigbit : ( Model, Shared ) -> ( Model, Shared, Cmd Msg )
-                            handleGetStoryForBigbit ( model, shared ) =
-                                let
-                                    doNothing =
-                                        ( model, shared, Cmd.none )
-
-                                    maybeViewingStoryID =
-                                        Maybe.map .id shared.viewingStory
-
-                                    getStory storyID =
-                                        Api.getExpandedStoryWithCompleted
-                                            storyID
-                                            OnGetExpandedStoryFailure
-                                            OnGetExpandedStorySuccess
-                                in
-                                    case Route.getFromStoryQueryParamOnViewBigbitRoute shared.route of
-                                        Just fromStoryID ->
-                                            if Just fromStoryID == maybeViewingStoryID then
-                                                doNothing
-                                            else
-                                                ( model
-                                                , { shared | viewingStory = Nothing }
-                                                , getStory fromStoryID
-                                                )
-
-                                        _ ->
+                                        else
                                             ( model
                                             , { shared | viewingStory = Nothing }
-                                            , Cmd.none
+                                            , getStory fromStoryID
                                             )
-                        in
-                            handleAll
-                                [ handleGetBigbit
-                                , handleGetBigbitIsCompleted
-                                , handleGetStoryForBigbit
-                                ]
-                in
-                    case route of
-                        Route.ViewBigbitIntroductionPage _ mongoID _ ->
-                            fetchOrRenderViewBigbitData mongoID
 
-                        Route.ViewBigbitFramePage _ mongoID _ _ ->
-                            fetchOrRenderViewBigbitData mongoID
+                                    _ ->
+                                        ( model
+                                        , { shared | viewingStory = Nothing }
+                                        , Cmd.none
+                                        )
+                    in
+                        common.handleAll
+                            [ handleGetBigbit
+                            , handleGetBigbitIsCompleted
+                            , handleGetStoryForBigbit
+                            ]
+            in
+                case route of
+                    Route.ViewBigbitIntroductionPage _ mongoID _ ->
+                        fetchOrRenderViewBigbitData mongoID
 
-                        Route.ViewBigbitConclusionPage _ mongoID _ ->
-                            fetchOrRenderViewBigbitData mongoID
-                                |> withCmd
-                                    (case ( shared.user, model.isCompleted ) of
-                                        ( Just user, Just isCompleted ) ->
-                                            let
-                                                completed =
-                                                    Completed.completedFromIsCompleted isCompleted user.id
-                                            in
-                                                if isCompleted.complete == False then
-                                                    Api.postAddCompletedWrapper
-                                                        completed
-                                                        OnMarkAsCompleteFailure
-                                                        OnMarkAsCompleteSuccess
-                                                else
-                                                    Cmd.none
+                    Route.ViewBigbitFramePage _ mongoID _ _ ->
+                        fetchOrRenderViewBigbitData mongoID
 
-                                        _ ->
-                                            Cmd.none
-                                    )
+                    Route.ViewBigbitConclusionPage _ mongoID _ ->
+                        fetchOrRenderViewBigbitData mongoID
+                            |> common.withCmd
+                                (case ( shared.user, model.isCompleted ) of
+                                    ( Just user, Just isCompleted ) ->
+                                        let
+                                            completed =
+                                                Completed.completedFromIsCompleted isCompleted user.id
+                                        in
+                                            if isCompleted.complete == False then
+                                                Api.postAddCompletedWrapper
+                                                    completed
+                                                    OnMarkAsCompleteFailure
+                                                    OnMarkAsCompleteSuccess
+                                            else
+                                                Cmd.none
 
-                        _ ->
-                            doNothing
+                                    _ ->
+                                        Cmd.none
+                                )
 
-            OnRangeSelected selectedRange ->
-                case model.bigbit of
-                    Nothing ->
+                    _ ->
                         doNothing
 
-                    Just aBigbit ->
-                        if Range.isEmptyRange selectedRange then
-                            justUpdateModel <| setRelevantHC Nothing
-                        else
-                            aBigbit.highlightedComments
-                                |> Array.indexedMap (,)
-                                |> Array.filter
-                                    (\hc ->
-                                        (Tuple.second hc |> .range |> Range.overlappingRanges selectedRange)
-                                            && (Tuple.second hc
-                                                    |> .file
-                                                    |> Just
-                                                    |> (==) (Route.viewBigbitPageCurrentActiveFile shared.route aBigbit)
-                                               )
-                                    )
-                                |> (\relevantHC ->
-                                        justUpdateModel <|
-                                            setRelevantHC <|
-                                                Just
-                                                    { currentHC = Nothing
-                                                    , relevantHC = relevantHC
-                                                    }
-                                   )
+        OnRangeSelected selectedRange ->
+            case model.bigbit of
+                Nothing ->
+                    doNothing
 
-            OnGetBigbitSuccess bigbit ->
-                ( Util.multipleUpdates
-                    [ setBigbit <| Just bigbit
-                    , setRelevantHC Nothing
-                    ]
-                    model
-                , shared
-                , createViewBigbitCodeEditor bigbit shared
-                )
+                Just aBigbit ->
+                    if Range.isEmptyRange selectedRange then
+                        justUpdateModel <| setRelevantHC Nothing
+                    else
+                        aBigbit.highlightedComments
+                            |> Array.indexedMap (,)
+                            |> Array.filter
+                                (\hc ->
+                                    (Tuple.second hc |> .range |> Range.overlappingRanges selectedRange)
+                                        && (Tuple.second hc
+                                                |> .file
+                                                |> Just
+                                                |> (==) (Route.viewBigbitPageCurrentActiveFile shared.route aBigbit)
+                                           )
+                                )
+                            |> (\relevantHC ->
+                                    justUpdateModel <|
+                                        setRelevantHC <|
+                                            Just
+                                                { currentHC = Nothing
+                                                , relevantHC = relevantHC
+                                                }
+                               )
 
-            OnGetBigbitFailure apiError ->
-                -- TODO handle get bigbit failure.
-                doNothing
+        OnGetBigbitSuccess bigbit ->
+            ( Util.multipleUpdates
+                [ setBigbit <| Just bigbit
+                , setRelevantHC Nothing
+                ]
+                model
+            , shared
+            , createViewBigbitCodeEditor bigbit shared
+            )
 
-            OnGetCompletedSuccess isCompleted ->
-                justUpdateModel <| setIsCompleted <| Just isCompleted
+        OnGetBigbitFailure apiError ->
+            -- TODO handle get bigbit failure.
+            doNothing
 
-            OnGetCompletedFailure apiError ->
-                -- TODO handle error.
-                doNothing
+        OnGetCompletedSuccess isCompleted ->
+            justUpdateModel <| setIsCompleted <| Just isCompleted
 
-            OnGetExpandedStorySuccess story ->
-                justSetShared { shared | viewingStory = Just story }
+        OnGetCompletedFailure apiError ->
+            -- TODO handle error.
+            doNothing
 
-            OnGetExpandedStoryFailure apiError ->
-                -- TODO handle error
-                doNothing
+        OnGetExpandedStorySuccess story ->
+            justSetShared { shared | viewingStory = Just story }
 
-            ToggleFS ->
-                let
-                    -- We have a `not` because we toggle the fs state.
-                    fsJustOpened =
-                        model.bigbit
-                            |> Maybe.map (not << Bigbit.isFSOpen << .fs)
-                            |> Maybe.withDefault False
-                in
-                    ( Util.multipleUpdates
-                        [ updateBigbit
-                            (\currentViewingBigbit ->
-                                { currentViewingBigbit
-                                    | fs = Bigbit.toggleFS currentViewingBigbit.fs
-                                }
-                            )
-                        , setRelevantHC Nothing
-                        ]
-                        model
-                    , shared
-                    , if fsJustOpened then
-                        Route.navigateToSameUrlWithFilePath
-                            (Maybe.andThen
-                                (Route.viewBigbitPageCurrentActiveFile shared.route)
-                                model.bigbit
-                            )
-                            shared.route
-                      else
-                        Route.navigateToSameUrlWithFilePath Nothing shared.route
-                    )
+        OnGetExpandedStoryFailure apiError ->
+            -- TODO handle error
+            doNothing
 
-            SelectFile absolutePath ->
-                justProduceCmd <| Route.navigateToSameUrlWithFilePath (Just absolutePath) shared.route
-
-            ToggleFolder absolutePath ->
-                justUpdateModel <|
-                    updateBigbit <|
-                        (\currentViewingBigbit ->
-                            { currentViewingBigbit
-                                | fs =
-                                    Bigbit.toggleFSFolder absolutePath currentViewingBigbit.fs
-                            }
-                        )
-
-            BrowseRelevantHC ->
-                let
-                    newModel =
-                        updateRelevantHC
-                            (\currentRelevantHC ->
-                                { currentRelevantHC
-                                    | currentHC = Just 0
-                                }
-                            )
-                            model
-                in
-                    ( newModel
-                    , shared
-                    , createViewBigbitHCCodeEditor
-                        newModel.bigbit
-                        newModel.relevantHC
-                        shared.user
-                    )
-
-            CancelBrowseRelevantHC ->
-                ( setRelevantHC Nothing model
-                , shared
-                  -- Trigger route hook again, `modify` because we don't want to have the same page twice in history.
-                , Route.modifyTo shared.route
-                )
-
-            NextRelevantHC ->
-                let
-                    newModel =
-                        updateRelevantHC ViewerRelevantHC.goToNextFrame model
-                in
-                    ( newModel
-                    , shared
-                    , createViewBigbitHCCodeEditor
-                        newModel.bigbit
-                        newModel.relevantHC
-                        shared.user
-                    )
-
-            PreviousRelevantHC ->
-                let
-                    newModel =
-                        updateRelevantHC ViewerRelevantHC.goToPreviousFrame model
-                in
-                    ( newModel
-                    , shared
-                    , createViewBigbitHCCodeEditor
-                        newModel.bigbit
-                        newModel.relevantHC
-                        shared.user
-                    )
-
-            JumpToFrame route ->
+        ToggleFS ->
+            let
+                -- We have a `not` because we toggle the fs state.
+                fsJustOpened =
+                    model.bigbit
+                        |> Maybe.map (not << Bigbit.isFSOpen << .fs)
+                        |> Maybe.withDefault False
+            in
                 ( Util.multipleUpdates
                     [ updateBigbit
                         (\currentViewingBigbit ->
                             { currentViewingBigbit
-                                | fs = Bigbit.closeFS currentViewingBigbit.fs
+                                | fs = Bigbit.toggleFS currentViewingBigbit.fs
                             }
                         )
                     , setRelevantHC Nothing
                     ]
                     model
                 , shared
-                , Route.navigateTo route
+                , if fsJustOpened then
+                    Route.navigateToSameUrlWithFilePath
+                        (Maybe.andThen
+                            (Route.viewBigbitPageCurrentActiveFile shared.route)
+                            model.bigbit
+                        )
+                        shared.route
+                  else
+                    Route.navigateToSameUrlWithFilePath Nothing shared.route
                 )
 
-            MarkAsComplete completed ->
-                justProduceCmd <|
-                    Api.postAddCompletedWrapper
-                        completed
-                        OnMarkAsCompleteFailure
-                        OnMarkAsCompleteSuccess
+        SelectFile absolutePath ->
+            justProduceCmd <| Route.navigateToSameUrlWithFilePath (Just absolutePath) shared.route
 
-            OnMarkAsCompleteSuccess isCompleted ->
-                justUpdateModel <| setIsCompleted <| Just isCompleted
+        ToggleFolder absolutePath ->
+            justUpdateModel <|
+                updateBigbit <|
+                    (\currentViewingBigbit ->
+                        { currentViewingBigbit
+                            | fs =
+                                Bigbit.toggleFSFolder absolutePath currentViewingBigbit.fs
+                        }
+                    )
 
-            OnMarkAsCompleteFailure apiError ->
-                -- TODO handle error.
-                doNothing
+        BrowseRelevantHC ->
+            let
+                newModel =
+                    updateRelevantHC
+                        (\currentRelevantHC ->
+                            { currentRelevantHC
+                                | currentHC = Just 0
+                            }
+                        )
+                        model
+            in
+                ( newModel
+                , shared
+                , createViewBigbitHCCodeEditor
+                    newModel.bigbit
+                    newModel.relevantHC
+                    shared.user
+                )
 
-            MarkAsIncomplete completed ->
-                justProduceCmd <|
-                    Api.postRemoveCompletedWrapper
-                        completed
-                        OnMarkAsIncompleteFailure
-                        OnMarkAsIncompleteSuccess
+        CancelBrowseRelevantHC ->
+            ( setRelevantHC Nothing model
+            , shared
+              -- Trigger route hook again, `modify` because we don't want to have the same page twice in history.
+            , Route.modifyTo shared.route
+            )
 
-            OnMarkAsIncompleteSuccess isCompleted ->
-                justUpdateModel <| setIsCompleted <| Just isCompleted
+        NextRelevantHC ->
+            let
+                newModel =
+                    updateRelevantHC ViewerRelevantHC.goToNextFrame model
+            in
+                ( newModel
+                , shared
+                , createViewBigbitHCCodeEditor
+                    newModel.bigbit
+                    newModel.relevantHC
+                    shared.user
+                )
 
-            OnMarkAsIncompleteFailure apiError ->
-                -- TODO handle error.
-                doNothing
+        PreviousRelevantHC ->
+            let
+                newModel =
+                    updateRelevantHC ViewerRelevantHC.goToPreviousFrame model
+            in
+                ( newModel
+                , shared
+                , createViewBigbitHCCodeEditor
+                    newModel.bigbit
+                    newModel.relevantHC
+                    shared.user
+                )
+
+        JumpToFrame route ->
+            ( Util.multipleUpdates
+                [ updateBigbit
+                    (\currentViewingBigbit ->
+                        { currentViewingBigbit
+                            | fs = Bigbit.closeFS currentViewingBigbit.fs
+                        }
+                    )
+                , setRelevantHC Nothing
+                ]
+                model
+            , shared
+            , Route.navigateTo route
+            )
+
+        MarkAsComplete completed ->
+            justProduceCmd <|
+                Api.postAddCompletedWrapper
+                    completed
+                    OnMarkAsCompleteFailure
+                    OnMarkAsCompleteSuccess
+
+        OnMarkAsCompleteSuccess isCompleted ->
+            justUpdateModel <| setIsCompleted <| Just isCompleted
+
+        OnMarkAsCompleteFailure apiError ->
+            -- TODO handle error.
+            doNothing
+
+        MarkAsIncomplete completed ->
+            justProduceCmd <|
+                Api.postRemoveCompletedWrapper
+                    completed
+                    OnMarkAsIncompleteFailure
+                    OnMarkAsIncompleteSuccess
+
+        OnMarkAsIncompleteSuccess isCompleted ->
+            justUpdateModel <| setIsCompleted <| Just isCompleted
+
+        OnMarkAsIncompleteFailure apiError ->
+            -- TODO handle error.
+            doNothing
 
 
 {-| Creates the code editor for the bigbit when browsing relevant HC.

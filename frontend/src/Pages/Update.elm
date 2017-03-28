@@ -2,6 +2,7 @@ module Pages.Update exposing (update, updateCacheIf)
 
 import Api
 import Array
+import DefaultServices.CommonSubPageUtil exposing (commonSubPageUtil)
 import DefaultServices.LocalStorage as LocalStorage
 import DefaultServices.Util as Util exposing (maybeMapWithDefault)
 import Elements.Editor as Editor
@@ -110,6 +111,7 @@ updateCacheIf msg model shouldCache =
                     let
                         ( newWelcomeModel, newShared, newSubMsg ) =
                             WelcomeUpdate.update
+                                (commonSubPageUtil model.welcomePage model.shared)
                                 subMsg
                                 model.welcomePage
                                 model.shared
@@ -126,6 +128,7 @@ updateCacheIf msg model shouldCache =
                     let
                         ( newViewSnipbitModel, newShared, newSubMsg ) =
                             ViewSnipbitUpdate.update
+                                (commonSubPageUtil model.viewSnipbitPage model.shared)
                                 subMsg
                                 model.viewSnipbitPage
                                 model.shared
@@ -142,6 +145,7 @@ updateCacheIf msg model shouldCache =
                     let
                         ( newViewBigbitModel, newShared, newSubMsg ) =
                             ViewBigbitUpdate.update
+                                (commonSubPageUtil model.viewBigbitPage model.shared)
                                 subMsg
                                 model.viewBigbitPage
                                 model.shared
@@ -172,6 +176,7 @@ updateCacheIf msg model shouldCache =
                     let
                         ( newProfileModel, newShared, newSubMsg ) =
                             ProfileUpdate.update
+                                (commonSubPageUtil model.profilePage model.shared)
                                 subMsg
                                 model.profilePage
                                 model.shared
@@ -188,6 +193,7 @@ updateCacheIf msg model shouldCache =
                     let
                         ( newNewStoryModel, newShared, newSubMsg ) =
                             NewStoryUpdate.update
+                                (commonSubPageUtil model.newStoryPage model.shared)
                                 subMsg
                                 model.newStoryPage
                                 model.shared
@@ -204,6 +210,7 @@ updateCacheIf msg model shouldCache =
                     let
                         ( newCreateModel, newShared, newSubMsg ) =
                             CreateUpdate.update
+                                (commonSubPageUtil model.createPage model.shared)
                                 subMsg
                                 model.createPage
                                 model.shared
@@ -220,6 +227,7 @@ updateCacheIf msg model shouldCache =
                     let
                         ( newDevelopStoryModel, newShared, newSubMsg ) =
                             DevelopStoryUpdate.update
+                                (commonSubPageUtil model.developStoryPage model.shared)
                                 subMsg
                                 model.developStoryPage
                                 model.shared
@@ -236,6 +244,7 @@ updateCacheIf msg model shouldCache =
                     let
                         ( newCreateSnipbitModel, newShared, newSubMsg ) =
                             CreateSnipbitUpdate.update
+                                (commonSubPageUtil model.createSnipbitPage model.shared)
                                 subMsg
                                 model.createSnipbitPage
                                 model.shared
@@ -252,6 +261,7 @@ updateCacheIf msg model shouldCache =
                     let
                         ( newCreateBigbitModel, newShared, newSubMsg ) =
                             CreateBigbitUpdate.update
+                                (commonSubPageUtil model.createBigbitPage model.shared)
                                 subMsg
                                 model.createBigbitPage
                                 model.shared

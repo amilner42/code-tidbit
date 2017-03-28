@@ -2,6 +2,7 @@ module Pages.CreateBigbit.Update exposing (..)
 
 import Api
 import Array
+import DefaultServices.CommonSubPageUtil exposing (CommonSubPageUtil, commonSubPageUtil)
 import DefaultServices.Util as Util exposing (maybeMapWithDefault, togglePreviewMarkdown)
 import Dict
 import Elements.Editor as Editor
@@ -19,28 +20,9 @@ import Ports
 
 {-| `CreateBigbit` update.
 -}
-update : Msg -> Model -> Shared -> ( Model, Shared, Cmd Msg )
-update msg model shared =
+update : CommonSubPageUtil Model Shared Msg -> Msg -> Model -> Shared -> ( Model, Shared, Cmd Msg )
+update { doNothing, justSetModel, justUpdateModel, justUpdateShared, justProduceCmd, withCmd } msg model shared =
     let
-        doNothing =
-            ( model, shared, Cmd.none )
-
-        justUpdateModel modelUpdater =
-            ( modelUpdater model, shared, Cmd.none )
-
-        justSetModel newModel =
-            ( newModel, shared, Cmd.none )
-
-        justUpdateShared newShared =
-            ( model, newShared, Cmd.none )
-
-        justProduceCmd cmd =
-            ( model, shared, cmd )
-
-        withCmd : Cmd Msg -> ( Model, Shared, Cmd Msg ) -> ( Model, Shared, Cmd Msg )
-        withCmd withCmd ( newModel, newShared, newCmd ) =
-            ( newModel, newShared, Cmd.batch [ newCmd, withCmd ] )
-
         currentBigbitHighlightedComments =
             model.highlightedComments
     in
@@ -556,7 +538,11 @@ update msg model shared =
                                             Ok language ->
                                                 let
                                                     ( newModel, _, newCmd ) =
-                                                        update (AddFile absolutePath language) model shared
+                                                        update
+                                                            (commonSubPageUtil model shared)
+                                                            (AddFile absolutePath language)
+                                                            model
+                                                            shared
                                                 in
                                                     ( newModel, newCmd )
 

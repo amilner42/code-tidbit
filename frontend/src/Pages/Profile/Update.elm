@@ -1,6 +1,7 @@
 module Pages.Profile.Update exposing (..)
 
 import Api
+import DefaultServices.CommonSubPageUtil exposing (CommonSubPageUtil)
 import DefaultServices.Editable as Editable
 import Models.Route as Route
 import Models.User exposing (defaultUserUpdateRecord)
@@ -12,88 +13,75 @@ import Pages.Profile.Model exposing (..)
 
 {-| `Profile` update.
 -}
-update : Msg -> Model -> Shared -> ( Model, Shared, Cmd Msg )
-update msg model shared =
-    let
-        doNothing =
-            ( model, shared, Cmd.none )
+update : CommonSubPageUtil Model Shared Msg -> Msg -> Model -> Shared -> ( Model, Shared, Cmd Msg )
+update { doNothing, justSetModel, justUpdateModel, justProduceCmd } msg model shared =
+    case msg of
+        OnEditName originalName newName ->
+            justUpdateModel <| setName originalName newName
 
-        justSetModel newModel =
-            ( newModel, shared, Cmd.none )
+        CancelEditedName ->
+            justUpdateModel cancelEditingName
 
-        justUpdateModel modelUpdater =
-            ( modelUpdater model, shared, Cmd.none )
+        SaveEditedName ->
+            case model.accountName of
+                Nothing ->
+                    doNothing
 
-        justProduceCmd newCmd =
-            ( model, shared, newCmd )
-    in
-        case msg of
-            OnEditName originalName newName ->
-                justUpdateModel <| setName originalName newName
+                Just editableName ->
+                    justProduceCmd <|
+                        Api.postUpdateUser
+                            { defaultUserUpdateRecord | name = Just <| Editable.getBuffer editableName }
+                            OnSaveEditedNameFailure
+                            OnSaveEditedNameSuccess
 
-            CancelEditedName ->
-                justUpdateModel cancelEditingName
+        OnSaveEditedNameSuccess updatedUser ->
+            ( setAccountNameToNothing model
+            , { shared | user = Just updatedUser }
+            , Cmd.none
+            )
 
-            SaveEditedName ->
-                case model.accountName of
-                    Nothing ->
-                        doNothing
+        OnSaveEditedNameFailure apiError ->
+            -- TODO handle failure.
+            doNothing
 
-                    Just editableName ->
-                        justProduceCmd <|
-                            Api.postUpdateUser
-                                { defaultUserUpdateRecord | name = Just <| Editable.getBuffer editableName }
-                                OnSaveEditedNameFailure
-                                OnSaveEditedNameSuccess
+        OnEditBio originalBio newBio ->
+            justUpdateModel <| setBio originalBio newBio
 
-            OnSaveEditedNameSuccess updatedUser ->
-                ( setAccountNameToNothing model
-                , { shared | user = Just updatedUser }
-                , Cmd.none
-                )
+        CancelEditedBio ->
+            justUpdateModel cancelEditingBio
 
-            OnSaveEditedNameFailure apiError ->
-                -- TODO handle failure.
-                doNothing
+        SaveEditedBio ->
+            case model.accountBio of
+                Nothing ->
+                    doNothing
 
-            OnEditBio originalBio newBio ->
-                justUpdateModel <| setBio originalBio newBio
+                Just editableBio ->
+                    justProduceCmd <|
+                        Api.postUpdateUser
+                            { defaultUserUpdateRecord | bio = Just <| Editable.getBuffer editableBio }
+                            OnSaveBioEditedFailure
+                            OnSaveEditedBioSuccess
 
-            CancelEditedBio ->
-                justUpdateModel cancelEditingBio
+        OnSaveEditedBioSuccess updatedUser ->
+            ( setAccountBioToNothing model
+            , { shared | user = Just updatedUser }
+            , Cmd.none
+            )
 
-            SaveEditedBio ->
-                case model.accountBio of
-                    Nothing ->
-                        doNothing
+        OnSaveBioEditedFailure apiError ->
+            -- TODO handle error.
+            doNothing
 
-                    Just editableBio ->
-                        justProduceCmd <|
-                            Api.postUpdateUser
-                                { defaultUserUpdateRecord | bio = Just <| Editable.getBuffer editableBio }
-                                OnSaveBioEditedFailure
-                                OnSaveEditedBioSuccess
+        LogOut ->
+            justProduceCmd <| Api.getLogOut OnLogOutFailure OnLogOutSuccess
 
-            OnSaveEditedBioSuccess updatedUser ->
-                ( setAccountBioToNothing model
-                , { shared | user = Just updatedUser }
-                , Cmd.none
-                )
+        OnLogOutSuccess basicResponse ->
+            -- TODO this should send a message up (out-msg pattern) to the base update which will clear all
+            -- component data.
+            ( model
+            , defaultShared
+            , Route.navigateTo Route.RegisterPage
+            )
 
-            OnSaveBioEditedFailure apiError ->
-                -- TODO handle error.
-                doNothing
-
-            LogOut ->
-                justProduceCmd <| Api.getLogOut OnLogOutFailure OnLogOutSuccess
-
-            OnLogOutSuccess basicResponse ->
-                -- TODO this should send a message up (out-msg pattern) to the base update which will clear all
-                -- component data.
-                ( model
-                , defaultShared
-                , Route.navigateTo Route.RegisterPage
-                )
-
-            OnLogOutFailure apiError ->
-                justSetModel <| { model | logOutError = Just apiError }
+        OnLogOutFailure apiError ->
+            justSetModel <| { model | logOutError = Just apiError }

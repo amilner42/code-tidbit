@@ -4,6 +4,7 @@ import Api
 import Array
 import Autocomplete as AC
 import DefaultServices.ArrayExtra as ArrayExtra
+import DefaultServices.CommonSubPageUtil exposing (CommonSubPageUtil, commonSubPageUtil)
 import DefaultServices.Util as Util exposing (togglePreviewMarkdown, maybeMapWithDefault)
 import Elements.Editor as Editor
 import JSON.Language
@@ -20,18 +21,9 @@ import Ports
 
 {-| `CreateSnipbit` update.
 -}
-update : Msg -> Model -> Shared -> ( Model, Shared, Cmd Msg )
-update msg model shared =
+update : CommonSubPageUtil Model Shared Msg -> Msg -> Model -> Shared -> ( Model, Shared, Cmd Msg )
+update { doNothing, justSetModel, justProduceCmd } msg model shared =
     let
-        doNothing =
-            ( model, shared, Cmd.none )
-
-        justProduceCmd newCmd =
-            ( model, shared, newCmd )
-
-        justSetModel newModel =
-            ( newModel, shared, Cmd.none )
-
         currentHighlightedComments =
             model.highlightedComments
     in
@@ -198,7 +190,7 @@ update msg model shared =
                             justSetModel newModel
 
                         Just updateMsg ->
-                            update updateMsg newModel shared
+                            update (commonSubPageUtil newModel shared) updateMsg newModel shared
 
             OnUpdateACWrap toTop ->
                 justSetModel
@@ -269,7 +261,7 @@ update msg model shared =
                     newMsg =
                         GoTo <| Route.CreateSnipbitCodeFramePage <| Array.length newModel.highlightedComments
                 in
-                    update newMsg newModel shared
+                    update (commonSubPageUtil newModel shared) newMsg newModel shared
 
             RemoveFrame ->
                 let
@@ -294,6 +286,7 @@ update msg model shared =
                             in
                                 if frameIndex >= (Array.length newHighlightedComments) then
                                     update
+                                        (commonSubPageUtil newModel shared)
                                         (GoTo <|
                                             Route.CreateSnipbitCodeFramePage <|
                                                 Array.length newHighlightedComments

@@ -2,6 +2,7 @@ module Pages.ViewSnipbit.Update exposing (..)
 
 import Api
 import Array
+import DefaultServices.CommonSubPageUtil exposing (CommonSubPageUtil)
 import DefaultServices.Util as Util exposing (maybeMapWithDefault)
 import Elements.Editor as Editor
 import Models.Completed as Completed
@@ -19,322 +20,288 @@ import Ports
 
 {-| `ViewSnipbit` update.
 -}
-update : Msg -> Model -> Shared -> ( Model, Shared, Cmd Msg )
-update msg model shared =
-    let
-        doNothing =
-            ( model, shared, Cmd.none )
+update : CommonSubPageUtil Model Shared Msg -> Msg -> Model -> Shared -> ( Model, Shared, Cmd Msg )
+update ({ doNothing, justSetModel, justUpdateModel, justSetShared, justProduceCmd } as common) msg model shared =
+    case msg of
+        NoOp ->
+            doNothing
 
-        justSetModel newModel =
-            ( newModel, shared, Cmd.none )
+        GoTo route ->
+            justProduceCmd <| Route.navigateTo route
 
-        justSetShared newShared =
-            ( model, newShared, Cmd.none )
-
-        justProduceCmd newCmd =
-            ( model, shared, newCmd )
-
-        justUpdateModel modelUpdater =
-            ( modelUpdater model, shared, Cmd.none )
-
-        withCmd : Cmd Msg -> ( Model, Shared, Cmd Msg ) -> ( Model, Shared, Cmd Msg )
-        withCmd withCmd ( newModel, newShared, newCmd ) =
-            ( newModel, newShared, Cmd.batch [ newCmd, withCmd ] )
-
-        -- For when you need to do multiple things all which change model/shared/cmd.
-        handleAll : List (( Model, Shared ) -> ( Model, Shared, Cmd Msg )) -> ( Model, Shared, Cmd Msg )
-        handleAll =
+        OnRouteHit route ->
             let
-                go ( lastModel, lastShared, lastCmd ) listOfThingsToHandle =
-                    case listOfThingsToHandle of
-                        [] ->
-                            ( lastModel, lastShared, lastCmd )
+                {- Get's data for viewing snipbit as required:
+                      - May need to fetch tidbit itself
+                      - May need to fetch story
+                      - May need to fetch if the tidbit is completed by the user.
 
-                        handleCurrent :: xs ->
-                            go (withCmd lastCmd (handleCurrent ( lastModel, lastShared ))) xs
-            in
-                go ( model, shared, Cmd.none )
-    in
-        case msg of
-            NoOp ->
-                doNothing
+                   TODO ISSUE#99 Update to check cache if it is expired.
+                -}
+                fetchOrRenderViewSnipbitData mongoID =
+                    let
+                        currentTidbitPointer =
+                            TidbitPointer.TidbitPointer
+                                TidbitPointer.Snipbit
+                                mongoID
 
-            GoTo route ->
-                justProduceCmd <| Route.navigateTo route
+                        -- Handle getting snipbit if needed.
+                        handleGetSnipbit : ( Model, Shared ) -> ( Model, Shared, Cmd Msg )
+                        handleGetSnipbit ( model, shared ) =
+                            let
+                                getSnipbit mongoID =
+                                    ( setViewingSnipbit Nothing model
+                                    , shared
+                                    , Api.getSnipbit
+                                        mongoID
+                                        OnGetSnipbitFailure
+                                        OnGetSnipbitSuccess
+                                    )
+                            in
+                                case model.snipbit of
+                                    Nothing ->
+                                        getSnipbit mongoID
 
-            OnRouteHit route ->
-                let
-                    {- Get's data for viewing snipbit as required:
-                          - May need to fetch tidbit itself
-                          - May need to fetch story
-                          - May need to fetch if the tidbit is completed by the user.
-
-                       TODO ISSUE#99 Update to check cache if it is expired.
-                    -}
-                    fetchOrRenderViewSnipbitData mongoID =
-                        let
-                            currentTidbitPointer =
-                                TidbitPointer.TidbitPointer
-                                    TidbitPointer.Snipbit
-                                    mongoID
-
-                            -- Handle getting snipbit if needed.
-                            handleGetSnipbit : ( Model, Shared ) -> ( Model, Shared, Cmd Msg )
-                            handleGetSnipbit ( model, shared ) =
-                                let
-                                    getSnipbit mongoID =
-                                        ( setViewingSnipbit Nothing model
-                                        , shared
-                                        , Api.getSnipbit
-                                            mongoID
-                                            OnGetSnipbitFailure
-                                            OnGetSnipbitSuccess
-                                        )
-                                in
-                                    case model.snipbit of
-                                        Nothing ->
+                                    Just snipbit ->
+                                        if snipbit.id == mongoID then
+                                            ( setViewingSnipbitRelevantHC Nothing model
+                                            , shared
+                                            , createViewSnipbitCodeEditor snipbit shared
+                                            )
+                                        else
                                             getSnipbit mongoID
 
-                                        Just snipbit ->
-                                            if snipbit.id == mongoID then
-                                                ( setViewingSnipbitRelevantHC Nothing model
-                                                , shared
-                                                , createViewSnipbitCodeEditor snipbit shared
-                                                )
-                                            else
-                                                getSnipbit mongoID
+                        -- Handle getting snipbit is-completed if needed.
+                        handleGetSnipbitIsCompleted : ( Model, Shared ) -> ( Model, Shared, Cmd Msg )
+                        handleGetSnipbitIsCompleted ( model, shared ) =
+                            let
+                                doNothing =
+                                    ( model, shared, Cmd.none )
 
-                            -- Handle getting snipbit is-completed if needed.
-                            handleGetSnipbitIsCompleted : ( Model, Shared ) -> ( Model, Shared, Cmd Msg )
-                            handleGetSnipbitIsCompleted ( model, shared ) =
-                                let
-                                    doNothing =
-                                        ( model, shared, Cmd.none )
+                                getSnipbitIsCompleted userID =
+                                    ( setViewingSnipbitIsCompleted Nothing model
+                                    , shared
+                                    , Api.postCheckCompletedWrapper
+                                        (Completed.Completed currentTidbitPointer userID)
+                                        OnGetCompletedFailure
+                                        OnGetCompletedSuccess
+                                    )
+                            in
+                                case ( shared.user, model.isCompleted ) of
+                                    ( Just user, Nothing ) ->
+                                        getSnipbitIsCompleted user.id
 
-                                    getSnipbitIsCompleted userID =
-                                        ( setViewingSnipbitIsCompleted Nothing model
-                                        , shared
-                                        , Api.postCheckCompletedWrapper
-                                            (Completed.Completed currentTidbitPointer userID)
-                                            OnGetCompletedFailure
-                                            OnGetCompletedSuccess
-                                        )
-                                in
-                                    case ( shared.user, model.isCompleted ) of
-                                        ( Just user, Nothing ) ->
+                                    ( Just user, Just currentCompleted ) ->
+                                        if currentCompleted.tidbitPointer == currentTidbitPointer then
+                                            doNothing
+                                        else
                                             getSnipbitIsCompleted user.id
 
-                                        ( Just user, Just currentCompleted ) ->
-                                            if currentCompleted.tidbitPointer == currentTidbitPointer then
-                                                doNothing
-                                            else
-                                                getSnipbitIsCompleted user.id
+                                    _ ->
+                                        doNothing
 
-                                        _ ->
+                        -- Handle getting story if viewing snipbit from story.
+                        handleGetStoryForSnipbit : ( Model, Shared ) -> ( Model, Shared, Cmd Msg )
+                        handleGetStoryForSnipbit ( model, shared ) =
+                            let
+                                doNothing =
+                                    ( model, shared, Cmd.none )
+
+                                maybeViewingStoryID =
+                                    Maybe.map .id shared.viewingStory
+
+                                getStory storyID =
+                                    Api.getExpandedStoryWithCompleted
+                                        storyID
+                                        OnGetExpandedStoryFailure
+                                        OnGetExpandedStorySuccess
+                            in
+                                case Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route of
+                                    Just storyID ->
+                                        if (Just storyID) == maybeViewingStoryID then
                                             doNothing
-
-                            -- Handle getting story if viewing snipbit from story.
-                            handleGetStoryForSnipbit : ( Model, Shared ) -> ( Model, Shared, Cmd Msg )
-                            handleGetStoryForSnipbit ( model, shared ) =
-                                let
-                                    doNothing =
-                                        ( model, shared, Cmd.none )
-
-                                    maybeViewingStoryID =
-                                        Maybe.map .id shared.viewingStory
-
-                                    getStory storyID =
-                                        Api.getExpandedStoryWithCompleted
-                                            storyID
-                                            OnGetExpandedStoryFailure
-                                            OnGetExpandedStorySuccess
-                                in
-                                    case Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route of
-                                        Just storyID ->
-                                            if (Just storyID) == maybeViewingStoryID then
-                                                doNothing
-                                            else
-                                                ( model
-                                                , { shared
-                                                    | viewingStory = Nothing
-                                                  }
-                                                , getStory storyID
-                                                )
-
-                                        _ ->
+                                        else
                                             ( model
                                             , { shared
                                                 | viewingStory = Nothing
                                               }
-                                            , Cmd.none
+                                            , getStory storyID
                                             )
-                        in
-                            handleAll
-                                [ handleGetSnipbit
-                                , handleGetSnipbitIsCompleted
-                                , handleGetStoryForSnipbit
-                                ]
-                in
-                    case route of
-                        Route.ViewSnipbitIntroductionPage _ mongoID ->
-                            fetchOrRenderViewSnipbitData mongoID
 
-                        Route.ViewSnipbitFramePage _ mongoID _ ->
-                            fetchOrRenderViewSnipbitData mongoID
+                                    _ ->
+                                        ( model
+                                        , { shared
+                                            | viewingStory = Nothing
+                                          }
+                                        , Cmd.none
+                                        )
+                    in
+                        common.handleAll
+                            [ handleGetSnipbit
+                            , handleGetSnipbitIsCompleted
+                            , handleGetStoryForSnipbit
+                            ]
+            in
+                case route of
+                    Route.ViewSnipbitIntroductionPage _ mongoID ->
+                        fetchOrRenderViewSnipbitData mongoID
 
-                        Route.ViewSnipbitConclusionPage _ mongoID ->
-                            fetchOrRenderViewSnipbitData mongoID
-                                |> withCmd
-                                    (case ( shared.user, model.isCompleted ) of
-                                        ( Just user, Just isCompleted ) ->
-                                            let
-                                                completed =
-                                                    Completed.completedFromIsCompleted
-                                                        isCompleted
-                                                        user.id
-                                            in
-                                                if isCompleted.complete == False then
-                                                    Api.postAddCompletedWrapper
-                                                        completed
-                                                        OnMarkAsCompleteFailure
-                                                        OnMarkAsCompleteSuccess
-                                                else
-                                                    Cmd.none
+                    Route.ViewSnipbitFramePage _ mongoID _ ->
+                        fetchOrRenderViewSnipbitData mongoID
 
-                                        _ ->
-                                            Cmd.none
-                                    )
+                    Route.ViewSnipbitConclusionPage _ mongoID ->
+                        fetchOrRenderViewSnipbitData mongoID
+                            |> common.withCmd
+                                (case ( shared.user, model.isCompleted ) of
+                                    ( Just user, Just isCompleted ) ->
+                                        let
+                                            completed =
+                                                Completed.completedFromIsCompleted
+                                                    isCompleted
+                                                    user.id
+                                        in
+                                            if isCompleted.complete == False then
+                                                Api.postAddCompletedWrapper
+                                                    completed
+                                                    OnMarkAsCompleteFailure
+                                                    OnMarkAsCompleteSuccess
+                                            else
+                                                Cmd.none
 
-                        _ ->
-                            doNothing
+                                    _ ->
+                                        Cmd.none
+                                )
 
-            OnGetCompletedSuccess isCompleted ->
-                justUpdateModel <| setViewingSnipbitIsCompleted <| Just isCompleted
-
-            OnGetCompletedFailure apiError ->
-                -- TODO handle error.
-                doNothing
-
-            OnGetSnipbitSuccess snipbit ->
-                ( Util.multipleUpdates
-                    [ setViewingSnipbit <| Just snipbit
-                    , setViewingSnipbitRelevantHC Nothing
-                    ]
-                    model
-                , shared
-                , createViewSnipbitCodeEditor snipbit shared
-                )
-
-            OnGetSnipbitFailure apiError ->
-                -- TODO handle error.
-                doNothing
-
-            OnGetExpandedStorySuccess expandedStory ->
-                justSetShared { shared | viewingStory = Just expandedStory }
-
-            OnGetExpandedStoryFailure apiError ->
-                -- TODO handle error.
-                doNothing
-
-            OnRangeSelected selectedRange ->
-                case model.snipbit of
-                    Nothing ->
+                    _ ->
                         doNothing
 
-                    Just aSnipbit ->
-                        if Range.isEmptyRange selectedRange then
-                            justUpdateModel <| setViewingSnipbitRelevantHC Nothing
-                        else
-                            aSnipbit.highlightedComments
-                                |> Array.indexedMap (,)
-                                |> Array.filter
-                                    (Tuple.second
-                                        >> .range
-                                        >> (Range.overlappingRanges selectedRange)
-                                    )
-                                |> (\relevantHC ->
-                                        justUpdateModel <|
-                                            setViewingSnipbitRelevantHC <|
-                                                Just
-                                                    { currentHC = Nothing
-                                                    , relevantHC = relevantHC
-                                                    }
-                                   )
+        OnGetCompletedSuccess isCompleted ->
+            justUpdateModel <| setViewingSnipbitIsCompleted <| Just isCompleted
 
-            BrowseRelevantHC ->
-                let
-                    newModel =
-                        updateViewingSnipbitRelevantHC
-                            (\currentRelevantHC -> { currentRelevantHC | currentHC = Just 0 })
-                            model
-                in
-                    ( newModel
-                    , shared
-                    , createViewSnipbitHCCodeEditor
-                        newModel.snipbit
-                        newModel.relevantHC
-                        shared.user
-                    )
+        OnGetCompletedFailure apiError ->
+            -- TODO handle error.
+            doNothing
 
-            CancelBrowseRelevantHC ->
-                ( setViewingSnipbitRelevantHC Nothing model
+        OnGetSnipbitSuccess snipbit ->
+            ( Util.multipleUpdates
+                [ setViewingSnipbit <| Just snipbit
+                , setViewingSnipbitRelevantHC Nothing
+                ]
+                model
+            , shared
+            , createViewSnipbitCodeEditor snipbit shared
+            )
+
+        OnGetSnipbitFailure apiError ->
+            -- TODO handle error.
+            doNothing
+
+        OnGetExpandedStorySuccess expandedStory ->
+            justSetShared { shared | viewingStory = Just expandedStory }
+
+        OnGetExpandedStoryFailure apiError ->
+            -- TODO handle error.
+            doNothing
+
+        OnRangeSelected selectedRange ->
+            case model.snipbit of
+                Nothing ->
+                    doNothing
+
+                Just aSnipbit ->
+                    if Range.isEmptyRange selectedRange then
+                        justUpdateModel <| setViewingSnipbitRelevantHC Nothing
+                    else
+                        aSnipbit.highlightedComments
+                            |> Array.indexedMap (,)
+                            |> Array.filter
+                                (Tuple.second
+                                    >> .range
+                                    >> (Range.overlappingRanges selectedRange)
+                                )
+                            |> (\relevantHC ->
+                                    justUpdateModel <|
+                                        setViewingSnipbitRelevantHC <|
+                                            Just
+                                                { currentHC = Nothing
+                                                , relevantHC = relevantHC
+                                                }
+                               )
+
+        BrowseRelevantHC ->
+            let
+                newModel =
+                    updateViewingSnipbitRelevantHC
+                        (\currentRelevantHC -> { currentRelevantHC | currentHC = Just 0 })
+                        model
+            in
+                ( newModel
                 , shared
-                  -- Trigger route hook again, `modify` because we don't want to have the same page twice in history.
-                , Route.modifyTo shared.route
+                , createViewSnipbitHCCodeEditor
+                    newModel.snipbit
+                    newModel.relevantHC
+                    shared.user
                 )
 
-            NextRelevantHC ->
-                let
-                    newModel =
-                        updateViewingSnipbitRelevantHC ViewerRelevantHC.goToNextFrame model
-                in
-                    ( newModel
-                    , shared
-                    , createViewSnipbitHCCodeEditor
-                        newModel.snipbit
-                        newModel.relevantHC
-                        shared.user
-                    )
+        CancelBrowseRelevantHC ->
+            ( setViewingSnipbitRelevantHC Nothing model
+            , shared
+              -- Trigger route hook again, `modify` because we don't want to have the same page twice in history.
+            , Route.modifyTo shared.route
+            )
 
-            PreviousRelevantHC ->
-                let
-                    newModel =
-                        updateViewingSnipbitRelevantHC ViewerRelevantHC.goToPreviousFrame model
-                in
-                    ( newModel
-                    , shared
-                    , createViewSnipbitHCCodeEditor
-                        newModel.snipbit
-                        newModel.relevantHC
-                        shared.user
-                    )
-
-            JumpToFrame route ->
-                ( setViewingSnipbitRelevantHC Nothing model
+        NextRelevantHC ->
+            let
+                newModel =
+                    updateViewingSnipbitRelevantHC ViewerRelevantHC.goToNextFrame model
+            in
+                ( newModel
                 , shared
-                , Route.navigateTo route
+                , createViewSnipbitHCCodeEditor
+                    newModel.snipbit
+                    newModel.relevantHC
+                    shared.user
                 )
 
-            MarkAsComplete completed ->
-                justProduceCmd <| Api.postAddCompletedWrapper completed OnMarkAsCompleteFailure OnMarkAsCompleteSuccess
+        PreviousRelevantHC ->
+            let
+                newModel =
+                    updateViewingSnipbitRelevantHC ViewerRelevantHC.goToPreviousFrame model
+            in
+                ( newModel
+                , shared
+                , createViewSnipbitHCCodeEditor
+                    newModel.snipbit
+                    newModel.relevantHC
+                    shared.user
+                )
 
-            OnMarkAsCompleteSuccess isCompleted ->
-                justUpdateModel <| setViewingSnipbitIsCompleted <| Just isCompleted
+        JumpToFrame route ->
+            ( setViewingSnipbitRelevantHC Nothing model
+            , shared
+            , Route.navigateTo route
+            )
 
-            OnMarkAsCompleteFailure apiError ->
-                -- TODO handle error.
-                doNothing
+        MarkAsComplete completed ->
+            justProduceCmd <| Api.postAddCompletedWrapper completed OnMarkAsCompleteFailure OnMarkAsCompleteSuccess
 
-            MarkAsIncomplete completed ->
-                justProduceCmd <|
-                    Api.postRemoveCompletedWrapper completed OnMarkAsIncompleteFailure OnMarkAsIncompleteSuccess
+        OnMarkAsCompleteSuccess isCompleted ->
+            justUpdateModel <| setViewingSnipbitIsCompleted <| Just isCompleted
 
-            OnMarkAsIncompleteSuccess isCompleted ->
-                justUpdateModel <| setViewingSnipbitIsCompleted <| Just isCompleted
+        OnMarkAsCompleteFailure apiError ->
+            -- TODO handle error.
+            doNothing
 
-            OnMarkAsIncompleteFailure apiError ->
-                -- TODO handle error.
-                doNothing
+        MarkAsIncomplete completed ->
+            justProduceCmd <|
+                Api.postRemoveCompletedWrapper completed OnMarkAsIncompleteFailure OnMarkAsIncompleteSuccess
+
+        OnMarkAsIncompleteSuccess isCompleted ->
+            justUpdateModel <| setViewingSnipbitIsCompleted <| Just isCompleted
+
+        OnMarkAsIncompleteFailure apiError ->
+            -- TODO handle error.
+            doNothing
 
 
 {-| Creates the editor for the snipbit.
