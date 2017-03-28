@@ -5,7 +5,6 @@ import DefaultServices.CommonSubPageUtil exposing (CommonSubPageUtil)
 import DefaultServices.Editable as Editable
 import Models.Route as Route
 import Models.User exposing (defaultUserUpdateRecord)
-import Pages.DefaultModel exposing (defaultShared)
 import Pages.Model exposing (Shared)
 import Pages.Profile.Messages exposing (..)
 import Pages.Profile.Model exposing (..)
@@ -76,12 +75,8 @@ update { doNothing, justSetModel, justUpdateModel, justProduceCmd } msg model sh
             justProduceCmd <| Api.getLogOut OnLogOutFailure OnLogOutSuccess
 
         OnLogOutSuccess basicResponse ->
-            -- TODO this should send a message up (out-msg pattern) to the base update which will clear all
-            -- component data.
-            ( model
-            , defaultShared
-            , Route.navigateTo Route.RegisterPage
-            )
+            -- The base update will check for this message and reset the entire model.
+            justProduceCmd <| Route.navigateTo Route.RegisterPage
 
         OnLogOutFailure apiError ->
             justSetModel <| { model | logOutError = Just apiError }

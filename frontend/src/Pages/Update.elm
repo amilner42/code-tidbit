@@ -16,6 +16,7 @@ import Pages.CreateBigbit.Model as CreateBigbitModel
 import Pages.CreateBigbit.Update as CreateBigbitUpdate
 import Pages.CreateSnipbit.Messages as CreateSnipbitMessages
 import Pages.CreateSnipbit.Update as CreateSnipbitUpdate
+import Pages.DefaultModel exposing (defaultModel)
 import Pages.DevelopStory.Messages as DevelopStoryMessages
 import Pages.DevelopStory.Update as DevelopStoryUpdate
 import Pages.Messages exposing (Msg(..))
@@ -176,11 +177,22 @@ updateCacheIf msg model shouldCache =
                                 model.profilePage
                                 model.shared
 
+                        justLoggedOut =
+                            case subMsg of
+                                ProfileMessages.OnLogOutSuccess _ ->
+                                    True
+
+                                _ ->
+                                    False
+
                         newModel =
-                            { model
-                                | profilePage = newProfileModel
-                                , shared = newShared
-                            }
+                            if justLoggedOut then
+                                defaultModel
+                            else
+                                { model
+                                    | profilePage = newProfileModel
+                                    , shared = newShared
+                                }
                     in
                         ( newModel, Cmd.map ProfileMessage newSubMsg )
 
