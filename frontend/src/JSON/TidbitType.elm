@@ -1,8 +1,8 @@
 module JSON.TidbitType exposing (..)
 
-import Json.Encode as Encode
 import Json.Decode as Decode
 import Json.Decode.Pipeline exposing (decode, required, optional, hardcoded)
+import Json.Encode as Encode
 import Models.TidbitType exposing (..)
 
 

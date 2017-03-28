@@ -11,8 +11,8 @@ type alias Completed =
     }
 
 
-{-| Convenience for storing on the frontend and keeping track of if something
-is completed. This is not replicated on the backend.
+{-| Convenience for storing on the frontend and keeping track of if something is completed. This is not replicated on
+the backend.
 -}
 type alias IsCompleted =
     { tidbitPointer : TidbitPointer.TidbitPointer

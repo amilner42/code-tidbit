@@ -1,7 +1,9 @@
 module Models.Route exposing (..)
 
+import Array
 import DefaultServices.Util as Util
 import Elements.FileStructure as FS
+import Models.Bigbit as Bigbit
 import Navigation
 import UrlParser exposing (Parser, s, (</>), (<?>), oneOf, map, top, int, string, stringParam)
 
@@ -15,35 +17,35 @@ type alias MongoID =
 {-| All of the app routes.
 -}
 type Route
-    = HomeComponentBrowse
-    | HomeComponentViewSnipbitIntroduction (Maybe MongoID) MongoID
-    | HomeComponentViewSnipbitConclusion (Maybe MongoID) MongoID
-    | HomeComponentViewSnipbitFrame (Maybe MongoID) MongoID Int
-    | HomeComponentViewBigbitIntroduction (Maybe MongoID) MongoID (Maybe FS.Path)
-    | HomeComponentViewBigbitFrame (Maybe MongoID) MongoID Int (Maybe FS.Path)
-    | HomeComponentViewBigbitConclusion (Maybe MongoID) MongoID (Maybe FS.Path)
-    | HomeComponentViewStory MongoID
-    | HomeComponentCreate
-    | HomeComponentCreateSnipbitName
-    | HomeComponentCreateSnipbitDescription
-    | HomeComponentCreateSnipbitLanguage
-    | HomeComponentCreateSnipbitTags
-    | HomeComponentCreateSnipbitCodeIntroduction
-    | HomeComponentCreateSnipbitCodeFrame Int
-    | HomeComponentCreateSnipbitCodeConclusion
-    | HomeComponentCreateBigbitName
-    | HomeComponentCreateBigbitDescription
-    | HomeComponentCreateBigbitTags
-    | HomeComponentCreateBigbitCodeIntroduction (Maybe FS.Path)
-    | HomeComponentCreateBigbitCodeFrame Int (Maybe FS.Path)
-    | HomeComponentCreateBigbitCodeConclusion (Maybe FS.Path)
-    | HomeComponentCreateNewStoryName (Maybe MongoID)
-    | HomeComponentCreateNewStoryDescription (Maybe MongoID)
-    | HomeComponentCreateNewStoryTags (Maybe MongoID)
-    | HomeComponentCreateStory MongoID
-    | HomeComponentProfile
-    | WelcomeComponentLogin
-    | WelcomeComponentRegister
+    = BrowsePage
+    | ViewSnipbitIntroductionPage (Maybe MongoID) MongoID
+    | ViewSnipbitConclusionPage (Maybe MongoID) MongoID
+    | ViewSnipbitFramePage (Maybe MongoID) MongoID Int
+    | ViewBigbitIntroductionPage (Maybe MongoID) MongoID (Maybe FS.Path)
+    | ViewBigbitFramePage (Maybe MongoID) MongoID Int (Maybe FS.Path)
+    | ViewBigbitConclusionPage (Maybe MongoID) MongoID (Maybe FS.Path)
+    | ViewStoryPage MongoID
+    | CreatePage
+    | CreateSnipbitNamePage
+    | CreateSnipbitDescriptionPage
+    | CreateSnipbitLanguagePage
+    | CreateSnipbitTagsPage
+    | CreateSnipbitCodeIntroductionPage
+    | CreateSnipbitCodeFramePage Int
+    | CreateSnipbitCodeConclusionPage
+    | CreateBigbitNamePage
+    | CreateBigbitDescriptionPage
+    | CreateBigbitTagsPage
+    | CreateBigbitCodeIntroductionPage (Maybe FS.Path)
+    | CreateBigbitCodeFramePage Int (Maybe FS.Path)
+    | CreateBigbitCodeConclusionPage (Maybe FS.Path)
+    | CreateStoryNamePage (Maybe MongoID)
+    | CreateStoryDescriptionPage (Maybe MongoID)
+    | CreateStoryTagsPage (Maybe MongoID)
+    | DevelopStoryPage MongoID
+    | ProfilePage
+    | LoginPage
+    | RegisterPage
 
 
 {-| For parsing a location (url) into a route.
@@ -83,7 +85,7 @@ matchers =
         viewBigbitConclusion =
             viewBigbit </> s "conclusion" <?> qpFile
 
-        homeComponentViewStory =
+        viewStory =
             view </> s "story" </> string
 
         -- Abstract.
@@ -144,17 +146,17 @@ matchers =
         createStory =
             create </> s "story"
 
-        homeComponentCreateNewStoryName =
+        createStoryName =
             createStory </> s "name" <?> qpEditingStory
 
-        homeComponentCreateNewStoryDescription =
+        createStoryDescription =
             createStory </> s "description" <?> qpEditingStory
 
-        homeComponentCreateNewStoryTags =
+        createStoryTags =
             createStory </> s "tags" <?> qpEditingStory
 
-        homeComponentCreateStory =
-            createStory </> string
+        developStory =
+            s "develop" </> s "story" </> string
 
         qpEditingStory =
             stringParam "editingStory"
@@ -168,46 +170,42 @@ matchers =
         profile =
             s "profile"
 
-        -- Abstract.
-        welcome =
-            s "welcome"
+        register =
+            s "register"
 
-        welcomeRegister =
-            welcome </> s "register"
-
-        welcomeLogin =
-            welcome </> s "login"
+        login =
+            s "login"
     in
         oneOf
-            [ map HomeComponentBrowse (top)
-            , map HomeComponentViewSnipbitIntroduction (viewSnipbitIntroduction)
-            , map HomeComponentViewSnipbitConclusion (viewSnipbitConclusion)
-            , map HomeComponentViewSnipbitFrame (viewSnipbitFrame)
-            , map HomeComponentViewBigbitIntroduction (viewBigbitIntroduction)
-            , map HomeComponentViewBigbitFrame (viewBigbitFrame)
-            , map HomeComponentViewBigbitConclusion (viewBigbitConclusion)
-            , map HomeComponentViewStory (homeComponentViewStory)
-            , map HomeComponentCreate (create)
-            , map HomeComponentCreateSnipbitName (createSnipbitName)
-            , map HomeComponentCreateSnipbitDescription (createSnipbitDescription)
-            , map HomeComponentCreateSnipbitLanguage (createSnipbitLanguage)
-            , map HomeComponentCreateSnipbitTags (createSnipbitTags)
-            , map HomeComponentCreateSnipbitCodeIntroduction (createSnipbitCodeIntroduction)
-            , map HomeComponentCreateSnipbitCodeFrame (createSnipbitCodeFrame)
-            , map HomeComponentCreateSnipbitCodeConclusion (createSnipbitCodeConclusion)
-            , map HomeComponentCreateBigbitName (createBigbitName)
-            , map HomeComponentCreateBigbitDescription (createBigbitDescription)
-            , map HomeComponentCreateBigbitTags (createBigbitTags)
-            , map HomeComponentCreateBigbitCodeIntroduction (createBigbitCodeIntroduction)
-            , map HomeComponentCreateBigbitCodeFrame (createBigbitCodeFrame)
-            , map HomeComponentCreateBigbitCodeConclusion (createBigbitCodeConclusion)
-            , map HomeComponentCreateNewStoryName homeComponentCreateNewStoryName
-            , map HomeComponentCreateNewStoryDescription homeComponentCreateNewStoryDescription
-            , map HomeComponentCreateNewStoryTags homeComponentCreateNewStoryTags
-            , map HomeComponentCreateStory homeComponentCreateStory
-            , map HomeComponentProfile (profile)
-            , map WelcomeComponentRegister (welcomeRegister)
-            , map WelcomeComponentLogin (welcomeLogin)
+            [ map BrowsePage top
+            , map ViewSnipbitIntroductionPage viewSnipbitIntroduction
+            , map ViewSnipbitConclusionPage viewSnipbitConclusion
+            , map ViewSnipbitFramePage viewSnipbitFrame
+            , map ViewBigbitIntroductionPage viewBigbitIntroduction
+            , map ViewBigbitFramePage viewBigbitFrame
+            , map ViewBigbitConclusionPage viewBigbitConclusion
+            , map ViewStoryPage viewStory
+            , map CreatePage create
+            , map CreateSnipbitNamePage createSnipbitName
+            , map CreateSnipbitDescriptionPage createSnipbitDescription
+            , map CreateSnipbitLanguagePage createSnipbitLanguage
+            , map CreateSnipbitTagsPage createSnipbitTags
+            , map CreateSnipbitCodeIntroductionPage createSnipbitCodeIntroduction
+            , map CreateSnipbitCodeFramePage createSnipbitCodeFrame
+            , map CreateSnipbitCodeConclusionPage createSnipbitCodeConclusion
+            , map CreateBigbitNamePage createBigbitName
+            , map CreateBigbitDescriptionPage createBigbitDescription
+            , map CreateBigbitTagsPage createBigbitTags
+            , map CreateBigbitCodeIntroductionPage createBigbitCodeIntroduction
+            , map CreateBigbitCodeFramePage createBigbitCodeFrame
+            , map CreateBigbitCodeConclusionPage createBigbitCodeConclusion
+            , map CreateStoryNamePage createStoryName
+            , map CreateStoryDescriptionPage createStoryDescription
+            , map CreateStoryTagsPage createStoryTags
+            , map DevelopStoryPage developStory
+            , map ProfilePage profile
+            , map RegisterPage register
+            , map LoginPage login
             ]
 
 
@@ -216,34 +214,34 @@ matchers =
 routeRequiresAuth : Route -> Bool
 routeRequiresAuth route =
     case route of
-        WelcomeComponentLogin ->
+        LoginPage ->
             False
 
-        WelcomeComponentRegister ->
+        RegisterPage ->
             False
 
-        HomeComponentViewSnipbitIntroduction _ _ ->
+        ViewSnipbitIntroductionPage _ _ ->
             False
 
-        HomeComponentViewSnipbitFrame _ _ _ ->
+        ViewSnipbitFramePage _ _ _ ->
             False
 
-        HomeComponentViewSnipbitConclusion _ _ ->
+        ViewSnipbitConclusionPage _ _ ->
             False
 
-        HomeComponentViewBigbitIntroduction _ _ _ ->
+        ViewBigbitIntroductionPage _ _ _ ->
             False
 
-        HomeComponentViewBigbitFrame _ _ _ _ ->
+        ViewBigbitFramePage _ _ _ _ ->
             False
 
-        HomeComponentViewBigbitConclusion _ _ _ ->
+        ViewBigbitConclusionPage _ _ _ ->
             False
 
-        HomeComponentViewStory _ ->
+        ViewStoryPage _ ->
             False
 
-        HomeComponentBrowse ->
+        BrowsePage ->
             False
 
         _ ->
@@ -252,17 +250,16 @@ routeRequiresAuth route =
 
 {-| Returns `True` iff the route requires that the user not be authenticated.
 
-NOTE: This is NOT the same as `not routeRequiresAuth` as there are routes
-that the user can access both logged-in and logged-out, these are specifically
-the routes that you must be logged-out to access.
+NOTE: This is NOT the same as `not routeRequiresAuth` as there are routes that the user can access both logged-in and
+      logged-out, these are specifically the routes that you must be logged-out to access.
 -}
 routeRequiresNotAuth : Route -> Bool
 routeRequiresNotAuth route =
     case route of
-        WelcomeComponentLogin ->
+        LoginPage ->
             True
 
-        WelcomeComponentRegister ->
+        RegisterPage ->
             True
 
         _ ->
@@ -273,14 +270,14 @@ routeRequiresNotAuth route =
 -}
 defaultAuthRoute : Route
 defaultAuthRoute =
-    HomeComponentBrowse
+    BrowsePage
 
 
 {-| The default route if unauthenticated.
 -}
 defaultUnauthRoute : Route
 defaultUnauthRoute =
-    WelcomeComponentRegister
+    RegisterPage
 
 
 {-| Converts a route to just the part of the url after (and including) the hash.
@@ -289,44 +286,44 @@ toHashUrl : Route -> String
 toHashUrl route =
     "#"
         ++ case route of
-            HomeComponentBrowse ->
+            BrowsePage ->
                 ""
 
-            HomeComponentCreate ->
+            CreatePage ->
                 "create"
 
-            HomeComponentViewSnipbitIntroduction qpStoryID mongoID ->
+            ViewSnipbitIntroductionPage qpStoryID mongoID ->
                 "view/snipbit/"
                     ++ mongoID
                     ++ "/introduction"
                     ++ Util.queryParamsToString [ ( "fromStory", qpStoryID ) ]
 
-            HomeComponentViewSnipbitConclusion qpStoryID mongoID ->
+            ViewSnipbitConclusionPage qpStoryID mongoID ->
                 "view/snipbit/"
                     ++ mongoID
                     ++ "/conclusion"
                     ++ Util.queryParamsToString [ ( "fromStory", qpStoryID ) ]
 
-            HomeComponentViewSnipbitFrame qpStoryID mongoID frameNumber ->
+            ViewSnipbitFramePage qpStoryID mongoID frameNumber ->
                 "view/snipbit/"
                     ++ mongoID
                     ++ "/frame/"
                     ++ (toString frameNumber)
                     ++ Util.queryParamsToString [ ( "fromStory", qpStoryID ) ]
 
-            HomeComponentViewBigbitIntroduction qpStoryID mongoID qpFile ->
+            ViewBigbitIntroductionPage qpStoryID mongoID qpFile ->
                 "view/bigbit/"
                     ++ mongoID
                     ++ "/introduction/"
                     ++ Util.queryParamsToString [ ( "file", qpFile ), ( "fromStory", qpStoryID ) ]
 
-            HomeComponentViewBigbitConclusion qpStoryID mongoID qpFile ->
+            ViewBigbitConclusionPage qpStoryID mongoID qpFile ->
                 "view/bigbit/"
                     ++ mongoID
                     ++ "/conclusion/"
                     ++ Util.queryParamsToString [ ( "file", qpFile ), ( "fromStory", qpStoryID ) ]
 
-            HomeComponentViewBigbitFrame qpStoryID mongoID frameNumber qpFile ->
+            ViewBigbitFramePage qpStoryID mongoID frameNumber qpFile ->
                 "view/bigbit/"
                     ++ mongoID
                     ++ "/frame/"
@@ -334,76 +331,76 @@ toHashUrl route =
                     ++ "/"
                     ++ Util.queryParamsToString [ ( "file", qpFile ), ( "fromStory", qpStoryID ) ]
 
-            HomeComponentViewStory mongoID ->
+            ViewStoryPage mongoID ->
                 "view/story/" ++ mongoID
 
-            HomeComponentCreateSnipbitName ->
+            CreateSnipbitNamePage ->
                 "create/snipbit/name"
 
-            HomeComponentCreateSnipbitDescription ->
+            CreateSnipbitDescriptionPage ->
                 "create/snipbit/description"
 
-            HomeComponentCreateSnipbitLanguage ->
+            CreateSnipbitLanguagePage ->
                 "create/snipbit/language"
 
-            HomeComponentCreateSnipbitTags ->
+            CreateSnipbitTagsPage ->
                 "create/snipbit/tags"
 
-            HomeComponentCreateSnipbitCodeIntroduction ->
+            CreateSnipbitCodeIntroductionPage ->
                 "create/snipbit/code/introduction"
 
-            HomeComponentCreateSnipbitCodeFrame frameNumber ->
+            CreateSnipbitCodeFramePage frameNumber ->
                 "create/snipbit/code/frame/" ++ (toString frameNumber)
 
-            HomeComponentCreateSnipbitCodeConclusion ->
+            CreateSnipbitCodeConclusionPage ->
                 "create/snipbit/code/conclusion"
 
-            HomeComponentCreateBigbitName ->
+            CreateBigbitNamePage ->
                 "create/bigbit/name"
 
-            HomeComponentCreateBigbitDescription ->
+            CreateBigbitDescriptionPage ->
                 "create/bigbit/description"
 
-            HomeComponentCreateBigbitTags ->
+            CreateBigbitTagsPage ->
                 "create/bigbit/tags"
 
-            HomeComponentCreateBigbitCodeIntroduction qpFile ->
+            CreateBigbitCodeIntroductionPage qpFile ->
                 "create/bigbit/code/introduction/"
                     ++ (Util.queryParamsToString [ ( "file", qpFile ) ])
 
-            HomeComponentCreateBigbitCodeFrame frameNumber qpFile ->
+            CreateBigbitCodeFramePage frameNumber qpFile ->
                 "create/bigbit/code/frame/"
                     ++ (toString frameNumber)
                     ++ "/"
                     ++ (Util.queryParamsToString [ ( "file", qpFile ) ])
 
-            HomeComponentCreateBigbitCodeConclusion qpFile ->
+            CreateBigbitCodeConclusionPage qpFile ->
                 "create/bigbit/code/conclusion/"
                     ++ (Util.queryParamsToString [ ( "file", qpFile ) ])
 
-            HomeComponentCreateNewStoryName qpStory ->
+            CreateStoryNamePage qpStory ->
                 "create/story/name"
                     ++ (Util.queryParamsToString [ ( "editingStory", qpStory ) ])
 
-            HomeComponentCreateNewStoryDescription qpStory ->
+            CreateStoryDescriptionPage qpStory ->
                 "create/story/description"
                     ++ (Util.queryParamsToString [ ( "editingStory", qpStory ) ])
 
-            HomeComponentCreateNewStoryTags qpStory ->
+            CreateStoryTagsPage qpStory ->
                 "create/story/tags"
                     ++ (Util.queryParamsToString [ ( "editingStory", qpStory ) ])
 
-            HomeComponentCreateStory storyID ->
-                "create/story/" ++ storyID
+            DevelopStoryPage storyID ->
+                "develop/story/" ++ storyID
 
-            HomeComponentProfile ->
+            ProfilePage ->
                 "profile"
 
-            WelcomeComponentLogin ->
-                "welcome/login"
+            LoginPage ->
+                "login"
 
-            WelcomeComponentRegister ->
-                "welcome/register"
+            RegisterPage ->
+                "register"
 
 
 {-| Attempts to parse a location into a route.
@@ -438,94 +435,130 @@ navigateTo route =
     Navigation.newUrl <| toHashUrl <| route
 
 
-{-| Goes to a given route by modifying the current URL instead of adding a new
-url to the browser history.
+{-| Goes to a given route by modifying the current URL instead of adding a new url to the browser history.
 -}
 modifyTo : Route -> Cmd msg
 modifyTo route =
     Navigation.modifyUrl <| toHashUrl <| route
 
 
-{-| For routes that have a file path query paramter, will  navigate to the same
-URL but with the file path added as a query param, otheriwse will do nothing.
+{-| For routes that have a file path query paramter, will  navigate to the same URL but with the file path added as a
+query param, otheriwse will do nothing.
 -}
 navigateToSameUrlWithFilePath : Maybe FS.Path -> Route -> Cmd msg
 navigateToSameUrlWithFilePath maybePath route =
     case route of
-        HomeComponentViewBigbitIntroduction fromStoryID mongoID _ ->
-            navigateTo <| HomeComponentViewBigbitIntroduction fromStoryID mongoID maybePath
+        ViewBigbitIntroductionPage fromStoryID mongoID _ ->
+            navigateTo <| ViewBigbitIntroductionPage fromStoryID mongoID maybePath
 
-        HomeComponentViewBigbitFrame fromStoryID mongoID frameNumber _ ->
-            navigateTo <| HomeComponentViewBigbitFrame fromStoryID mongoID frameNumber maybePath
+        ViewBigbitFramePage fromStoryID mongoID frameNumber _ ->
+            navigateTo <| ViewBigbitFramePage fromStoryID mongoID frameNumber maybePath
 
-        HomeComponentViewBigbitConclusion fromStoryID mongoID _ ->
-            navigateTo <| HomeComponentViewBigbitConclusion fromStoryID mongoID maybePath
+        ViewBigbitConclusionPage fromStoryID mongoID _ ->
+            navigateTo <| ViewBigbitConclusionPage fromStoryID mongoID maybePath
 
-        HomeComponentCreateBigbitCodeIntroduction _ ->
-            navigateTo <| HomeComponentCreateBigbitCodeIntroduction maybePath
+        CreateBigbitCodeIntroductionPage _ ->
+            navigateTo <| CreateBigbitCodeIntroductionPage maybePath
 
-        HomeComponentCreateBigbitCodeFrame frameNumber _ ->
-            navigateTo <| HomeComponentCreateBigbitCodeFrame frameNumber maybePath
+        CreateBigbitCodeFramePage frameNumber _ ->
+            navigateTo <| CreateBigbitCodeFramePage frameNumber maybePath
 
-        HomeComponentCreateBigbitCodeConclusion _ ->
-            navigateTo <| HomeComponentCreateBigbitCodeConclusion maybePath
+        CreateBigbitCodeConclusionPage _ ->
+            navigateTo <| CreateBigbitCodeConclusionPage maybePath
 
         _ ->
             Cmd.none
 
 
-{-| Returns the query paramater "editingStory" if on the create new story routes
-and the parameter is present.
+{-| Returns the query paramater "editingStory" if on the create new story routes and the parameter is present.
 -}
 getEditingStoryQueryParamOnCreateNewStoryRoute : Route -> Maybe MongoID
 getEditingStoryQueryParamOnCreateNewStoryRoute route =
     case route of
-        HomeComponentCreateNewStoryName qpEditingStory ->
+        CreateStoryNamePage qpEditingStory ->
             qpEditingStory
 
-        HomeComponentCreateNewStoryDescription qpEditingStory ->
+        CreateStoryDescriptionPage qpEditingStory ->
             qpEditingStory
 
-        HomeComponentCreateNewStoryTags qpEditingStory ->
+        CreateStoryTagsPage qpEditingStory ->
             qpEditingStory
 
         _ ->
             Nothing
 
 
-{-| Returns the query parameter "fromStory" if viewing a snipbit and that query
-param is present.
+{-| Returns the query parameter "fromStory" if viewing a snipbit and that query param is present.
 -}
 getFromStoryQueryParamOnViewSnipbitRoute : Route -> Maybe MongoID
 getFromStoryQueryParamOnViewSnipbitRoute route =
     case route of
-        HomeComponentViewSnipbitIntroduction fromStoryID _ ->
+        ViewSnipbitIntroductionPage fromStoryID _ ->
             fromStoryID
 
-        HomeComponentViewSnipbitFrame fromStoryID _ _ ->
+        ViewSnipbitFramePage fromStoryID _ _ ->
             fromStoryID
 
-        HomeComponentViewSnipbitConclusion fromStoryID _ ->
+        ViewSnipbitConclusionPage fromStoryID _ ->
             fromStoryID
 
         _ ->
             Nothing
 
 
-{-| Returns the query parameter "fromStory" if viewing a bigbit and that query
-param is present.
+{-| Returns the query parameter "fromStory" if viewing a bigbit and that query param is present.
 -}
 getFromStoryQueryParamOnViewBigbitRoute : Route -> Maybe MongoID
 getFromStoryQueryParamOnViewBigbitRoute route =
     case route of
-        HomeComponentViewBigbitIntroduction fromStoryID _ _ ->
+        ViewBigbitIntroductionPage fromStoryID _ _ ->
             fromStoryID
 
-        HomeComponentViewBigbitFrame fromStoryID _ _ _ ->
+        ViewBigbitFramePage fromStoryID _ _ _ ->
             fromStoryID
 
-        HomeComponentViewBigbitConclusion fromStoryID _ _ ->
+        ViewBigbitConclusionPage fromStoryID _ _ ->
             fromStoryID
+
+        _ ->
+            Nothing
+
+
+{-| The current active path determined from the route.
+-}
+createBigbitPageCurrentActiveFile : Route -> Maybe FS.Path
+createBigbitPageCurrentActiveFile route =
+    case route of
+        CreateBigbitCodeIntroductionPage maybePath ->
+            maybePath
+
+        CreateBigbitCodeFramePage _ maybePath ->
+            maybePath
+
+        CreateBigbitCodeConclusionPage maybePath ->
+            maybePath
+
+        _ ->
+            Nothing
+
+
+{-| The current active path determined from the route and the current comment frame.
+-}
+viewBigbitPageCurrentActiveFile : Route -> Bigbit.Bigbit -> Maybe FS.Path
+viewBigbitPageCurrentActiveFile route bigbit =
+    case route of
+        ViewBigbitIntroductionPage _ _ maybePath ->
+            maybePath
+
+        ViewBigbitFramePage _ _ frameNumber maybePath ->
+            if Util.isNotNothing maybePath then
+                maybePath
+            else
+                Array.get (frameNumber - 1) bigbit.highlightedComments
+                    |> Maybe.map .file
+
+        ViewBigbitConclusionPage _ _ maybePath ->
+            maybePath
 
         _ ->
             Nothing

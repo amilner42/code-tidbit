@@ -1,9 +1,9 @@
 module Models.Tidbit exposing (..)
 
 import Date as Date
-import Models.Snipbit as SnipbitModel
 import Models.Bigbit as BigbitModel
 import Models.Route as Route
+import Models.Snipbit as SnipbitModel
 import Models.TidbitPointer as TidbitPointer
 
 
@@ -50,17 +50,16 @@ getLastModified tidbit =
             lastModified
 
 
-{-| Gets the route-base for viewing the tidbit, still requires the ID to become
-a full `Route`.
+{-| Gets the route-base for viewing the tidbit, still requires the ID to become a full `Route`.
 -}
 getTidbitRoute : Maybe String -> Tidbit -> Route.Route
 getTidbitRoute fromStoryID tidbit =
     case tidbit of
         Snipbit { id } ->
-            Route.HomeComponentViewSnipbitIntroduction fromStoryID id
+            Route.ViewSnipbitIntroductionPage fromStoryID id
 
         Bigbit { id } ->
-            Route.HomeComponentViewBigbitIntroduction fromStoryID id Nothing
+            Route.ViewBigbitIntroductionPage fromStoryID id Nothing
 
 
 {-| Gets the name for tidbit type.

@@ -5,8 +5,8 @@ import Html.Attributes exposing (class)
 import Markdown
 
 
-{-| Because our markdown is from user-input, we need to sanitize the HTML.
-Additionally, we keep everything github-styled.
+{-| Because our markdown is from user-input, we need to sanitize the HTML. Additionally, we keep everything
+github-styled.
 -}
 safeOptions =
     { githubFlavored = Just { tables = True, breaks = True }
@@ -16,8 +16,7 @@ safeOptions =
     }
 
 
-{-| Generates sanitized-github-style-markdown with the standard css classes for
-the comment box.
+{-| Generates sanitized-github-style-markdown with the standard css classes for the comment box.
 -}
 githubMarkdown : List (Attribute msg) -> String -> Html msg
 githubMarkdown extraAttr markdownText =

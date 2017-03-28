@@ -1,0 +1,198 @@
+@import '../../Styles/global';
+@import '../../Styles/mixins';
+@import '../../Styles/variables';
+
+
+.create-bigbit {
+
+    height: 100%;
+
+    .create-tidbit-navbar {
+        width: 496px;
+    }
+
+    .sub-bar {
+        .sub-bar-button {
+            margin-left: 10px;
+        }
+
+        .create-bigbit-disabled-publish-button {
+            @extend .disabled-publish-button;
+        }
+
+        .create-bigbit-publish-button {
+            @extend .publish-button;
+        }
+    }
+
+    .create-bigbit-name {
+        @extend .create-tidbit-x;
+
+        input {
+            height: 53px;
+            width: 800px;
+        }
+    }
+
+    .create-bigbit-description {
+        @extend .create-tidbit-x;
+
+        textarea {
+            height: 400px;
+            width: 600px;
+        }
+    }
+
+    .create-bigbit-tags {
+        @extend .create-tidbit-x;
+
+        input {
+            width: 500px;
+            height: 53px;
+        }
+    }
+
+    .create-bigbit-code {
+        @extend .create-tidbit-code;
+
+        .expand-file-structure {
+            @extend .above-comment-block-button;
+            right: 0px;
+        }
+
+        .preview-markdown {
+            @extend .above-comment-block-button;
+            right: 181px;
+        }
+
+        .bigbit-editor {
+            position: relative;
+
+            .current-file {
+                position: absolute;
+                top: -20px;
+                left: 10px;
+                font-size: 12px;
+                color: $color4;
+            }
+        }
+
+        .close-fs-icon {
+            margin-top: -5px;
+            margin-left: 320px;
+        }
+
+        .file-structure {
+            box-sizing: border-box;
+            position: block;
+            display: relative;
+            height: 600px;
+            width: 360px;
+            border: 1px solid $color2;
+            margin-bottom: 10px;
+            padding-left: 10px;
+
+            .add-file, .add-folder, .remove-file, .remove-folder {
+                width: 163px;
+                height: 36px;
+            }
+
+            .selected-action-button {
+                background-color: $color2;
+                color: $color5;
+            }
+
+            .add-file {
+                position: absolute;
+                bottom: 10px;
+                left: 10px;
+            }
+
+            .add-folder {
+                position: absolute;
+                bottom: 10px;
+                right: 12px;
+            }
+
+            .remove-file {
+                position: absolute;
+                bottom: 56px;
+                left: 10px;
+            }
+
+            .remove-folder {
+                position: absolute;
+                bottom: 56px;
+                right: 12px;
+            }
+
+            .fs-action-input {
+                position: absolute;
+                height: 53px;
+                bottom: 105px;
+                left: 11px;
+                text-align: center;
+
+                input {
+                    box-sizing: border-box;
+                    text-align: center;
+                    width: 336px;
+                    height: 100%;
+                    border: 1px solid $color2;
+                }
+
+                .fs-action-input-text {
+                    position: absolute;
+                    top: -16px;
+                    left: 1px;
+                    font-size: 12px;
+                    color: $color5;
+                    text-align: left;
+
+                    .fs-action-input-select-language-text {
+                        position: absolute;
+                        top: -27px;
+                        width: 300px;
+
+                        .language-options {
+                            width: 100%;
+
+                            button {
+                                border-radius: 5px;
+                                height: 25px;
+                                line-height: 20px;
+                                font-size: 12px;
+                                margin: 3px 6px 3px -3px;
+                                padding: 3px;
+
+                                &:hover {
+                                    background-color: $color2;
+                                    color: $color5;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                .action-button-submit-icon {
+                  position: absolute;
+                  top: 5px;
+                  right: 3px;
+                  font-size: 43px;
+                  color: $color3;
+                  cursor: pointer;
+                }
+
+                .arrow-confirmed {
+                  color: red;
+                }
+            }
+
+            .close-action-input {
+                position: absolute;
+                bottom: 25px;
+                font-size: 32px;
+            }
+        }
+    }
+}

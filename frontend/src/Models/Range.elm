@@ -32,11 +32,9 @@ nonEmptyRangeOrNothing range =
         Just range
 
 
-{-| Checks that a range is still in range for some given code, if it is, returns
-the same range. If the range is now out of range because the code has been
-shortened, returns the maximum size range that is in range. If a range is now
-completely out of range then it will end up returning an empty range on
-the last possible line.
+{-| Checks that a range is still in range for some given code, if it is, returns the same range. If the range is now out
+of range because the code has been shortened, returns the maximum size range that is in range. If a range is now
+completely out of range then it will end up returning an empty range on the last possible line.
 -}
 newValidRange : Range -> String -> Range
 newValidRange range newCode =
@@ -58,9 +56,7 @@ newValidRange range newCode =
                 Just lastRowString ->
                     String.length lastRowString
 
-        {- Gets the new col and row in range checked against `maxRow` and
-           `maxCol`.
-        -}
+        {- Gets the new col and row in range checked against `maxRow` and `maxCol`. -}
         getNewColAndRow : Int -> Int -> ( Int, Int )
         getNewColAndRow currentRow currentCol =
             if currentRow < maxRow then
@@ -117,14 +113,13 @@ collapseRange range =
     }
 
 
-{-| Given some code and a range, returns the one-dimensional coordinates of the
-range. This is the number of characters from the left treating the code as one
-long string of characters.
+{-| Given some code and a range, returns the one-dimensional coordinates of the range. This is the number of characters
+from the left treating the code as one long string of characters.
 
-NOTE: we do count newlines as characters as well.
+NOTE: We do count newlines as characters.
 
-WARNING: Assumes the code is valid for the range, does not check and will
-produce an incorrect result if the range is not valid for the given code.
+WARNING: Assumes the code is valid for the range, does not check and will produce an incorrect result if the range is
+         not valid for the given code.
 -}
 toOneDimensionalCoordinates : String -> Range -> ( Int, Int )
 toOneDimensionalCoordinates code range =
@@ -148,11 +143,10 @@ toOneDimensionalCoordinates code range =
         )
 
 
-{-| Given some code and 1 dimensional coordinates, returns the range for those
-coordinates.
+{-| Given some code and 1 dimensional coordinates, returns the range for those coordinates.
 
-WARNING: Assumes the code is valid for the coordinates, does not check and will
-produce an incorrect result if the given coordinates are invalid.
+WARNING: Assumes the code is valid for the coordinates, does not check and will produce an incorrect result if the given
+         coordinates are invalid.
 -}
 fromOneDimensionalCoordinates : String -> ( Int, Int ) -> Range
 fromOneDimensionalCoordinates code ( start, end ) =
@@ -201,10 +195,9 @@ shiftCoordinates shiftAmount ( start, end ) =
 
 {-| Gets the new range after a change has been made in the editor.
 
-NOTE: This originally was a massive pain in the ass, but a shift in the
-approach has made it much simpler, we think about the domain in 1 dimension,
-do the transformations, and only at the end convert back to the 2 dimensional
-matrix. This avoids a lot of nasty code.
+NOTE: This originally was a massive pain in the ass, but a shift in the approach has made it much simpler, we think
+      about the domain in 1 dimension, do the transformations, and only at the end convert back to the 2 dimensional
+      matrix. This avoids a lot of nasty code.
 -}
 getNewRangeAfterDelta : String -> String -> String -> Range -> Range -> Range
 getNewRangeAfterDelta oldCode newCode action deltaRange selectedRange =
@@ -215,8 +208,7 @@ getNewRangeAfterDelta oldCode newCode action deltaRange selectedRange =
         case action of
             "insert" ->
                 let
-                    -- With insertion, we want to get the 1D coordinates against
-                    -- the new code.
+                    -- With insertion, we want to get the 1D coordinates against the new code.
                     ( deltaStartCoordinate, deltaEndCoordinate ) =
                         toOneDimensionalCoordinates newCode deltaRange
 
@@ -232,8 +224,8 @@ getNewRangeAfterDelta oldCode newCode action deltaRange selectedRange =
 
             "remove" ->
                 let
-                    -- With removal, we want to get the 1D coordinates against
-                    -- the old code, because that's the code we are erasing.
+                    -- With removal, we want to get the 1D coordinates against the old code, because that's the code we
+                    -- are erasing.
                     ( deltaStartCoordinate, deltaEndCoordinate ) =
                         toOneDimensionalCoordinates oldCode deltaRange
 
@@ -255,7 +247,7 @@ getNewRangeAfterDelta oldCode newCode action deltaRange selectedRange =
                             , Basics.min selectedEndCoordinate deltaStartCoordinate
                             )
 
-            -- This will never happen, ACE actions are limited to "insert" and
-            -- "remove", otherwise ACE errors internally and never sends it.
+            -- This will never happen, ACE actions are limited to "insert" and "remove", otherwise ACE errors internally
+            -- and never sends it.
             _ ->
                 selectedRange

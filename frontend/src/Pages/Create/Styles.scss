@@ -1,0 +1,199 @@
+@import '../../Styles/mixins';
+@import '../../Styles/variables';
+
+
+.create-page {
+    width: 100%;
+    padding-bottom: 5px;
+
+    .title-banner {
+        box-sizing: border-box;
+        width: 100%;
+        height: 75px;
+        color: white;
+        background-color: $color10;
+        text-align: center;
+        line-height: 50px;
+        padding-top: 20px;
+        font-size: 48px;
+        font-weight: 800;
+
+        &.story-banner {
+            background-color: $color9;
+            color: $color5;
+            border-bottom: 1px solid $color2;
+            margin-bottom: 10px;
+            height: 85px;
+        }
+    }
+
+    .make-tidbits {
+        box-sizing: border-box;
+        display: flex;
+        justify-content: center;
+        height: 315px;
+        min-height: 315px;
+        padding: 20px;
+        background-color: $color10;
+        border-bottom: 1px solid #555;
+
+        .create-select-tidbit-type-coming-soon {
+            @include light-box-shadow();
+            position: relative;
+            box-sizing: border-box;
+            display: inline-block;
+            width: 275px;
+            height: 275px;
+            float: left;
+            margin-left: 10px;
+            margin-right: 10px;
+            background-color: white;
+            flex-grow: 1;
+            max-width: 300px;
+
+            .coming-soon-text {
+                position: absolute;
+                top: 40%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                font-size: 28px;
+                color: $color4;
+                width: 100%;
+                text-align: center;
+            }
+
+            .coming-soon-sub-text {
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                font-size: 16px;
+                color: $color4;
+                width: 275px;
+                text-align: center;
+            }
+        }
+
+        .create-select-tidbit-type {
+            @include strong-box-shadow();
+            box-sizing: border-box;
+
+            position: relative;
+            display: inline-block;
+            flex-grow: 1;
+            width: 275px;
+            height: 275px;
+            max-width: 300px;
+            margin-left: 10px;
+            margin-right: 10px;
+            background-color: white;
+            border: none;
+            font-size: 28px;
+            font-weight: 700;
+            color: $color5;
+            float: left;
+
+            .description-text {
+                box-sizing: border-box;
+                font-size: 16px;
+                width: 275px;
+                padding: 10px;
+                font-weight: normal;
+            }
+
+            .back-button {
+                position: absolute;
+                bottom: 10px;
+                right: 10px;
+                background-color: $color4;
+            }
+
+            .create-select-tidbit-type-title {
+                position: absolute;
+                top: 40%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+            }
+
+            .create-select-tidbit-type-sub-title {
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                font-size: 16px;
+                width: 300px;
+                text-align: center;
+                transform: translate(-50%, -50%);
+            }
+
+            button {
+                border: none;
+                border-radius: 3px;
+                color: white;
+                background-color: $color1;
+                padding: 3px 10px 3px 10px;
+                width: 280px;
+                height: 35px;
+                opacity: 0.9;
+                font-size: 18px;
+
+                &:hover {
+                    opacity: 1;
+                }
+            }
+
+            .info-icon {
+                position: absolute;
+                top: 5px;
+                right: 5px;
+                color: $color4;
+                cursor: pointer;
+            }
+
+            .select-button {
+                position: absolute;
+                bottom: 10px;
+                right: 10px;
+            }
+        }
+    }
+
+    .develop-stories {
+        width: 85%;
+        min-width: 900px;
+        margin: auto;
+        margin-top: 20px;
+
+        .create-story-box {
+            box-sizing: border-box;
+            display: inline-block;
+            position: relative;
+            float: left;
+            width: 275px;
+            height: 275px;
+            margin: 0 10px 20px 10px;
+            position: relative;
+            border: 2px dotted $color2;
+            cursor: pointer;
+            flex-grow: 1;
+            max-width: 325px;
+
+            &:hover {
+                background-color: $color9;
+                border-style: solid;
+
+                .add-story-box-icon {
+                    color: $color5;
+                }
+            }
+
+            .add-story-box-icon {
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                font-size: 128px;
+                color: $color2;
+            }
+        }
+    }
+}

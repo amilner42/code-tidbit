@@ -2,9 +2,9 @@ module DefaultServices.Editable exposing (..)
 
 -- Inspired by Corey: https://gist.github.com/coreyhaines/cf40b7dca8916b77878c97fdb5c8184e
 
-import Json.Encode as Encode
 import Json.Decode as Decode
 import Json.Decode.Pipeline exposing (decode, required, optional, hardcoded)
+import Json.Encode as Encode
 
 
 {-| An editable is an item which is either being edited or not being edited.
@@ -20,8 +20,7 @@ type alias NotEditingRecord ofType =
     { value : ofType }
 
 
-{-| If editing, then you have the original value and the current editing value
-which we denote as the buffer.
+{-| If editing, then you have the original value and the current editing value which we denote as the buffer.
 -}
 type alias EditingRecord ofType =
     { originalValue : ofType, buffer : ofType }
@@ -39,8 +38,7 @@ originalValue editable =
             originalValue
 
 
-{-| Gets the buffer value out of an editable being edited, otherwise returns
-the value.
+{-| Gets the buffer value out of an editable being edited, otherwise returns the value.
 -}
 getBuffer : Editable ofType -> ofType
 getBuffer editable =
@@ -78,8 +76,7 @@ newNotEditing value =
     NotEditing { value = value }
 
 
-{-| If not editing, switches to editing mode and sets the buffer to the original
-value.
+{-| If not editing, switches to editing mode and sets the buffer to the original value.
 -}
 startEditing : Editable ofType -> Editable ofType
 startEditing editable =
@@ -91,8 +88,7 @@ startEditing editable =
             editable
 
 
-{-| If editing, switches to not editing using the value of the buffer as the
-new value.
+{-| If editing, switches to not editing using the value of the buffer as the new value.
 -}
 finishEditing : Editable ofType -> Editable ofType
 finishEditing editable =

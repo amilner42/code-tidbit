@@ -1,17 +1,17 @@
 module DefaultServices.LocalStorage exposing (saveModel, onLoadModel, loadModel)
 
-import Components.Messages exposing (Msg(..))
-import Components.Model exposing (Model, cacheEncoder, cacheDecoder)
 import DefaultServices.Util as Util
+import Pages.JSON exposing (encoder, decoder)
+import Pages.Messages exposing (Msg(..))
+import Pages.Model exposing (Model)
 import Ports
 
 
 {-
-   This module will not be needed soon, they are working on a cool localStorage
-   cache system for elm, shoudl be released soon.
+   This module will not be needed soon, they are working on a cool localStorage cache system for elm, should be
+   released soon.
 
-   This module requires a couple ports in the ports module and a script must be
-   added to the index page.
+   This module requires a couple ports in the ports module and a script must be added to the index page.
 
    HTML (on index):
 
@@ -50,14 +50,14 @@ import Ports
 -}
 saveModel : Model -> Cmd msg
 saveModel model =
-    Ports.saveModelToLocalStorage <| cacheEncoder <| model
+    Ports.saveModelToLocalStorage <| encoder <| model
 
 
 {-| Will be used for the port subscription.
 -}
 onLoadModel : String -> Msg
 onLoadModel modelAsStringFromStorage =
-    case (Util.fromJsonString cacheDecoder modelAsStringFromStorage) of
+    case (Util.fromJsonString decoder modelAsStringFromStorage) of
         Ok model ->
             OnLoadModelFromLocalStorageSuccess model
 

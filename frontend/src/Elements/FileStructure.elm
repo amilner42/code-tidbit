@@ -79,38 +79,38 @@ isEmpty (FileStructure (Folder files subFolders metadata) fsMetaData) =
     Dict.isEmpty subFolders && Dict.isEmpty files
 
 
-{-| Checks if two file paths are the same, drops the initial optional slash on
-both to make sure that they follow the same format.
+{-| Checks if two file paths are the same, drops the initial optional slash on both to make sure that they follow the
+same format.
 
-NOTE: You should always use this to check path equality, otherwise bugs maybe
-      caused by one file having a `/` and the other not.
+NOTE: You should always use this to check path equality, otherwise bugs maybe caused by one file having a `/` and the
+      other not.
 -}
 isSameFilePath : Path -> Path -> Bool
 isSameFilePath file1 file2 =
     (uniqueFilePath file1) == (uniqueFilePath file2)
 
 
-{-| Checks if two folder paths are the same, drops both the initial and final
-optional slashes to make sure they follow the same format.
+{-| Checks if two folder paths are the same, drops both the initial and final optional slashes to make sure they follow
+the same format.
 
-NOTE: You should always use this to check path eqaulity, otherwise bugs maybe
-      caused by one folder having ending/starting slashes and the other not.
+NOTE: You should always use this to check path eqaulity, otherwise bugs maybe caused by one folder having
+      ending/starting slashes and the other not.
 -}
 isSameFolderPath : Path -> Path -> Bool
 isSameFolderPath folder1 folder2 =
     (uniqueFolderPath folder1) == (uniqueFolderPath folder2)
 
 
-{-| Files `/bla/bla.a` and `bla/bla.a` point to the same file, this gets rid
-of the initial slash to produce a unique file name.
+{-| Files `/bla/bla.a` and `bla/bla.a` point to the same file, this gets rid of the initial slash to produce a unique
+file name.
 -}
 uniqueFilePath : Path -> Path
 uniqueFilePath =
     dropOptionalLeftSlash
 
 
-{-| Folders `/bla/bla/` and `bla/bla` point to the same folder, this gets rid
-of the initial and final slash to produce a unique folder name.
+{-| Folders `/bla/bla/` and `bla/bla` point to the same folder, this gets rid of the initial and final slash to produce
+a unique folder name.
 -}
 uniqueFolderPath : Path -> Path
 uniqueFolderPath =
@@ -119,17 +119,14 @@ uniqueFolderPath =
 
 {-| Similar to a `map`, but does not allow to change the type, only the value.
 
-It will run the map on the folders fist, then on the files, then on the
-fsMetadata. The ordering of the folder mapping and file mapping is important
-because folderMap can also change files.
+It will run the map on the folders fist, then on the files, then on the fsMetadata. The ordering of the folder mapping
+and file mapping is important because folderMap can also change files.
 
-For the folder mapping itself, it will run it from top to bottom, first mapping
-a node and then mapping on all it's posssibly modified children. Because it
-first changes itself then runs on it's possibly new/altered children, we can't
-change the type itself or it would change the type of it's children and then
-the recursive function would be typed incorrectly. Use this function when you
-want to modify the structures values but not the structure itself
-(of the metadata, hence a b and c are fixed).
+For the folder mapping itself, it will run it from top to bottom, first mapping a node and then mapping on all it's
+posssibly modified children. Because it first changes itself then runs on it's possibly new/altered children, we can't
+change the type itself or it would change the type of it's children and then the recursive function would be typed
+incorrectly. Use this function when you want to modify the structures values but not the structure itself (of the
+metadata, hence a b and c are fixed).
 -}
 valueMap :
     FileStructure a b c
@@ -139,8 +136,8 @@ valueMap :
     -> FileStructure a b c
 valueMap ((FileStructure rootFolder metadata) as fs) folderFunc fileFunc fsFunc =
     let
-        {- Map over the folders, first map over the current fodlder node then
-           map over it's possibly new/altered subfolders.
+        {- Map over the folders, first map over the current fodlder node then map over it's possibly new/altered
+           subfolders.
         -}
         folderMap : FileStructure a b c -> FileStructure a b c
         folderMap (FileStructure rootFolder metadata) =
@@ -243,8 +240,7 @@ dropOptionalRightSlash someString =
         someString
 
 
-{-| Gets a specific folder from the tree if it exists in the tree, otherwise
-`Nothing`.
+{-| Gets a specific folder from the tree if it exists in the tree, otherwise `Nothing`.
 -}
 getFolder : FileStructure a b c -> Path -> Maybe (Folder b c)
 getFolder (FileStructure rootFolder metadata) absolutePath =
@@ -268,8 +264,7 @@ getFolder (FileStructure rootFolder metadata) absolutePath =
                 |> followPath rootFolder
 
 
-{-| Gets a specific file from the tree if it exists in the tree, otherwise
-`Nothing`.
+{-| Gets a specific file from the tree if it exists in the tree, otherwise `Nothing`.
 -}
 getFile : FileStructure a b c -> Path -> Maybe (File c)
 getFile (FileStructure rootFolder metadata) absolutePath =
@@ -393,10 +388,9 @@ updateFolder absolutePath folderUpdater (FileStructure rootFolder fsMetadata) =
 
 {-| The options for adding a folder.
 
-@param forceCreateDirectories A function for creating blank directories given
-                              a folderName, for force-creating directories.
-@param overwriteExisting Will only overwrite an existing folder if this is set
-                         to true.
+@param forceCreateDirectories A function for creating blank directories given  a folderName, for force-creating
+                              directories.
+@param overwriteExisting Will only overwrite an existing folder if this is set to true.
 -}
 type alias AddFolderOptions b c =
     { forceCreateDirectories : Maybe (String -> Folder b c)
@@ -409,9 +403,6 @@ type alias AddFolderOptions b c =
 addFolder : AddFolderOptions b c -> Path -> Folder b c -> FileStructure a b c -> FileStructure a b c
 addFolder addFolderOptions absolutePath newFolder (FileStructure rootFolder fsMetadata) =
     let
-        {- @param folder The current folder
-           @param listPath the remaining path
-        -}
         createFolder : Folder b c -> List Name -> Folder b c
         createFolder ((Folder files folders folderMetadata) as folder) listPath =
             case listPath of
@@ -468,10 +459,8 @@ addFolder addFolderOptions absolutePath newFolder (FileStructure rootFolder fsMe
 
 {-| The options for adding a file.
 
-@param forceCreateDirectories Will only create directories along the way if they
-                              don't already exist if set to true.
-@param overwriteExisting Will only replace existing files if this is set to
-                         true.
+@param forceCreateDirectories Will only create directories along the way if they don't already exist if set to true.
+@param overwriteExisting Will only replace existing files if this is set to true.
 -}
 type alias AddFileOptions b c =
     { overwriteExisting : Bool
@@ -583,8 +572,7 @@ removeFile absolutePath (FileStructure rootFolder fsMetadata) =
 
 {-| Removes a folder if it exists, otherwise returns the same FS.
 
-NOTE: You cannot delete the root of the entire tree, calling
-    `removeFolder "/" someFS` will return `someFS`.
+NOTE: You cannot delete the root of the entire tree, calling `removeFolder "/" someFS` will return `someFS`.
 -}
 removeFolder : Path -> FileStructure a b c -> FileStructure a b c
 removeFolder absolutePath (FileStructure rootFolder fsMetadata) =
@@ -688,8 +676,7 @@ type alias FileStructureConfig msg =
     }
 
 
-{-| For creating a cookie-cutter file-structure, use `render` if more
-customization is required.
+{-| For creating a cookie-cutter file-structure, use `render` if more customization is required.
 -}
 fileStructure : FileStructureConfig msg -> FileStructure a { b | isExpanded : Bool } c -> Html msg
 fileStructure fsConfig fs =

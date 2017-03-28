@@ -3,15 +3,16 @@ module DefaultServices.Util exposing (..)
 import Date
 import Dict
 import Dom
-import Html exposing (Html, Attribute)
-import Html.Keyed as Keyed
-import Html.Attributes exposing (hidden)
+import Elements.Markdown exposing (githubMarkdown)
+import Html exposing (Html, Attribute, div, i, text)
+import Html.Attributes exposing (hidden, class)
 import Html.Events exposing (Options, on, onWithOptions, keyCode, defaultOptions)
+import Html.Keyed as Keyed
 import Json.Decode as Decode
 import Json.Encode as Encode
 import Keyboard.Extra as KK
-import Task
 import Set
+import Task
 
 
 {-| Useful for encoding, turns maybes into nulls / there actual value.
@@ -103,8 +104,7 @@ onKeydown =
 
 {-| Event handler for `keyDown` events that also `preventDefault`.
 
-WARNING: It'll only prevent default if your function returns a message not
-`Nothing`.
+WARNING: It'll only prevent default if your function returns a message not `Nothing`.
 -}
 onKeydownPreventDefault : (KK.Key -> Maybe msg) -> Attribute msg
 onKeydownPreventDefault =
@@ -173,8 +173,7 @@ resultToBool result =
             True
 
 
-{-| Given a bunch of maybe query params, turns it into a string of the query
-params that are actually there.
+{-| Given a bunch of maybe query params, turns it into a string of the query params that are actually there.
 
 Eg.
   []  -> ""
@@ -228,7 +227,7 @@ maybeMapWithDefault func default maybeA =
 
 {-| Date decoder.
 
-Will decode both dates in number-form and dates in ISO-string-form.
+NOTE: Will decode both dates in number-form and dates in ISO-string-form.
 -}
 dateDecoder : Decode.Decoder Date.Date
 dateDecoder =
@@ -272,16 +271,15 @@ keyedDiv =
     Keyed.node "div"
 
 
-{-| Returns `Just` the element at the given index in the list,
-or `Nothing` if the list is not long enough.
+{-| Returns `Just` the element at the given index in the list, or `Nothing` if the list is not long enough.
 -}
 getAt : List a -> Int -> Maybe a
 getAt xs idx =
     List.head <| List.drop idx xs
 
 
-{-| Get's the index of the first False in a list, otherwise returns nothing if
-the list does not contain a single False.
+{-| Get's the index of the first `False` in a list, otherwise returns `Nothing` if the list does not contain a single
+`False`.
 -}
 indexOfFirstFalse : List Bool -> Maybe Int
 indexOfFirstFalse =
@@ -300,16 +298,14 @@ indexOfFirstFalse =
         go 0
 
 
-{-| When running multiple updates, it can be cleaner aesthetically to have it as
-one list as opposed to using pipes.
+{-| When running multiple updates, it can be cleaner aesthetically to have it as one list as opposed to using pipes.
 -}
 multipleUpdates : List (a -> a) -> (a -> a)
 multipleUpdates =
     List.foldl (>>) identity
 
 
-{-| For adding a string to a list of strings if it's not empty and it's also not
-already in the list.
+{-| For adding a string to a list of strings if it's not empty and it's also not already in the list.
 -}
 addUniqueNonEmptyString : String -> List String -> List String
 addUniqueNonEmptyString stringToAdd listOfStrings =
@@ -317,3 +313,36 @@ addUniqueNonEmptyString stringToAdd listOfStrings =
         listOfStrings
     else
         stringToAdd :: listOfStrings
+
+
+{-| A semi-hack for flex-box justify-center but align-left.
+
+@REFER http://stackoverflow.com/questions/18744164/flex-box-align-last-row-to-grid
+-}
+emptyFlexBoxesForAlignment : List (Html msg)
+emptyFlexBoxesForAlignment =
+    List.repeat 10 <| div [ class "empty-tidbit-box-for-flex-align" ] []
+
+
+{-| Renders markdown if condition is true, otherwise the backup html.
+-}
+markdownOr : Bool -> String -> Html msg -> Html msg
+markdownOr condition markdownText backUpHtml =
+    if condition then
+        githubMarkdown [] markdownText
+    else
+        backUpHtml
+
+
+{-| A google-material-design check-icon.
+-}
+checkIcon : Html msg
+checkIcon =
+    i [ class "material-icons check-icon" ] [ text "check" ]
+
+
+{-| Helper for flipping the previewMarkdown field of any record.
+-}
+togglePreviewMarkdown : { a | previewMarkdown : Bool } -> { a | previewMarkdown : Bool }
+togglePreviewMarkdown record =
+    { record | previewMarkdown = not record.previewMarkdown }

@@ -23,6 +23,21 @@ port loadModelFromLocalStorage : () -> Cmd msg
 port doScrolling : { querySelector : String, duration : Int, extraScroll : Int } -> Cmd msg
 
 
+{-| Smooth-scrolls to the bottom.
+-}
+smoothScrollToBottom : Cmd msg
+smoothScrollToBottom =
+    doScrolling
+        { querySelector = ".invisible-bottom", duration = 500, extraScroll = 0 }
+
+
+{-| Smooth-scrolls to the subbar, effectively hiding the top navbar.
+-}
+smoothScrollToSubBar : Cmd msg
+smoothScrollToSubBar =
+    doScrolling { querySelector = ".sub-bar", duration = 500, extraScroll = 0 }
+
+
 {-| Upon loading the model from local storage.
 -}
 port onLoadModelFromLocalStorage : (String -> msg) -> Sub msg
@@ -40,8 +55,7 @@ type alias CreateCodeEditorConfig =
     }
 
 
-{-| Finds the dom element with the given class name and replaces it with the
-ace code editor.
+{-| Finds the dom element with the given class name and replaces it with the ace code editor.
 -}
 port createCodeEditor : CreateCodeEditorConfig -> Cmd msg
 
@@ -64,9 +78,8 @@ port onCodeEditorUpdate :
     -> Sub msg
 
 
-{-| Called when a code editor being used (with id `id`) has a new
-selection, it will not be called if the selection has no range (the start
-is the end).
+{-| Called when a code editor being used (with id `id`) has a new selection, it will not be called if the selection has
+no range (the start is the end).
 -}
 port onCodeEditorSelectionUpdate :
     ({ id : String, range : Range } -> msg)

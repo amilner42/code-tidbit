@@ -1,0 +1,30 @@
+@import '../Styles/mixins';
+@import '../Styles/variables';
+
+
+.current-tags {
+    width: 500px;
+    display: block;
+    margin: 0 auto 0 auto;
+
+    .tag {
+        @include no-select();
+
+        border: 2px solid $color3;
+        border-radius: 5px;
+        display: inline-block;
+        position: relative;
+        float: left;
+        padding: 5px;
+        margin: 0 5px 5px 0;
+
+        button {
+            color: white;
+            background-color: $color5;
+            border: none;
+            border-radius: 10px;
+            margin-left: 5px;
+            cursor: pointer;
+        }
+    }
+}

@@ -1,0 +1,21 @@
+@import '../../Styles/global';
+
+
+.create-story-page {
+    height: 100%;
+
+    .sub-bar {
+
+        .sub-bar-button {
+            margin-left: 10px;
+
+            &.edit-information {
+                width: 160px;
+            }
+        }
+    }
+
+    .create-story-page-content {
+        @extend .page-content;
+    }
+}

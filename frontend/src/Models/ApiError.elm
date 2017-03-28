@@ -5,8 +5,7 @@ module Models.ApiError exposing (..)
 
 {-| An error from the backend converted to a union.
 
-NOTE: This must stay up to date with the backend, refer to types.ts to see
-backend errors.
+NOTE: This must stay up to date with the backend, refer to types.ts to see backend errors.
 -}
 type ApiError
     = UnexpectedPayload
@@ -70,10 +69,9 @@ type alias BackendError =
     }
 
 
-{-| Gives a nice human readable representation of the `apiError`, this is
-intended to be read by the user. Some of the errors below will never face the
-users (if they use the webapp), but just for the sake of it I give all errors
-a human readable message, in case they decide the API directly for instance.
+{-| Gives a nice human readable representation of the `apiError`, this is intended to be read by the user. Some of the
+errors below will never face the users (if they use the webapp), but just for the sake of it I give all errors a human
+readable message, in case they decide the API directly for instance.
 -}
 humanReadable : ApiError -> String
 humanReadable apiError =

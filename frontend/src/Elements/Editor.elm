@@ -5,8 +5,7 @@ import Html exposing (Html, div)
 import Html.Attributes exposing (class, id)
 
 
--- TODO Dup code here is driving me crazy, some is needed but some can be
--- definitely be removed. Not a priority.
+-- TODO Dup code here is driving me crazy, some is needed but some can be definitely be removed. Not a priority.
 
 
 {-| The languages the Ace Editor supports.
@@ -320,9 +319,8 @@ humanReadableListOfLanguages =
 
 {-| Given a file name, like `bla.py`, returns the appropriate language [python].
 
-NOTE: Due to ambiguity in certain file extensions (.sql), we return a list of
-the possible languages it could be. An empty list means it's an unsupported file
-extension.
+NOTE: Due to ambiguity in certain file extensions (.sql), we return a list of the possible languages it could be. An
+      empty list means it's an unsupported file extension.
 
 NOTE: This is the fileName, not the absolute path.
 -}
@@ -537,8 +535,7 @@ languagesFromFileName fileName =
                             []
 
 
-{-| Given a language, returns the ACE location which can be used with the ACE
-API to set the language.
+{-| Given a language, returns the ACE location which can be used with the ACE API to set the language.
 -}
 aceLanguageLocation : Language -> String
 aceLanguageLocation lang =
@@ -710,8 +707,7 @@ aceLanguageLocation lang =
         baseLocation ++ languagePath
 
 
-{-| Given a theme, returns the location which can be used with the ACE API to
-set the theme.
+{-| Given a theme, returns the location which can be used with the ACE API to set the theme.
 -}
 aceThemeLocation : Theme -> String
 aceThemeLocation theme =

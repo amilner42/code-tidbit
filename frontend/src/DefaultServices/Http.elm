@@ -1,19 +1,18 @@
 module DefaultServices.Http exposing (get, post)
 
 import Http
+import JSON.ApiError
 import Json.Decode as Decode
 import Json.Encode as Encode
-import JSON.ApiError
 import Models.ApiError as ApiError
 
 
-{- NOTE This module is designed to be used with a backend which serves errors
-   back, refer to Models.ApiError to see the format of expected errors.
+{- This module is designed to be used with a backend which serves errors back, refer to Models.ApiError to see the
+   format of expected errors.
 -}
 
 
-{-| In case of an http error, extracts the ApiError, otherwise extracts the
-body.
+{-| In case of an http error, extracts the ApiError, otherwise extracts the body.
 -}
 handleHttpResult : (ApiError.ApiError -> b) -> (a -> b) -> Result Http.Error a -> b
 handleHttpResult onApiError onApiSuccess httpResult =

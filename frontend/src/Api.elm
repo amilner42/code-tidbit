@@ -2,18 +2,18 @@ module Api exposing (..)
 
 import DefaultServices.Http as HttpService
 import DefaultServices.Util as Util
-import Json.Decode as Decode
-import Json.Encode as Encode
-import Json.Decode.Pipeline exposing (decode, required, optional, hardcoded)
 import JSON.BasicResponse
 import JSON.Bigbit
 import JSON.Completed
 import JSON.IDResponse
-import JSON.User
-import JSON.Story
 import JSON.Snipbit
+import JSON.Story
 import JSON.Tidbit
 import JSON.TidbitPointer
+import JSON.User
+import Json.Decode as Decode
+import Json.Decode.Pipeline exposing (decode, required, optional, hardcoded)
+import Json.Encode as Encode
 import Models.ApiError as ApiError
 import Models.BasicResponse as BasicResponse
 import Models.Bigbit as Bigbit
@@ -21,9 +21,13 @@ import Models.Completed as Completed
 import Models.IDResponse as IDResponse
 import Models.Snipbit as Snipbit
 import Models.Story as Story
-import Models.User as User
 import Models.Tidbit as Tidbit
 import Models.TidbitPointer as TidbitPointer
+import Models.User as User
+import Pages.CreateBigbit.JSON as CreateBigbitJSON
+import Pages.CreateBigbit.Model as CreateBigbitModel
+import Pages.CreateSnipbit.JSON as CreateSnipbitJSON
+import Pages.CreateSnipbit.Model as CreateSnipbitModel
 
 
 {-| All API endpoints sit on the `/api` route.
@@ -54,8 +58,8 @@ getAccount =
     apiGet "account" JSON.User.decoder
 
 
-{-| Gets all the stories, you can use query params to customize the search.
-Refer to the backend route to see what the options are.
+{-| Gets all the stories, you can use query params to customize the search. Refer to the backend route to see what the
+options are.
 -}
 getStories : List ( String, Maybe String ) -> (ApiError.ApiError -> b) -> (List Story.Story -> b) -> Cmd b
 getStories queryParams =
@@ -97,8 +101,7 @@ getExpandedStoryWithCompleted storyID =
         JSON.Story.expandedStoryDecoder
 
 
-{-| Queries the API to log the user out, which should send a response to delete
-the cookies.
+{-| Queries the API to log the user out, which should send a response to delete the cookies.
 -}
 getLogOut : (ApiError.ApiError -> b) -> (BasicResponse.BasicResponse -> b) -> Cmd b
 getLogOut =
@@ -126,8 +129,7 @@ getBigbit bigbitID =
     apiGet ("bigbits" :/: bigbitID) JSON.Bigbit.decoder
 
 
-{-| Gets tidbits, you can use query params to customize the search.
-Refer to the backend to see what the options are.
+{-| Gets tidbits, you can use query params to customize the search. Refer to the backend to see what the options are.
 -}
 getTidbits : List ( String, Maybe String ) -> (ApiError.ApiError -> b) -> (List Tidbit.Tidbit -> b) -> Cmd b
 getTidbits queryParams =
@@ -152,22 +154,22 @@ postRegister user =
 
 {-| Creates a new snipbit.
 -}
-postCreateSnipbit : Snipbit.SnipbitForPublication -> (ApiError.ApiError -> b) -> (IDResponse.IDResponse -> b) -> Cmd b
+postCreateSnipbit : CreateSnipbitModel.SnipbitForPublication -> (ApiError.ApiError -> b) -> (IDResponse.IDResponse -> b) -> Cmd b
 postCreateSnipbit snipbit =
     apiPost
         "snipbits"
         JSON.IDResponse.decoder
-        (JSON.Snipbit.publicationEncoder snipbit)
+        (CreateSnipbitJSON.publicationEncoder snipbit)
 
 
 {-| Creates a new bigbit.
 -}
-postCreateBigbit : Bigbit.BigbitForPublication -> (ApiError.ApiError -> b) -> (IDResponse.IDResponse -> b) -> Cmd b
+postCreateBigbit : CreateBigbitModel.BigbitForPublication -> (ApiError.ApiError -> b) -> (IDResponse.IDResponse -> b) -> Cmd b
 postCreateBigbit bigbit =
     apiPost
         "bigbits"
         JSON.IDResponse.decoder
-        (JSON.Bigbit.publicationEncoder bigbit)
+        (CreateBigbitJSON.publicationEncoder bigbit)
 
 
 {-| Updates a user.
@@ -244,8 +246,7 @@ postCheckCompleted completed =
 -- API Request Wrappers
 
 
-{-| Wrapper around `postAddCompleted`, returns the result in `IsComplete` form
-using the input to get that information.
+{-| Wrapper around `postAddCompleted`, returns the result in `IsComplete` form using the input to get that information.
 -}
 postAddCompletedWrapper : Completed.Completed -> (ApiError.ApiError -> b) -> (Completed.IsCompleted -> b) -> Cmd b
 postAddCompletedWrapper completed handleError handleSuccess =
@@ -255,8 +256,8 @@ postAddCompletedWrapper completed handleError handleSuccess =
         (always <| handleSuccess <| Completed.IsCompleted completed.tidbitPointer True)
 
 
-{-| Wrapper around `postRemoveCompleted`, returns the result in `IsComplete`
-form using the input to get that information.
+{-| Wrapper around `postRemoveCompleted`, returns the result in `IsComplete` form using the input to get that
+information.
 -}
 postRemoveCompletedWrapper : Completed.Completed -> (ApiError.ApiError -> b) -> (Completed.IsCompleted -> b) -> Cmd b
 postRemoveCompletedWrapper completed handleError handleSuccess =
@@ -266,8 +267,8 @@ postRemoveCompletedWrapper completed handleError handleSuccess =
         (always <| handleSuccess <| Completed.IsCompleted completed.tidbitPointer False)
 
 
-{-| Wrapper around `postCheckCompleted`, returns the result in `IsComplete` form
-using the input to get that information.
+{-| Wrapper around `postCheckCompleted`, returns the result in `IsComplete` form using the input to get that
+information.
 -}
 postCheckCompletedWrapper : Completed.Completed -> (ApiError.ApiError -> b) -> (Completed.IsCompleted -> b) -> Cmd b
 postCheckCompletedWrapper completed handleError handleSuccess =
