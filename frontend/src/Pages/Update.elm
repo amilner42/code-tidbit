@@ -99,10 +99,7 @@ updateCacheIf msg model shouldCache =
                     let
                         newModel =
                             { model
-                                | shared =
-                                    { shared
-                                        | route = Route.RegisterPage
-                                    }
+                                | shared = { shared | route = Route.RegisterPage }
                             }
                     in
                         ( newModel, Route.navigateTo newModel.shared.route )
@@ -166,9 +163,7 @@ updateCacheIf msg model shouldCache =
                                 model.shared
 
                         newModel =
-                            { model
-                                | shared = newShared
-                            }
+                            { model | shared = newShared }
                     in
                         ( newModel, Cmd.map ViewStoryMessage newSubMsg )
 
@@ -309,36 +304,28 @@ updateCacheIf msg model shouldCache =
                     case id of
                         "create-snipbit-code-editor" ->
                             (updateCacheIf
-                                (CreateSnipbitMessage <|
-                                    CreateSnipbitMessages.OnRangeSelected range
-                                )
+                                (CreateSnipbitMessage <| CreateSnipbitMessages.OnRangeSelected range)
                                 model
                                 shouldCache
                             )
 
                         "create-bigbit-code-editor" ->
                             (updateCacheIf
-                                (CreateBigbitMessage <|
-                                    CreateBigbitMessages.OnRangeSelected range
-                                )
+                                (CreateBigbitMessage <| CreateBigbitMessages.OnRangeSelected range)
                                 model
                                 shouldCache
                             )
 
                         "view-snipbit-code-editor" ->
                             (updateCacheIf
-                                (ViewSnipbitMessage <|
-                                    ViewSnipbitMessages.OnRangeSelected range
-                                )
+                                (ViewSnipbitMessage <| ViewSnipbitMessages.OnRangeSelected range)
                                 model
                                 shouldCache
                             )
 
                         "view-bigbit-code-editor" ->
                             (updateCacheIf
-                                (ViewBigbitMessage <|
-                                    ViewBigbitMessages.OnRangeSelected range
-                                )
+                                (ViewBigbitMessage <| ViewBigbitMessages.OnRangeSelected range)
                                 model
                                 shouldCache
                             )
@@ -424,21 +411,14 @@ handleKeyPress model =
 
         -- Makes sure to only activate arrow keys if in the tutorial.
         viewSnipbitWatchForLeftAndRightArrow onLeft onRight =
-            if
-                ViewSnipbitModel.isViewSnipbitRHCTabOpen
-                    model.viewSnipbitPage
-            then
+            if ViewSnipbitModel.isViewSnipbitRHCTabOpen model.viewSnipbitPage then
                 doNothing
             else
                 watchForLeftAndRightArrow onLeft onRight
 
         -- Makes sure to only activate arrow keys if in the tutorial.
         viewBigbitWatchForLeftAndRightArrow onLeft onRight =
-            if
-                ViewBigbitModel.isBigbitTutorialTabOpen
-                    model.viewBigbitPage.bigbit
-                    model.viewBigbitPage.relevantHC
-            then
+            if ViewBigbitModel.isBigbitTutorialTabOpen model.viewBigbitPage.bigbit model.viewBigbitPage.relevantHC then
                 watchForLeftAndRightArrow onLeft onRight
             else
                 doNothing
@@ -600,14 +580,13 @@ handleLocationChange maybeRoute model =
                                     let
                                         newModel =
                                             modelWithRoute Route.defaultUnauthRoute
-
-                                        newCmd =
-                                            Cmd.batch
-                                                [ Route.modifyTo newModel.shared.route
-                                                , LocalStorage.saveModel newModel
-                                                ]
                                     in
-                                        ( newModel, newCmd )
+                                        ( newModel
+                                        , Cmd.batch
+                                            [ Route.modifyTo newModel.shared.route
+                                            , LocalStorage.saveModel newModel
+                                            ]
+                                        )
 
                         True ->
                             case Route.routeRequiresNotAuth route of
@@ -622,94 +601,45 @@ handleLocationChange maybeRoute model =
                                     let
                                         newModel =
                                             modelWithRoute Route.defaultAuthRoute
-
-                                        newCmd =
-                                            Cmd.batch
-                                                [ Route.modifyTo newModel.shared.route
-                                                , LocalStorage.saveModel newModel
-                                                ]
                                     in
-                                        ( newModel, newCmd )
+                                        ( newModel
+                                        , Cmd.batch
+                                            [ Route.modifyTo newModel.shared.route
+                                            , LocalStorage.saveModel newModel
+                                            ]
+                                        )
+
+                triggerRouteHook withMsg =
+                    ( newModel
+                    , Cmd.batch
+                        [ newCmd
+                        , Util.cmdFromMsg withMsg
+                        ]
+                    )
 
                 triggerRouteHookOnViewSnipbitPage =
-                    ( newModel
-                    , Cmd.batch
-                        [ newCmd
-                        , Util.cmdFromMsg <|
-                            ViewSnipbitMessage <|
-                                ViewSnipbitMessages.OnRouteHit route
-                        ]
-                    )
+                    triggerRouteHook <| ViewSnipbitMessage <| ViewSnipbitMessages.OnRouteHit route
 
                 triggerRouteHookOnViewBigbitPage =
-                    ( newModel
-                    , Cmd.batch
-                        [ newCmd
-                        , Util.cmdFromMsg <|
-                            ViewBigbitMessage <|
-                                ViewBigbitMessages.OnRouteHit route
-                        ]
-                    )
+                    triggerRouteHook <| ViewBigbitMessage <| ViewBigbitMessages.OnRouteHit route
 
                 triggerRouteHookOnViewStoryPage =
-                    ( newModel
-                    , Cmd.batch
-                        [ newCmd
-                        , Util.cmdFromMsg <|
-                            ViewStoryMessage <|
-                                ViewStoryMessages.OnRouteHit route
-                        ]
-                    )
+                    triggerRouteHook <| ViewStoryMessage <| ViewStoryMessages.OnRouteHit route
 
                 triggerRouteHookOnNewStoryPage =
-                    ( newModel
-                    , Cmd.batch
-                        [ newCmd
-                        , Util.cmdFromMsg <|
-                            NewStoryMessage <|
-                                NewStoryMessages.OnRouteHit route
-                        ]
-                    )
+                    triggerRouteHook <| NewStoryMessage <| NewStoryMessages.OnRouteHit route
 
                 triggerRouteHookOnCreatePage =
-                    ( newModel
-                    , Cmd.batch
-                        [ newCmd
-                        , Util.cmdFromMsg <|
-                            CreateMessage <|
-                                CreateMessages.OnRouteHit route
-                        ]
-                    )
+                    triggerRouteHook <| CreateMessage <| CreateMessages.OnRouteHit route
 
                 triggerRouteHookOnDevelopStoryPage =
-                    ( newModel
-                    , Cmd.batch
-                        [ newCmd
-                        , Util.cmdFromMsg <|
-                            DevelopStoryMessage <|
-                                DevelopStoryMessages.OnRouteHit route
-                        ]
-                    )
+                    triggerRouteHook <| DevelopStoryMessage <| DevelopStoryMessages.OnRouteHit route
 
                 triggerRouteHookOnCreateSnipbitPage =
-                    ( newModel
-                    , Cmd.batch
-                        [ newCmd
-                        , Util.cmdFromMsg <|
-                            CreateSnipbitMessage <|
-                                CreateSnipbitMessages.OnRouteHit route
-                        ]
-                    )
+                    triggerRouteHook <| CreateSnipbitMessage <| CreateSnipbitMessages.OnRouteHit route
 
                 triggerRouteHookOnCreateBigbitPage =
-                    ( newModel
-                    , Cmd.batch
-                        [ newCmd
-                        , Util.cmdFromMsg <|
-                            CreateBigbitMessage <|
-                                CreateBigbitMessages.OnRouteHit route
-                        ]
-                    )
+                    triggerRouteHook <| CreateBigbitMessage <| CreateBigbitMessages.OnRouteHit route
             in
                 -- Handle general route-logic here, routes are a great way to be
                 -- able to trigger certain things (hooks).
