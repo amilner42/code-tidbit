@@ -128,11 +128,19 @@ textarea {
     padding-top: 10px;
     border-bottom: 1px solid $color2;
 
+    @keyframes darken-border-bottom {
+        from { border-bottom: 1px solid $color2; }
+        to { border-bottom: 1px solid $color8; }
+    }
+
     &.sticky {
         position: fixed;
         top: 0;
         left: 0;
         z-index: 100;
+        border-bottom: 1px solid $color8;
+        animation-name: darken-border-bottom;
+        animation-duration: .5s;
     }
 
     .sub-bar-button {
