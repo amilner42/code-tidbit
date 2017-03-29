@@ -14,73 +14,61 @@ import Ports
 {-| `DevelopStory` update.
 -}
 update : CommonSubPageUtil Model Shared Msg -> Msg -> Model -> Shared -> ( Model, Shared, Cmd Msg )
-update { doNothing, justSetShared, justUpdateModel, justProduceCmd, withCmd } msg model shared =
+update { doNothing, justSetShared, justSetModel, justUpdateModel, justProduceCmd } msg model shared =
     case msg of
         GoTo route ->
             justProduceCmd <| Route.navigateTo route
 
         OnRouteHit route ->
             case route of
-                Route.DevelopStoryPage storyID ->
-                    (if maybeMapWithDefault (.id >> ((==) storyID)) False model.story then
-                        doNothing
-                     else
-                        ( { model
-                            | story = Nothing
-                            , tidbitsToAdd = []
-                          }
-                        , shared
-                        , Api.getExpandedStory storyID OnGetStoryFailure (OnGetStorySuccess False)
-                        )
-                    )
-                        |> withCmd
-                            (Cmd.batch
-                                [ case ( Util.isNothing shared.userTidbits, shared.user ) of
-                                    ( True, Just user ) ->
-                                        Api.getTidbits
-                                            [ ( "forUser", Just user.id ) ]
-                                            OnGetTidbitsFailure
-                                            OnGetTidbitsSuccess
+                {- We cache the `model.story` in localStorage so that we can see if we can keep the
+                   `model.tidbitsToAdd`, but because we cache it in localStorage we always re-query to get the story to
+                   make sure we have the newest copy. When updating to the newest copy of a story we can still keep the
+                   `model.tidbitsToAdd` (that's the whole point).
 
-                                    _ ->
-                                        Cmd.none
-                                , Ports.doScrolling
-                                    { querySelector = "#story-tidbits-title"
-                                    , duration = 500
-                                    , extraScroll = -60
-                                    }
-                                ]
+                   The user's tidbits are not cached in localStorage so it's per-session, we don't need to update them
+                   if we already have them.
+                -}
+                Route.DevelopStoryPage storyID ->
+                    ( { model
+                        | story = Nothing
+                        , tidbitsToAdd =
+                            if maybeMapWithDefault (.id >> ((==) storyID)) False model.story then
+                                model.tidbitsToAdd
+                            else
+                                []
+                      }
+                    , shared
+                    , Cmd.batch
+                        [ Api.getExpandedStory storyID OnGetStoryFailure OnGetStorySuccess
+                        , maybeMapWithDefault
+                            (\{ id } ->
+                                if Util.isNothing shared.userTidbits then
+                                    Api.getTidbits [ ( "forUser", Just id ) ] OnGetTidbitsFailure OnGetTidbitsSuccess
+                                else
+                                    Cmd.none
                             )
+                            Cmd.none
+                            shared.user
+                        , Ports.doScrolling
+                            { querySelector = "#story-tidbits-title", duration = 500, extraScroll = -60 }
+                        ]
+                    )
 
                 _ ->
                     doNothing
 
-        OnGetStorySuccess resetUserStories expandedStory ->
-            let
-                -- Resets stories if needed.
-                newShared =
-                    if resetUserStories then
-                        { shared | userStories = Nothing }
+        OnGetStorySuccess expandedStory ->
+            maybeMapWithDefault
+                (\{ id } ->
+                    -- If this is indeed the author, then stay on page, otherwise redirect.
+                    if id == expandedStory.author then
+                        justUpdateModel <| setStory expandedStory
                     else
-                        shared
-            in
-                case shared.user of
-                    -- Should never happen.
-                    Nothing ->
-                        doNothing
-
-                    Just user ->
-                        -- If this is indeed the author, then stay on page, otherwise redirect.
-                        if user.id == expandedStory.author then
-                            ( setStory expandedStory model
-                            , newShared
-                            , Cmd.none
-                            )
-                        else
-                            ( model
-                            , newShared
-                            , Route.modifyTo Route.CreatePage
-                            )
+                        justProduceCmd <| Route.modifyTo Route.CreatePage
+                )
+                doNothing
+                shared.user
 
         OnGetStoryFailure apiError ->
             -- TODO handle error
@@ -106,10 +94,19 @@ update { doNothing, justSetShared, justUpdateModel, justProduceCmd, withCmd } ms
                         storyID
                         (List.map Tidbit.compressTidbit tidbits)
                         OnPublishAddedTidbitsFailure
-                        (OnGetStorySuccess True)
+                        OnPublishAddedTidbitsSuccess
             else
                 -- Should never happen.
                 doNothing
+
+        OnPublishAddedTidbitsSuccess expandedStory ->
+            ( { model
+                | story = Just expandedStory
+                , tidbitsToAdd = []
+              }
+            , { shared | userStories = Nothing }
+            , Cmd.none
+            )
 
         OnPublishAddedTidbitsFailure apiError ->
             -- TODO handle error.

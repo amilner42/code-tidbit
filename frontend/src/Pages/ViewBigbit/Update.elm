@@ -33,18 +33,20 @@ update ({ doNothing, justSetModel, justUpdateModel, justSetShared, justProduceCm
         OnRouteHit route ->
             let
                 {- Get's data for viewing bigbit as required:
-                      - May need to fetch tidbit itself
-                      - May need to fetch story
-                      - May need to fetch if the tidbit is completed by the user.
+                   - May need to fetch tidbit itself
+                   - May need to fetch story
+                   - May need to fetch if the tidbit is completed by the user.
 
-                   TODO ISSUE#99 Update to check cache if it is expired.
+                   If any of the 3 datums above are already cached, assumes that they are up-to-date. The bigbit itself
+                   basically never changes, the `isCompleted` will change a lot but it's unlikely the user completes
+                   that exact tidbit in another browser at the same time. The story itself changes frequently but it
+                   doesn't make sense to constantly update it, so we only update the story when we are on the
+                   `viewStory` page.
                 -}
                 fetchOrRenderViewBigbitData mongoID =
                     let
                         currentTidbitPointer =
-                            TidbitPointer.TidbitPointer
-                                TidbitPointer.Bigbit
-                                mongoID
+                            TidbitPointer.TidbitPointer TidbitPointer.Bigbit mongoID
 
                         -- Handle getting bigbit if needed.
                         handleGetBigbit ( model, shared ) =
@@ -97,7 +99,6 @@ update ({ doNothing, justSetModel, justUpdateModel, justSetShared, justProduceCm
                                     _ ->
                                         doNothing
 
-                        handleGetStoryForBigbit : ( Model, Shared ) -> ( Model, Shared, Cmd Msg )
                         handleGetStoryForBigbit ( model, shared ) =
                             let
                                 doNothing =

@@ -27,6 +27,7 @@ update msg shared =
 
             OnRouteHit route ->
                 case route of
+                    -- We always grab the latest story because this can be edited outside of the users control.
                     Route.ViewStoryPage mongoID ->
                         ( { shared | viewingStory = Nothing }
                         , Cmd.batch

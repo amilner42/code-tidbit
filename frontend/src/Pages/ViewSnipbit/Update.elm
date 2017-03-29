@@ -32,21 +32,22 @@ update ({ doNothing, justSetModel, justUpdateModel, justSetShared, justProduceCm
         OnRouteHit route ->
             let
                 {- Get's data for viewing snipbit as required:
-                      - May need to fetch tidbit itself
-                      - May need to fetch story
-                      - May need to fetch if the tidbit is completed by the user.
+                    - May need to fetch tidbit itself
+                    - May need to fetch story
+                    - May need to fetch if the tidbit is completed by the user.
 
-                   TODO ISSUE#99 Update to check cache if it is expired.
+                   If any of the 3 datums above are already cached, assumes that they are up-to-date. The snipbit itself
+                   basically never changes, the `isCompleted` will change a lot but it's unlikely the user completes
+                   that exact tidbit in another browser at the same time. The story itself changes frequently but it
+                   doesn't make sense to constantly update it, so we only update the story when we are on the
+                   `viewStory` page.
                 -}
                 fetchOrRenderViewSnipbitData mongoID =
                     let
                         currentTidbitPointer =
-                            TidbitPointer.TidbitPointer
-                                TidbitPointer.Snipbit
-                                mongoID
+                            TidbitPointer.TidbitPointer TidbitPointer.Snipbit mongoID
 
                         -- Handle getting snipbit if needed.
-                        handleGetSnipbit : ( Model, Shared ) -> ( Model, Shared, Cmd Msg )
                         handleGetSnipbit ( model, shared ) =
                             let
                                 getSnipbit mongoID =
@@ -72,7 +73,6 @@ update ({ doNothing, justSetModel, justUpdateModel, justSetShared, justProduceCm
                                             getSnipbit mongoID
 
                         -- Handle getting snipbit is-completed if needed.
-                        handleGetSnipbitIsCompleted : ( Model, Shared ) -> ( Model, Shared, Cmd Msg )
                         handleGetSnipbitIsCompleted ( model, shared ) =
                             let
                                 doNothing =
@@ -101,7 +101,6 @@ update ({ doNothing, justSetModel, justUpdateModel, justSetShared, justProduceCm
                                         doNothing
 
                         -- Handle getting story if viewing snipbit from story.
-                        handleGetStoryForSnipbit : ( Model, Shared ) -> ( Model, Shared, Cmd Msg )
                         handleGetStoryForSnipbit ( model, shared ) =
                             let
                                 doNothing =
@@ -122,17 +121,13 @@ update ({ doNothing, justSetModel, justUpdateModel, justSetShared, justProduceCm
                                             doNothing
                                         else
                                             ( model
-                                            , { shared
-                                                | viewingStory = Nothing
-                                              }
+                                            , { shared | viewingStory = Nothing }
                                             , getStory storyID
                                             )
 
                                     _ ->
                                         ( model
-                                        , { shared
-                                            | viewingStory = Nothing
-                                          }
+                                        , { shared | viewingStory = Nothing }
                                         , Cmd.none
                                         )
                     in

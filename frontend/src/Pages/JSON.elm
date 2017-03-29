@@ -67,9 +67,9 @@ sharedEncoder shared =
         , ( "route", JSON.Route.encoder shared.route )
         , ( "languages", Encode.null )
         , ( "keysDown", Encode.null )
-        , ( "userStories", justValueOrNull (Encode.list << List.map JSON.Story.encoder) shared.userStories )
-        , ( "userTidbits", justValueOrNull (Encode.list << List.map JSON.Tidbit.encoder) shared.userTidbits )
-        , ( "viewingStory", justValueOrNull JSON.Story.expandedStoryEncoder shared.viewingStory )
+        , ( "userStories", Encode.null )
+        , ( "userTidbits", Encode.null )
+        , ( "viewingStory", Encode.null )
         ]
 
 
@@ -82,6 +82,6 @@ sharedDecoder =
         |> required "route" JSON.Route.decoder
         |> required "languages" (Decode.succeed Editor.humanReadableListOfLanguages)
         |> required "keysDown" (Decode.succeed KK.init)
-        |> required "userStories" (Decode.maybe <| Decode.list JSON.Story.decoder)
-        |> required "userTidbits" (Decode.maybe <| Decode.list JSON.Tidbit.decoder)
-        |> required "viewingStory" (Decode.maybe <| JSON.Story.expandedStoryDecoder)
+        |> hardcoded Nothing
+        |> hardcoded Nothing
+        |> hardcoded Nothing
