@@ -175,3 +175,15 @@ db.completed.createIndex({ user: 1, tidbitPointer: 1});
 db.snipbits.createIndex({ author: 1 });
 db.bigbits.createIndex({ author: 1 });
 db.stories.createIndex({ author: 1 });
+
+
+// Text indexes
+
+const textIndex = { name: "text", description: "text", tags: "text" };
+// Because we already have a field named `language` that isn't for specifying the index language, so we have to tell
+// mongo to use a different field for the language_override property.
+const additionalSettings = { language_override: "dummy" };
+
+db.snipbits.createIndex(textIndex, additionalSettings);
+db.bigbits.createIndex(textIndex, additionalSettings);
+db.stories.createIndex(textIndex, additionalSettings)
