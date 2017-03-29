@@ -24,27 +24,28 @@ update { doNothing, justUpdateModel, justProduceCmd } msg model shared =
 
         OnRouteHit route ->
             let
-                -- If the ID of the current editingStory is different, we need to get the info of the story that we
-                -- are editing.
-                -- TODO ISSUE#99 Update to check cache if it is expired.
                 getEditingStoryAndFocusOn theID qpEditingStory =
-                    justProduceCmd <|
-                        Cmd.batch
-                            [ Util.domFocus (\_ -> NoOp) theID
-                            , case qpEditingStory of
-                                Nothing ->
-                                    Cmd.none
+                    case qpEditingStory of
+                        Nothing ->
+                            justProduceCmd <| Util.domFocus (\_ -> NoOp) theID
 
-                                Just storyID ->
-                                    -- We already loaded the story we want to edit.
-                                    if storyID == model.editingStory.id then
-                                        Cmd.none
-                                    else
-                                        Api.getStory
-                                            storyID
-                                            OnGetEditingStoryFailure
-                                            OnGetEditingStorySuccess
-                            ]
+                        Just storyID ->
+                            {- If we already loaded the story we want to edit, we don't re-query because it
+                               doesn't even matter if the story was updated, there isn't even a "reset" to
+                               current. If we eventually make it an editable then we will probably want to
+                               re-query and replace the original of the editable, while still keep the users
+                               current edits.
+                            -}
+                            if storyID == model.editingStory.id then
+                                justProduceCmd <| Util.domFocus (\_ -> NoOp) theID
+                            else
+                                ( { model | editingStory = Story.blankStory }
+                                , shared
+                                , Cmd.batch
+                                    [ Util.domFocus (\_ -> NoOp) theID
+                                    , Api.getStory storyID OnGetEditingStoryFailure OnGetEditingStorySuccess
+                                    ]
+                                )
             in
                 case route of
                     Route.CreateStoryNamePage qpEditingStory ->

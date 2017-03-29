@@ -13,15 +13,10 @@ type alias Model =
 
 
 {-| Sets the `story` to `expandedStory`.
-
-NOTE: This also clears the `tidbitsToAdd` field.
 -}
 setStory : Story.ExpandedStory -> Model -> Model
 setStory expandedStory storyData =
-    { storyData
-        | story = Just expandedStory
-        , tidbitsToAdd = []
-    }
+    { storyData | story = Just expandedStory }
 
 
 {-| Adds a tidbit to the `tidbitsToAdd` as long as it isn't already there.

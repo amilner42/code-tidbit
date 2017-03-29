@@ -11,11 +11,12 @@ import Models.Tidbit exposing (Tidbit)
 type Msg
     = GoTo Route
     | OnRouteHit Route
-    | OnGetStorySuccess Bool ExpandedStory
+    | OnGetStorySuccess ExpandedStory
     | OnGetStoryFailure ApiError
     | OnGetTidbitsSuccess (List Tidbit)
     | OnGetTidbitsFailure ApiError
     | AddTidbit Tidbit
     | RemoveTidbit Tidbit
     | PublishAddedTidbits String (List Tidbit)
+    | OnPublishAddedTidbitsSuccess ExpandedStory
     | OnPublishAddedTidbitsFailure ApiError

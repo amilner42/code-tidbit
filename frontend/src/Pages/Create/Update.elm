@@ -19,21 +19,21 @@ update { doNothing, justSetShared, justUpdateModel, justProduceCmd } msg model s
 
         OnRouteHit route ->
             case route of
+                -- Only fetch user stories if we don't already have them.
                 Route.CreatePage ->
-                    case shared.user of
-                        -- Should never happen.
-                        Nothing ->
-                            doNothing
-
-                        Just user ->
+                    Util.maybeMapWithDefault
+                        (\{ id } ->
                             if Util.isNothing shared.userStories then
                                 justProduceCmd <|
                                     Api.getStories
-                                        [ ( "author", Just user.id ) ]
+                                        [ ( "author", Just id ) ]
                                         OnGetAccountStoriesFailure
                                         OnGetAccountStoriesSuccess
                             else
                                 doNothing
+                        )
+                        doNothing
+                        shared.user
 
                 _ ->
                     doNothing
