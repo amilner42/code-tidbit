@@ -1,20 +1,15 @@
 /// Module for encapsulating helper functions for the tidbit model.
 
 import * as kleen from "kleen";
+import * as R from "ramda";
 
-import { malformedFieldError, isNullOrUndefined } from '../util';
+import { malformedFieldError, isNullOrUndefined, combineArrays, sortByNewestDate } from '../util';
 import { ErrorCode, MongoID, MongoObjectID } from '../types';
 import { mongoStringIDSchema } from './kleen-schemas';
+import { ContentSearchFilter, ContentResultManipulation } from "./content.model";
 import { Snipbit, snipbitDBActions } from './snipbit.model';
 import { Bigbit, bigbitDBActions } from './bigbit.model';
 
-
-/**
- * The internal tidbit search filter.
- */
-interface InternalTidbitSearchFilter {
-  author?: MongoObjectID;
-}
 
 /**
  * All the possible tidbits.
@@ -39,11 +34,14 @@ export enum TidbitType {
 }
 
 /**
- * The filters allowed when getting tidbits.
+ * The search options.
  */
-export interface TidbitSearchFilter {
-  forUser?: MongoID;
-}
+export interface TidbitSearchFilter extends ContentSearchFilter { }
+
+/**
+ * The result manipulation options.
+ */
+export interface TidbitSearchResultManipulation extends ContentResultManipulation { }
 
 /**
 * The schema for validating a `TidbitPointer`.
@@ -101,12 +99,18 @@ export const tidbitDBActions = {
   /**
    * Gets tidbits from the database, customizable through search filter.
    */
-  getTidbits: (searchFilter: TidbitSearchFilter): Promise<Tidbit[]> => {
+  getTidbits: (searchFilter: TidbitSearchFilter, resultManipulation: TidbitSearchResultManipulation): Promise<Tidbit[]> => {
 
-    return Promise.all([snipbitDBActions.getSnipbits(searchFilter), bigbitDBActions.getBigbits(searchFilter)])
+    return Promise.all([
+      snipbitDBActions.getSnipbits(searchFilter, resultManipulation),
+      bigbitDBActions.getBigbits(searchFilter, resultManipulation)
+    ])
     .then(([snipbits, bigbits]) => {
-      let tidbits: (Snipbit | Bigbit)[] = snipbits;
-      tidbits = tidbits.concat(bigbits);
+      let tidbits = combineArrays(snipbits, bigbits);
+
+      if(resultManipulation.sortByLastModified) {
+        return sortByNewestDate<Tidbit>(R.prop("lastModified"), tidbits);
+      }
 
       return tidbits;
     });

@@ -5,11 +5,12 @@ import * as kleen from "kleen";
 import { Collection } from 'mongodb';
 import moment from "moment";
 
-import { renameIDField, collection, toMongoObjectID, toMongoStringID, sameID } from '../db';
-import { malformedFieldError, isNullOrUndefined } from '../util';
+import { renameIDField, collection, toMongoObjectID, toMongoStringID, sameID, paginateResults } from '../db';
+import { malformedFieldError, isNullOrUndefined, dropNullAndUndefinedProperties } from '../util';
 import { mongoStringIDSchema, nameSchema, descriptionSchema, optional, tagsSchema, nonEmptyArraySchema } from "./kleen-schemas";
 import { MongoID, MongoObjectID, ErrorCode, TargetID } from '../types';
 import { completedDBActions } from './completed.model';
+import { ContentSearchFilter, ContentResultManipulation } from "./content.model";
 import { Snipbit, snipbitDBActions } from './snipbit.model';
 import { Bigbit, bigbitDBActions } from './bigbit.model';
 import { Tidbit, TidbitPointer, TidbitType, tidbitPointerSchema, tidbitDBActions } from './tidbit.model';
@@ -29,13 +30,6 @@ interface StoryBase {
   createdAt?: Date;
   lastModified?: Date;
   userHasCompleted?: boolean[];
-}
-
-/**
- * The internal search filter representation.
- */
-interface InternalStorySearchFilter {
-  author?: MongoObjectID;
 }
 
 /**
@@ -62,11 +56,14 @@ export interface NewStory {
 }
 
 /**
- * The filters allowed when searching stories.
+ * The search options.
  */
-export interface StorySearchFilter {
-  author?: MongoID;
-}
+export interface StorySearchFilter extends ContentSearchFilter { }
+
+/**
+ * The result manipulation options.
+ */
+export interface StoryResultManipulation extends ContentResultManipulation { }
 
 /**
  * The schema for validating the user-input for a new story or for editing the
@@ -128,16 +125,32 @@ export const storyDBActions = {
   /**
    * Gets stories from the db.
    */
-  getStories: (filter: StorySearchFilter): Promise<Story[]> => {
+  getStories: (filter: StorySearchFilter, resultManipulation: StoryResultManipulation): Promise<Story[]> => {
     return collection("stories")
     .then((StoryCollection) => {
-      const mongoSearchFilter: InternalStorySearchFilter = {};
+      let useLimit = true;
 
       if(!isNullOrUndefined(filter.author)) {
-        mongoSearchFilter.author = toMongoObjectID(filter.author);
+        filter.author = toMongoObjectID(filter.author);
+        useLimit = false; // We can only avoid limiting results if it's just for one user.
       }
 
-      return StoryCollection.find(mongoSearchFilter).toArray();
+      let cursor = StoryCollection.find(dropNullAndUndefinedProperties(filter));
+
+      // Sort.
+      if(resultManipulation.sortByLastModified) {
+        cursor = cursor.sort({ lastModified: -1 });
+      }
+
+      // Paginate.
+      if(useLimit) {
+        const pageNumber = resultManipulation.pageNumber || 1;
+        const pageSize = resultManipulation.pageSize || 10;
+
+        cursor = paginateResults(pageNumber, pageSize, cursor);
+      }
+
+      return cursor.toArray();
     })
     .then((stories) => {
       return stories.map(prepareStoryForResponse);

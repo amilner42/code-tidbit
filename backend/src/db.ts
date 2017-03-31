@@ -1,7 +1,7 @@
 /// Module for interacting with the mongodb through the standard node driver.
 /// Will get the URL for the mongodb from the global config `app-config.ts`.
 
-import { MongoClient, Collection, ObjectID } from 'mongodb';
+import { MongoClient, Collection, ObjectID, Cursor } from 'mongodb';
 
 import { APP_CONFIG } from './app-config';
 import { isNullOrUndefined } from './util';
@@ -12,6 +12,11 @@ import { MongoID, MongoObjectID, MongoStringID } from './types';
  * Promise will resolve to the db.
  */
 const DB_PROMISE = MongoClient.connect(APP_CONFIG.dbUrl);
+
+/**
+ * The max page size that can be queried at once.
+ */
+const MAX_PAGE_SIZE = 50;
 
 /**
  * Get a mongodb collection using the existing mongo connection.
@@ -74,4 +79,14 @@ export const renameIDField = (obj) => {
  */
 export const sameID = (id1: MongoID, id2: MongoID): boolean => {
   return toMongoObjectID(id1).equals(toMongoObjectID(id2));
+}
+
+/**
+ * Paginates results, assumes the results are already in some meaningful order - this just handles the `limit` and
+ * `skip` to get the proper chunk of results. Also will ensure `MAX_PAGE_SIZE`.
+ */
+export const paginateResults = (pageNumber: number, pageSize: number, cursor: Cursor): Cursor => {
+  pageSize = Math.min(pageSize, MAX_PAGE_SIZE);
+  const amountToSkip = (pageNumber - 1) * pageSize;
+  return cursor.skip(amountToSkip).limit(pageSize);
 }

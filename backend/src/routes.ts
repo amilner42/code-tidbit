@@ -2,15 +2,17 @@
 /// should be moved to a seperate module.
 
 import passport from 'passport';
+import * as R from "ramda";
 
 import { completedDBActions } from "./models/completed.model";
+import { Content, contentDBActions } from "./models/content.model";
 import { User, userDBActions, prepareUserForResponse } from './models/user.model';
 import { Snipbit, snipbitDBActions } from './models/snipbit.model';
 import { Bigbit, bigbitDBActions } from './models/bigbit.model';
 import { Story, NewStory, ExpandedStory, storyDBActions } from "./models/story.model";
 import { Tidbit, tidbitDBActions } from './models/tidbit.model';
 import { AppRoutes, AppRoutesAuth, FrontendError, TargetID, ErrorCode, BasicResponse } from './types';
-import { internalError } from './util';
+import { internalError, combineArrays } from './util';
 
 
 /**
@@ -27,8 +29,35 @@ export const authlessRoutes: AppRoutesAuth = {
   '/bigbits/:id': { get: true },
   '/stories': { get: true },
   '/stories/:id': { get: true },
-  '/tidbits': { get: true }
+  '/tidbits': { get: true },
+  '/browse': { get: true }
 };
+
+/**
+ * Get's `sortByLastModified` from query params as boolean.
+ */
+const getSortByLastModifiedAsBoolean = ({ sortByLastModified }): boolean => sortByLastModified === "true";
+
+/**
+ * Get's `pageNumber` from query params as an int.
+ */
+const getPageNumberAsInt = ({ pageNumber }): number => parseInt(pageNumber);
+
+/**
+ * Get's `pageSize` from query params as an int.
+ */
+const getPageSizeAsInt = ({ pageSize }): number => parseInt(pageSize);
+
+/**
+ * For staying DRY while extracting `ContentResultManipulation` from query parameters.
+ */
+const getContentResultManipulationFromQP = ( queryParams ) => {
+  return {
+    sortByLastModified: getSortByLastModifiedAsBoolean(queryParams),
+    pageNumber: getPageNumberAsInt(queryParams),
+    pageSize: getPageSizeAsInt(queryParams)
+  }
+}
 
 /**
  * The routes for the API.
@@ -190,9 +219,10 @@ export const routes: AppRoutes = {
      */
     get: (req, res): Promise<Snipbit[]> => {
       const queryParams = req.query;
-      const forUser = queryParams.forUser;
+      const searchFilter = { author: queryParams.author };
+      const resultManipulation = getContentResultManipulationFromQP(queryParams);
 
-      return snipbitDBActions.getSnipbits({ forUser });
+      return snipbitDBActions.getSnipbits(searchFilter, resultManipulation);
     },
 
     /**
@@ -212,9 +242,10 @@ export const routes: AppRoutes = {
      */
     get: (req, res): Promise<Bigbit[]> => {
       const queryParams = req.query;
-      const forUser = queryParams.forUser;
+      const searchFilter = { author: queryParams.author };
+      const resultManipulation = getContentResultManipulationFromQP(queryParams);
 
-      return bigbitDBActions.getBigbits({ forUser });
+      return bigbitDBActions.getBigbits(searchFilter, resultManipulation);
     },
 
     /**
@@ -260,9 +291,10 @@ export const routes: AppRoutes = {
     get: (req, res): Promise<Story[]> => {
       const userID = req.user._id;
       const queryParams = req.query;
-      const author = queryParams.author;
+      const searchFilter = { author: queryParams.author };
+      const resultManipulation = getContentResultManipulationFromQP(queryParams);
 
-      return storyDBActions.getStories({ author });
+      return storyDBActions.getStories(searchFilter, resultManipulation);
     },
 
     /**
@@ -326,9 +358,23 @@ export const routes: AppRoutes = {
      */
     get: (req, res): Promise<Tidbit[]> => {
       const queryParams = req.query;
-      const forUser = queryParams.forUser;
+      const searchFilter = { author: queryParams.author };
+      const resultManipulation = getContentResultManipulationFromQP(queryParams);
 
-      return tidbitDBActions.getTidbits({ forUser });
+      return tidbitDBActions.getTidbits(searchFilter, resultManipulation);
+    }
+  },
+
+  '/browse': {
+    /**
+     * Get's tidbits/stories for the browse page, customizable through query params.
+     */
+    get: (req, res): Promise<Content[]> => {
+      const queryParams = req.query;
+      const searchFilter = { author: queryParams.author };
+      const resultManipulation = getContentResultManipulationFromQP(queryParams);
+
+      return contentDBActions.getContent(searchFilter, resultManipulation);
     }
   }
 }

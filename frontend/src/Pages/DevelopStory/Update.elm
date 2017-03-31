@@ -44,7 +44,7 @@ update { doNothing, justSetShared, justSetModel, justUpdateModel, justProduceCmd
                         , maybeMapWithDefault
                             (\{ id } ->
                                 if Util.isNothing shared.userTidbits then
-                                    Api.getTidbits [ ( "forUser", Just id ) ] OnGetTidbitsFailure OnGetTidbitsSuccess
+                                    Api.getTidbits [ ( "author", Just id ) ] OnGetTidbitsFailure OnGetTidbitsSuccess
                                 else
                                     Cmd.none
                             )

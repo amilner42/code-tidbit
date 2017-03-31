@@ -169,15 +169,17 @@ const languages = [
 
 db.languages.insert(languages);
 
-// Initial Indexes
+// Initial Regular Indexes
 
 db.completed.createIndex({ user: 1, tidbitPointer: 1});
 db.snipbits.createIndex({ author: 1 });
+db.snipbits.createIndex({ lastModified: 1 });
 db.bigbits.createIndex({ author: 1 });
+db.bigbits.createIndex({ lastModified: 1});
 db.stories.createIndex({ author: 1 });
+db.stories.createIndex({ lastModified: 1 });
 
-
-// Text indexes
+// Initial Text indexes
 
 const textIndex = { name: "text", description: "text", tags: "text" };
 // Because we already have a field named `language` that isn't for specifying the index language, so we have to tell

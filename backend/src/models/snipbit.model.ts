@@ -3,9 +3,10 @@
 import * as kleen from "kleen";
 import moment from 'moment';
 
-import { malformedFieldError, isNullOrUndefined } from '../util';
-import { collection, renameIDField, toMongoObjectID } from '../db';
+import { malformedFieldError, isNullOrUndefined, dropNullAndUndefinedProperties } from '../util';
+import { collection, renameIDField, toMongoObjectID, paginateResults } from '../db';
 import { MongoID, MongoObjectID, ErrorCode, Language, TargetID } from '../types';
+import { ContentSearchFilter, ContentResultManipulation } from "./content.model";
 import { Range, emptyRange } from './range.model';
 import * as KS from './kleen-schemas';
 
@@ -40,18 +41,14 @@ export interface SnipbitHighlightedComment {
 }
 
 /**
- * The search options for getting snipbits from the db.
+ * The search options.
  */
-export interface SnipbitSearchFilter {
-  forUser?: MongoID;
-}
+export interface SnipbitSearchFilter extends ContentSearchFilter { }
 
 /**
- * The internal search filter for querying the DB.
+ * The result manipulation options.
  */
-interface InternalSnipbitSearchFilter {
-  author?: MongoObjectID;
-}
+export interface SnipbitResultManipulation extends ContentResultManipulation { }
 
 /**
 * Kleen schema for a HighlightComment.
@@ -184,18 +181,34 @@ export const snipbitDBActions = {
   },
 
   /**
-   * Gets snipbits, customizable through the search filter.
+   * Gets snipbits, customizable through the `SnipbitSearchFilter` and `SnipbitResultManipulation`.
    */
-  getSnipbits: (filter: SnipbitSearchFilter): Promise<Snipbit[]> => {
+  getSnipbits: (filter: SnipbitSearchFilter, resultManipulation: SnipbitResultManipulation): Promise<Snipbit[]> => {
     return collection("snipbits")
     .then((snipbitCollection) => {
-      const mongoSearchFilter: InternalSnipbitSearchFilter = {};
+      let useLimit = true;
 
-      if(!isNullOrUndefined(filter.forUser)) {
-        mongoSearchFilter.author = toMongoObjectID(filter.forUser);
+      if(!isNullOrUndefined(filter.author)) {
+        filter.author = toMongoObjectID(filter.author);
+        useLimit = false; // We can only avoid limiting results if it's just for one user.
       }
 
-      return snipbitCollection.find(mongoSearchFilter).toArray();
+      let cursor = snipbitCollection.find(dropNullAndUndefinedProperties(filter));
+
+      // Sort.
+      if(resultManipulation.sortByLastModified) {
+        cursor = cursor.sort({ lastModified: -1 });
+      }
+
+      // Paginate.
+      if(useLimit) {
+        const pageNumber = resultManipulation.pageNumber || 1;
+        const pageSize = resultManipulation.pageSize || 10;
+
+        cursor = paginateResults(pageNumber, pageSize, cursor);
+      }
+
+      return cursor.toArray();
     })
     .then((snipbits) => {
       return Promise.all(snipbits.map(prepareSnipbitForResponse));

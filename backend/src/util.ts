@@ -1,5 +1,7 @@
 /// Module for implementing useful utilities.
 
+import * as R from "ramda";
+
 import { ErrorCode } from './types';
 
 /**
@@ -62,3 +64,19 @@ export const dropNullAndUndefinedProperties = (obj) => {
 
   return newObj;
 };
+
+/**
+ * Combines 2 arrays of seperate types into 1 array of a union type.
+ */
+export const combineArrays = <T1, T2>(array1: T1[], array2: T2[]): (T1 | T2)[] => {
+  return (array1 as (T1 | T2)[]).concat(array2);
+}
+
+/**
+ * Sort by date, newest first.
+ */
+export const sortByNewestDate = <T1>(getDate: ((t1: T1) => Date), listOfT1: T1[]): T1[] => {
+  return R.sort<T1>((left, right) => {
+    return  getDate(right).getTime() - getDate(left).getTime();
+  })(listOfT1);
+}
