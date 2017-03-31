@@ -30,34 +30,8 @@ export const authlessRoutes: AppRoutesAuth = {
   '/stories': { get: true },
   '/stories/:id': { get: true },
   '/tidbits': { get: true },
-  '/browse': { get: true }
+  '/content': { get: true }
 };
-
-/**
- * Get's `sortByLastModified` from query params as boolean.
- */
-const getSortByLastModifiedAsBoolean = ({ sortByLastModified }): boolean => sortByLastModified === "true";
-
-/**
- * Get's `pageNumber` from query params as an int.
- */
-const getPageNumberAsInt = ({ pageNumber }): number => parseInt(pageNumber);
-
-/**
- * Get's `pageSize` from query params as an int.
- */
-const getPageSizeAsInt = ({ pageSize }): number => parseInt(pageSize);
-
-/**
- * For staying DRY while extracting `ContentResultManipulation` from query parameters.
- */
-const getContentResultManipulationFromQP = ( queryParams ) => {
-  return {
-    sortByLastModified: getSortByLastModifiedAsBoolean(queryParams),
-    pageNumber: getPageNumberAsInt(queryParams),
-    pageSize: getPageSizeAsInt(queryParams)
-  }
-}
 
 /**
  * The routes for the API.
@@ -219,10 +193,10 @@ export const routes: AppRoutes = {
      */
     get: (req, res): Promise<Snipbit[]> => {
       const queryParams = req.query;
-      const searchFilter = { author: queryParams.author };
+      const searchFilter = getContentSearchFilterFromQP(queryParams);
       const resultManipulation = getContentResultManipulationFromQP(queryParams);
 
-      return snipbitDBActions.getSnipbits(searchFilter, resultManipulation);
+      return snipbitDBActions.getSnipbits(searchFilter, resultManipulation).then(R.map(removeMetadataForResponse));
     },
 
     /**
@@ -242,10 +216,10 @@ export const routes: AppRoutes = {
      */
     get: (req, res): Promise<Bigbit[]> => {
       const queryParams = req.query;
-      const searchFilter = { author: queryParams.author };
+      const searchFilter = getContentSearchFilterFromQP(queryParams);
       const resultManipulation = getContentResultManipulationFromQP(queryParams);
 
-      return bigbitDBActions.getBigbits(searchFilter, resultManipulation);
+      return bigbitDBActions.getBigbits(searchFilter, resultManipulation).then(R.map(removeMetadataForResponse));
     },
 
     /**
@@ -291,10 +265,10 @@ export const routes: AppRoutes = {
     get: (req, res): Promise<Story[]> => {
       const userID = req.user._id;
       const queryParams = req.query;
-      const searchFilter = { author: queryParams.author };
+      const searchFilter = getContentSearchFilterFromQP(queryParams);
       const resultManipulation = getContentResultManipulationFromQP(queryParams);
 
-      return storyDBActions.getStories(searchFilter, resultManipulation);
+      return storyDBActions.getStories(searchFilter, resultManipulation).then(R.map(removeMetadataForResponse));
     },
 
     /**
@@ -358,23 +332,83 @@ export const routes: AppRoutes = {
      */
     get: (req, res): Promise<Tidbit[]> => {
       const queryParams = req.query;
-      const searchFilter = { author: queryParams.author };
+      const searchFilter = getContentSearchFilterFromQP(queryParams);
       const resultManipulation = getContentResultManipulationFromQP(queryParams);
 
-      return tidbitDBActions.getTidbits(searchFilter, resultManipulation);
+      return tidbitDBActions.getTidbits(searchFilter, resultManipulation).then(R.map(removeMetadataForResponse));
     }
   },
 
-  '/browse': {
+  '/content': {
     /**
-     * Get's tidbits/stories for the browse page, customizable through query params.
+     * Get's `Content` (for the browse page), customizable through query params.
      */
     get: (req, res): Promise<Content[]> => {
       const queryParams = req.query;
-      const searchFilter = { author: queryParams.author };
+      const searchFilter = getContentSearchFilterFromQP(queryParams);
       const resultManipulation = getContentResultManipulationFromQP(queryParams);
 
-      return contentDBActions.getContent(searchFilter, resultManipulation);
+      return contentDBActions.getContent(searchFilter, resultManipulation).then(R.map(removeMetadataForResponse));
     }
   }
+}
+
+/**
+ * Get's `sortByLastModified` from query params as a boolean.
+ */
+const getSortByLastModifiedAsBoolean = ({ sortByLastModified }): boolean => sortByLastModified === "true";
+
+/**
+ * Get's `sortByTextScore` from query params as a boolean.
+ */
+const getSortByTextScoreAsBoolean = ({ sortByTextScore }): boolean => sortByTextScore === "true";
+
+/**
+ * Get's `pageNumber` from query params as an int.
+ */
+const getPageNumberAsInt = ({ pageNumber }): number => parseInt(pageNumber);
+
+/**
+ * Get's `pageSize` from query params as an int.
+ */
+const getPageSizeAsInt = ({ pageSize }): number => parseInt(pageSize);
+
+/**
+ * Get's `author` as a string.
+ */
+const getAuthorAsString = ({ author }): string => author;
+
+/**
+ * Get's the `searchQuery` as a string.
+ */
+const getSearchQueryAsString = ({ searchQuery }): string => searchQuery;
+
+/**
+ * For staying DRY while extracting `ContentResultManipulation` from query parameters.
+ */
+const getContentResultManipulationFromQP = ( queryParams ) => {
+  return {
+    sortByLastModified: getSortByLastModifiedAsBoolean(queryParams),
+    sortByTextScore: getSortByTextScoreAsBoolean(queryParams),
+    pageNumber: getPageNumberAsInt(queryParams),
+    pageSize: getPageSizeAsInt(queryParams)
+  }
+}
+
+/**
+ * For staying DRY while extracting `ContentSearchFilter` from query parameters.
+ */
+const getContentSearchFilterFromQP = ( queryParams ) => {
+  return {
+    author: getAuthorAsString(queryParams),
+    searchQuery: getSearchQueryAsString(queryParams)
+  }
+}
+
+/**
+ * Metadata the backend uses such as `textScore` need to be stripped prior to sending to the frontend.
+ */
+const removeMetadataForResponse = (obj) => {
+  delete obj.textScore;
+  return obj;
 }

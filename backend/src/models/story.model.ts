@@ -10,7 +10,7 @@ import { malformedFieldError, isNullOrUndefined, dropNullAndUndefinedProperties 
 import { mongoStringIDSchema, nameSchema, descriptionSchema, optional, tagsSchema, nonEmptyArraySchema } from "./kleen-schemas";
 import { MongoID, MongoObjectID, ErrorCode, TargetID } from '../types';
 import { completedDBActions } from './completed.model';
-import { ContentSearchFilter, ContentResultManipulation } from "./content.model";
+import { ContentSearchFilter, ContentResultManipulation, getContent } from "./content.model";
 import { Snipbit, snipbitDBActions } from './snipbit.model';
 import { Bigbit, bigbitDBActions } from './bigbit.model';
 import { Tidbit, TidbitPointer, TidbitType, tidbitPointerSchema, tidbitDBActions } from './tidbit.model';
@@ -126,35 +126,7 @@ export const storyDBActions = {
    * Gets stories from the db.
    */
   getStories: (filter: StorySearchFilter, resultManipulation: StoryResultManipulation): Promise<Story[]> => {
-    return collection("stories")
-    .then((StoryCollection) => {
-      let useLimit = true;
-
-      if(!isNullOrUndefined(filter.author)) {
-        filter.author = toMongoObjectID(filter.author);
-        useLimit = false; // We can only avoid limiting results if it's just for one user.
-      }
-
-      let cursor = StoryCollection.find(dropNullAndUndefinedProperties(filter));
-
-      // Sort.
-      if(resultManipulation.sortByLastModified) {
-        cursor = cursor.sort({ lastModified: -1 });
-      }
-
-      // Paginate.
-      if(useLimit) {
-        const pageNumber = resultManipulation.pageNumber || 1;
-        const pageSize = resultManipulation.pageSize || 10;
-
-        cursor = paginateResults(pageNumber, pageSize, cursor);
-      }
-
-      return cursor.toArray();
-    })
-    .then((stories) => {
-      return stories.map(prepareStoryForResponse);
-    });
+    return getContent(collection("stories"), filter, resultManipulation, prepareStoryForResponse);
   },
 
   /**

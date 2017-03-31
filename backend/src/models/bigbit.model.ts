@@ -2,12 +2,13 @@
 
 import * as kleen from "kleen";
 import moment from 'moment';
+import { Cursor } from "mongodb";
 
 import { malformedFieldError, asyncIdentity, isNullOrUndefined, dropNullAndUndefinedProperties } from '../util';
 import { collection, renameIDField, toMongoObjectID, paginateResults } from '../db';
 import { MongoID, MongoObjectID, ErrorCode, Language, TargetID } from '../types';
 import { Range } from './range.model';
-import { ContentSearchFilter, ContentResultManipulation } from "./content.model";
+import { ContentSearchFilter, ContentResultManipulation, getContent } from "./content.model";
 import { FileStructure, metaMap, swapPeriodsWithStars } from './file-structure.model';
 import * as KS from './kleen-schemas';
 
@@ -229,35 +230,7 @@ export const bigbitDBActions = {
    * Gets bigbits, customizable through the `BigbitSearchFilter` and `BigbitSearchResultManipulation`.
    */
   getBigbits: (filter: BigbitSearchFilter, resultManipulation: BigbitSearchResultManipulation): Promise<Bigbit[]> => {
-    return collection("bigbits")
-    .then((bigbitCollection) => {
-      let useLimit = true;
-
-      if(!isNullOrUndefined(filter.author)) {
-        filter.author = toMongoObjectID(filter.author);
-        useLimit = false; // We can only avoid limiting results if it's just for one user.
-      }
-
-      let cursor = bigbitCollection.find(dropNullAndUndefinedProperties(filter));
-
-      // Sort.
-      if(resultManipulation.sortByLastModified) {
-        cursor = cursor.sort({ lastModified: -1 });
-      }
-
-      // Paginate.
-      if(useLimit) {
-        const pageNumber = resultManipulation.pageNumber | 1;
-        const pageSize = resultManipulation.pageSize || 10;
-
-        cursor = paginateResults(pageNumber, pageSize, cursor);
-      }
-
-      return cursor.toArray();
-    })
-    .then((bigbits) => {
-      return Promise.all(bigbits.map(prepareBigbitForResponse));
-    });
+    return getContent<Bigbit>(collection("bigbits"), filter, resultManipulation, prepareBigbitForResponse);
   },
 
   /**

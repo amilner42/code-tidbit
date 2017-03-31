@@ -6,7 +6,7 @@ import moment from 'moment';
 import { malformedFieldError, isNullOrUndefined, dropNullAndUndefinedProperties } from '../util';
 import { collection, renameIDField, toMongoObjectID, paginateResults } from '../db';
 import { MongoID, MongoObjectID, ErrorCode, Language, TargetID } from '../types';
-import { ContentSearchFilter, ContentResultManipulation } from "./content.model";
+import { ContentSearchFilter, ContentResultManipulation, getContent } from "./content.model";
 import { Range, emptyRange } from './range.model';
 import * as KS from './kleen-schemas';
 
@@ -184,35 +184,7 @@ export const snipbitDBActions = {
    * Gets snipbits, customizable through the `SnipbitSearchFilter` and `SnipbitResultManipulation`.
    */
   getSnipbits: (filter: SnipbitSearchFilter, resultManipulation: SnipbitResultManipulation): Promise<Snipbit[]> => {
-    return collection("snipbits")
-    .then((snipbitCollection) => {
-      let useLimit = true;
-
-      if(!isNullOrUndefined(filter.author)) {
-        filter.author = toMongoObjectID(filter.author);
-        useLimit = false; // We can only avoid limiting results if it's just for one user.
-      }
-
-      let cursor = snipbitCollection.find(dropNullAndUndefinedProperties(filter));
-
-      // Sort.
-      if(resultManipulation.sortByLastModified) {
-        cursor = cursor.sort({ lastModified: -1 });
-      }
-
-      // Paginate.
-      if(useLimit) {
-        const pageNumber = resultManipulation.pageNumber || 1;
-        const pageSize = resultManipulation.pageSize || 10;
-
-        cursor = paginateResults(pageNumber, pageSize, cursor);
-      }
-
-      return cursor.toArray();
-    })
-    .then((snipbits) => {
-      return Promise.all(snipbits.map(prepareSnipbitForResponse));
-    });
+    return getContent(collection("snipbits"), filter, resultManipulation, prepareSnipbitForResponse);
   },
 
   /**

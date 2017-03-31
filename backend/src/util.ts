@@ -80,3 +80,12 @@ export const sortByNewestDate = <T1>(getDate: ((t1: T1) => Date), listOfT1: T1[]
     return  getDate(right).getTime() - getDate(left).getTime();
   })(listOfT1);
 }
+
+/**
+ * Sort by score, highest score first.
+ */
+export const sortByHighestScore = <T1>(getScore: ((t1: T1) => number), listOfT1: T1[]): T1[] => {
+  return R.sort<T1>((left, right) => {
+    return getScore(right) - getScore(left);
+  })(listOfT1);
+}
