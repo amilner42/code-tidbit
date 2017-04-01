@@ -6,6 +6,7 @@ import Models.Route as Route
 import Models.Story as Story
 import Models.Tidbit as Tidbit
 import Models.User as User
+import Pages.Browse.Model as BrowseModel
 import Pages.Create.Model as CreateModel
 import Pages.CreateBigbit.Model as CreateBigbitModel
 import Pages.CreateSnipbit.Model as CreateSnipbitModel
@@ -33,6 +34,7 @@ type alias Model =
     , developStoryPage : DevelopStoryModel.Model
     , createSnipbitPage : CreateSnipbitModel.Model
     , createBigbitPage : CreateBigbitModel.Model
+    , browsePage : BrowseModel.Model
     }
 
 
@@ -41,7 +43,7 @@ type alias Model =
 All data shared between pages.
 -}
 type alias Shared =
-    { user : Maybe (User.User)
+    { user : Maybe User.User
     , route : Route.Route
     , languages : List ( Editor.Language, String )
     , keysDown : KK.Model

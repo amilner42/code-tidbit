@@ -5,6 +5,8 @@ import Html exposing (Html, div, img, text)
 import Html.Attributes exposing (class, src, classList)
 import Html.Events exposing (onClick)
 import Models.Route as Route
+import Pages.Browse.Model as BrowseModel
+import Pages.Browse.View as BrowseView
 import Pages.Create.Model as CreateModel
 import Pages.Create.View as CreateView
 import Pages.CreateBigbit.Model as CreateBigbitModel
@@ -43,7 +45,8 @@ view model =
             [ navbarIfOnRoute model.shared
             , viewForRoute model
             ]
-          -- Used for smooth scrolling to the bottom.
+
+        -- Used for smooth scrolling to the bottom.
         , div
             [ class "invisible-bottom" ]
             []
@@ -89,6 +92,9 @@ viewForRoute model =
 
         createBigbitPage =
             createBigbitView model.createBigbitPage model.shared
+
+        browsePage =
+            browseView model.browsePage model.shared
     in
         case model.shared.route of
             Route.RegisterPage ->
@@ -98,7 +104,7 @@ viewForRoute model =
                 welcomePage
 
             Route.BrowsePage ->
-                div [] []
+                browsePage
 
             Route.ViewSnipbitIntroductionPage _ _ ->
                 viewSnipbitPage
@@ -247,6 +253,13 @@ createSnipbitView createSnipbitModel shared =
 createBigbitView : CreateBigbitModel.Model -> Shared -> Html.Html Msg
 createBigbitView createBigbitModel shared =
     Html.map CreateBigbitMessage (CreateBigbitView.view createBigbitModel shared)
+
+
+{-| `Browse` view.
+-}
+browseView : BrowseModel.Model -> Shared -> Html.Html Msg
+browseView browseModel shared =
+    Html.map BrowseMessage (BrowseView.view browseModel shared)
 
 
 {-| Displays the navbar if the route is not on the welcome page.

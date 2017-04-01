@@ -5,6 +5,7 @@ import DefaultServices.Util as Util
 import JSON.BasicResponse
 import JSON.Bigbit
 import JSON.Completed
+import JSON.Content
 import JSON.IDResponse
 import JSON.Snipbit
 import JSON.Story
@@ -18,6 +19,7 @@ import Models.ApiError as ApiError
 import Models.BasicResponse as BasicResponse
 import Models.Bigbit as Bigbit
 import Models.Completed as Completed
+import Models.Content as Content
 import Models.IDResponse as IDResponse
 import Models.Snipbit as Snipbit
 import Models.Story as Story
@@ -136,6 +138,15 @@ getTidbits queryParams =
     apiGet
         ("tidbits" ++ (Util.queryParamsToString queryParams))
         (Decode.list JSON.Tidbit.decoder)
+
+
+{-| Get's content, you can use query params to customize the search. Refer to the backend to see what the options are.
+-}
+getContent : List ( String, Maybe String ) -> (ApiError.ApiError -> b) -> (List Content.Content -> b) -> Cmd b
+getContent queryParams =
+    apiGet
+        ("content" ++ (Util.queryParamsToString queryParams))
+        (Decode.list JSON.Content.decoder)
 
 
 {-| Logs user in and returns the user, unless invalid credentials.

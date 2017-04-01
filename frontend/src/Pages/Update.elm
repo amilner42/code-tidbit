@@ -9,6 +9,8 @@ import Elements.Editor as Editor
 import Keyboard.Extra as KK
 import Models.Route as Route
 import Navigation
+import Pages.Browse.Messages as BrowseMessages
+import Pages.Browse.Update as BrowseUpdate
 import Pages.Create.Messages as CreateMessages
 import Pages.Create.Update as CreateUpdate
 import Pages.CreateBigbit.Messages as CreateBigbitMessages
@@ -280,6 +282,23 @@ updateCacheIf msg model shouldCache =
                             }
                     in
                         ( newModel, Cmd.map CreateBigbitMessage newSubMsg )
+
+                BrowseMessage subMsg ->
+                    let
+                        ( newBrowsePageModel, newShared, newSubMsg ) =
+                            BrowseUpdate.update
+                                (commonSubPageUtil model.browsePage model.shared)
+                                subMsg
+                                model.browsePage
+                                model.shared
+
+                        newModel =
+                            { model
+                                | browsePage = newBrowsePageModel
+                                , shared = newShared
+                            }
+                    in
+                        ( newModel, Cmd.map BrowseMessage newSubMsg )
 
                 CodeEditorUpdate { id, value, deltaRange, action } ->
                     case id of
@@ -652,10 +671,16 @@ handleLocationChange maybeRoute model =
 
                 triggerRouteHookOnCreateBigbitPage =
                     triggerRouteHook <| CreateBigbitMessage <| CreateBigbitMessages.OnRouteHit route
+
+                triggerRouteHookOnBrowsePage =
+                    triggerRouteHook <| BrowseMessage <| BrowseMessages.OnRouteHit route
             in
                 -- Handle general route-logic here, routes are a great way to be
                 -- able to trigger certain things (hooks).
                 case route of
+                    Route.BrowsePage ->
+                        triggerRouteHookOnBrowsePage
+
                     Route.CreatePage ->
                         triggerRouteHookOnCreatePage
 
