@@ -155,6 +155,12 @@ fromErrorCode errorCode =
         48 ->
             StoryAddingNonExistantTidbit
 
+        49 ->
+            SnipbitDescriptionTooLong
+
+        50 ->
+            BigbitDescriptionTooLong
+
         _ ->
             InternalError
 

@@ -72,7 +72,7 @@ export interface StoryResultManipulation extends ContentResultManipulation { }
 const newStorySchema: kleen.objectSchema = {
   objectProperties: {
     "name": nameSchema(ErrorCode.storyNameEmpty, ErrorCode.storyNameTooLong),
-    "description": descriptionSchema(ErrorCode.storyDescriptionEmpty),
+    "description": descriptionSchema(ErrorCode.storyDescriptionEmpty, ErrorCode.storyDescriptionTooLong),
     "tags": tagsSchema(ErrorCode.storyEmptyTag, ErrorCode.storyNoTags)
   },
   typeFailureError: malformedFieldError("Story information")

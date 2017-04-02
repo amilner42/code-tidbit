@@ -159,36 +159,53 @@ export const languageSchema = (emptyLanguageErrorCode: ErrorCode): kleen.primiti
 };
 
 /**
- * For validifying a name, makes sure the name is not too short or too long.
+ * For validifying that a string is within a certain range.
  */
-export const nameSchema = (emptyNameErrorCode: ErrorCode, nameTooLongErrorCode: ErrorCode): kleen.primitiveSchema => {
+export const stringInRange =
+  ( fieldName: string
+  , minLength: number
+  , stringTooSmallErrorCode: ErrorCode
+  , maxLength: number
+  , stringTooLongErrorCode: ErrorCode
+  ): kleen.primitiveSchema => {
+
   return {
     primitiveType: kleen.kindOfPrimitive.string,
-    restriction: (name: string) => {
-      if(name === "") {
+    restriction: (str: string) => {
+      if(str.length < minLength) {
         return Promise.reject({
-          errorCode: emptyNameErrorCode,
-          message: "Name cannot be empty."
+          errorCode: stringTooSmallErrorCode,
+          message: `String too small, had length ${str.length}, but minimum length was ${minLength}!`
         });
-      } else if(name.length > 60) {
+      }
+
+      if(str.length > maxLength) {
         return Promise.reject({
-          errorCode: nameTooLongErrorCode,
-          message: `Name cannot be more than 60 chars.`
+          errorCode: stringTooLongErrorCode,
+          message: `String too big, had length ${str.length}, but maximum length was ${maxLength}!`
         });
       }
     },
-    typeFailureError: malformedFieldError("name")
+    typeFailureError: malformedFieldError(fieldName)
   }
+}
+
+/**
+ * For validifying a name, makes sure the name is not too short or too long (1-50 chars).
+ */
+export const nameSchema = (emptyNameErrorCode: ErrorCode, nameTooLongErrorCode: ErrorCode): kleen.primitiveSchema => {
+  return stringInRange("name", 1, emptyNameErrorCode, 50, nameTooLongErrorCode);
 };
 
 /**
- * For validifying a description, makes sure it is not empty.
+ * For validifying a description, makes sure the description is not too short or too long (1-300 chars).
  */
-export const descriptionSchema = (emptyDescriptionErrorCode: ErrorCode): kleen.primitiveSchema => {
-  return nonEmptyStringSchema(
-    { errorCode: emptyDescriptionErrorCode, message: "Description cannot be empty."},
-    malformedFieldError("description")
-  )
+export const descriptionSchema =
+  ( emptyDescriptionErrorCode: ErrorCode
+  , descriptionTooLongErrorCode: ErrorCode
+  ): kleen.primitiveSchema => {
+
+  return stringInRange("description", 1, emptyDescriptionErrorCode, 300, descriptionTooLongErrorCode);
 };
 
 /**

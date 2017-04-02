@@ -67,7 +67,7 @@ const snipbitSchema: kleen.objectSchema = {
   objectProperties: {
     "language": KS.languageSchema(ErrorCode.snipbitInvalidLanguage),
     "name": KS.nameSchema(ErrorCode.snipbitEmptyName, ErrorCode.snipbitNameTooLong),
-    "description": KS.descriptionSchema(ErrorCode.snipbitEmptyDescription),
+    "description": KS.descriptionSchema(ErrorCode.snipbitEmptyDescription, ErrorCode.snipbitDescriptionTooLong),
     "tags": KS.tagsSchema(ErrorCode.snipbitEmptyTag, ErrorCode.snipbitNoTags),
     "code": KS.codeSchema(ErrorCode.snipbitEmptyCode),
     "introduction": KS.introductionSchema(ErrorCode.snipbitEmptyIntroduction),

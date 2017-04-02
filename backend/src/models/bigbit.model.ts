@@ -76,7 +76,7 @@ const bigbitHighlightedCommentSchema: kleen.objectSchema = {
 const bigbitSchema: kleen.objectSchema = {
   objectProperties: {
     "name": KS.nameSchema(ErrorCode.bigbitEmptyName, ErrorCode.bigbitNameTooLong),
-    "description": KS.descriptionSchema(ErrorCode.bigbitEmptyDescription),
+    "description": KS.descriptionSchema(ErrorCode.bigbitEmptyDescription, ErrorCode.bigbitDescriptionTooLong),
     "tags": KS.tagsSchema(ErrorCode.bigbitEmptyTag, ErrorCode.bigbitNoTags),
     "introduction": KS.introductionSchema(ErrorCode.bigbitEmptyIntroduction),
     "conclusion": KS.conclusionSchema(ErrorCode.bigbitEmptyConclusion),
