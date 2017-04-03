@@ -359,7 +359,7 @@ navbar shared =
         div [ class "nav" ]
             [ img
                 [ class "logo"
-                , src "assets/ct-logo.png"
+                , src "assets/ct-logo-small.png"
                 ]
                 []
             , div
