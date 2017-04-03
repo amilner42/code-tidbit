@@ -3,6 +3,7 @@ module Pages.DefaultModel exposing (..)
 import Elements.Editor as Editor
 import Keyboard.Extra as KK
 import Models.Route as Route
+import Pages.Browse.Init as BrowseInit
 import Pages.Create.Init as CreateInit
 import Pages.CreateBigbit.Init as CreateBigbitInit
 import Pages.CreateSnipbit.Init as CreateSnipbitInit
@@ -32,6 +33,7 @@ defaultModel =
     , developStoryPage = DevelopStoryInit.init
     , createSnipbitPage = CreateSnipbitInit.init
     , createBigbitPage = CreateBigbitInit.init
+    , browsePage = BrowseInit.init
     }
 
 

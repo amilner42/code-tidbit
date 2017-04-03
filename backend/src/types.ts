@@ -130,5 +130,7 @@ export enum ErrorCode {
   storyNoTags,
   storyDoesNotExist,
   storyEditorMustBeAuthor,
-  storyAddingNonExistantTidbit
+  storyAddingNonExistantTidbit,
+  snipbitDescriptionTooLong,
+  bigbitDescriptionTooLong
 }
