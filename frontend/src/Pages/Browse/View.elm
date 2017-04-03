@@ -1,6 +1,7 @@
 module Pages.Browse.View exposing (..)
 
 import DefaultServices.Util as Util
+import Elements.ContentBox exposing (contentBox)
 import Html exposing (Html, div, text)
 import Html.Attributes exposing (class)
 import Pages.Browse.Messages exposing (..)
@@ -19,4 +20,4 @@ view model shared =
         Just content ->
             div
                 [ class "browse-page" ]
-                [ text "Content" ]
+                ((List.map contentBox content) ++ Util.emptyFlexBoxesForAlignment)

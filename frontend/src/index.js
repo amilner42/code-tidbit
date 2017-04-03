@@ -5,6 +5,7 @@ require("./Styles/global.scss");
 require("./Styles/mixins.scss");
 require("./Styles/variables.scss");
 
+require("./Pages/Browse/Styles.scss");
 require("./Pages/Create/Styles.scss");
 require("./Pages/CreateBigbit/Styles.scss");
 require("./Pages/CreateSnipbit/Styles.scss");
@@ -17,6 +18,7 @@ require("./Pages/ViewSnipbit/Styles.scss");
 require("./Pages/ViewStory/Styles.scss");
 require("./Pages/Welcome/Styles.scss");
 
+require("./Elements/ContentBox.scss");
 require("./Elements/Editor.scss");
 require("./Elements/FileStructure.scss");
 require("./Elements/Markdown.scss");

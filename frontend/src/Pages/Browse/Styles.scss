@@ -1,5 +1,29 @@
+@import '../../Styles/global';
 @import '../../Styles/variables';
 
 .browse-page {
+    box-sizing: border-box;
+    width: 100%;
+    display: flex;
+    justify-content: space-around;
+    flex-wrap: wrap;
+    padding-top: 25px;
+    padding-left: 10px;
+    padding-right: 10px;
 
+    .empty-tidbit-box-for-flex-align {
+        box-sizing: border-box;
+        position: relative;
+        display: inline-flex;
+        width: 300px;
+        min-width: 300px;
+        max-width: 375px;
+        margin: 0 10px 0 10px;
+        display: inline-flex;
+        flex-grow: 1;
+
+        .inner-text {
+            width: 100%;
+        }
+    }
 }
