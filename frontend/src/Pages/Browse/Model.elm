@@ -8,4 +8,5 @@ import Models.Content exposing (Content)
 type alias Model =
     { content : Maybe (List Content)
     , pageNumber : Int
+    , noMoreContent : Bool
     }

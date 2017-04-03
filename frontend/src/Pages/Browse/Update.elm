@@ -1,6 +1,7 @@
 module Pages.Browse.Update exposing (..)
 
 import Api
+import Models.Content as Content
 import DefaultServices.CommonSubPageUtil exposing (CommonSubPageUtil)
 import Pages.Browse.Messages exposing (..)
 import Pages.Browse.Model exposing (..)
@@ -16,12 +17,10 @@ update { doNothing, justSetShared, justUpdateModel, justSetModel, justProduceCmd
             doNothing
 
         OnRouteHit route ->
-            case model.content of
-                Nothing ->
-                    justProduceCmd <| getNewestContent model.pageNumber
-
-                Just _ ->
-                    doNothing
+            ( { model | content = Nothing }
+            , shared
+            , getNewestContent 1
+            )
 
         OnGetContentSuccess content ->
             case model.content of
@@ -30,6 +29,7 @@ update { doNothing, justSetShared, justUpdateModel, justSetModel, justProduceCmd
                         { model
                             | content = Just content
                             , pageNumber = 2
+                            , noMoreContent = isNoMoreContent 10 content
                         }
 
                 Just currentContent ->
@@ -37,11 +37,15 @@ update { doNothing, justSetShared, justUpdateModel, justSetModel, justProduceCmd
                         { model
                             | content = Just <| currentContent ++ content
                             , pageNumber = model.pageNumber + 1
+                            , noMoreContent = isNoMoreContent 10 content
                         }
 
         OnGetContentFailure apiError ->
             -- TODO handle error.
             doNothing
+
+        LoadMoreContent ->
+            justProduceCmd <| getNewestContent model.pageNumber
 
 
 {-| Get's the newest content.
@@ -54,3 +58,28 @@ getNewestContent pageNumber =
         ]
         OnGetContentFailure
         OnGetContentSuccess
+
+
+{-| Checks if this is gauranteed to be the last content by seeing if less than the full page size is being returned from
+the server (for all collections).
+-}
+isNoMoreContent : Int -> List Content.Content -> Bool
+isNoMoreContent pageSize content =
+    let
+        go ( snipbits, bigbits, stories ) remainingContent =
+            case remainingContent of
+                [] ->
+                    (snipbits < pageSize) && (bigbits < pageSize) && (stories < pageSize)
+
+                h :: xs ->
+                    case h of
+                        Content.Snipbit _ ->
+                            go ( snipbits + 1, bigbits, stories ) xs
+
+                        Content.Bigbit _ ->
+                            go ( snipbits, bigbits + 1, stories ) xs
+
+                        Content.Story _ ->
+                            go ( snipbits, bigbits, stories + 1 ) xs
+    in
+        go ( 0, 0, 0 ) content

@@ -4,12 +4,10 @@
 .browse-page {
     box-sizing: border-box;
     width: 100%;
-    display: flex;
-    justify-content: space-around;
-    flex-wrap: wrap;
     padding-top: 25px;
     padding-left: 10px;
     padding-right: 10px;
+    text-align: center;
 
     .empty-tidbit-box-for-flex-align {
         box-sizing: border-box;
@@ -25,5 +23,38 @@
         .inner-text {
             width: 100%;
         }
+    }
+
+    .all-content {
+        box-sizing: border-box;
+        width: 100%;
+        position: relative;
+        display: flex;
+        justify-content: space-around;
+        flex-wrap: wrap;
+    }
+
+    .load-more-content-button {
+        display: inline-block;
+        margin: 0 auto 20px auto;
+        width: 180px;
+        height: 40px;
+        font-size: 16px;
+        border: none;
+        border-radius: 3px;
+        color: white;
+        font-weight: 600;
+        background-color: $color8;
+        opacity: 0.5;
+
+        &:hover {
+            opacity: 1;
+        }
+    }
+
+    .no-more-results-message {
+        font-size: 16px;
+        color: $color4;
+        margin: 5px 0 30px 0;
     }
 }

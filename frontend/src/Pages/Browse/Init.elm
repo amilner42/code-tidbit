@@ -9,4 +9,5 @@ init : Model
 init =
     { content = Nothing
     , pageNumber = 1
+    , noMoreContent = False
     }

@@ -13,6 +13,7 @@ encoder model =
     Encode.object
         [ ( "content", Encode.null )
         , ( "pageNumber", Encode.null )
+        , ( "noMoreContent", Encode.null )
         ]
 
 
@@ -23,3 +24,4 @@ decoder =
     decode Model
         |> hardcoded Nothing
         |> hardcoded 1
+        |> hardcoded False

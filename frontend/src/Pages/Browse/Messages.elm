@@ -12,3 +12,4 @@ type Msg
     | OnRouteHit Route
     | OnGetContentSuccess (List Content)
     | OnGetContentFailure ApiError
+    | LoadMoreContent
