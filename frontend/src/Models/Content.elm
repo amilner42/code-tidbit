@@ -1,6 +1,7 @@
 module Models.Content exposing (..)
 
 import Models.Bigbit exposing (Bigbit)
+import Models.Route as Route
 import Models.Snipbit exposing (Snipbit)
 import Models.Story exposing (Story)
 import Models.Tidbit as TidbitModel
@@ -90,3 +91,18 @@ fromTidbit tidbit =
 
         TidbitModel.Bigbit bigbit ->
             Bigbit bigbit
+
+
+{-| Get's the route to navigate to if you want to view certain content.
+-}
+getRouteForViewing : Content -> Route.Route
+getRouteForViewing content =
+    case content of
+        Snipbit { id } ->
+            Route.ViewSnipbitIntroductionPage Nothing id
+
+        Bigbit { id } ->
+            Route.ViewBigbitIntroductionPage Nothing id Nothing
+
+        Story { id } ->
+            Route.ViewStoryPage id

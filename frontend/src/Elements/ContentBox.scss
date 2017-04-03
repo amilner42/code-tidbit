@@ -11,6 +11,7 @@
     margin: 0 10px 25px 10px;
     display: inline-flex;
     flex-grow: 1;
+    cursor: pointer;
     @include light-box-shadow();
 
     &.snipbit {

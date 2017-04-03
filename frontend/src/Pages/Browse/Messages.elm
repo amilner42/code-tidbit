@@ -9,6 +9,7 @@ import Models.Route exposing (Route)
 -}
 type Msg
     = NoOp
+    | GoTo Route
     | OnRouteHit Route
     | OnGetContentSuccess (List Content)
     | OnGetContentFailure ApiError

@@ -3,6 +3,7 @@ module Pages.Browse.Update exposing (..)
 import Api
 import Models.Content as Content
 import DefaultServices.CommonSubPageUtil exposing (CommonSubPageUtil)
+import Models.Route as Route
 import Pages.Browse.Messages exposing (..)
 import Pages.Browse.Model exposing (..)
 import Pages.Model exposing (Shared)
@@ -15,6 +16,9 @@ update { doNothing, justSetShared, justUpdateModel, justSetModel, justProduceCmd
     case msg of
         NoOp ->
             doNothing
+
+        GoTo route ->
+            justProduceCmd <| Route.navigateTo route
 
         OnRouteHit route ->
             ( { model | content = Nothing }
