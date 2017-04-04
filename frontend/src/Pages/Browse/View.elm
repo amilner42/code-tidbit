@@ -23,7 +23,12 @@ view model shared =
                 [ class "browse-page" ]
                 [ div
                     [ class "all-content" ]
-                    ((List.map (contentBox GoTo) content) ++ Util.emptyFlexBoxesForAlignment)
+                    ((List.map
+                        (contentBox { goToMsg = GoTo, darkenBox = False, forStory = Nothing })
+                        content
+                     )
+                        ++ Util.emptyFlexBoxesForAlignment
+                    )
                 , button
                     [ classList
                         [ ( "load-more-content-button", True )

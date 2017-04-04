@@ -93,16 +93,17 @@ fromTidbit tidbit =
             Bigbit bigbit
 
 
-{-| Get's the route to navigate to if you want to view certain content.
+{-| Get's the route to navigate to if you want to view certain content. Pass the storyID if it is from the context of
+a story.
 -}
-getRouteForViewing : Content -> Route.Route
-getRouteForViewing content =
+getRouteForViewing : Content -> Maybe String -> Route.Route
+getRouteForViewing content maybeStoryID =
     case content of
         Snipbit { id } ->
-            Route.ViewSnipbitIntroductionPage Nothing id
+            Route.ViewSnipbitIntroductionPage maybeStoryID id
 
         Bigbit { id } ->
-            Route.ViewBigbitIntroductionPage Nothing id Nothing
+            Route.ViewBigbitIntroductionPage maybeStoryID id Nothing
 
         Story { id } ->
             Route.ViewStoryPage id

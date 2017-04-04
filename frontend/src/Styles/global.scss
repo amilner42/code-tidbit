@@ -244,7 +244,7 @@ textarea {
             @include no-select();
 
             position: relative;
-            color: $color5;
+            color: $color12;
             height: 30px;
             width: 30px;
             font-size: 30px;
@@ -399,23 +399,10 @@ textarea {
 
     &.completed {
         border: 1px solid $color1;
-        background-color: $color2;
+        background-color: $color3;
 
         .tidbit-box-name {
             color: white;
-        }
-
-        .completed-icon-div {
-            position: absolute;
-            right: 10px;
-            top: 10px;
-
-            .completed-icon {
-                display: inline-block;
-                left: -31px;
-                top: -8px;
-                bottom: 0;
-            }
         }
     }
 
@@ -463,14 +450,6 @@ textarea {
 
         &:hover {
             opacity: 0.9;
-        }
-
-        &.view-button {
-            background-color: white;
-            color: $color1;
-            width: 90%;
-            left: 5%;
-            right: 5%;
         }
 
         &.view-tidbit {
