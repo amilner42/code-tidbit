@@ -23,7 +23,7 @@
             background-color: #FDFDFD;
 
             .profile-card-title {
-                color: $color6;
+                color: $color12;
                 font-size: 36px;
                 font-weight: 500;
                 margin: 5px 0 10px 0;
@@ -56,7 +56,7 @@
 
                 .profile-card-sub-box-title {
                     display: inline-block;
-                    color: $color4;
+                    color: $color1;
                     font-size: 18px;
                     font-weight: 600;
                     width: 70px;
@@ -134,12 +134,12 @@
                 right: 10px;
                 top: 10px;
                 background-color: $color1;
+                border: none;
                 color: white;
-                opacity: 0.9;
                 cursor: default;
 
                 &:hover {
-                    opacity: 1;
+                    opacity: 0.9;
                     color: white;
                 }
             }
