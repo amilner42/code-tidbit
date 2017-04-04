@@ -21,17 +21,17 @@ button {
 
 input:focus {
     outline: none;
-    border: 1px solid $color3 !important;
+    border: 1px solid $color2 !important;
 
     &.input-error-highlight {
-        border: 1px solid $error-color2 !important;
+        border: 1px solid $error-color13 !important;
         border-left: 5px solid $error-color1 !important;
     }
 }
 
 textarea:focus {
     border: none;
-    box-shadow: 0 0 0 1pt $color3 !important;
+    box-shadow: 0 0 0 1pt $color2 !important;
 }
 
 .gap-10 {
@@ -84,6 +84,10 @@ textarea:focus {
     &.space-between {
         justify-content: space-between;
     }
+
+    &.space-around {
+        justify-content: space-around;
+    }
 }
 
 .gray-button {
@@ -126,10 +130,10 @@ textarea {
     margin-bottom: 10px;
     height: 40px;
     padding-top: 10px;
-    border-bottom: 1px solid $color2;
+    border-bottom: 1px solid $color13;
 
     @keyframes darken-border-bottom {
-        from { border-bottom: 1px solid $color2; }
+        from { border-bottom: 1px solid $color13; }
         to { border-bottom: 1px solid $color8; }
     }
 
@@ -219,7 +223,7 @@ textarea {
             position: relative;
             display: inline-block;
             color: $color4;
-            border: 1px solid $color2;
+            border: 1px solid $color13;
             height: 30px;
             line-height: 30px;
             margin: 1px;
@@ -231,7 +235,7 @@ textarea {
             }
 
             &.disabled {
-                color: $color2;
+                color: $color13;
                 cursor: default;
             }
         }
@@ -253,7 +257,7 @@ textarea {
         }
 
         .disabled-icon {
-            color: $color2;
+            color: $color13;
             cursor: default;
         }
     }
@@ -270,7 +274,7 @@ textarea {
             padding: 10px;
             width: 100%;
             height: 100%;
-            border: 1px solid $color2;
+            border: 1px solid $color13;
             font-size: 16px;
             resize: vertical;
         }
@@ -378,7 +382,7 @@ textarea {
     width: 275px;
     height: 275px;
     margin: 0 10px 20px 10px;
-    border: 1px solid $color2;
+    border: 1px solid $color13;
     background-color: $color9;
     flex-grow: 1;
     max-width: 325px;
@@ -387,7 +391,7 @@ textarea {
         position: absolute;
         left: 10px;
         bottom: 5px;
-        background-color: $color3;
+        background-color: $color2;
         display: none;
         color: $color1;
         font-size: 36px;
@@ -395,7 +399,7 @@ textarea {
 
     &.completed {
         border: 1px solid $color1;
-        background-color: $color3;
+        background-color: $color2;
 
         .tidbit-box-name {
             color: white;
@@ -449,17 +453,16 @@ textarea {
         box-sizing: border-box;
         position: absolute;
         bottom: 10px;
-        border: 1px solid $color2;
+        border: 1px solid $color13;
         background-color: $color1;
         color: white;
         padding: 3px 10px 3px 10px;
         height: 30px;
-        opacity: 0.9;
         font-size: 18px;
         border-radius: 3px;
 
         &:hover {
-            opacity: 1;
+            opacity: 0.9;
         }
 
         &.view-button {
@@ -498,7 +501,7 @@ textarea {
     }
 
     &.not-yet-added {
-        border: dotted 2px $color2;
+        border: dotted 2px $color13;
         opacity: 0.7;
     }
 }
@@ -523,7 +526,7 @@ textarea {
         position: relative;
         display: block;
         margin: 20px auto 20px auto;
-        border: 1px solid $color2;
+        border: 1px solid $color13;
         border-radius: 5px;
         font-size: 26px;
         color: $color5;
@@ -614,14 +617,14 @@ textarea {
         position: relative;
         display: inline-block;
         cursor: pointer;
-        border-bottom: 2px solid $color2;
+        border-bottom: 2px solid $color13;
         margin: 2px;
         font-size: 16px;
         line-height: 30px;
         text-align: center;
 
         &.create-tidbit-selected-tab {
-            color: $color3;
+            color: $color2;
         }
 
         &.filled-in {
@@ -643,30 +646,24 @@ textarea {
     }
 }
 
-// For containing stories/tidbit boxes.
-.boxes {
-    box-sizing: border-box;
-    overflow-y: auto;
-    height: 100%;
-
-    &.collapsed {
-        height: 0px;
-        overflow-y: hidden;
-        margin-bottom: -295px;
-    }
-}
-
 .story-box {
     box-sizing: border-box;
-    display: inline-block;
+    display: inline-flex;
     position: relative;
     width: 275px;
     height: 275px;
     margin: 0 10px 20px 10px;
-    border: 1px solid $color2;
-    background-color: $color9;
+    border: none;
     flex-grow: 1;
-    max-width: 325px;
+    max-width: 350px;
+    background-color: $content-color2;
+    color: white;
+    cursor: pointer;
+    @include strong-box-shadow();
+
+    &:hover {
+        opacity: 0.9;
+    }
 
     .story-box-name {
         box-sizing: border-box;
@@ -677,43 +674,8 @@ textarea {
         width: 100%;
         text-align: center;
         font-weight: 700;
-        color: $color5;
         font-size: 28px;
         padding: 10px;
-    }
-
-    button {
-        position: absolute;
-        right: 10px;
-        bottom: 10px;
-        border: 1px solid $color2;
-        border-radius: 15px;
-        color: $color3;
-        background-color: white;
-        padding: 3px 10px 3px 10px;
-        cursor: pointer;
-
-        &:hover {
-            color: $color1;
-        }
-    }
-
-    .continue-story-button {
-        width: 90%;
-        left: 5%;
-        right: 5%;
-        height: 30px;
-        border-radius: 3px;
-        background-color: $color1;
-        color: white;
-        opacity: 0.9;
-        font-size: 16px;
-        cursor: default;
-
-        &:hover {
-            color: white;
-            opacity: 1;
-        }
     }
 }
 
@@ -733,7 +695,7 @@ textarea {
         button {
             @include no-select();
             color: $color4;
-            border: 1px solid $color2;
+            border: 1px solid $color13;
             margin: 1px;
             font-size: 16px;
             line-height: 30px;
@@ -749,7 +711,7 @@ textarea {
                 box-sizing: border-box;
                 width: 360px;
                 height: 482px;
-                border: 1px solid $color2;
+                border: 1px solid $color13;
                 padding: 5px;
                 font-size: 16px;
                 resize: vertical;
@@ -771,8 +733,8 @@ textarea {
         }
 
         hr {
-            color: $color2;
-            background-color: $color2;
+            color: $color13;
+            background-color: $color13;
             height: 0px;
             width: 0px;
             margin: 0px;

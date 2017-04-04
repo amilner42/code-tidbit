@@ -71,7 +71,7 @@
                     display: inline-block;
                     font-style: italic;
                     color: $color5;
-                    border: 1px solid $color2;
+                    border: 1px solid $color13;
                     padding: 5px;
                     width: 200px;
                     cursor: default;
@@ -95,8 +95,8 @@
             button {
                 box-sizing: border-box;
                 padding: 5px;
-                background-color: $color3;
-                border: 1px solid $color2;
+                background-color: $color2;
+                border: 1px solid $color13;
                 border-radius: 3px;
                 width: 100px;
                 height: 43px;
