@@ -40,39 +40,35 @@
 
                 &.sign-up {
                     background-color: white;
-                    border: 1px solid $color1;
-                    color: $color2;
+                    color: $color1;
                     font-weight: 800;
                     padding: 5px 10px 5px 10px;
                     margin: 5px;
                     height: 40px;
                     cursor: pointer;
                     line-height: 30px;
-                    border-radius: 2px;
+                    border-radius: 1px;
 
                     &:hover {
                         background-color: $color13;
-                        color: $color1;
                     }
                 }
 
                 &.login {
                     @extend .sign-up;
-                    color: $color4;
+                    color: $color14;
                     margin-right: 0px;
-
-                    &:hover {
-                        color: $color5;
-                    }
                 }
 
                 &.code-tidbit {
                     font-weight: 600;
-                    font-size: 40px;
+                    font-size: 50px;
                     height: 50px;
                     line-height: 50px;
-                    margin: 0 10px 0 10px;
+                    margin: 0 10px 0 5px;
                     letter-spacing: 0px;
+                    padding-top: 2px;
+                    cursor: pointer;
                 }
             }
         }
