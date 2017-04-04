@@ -334,13 +334,6 @@ markdownOr condition markdownText backUpHtml =
         backUpHtml
 
 
-{-| A google-material-design check-icon.
--}
-checkIcon : Html msg
-checkIcon =
-    i [ class "material-icons check-icon" ] [ text "check" ]
-
-
 {-| Helper for flipping the previewMarkdown field of any record.
 -}
 togglePreviewMarkdown : { a | previewMarkdown : Bool } -> { a | previewMarkdown : Bool }

@@ -73,9 +73,7 @@ view model shared =
                         ]
                     , onClick <| GoTo Route.CreateSnipbitNamePage
                     ]
-                    [ text "Name"
-                    , Util.checkIcon
-                    ]
+                    [ text "Name" ]
                 , div
                     [ classList
                         [ ( "create-tidbit-tab", True )
@@ -84,9 +82,7 @@ view model shared =
                         ]
                     , onClick <| GoTo Route.CreateSnipbitDescriptionPage
                     ]
-                    [ text "Description"
-                    , Util.checkIcon
-                    ]
+                    [ text "Description" ]
                 , div
                     [ classList
                         [ ( "create-tidbit-tab", True )
@@ -95,9 +91,7 @@ view model shared =
                         ]
                     , onClick <| GoTo Route.CreateSnipbitLanguagePage
                     ]
-                    [ text "Language"
-                    , Util.checkIcon
-                    ]
+                    [ text "Language" ]
                 , div
                     [ classList
                         [ ( "create-tidbit-tab", True )
@@ -106,9 +100,7 @@ view model shared =
                         ]
                     , onClick <| GoTo Route.CreateSnipbitTagsPage
                     ]
-                    [ text "Tags"
-                    , Util.checkIcon
-                    ]
+                    [ text "Tags" ]
                 , div
                     [ classList
                         [ ( "create-tidbit-tab", True )
@@ -130,9 +122,7 @@ view model shared =
                         ]
                     , onClick <| GoToCodeTab
                     ]
-                    [ text "Code"
-                    , Util.checkIcon
-                    ]
+                    [ text "Code" ]
                 ]
 
         nameView : Html Msg
