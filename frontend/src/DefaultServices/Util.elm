@@ -114,6 +114,13 @@ onKeydownPreventDefault =
         }
 
 
+{-| Similar to `onClick`, but prevents event propogation.
+-}
+onClickWithoutPropigation : msg -> Attribute msg
+onClickWithoutPropigation msg =
+    onWithOptions "click" { defaultOptions | stopPropagation = True } (Decode.succeed msg)
+
+
 {-| Gets the last element of a list, if list is empty then Nothing.
 -}
 lastElem : List a -> Maybe a
