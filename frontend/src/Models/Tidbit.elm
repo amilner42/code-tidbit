@@ -62,16 +62,28 @@ getTidbitRoute fromStoryID tidbit =
             Route.ViewBigbitIntroductionPage fromStoryID id Nothing
 
 
-{-| Gets the name for tidbit type.
+{-| Returns true if a tidbit is a snipbit.
 -}
-getTypeName : Tidbit -> String
-getTypeName tidbit =
+isSnipbit : Tidbit -> Bool
+isSnipbit tidbit =
     case tidbit of
         Snipbit _ ->
-            "Snipbit"
+            True
 
+        _ ->
+            False
+
+
+{-| Returns true if a tidbit is a bigbit.
+-}
+isBigbit : Tidbit -> Bool
+isBigbit tidbit =
+    case tidbit of
         Bigbit _ ->
-            "Bigbit"
+            True
+
+        _ ->
+            False
 
 
 {-| Converts a tidbit to compressed-pointer form.

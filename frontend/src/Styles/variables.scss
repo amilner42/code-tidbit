@@ -1,10 +1,10 @@
 // Avoid naming variables "main-grey", "or light-grey", it's best to not have
 // the color in the variable name, that way it's easier to change color schemes
 // without having your "light-grey" be blue...
-$color1: #0079C9;
-$color2: #EEEEEE;
-$color3: #55A5F4;
-$color4: #636C77;
+$color1: #0E7CE7;
+$color2: #3090ED;
+$color3: #7FC0FF;
+$color4: #676767;
 $color5: #444444;
 $color6: #222222;
 $color7: #2ECC71;
@@ -12,14 +12,16 @@ $color8: #BBBBBB;
 $color9: #F8F8F8;
 $color10: #484848;
 $color11: #FBFBFB;
-$color12: #2F2F2F;
+$color12: #2E2E2E;
+$color13: #EEEEEE;
+$color14: #989898;
 
 $error-color1: red;
-$error-color2: #ec437d;
+$error-color13: #ec437d;
 
 $content-color1: #11C0DE;
-$content-color2: #81BD41;
-$content-color3: #5B2E81;
+$content-color3: #81BD41;
+$content-color2: #5B2E81;
 
 // At what point should your website stop adjusting to the size and start
 // becoming "scrolly".

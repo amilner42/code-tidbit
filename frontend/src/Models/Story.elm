@@ -1,6 +1,7 @@
 module Models.Story exposing (..)
 
 import Date
+import DefaultServices.Util exposing (maybeMapWithDefault, getAt)
 import Models.Route as Route
 import Models.Tidbit as Tidbit
 import Models.TidbitPointer as TidbitPointer
@@ -100,3 +101,16 @@ tidbit before the current one if one exists before.
 getPreviousTidbitRoute : String -> String -> List Tidbit.Tidbit -> Maybe Route.Route
 getPreviousTidbitRoute currentTidbitID currentStoryID storyTidbits =
     getNextTidbitRoute currentTidbitID currentStoryID (List.reverse storyTidbits)
+
+
+{-| Checks if a tidbit at a specific index is completed.
+-}
+tidbitCompletedAtIndex : Int -> ExpandedStory -> Bool
+tidbitCompletedAtIndex index story =
+    maybeMapWithDefault
+        (\hasCompletedList ->
+            getAt hasCompletedList index
+                |> Maybe.withDefault False
+        )
+        False
+        story.userHasCompleted

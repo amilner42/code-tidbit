@@ -1,4 +1,6 @@
 @import '../../Styles/global';
+@import '../../Styles/mixins';
+@import '../../Styles/variables';
 
 
 .create-story-page {
@@ -16,6 +18,105 @@
     }
 
     .create-story-page-content {
-        @extend .page-content;
+        padding: 10px 10px 0 10px;
+
+        .create-story-page-title {
+            color: $color12;
+            font-weight: 600;
+            font-size: 40px;
+            text-align: center;
+            width: 100%;
+            line-height: 40px;
+            height: 40px;
+            margin-bottom: 30px;
+            margin-top: 10px;
+        }
+
+        .no-tidbit-message {
+            width: 100%;
+            text-align: center;
+            margin-top: 10px;
+            margin-bottom: 30px;
+            color: $color14;
+        }
+    }
+
+    .tidbit-box {
+        box-sizing: border-box;
+        display: inline-block;
+        position: relative;
+        width: 275px;
+        height: 275px;
+        margin: 0 10px 20px 10px;
+        flex-grow: 1;
+        max-width: 350px;
+        @include strong-box-shadow();
+
+        &.not-yet-added, &.added {
+            cursor: pointer;
+            opacity: 0.5;
+
+            &:hover {
+                opacity: 1;
+            }
+        }
+
+        &.snipbit {
+            background-color: $content-color1;
+        }
+
+        &.bigbit {
+            background-color: $content-color3;
+        }
+
+        .tidbit-box-name {
+            box-sizing: border-box;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100%;
+            text-align: center;
+            font-weight: 700;
+            color: white;
+            font-size: 28px;
+            padding: 10px;
+        }
+
+        .tidbit-box-page-number {
+            position: absolute;
+            top: 5px;
+            left: 10px;
+            font-size: 20px;
+            color: white;
+        }
+
+        .view-tidbit {
+            position: absolute;
+            bottom: 5px;
+            left: 5px;
+            color: white;
+            width: 80px;
+            cursor: pointer;
+
+            i {
+                font-size: 30px;
+            }
+
+            span {
+                font-size: 20px;
+                position: absolute;
+                left: 31px;
+                bottom: 5px;
+            }
+
+            &:hover {
+                color: $color4;
+            }
+        }
+    }
+
+    .empty-tidbit-box-for-flex-align {
+        max-width: 350px;
     }
 }

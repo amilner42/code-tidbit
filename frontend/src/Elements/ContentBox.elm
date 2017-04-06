@@ -7,10 +7,19 @@ import Models.Content exposing (..)
 import Models.Route as Route
 
 
+{-| All the config for rendering some content.
+-}
+type alias RenderConfig msg =
+    { goToMsg : Route.Route -> msg
+    , darkenBox : Bool
+    , forStory : Maybe String
+    }
+
+
 {-| A fully-styled content box.
 -}
-contentBox : (Route.Route -> msg) -> Content -> Html msg
-contentBox goToMsg content =
+contentBox : RenderConfig msg -> Content -> Html msg
+contentBox { goToMsg, darkenBox, forStory } content =
     div
         [ classList
             [ ( "content-box", True )
@@ -18,9 +27,10 @@ contentBox goToMsg content =
             , ( "bigbit", isBigbit content )
             , ( "story", isStory content )
             ]
-        , onClick <| goToMsg <| getRouteForViewing content
+        , onClick <| goToMsg <| getRouteForViewing content forStory
         ]
-        [ div
+        [ div [ classList [ ( "darkener", darkenBox ) ] ] []
+        , div
             [ class "name" ]
             [ div
                 [ class "vertically-centered-text" ]

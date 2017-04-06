@@ -66,9 +66,7 @@ view model shared =
                         ]
                     , onClick <| GoTo Route.CreateBigbitNamePage
                     ]
-                    [ text "Name"
-                    , Util.checkIcon
-                    ]
+                    [ text "Name" ]
                 , div
                     [ classList
                         [ ( "create-tidbit-tab", True )
@@ -79,9 +77,7 @@ view model shared =
                         ]
                     , onClick <| GoTo Route.CreateBigbitDescriptionPage
                     ]
-                    [ text "Description"
-                    , Util.checkIcon
-                    ]
+                    [ text "Description" ]
                 , div
                     [ classList
                         [ ( "create-tidbit-tab", True )
@@ -92,9 +88,7 @@ view model shared =
                         ]
                     , onClick <| GoTo Route.CreateBigbitTagsPage
                     ]
-                    [ text "Tags"
-                    , Util.checkIcon
-                    ]
+                    [ text "Tags" ]
                 , div
                     [ classList
                         [ ( "create-tidbit-tab", True )
@@ -116,9 +110,7 @@ view model shared =
                         ]
                     , onClick <| GoToCodeTab
                     ]
-                    [ text "Code"
-                    , Util.checkIcon
-                    ]
+                    [ text "Code" ]
                 ]
 
         bigbitCodeTab =

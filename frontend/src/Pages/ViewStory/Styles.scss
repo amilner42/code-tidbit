@@ -7,10 +7,10 @@
     height: 100%;
 
     .story-name {
-        color: $color6;
+        color: $color12;
         font-size: 48px;
         text-align: center;
-        margin-bottom: 10px;
+        margin: 10px 0 10px 0;
         width: 100%;
         font-weight: 600;
     }
@@ -27,7 +27,7 @@
     }
 
     .view-story-page-content {
-        @extend .page-content;
+        padding: 0 10px 0 10px;
 
         .story-progress-bar-bar {
             text-align: center;
@@ -35,6 +35,11 @@
             display: block;
             height: 65px;
             text-align: center;
+        }
+
+        .empty-tidbit-box-for-flex-align {
+            width: 300px;
+            max-width: 375px;
         }
     }
 

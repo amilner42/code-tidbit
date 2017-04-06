@@ -16,6 +16,9 @@ import Ports
 update : CommonSubPageUtil Model Shared Msg -> Msg -> Model -> Shared -> ( Model, Shared, Cmd Msg )
 update { doNothing, justSetShared, justSetModel, justUpdateModel, justProduceCmd } msg model shared =
     case msg of
+        NoOp ->
+            doNothing
+
         GoTo route ->
             justProduceCmd <| Route.navigateTo route
 

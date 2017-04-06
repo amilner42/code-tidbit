@@ -62,7 +62,7 @@ view model shared =
 
 {-| Creates an error box with an appropriate message if there is an error, otherwise simply stays hidden.
 -}
-errorBox : Maybe (ApiError.ApiError) -> Html Msg
+errorBox : Maybe ApiError.ApiError -> Html Msg
 errorBox maybeApiError =
     let
         humanReadable maybeApiError =

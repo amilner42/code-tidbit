@@ -114,6 +114,13 @@ onKeydownPreventDefault =
         }
 
 
+{-| Similar to `onClick`, but prevents event propogation.
+-}
+onClickWithoutPropigation : msg -> Attribute msg
+onClickWithoutPropigation msg =
+    onWithOptions "click" { defaultOptions | stopPropagation = True } (Decode.succeed msg)
+
+
 {-| Gets the last element of a list, if list is empty then Nothing.
 -}
 lastElem : List a -> Maybe a
@@ -332,13 +339,6 @@ markdownOr condition markdownText backUpHtml =
         githubMarkdown [] markdownText
     else
         backUpHtml
-
-
-{-| A google-material-design check-icon.
--}
-checkIcon : Html msg
-checkIcon =
-    i [ class "material-icons check-icon" ] [ text "check" ]
 
 
 {-| Helper for flipping the previewMarkdown field of any record.

@@ -359,7 +359,7 @@ navbar shared =
         div [ class "nav" ]
             [ img
                 [ class "logo"
-                , src "assets/ct-logo.png"
+                , src "assets/ct-logo-small.png"
                 ]
                 []
             , div
@@ -367,6 +367,7 @@ navbar shared =
                     [ ( "nav-btn left code-tidbit", True )
                     , ( "hidden", Util.isNotNothing shared.user )
                     ]
+                , onClick <| GoTo Route.BrowsePage
                 ]
                 [ text "Code Tidbit" ]
             , div

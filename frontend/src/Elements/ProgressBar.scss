@@ -10,7 +10,7 @@
     width: 150px;
     height: 30px;
     line-height: 30px;
-    border: 1px solid $color2;
+    border: 1px solid $color13;
     padding: 5px;
     color: $color6;
 
@@ -23,7 +23,7 @@
         top: 0;
 
         &.disabled {
-            background-color: $color2;
+            background-color: $color13;
         }
     }
 
@@ -32,7 +32,7 @@
     }
 
     &.disabled {
-        border-color: $color2;
+        border-color: $color13;
         color: $color8;
     }
 }
