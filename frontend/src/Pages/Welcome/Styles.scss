@@ -44,6 +44,11 @@
         position: absolute;
         right: 23px;
         top: 23px;
+
+        &.welcome-page-browse-button {
+            right: 180px;
+            width: 200px;
+        }
     }
 
     .welcome-page {
