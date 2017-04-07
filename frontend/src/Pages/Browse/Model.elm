@@ -11,4 +11,8 @@ type alias Model =
     , noMoreContent : Bool
     , searchQuery : String
     , showNewContentMessage : Bool
+    , showAdvancedSearchOptions : Bool
+    , contentFilterSnipbits : Bool
+    , contentFilterBigbits : Bool
+    , contentFilterStories : Bool
     }

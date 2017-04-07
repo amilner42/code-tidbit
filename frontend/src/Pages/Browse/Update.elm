@@ -8,6 +8,7 @@ import Models.Route as Route
 import Pages.Browse.Messages exposing (..)
 import Pages.Browse.Model exposing (..)
 import Pages.Model exposing (Shared)
+import Ports
 
 
 {-| `Browse` update.
@@ -25,7 +26,14 @@ update ({ doNothing, justSetShared, justUpdateModel, justSetModel, justProduceCm
             case route of
                 Route.BrowsePage ->
                     common.withCmd
-                        (Util.domFocus (always NoOp) "search-bar")
+                        (Cmd.batch
+                            [ (Util.domFocus (always NoOp) "search-bar")
+                            , if model.showAdvancedSearchOptions then
+                                Ports.expandSearchAdvancedOptions True
+                              else
+                                Cmd.none
+                            ]
+                        )
                         (performSearch True ( model, shared ))
 
                 _ ->
@@ -72,6 +80,30 @@ update ({ doNothing, justSetShared, justUpdateModel, justSetModel, justProduceCm
 
         Search ->
             performSearch True ( model, shared )
+
+        ToggleAdvancedOptions ->
+            ( { model | showAdvancedSearchOptions = not model.showAdvancedSearchOptions }
+            , shared
+            , Ports.expandSearchAdvancedOptions <| not model.showAdvancedSearchOptions
+            )
+
+        ToggleContentFilterSnipbits ->
+            ( { model | contentFilterSnipbits = not model.contentFilterSnipbits }
+            , shared
+            , Cmd.none
+            )
+
+        ToggleContentFilterBigbits ->
+            ( { model | contentFilterBigbits = not model.contentFilterBigbits }
+            , shared
+            , Cmd.none
+            )
+
+        ToggleContentFilterStories ->
+            ( { model | contentFilterStories = not model.contentFilterStories }
+            , shared
+            , Cmd.none
+            )
 
 
 {-| Get's the results for a specific search query.
