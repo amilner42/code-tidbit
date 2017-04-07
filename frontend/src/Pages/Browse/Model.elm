@@ -9,4 +9,6 @@ type alias Model =
     { content : Maybe (List Content)
     , pageNumber : Int
     , noMoreContent : Bool
+    , searchQuery : String
+    , showNewContentMessage : Bool
     }

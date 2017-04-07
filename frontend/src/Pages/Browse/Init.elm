@@ -10,4 +10,6 @@ init =
     { content = Nothing
     , pageNumber = 1
     , noMoreContent = False
+    , searchQuery = ""
+    , showNewContentMessage = True
     }

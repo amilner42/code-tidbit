@@ -14,3 +14,5 @@ type Msg
     | OnGetContentSuccess (List Content)
     | OnGetContentFailure ApiError
     | LoadMoreContent
+    | OnUpdateSearch String
+    | Search

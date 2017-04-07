@@ -14,6 +14,8 @@ encoder model =
         [ ( "content", Encode.null )
         , ( "pageNumber", Encode.null )
         , ( "noMoreContent", Encode.null )
+        , ( "searchQuery", Encode.string model.searchQuery )
+        , ( "showNewContentMessage", Encode.null )
         ]
 
 
@@ -24,4 +26,6 @@ decoder =
     decode Model
         |> hardcoded Nothing
         |> hardcoded 1
+        |> hardcoded False
+        |> required "searchQuery" Decode.string
         |> hardcoded False
