@@ -73,19 +73,54 @@ export const combineArrays = <T1, T2>(array1: T1[], array2: T2[]): (T1 | T2)[] =
 }
 
 /**
- * Sort by date, newest first.
+ * Useful for functional pipes.
  */
-export const sortByNewestDate = <T1>(getDate: ((t1: T1) => Date), listOfT1: T1[]): T1[] => {
-  return R.sort<T1>((left, right) => {
-    return  getDate(right).getTime() - getDate(left).getTime();
-  })(listOfT1);
+export const getTime = (date: Date): number => {
+  return date.getTime();
 }
 
 /**
- * Sort by score, highest score first.
+ * For getting a number from a orderable-comparison, useful for sorting.
  */
-export const sortByHighestScore = <T1>(getScore: ((t1: T1) => number), listOfT1: T1[]): T1[] => {
+export const numberFromComparison = <T1>(sortOrder: SortOrder, left: T1, right: T1): number => {
+  let resultNumber;
+
+  if (left < right) {
+    resultNumber = 1;
+  } else if (left > right) {
+    resultNumber = -1;
+  } else {
+    resultNumber = 0;
+  }
+
+  return (sortOrder === SortOrder.Descending) ? resultNumber : resultNumber * -1;
+}
+
+/**
+ * The different sort orders.
+ */
+export enum SortOrder {
+  Ascending = 1,
+  Descending
+};
+
+/**
+ * A `Sorter` gives a specification for sorting, containing the information to get an orderable value from an object and
+ * also specifying whether to go in ascending or descending order.
+ */
+export type Sorter<T1> = [ SortOrder, (val: T1) => any ];
+
+/**
+ * Sorts a list given a list of `Sorter`s, will start by sorting by the first `Sorter` and will use remaining `Sorter`s
+ * to break ties when needed.
+ */
+export const sortByAll = <T1>(sorters: Sorter<T1>[], listOfT1: T1[]) => {
   return R.sort<T1>((left, right) => {
-    return getScore(right) - getScore(left);
+    let result = 0;
+    for (let i = 0; result === 0 && i < sorters.length; i++) {
+      const [sortOrder, sortBy] = sorters[i];
+      result = numberFromComparison(sortOrder, sortBy(left),  sortBy(right));
+    }
+    return result;
   })(listOfT1);
 }

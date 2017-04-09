@@ -88,22 +88,55 @@ update ({ doNothing, justSetShared, justUpdateModel, justSetModel, justProduceCm
             )
 
         ToggleContentFilterSnipbits ->
-            ( { model | contentFilterSnipbits = not model.contentFilterSnipbits }
-            , shared
-            , Cmd.none
-            )
+            let
+                updateFilterSnipbits : ( Model, Shared ) -> ( Model, Shared, Cmd Msg )
+                updateFilterSnipbits ( model, shared ) =
+                    ( { model | contentFilterSnipbits = not model.contentFilterSnipbits }
+                    , shared
+                    , Cmd.none
+                    )
+            in
+                if (not model.contentFilterBigbits) && (not model.contentFilterStories) then
+                    doNothing
+                else
+                    common.handleAll
+                        [ updateFilterSnipbits
+                        , performSearch True
+                        ]
 
         ToggleContentFilterBigbits ->
-            ( { model | contentFilterBigbits = not model.contentFilterBigbits }
-            , shared
-            , Cmd.none
-            )
+            let
+                updateFilterBigbits : ( Model, Shared ) -> ( Model, Shared, Cmd Msg )
+                updateFilterBigbits ( model, shared ) =
+                    ( { model | contentFilterBigbits = not model.contentFilterBigbits }
+                    , shared
+                    , Cmd.none
+                    )
+            in
+                if (not model.contentFilterSnipbits) && (not model.contentFilterStories) then
+                    doNothing
+                else
+                    common.handleAll
+                        [ updateFilterBigbits
+                        , performSearch True
+                        ]
 
         ToggleContentFilterStories ->
-            ( { model | contentFilterStories = not model.contentFilterStories }
-            , shared
-            , Cmd.none
-            )
+            let
+                updateFilterStories : ( Model, Shared ) -> ( Model, Shared, Cmd Msg )
+                updateFilterStories ( model, shared ) =
+                    ( { model | contentFilterStories = not model.contentFilterStories }
+                    , shared
+                    , Cmd.none
+                    )
+            in
+                if (not model.contentFilterSnipbits) && (not model.contentFilterBigbits) then
+                    doNothing
+                else
+                    common.handleAll
+                        [ updateFilterStories
+                        , performSearch True
+                        ]
 
 
 {-| Get's the results for a specific search query.
@@ -113,51 +146,66 @@ empty.
 -}
 performSearch : Bool -> ( Model, Shared ) -> ( Model, Shared, Cmd Msg )
 performSearch initialSearch ( model, shared ) =
-    if String.isEmpty model.searchQuery then
-        ( if initialSearch then
-            { model
-                | pageNumber = 1
-                , showNewContentMessage = True
-                , content = Nothing
-                , noMoreContent = False
-            }
-          else
-            model
-        , shared
-        , getContent
-            [ ( "sortByLastModified", Just "true" )
-            , ( "pageNumber"
-              , Just <|
-                    if initialSearch then
-                        "1"
-                    else
-                        toString model.pageNumber
-              )
+    let
+        toJSBool bool =
+            if bool then
+                "true"
+            else
+                "false"
+
+        commonQueryParams =
+            [ ( "includeSnipbits", Just <| toJSBool model.contentFilterSnipbits )
+            , ( "includeBigbits", Just <| toJSBool model.contentFilterBigbits )
+            , ( "includeStories", Just <| toJSBool model.contentFilterStories )
             ]
-        )
-    else
-        ( if initialSearch then
-            { model
-                | pageNumber = 1
-                , showNewContentMessage = False
-                , content = Nothing
-                , noMoreContent = False
-            }
-          else
-            model
-        , shared
-        , getContent
-            [ ( "searchQuery", Just model.searchQuery )
-            , ( "sortByTextScore", Just "true" )
-            , ( "pageNumber"
-              , Just <|
-                    if initialSearch then
-                        "1"
-                    else
-                        toString model.pageNumber
-              )
-            ]
-        )
+    in
+        if String.isEmpty model.searchQuery then
+            ( if initialSearch then
+                { model
+                    | pageNumber = 1
+                    , showNewContentMessage = True
+                    , content = Nothing
+                    , noMoreContent = False
+                }
+              else
+                model
+            , shared
+            , getContent <|
+                commonQueryParams
+                    ++ [ ( "sortByLastModified", Just "true" )
+                       , ( "pageNumber"
+                         , Just <|
+                            if initialSearch then
+                                "1"
+                            else
+                                toString model.pageNumber
+                         )
+                       ]
+            )
+        else
+            ( if initialSearch then
+                { model
+                    | pageNumber = 1
+                    , showNewContentMessage = False
+                    , content = Nothing
+                    , noMoreContent = False
+                }
+              else
+                model
+            , shared
+            , getContent <|
+                commonQueryParams
+                    ++ [ ( "searchQuery", Just model.searchQuery )
+                       , ( "sortByTextScore", Just "true" )
+                       , ( "pageNumber"
+                         , Just <|
+                            if initialSearch then
+                                "1"
+                            else
+                                toString model.pageNumber
+                         )
+                       ]
+            )
 
 
 {-| Get's the content with specific query params.

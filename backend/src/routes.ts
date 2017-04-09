@@ -345,10 +345,12 @@ export const routes: AppRoutes = {
      */
     get: (req, res): Promise<Content[]> => {
       const queryParams = req.query;
+      const includeCollections = getIncludeCollectionsFromQP(queryParams);
       const searchFilter = getContentSearchFilterFromQP(queryParams);
       const resultManipulation = getContentResultManipulationFromQP(queryParams);
 
-      return contentDBActions.getContent(searchFilter, resultManipulation).then(R.map(removeMetadataForResponse));
+      return contentDBActions.getContent(includeCollections, searchFilter, resultManipulation)
+      .then(R.map(removeMetadataForResponse));
     }
   }
 }
@@ -382,6 +384,32 @@ const getAuthorAsString = ({ author }): string => author;
  * Get's the `searchQuery` as a string.
  */
 const getSearchQueryAsString = ({ searchQuery }): string => searchQuery;
+
+/**
+ * Get's the `includeSnipbits` as a string. Will default to `true` unless "false" is passed.
+ */
+const getIncludeSnipbits = ({ includeSnipbits }): boolean => includeSnipbits !== "false";
+
+/**
+ * Get's the `includeBigbits` as a string. Will default to `true` unless "false" is passed.
+ */
+const getIncludeBigbits = ({ includeBigbits }): boolean => includeBigbits !== "false";
+
+/**
+ * Get's the `includeStories` as a bool. Will default to `true` unless "false" is passed.
+ */
+const getIncludeStories = ({ includeStories }): boolean => includeStories !== "false";
+
+/**
+ * For extracting the collections to include from the query parameters.
+ */
+const getIncludeCollectionsFromQP = (queryParams) => {
+  return {
+    includeSnipbits: getIncludeSnipbits(queryParams),
+    includeBigbits: getIncludeBigbits(queryParams),
+    includeStories: getIncludeStories(queryParams)
+  }
+}
 
 /**
  * For staying DRY while extracting `ContentResultManipulation` from query parameters.
