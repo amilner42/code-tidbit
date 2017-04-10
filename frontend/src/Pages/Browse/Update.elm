@@ -138,6 +138,20 @@ update ({ doNothing, justSetShared, justUpdateModel, justSetModel, justProduceCm
                         , performSearch True
                         ]
 
+        SetIncludeEmptyStories includeEmptyStories ->
+            let
+                updateIncludeEmptyStories : ( Model, Shared ) -> ( Model, Shared, Cmd Msg )
+                updateIncludeEmptyStories ( model, shared ) =
+                    ( { model | contentFilterIncludeEmptyStories = includeEmptyStories }
+                    , shared
+                    , Cmd.none
+                    )
+            in
+                common.handleAll
+                    [ updateIncludeEmptyStories
+                    , performSearch True
+                    ]
+
 
 {-| Get's the results for a specific search query.
 
@@ -157,6 +171,7 @@ performSearch initialSearch ( model, shared ) =
             [ ( "includeSnipbits", Just <| toJSBool model.contentFilterSnipbits )
             , ( "includeBigbits", Just <| toJSBool model.contentFilterBigbits )
             , ( "includeStories", Just <| toJSBool model.contentFilterStories )
+            , ( "includeEmptyStories", Just <| toJSBool model.contentFilterIncludeEmptyStories )
             ]
     in
         if String.isEmpty model.searchQuery then

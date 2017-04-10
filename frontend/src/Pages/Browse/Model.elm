@@ -15,4 +15,5 @@ type alias Model =
     , contentFilterSnipbits : Bool
     , contentFilterBigbits : Bool
     , contentFilterStories : Bool
+    , contentFilterIncludeEmptyStories : Bool
     }

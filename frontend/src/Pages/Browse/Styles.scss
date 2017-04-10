@@ -27,10 +27,50 @@
             height: 80px;
             background-color: $color13;
 
-            .content-filter {
-                box-sizing: boborder-box;
+            .empty-story-filter {
                 position: absolute;
+                box-sizing: border-box;
                 width: 200px;
+                height: 100%;
+                top: 0;
+                left: 180px;
+                color: $color4;
+                padding: 5px 10px 5px 10px;
+
+                .empty-story-title {
+                    font-weight: 600;
+                }
+
+                .empty-story-filter-option {
+                    height: 20px;
+                    position: relative;
+                    display: block;
+                    width: 100%;
+                    left: 0;
+                    text-align: left;
+                    margin-left: 10px;
+                    width: 50px;
+                    @include no-select();
+                    cursor: pointer;
+
+                    span {
+                        position: absolute;
+                        top: 3px;
+                        font-size: 16px;
+                        left: 28px;
+                    }
+
+                    i {
+                        font-size: 22px;
+                        color: $color4;
+                    }
+                }
+            }
+
+            .content-filter {
+                box-sizing: border-box;
+                position: absolute;
+                width: 180px;
                 height: 100%;
                 top: 0;
                 left: 0;

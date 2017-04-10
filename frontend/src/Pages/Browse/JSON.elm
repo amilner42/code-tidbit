@@ -20,6 +20,7 @@ encoder model =
         , ( "contentFilterSnipbits", Encode.bool model.contentFilterSnipbits )
         , ( "contentFilterBigbits", Encode.bool model.contentFilterBigbits )
         , ( "contentFilterStories", Encode.bool model.contentFilterStories )
+        , ( "contentFilterIncludeEmptyStories", Encode.bool model.contentFilterIncludeEmptyStories )
         ]
 
 
@@ -37,3 +38,4 @@ decoder =
         |> required "contentFilterSnipbits" Decode.bool
         |> required "contentFilterBigbits" Decode.bool
         |> required "contentFilterStories" Decode.bool
+        |> required "contentFilterIncludeEmptyStories" Decode.bool

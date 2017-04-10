@@ -8,7 +8,7 @@ import { combineArrays, isNullOrUndefined, dropNullAndUndefinedProperties, getTi
 import { MongoID } from "../types"
 import { Bigbit, bigbitDBActions } from "./bigbit.model";
 import { Snipbit, snipbitDBActions } from "./snipbit.model";
-import { Story, storyDBActions } from './story.model';
+import { Story, storyDBActions, StorySearchFilter } from './story.model';
 
 
 /**
@@ -17,16 +17,16 @@ import { Story, storyDBActions } from './story.model';
 export type Content = Snipbit | Bigbit | Story;
 
 /**
- * For specifying which collections to include in the search.
+ * General search configuration which does not apply to each collection individually.
  */
-export interface IncludeCollections {
+export interface GeneralSearchConfiguration {
   includeSnipbits?: boolean;
   includeBigbits?: boolean;
   includeStories?: boolean;
 }
 
 /**
- * The search options (which apply at the collection-level).
+ * The search options (which apply at the collection-level, to each collection).
  */
 export interface ContentSearchFilter {
   author?: MongoID;
@@ -34,7 +34,7 @@ export interface ContentSearchFilter {
 }
 
 /**
- * The result manipulation options.
+ * The result manipulation options (which apply at the collection-level, to each collection).
  *
  * NOTE: `pageSize` refers to the pageSize against each individual collection, not the total page size.
  *
@@ -54,18 +54,23 @@ export interface ContentResultManipulation {
  */
 export const contentDBActions = {
   /**
-   * Gets content, customizable through the `ContentSearchFilter` and `ContentResultManipulation`.
+   * Gets content from the database, customizable through params.
    */
   getContent:
-    ( includeCollections: IncludeCollections
-    , searchFilter: ContentSearchFilter
+    ( generalSearchConfig: GeneralSearchConfiguration
+    , searchFilter: ContentSearchFilter | StorySearchFilter
     , resultManipulation: ContentResultManipulation
     ): Promise<Content[]> => {
 
+    // We don't want to include fields just used on the `StorySearchFilter` for a search on a collection other than the
+    // story collection.
+    const contentSearchFilter = R.clone(searchFilter);
+    delete (contentSearchFilter as StorySearchFilter).includeEmptyStories;
+
     return Promise.all([
-      includeCollections.includeSnipbits ? snipbitDBActions.getSnipbits(searchFilter, resultManipulation) : [],
-      includeCollections.includeBigbits ? bigbitDBActions.getBigbits(searchFilter, resultManipulation) : [],
-      includeCollections.includeStories ? storyDBActions.getStories(searchFilter, resultManipulation) : []
+      generalSearchConfig.includeSnipbits ? snipbitDBActions.getSnipbits(contentSearchFilter, resultManipulation) : [],
+      generalSearchConfig.includeBigbits ? bigbitDBActions.getBigbits(contentSearchFilter, resultManipulation) : [],
+      generalSearchConfig.includeStories ? storyDBActions.getStories(searchFilter, resultManipulation) : []
     ])
     .then<Content[]>(([ snipbits, bigbits, stories ]) => {
       let contentArray = combineArrays(combineArrays(snipbits, bigbits), stories);
@@ -95,12 +100,11 @@ export const contentDBActions = {
 }
 
 /**
- * For staying DRY for content which uses the default `ContentSearchFilter` and
- * `ContentResultManipulation`.
+ * For staying DRY when getting content from the db.
  */
 export const getContent = <Content>
   ( contentCollection: Promise<Collection>,
-    filter: ContentSearchFilter,
+    filter: ContentSearchFilter | StorySearchFilter,
     resultManipulation: ContentResultManipulation,
     prepareForResponse: (content: Content) => Content | Promise<Content>
   ): Promise<Content[]> => {
@@ -121,6 +125,14 @@ export const getContent = <Content>
       filter["$text"] = { $search: filter.searchQuery };
       delete filter.searchQuery;
     }
+
+    // If we were given a `StorySearchFilter` and it specifically set to not include empty stories, we need to filter
+    // those out using mongo `$gt`.
+    if((filter as StorySearchFilter).includeEmptyStories === false) {
+      filter["tidbitPointers"] = { $gt: [] };
+    }
+    // We don't want this field on our mongo query.
+    delete (filter as StorySearchFilter).includeEmptyStories;
 
     // We don't want optional fields in the `filter` being included in the search.
     const mongoFindQuery = dropNullAndUndefinedProperties(filter);

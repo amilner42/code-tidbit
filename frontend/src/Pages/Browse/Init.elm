@@ -16,4 +16,5 @@ init =
     , contentFilterSnipbits = True
     , contentFilterBigbits = True
     , contentFilterStories = True
+    , contentFilterIncludeEmptyStories = False
     }

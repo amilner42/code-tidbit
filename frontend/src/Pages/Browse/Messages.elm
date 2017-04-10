@@ -20,3 +20,4 @@ type Msg
     | ToggleContentFilterSnipbits
     | ToggleContentFilterBigbits
     | ToggleContentFilterStories
+    | SetIncludeEmptyStories Bool

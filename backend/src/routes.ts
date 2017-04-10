@@ -5,11 +5,11 @@ import passport from 'passport';
 import * as R from "ramda";
 
 import { completedDBActions } from "./models/completed.model";
-import { Content, contentDBActions } from "./models/content.model";
+import { Content, contentDBActions, ContentSearchFilter, GeneralSearchConfiguration, ContentResultManipulation } from "./models/content.model";
 import { User, userDBActions, prepareUserForResponse } from './models/user.model';
 import { Snipbit, snipbitDBActions } from './models/snipbit.model';
 import { Bigbit, bigbitDBActions } from './models/bigbit.model';
-import { Story, NewStory, ExpandedStory, storyDBActions } from "./models/story.model";
+import { Story, NewStory, ExpandedStory, storyDBActions, StorySearchFilter } from "./models/story.model";
 import { Tidbit, tidbitDBActions } from './models/tidbit.model';
 import { AppRoutes, AppRoutesAuth, FrontendError, TargetID, ErrorCode, BasicResponse } from './types';
 import { internalError, combineArrays } from './util';
@@ -345,11 +345,11 @@ export const routes: AppRoutes = {
      */
     get: (req, res): Promise<Content[]> => {
       const queryParams = req.query;
-      const includeCollections = getIncludeCollectionsFromQP(queryParams);
+      const generalSearchConfig = getGeneralContentSearchConfiguration(queryParams);
       const searchFilter = getContentSearchFilterFromQP(queryParams);
       const resultManipulation = getContentResultManipulationFromQP(queryParams);
 
-      return contentDBActions.getContent(includeCollections, searchFilter, resultManipulation)
+      return contentDBActions.getContent(generalSearchConfig, searchFilter, resultManipulation)
       .then(R.map(removeMetadataForResponse));
     }
   }
@@ -401,9 +401,14 @@ const getIncludeBigbits = ({ includeBigbits }): boolean => includeBigbits !== "f
 const getIncludeStories = ({ includeStories }): boolean => includeStories !== "false";
 
 /**
- * For extracting the collections to include from the query parameters.
+ * Get's the `includeEmptyStories` as a bool. Will default to `false` unless "true" is passed.
  */
-const getIncludeCollectionsFromQP = (queryParams) => {
+const getIncludeEmptyStories = ({ includeEmptyStories }): boolean => includeEmptyStories === "true";
+
+/**
+ * For extracting the general search configuration [for `Content`] from the query parameters.
+ */
+const getGeneralContentSearchConfiguration = (queryParams): GeneralSearchConfiguration => {
   return {
     includeSnipbits: getIncludeSnipbits(queryParams),
     includeBigbits: getIncludeBigbits(queryParams),
@@ -414,7 +419,7 @@ const getIncludeCollectionsFromQP = (queryParams) => {
 /**
  * For staying DRY while extracting `ContentResultManipulation` from query parameters.
  */
-const getContentResultManipulationFromQP = ( queryParams ) => {
+const getContentResultManipulationFromQP = ( queryParams ): ContentResultManipulation => {
   return {
     sortByLastModified: getSortByLastModifiedAsBoolean(queryParams),
     sortByTextScore: getSortByTextScoreAsBoolean(queryParams),
@@ -424,12 +429,13 @@ const getContentResultManipulationFromQP = ( queryParams ) => {
 }
 
 /**
- * For staying DRY while extracting `ContentSearchFilter` from query parameters.
+ * For staying DRY while extracting `ContentSearchFilter | StorySearchFilter` from query parameters.
  */
-const getContentSearchFilterFromQP = ( queryParams ) => {
+const getContentSearchFilterFromQP = ( queryParams ): ContentSearchFilter | StorySearchFilter  => {
   return {
     author: getAuthorAsString(queryParams),
-    searchQuery: getSearchQueryAsString(queryParams)
+    searchQuery: getSearchQueryAsString(queryParams),
+    includeEmptyStories: getIncludeEmptyStories(queryParams)
   }
 }
 

@@ -57,6 +57,38 @@ view model shared =
                     , contentFilterType model.contentFilterBigbits "bigbits" ToggleContentFilterBigbits
                     , contentFilterType model.contentFilterStories "stories" ToggleContentFilterStories
                     ]
+                , div
+                    [ class "empty-story-filter" ]
+                    [ span [ class "empty-story-title" ] [ text "Include Empty Stories" ]
+                    , div
+                        [ class "empty-story-filter-option"
+                        , onClick <| SetIncludeEmptyStories True
+                        ]
+                        [ i
+                            [ class "material-icons" ]
+                            [ text <|
+                                if model.contentFilterIncludeEmptyStories then
+                                    "check_box"
+                                else
+                                    "check_box_outline_blank"
+                            ]
+                        , span [] [ text "yes" ]
+                        ]
+                    , div
+                        [ class "empty-story-filter-option"
+                        , onClick <| SetIncludeEmptyStories False
+                        ]
+                        [ i
+                            [ class "material-icons" ]
+                            [ text <|
+                                if model.contentFilterIncludeEmptyStories then
+                                    "check_box_outline_blank"
+                                else
+                                    "check_box"
+                            ]
+                        , span [] [ text "no" ]
+                        ]
+                    ]
                 ]
             ]
         , div [ class "sub-bar-ghost hidden" ] []

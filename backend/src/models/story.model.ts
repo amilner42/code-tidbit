@@ -58,7 +58,9 @@ export interface NewStory {
 /**
  * The search options.
  */
-export interface StorySearchFilter extends ContentSearchFilter { }
+export interface StorySearchFilter extends ContentSearchFilter {
+  includeEmptyStories?: boolean;
+}
 
 /**
  * The result manipulation options.
