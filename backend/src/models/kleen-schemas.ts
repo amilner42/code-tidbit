@@ -1,6 +1,8 @@
 /// Module for all abstract kleen schemas to be used in multiple models.
 
 import * as kleen from "kleen";
+
+import { isLanguage } from "./language.model";
 import { Range, emptyRange } from './range.model';
 import { malformedFieldError, internalError } from '../util';
 import { ErrorCode, FrontendError } from '../types';
@@ -148,14 +150,21 @@ export const commentSchema = (emptyCommentErrorCode: ErrorCode): kleen.primitive
 };
 
 /**
- * For validifying a language, doesn't check the language is a valid language
- * but does check that it isn't emtpy.
+ * For validifying a language.
  */
-export const languageSchema = (emptyLanguageErrorCode: ErrorCode): kleen.primitiveSchema => {
-  return nonEmptyStringSchema(
-    { errorCode: emptyLanguageErrorCode, message: "Empty language is not a valid language." },
-    malformedFieldError("language")
-  );
+export const languageSchema = (invalidLanguageErrorCode: ErrorCode): kleen.primitiveSchema => {
+  return {
+    primitiveType: kleen.kindOfPrimitive.string,
+    typeFailureError: { errorCode: invalidLanguageErrorCode, message: "Language must be a string" },
+    restriction: (language: string) => {
+      if(!isLanguage(language)) {
+        return Promise.reject({
+          errorCode: invalidLanguageErrorCode,
+          message: `${language} is not a valid language.`
+        })
+      }
+    }
+  }
 };
 
 /**

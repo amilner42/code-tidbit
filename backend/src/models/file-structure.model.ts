@@ -32,12 +32,11 @@ export interface Folder<FolderMetadata, FileMetadata> {
 
 
 /**
-* Maps async functions across all 3 levels of metadata, rejects if any promise
-* rejects, othewise succeeds.
+* Maps async functions across all 3 levels of metadata, rejects if any promise rejects, othewise succeeds.
 *
-* Returns a new copy, does not modify existing FS.
+* @NOTE: Returns a new copy, does not modify existing FS.
 *
-* Doesn't do null-checks, expects a valid FS.
+* @WARNING: Doesn't do null-checks, expects a valid FS.
 */
 export const metaMap = <a, b, c, a1, b1, c1>
   (aFunc: (a: a) => Promise<a1>,

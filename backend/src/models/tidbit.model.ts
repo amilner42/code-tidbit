@@ -6,7 +6,7 @@ import * as R from "ramda";
 import { malformedFieldError, isNullOrUndefined, combineArrays, sortByAll, getTime, SortOrder } from '../util';
 import { ErrorCode, MongoID, MongoObjectID } from '../types';
 import { mongoStringIDSchema } from './kleen-schemas';
-import { ContentSearchFilter, ContentResultManipulation } from "./content.model";
+import { ContentSearchFilter, ContentResultManipulation, contentDBActions } from "./content.model";
 import { Snipbit, snipbitDBActions } from './snipbit.model';
 import { Bigbit, bigbitDBActions } from './bigbit.model';
 
@@ -100,33 +100,10 @@ export const tidbitDBActions = {
    * Gets tidbits from the database, customizable through search filter.
    */
   getTidbits: (searchFilter: TidbitSearchFilter, resultManipulation: TidbitSearchResultManipulation): Promise<Tidbit[]> => {
-
-    return Promise.all([
-      snipbitDBActions.getSnipbits(searchFilter, resultManipulation),
-      bigbitDBActions.getBigbits(searchFilter, resultManipulation)
-    ])
-    .then(([snipbits, bigbits]) => {
-      let tidbits = combineArrays(snipbits, bigbits);
-
-      if(resultManipulation.sortByLastModified) {
-        return sortByAll<Tidbit>(
-          [
-            [ SortOrder.Descending, R.prop("lastModified") ],
-            [ SortOrder.Ascending, R.pipe(R.prop("name"), R.toLower) ]
-          ],
-          tidbits
-        );
-      } else if(resultManipulation.sortByTextScore) {
-        return sortByAll<Tidbit>(
-          [
-            [ SortOrder.Descending, R.prop("textScore") ],
-            [ SortOrder.Ascending, R.pipe(R.prop("name"), R.toLower) ]
-          ],
-          tidbits
-        );
-      }
-
-      return tidbits;
-    });
+    return contentDBActions.getContent(
+      { includeBigbits: true, includeSnipbits: true },
+      searchFilter,
+      resultManipulation
+    )
   }
 }

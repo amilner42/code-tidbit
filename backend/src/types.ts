@@ -51,15 +51,6 @@ export interface FrontendError {
 }
 
 /**
- * A language from the database.
- */
-export interface Language {
-  _id?: MongoID;
-  // The encoded language from the frontend type union, eg. "Javascript".
-  encodedName: string;
-}
-
-/**
  * An alias for a mongo `ObjectID`.
  */
 export type MongoObjectID = ObjectID;
