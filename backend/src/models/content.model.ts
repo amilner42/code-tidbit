@@ -4,19 +4,29 @@ import { Collection, Cursor } from "mongodb";
 import * as R from "ramda";
 
 import { toMongoObjectID, paginateResults } from "../db";
-import { combineArrays, sortByNewestDate, isNullOrUndefined, dropNullAndUndefinedProperties, sortByHighestScore }  from "../util";
+import { combineArrays, isNullOrUndefined, dropNullAndUndefinedProperties, getTime, sortByAll, SortOrder }  from "../util";
 import { MongoID } from "../types"
-import { Tidbit, tidbitDBActions } from './tidbit.model';
+import { Bigbit, bigbitDBActions } from "./bigbit.model";
+import { Snipbit, snipbitDBActions } from "./snipbit.model";
 import { Story, storyDBActions } from './story.model';
 
 
 /**
  * Content represents basically any content that the user creates, used on the browse page.
  */
-export type Content = Tidbit | Story;
+export type Content = Snipbit | Bigbit | Story;
 
 /**
- * The search options.
+ * For specifying which collections to include in the search.
+ */
+export interface IncludeCollections {
+  includeSnipbits?: boolean;
+  includeBigbits?: boolean;
+  includeStories?: boolean;
+}
+
+/**
+ * The search options (which apply at the collection-level).
  */
 export interface ContentSearchFilter {
   author?: MongoID;
@@ -46,18 +56,37 @@ export const contentDBActions = {
   /**
    * Gets content, customizable through the `ContentSearchFilter` and `ContentResultManipulation`.
    */
-  getContent: (searchFilter: ContentSearchFilter, resultManipulation: ContentResultManipulation): Promise<Content[]> => {
+  getContent:
+    ( includeCollections: IncludeCollections
+    , searchFilter: ContentSearchFilter
+    , resultManipulation: ContentResultManipulation
+    ): Promise<Content[]> => {
+
     return Promise.all([
-      tidbitDBActions.getTidbits(searchFilter, resultManipulation),
-      storyDBActions.getStories(searchFilter, resultManipulation)
+      includeCollections.includeSnipbits ? snipbitDBActions.getSnipbits(searchFilter, resultManipulation) : [],
+      includeCollections.includeBigbits ? bigbitDBActions.getBigbits(searchFilter, resultManipulation) : [],
+      includeCollections.includeStories ? storyDBActions.getStories(searchFilter, resultManipulation) : []
     ])
-    .then<Content[]>(([ tidbits, stories ]) => {
-      let contentArray = combineArrays(tidbits, stories);
+    .then<Content[]>(([ snipbits, bigbits, stories ]) => {
+      let contentArray = combineArrays(combineArrays(snipbits, bigbits), stories);
 
       if(resultManipulation.sortByLastModified) {
-        return sortByNewestDate<Content>(R.prop("lastModified"), contentArray);
+        return sortByAll<Content>(
+          [
+            [ SortOrder.Descending, R.prop("lastModified")],
+            [ SortOrder.Ascending, R.pipe(R.prop("name"), R.toLower) ]
+          ],
+          contentArray
+        );
       } else if(resultManipulation.sortByTextScore) {
-        return sortByHighestScore<Content>(R.prop("textScore"), contentArray);
+
+        return sortByAll<Content>(
+          [
+            [ SortOrder.Descending, R.prop("textScore")],
+            [ SortOrder.Ascending, R.pipe(R.prop("name"), R.toLower) ]
+          ],
+          contentArray
+        );
       }
 
       return contentArray;

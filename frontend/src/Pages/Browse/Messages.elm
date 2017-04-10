@@ -16,3 +16,7 @@ type Msg
     | LoadMoreContent
     | OnUpdateSearch String
     | Search
+    | ToggleAdvancedOptions
+    | ToggleContentFilterSnipbits
+    | ToggleContentFilterBigbits
+    | ToggleContentFilterStories

@@ -3,7 +3,7 @@
 import * as kleen from "kleen";
 import * as R from "ramda";
 
-import { malformedFieldError, isNullOrUndefined, combineArrays, sortByNewestDate, sortByHighestScore } from '../util';
+import { malformedFieldError, isNullOrUndefined, combineArrays, sortByAll, getTime, SortOrder } from '../util';
 import { ErrorCode, MongoID, MongoObjectID } from '../types';
 import { mongoStringIDSchema } from './kleen-schemas';
 import { ContentSearchFilter, ContentResultManipulation } from "./content.model";
@@ -109,9 +109,21 @@ export const tidbitDBActions = {
       let tidbits = combineArrays(snipbits, bigbits);
 
       if(resultManipulation.sortByLastModified) {
-        return sortByNewestDate<Tidbit>(R.prop("lastModified"), tidbits);
+        return sortByAll<Tidbit>(
+          [
+            [ SortOrder.Descending, R.prop("lastModified") ],
+            [ SortOrder.Ascending, R.pipe(R.prop("name"), R.toLower) ]
+          ],
+          tidbits
+        );
       } else if(resultManipulation.sortByTextScore) {
-        return sortByHighestScore<Tidbit>(R.prop("textScore"), tidbits);
+        return sortByAll<Tidbit>(
+          [
+            [ SortOrder.Descending, R.prop("textScore") ],
+            [ SortOrder.Ascending, R.pipe(R.prop("name"), R.toLower) ]
+          ],
+          tidbits
+        );
       }
 
       return tidbits;

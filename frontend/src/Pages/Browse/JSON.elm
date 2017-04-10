@@ -16,6 +16,10 @@ encoder model =
         , ( "noMoreContent", Encode.null )
         , ( "searchQuery", Encode.string model.searchQuery )
         , ( "showNewContentMessage", Encode.null )
+        , ( "showAdvancedSearchOptions", Encode.bool model.showAdvancedSearchOptions )
+        , ( "contentFilterSnipbits", Encode.bool model.contentFilterSnipbits )
+        , ( "contentFilterBigbits", Encode.bool model.contentFilterBigbits )
+        , ( "contentFilterStories", Encode.bool model.contentFilterStories )
         ]
 
 
@@ -29,3 +33,7 @@ decoder =
         |> hardcoded False
         |> required "searchQuery" Decode.string
         |> hardcoded False
+        |> required "showAdvancedSearchOptions" Decode.bool
+        |> required "contentFilterSnipbits" Decode.bool
+        |> required "contentFilterBigbits" Decode.bool
+        |> required "contentFilterStories" Decode.bool

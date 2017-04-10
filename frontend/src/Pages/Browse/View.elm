@@ -2,7 +2,7 @@ module Pages.Browse.View exposing (..)
 
 import DefaultServices.Util as Util
 import Elements.ContentBox exposing (contentBox)
-import Html exposing (Html, div, text, button, input)
+import Html exposing (Html, div, text, button, input, span, i)
 import Html.Attributes exposing (class, hidden, classList, placeholder, value, id)
 import Html.Events exposing (onClick, onInput)
 import Keyboard.Extra as KK
@@ -18,7 +18,8 @@ view model shared =
     div
         [ class "browse-page" ]
         [ div
-            [ class "search-bar sub-bar" ]
+            [ class "search-bar sub-bar"
+            ]
             [ input
                 [ class "search-input"
                 , id "search-bar"
@@ -34,6 +35,29 @@ view model shared =
                     )
                 ]
                 []
+            , div
+                [ class "advanced-search-options-toggle"
+                , onClick ToggleAdvancedOptions
+                ]
+                [ if model.showAdvancedSearchOptions then
+                    text "hide advanced search options"
+                  else
+                    text "show advanced search options"
+                ]
+            , div
+                [ classList
+                    [ ( "advanced-options", True )
+                    , ( "hidden", not model.showAdvancedSearchOptions )
+                    ]
+                ]
+                [ div
+                    [ class "content-filter" ]
+                    [ span [ class "content-filter-title" ] [ text "Filter Content Type" ]
+                    , contentFilterType model.contentFilterSnipbits "snipbits" ToggleContentFilterSnipbits
+                    , contentFilterType model.contentFilterBigbits "bigbits" ToggleContentFilterBigbits
+                    , contentFilterType model.contentFilterStories "stories" ToggleContentFilterStories
+                    ]
+                ]
             ]
         , div [ class "sub-bar-ghost hidden" ] []
         , (case model.content of
@@ -81,4 +105,23 @@ view model shared =
                         ]
                     ]
           )
+        ]
+
+
+{-| For staying DRY, used in the advanced options.
+-}
+contentFilterType : Bool -> String -> Msg -> Html Msg
+contentFilterType currentlyIncluded name msg =
+    div
+        [ class <| "content-filter-type " ++ name
+        , onClick msg
+        ]
+        [ i
+            [ class "material-icons" ]
+            [ if currentlyIncluded then
+                text "check_box"
+              else
+                text "check_box_outline_blank"
+            ]
+        , span [ class "content-filter-type-text" ] [ text name ]
         ]

@@ -12,4 +12,8 @@ init =
     , noMoreContent = False
     , searchQuery = ""
     , showNewContentMessage = True
+    , showAdvancedSearchOptions = False
+    , contentFilterSnipbits = True
+    , contentFilterBigbits = True
+    , contentFilterStories = True
     }

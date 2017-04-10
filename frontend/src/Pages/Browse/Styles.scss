@@ -13,6 +13,78 @@
         padding-top: 0px;
         margin-bottom: 0px;
 
+        &.sticky {
+            .advanced-options {
+                border-bottom: 1px solid $color14;
+                transition: 0.1s;
+            }
+        }
+
+        .advanced-options {
+            position: relative;
+            border-bottom: 1px solid $color15;
+            margin-top: 10px;
+            height: 80px;
+            background-color: $color13;
+
+            .content-filter {
+                box-sizing: boborder-box;
+                position: absolute;
+                width: 200px;
+                height: 100%;
+                top: 0;
+                left: 0;
+                text-align: left;
+                padding: 5px 10px 5px 10px;
+
+                .content-filter-title {
+                    position: relative;
+                    color: $color4;
+                    margin-bottom: -10px;
+                    font-weight: 600;
+                }
+
+                .content-filter-type {
+                    position: relative;
+                    left: 4px;
+                    width: 100%;
+                    display: block;
+                    height: 18px;
+                    font-size: 16px;
+                    line-height: 18px;
+                    color: $color4;
+                    cursor: pointer;
+                    @include no-select();
+
+                    &.snipbits {
+                        color: $content-color1;
+                    }
+
+                    &.bigbits {
+                        color: $content-color3;
+                    }
+
+                    &.stories {
+                        color: $content-color2;
+                    }
+
+                    i {
+                        position: relative;
+                        font-size: 18px;
+                    }
+
+                    .content-filter-type-text {
+                        position: relative;
+                        top: -3px;
+                    }
+                }
+            }
+        }
+
+        &.advanced-options {
+            height: 140px;
+        }
+
         .search-input {
             box-sizing: border-box;
             position: relative;
@@ -34,10 +106,27 @@
                 @include strong-box-shadow();
             }
         }
+
+        .advanced-search-options-toggle {
+            position: absolute;
+            right: 5px;
+            top: 45px;
+            font-size: 12px;
+            color: $color12;
+            cursor: pointer;
+
+            &:hover {
+                text-decoration: underline;
+            }
+        }
     }
 
     .sub-bar-ghost {
         height: 60px;
+
+        &.advanced-options {
+            height: 140px
+        }
     }
 
     .browse-page-content {
