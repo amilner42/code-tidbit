@@ -6,7 +6,7 @@ import Dom
 import Elements.Markdown exposing (githubMarkdown)
 import Html exposing (Html, Attribute, div, i, text)
 import Html.Attributes exposing (hidden, class)
-import Html.Events exposing (Options, on, onWithOptions, keyCode, defaultOptions)
+import Html.Events exposing (Options, on, onWithOptions, keyCode, defaultOptions, targetValue)
 import Html.Keyed as Keyed
 import Json.Decode as Decode
 import Json.Encode as Encode
@@ -112,6 +112,13 @@ onKeydownPreventDefault =
         { preventDefault = True
         , stopPropagation = False
         }
+
+
+{-| For watching for `onChange` events.
+-}
+onChange : (String -> msg) -> Attribute msg
+onChange tagger =
+    on "change" (Decode.map tagger targetValue)
 
 
 {-| Similar to `onClick`, but prevents event propogation.

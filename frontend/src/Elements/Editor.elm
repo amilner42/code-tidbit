@@ -317,6 +317,16 @@ humanReadableListOfLanguages =
     ]
 
 
+{-| Get's a language from the human readable name.
+-}
+languageFromHumanReadableName : String -> Maybe Language
+languageFromHumanReadableName languageAsString =
+    humanReadableListOfLanguages
+        |> List.filter (Tuple.second >> ((==) languageAsString))
+        |> List.head
+        |> Maybe.map Tuple.first
+
+
 {-| Given a file name, like `bla.py`, returns the appropriate language [python].
 
 NOTE: Due to ambiguity in certain file extensions (.sql), we return a list of the possible languages it could be. An

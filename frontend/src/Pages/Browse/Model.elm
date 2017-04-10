@@ -1,5 +1,6 @@
 module Pages.Browse.Model exposing (..)
 
+import Elements.Editor exposing (Language)
 import Models.Content exposing (Content)
 
 
@@ -16,4 +17,5 @@ type alias Model =
     , contentFilterBigbits : Bool
     , contentFilterStories : Bool
     , contentFilterIncludeEmptyStories : Bool
+    , contentFilterLanguage : Maybe Language
     }

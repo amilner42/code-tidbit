@@ -2,8 +2,9 @@ module Pages.Browse.View exposing (..)
 
 import DefaultServices.Util as Util
 import Elements.ContentBox exposing (contentBox)
-import Html exposing (Html, div, text, button, input, span, i)
-import Html.Attributes exposing (class, hidden, classList, placeholder, value, id)
+import Elements.Editor as Editor
+import Html exposing (Html, div, text, button, input, span, i, select, option)
+import Html.Attributes exposing (class, hidden, classList, placeholder, value, id, disabled, selected)
 import Html.Events exposing (onClick, onInput)
 import Keyboard.Extra as KK
 import Pages.Browse.Messages exposing (..)
@@ -88,6 +89,25 @@ view model shared =
                             ]
                         , span [] [ text "no" ]
                         ]
+                    ]
+                , div
+                    [ class "language-filter" ]
+                    [ span [ class "language-filter-title" ] [ text "Select Language" ]
+                    , select
+                        [ Util.onChange (Editor.languageFromHumanReadableName >> SelectLanguage) ]
+                        ((option
+                            [ selected <| Util.isNothing model.contentFilterLanguage ]
+                            [ text "All" ]
+                         )
+                            :: (List.map
+                                    (\( language, humanReadableName ) ->
+                                        option
+                                            [ selected <| Just language == model.contentFilterLanguage ]
+                                            [ text humanReadableName ]
+                                    )
+                                    Editor.humanReadableListOfLanguages
+                               )
+                        )
                     ]
                 ]
             ]

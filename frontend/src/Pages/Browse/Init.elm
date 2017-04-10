@@ -17,4 +17,5 @@ init =
     , contentFilterBigbits = True
     , contentFilterStories = True
     , contentFilterIncludeEmptyStories = False
+    , contentFilterLanguage = Nothing
     }

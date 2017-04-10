@@ -27,13 +27,35 @@
             height: 80px;
             background-color: $color13;
 
+            .language-filter {
+                position: absolute;
+                box-sizing: border-box;
+                width: 180px;
+                top: 0;
+                left: 370px;
+                height: 100%;
+                text-align: left;
+                padding: 5px 10px 5px 10px;
+
+                .language-filter-title {
+                    font-weight: 600;
+                    color: $color4;
+                }
+
+                select {
+                    position: absolute;
+                    top: 26px;
+                    left: 14px;
+                }
+            }
+
             .empty-story-filter {
                 position: absolute;
                 box-sizing: border-box;
-                width: 200px;
+                width: 190px;
                 height: 100%;
                 top: 0;
-                left: 180px;
+                left: 170px;
                 color: $color4;
                 padding: 5px 10px 5px 10px;
 
@@ -48,7 +70,7 @@
                     width: 100%;
                     left: 0;
                     text-align: left;
-                    margin-left: 10px;
+                    margin-left: 4px;
                     width: 50px;
                     @include no-select();
                     cursor: pointer;
@@ -70,7 +92,7 @@
             .content-filter {
                 box-sizing: border-box;
                 position: absolute;
-                width: 180px;
+                width: 170px;
                 height: 100%;
                 top: 0;
                 left: 0;

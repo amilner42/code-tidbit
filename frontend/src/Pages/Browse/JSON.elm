@@ -1,8 +1,10 @@
 module Pages.Browse.JSON exposing (..)
 
+import DefaultServices.Util exposing (justValueOrNull)
 import Json.Encode as Encode
 import Json.Decode as Decode
 import Json.Decode.Pipeline exposing (decode, required, optional, hardcoded)
+import JSON.Language
 import Pages.Browse.Model exposing (..)
 
 
@@ -21,6 +23,7 @@ encoder model =
         , ( "contentFilterBigbits", Encode.bool model.contentFilterBigbits )
         , ( "contentFilterStories", Encode.bool model.contentFilterStories )
         , ( "contentFilterIncludeEmptyStories", Encode.bool model.contentFilterIncludeEmptyStories )
+        , ( "contentFilterLanguage", justValueOrNull JSON.Language.encoder model.contentFilterLanguage )
         ]
 
 
@@ -39,3 +42,4 @@ decoder =
         |> required "contentFilterBigbits" Decode.bool
         |> required "contentFilterStories" Decode.bool
         |> required "contentFilterIncludeEmptyStories" Decode.bool
+        |> required "contentFilterLanguage" (Decode.maybe JSON.Language.decoder)
