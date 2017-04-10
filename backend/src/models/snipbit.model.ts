@@ -6,7 +6,7 @@ import moment from 'moment';
 import { malformedFieldError, isNullOrUndefined, dropNullAndUndefinedProperties } from '../util';
 import { collection, renameIDField, toMongoObjectID, paginateResults } from '../db';
 import { MongoID, MongoObjectID, ErrorCode, TargetID } from '../types';
-import { ContentSearchFilter, ContentResultManipulation, getContent } from "./content.model";
+import { ContentSearchFilter, ContentResultManipulation, ContentType, getContent } from "./content.model";
 import { Range, emptyRange } from './range.model';
 import * as KS from './kleen-schemas';
 
@@ -126,7 +126,7 @@ export const snipbitDBActions = {
    * Gets snipbits, customizable through the `SnipbitSearchFilter` and `SnipbitResultManipulation`.
    */
   getSnipbits: (filter: SnipbitSearchFilter, resultManipulation: SnipbitResultManipulation): Promise<Snipbit[]> => {
-    return getContent(collection("snipbits"), filter, resultManipulation, prepareSnipbitForResponse);
+    return getContent(ContentType.Snipbit, filter, resultManipulation, prepareSnipbitForResponse);
   },
 
   /**

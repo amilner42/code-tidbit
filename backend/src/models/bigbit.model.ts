@@ -8,7 +8,7 @@ import { malformedFieldError, asyncIdentity, isNullOrUndefined, dropNullAndUndef
 import { collection, renameIDField, toMongoObjectID, paginateResults } from '../db';
 import { MongoID, MongoObjectID, ErrorCode, TargetID } from '../types';
 import { Range } from './range.model';
-import { ContentSearchFilter, ContentResultManipulation, getContent } from "./content.model";
+import { ContentSearchFilter, ContentResultManipulation, ContentType, getContent } from "./content.model";
 import { FileStructure, swapPeriodsWithStars } from './file-structure.model';
 import * as KS from './kleen-schemas';
 
@@ -147,7 +147,7 @@ export const bigbitDBActions = {
    * Gets bigbits, customizable through the `BigbitSearchFilter` and `BigbitSearchResultManipulation`.
    */
   getBigbits: (filter: BigbitSearchFilter, resultManipulation: BigbitSearchResultManipulation): Promise<Bigbit[]> => {
-    return getContent<Bigbit>(collection("bigbits"), filter, resultManipulation, prepareBigbitForResponse);
+    return getContent<Bigbit>(ContentType.Bigbit, filter, resultManipulation, prepareBigbitForResponse);
   },
 
   /**

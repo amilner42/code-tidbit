@@ -406,6 +406,11 @@ const getIncludeStories = ({ includeStories }): boolean => includeStories !== "f
 const getIncludeEmptyStories = ({ includeEmptyStories }): boolean => includeEmptyStories === "true";
 
 /**
+ * Get's the `restrictLanguage` as a string.
+ */
+const getRestrictLanguage = ({ restrictLanguage }): string => restrictLanguage;
+
+/**
  * For extracting the general search configuration [for `Content`] from the query parameters.
  */
 const getGeneralContentSearchConfiguration = (queryParams): GeneralSearchConfiguration => {
@@ -435,7 +440,8 @@ const getContentSearchFilterFromQP = ( queryParams ): ContentSearchFilter | Stor
   return {
     author: getAuthorAsString(queryParams),
     searchQuery: getSearchQueryAsString(queryParams),
-    includeEmptyStories: getIncludeEmptyStories(queryParams)
+    includeEmptyStories: getIncludeEmptyStories(queryParams),
+    restrictLanguage: getRestrictLanguage(queryParams)
   }
 }
 

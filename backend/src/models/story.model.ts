@@ -10,7 +10,7 @@ import { malformedFieldError, isNullOrUndefined, dropNullAndUndefinedProperties 
 import { mongoStringIDSchema, nameSchema, descriptionSchema, optional, tagsSchema, nonEmptyArraySchema } from "./kleen-schemas";
 import { MongoID, MongoObjectID, ErrorCode, TargetID } from '../types';
 import { completedDBActions } from './completed.model';
-import { ContentSearchFilter, ContentResultManipulation, getContent } from "./content.model";
+import { ContentSearchFilter, ContentResultManipulation, ContentType, getContent } from "./content.model";
 import { Snipbit, snipbitDBActions } from './snipbit.model';
 import { Bigbit, bigbitDBActions } from './bigbit.model';
 import { Tidbit, TidbitPointer, TidbitType, tidbitPointerSchema, tidbitDBActions } from './tidbit.model';
@@ -128,7 +128,7 @@ export const storyDBActions = {
    * Gets stories from the db.
    */
   getStories: (filter: StorySearchFilter, resultManipulation: StoryResultManipulation): Promise<Story[]> => {
-    return getContent(collection("stories"), filter, resultManipulation, prepareStoryForResponse);
+    return getContent(ContentType.Story, filter, resultManipulation, prepareStoryForResponse);
   },
 
   /**

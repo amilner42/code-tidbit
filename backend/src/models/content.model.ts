@@ -3,13 +3,22 @@
 import { Collection, Cursor } from "mongodb";
 import * as R from "ramda";
 
-import { toMongoObjectID, paginateResults } from "../db";
+import { toMongoObjectID, paginateResults, collection } from "../db";
 import { combineArrays, isNullOrUndefined, dropNullAndUndefinedProperties, getTime, sortByAll, SortOrder }  from "../util";
 import { MongoID } from "../types"
 import { Bigbit, bigbitDBActions } from "./bigbit.model";
 import { Snipbit, snipbitDBActions } from "./snipbit.model";
 import { Story, storyDBActions, StorySearchFilter } from './story.model';
 
+
+/**
+ * The different content types.
+ */
+export enum ContentType {
+  Snipbit = 1,
+  Bigbit,
+  Story
+}
 
 /**
  * Content represents basically any content that the user creates, used on the browse page.
@@ -31,6 +40,7 @@ export interface GeneralSearchConfiguration {
 export interface ContentSearchFilter {
   author?: MongoID;
   searchQuery?: string;
+  restrictLanguage?: string;
 }
 
 /**
@@ -103,13 +113,29 @@ export const contentDBActions = {
  * For staying DRY when getting content from the db.
  */
 export const getContent = <Content>
-  ( contentCollection: Promise<Collection>,
+  ( contentType: ContentType,
     filter: ContentSearchFilter | StorySearchFilter,
     resultManipulation: ContentResultManipulation,
     prepareForResponse: (content: Content) => Content | Promise<Content>
   ): Promise<Content[]> => {
 
-  return contentCollection
+  let collectionName;
+
+  switch(contentType) {
+    case ContentType.Snipbit:
+      collectionName = "snipbits";
+      break;
+
+    case ContentType.Bigbit:
+      collectionName = "bigbits";
+      break;
+
+    case ContentType.Story:
+      collectionName = "stories";
+      break;
+  }
+
+  return collection(collectionName)
   .then((collection) => {
     let useLimit = true;
     let cursor: Cursor;
@@ -128,11 +154,22 @@ export const getContent = <Content>
 
     // If we were given a `StorySearchFilter` and it specifically set to not include empty stories, we need to filter
     // those out using mongo `$gt`.
-    if((filter as StorySearchFilter).includeEmptyStories === false) {
+    if(contentType === ContentType.Story && (filter as StorySearchFilter).includeEmptyStories === false) {
       filter["tidbitPointers"] = { $gt: [] };
     }
     // We don't want this field on our mongo query.
     delete (filter as StorySearchFilter).includeEmptyStories;
+
+    if(!isNullOrUndefined(filter.restrictLanguage)) {
+
+      switch(contentType) {
+        case ContentType.Snipbit:
+          filter["language"] =  filter.restrictLanguage;
+          break;
+      }
+
+      delete filter.restrictLanguage;
+    }
 
     // We don't want optional fields in the `filter` being included in the search.
     const mongoFindQuery = dropNullAndUndefinedProperties(filter);
