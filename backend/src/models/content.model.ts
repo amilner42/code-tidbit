@@ -5,7 +5,7 @@ import * as R from "ramda";
 
 import { toMongoObjectID, paginateResults, collection } from "../db";
 import { combineArrays, isNullOrUndefined, dropNullAndUndefinedProperties, getTime, sortByAll, SortOrder }  from "../util";
-import { MongoID } from "../types"
+import { MongoID, MongoObjectID } from "../types"
 import { Bigbit, bigbitDBActions } from "./bigbit.model";
 import { Snipbit, snipbitDBActions } from "./snipbit.model";
 import { Story, storyDBActions, StorySearchFilter } from './story.model';
@@ -120,6 +120,13 @@ export const getContent = <Content>
   ): Promise<Content[]> => {
 
   let collectionName;
+  const mongoQuery: {
+    author?: MongoObjectID,
+    $text?: { $search: string },
+    language?: string,
+    languages?: string,
+    tidbitPointers?: { $gt: any[] }
+  } = {};
 
   switch(contentType) {
     case ContentType.Snipbit:
@@ -140,45 +147,39 @@ export const getContent = <Content>
     let useLimit = true;
     let cursor: Cursor;
 
-    // Converting author to a `MongoObjectID` and turning off paging.
     if(!isNullOrUndefined(filter.author)) {
-      filter.author = toMongoObjectID(filter.author);
+      mongoQuery.author = toMongoObjectID(filter.author);
       useLimit = false; // We can only avoid limiting results if it's just for one user.
     }
 
-    // Converting search from filter to mongo format.
     if(!isNullOrUndefined(filter.searchQuery)) {
-      filter["$text"] = { $search: filter.searchQuery };
-      delete filter.searchQuery;
+      mongoQuery.$text = { $search: filter.searchQuery };
     }
 
     // If we were given a `StorySearchFilter` and it specifically set to not include empty stories, we need to filter
     // those out using mongo `$gt`.
     if(contentType === ContentType.Story && (filter as StorySearchFilter).includeEmptyStories === false) {
-      filter["tidbitPointers"] = { $gt: [] };
+      mongoQuery.tidbitPointers = { $gt: [] };
     }
-    // We don't want this field on our mongo query.
-    delete (filter as StorySearchFilter).includeEmptyStories;
 
     if(!isNullOrUndefined(filter.restrictLanguage)) {
 
       switch(contentType) {
         case ContentType.Snipbit:
-          filter["language"] =  filter.restrictLanguage;
+          mongoQuery.language = filter.restrictLanguage;
+          break;
+
+        case ContentType.Bigbit:
+          mongoQuery.languages = filter.restrictLanguage;
           break;
       }
-
-      delete filter.restrictLanguage;
     }
-
-    // We don't want optional fields in the `filter` being included in the search.
-    const mongoFindQuery = dropNullAndUndefinedProperties(filter);
 
     // If we want to sort by text score we need to project meta-text-score onto records.
     if(resultManipulation.sortByTextScore) {
-      cursor = collection.find(mongoFindQuery, { textScore: { $meta: "textScore" }});
+      cursor = collection.find(mongoQuery, { textScore: { $meta: "textScore" }});
     } else {
-      cursor = collection.find(mongoFindQuery);
+      cursor = collection.find(mongoQuery);
     }
 
     // Sort.

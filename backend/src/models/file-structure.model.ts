@@ -136,3 +136,34 @@ export const swapPeriodsWithStars = <a,b,c>(goingIntoDB: boolean, fs: FileStruct
     rootFolder: applyRenameOnFolder(fs.rootFolder)
   }
 };
+
+/**
+ * Folds over the files.
+ */
+export const fileFold =
+  <FileMetadata, ReturnType>( fs: FileStructure<any,any,FileMetadata>,
+    startVal: ReturnType,
+    folderFunction: (fileMetadata: FileMetadata, currentVal: ReturnType) => ReturnType
+  ): ReturnType => {
+
+  const go = (folder: Folder<any,FileMetadata>, startVal: ReturnType): ReturnType => {
+
+    let currentVal = startVal;
+
+    // First go through files.
+    for(let file in folder.files) {
+      const { content, fileMetadata } = folder.files[file];
+      currentVal = folderFunction(fileMetadata, currentVal);
+    }
+
+    // Then go through folders.
+    for(let folderName in folder.folders) {
+      const subFolder = folder.folders[folderName];
+      currentVal = go(subFolder, currentVal);
+    }
+
+    return currentVal;
+  }
+
+  return go(fs.rootFolder, startVal);
+}

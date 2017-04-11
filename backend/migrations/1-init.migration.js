@@ -8,6 +8,7 @@ db.snipbits.createIndex({ lastModified: 1 });
 db.snipbits.createIndex({ language: 1 });
 db.bigbits.createIndex({ author: 1 });
 db.bigbits.createIndex({ lastModified: 1});
+db.bigbits.createIndex({ languages: 1 });
 db.stories.createIndex({ author: 1 });
 db.stories.createIndex({ lastModified: 1 });
 

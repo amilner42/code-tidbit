@@ -9,7 +9,7 @@ import { collection, renameIDField, toMongoObjectID, paginateResults } from '../
 import { MongoID, MongoObjectID, ErrorCode, TargetID } from '../types';
 import { Range } from './range.model';
 import { ContentSearchFilter, ContentResultManipulation, ContentType, getContent } from "./content.model";
-import { FileStructure, swapPeriodsWithStars } from './file-structure.model';
+import { FileStructure, swapPeriodsWithStars, fileFold } from './file-structure.model';
 import * as KS from './kleen-schemas';
 
 
@@ -29,6 +29,7 @@ export interface Bigbit {
   _id?: MongoID;
   fs : FileStructure<{},{},{ language : string }>;
   author?: MongoID;
+  languages?: string[];
   createdAt?: Date;
   lastModified?: Date;
 };
@@ -111,14 +112,29 @@ const prepareBigbitForResponse = (bigbit: Bigbit): Bigbit => {
 };
 
 /**
+ * Get's all the languages used in a bigbit (unique).
+ */
+const getLanguagesUsedInBigbit = (bigbit: Bigbit): string[] => {
+  return Array.from(
+    fileFold(
+      bigbit.fs,
+      new Set<string>([]),
+      (metadata, currentLanguages) => { return currentLanguages.add(metadata.language); }
+    )
+  );
+}
+
+/**
  * All the db helpers for a bigbit.
  */
 export const bigbitDBActions = {
 
   /**
-   * Adds a new bigbit to the database for a user. Handles all the logic of
-   * changing the languages to the IDs and renaming files/folders to avoid
-   * having a "." in them.
+   * Adds a new bigbit to the database for a user. Handles:
+   *  - renaming files/folders to avoid having a "." in them
+   *  - Adds `createdAt` and `lastModified` timestamps
+   *  - Adds user as `author`
+   *  - Adds a `languages` field containing all the languages used in the bigbit
    */
   addNewBigbit: (userID: MongoID, bigbit: Bigbit): Promise<TargetID> => {
     return kleen.validModel(bigbitSchema)(bigbit)
@@ -132,6 +148,7 @@ export const bigbitDBActions = {
       updatedBigbit.author = userID;
       updatedBigbit.createdAt = dateNow;
       updatedBigbit.lastModified = dateNow;
+      updatedBigbit.languages = getLanguagesUsedInBigbit(updatedBigbit);
 
       return collection("bigbits")
       .then((bigbitCollection) => {
@@ -151,9 +168,7 @@ export const bigbitDBActions = {
   },
 
   /**
-   * Gets a bigbit from the database, handles all the transformations to get the
-   * bigbit in the correct format for the frontend (reverse transformations of
-   * `addNewBigbit`).
+   * Gets a bigbit from the database, prepares the bigbit for the response.
    */
   getBigbit: (bigbitID: MongoID): Promise<Bigbit> => {
     return collection("bigbits")
