@@ -23,6 +23,7 @@ encoder story =
         , ( "createdAt", Util.dateEncoder story.createdAt )
         , ( "lastModified", Util.dateEncoder story.lastModified )
         , ( "userHasCompleted", Util.justValueOrNull (Encode.list << List.map Encode.bool) story.userHasCompleted )
+        , ( "languages", Encode.list <| List.map Encode.string story.languages )
         ]
 
 
@@ -40,6 +41,7 @@ decoder =
         |> required "createdAt" Util.dateDecoder
         |> required "lastModified" Util.dateDecoder
         |> optional "userHasCompleted" (Decode.maybe <| Decode.list Decode.bool) Nothing
+        |> required "languages" (Decode.list Decode.string)
 
 
 {-| `ExpandedStory` encoder.
@@ -56,6 +58,7 @@ expandedStoryEncoder expandedStory =
         , ( "createdAt", Util.dateEncoder expandedStory.createdAt )
         , ( "lastModified", Util.dateEncoder expandedStory.lastModified )
         , ( "userHasCompleted", Util.justValueOrNull (Encode.list << List.map Encode.bool) expandedStory.userHasCompleted )
+        , ( "languages", Encode.list <| List.map Encode.string expandedStory.languages )
         ]
 
 
@@ -73,6 +76,7 @@ expandedStoryDecoder =
         |> required "createdAt" Util.dateDecoder
         |> required "lastModified" Util.dateDecoder
         |> optional "userHasCompleted" (Decode.maybe <| Decode.list Decode.bool) Nothing
+        |> required "languages" (Decode.list Decode.string)
 
 
 {-| `NewStory` encoder.

@@ -25,7 +25,7 @@ export interface Snipbit {
 
   // Added/modified by the backend.
   id?: MongoID; // When sending to the frontend, we switch `_id` to `id`.
-  language: MongoID; // Backend converts language string to MongoID of language in DB.
+  language: string;
   _id?: MongoID;
   author?: MongoID;
   createdAt?: Date;

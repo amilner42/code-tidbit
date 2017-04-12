@@ -169,7 +169,7 @@ export const getContent = <Content>
           mongoQuery.language = filter.restrictLanguage;
           break;
 
-        case ContentType.Bigbit:
+        default:
           mongoQuery.languages = filter.restrictLanguage;
           break;
       }
@@ -202,4 +202,21 @@ export const getContent = <Content>
   .then((arrayOfContent) => {
     return Promise.all(arrayOfContent.map(prepareForResponse));
   });
+}
+
+/**
+ * Get's the `language` or `languages` used for certain `content`.
+ *
+ * @NOTE: Returns no languages if the given item isn't even `Content`.
+ */
+export const getLanguages = (content: Content): string[] => {
+  if(!isNullOrUndefined((content as Snipbit).language)) {
+    return [(content as Snipbit).language];
+  }
+
+  if(!isNullOrUndefined((content as Bigbit | Story).languages)) {
+    return (content as Bigbit | Story).languages;
+  }
+
+  return [];
 }
