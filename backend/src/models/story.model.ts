@@ -10,7 +10,7 @@ import { malformedFieldError, isNullOrUndefined, dropNullAndUndefinedProperties 
 import { mongoStringIDSchema, nameSchema, descriptionSchema, optional, tagsSchema, nonEmptyArraySchema } from "./kleen-schemas";
 import { MongoID, MongoObjectID, ErrorCode, TargetID } from '../types';
 import { completedDBActions } from './completed.model';
-import { ContentSearchFilter, ContentResultManipulation, getContent } from "./content.model";
+import { ContentSearchFilter, ContentResultManipulation, ContentType, getContent, getLanguages } from "./content.model";
 import { Snipbit, snipbitDBActions } from './snipbit.model';
 import { Bigbit, bigbitDBActions } from './bigbit.model';
 import { Tidbit, TidbitPointer, TidbitType, tidbitPointerSchema, tidbitDBActions } from './tidbit.model';
@@ -30,6 +30,7 @@ interface StoryBase {
   createdAt?: Date;
   lastModified?: Date;
   userHasCompleted?: boolean[];
+  languages?: string[];
 }
 
 /**
@@ -128,7 +129,7 @@ export const storyDBActions = {
    * Gets stories from the db.
    */
   getStories: (filter: StorySearchFilter, resultManipulation: StoryResultManipulation): Promise<Story[]> => {
-    return getContent(collection("stories"), filter, resultManipulation, prepareStoryForResponse);
+    return getContent(ContentType.Story, filter, resultManipulation, prepareStoryForResponse);
   },
 
   /**
@@ -192,7 +193,8 @@ export const storyDBActions = {
         author: userID,
         tidbitPointers: [],
         createdAt: dateNow,
-        lastModified: dateNow
+        lastModified: dateNow,
+        languages: []
       };
       // Convert to a full `Story` by adding missing fields with defaults.
       const story: Story = R.merge(newStory, defaultFields);
@@ -257,7 +259,7 @@ export const storyDBActions = {
     .then(() => {
       return storyDBActions.getStory(storyID, false, null);
     })
-    .then<boolean[]>((story) => {
+    .then<Tidbit[]>((story) => {
       if(!sameID(userID, story.author)) {
         return Promise.reject({
           message: "You can only edit your own stories",
@@ -265,25 +267,38 @@ export const storyDBActions = {
         });
       }
 
-      return Promise.all(newTidbitPointers.map(tidbitDBActions.tidbitPointerExists));
+      return Promise.all(newTidbitPointers.map(tidbitDBActions.expandTidbitPointer));
     })
-    .then<Collection>((tidbitExistsArray) => {
-      if (!R.all(R.identity, tidbitExistsArray)) {
+    .then<[Collection, string[]]>((tidbits) => {
+
+      // If it contains an `id` then it's a record from the DB and not an error object.
+      const foundInDB = ( record ): boolean => !isNullOrUndefined(record.id);
+
+      // Adds the unique languages from a tidbit to the accumulator, used in `reduce` below.
+      const addLanguages = (languageAcc: Set<string>, tidbit: Tidbit): Set<string> => {
+        getLanguages(tidbit).map(lang => languageAcc.add(lang));
+        return languageAcc;
+      }
+
+      const tidbitLanguages = Array.from(R.reduce(addLanguages, new Set<string>([]), tidbits));
+
+      if (!R.all(foundInDB, tidbits)) {
         return Promise.reject({
           errorCode: ErrorCode.storyAddingNonExistantTidbit,
           message: "A tidbitPointer you were adding does not point to an existant tidbit."
         });
       }
 
-      return collection("stories");
+      return Promise.all([collection("stories"), tidbitLanguages]);
     })
-    .then((storyCollection) => {
+    .then(([storyCollection, tidbitLanguages]) => {
       const dateNow = moment.utc().toDate();
 
       return storyCollection.findOneAndUpdate(
         { _id: toMongoObjectID(storyID), author: toMongoObjectID(userID) },
         { $push: { tidbitPointers: { $each: newTidbitPointers } }
         , $set: { lastModified: dateNow }
+        , $addToSet: { languages: { $each: tidbitLanguages } }
         },
         { returnOriginal: false }
       );

@@ -6,7 +6,7 @@ import Dom
 import Elements.Markdown exposing (githubMarkdown)
 import Html exposing (Html, Attribute, div, i, text)
 import Html.Attributes exposing (hidden, class)
-import Html.Events exposing (Options, on, onWithOptions, keyCode, defaultOptions)
+import Html.Events exposing (Options, on, onWithOptions, keyCode, defaultOptions, targetValue)
 import Html.Keyed as Keyed
 import Json.Decode as Decode
 import Json.Encode as Encode
@@ -114,6 +114,13 @@ onKeydownPreventDefault =
         }
 
 
+{-| For watching for `onChange` events.
+-}
+onChange : (String -> msg) -> Attribute msg
+onChange tagger =
+    on "change" (Decode.map tagger targetValue)
+
+
 {-| Similar to `onClick`, but prevents event propogation.
 -}
 onClickWithoutPropigation : msg -> Attribute msg
@@ -209,6 +216,23 @@ queryParamsToString listOfMaybeQueryParams =
 justNonEmptyString : String -> Maybe String
 justNonEmptyString string =
     if String.isEmpty string then
+        Nothing
+    else
+        Just string
+
+
+{-| Returns true if a string is empty or just spaces.
+-}
+isBlankString : String -> Bool
+isBlankString =
+    String.isEmpty << String.filter ((/=) ' ')
+
+
+{-| If the string is blank (empty || just spaces) returns `Nothing`, otherwise `Just` the string.
+-}
+justNonBlankString : String -> Maybe String
+justNonBlankString string =
+    if isBlankString string then
         Nothing
     else
         Just string

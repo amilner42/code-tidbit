@@ -6,10 +6,10 @@ import { Cursor } from "mongodb";
 
 import { malformedFieldError, asyncIdentity, isNullOrUndefined, dropNullAndUndefinedProperties } from '../util';
 import { collection, renameIDField, toMongoObjectID, paginateResults } from '../db';
-import { MongoID, MongoObjectID, ErrorCode, Language, TargetID } from '../types';
+import { MongoID, MongoObjectID, ErrorCode, TargetID } from '../types';
 import { Range } from './range.model';
-import { ContentSearchFilter, ContentResultManipulation, getContent } from "./content.model";
-import { FileStructure, metaMap, swapPeriodsWithStars } from './file-structure.model';
+import { ContentSearchFilter, ContentResultManipulation, ContentType, getContent } from "./content.model";
+import { FileStructure, swapPeriodsWithStars, fileFold } from './file-structure.model';
 import * as KS from './kleen-schemas';
 
 
@@ -27,8 +27,9 @@ export interface Bigbit {
   // Added/modified by the backend.
   id?: MongoID; // When sending to the frontend, we switch `_id` to `id`.
   _id?: MongoID;
-  fs : FileStructure<{},{},{ language : MongoID }>; // FileStructure from the frontend has language in string form, backend converts it to the ID.
+  fs : FileStructure<{},{},{ language : string }>;
   author?: MongoID;
+  languages?: string[];
   createdAt?: Date;
   lastModified?: Date;
 };
@@ -89,113 +90,39 @@ const bigbitSchema: kleen.objectSchema = {
       malformedFieldError("bigbit.highlightedComments")
     ),
     "fs": KS.fileStructureSchema(
-      KS.emptyObjectSchema(
-        malformedFieldError("fs metadata")
-      ),
-      KS.emptyObjectSchema(
-        malformedFieldError("folder metadata")
-      ),
-      { objectProperties:
-        {
-          "language": KS.languageSchema(ErrorCode.bigbitInvalidLanguage)
-        }
-      }
+      KS.emptyObjectSchema(malformedFieldError("fs metadata")),
+      KS.emptyObjectSchema(malformedFieldError("folder metadata")),
+      { objectProperties: { "language": KS.languageSchema(ErrorCode.bigbitInvalidLanguage) } }
     )
   },
   typeFailureError: malformedFieldError("bigbit")
 };
 
 /**
- * Validates a bigbit coming in from the frontend, and
- * updates it to the structure stored on the backend: the language on every
- * file must be switched to the MongoID AND all key names in the FS must have
- * their '.' replaced with '*' because mongoDB cannot have '.' in key names.
- *
- * NOTE: This function does not attach an author.
- */
-const validifyAndUpdateBigbit = (bigbit: Bigbit): Promise<Bigbit> => {
-
-  return new Promise((resolve, reject) => {
-
-    kleen.validModel(bigbitSchema)(bigbit)
-    .then(() => {
-      return collection("languages");
-    })
-    .then((languageCollection) => {
-      return metaMap(
-        asyncIdentity,
-        asyncIdentity,
-        (fileMetadata => {
-          return new Promise<{language: MongoID}>((resolveInner, rejectInner) => {
-            (languageCollection.findOne({ encodedName: fileMetadata.language}) as Promise<Language>)
-            .then((language) => {
-              if(!language) {
-                rejectInner(
-                  {
-                    errorCode: ErrorCode.bigbitInvalidLanguage,
-                    message: `Language ${fileMetadata.language} is not a valid encoded language.`
-                  }
-                );
-              }
-              resolveInner({ language: language._id});
-            })
-            .catch(rejectInner);
-          });
-        }),
-        bigbit.fs
-      )
-    })
-    .then((updatedFS) => {
-      bigbit.fs = swapPeriodsWithStars(true, updatedFS);
-      resolve(bigbit);
-    })
-    .catch(reject);
-  });
-};
-
-/**
  * Prepare a bigbit for the frontend, this includes:
  *  - Renaming _id to id
- *  - Switching languageIDs with language names.
  *  - Reversing the folder/file-names to once again have '.'
  *
  * @WARNING Mutates `bigbit`.
  */
-const prepareBigbitForResponse = (bigbit: Bigbit): Promise<Bigbit> => {
+const prepareBigbitForResponse = (bigbit: Bigbit): Bigbit => {
   renameIDField(bigbit);
-
-  return collection("languages")
-  .then((languageCollection) => {
-    // Swap all languageIDs with encoded language names.
-    return metaMap(
-      asyncIdentity,
-      asyncIdentity,
-      (fileMetadata => {
-        return new Promise<{language: string}>((resolve, reject) => {
-          languageCollection.findOne({ _id: toMongoObjectID(fileMetadata.language) })
-          .then((language: Language) => {
-            if(!language) {
-              reject({
-                errorCode: ErrorCode.internalError,
-                message: `Language ID ${fileMetadata.language} does not point to a language`
-              });
-              return;
-            }
-
-            resolve({ language: language.encodedName });
-            return;
-          });
-        });
-      }),
-      bigbit.fs
-    );
-  })
-  .then((updatedFS) => {
-    // Switch to updated fs, which includes swapping '*' with '.'
-    bigbit.fs = swapPeriodsWithStars(false, updatedFS);
-    return bigbit;
-  });
+  bigbit.fs = swapPeriodsWithStars(false, bigbit.fs);
+  return bigbit;
 };
+
+/**
+ * Get's all the languages used in a bigbit (unique).
+ */
+const getLanguagesUsedInBigbit = (bigbit: Bigbit): string[] => {
+  return Array.from(
+    fileFold(
+      bigbit.fs,
+      new Set<string>([]),
+      (metadata, currentLanguages) => { return currentLanguages.add(metadata.language); }
+    )
+  );
+}
 
 /**
  * All the db helpers for a bigbit.
@@ -203,18 +130,25 @@ const prepareBigbitForResponse = (bigbit: Bigbit): Promise<Bigbit> => {
 export const bigbitDBActions = {
 
   /**
-   * Adds a new bigbit to the database for a user. Handles all the logic of
-   * changing the languages to the IDs and renaming files/folders to avoid
-   * having a "." in them.
+   * Adds a new bigbit to the database for a user. Handles:
+   *  - renaming files/folders to avoid having a "." in them
+   *  - Adds `createdAt` and `lastModified` timestamps
+   *  - Adds user as `author`
+   *  - Adds a `languages` field containing all the languages used in the bigbit
    */
   addNewBigbit: (userID: MongoID, bigbit: Bigbit): Promise<TargetID> => {
-    return validifyAndUpdateBigbit(bigbit)
+    return kleen.validModel(bigbitSchema)(bigbit)
+    .then(() => {
+      bigbit.fs = swapPeriodsWithStars(true, bigbit.fs);
+      return bigbit;
+    })
     .then((updatedBigbit: Bigbit) => {
       const dateNow = moment.utc().toDate();
 
       updatedBigbit.author = userID;
       updatedBigbit.createdAt = dateNow;
       updatedBigbit.lastModified = dateNow;
+      updatedBigbit.languages = getLanguagesUsedInBigbit(updatedBigbit);
 
       return collection("bigbits")
       .then((bigbitCollection) => {
@@ -230,13 +164,11 @@ export const bigbitDBActions = {
    * Gets bigbits, customizable through the `BigbitSearchFilter` and `BigbitSearchResultManipulation`.
    */
   getBigbits: (filter: BigbitSearchFilter, resultManipulation: BigbitSearchResultManipulation): Promise<Bigbit[]> => {
-    return getContent<Bigbit>(collection("bigbits"), filter, resultManipulation, prepareBigbitForResponse);
+    return getContent<Bigbit>(ContentType.Bigbit, filter, resultManipulation, prepareBigbitForResponse);
   },
 
   /**
-   * Gets a bigbit from the database, handles all the transformations to get the
-   * bigbit in the correct format for the frontend (reverse transformations of
-   * `addNewBigbit`).
+   * Gets a bigbit from the database, prepares the bigbit for the response.
    */
   getBigbit: (bigbitID: MongoID): Promise<Bigbit> => {
     return collection("bigbits")
@@ -252,7 +184,7 @@ export const bigbitDBActions = {
         });
       }
 
-      return prepareBigbitForResponse(bigbit);
+      return Promise.resolve(prepareBigbitForResponse(bigbit));
     });
   },
 

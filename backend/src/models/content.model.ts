@@ -3,13 +3,23 @@
 import { Collection, Cursor } from "mongodb";
 import * as R from "ramda";
 
-import { toMongoObjectID, paginateResults } from "../db";
-import { combineArrays, isNullOrUndefined, dropNullAndUndefinedProperties, getTime, sortByAll, SortOrder }  from "../util";
-import { MongoID } from "../types"
+import { toMongoObjectID, paginateResults, collection } from "../db";
+import { combineArrays, isNullOrUndefined, dropNullAndUndefinedProperties, getTime, sortByAll, SortOrder, isBlankString }  from "../util";
+import { MongoID, MongoObjectID } from "../types"
 import { Bigbit, bigbitDBActions } from "./bigbit.model";
 import { Snipbit, snipbitDBActions } from "./snipbit.model";
 import { Story, storyDBActions, StorySearchFilter } from './story.model';
+import { languagesFromWords, stripLanguagesFromWords } from "./language.model";
 
+
+/**
+ * The different content types.
+ */
+export enum ContentType {
+  Snipbit = 1,
+  Bigbit,
+  Story
+}
 
 /**
  * Content represents basically any content that the user creates, used on the browse page.
@@ -31,6 +41,7 @@ export interface GeneralSearchConfiguration {
 export interface ContentSearchFilter {
   author?: MongoID;
   searchQuery?: string;
+  restrictLanguage?: string[];
 }
 
 /**
@@ -58,9 +69,33 @@ export const contentDBActions = {
    */
   getContent:
     ( generalSearchConfig: GeneralSearchConfiguration
-    , searchFilter: ContentSearchFilter | StorySearchFilter
+    , filter: ContentSearchFilter | StorySearchFilter
     , resultManipulation: ContentResultManipulation
     ): Promise<Content[]> => {
+
+    // So we don't mutate function parameters.
+    const searchFilter = R.clone(filter);
+
+    // If they passed a search query, we want to strip and extract the languages from the query.
+    if(searchFilter.searchQuery) {
+      // We only set the `restrictLanguage` if the user didn't already set it.
+      if(isNullOrUndefined(searchFilter.restrictLanguage) || R.isEmpty(searchFilter.restrictLanguage)) {
+        searchFilter.restrictLanguage = languagesFromWords(searchFilter.searchQuery);
+
+        // You can't restrict to 0 languages.
+        if(R.isEmpty(searchFilter.restrictLanguage)) {
+          delete searchFilter.restrictLanguage;
+        }
+      }
+
+      // Regardless we strip the languages from the query.
+      const searchQueryWithLanguagesStripped = stripLanguagesFromWords(searchFilter.searchQuery);
+      if(isBlankString(searchQueryWithLanguagesStripped)) {
+        delete searchFilter.searchQuery;
+      } else {
+        searchFilter.searchQuery = searchQueryWithLanguagesStripped;
+      }
+    }
 
     // We don't want to include fields just used on the `StorySearchFilter` for a search on a collection other than the
     // story collection.
@@ -103,45 +138,73 @@ export const contentDBActions = {
  * For staying DRY when getting content from the db.
  */
 export const getContent = <Content>
-  ( contentCollection: Promise<Collection>,
+  ( contentType: ContentType,
     filter: ContentSearchFilter | StorySearchFilter,
     resultManipulation: ContentResultManipulation,
     prepareForResponse: (content: Content) => Content | Promise<Content>
   ): Promise<Content[]> => {
 
-  return contentCollection
+  let collectionName;
+  const mongoQuery: {
+    author?: MongoObjectID,
+    $text?: { $search: string },
+    language?: { $in: string[] },
+    languages?: { $in: string[] },
+    tidbitPointers?: { $gt: any[] }
+  } = {};
+
+  switch(contentType) {
+    case ContentType.Snipbit:
+      collectionName = "snipbits";
+      break;
+
+    case ContentType.Bigbit:
+      collectionName = "bigbits";
+      break;
+
+    case ContentType.Story:
+      collectionName = "stories";
+      break;
+  }
+
+  return collection(collectionName)
   .then((collection) => {
     let useLimit = true;
     let cursor: Cursor;
 
-    // Converting author to a `MongoObjectID` and turning off paging.
     if(!isNullOrUndefined(filter.author)) {
-      filter.author = toMongoObjectID(filter.author);
+      mongoQuery.author = toMongoObjectID(filter.author);
       useLimit = false; // We can only avoid limiting results if it's just for one user.
     }
 
-    // Converting search from filter to mongo format.
     if(!isNullOrUndefined(filter.searchQuery)) {
-      filter["$text"] = { $search: filter.searchQuery };
-      delete filter.searchQuery;
+      mongoQuery.$text = { $search: filter.searchQuery };
     }
 
     // If we were given a `StorySearchFilter` and it specifically set to not include empty stories, we need to filter
     // those out using mongo `$gt`.
-    if((filter as StorySearchFilter).includeEmptyStories === false) {
-      filter["tidbitPointers"] = { $gt: [] };
+    if(contentType === ContentType.Story && (filter as StorySearchFilter).includeEmptyStories === false) {
+      mongoQuery.tidbitPointers = { $gt: [] };
     }
-    // We don't want this field on our mongo query.
-    delete (filter as StorySearchFilter).includeEmptyStories;
 
-    // We don't want optional fields in the `filter` being included in the search.
-    const mongoFindQuery = dropNullAndUndefinedProperties(filter);
+    if(!isNullOrUndefined(filter.restrictLanguage)) {
+
+      switch(contentType) {
+        case ContentType.Snipbit:
+          mongoQuery.language = { $in: filter.restrictLanguage };
+          break;
+
+        default:
+          mongoQuery.languages = { $in: filter.restrictLanguage };
+          break;
+      }
+    }
 
     // If we want to sort by text score we need to project meta-text-score onto records.
     if(resultManipulation.sortByTextScore) {
-      cursor = collection.find(mongoFindQuery, { textScore: { $meta: "textScore" }});
+      cursor = collection.find(mongoQuery, { textScore: { $meta: "textScore" }});
     } else {
-      cursor = collection.find(mongoFindQuery);
+      cursor = collection.find(mongoQuery);
     }
 
     // Sort.
@@ -164,4 +227,21 @@ export const getContent = <Content>
   .then((arrayOfContent) => {
     return Promise.all(arrayOfContent.map(prepareForResponse));
   });
+}
+
+/**
+ * Get's the `language` or `languages` used for certain `content`.
+ *
+ * @NOTE: Returns an empty array if `content` isn't of type `Content` (null/undefined/other)
+ */
+export const getLanguages = (content: Content): string[] => {
+  if(!isNullOrUndefined((content as Snipbit).language)) {
+    return [(content as Snipbit).language];
+  }
+
+  if(!isNullOrUndefined((content as Bigbit | Story).languages)) {
+    return (content as Bigbit | Story).languages;
+  }
+
+  return [];
 }

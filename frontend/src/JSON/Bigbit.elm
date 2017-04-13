@@ -35,6 +35,7 @@ encoder bigbit =
             , ( "id", Encode.string bigbit.id )
             , ( "createdAt", Util.dateEncoder bigbit.createdAt )
             , ( "lastModified", Util.dateEncoder bigbit.lastModified )
+            , ( "languages", Encode.list <| List.map JSON.Language.encoder bigbit.languages )
             ]
 
 
@@ -67,6 +68,7 @@ decoder =
             |> required "id" Decode.string
             |> required "createdAt" Util.dateDecoder
             |> required "lastModified" Util.dateDecoder
+            |> required "languages" (Decode.list JSON.Language.decoder)
 
 
 {-| `HighlightedComment` encoder.

@@ -123,4 +123,40 @@ export const sortByAll = <T1>(sorters: Sorter<T1>[], listOfT1: T1[]) => {
     }
     return result;
   })(listOfT1);
+};
+
+/**
+ * A classic (`Maybe.map` in Elm) to be able to handle null/undefined better.
+ */
+export const maybeMap = <ArgType,ReturnType>(func: (arg: ArgType) => ReturnType): (arg: ArgType) => ReturnType => {
+
+  return (arg: ArgType): ReturnType => {
+    if(isNullOrUndefined(arg)) {
+      return null;
+    }
+
+    return func(arg);
+  }
+};
+
+/**
+ * Filters words in a sentence based on `keepWord`.
+ */
+export const filterWords = (sentence: string, keepWord: (word: string) => boolean): string  => {
+  return R.pipe(
+    R.split(" "),
+    R.filter(keepWord),
+    R.join(" ")
+  )(sentence);
+};
+
+/**
+ * Returns true if the string is null/undefined/empty/just-spaces.
+ */
+export const isBlankString = (str: string): boolean => {
+  if(isNullOrUndefined(str)) {
+    return true;
+  }
+
+  return R.isEmpty(R.filter((char) => char !== " ", str.split("")));
 }

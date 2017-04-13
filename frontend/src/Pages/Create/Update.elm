@@ -26,7 +26,7 @@ update { doNothing, justSetShared, justUpdateModel, justProduceCmd } msg model s
                             if Util.isNothing shared.userStories then
                                 justProduceCmd <|
                                     Api.getStories
-                                        [ ( "author", Just id ) ]
+                                        [ ( "author", Just id ), ( "includeEmptyStories", Just "true" ) ]
                                         OnGetAccountStoriesFailure
                                         OnGetAccountStoriesSuccess
                             else

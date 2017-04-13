@@ -152,6 +152,12 @@ update ({ doNothing, justSetShared, justUpdateModel, justSetModel, justProduceCm
                     , performSearch True
                     ]
 
+        SelectLanguage maybeLanguage ->
+            common.handleAll
+                [ (\( model, shared ) -> ( { model | contentFilterLanguage = maybeLanguage }, shared, Cmd.none ))
+                , performSearch True
+                ]
+
 
 {-| Get's the results for a specific search query.
 
@@ -172,9 +178,10 @@ performSearch initialSearch ( model, shared ) =
             , ( "includeBigbits", Just <| toJSBool model.contentFilterBigbits )
             , ( "includeStories", Just <| toJSBool model.contentFilterStories )
             , ( "includeEmptyStories", Just <| toJSBool model.contentFilterIncludeEmptyStories )
+            , ( "restrictLanguage", Maybe.map toString model.contentFilterLanguage )
             ]
     in
-        if String.isEmpty model.searchQuery then
+        if Util.isBlankString model.searchQuery then
             ( if initialSearch then
                 { model
                     | pageNumber = 1
@@ -210,7 +217,7 @@ performSearch initialSearch ( model, shared ) =
             , shared
             , getContent <|
                 commonQueryParams
-                    ++ [ ( "searchQuery", Just model.searchQuery )
+                    ++ [ ( "searchQuery", Util.justNonBlankString model.searchQuery )
                        , ( "sortByTextScore", Just "true" )
                        , ( "pageNumber"
                          , Just <|

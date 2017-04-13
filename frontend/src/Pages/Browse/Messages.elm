@@ -1,5 +1,6 @@
 module Pages.Browse.Messages exposing (..)
 
+import Elements.Editor exposing (Language)
 import Models.ApiError exposing (ApiError)
 import Models.Content exposing (Content)
 import Models.Route exposing (Route)
@@ -21,3 +22,4 @@ type Msg
     | ToggleContentFilterBigbits
     | ToggleContentFilterStories
     | SetIncludeEmptyStories Bool
+    | SelectLanguage (Maybe Language)

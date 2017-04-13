@@ -19,6 +19,7 @@ type alias Story =
     , createdAt : Date.Date
     , lastModified : Date.Date
     , userHasCompleted : Maybe (List Bool)
+    , languages : List String
     }
 
 
@@ -34,6 +35,7 @@ type alias ExpandedStory =
     , createdAt : Date.Date
     , lastModified : Date.Date
     , userHasCompleted : Maybe (List Bool)
+    , languages : List String
     }
 
 
@@ -73,6 +75,7 @@ blankStory =
     , createdAt = Date.fromTime 0
     , lastModified = Date.fromTime 0
     , userHasCompleted = Nothing
+    , languages = []
     }
 
 
