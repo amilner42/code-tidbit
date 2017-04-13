@@ -232,7 +232,7 @@ export const getContent = <Content>
 /**
  * Get's the `language` or `languages` used for certain `content`.
  *
- * @NOTE: Returns no languages if the given item isn't even `Content`.
+ * @NOTE: Returns an empty array if `content` isn't of type `Content` (null/undefined/other)
  */
 export const getLanguages = (content: Content): string[] => {
   if(!isNullOrUndefined((content as Snipbit).language)) {

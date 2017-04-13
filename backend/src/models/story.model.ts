@@ -272,7 +272,7 @@ export const storyDBActions = {
     .then<[Collection, string[]]>((tidbits) => {
 
       // If it contains an `id` then it's a record from the DB and not an error object.
-      const foundInDB = ( record ): boolean => { return !isNullOrUndefined(record.id) };
+      const foundInDB = ( record ): boolean => !isNullOrUndefined(record.id);
 
       // Adds the unique languages from a tidbit to the accumulator, used in `reduce` below.
       const addLanguages = (languageAcc: Set<string>, tidbit: Tidbit): Set<string> => {
