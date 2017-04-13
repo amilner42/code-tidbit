@@ -12,7 +12,7 @@ import { Bigbit, bigbitDBActions } from './models/bigbit.model';
 import { Story, NewStory, ExpandedStory, storyDBActions, StorySearchFilter } from "./models/story.model";
 import { Tidbit, tidbitDBActions } from './models/tidbit.model';
 import { AppRoutes, AppRoutesAuth, FrontendError, TargetID, ErrorCode, BasicResponse } from './types';
-import { internalError, combineArrays } from './util';
+import { internalError, combineArrays, maybeMap } from './util';
 
 
 /**
@@ -406,9 +406,11 @@ const getIncludeStories = ({ includeStories }): boolean => includeStories !== "f
 const getIncludeEmptyStories = ({ includeEmptyStories }): boolean => includeEmptyStories === "true";
 
 /**
- * Get's the `restrictLanguage` as a string.
+ * Get's the `restrictLanguage` as a string array.
  */
-const getRestrictLanguage = ({ restrictLanguage }): string => restrictLanguage;
+const getRestrictLanguage = ({ restrictLanguage }): string[] => {
+  return maybeMap(R.split(","))(restrictLanguage);
+}
 
 /**
  * For extracting the general search configuration [for `Content`] from the query parameters.

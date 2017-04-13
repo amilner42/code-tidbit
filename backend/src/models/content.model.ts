@@ -4,11 +4,12 @@ import { Collection, Cursor } from "mongodb";
 import * as R from "ramda";
 
 import { toMongoObjectID, paginateResults, collection } from "../db";
-import { combineArrays, isNullOrUndefined, dropNullAndUndefinedProperties, getTime, sortByAll, SortOrder }  from "../util";
+import { combineArrays, isNullOrUndefined, dropNullAndUndefinedProperties, getTime, sortByAll, SortOrder, isBlankString }  from "../util";
 import { MongoID, MongoObjectID } from "../types"
 import { Bigbit, bigbitDBActions } from "./bigbit.model";
 import { Snipbit, snipbitDBActions } from "./snipbit.model";
 import { Story, storyDBActions, StorySearchFilter } from './story.model';
+import { languagesFromWords, stripLanguagesFromWords } from "./language.model";
 
 
 /**
@@ -40,7 +41,7 @@ export interface GeneralSearchConfiguration {
 export interface ContentSearchFilter {
   author?: MongoID;
   searchQuery?: string;
-  restrictLanguage?: string;
+  restrictLanguage?: string[];
 }
 
 /**
@@ -68,9 +69,33 @@ export const contentDBActions = {
    */
   getContent:
     ( generalSearchConfig: GeneralSearchConfiguration
-    , searchFilter: ContentSearchFilter | StorySearchFilter
+    , filter: ContentSearchFilter | StorySearchFilter
     , resultManipulation: ContentResultManipulation
     ): Promise<Content[]> => {
+
+    // So we don't mutate function parameters.
+    const searchFilter = R.clone(filter);
+
+    // If they passed a search query, we want to strip and extract the languages from the query.
+    if(searchFilter.searchQuery) {
+      // We only set the `restrictLanguage` if the user didn't already set it.
+      if(isNullOrUndefined(searchFilter.restrictLanguage) || R.isEmpty(searchFilter.restrictLanguage)) {
+        searchFilter.restrictLanguage = languagesFromWords(searchFilter.searchQuery);
+
+        // You can't restrict to 0 languages.
+        if(R.isEmpty(searchFilter.restrictLanguage)) {
+          delete searchFilter.restrictLanguage;
+        }
+      }
+
+      // Regardless we strip the languages from the query.
+      const searchQueryWithLanguagesStripped = stripLanguagesFromWords(searchFilter.searchQuery);
+      if(isBlankString(searchQueryWithLanguagesStripped)) {
+        delete searchFilter.searchQuery;
+      } else {
+        searchFilter.searchQuery = searchQueryWithLanguagesStripped;
+      }
+    }
 
     // We don't want to include fields just used on the `StorySearchFilter` for a search on a collection other than the
     // story collection.
@@ -123,8 +148,8 @@ export const getContent = <Content>
   const mongoQuery: {
     author?: MongoObjectID,
     $text?: { $search: string },
-    language?: string,
-    languages?: string,
+    language?: { $in: string[] },
+    languages?: { $in: string[] },
     tidbitPointers?: { $gt: any[] }
   } = {};
 
@@ -166,11 +191,11 @@ export const getContent = <Content>
 
       switch(contentType) {
         case ContentType.Snipbit:
-          mongoQuery.language = filter.restrictLanguage;
+          mongoQuery.language = { $in: filter.restrictLanguage };
           break;
 
         default:
-          mongoQuery.languages = filter.restrictLanguage;
+          mongoQuery.languages = { $in: filter.restrictLanguage };
           break;
       }
     }

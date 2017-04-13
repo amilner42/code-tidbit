@@ -181,7 +181,7 @@ performSearch initialSearch ( model, shared ) =
             , ( "restrictLanguage", Maybe.map toString model.contentFilterLanguage )
             ]
     in
-        if String.isEmpty model.searchQuery then
+        if Util.isBlankString model.searchQuery then
             ( if initialSearch then
                 { model
                     | pageNumber = 1
@@ -217,7 +217,7 @@ performSearch initialSearch ( model, shared ) =
             , shared
             , getContent <|
                 commonQueryParams
-                    ++ [ ( "searchQuery", Just model.searchQuery )
+                    ++ [ ( "searchQuery", Util.justNonBlankString model.searchQuery )
                        , ( "sortByTextScore", Just "true" )
                        , ( "pageNumber"
                          , Just <|

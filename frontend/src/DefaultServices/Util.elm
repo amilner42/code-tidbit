@@ -221,6 +221,23 @@ justNonEmptyString string =
         Just string
 
 
+{-| Returns true if a string is empty or just spaces.
+-}
+isBlankString : String -> Bool
+isBlankString =
+    String.isEmpty << String.filter ((/=) ' ')
+
+
+{-| If the string is blank (empty || just spaces) returns `Nothing`, otherwise `Just` the string.
+-}
+justNonBlankString : String -> Maybe String
+justNonBlankString string =
+    if isBlankString string then
+        Nothing
+    else
+        Just string
+
+
 {-| If the list is empty, returns `Nothing`, otherwise `Just` the list.
 -}
 justNonEmptyList : List a -> Maybe (List a)

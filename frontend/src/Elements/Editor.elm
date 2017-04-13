@@ -9,6 +9,8 @@ import Html.Attributes exposing (class, id)
 
 
 {-| The languages the Ace Editor supports.
+
+@NOTE: Keep up to date with `backend/src/models/language.model.ts`.
 -}
 type Language
     = ActionScript
