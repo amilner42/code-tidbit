@@ -53,6 +53,13 @@ apiPost url =
     HttpService.post (apiBaseUrl ++ url)
 
 
+{-| Gets the ID of the user that exists with that email (if one exists, otherwise returns `Nothing`).
+-}
+getUserExists : String -> (ApiError.ApiError -> b) -> (Maybe String -> b) -> Cmd b
+getUserExists email =
+    apiGet ("userID" :/: email) (Decode.maybe Decode.string)
+
+
 {-| Gets the users account, or an error if unauthenticated.
 -}
 getAccount : (ApiError.ApiError -> b) -> (User.User -> b) -> Cmd b
@@ -255,6 +262,16 @@ postCheckCompleted completed =
 
 
 -- API Request Wrappers
+
+
+{-| Wrapper around `getUserExists` that also returns the email that was passed in.
+-}
+getUserExistsWrapper : String -> (ApiError.ApiError -> b) -> (( String, Maybe String ) -> b) -> Cmd b
+getUserExistsWrapper email handleError handleSuccess =
+    getUserExists
+        email
+        handleError
+        (((,) email) >> handleSuccess)
 
 
 {-| Wrapper around `postAddCompleted`, returns the result in `IsComplete` form using the input to get that information.

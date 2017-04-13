@@ -158,6 +158,58 @@ update ({ doNothing, justSetShared, justUpdateModel, justSetModel, justProduceCm
                 , performSearch True
                 ]
 
+        OnUpdateContentFilterAuthor newAuthorInput ->
+            common.handleAll
+                [ -- We always update the model.
+                  (\( model, shared ) ->
+                    ( { model | contentFilterAuthor = ( newAuthorInput, Nothing ) }
+                    , shared
+                    , Cmd.none
+                    )
+                  )
+
+                -- We only need to perform a search if their was an author before and we just cleared it.
+                , (\( chainedModel, chainedShared ) ->
+                    if Util.isNotNothing <| Tuple.second model.contentFilterAuthor then
+                        performSearch True ( chainedModel, chainedShared )
+                    else
+                        ( chainedModel, chainedShared, Cmd.none )
+                  )
+
+                -- We need to check if the new input is a valid email, unless the new input is an empty string.
+                , (\( chainedModel, chainedShared ) ->
+                    if String.isEmpty newAuthorInput then
+                        ( chainedModel, chainedShared, Cmd.none )
+                    else
+                        ( chainedModel
+                        , chainedShared
+                        , Api.getUserExistsWrapper newAuthorInput OnGetUserExistsFailure OnGetUserExistsSuccess
+                        )
+                  )
+                ]
+
+        OnGetUserExistsFailure apiError ->
+            -- TODO Handle error.
+            doNothing
+
+        OnGetUserExistsSuccess (( forEmail, maybeID ) as newContentFilterAuthor) ->
+            -- The user may have typed more before the request returned, in which case we don't care about the request.
+            if forEmail == (Tuple.first model.contentFilterAuthor) then
+                common.handleAll
+                    [ -- We always update the model.
+                      (\( model, shared ) -> justSetModel { model | contentFilterAuthor = newContentFilterAuthor })
+
+                    -- If a valid email has been past then we perform a search (with the user filter).
+                    , (\( chainedModel, chainedShared ) ->
+                        if Util.isNotNothing maybeID then
+                            performSearch True ( chainedModel, chainedShared )
+                        else
+                            ( chainedModel, chainedShared, Cmd.none )
+                      )
+                    ]
+            else
+                doNothing
+
 
 {-| Get's the results for a specific search query.
 
@@ -179,6 +231,7 @@ performSearch initialSearch ( model, shared ) =
             , ( "includeStories", Just <| toJSBool model.contentFilterStories )
             , ( "includeEmptyStories", Just <| toJSBool model.contentFilterIncludeEmptyStories )
             , ( "restrictLanguage", Maybe.map toString model.contentFilterLanguage )
+            , ( "author", Tuple.second model.contentFilterAuthor )
             ]
     in
         if Util.isBlankString model.searchQuery then

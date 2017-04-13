@@ -109,6 +109,30 @@ view model shared =
                                )
                         )
                     ]
+                , div
+                    [ class "author-filter" ]
+                    [ span [ class "author-filter-title" ] [ text "Filter Content by Author" ]
+                    , input
+                        [ classList
+                            [ ( "author-email-input", True )
+                            , ( "valid-email", Util.isNotNothing <| Tuple.second model.contentFilterAuthor )
+                            ]
+                        , placeholder "email"
+                        , value <| Tuple.first model.contentFilterAuthor
+                        , onInput OnUpdateContentFilterAuthor
+                        ]
+                        []
+                    , div
+                        [ classList
+                            [ ( "no-user-message", True )
+                            , ( "hidden"
+                              , (Util.isNotNothing <| Tuple.second model.contentFilterAuthor)
+                                    || (String.isEmpty <| Tuple.first model.contentFilterAuthor)
+                              )
+                            ]
+                        ]
+                        [ text "No user exists with that email" ]
+                    ]
                 ]
             ]
         , div [ class "sub-bar-ghost hidden" ] []

@@ -6,7 +6,7 @@ import * as kleen from "kleen";
 import { renameIDField, collection, toMongoObjectID } from '../db';
 import { malformedFieldError, dropNullAndUndefinedProperties } from "../util";
 import { nonEmptyStringSchema, optional } from "./kleen-schemas";
-import { MongoID, ErrorCode } from '../types';
+import { MongoID, MongoObjectID, ErrorCode } from '../types';
 
 
 /**
@@ -94,8 +94,8 @@ export const userDBActions = {
     .then(() => {
       return collection("users");
     })
-    .then((UserCollection) => {
-      return UserCollection.findOneAndUpdate(
+    .then((userCollection) => {
+      return userCollection.findOneAndUpdate(
         { _id: toMongoObjectID(userID) },
         { $set: dropNullAndUndefinedProperties(userUpdateObject) },
         { returnOriginal: false }
@@ -110,6 +110,19 @@ export const userDBActions = {
         errorCode: ErrorCode.internalError,
         message: "We couldn't find your account."
       });
+    });
+  },
+
+  /**
+   * Returns the id of the user that exists with `email`, or null if no user exists with that email.
+   */
+  getUserID: (email: string): Promise<MongoObjectID> => {
+    return collection("users")
+    .then((userCollection) => {
+      return userCollection.findOne({ email });
+    })
+    .then((user) => {
+      return user ? user._id : null;
     });
   }
 };

@@ -12,6 +12,7 @@ db.bigbits.createIndex({ languages: 1 });
 db.stories.createIndex({ author: 1 });
 db.stories.createIndex({ lastModified: 1 });
 db.stories.createIndex({ languages: 1 });
+db.users.createIndex({ email: 1 });
 
 // Initial Text indexes
 

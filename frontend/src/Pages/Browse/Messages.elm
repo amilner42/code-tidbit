@@ -23,3 +23,6 @@ type Msg
     | ToggleContentFilterStories
     | SetIncludeEmptyStories Bool
     | SelectLanguage (Maybe Language)
+    | OnUpdateContentFilterAuthor String
+    | OnGetUserExistsFailure ApiError
+    | OnGetUserExistsSuccess ( String, Maybe String )

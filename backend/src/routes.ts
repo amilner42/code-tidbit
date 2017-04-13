@@ -11,7 +11,7 @@ import { Snipbit, snipbitDBActions } from './models/snipbit.model';
 import { Bigbit, bigbitDBActions } from './models/bigbit.model';
 import { Story, NewStory, ExpandedStory, storyDBActions, StorySearchFilter } from "./models/story.model";
 import { Tidbit, tidbitDBActions } from './models/tidbit.model';
-import { AppRoutes, AppRoutesAuth, FrontendError, TargetID, ErrorCode, BasicResponse } from './types';
+import { AppRoutes, AppRoutesAuth, FrontendError, TargetID, ErrorCode, BasicResponse, MongoID } from './types';
 import { internalError, combineArrays, maybeMap } from './util';
 
 
@@ -23,6 +23,7 @@ import { internalError, combineArrays, maybeMap } from './util';
 export const authlessRoutes: AppRoutesAuth = {
   '/register': { post: true },
   '/login': { post: true },
+  '/userID/:email': { get: true },
   '/snipbits': { get: true },
   '/snipbits/:id': { get: true },
   '/bigbits/': { get: true },
@@ -126,6 +127,18 @@ export const routes: AppRoutes = {
           resolve({ message: "Successfully logged out" });
         });
       });
+    }
+  },
+
+  '/userID/:email': {
+    /**
+     * Retrieves the id of the user with the given email, returns `null` if the user doesn't exist.
+     */
+    get: (req, res): Promise<MongoID> => {
+      const params = req.params;
+      const email = params.email;
+
+      return userDBActions.getUserID(email);
     }
   },
 

@@ -18,4 +18,5 @@ type alias Model =
     , contentFilterStories : Bool
     , contentFilterIncludeEmptyStories : Bool
     , contentFilterLanguage : Maybe Language
+    , contentFilterAuthor : ( String, Maybe String )
     }

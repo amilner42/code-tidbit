@@ -24,6 +24,12 @@ encoder model =
         , ( "contentFilterStories", Encode.bool model.contentFilterStories )
         , ( "contentFilterIncludeEmptyStories", Encode.bool model.contentFilterIncludeEmptyStories )
         , ( "contentFilterLanguage", justValueOrNull JSON.Language.encoder model.contentFilterLanguage )
+        , ( "contentFilterAuthor"
+          , Encode.object
+                [ ( "emailInput", Encode.string <| Tuple.first model.contentFilterAuthor )
+                , ( "authorForInput", justValueOrNull Encode.string <| Tuple.second model.contentFilterAuthor )
+                ]
+          )
         ]
 
 
@@ -43,3 +49,8 @@ decoder =
         |> required "contentFilterStories" Decode.bool
         |> required "contentFilterIncludeEmptyStories" Decode.bool
         |> required "contentFilterLanguage" (Decode.maybe JSON.Language.decoder)
+        |> required "contentFilterAuthor"
+            (decode (,)
+                |> required "emailInput" Decode.string
+                |> required "authorForInput" (Decode.maybe Decode.string)
+            )

@@ -27,12 +27,54 @@
             height: 80px;
             background-color: $color13;
 
+            .author-filter {
+                position: absolute;
+                box-sizing: border-box;
+                width: 220px;
+                top: 0;
+                left: 535px;
+                height: 100%;
+                text-align: left;
+                padding: 5px 10px 5px 10px;
+
+                .no-user-message {
+                    position: absolute;
+                    font-size: 10px;
+                    top: 57px;
+                    left: 15px;
+                    color: $color4;
+                }
+
+                .author-filter-title {
+                    font-weight: 600;
+                    color: $color4;
+                }
+
+                .author-email-input {
+                    box-sizing: border-box;
+                    padding: none;
+                    position: absolute;
+                    height: 29px;
+                    width: 182px;
+                    text-align: center;
+                    left: 10px;
+                    top: 27px;
+                    border: 1px solid $color13;
+                    border-radius: 5px;
+                    color: $color12;
+
+                    &.valid-email {
+                        border: 1px solid $color7 !important;
+                    }
+                }
+            }
+
             .language-filter {
                 position: absolute;
                 box-sizing: border-box;
-                width: 180px;
+                width: 160px;
                 top: 0;
-                left: 370px;
+                left: 375px;
                 height: 100%;
                 text-align: left;
                 padding: 5px 10px 5px 10px;
@@ -44,8 +86,18 @@
 
                 select {
                     position: absolute;
-                    top: 26px;
-                    left: 14px;
+                    box-sizing: border-box;
+                    top: 27px;
+                    left: 10px;
+                    width: 130px;
+                    height: 29px;
+                    border: 1px solid $color13;
+                    background-color: white;
+                    color: $color12;
+
+                    &:focus {
+                        outline: none;
+                    }
                 }
             }
 
@@ -55,7 +107,7 @@
                 width: 190px;
                 height: 100%;
                 top: 0;
-                left: 170px;
+                left: 175px;
                 color: $color4;
                 padding: 5px 10px 5px 10px;
 

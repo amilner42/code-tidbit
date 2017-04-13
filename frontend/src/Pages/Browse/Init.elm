@@ -18,4 +18,5 @@ init =
     , contentFilterStories = True
     , contentFilterIncludeEmptyStories = False
     , contentFilterLanguage = Nothing
+    , contentFilterAuthor = ( "", Nothing )
     }
