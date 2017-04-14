@@ -72,7 +72,7 @@
                 z-index: 1000;
                 list-style-type: none;
                 color: $color4;
-                border: 1px solid $color2;
+                border: 1px solid $color13;
                 width: 300px;
                 height: 33px;
                 margin-bottom: 3px;
@@ -83,7 +83,7 @@
                 padding-left: 0;
 
                 &.key-selected {
-                    background-color: $color3;
+                    background-color: $color2;
                     color: $color6;
                     border-color: $color1;
                 }

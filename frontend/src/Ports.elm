@@ -73,14 +73,16 @@ port codeEditorJumpToLine : CodeEditorJumpToLineConfig -> Cmd msg
 
 {-| Called when a code editor being used (with id `id`) has been updated.
 -}
-port onCodeEditorUpdate :
-    ({ id : String, value : String, deltaRange : Range, action : String } -> msg)
-    -> Sub msg
+port onCodeEditorUpdate : ({ id : String, value : String, deltaRange : Range, action : String } -> msg) -> Sub msg
 
 
 {-| Called when a code editor being used (with id `id`) has a new selection, it will not be called if the selection has
 no range (the start is the end).
 -}
-port onCodeEditorSelectionUpdate :
-    ({ id : String, range : Range } -> msg)
-    -> Sub msg
+port onCodeEditorSelectionUpdate : ({ id : String, range : Range } -> msg) -> Sub msg
+
+
+{-| For toggling whether the advanced options on the browse page is visible. If `True` is passed, expands the advanced
+options, otherwises hides the options.
+-}
+port expandSearchAdvancedOptions : Bool -> Cmd msg

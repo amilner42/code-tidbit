@@ -5,6 +5,7 @@ import DefaultServices.Util as Util
 import JSON.BasicResponse
 import JSON.Bigbit
 import JSON.Completed
+import JSON.Content
 import JSON.IDResponse
 import JSON.Snipbit
 import JSON.Story
@@ -18,6 +19,7 @@ import Models.ApiError as ApiError
 import Models.BasicResponse as BasicResponse
 import Models.Bigbit as Bigbit
 import Models.Completed as Completed
+import Models.Content as Content
 import Models.IDResponse as IDResponse
 import Models.Snipbit as Snipbit
 import Models.Story as Story
@@ -49,6 +51,13 @@ apiGet url =
 apiPost : String -> Decode.Decoder a -> Encode.Value -> (ApiError.ApiError -> b) -> (a -> b) -> Cmd b
 apiPost url =
     HttpService.post (apiBaseUrl ++ url)
+
+
+{-| Gets the ID of the user that exists with that email (if one exists, otherwise returns `Nothing`).
+-}
+getUserExists : String -> (ApiError.ApiError -> b) -> (Maybe String -> b) -> Cmd b
+getUserExists email =
+    apiGet ("userID" :/: email) (Decode.maybe Decode.string)
 
 
 {-| Gets the users account, or an error if unauthenticated.
@@ -136,6 +145,15 @@ getTidbits queryParams =
     apiGet
         ("tidbits" ++ (Util.queryParamsToString queryParams))
         (Decode.list JSON.Tidbit.decoder)
+
+
+{-| Get's content, you can use query params to customize the search. Refer to the backend to see what the options are.
+-}
+getContent : List ( String, Maybe String ) -> (ApiError.ApiError -> b) -> (List Content.Content -> b) -> Cmd b
+getContent queryParams =
+    apiGet
+        ("content" ++ (Util.queryParamsToString queryParams))
+        (Decode.list JSON.Content.decoder)
 
 
 {-| Logs user in and returns the user, unless invalid credentials.
@@ -244,6 +262,16 @@ postCheckCompleted completed =
 
 
 -- API Request Wrappers
+
+
+{-| Wrapper around `getUserExists` that also returns the email that was passed in.
+-}
+getUserExistsWrapper : String -> (ApiError.ApiError -> b) -> (( String, Maybe String ) -> b) -> Cmd b
+getUserExistsWrapper email handleError handleSuccess =
+    getUserExists
+        email
+        handleError
+        (((,) email) >> handleSuccess)
 
 
 {-| Wrapper around `postAddCompleted`, returns the result in `IsComplete` form using the input to get that information.

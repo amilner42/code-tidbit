@@ -25,6 +25,7 @@ type alias Bigbit =
     , id : String
     , createdAt : Date.Date
     , lastModified : Date.Date
+    , languages : List Editor.Language
     }
 
 

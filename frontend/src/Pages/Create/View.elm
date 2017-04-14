@@ -79,7 +79,7 @@ view model shared =
                     div
                         [ class "develop-stories" ]
                         [ div
-                            [ classList [ ( "boxes flex-box space-between", True ) ]
+                            [ classList [ ( "flex-box space-around", True ) ]
                             ]
                             ([ div
                                 [ class "create-story-box"
@@ -93,15 +93,12 @@ view model shared =
                                 ++ (List.map
                                         (\story ->
                                             div
-                                                [ class "story-box" ]
+                                                [ class "story-box"
+                                                , onClick <| GoTo <| Route.DevelopStoryPage story.id
+                                                ]
                                                 [ div
                                                     [ class "story-box-name" ]
                                                     [ text story.name ]
-                                                , button
-                                                    [ class "continue-story-button"
-                                                    , onClick <| GoTo <| Route.DevelopStoryPage story.id
-                                                    ]
-                                                    [ text "CONTINUE" ]
                                                 ]
                                         )
                                         (List.reverse <| Util.sortByDate .lastModified userStories)

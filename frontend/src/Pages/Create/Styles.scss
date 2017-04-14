@@ -11,7 +11,7 @@
         width: 100%;
         height: 75px;
         color: white;
-        background-color: $color10;
+        background-color: $color3;
         text-align: center;
         line-height: 50px;
         padding-top: 20px;
@@ -19,12 +19,15 @@
         font-weight: 800;
 
         &.story-banner {
-            background-color: $color9;
-            color: $color5;
-            border-bottom: 1px solid $color2;
-            margin-bottom: 10px;
-            height: 85px;
+            background-color: white;
+            color: $color4;
+            border-top: 1px solid $color2;
+            height: 75px;
         }
+    }
+
+    .empty-tidbit-box-for-flex-align {
+        max-width: 350px;
     }
 
     .make-tidbits {
@@ -34,8 +37,7 @@
         height: 315px;
         min-height: 315px;
         padding: 20px;
-        background-color: $color10;
-        border-bottom: 1px solid #555;
+        background-color: $color3;
 
         .create-select-tidbit-type-coming-soon {
             @include light-box-shadow();
@@ -57,7 +59,7 @@
                 left: 50%;
                 transform: translate(-50%, -50%);
                 font-size: 28px;
-                color: $color4;
+                color: $color14;
                 width: 100%;
                 text-align: center;
             }
@@ -68,7 +70,7 @@
                 left: 50%;
                 transform: translate(-50%, -50%);
                 font-size: 16px;
-                color: $color4;
+                color: $color14;
                 width: 275px;
                 text-align: center;
             }
@@ -105,7 +107,7 @@
                 position: absolute;
                 bottom: 10px;
                 right: 10px;
-                background-color: $color4;
+                background-color: $color14;
             }
 
             .create-select-tidbit-type-title {
@@ -133,11 +135,10 @@
                 padding: 3px 10px 3px 10px;
                 width: 280px;
                 height: 35px;
-                opacity: 0.9;
                 font-size: 18px;
 
                 &:hover {
-                    opacity: 1;
+                    opacity: 0.9;
                 }
             }
 
@@ -145,7 +146,7 @@
                 position: absolute;
                 top: 5px;
                 right: 5px;
-                color: $color4;
+                color: $color14;
                 cursor: pointer;
             }
 
@@ -153,12 +154,13 @@
                 position: absolute;
                 bottom: 10px;
                 right: 10px;
+                background-color: $color1;
             }
         }
     }
 
     .develop-stories {
-        width: 85%;
+        padding: 0 10px 0 10px;
         min-width: 900px;
         margin: auto;
         margin-top: 20px;
@@ -172,17 +174,16 @@
             height: 275px;
             margin: 0 10px 20px 10px;
             position: relative;
-            border: 2px dotted $color2;
+            border: 2px dotted $color13;
             cursor: pointer;
             flex-grow: 1;
-            max-width: 325px;
+            max-width: 350px;
 
             &:hover {
-                background-color: $color9;
-                border-style: solid;
+                border: 1px solid $content-color2;
 
                 .add-story-box-icon {
-                    color: $color5;
+                    color: $content-color2;
                 }
             }
 
@@ -192,7 +193,7 @@
                 left: 50%;
                 transform: translate(-50%, -50%);
                 font-size: 128px;
-                color: $color2;
+                color: $color13;
             }
         }
     }

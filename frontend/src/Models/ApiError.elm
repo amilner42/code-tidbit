@@ -59,6 +59,8 @@ type ApiError
     | StoryDoesNotExist
     | StoryEditorMustBeAuthor
     | StoryAddingNonExistantTidbit
+    | SnipbitDescriptionTooLong
+    | BigbitDescriptionTooLong
 
 
 {-| An error from the backend still in Json form.
@@ -146,7 +148,7 @@ humanReadable apiError =
             "You must have a name!"
 
         SnipbitNameTooLong ->
-            "Name entered is too long! "
+            "Snipbit names are limited to 50 characters!"
 
         SnipbitInvalidLanguage ->
             "Language selected was not valid!"
@@ -170,7 +172,7 @@ humanReadable apiError =
             "You must name your bigbit!"
 
         BigbitNameTooLong ->
-            "Your bigbit name is too long!"
+            "Bigbit names are limited to 50 characters!"
 
         BigbitEmptyDescription ->
             "Your bigbit must have a description!"
@@ -203,13 +205,13 @@ humanReadable apiError =
             "You cannot have empty story names!"
 
         StoryNameTooLong ->
-            "Your story name is too long!"
+            "Story names are limited to 50 characters!"
 
         StoryDescriptionEmpty ->
             "You cannot have an empty description for your story!"
 
         StoryDescriptionTooLong ->
-            "Your description name is too long!"
+            "Story descriptions are limited to 300 characters!"
 
         StoryInvalidTidbitType ->
             "That is not a valid tidbit type, refer to the API for valid tidbit types!"
@@ -228,3 +230,9 @@ humanReadable apiError =
 
         StoryAddingNonExistantTidbit ->
             "You are adding a non-existant tidbit!"
+
+        SnipbitDescriptionTooLong ->
+            "Snipbit descriptions are limited to 300 characters!"
+
+        BigbitDescriptionTooLong ->
+            "Bigbit descriptions are limited to 300 characters!"

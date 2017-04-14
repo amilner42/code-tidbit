@@ -10,6 +10,7 @@ import Json.Decode as Decode
 import Json.Decode.Pipeline exposing (decode, required, optional, hardcoded)
 import Json.Encode as Encode
 import Keyboard.Extra as KK
+import Pages.Browse.JSON as BrowseJSON
 import Pages.Create.JSON as CreateJSON
 import Pages.CreateBigbit.JSON as CreateBigbitJSON
 import Pages.CreateBigbit.Model as HomeModel
@@ -38,6 +39,7 @@ encoder model =
         , ( "developStoryPage", DevelopStoryJSON.encoder model.developStoryPage )
         , ( "createSnipbitPage", CreateSnipbitJSON.encoder model.createSnipbitPage )
         , ( "createBigbitPage", CreateBigbitJSON.encoder model.createBigbitPage )
+        , ( "browsePage", BrowseJSON.encoder model.browsePage )
         ]
 
 
@@ -56,6 +58,7 @@ decoder =
         |> required "developStoryPage" DevelopStoryJSON.decoder
         |> required "createSnipbitPage" CreateSnipbitJSON.decoder
         |> required "createBigbitPage" CreateBigbitJSON.decoder
+        |> required "browsePage" BrowseJSON.decoder
 
 
 {-| `Shared` encoder.

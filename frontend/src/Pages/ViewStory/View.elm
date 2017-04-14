@@ -1,11 +1,14 @@
 module Pages.ViewStory.View exposing (..)
 
 import DefaultServices.Util as Util
+import Elements.ContentBox exposing (contentBox)
 import Elements.ProgressBar exposing (progressBar)
 import Html exposing (Html, div, button, text, i)
 import Html.Attributes exposing (class, classList)
 import Html.Events exposing (onClick)
+import Models.Content as Content
 import Models.Route as Route
+import Models.Story as Story
 import Models.Tidbit as Tidbit
 import Pages.Model exposing (Shared)
 import Pages.ViewStory.Messages exposing (..)
@@ -78,31 +81,40 @@ view shared =
                             [ text story.name ]
                         , case ( completedListForLoggedInUser, story.tidbits ) of
                             ( Just hasCompletedList, h :: xs ) ->
-                                div
-                                    []
-                                    [ div
-                                        [ classList [ ( "progress-bar-title", True ) ]
-                                        ]
-                                        [ text "you've completed" ]
-                                    , div
-                                        [ classList [ ( "story-progress-bar-bar", True ) ]
-                                        ]
-                                        [ progressBar
-                                            (Just <|
-                                                List.foldl
-                                                    (\currentBool totalComplete ->
-                                                        if currentBool then
-                                                            totalComplete + 1
-                                                        else
-                                                            totalComplete
-                                                    )
-                                                    0
-                                                    hasCompletedList
+                                let
+                                    totalCompleted =
+                                        List.foldl
+                                            (\currentBool totalComplete ->
+                                                if currentBool then
+                                                    totalComplete + 1
+                                                else
+                                                    totalComplete
                                             )
-                                            (List.length hasCompletedList)
-                                            False
+                                            0
+                                            hasCompletedList
+
+                                    totalTidbits =
+                                        List.length hasCompletedList
+
+                                    doneStory =
+                                        totalCompleted == totalTidbits
+                                in
+                                    div
+                                        []
+                                        [ div
+                                            [ classList [ ( "progress-bar-title", True ) ]
+                                            ]
+                                            [ if doneStory then
+                                                text "story complete"
+                                              else
+                                                text "you've completed"
+                                            ]
+                                        , div
+                                            [ classList [ ( "story-progress-bar-bar", True ) ]
+                                            ]
+                                            [ progressBar (Just totalCompleted) totalTidbits False
+                                            ]
                                         ]
-                                    ]
 
                             _ ->
                                 Util.hiddenDiv
@@ -117,44 +129,12 @@ view shared =
                                     [ class "flex-box space-between" ]
                                     ((List.indexedMap
                                         (\index tidbit ->
-                                            div
-                                                [ classList
-                                                    [ ( "tidbit-box", True )
-                                                    , ( "completed"
-                                                      , case shared.viewingStory |> Maybe.andThen .userHasCompleted of
-                                                            Nothing ->
-                                                                False
-
-                                                            Just hasCompletedList ->
-                                                                Maybe.withDefault
-                                                                    False
-                                                                    (Util.getAt hasCompletedList index)
-                                                      )
-                                                    ]
-                                                ]
-                                                [ div
-                                                    [ class "tidbit-box-name" ]
-                                                    [ text <| Tidbit.getName tidbit ]
-                                                , div
-                                                    [ class "tidbit-box-page-number" ]
-                                                    [ text <| toString <| index + 1 ]
-                                                , button
-                                                    [ class "view-button"
-                                                    , onClick <|
-                                                        GoTo <|
-                                                            Tidbit.getTidbitRoute
-                                                                (Just story.id)
-                                                                tidbit
-                                                    ]
-                                                    [ text "VIEW"
-                                                    ]
-                                                , div
-                                                    [ class "completed-icon-div" ]
-                                                    [ i
-                                                        [ class "material-icons completed-icon" ]
-                                                        [ text "check" ]
-                                                    ]
-                                                ]
+                                            Content.fromTidbit tidbit
+                                                |> contentBox
+                                                    { goToMsg = GoTo
+                                                    , darkenBox = Story.tidbitCompletedAtIndex index story
+                                                    , forStory = Just story.id
+                                                    }
                                         )
                                         story.tidbits
                                      )

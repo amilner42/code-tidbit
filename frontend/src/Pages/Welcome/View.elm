@@ -47,6 +47,11 @@ view model shared =
 
             _ ->
                 Util.hiddenDiv
+        , button
+            [ class "welcome-page-change-tab-button welcome-page-browse-button"
+            , onClick <| GoTo Route.BrowsePage
+            ]
+            [ text "Browse Tutorials" ]
         , div
             [ classList
                 [ ( "welcome-page", True )
@@ -62,7 +67,7 @@ view model shared =
 
 {-| Creates an error box with an appropriate message if there is an error, otherwise simply stays hidden.
 -}
-errorBox : Maybe (ApiError.ApiError) -> Html Msg
+errorBox : Maybe ApiError.ApiError -> Html Msg
 errorBox maybeApiError =
     let
         humanReadable maybeApiError =
@@ -111,10 +116,10 @@ loginView model =
                 [ class "welcome-box" ]
                 [ div
                     [ class "welcome-box-text" ]
-                    [ text "It's good to have you back" ]
+                    [ text "It's Good to Have You Back" ]
                 , div
                     [ class "welcome-box-sub-text" ]
-                    [ text "We missed you" ]
+                    [ text "Now Go Learn Something Already" ]
                 , input
                     [ classList [ ( "input-error-highlight", highlightEmail ) ]
                     , placeholder "Email"
@@ -181,10 +186,10 @@ registerView model =
             [ class "welcome-box" ]
             [ div
                 [ class "welcome-box-text" ]
-                [ text "Your friendly code learning platform" ]
+                [ text "Your Friendly Code Learning Platform" ]
             , div
                 [ class "welcome-box-sub-text" ]
-                [ text "Use CodeTidbit and all its features free, forever!" ]
+                [ text "Browse and Create Powerful Tutorials" ]
             , input
                 [ classList [ ( "input-error-highlight", False ) ]
                 , placeholder "Preferred Name"

@@ -9,6 +9,8 @@ import Html.Attributes exposing (class, id)
 
 
 {-| The languages the Ace Editor supports.
+
+@NOTE: Keep up to date with `backend/src/models/language.model.ts`.
 -}
 type Language
     = ActionScript
@@ -315,6 +317,16 @@ humanReadableListOfLanguages =
     , ( XML, "XML" )
     , ( YAML, "YAML" )
     ]
+
+
+{-| Get's a language from the human readable name.
+-}
+languageFromHumanReadableName : String -> Maybe Language
+languageFromHumanReadableName languageAsString =
+    humanReadableListOfLanguages
+        |> List.filter (Tuple.second >> ((==) languageAsString))
+        |> List.head
+        |> Maybe.map Tuple.first
 
 
 {-| Given a file name, like `bla.py`, returns the appropriate language [python].

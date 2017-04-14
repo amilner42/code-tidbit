@@ -1,6 +1,8 @@
 module Models.Story exposing (..)
 
 import Date
+import DefaultServices.Util exposing (maybeMapWithDefault, getAt)
+import Elements.Editor exposing (Language)
 import Models.Route as Route
 import Models.Tidbit as Tidbit
 import Models.TidbitPointer as TidbitPointer
@@ -18,6 +20,7 @@ type alias Story =
     , createdAt : Date.Date
     , lastModified : Date.Date
     , userHasCompleted : Maybe (List Bool)
+    , languages : List Language
     }
 
 
@@ -33,6 +36,7 @@ type alias ExpandedStory =
     , createdAt : Date.Date
     , lastModified : Date.Date
     , userHasCompleted : Maybe (List Bool)
+    , languages : List String
     }
 
 
@@ -72,6 +76,7 @@ blankStory =
     , createdAt = Date.fromTime 0
     , lastModified = Date.fromTime 0
     , userHasCompleted = Nothing
+    , languages = []
     }
 
 
@@ -100,3 +105,16 @@ tidbit before the current one if one exists before.
 getPreviousTidbitRoute : String -> String -> List Tidbit.Tidbit -> Maybe Route.Route
 getPreviousTidbitRoute currentTidbitID currentStoryID storyTidbits =
     getNextTidbitRoute currentTidbitID currentStoryID (List.reverse storyTidbits)
+
+
+{-| Checks if a tidbit at a specific index is completed.
+-}
+tidbitCompletedAtIndex : Int -> ExpandedStory -> Bool
+tidbitCompletedAtIndex index story =
+    maybeMapWithDefault
+        (\hasCompletedList ->
+            getAt hasCompletedList index
+                |> Maybe.withDefault False
+        )
+        False
+        story.userHasCompleted

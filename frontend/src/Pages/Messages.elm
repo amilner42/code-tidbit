@@ -6,6 +6,7 @@ import Models.Range as Range
 import Models.Route as Route
 import Models.User exposing (User)
 import Navigation
+import Pages.Browse.Messages as BrowseMessages
 import Pages.Create.Messages as CreateMessages
 import Pages.CreateBigbit.Messages as CreateBigbitMessages
 import Pages.CreateSnipbit.Messages as CreateSnipbitMessages
@@ -41,6 +42,7 @@ type Msg
     | DevelopStoryMessage DevelopStoryMessages.Msg
     | CreateSnipbitMessage CreateSnipbitMessages.Msg
     | CreateBigbitMessage CreateBigbitMessages.Msg
+    | BrowseMessage BrowseMessages.Msg
     | CodeEditorUpdate { id : String, value : String, deltaRange : Range.Range, action : String }
     | CodeEditorSelectionUpdate { id : String, range : Range.Range }
     | KeyboardExtraMessage Keyboard.Extra.Msg

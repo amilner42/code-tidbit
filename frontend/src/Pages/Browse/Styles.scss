@@ -1,0 +1,312 @@
+@import '../../Styles/global';
+@import '../../Styles/mixins';
+@import '../../Styles/variables';
+
+
+.browse-page {
+
+    .search-bar {
+        position: relative;
+        display: block;
+        height: 60px;
+        text-align: center;
+        padding-top: 0px;
+        margin-bottom: 0px;
+
+        &.sticky {
+            .advanced-options {
+                border-bottom: 1px solid $color14;
+                transition: 0.1s;
+            }
+        }
+
+        .advanced-options {
+            position: relative;
+            border-bottom: 1px solid $color15;
+            margin-top: 10px;
+            height: 80px;
+            background-color: $color13;
+
+            .author-filter {
+                position: absolute;
+                box-sizing: border-box;
+                width: 220px;
+                top: 0;
+                left: 535px;
+                height: 100%;
+                text-align: left;
+                padding: 5px 10px 5px 10px;
+
+                .no-user-message {
+                    position: absolute;
+                    font-size: 10px;
+                    top: 57px;
+                    left: 15px;
+                    color: $color4;
+                }
+
+                .author-filter-title {
+                    font-weight: 600;
+                    color: $color4;
+                }
+
+                .author-email-input {
+                    box-sizing: border-box;
+                    padding: none;
+                    position: absolute;
+                    height: 29px;
+                    width: 182px;
+                    text-align: center;
+                    left: 10px;
+                    top: 27px;
+                    border: 1px solid $color13;
+                    border-radius: 5px;
+                    color: $color12;
+
+                    &.valid-email {
+                        border: 1px solid $color7 !important;
+                    }
+                }
+            }
+
+            .language-filter {
+                position: absolute;
+                box-sizing: border-box;
+                width: 160px;
+                top: 0;
+                left: 375px;
+                height: 100%;
+                text-align: left;
+                padding: 5px 10px 5px 10px;
+
+                .language-filter-title {
+                    font-weight: 600;
+                    color: $color4;
+                }
+
+                select {
+                    position: absolute;
+                    box-sizing: border-box;
+                    top: 27px;
+                    left: 10px;
+                    width: 130px;
+                    height: 29px;
+                    border: 1px solid $color13;
+                    background-color: white;
+                    color: $color12;
+                    -moz-appearance:none;
+                    border-radius: 5px;
+
+                    &:focus {
+                        outline: none;
+                    }
+                }
+            }
+
+            .empty-story-filter {
+                position: absolute;
+                box-sizing: border-box;
+                width: 190px;
+                height: 100%;
+                top: 0;
+                left: 175px;
+                color: $color4;
+                padding: 5px 10px 5px 10px;
+
+                .empty-story-title {
+                    font-weight: 600;
+                }
+
+                .empty-story-filter-option {
+                    height: 20px;
+                    position: relative;
+                    display: block;
+                    width: 100%;
+                    left: 0;
+                    text-align: left;
+                    margin-left: 4px;
+                    width: 50px;
+                    @include no-select();
+                    cursor: pointer;
+
+                    span {
+                        position: absolute;
+                        top: 3px;
+                        font-size: 16px;
+                        left: 28px;
+                    }
+
+                    i {
+                        font-size: 22px;
+                        color: $color4;
+                    }
+                }
+            }
+
+            .content-filter {
+                box-sizing: border-box;
+                position: absolute;
+                width: 170px;
+                height: 100%;
+                top: 0;
+                left: 0;
+                text-align: left;
+                padding: 5px 10px 5px 10px;
+
+                .content-filter-title {
+                    position: relative;
+                    color: $color4;
+                    margin-bottom: -10px;
+                    font-weight: 600;
+                }
+
+                .content-filter-type {
+                    position: relative;
+                    left: 4px;
+                    width: 100%;
+                    display: block;
+                    height: 18px;
+                    font-size: 16px;
+                    line-height: 18px;
+                    color: $color4;
+                    cursor: pointer;
+                    @include no-select();
+
+                    &.snipbits {
+                        color: $content-color1;
+                    }
+
+                    &.bigbits {
+                        color: $content-color3;
+                    }
+
+                    &.stories {
+                        color: $content-color2;
+                    }
+
+                    i {
+                        position: relative;
+                        font-size: 18px;
+                    }
+
+                    .content-filter-type-text {
+                        position: relative;
+                        top: -3px;
+                    }
+                }
+            }
+        }
+
+        &.advanced-options {
+            height: 140px;
+        }
+
+        .search-input {
+            box-sizing: border-box;
+            position: relative;
+            display: inline-block;
+            width: 585px;
+            height: 40px;
+            font-size: 16px;
+            padding: 5px;
+            border: none;
+            margin-top: 10px;
+            text-align: center;
+            border-radius: 1px;
+            color: $color12;
+            @include light-box-shadow();
+
+            &:focus, &:hover {
+                outline: none !important;
+                border: none !important;
+                @include strong-box-shadow();
+            }
+        }
+
+        .advanced-search-options-toggle {
+            position: absolute;
+            right: 5px;
+            top: 45px;
+            font-size: 12px;
+            color: $color12;
+            cursor: pointer;
+
+            &:hover {
+                text-decoration: underline;
+            }
+        }
+    }
+
+    .sub-bar-ghost {
+        height: 60px;
+
+        &.advanced-options {
+            height: 140px
+        }
+    }
+
+    .browse-page-content {
+        box-sizing: border-box;
+        width: 100%;
+        padding-top: 25px;
+        padding-left: 10px;
+        padding-right: 10px;
+        text-align: center;
+
+        .content-title {
+            color: $color12;
+            font-size: 26px;
+            font-weight: 500;
+            margin-bottom: 25px;
+        }
+
+        .empty-tidbit-box-for-flex-align {
+            box-sizing: border-box;
+            position: relative;
+            display: inline-flex;
+            width: 0;
+            min-width: 300px;
+            max-width: 375px;
+            margin: 0 10px 0 10px;
+            display: inline-flex;
+            flex-grow: 1;
+
+            .inner-text {
+                width: 100%;
+            }
+        }
+
+        .all-content {
+            box-sizing: border-box;
+            width: 100%;
+            position: relative;
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+        }
+
+        .load-more-content-button {
+            display: inline-block;
+            margin: 0 auto 20px auto;
+            width: 180px;
+            height: 40px;
+            font-size: 16px;
+            border: none;
+            border-radius: 3px;
+            color: white;
+            font-weight: 600;
+            background-color: $color8;
+            opacity: 0.5;
+
+            &:hover {
+                opacity: 1;
+            }
+        }
+
+        .no-more-results-message {
+            font-size: 16px;
+            color: $color4;
+            margin: 5px 0 30px 0;
+        }
+    }
+}

@@ -2,15 +2,17 @@
 /// should be moved to a seperate module.
 
 import passport from 'passport';
+import * as R from "ramda";
 
 import { completedDBActions } from "./models/completed.model";
+import { Content, contentDBActions, ContentSearchFilter, GeneralSearchConfiguration, ContentResultManipulation } from "./models/content.model";
 import { User, userDBActions, prepareUserForResponse } from './models/user.model';
 import { Snipbit, snipbitDBActions } from './models/snipbit.model';
 import { Bigbit, bigbitDBActions } from './models/bigbit.model';
-import { Story, NewStory, ExpandedStory, storyDBActions } from "./models/story.model";
+import { Story, NewStory, ExpandedStory, storyDBActions, StorySearchFilter } from "./models/story.model";
 import { Tidbit, tidbitDBActions } from './models/tidbit.model';
-import { AppRoutes, AppRoutesAuth, FrontendError, TargetID, ErrorCode, BasicResponse } from './types';
-import { internalError } from './util';
+import { AppRoutes, AppRoutesAuth, FrontendError, TargetID, ErrorCode, BasicResponse, MongoID } from './types';
+import { internalError, combineArrays, maybeMap } from './util';
 
 
 /**
@@ -21,13 +23,15 @@ import { internalError } from './util';
 export const authlessRoutes: AppRoutesAuth = {
   '/register': { post: true },
   '/login': { post: true },
+  '/userID/:email': { get: true },
   '/snipbits': { get: true },
   '/snipbits/:id': { get: true },
   '/bigbits/': { get: true },
   '/bigbits/:id': { get: true },
   '/stories': { get: true },
   '/stories/:id': { get: true },
-  '/tidbits': { get: true }
+  '/tidbits': { get: true },
+  '/content': { get: true }
 };
 
 /**
@@ -126,6 +130,18 @@ export const routes: AppRoutes = {
     }
   },
 
+  '/userID/:email': {
+    /**
+     * Retrieves the id of the user with the given email, returns `null` if the user doesn't exist.
+     */
+    get: (req, res): Promise<MongoID> => {
+      const params = req.params;
+      const email = params.email;
+
+      return userDBActions.getUserID(email);
+    }
+  },
+
   '/account': {
     /**
      * Returns the users account with sensitive data stripped.
@@ -190,9 +206,10 @@ export const routes: AppRoutes = {
      */
     get: (req, res): Promise<Snipbit[]> => {
       const queryParams = req.query;
-      const forUser = queryParams.forUser;
+      const searchFilter = getContentSearchFilterFromQP(queryParams);
+      const resultManipulation = getContentResultManipulationFromQP(queryParams);
 
-      return snipbitDBActions.getSnipbits({ forUser });
+      return snipbitDBActions.getSnipbits(searchFilter, resultManipulation).then(R.map(removeMetadataForResponse));
     },
 
     /**
@@ -212,9 +229,10 @@ export const routes: AppRoutes = {
      */
     get: (req, res): Promise<Bigbit[]> => {
       const queryParams = req.query;
-      const forUser = queryParams.forUser;
+      const searchFilter = getContentSearchFilterFromQP(queryParams);
+      const resultManipulation = getContentResultManipulationFromQP(queryParams);
 
-      return bigbitDBActions.getBigbits({ forUser });
+      return bigbitDBActions.getBigbits(searchFilter, resultManipulation).then(R.map(removeMetadataForResponse));
     },
 
     /**
@@ -260,9 +278,10 @@ export const routes: AppRoutes = {
     get: (req, res): Promise<Story[]> => {
       const userID = req.user._id;
       const queryParams = req.query;
-      const author = queryParams.author;
+      const searchFilter = getContentSearchFilterFromQP(queryParams);
+      const resultManipulation = getContentResultManipulationFromQP(queryParams);
 
-      return storyDBActions.getStories({ author });
+      return storyDBActions.getStories(searchFilter, resultManipulation).then(R.map(removeMetadataForResponse));
     },
 
     /**
@@ -326,9 +345,125 @@ export const routes: AppRoutes = {
      */
     get: (req, res): Promise<Tidbit[]> => {
       const queryParams = req.query;
-      const forUser = queryParams.forUser;
+      const searchFilter = getContentSearchFilterFromQP(queryParams);
+      const resultManipulation = getContentResultManipulationFromQP(queryParams);
 
-      return tidbitDBActions.getTidbits({ forUser });
+      return tidbitDBActions.getTidbits(searchFilter, resultManipulation).then(R.map(removeMetadataForResponse));
+    }
+  },
+
+  '/content': {
+    /**
+     * Get's `Content` (for the browse page), customizable through query params.
+     */
+    get: (req, res): Promise<Content[]> => {
+      const queryParams = req.query;
+      const generalSearchConfig = getGeneralContentSearchConfiguration(queryParams);
+      const searchFilter = getContentSearchFilterFromQP(queryParams);
+      const resultManipulation = getContentResultManipulationFromQP(queryParams);
+
+      return contentDBActions.getContent(generalSearchConfig, searchFilter, resultManipulation)
+      .then(R.map(removeMetadataForResponse));
     }
   }
+}
+
+/**
+ * Get's `sortByLastModified` from query params as a boolean. Will default to `false` unless "true" is passed.
+ */
+const getSortByLastModifiedAsBoolean = ({ sortByLastModified }): boolean => sortByLastModified === "true";
+
+/**
+ * Get's `sortByTextScore` from query params as a boolean. Will default to `false` unless "true" is passed.
+ */
+const getSortByTextScoreAsBoolean = ({ sortByTextScore }): boolean => sortByTextScore === "true";
+
+/**
+ * Get's `pageNumber` from query params as an int.
+ */
+const getPageNumberAsInt = ({ pageNumber }): number => parseInt(pageNumber);
+
+/**
+ * Get's `pageSize` from query params as an int.
+ */
+const getPageSizeAsInt = ({ pageSize }): number => parseInt(pageSize);
+
+/**
+ * Get's `author` as a string.
+ */
+const getAuthorAsString = ({ author }): string => author;
+
+/**
+ * Get's the `searchQuery` as a string.
+ */
+const getSearchQueryAsString = ({ searchQuery }): string => searchQuery;
+
+/**
+ * Get's the `includeSnipbits` as a string. Will default to `true` unless "false" is passed.
+ */
+const getIncludeSnipbits = ({ includeSnipbits }): boolean => includeSnipbits !== "false";
+
+/**
+ * Get's the `includeBigbits` as a string. Will default to `true` unless "false" is passed.
+ */
+const getIncludeBigbits = ({ includeBigbits }): boolean => includeBigbits !== "false";
+
+/**
+ * Get's the `includeStories` as a bool. Will default to `true` unless "false" is passed.
+ */
+const getIncludeStories = ({ includeStories }): boolean => includeStories !== "false";
+
+/**
+ * Get's the `includeEmptyStories` as a bool. Will default to `false` unless "true" is passed.
+ */
+const getIncludeEmptyStories = ({ includeEmptyStories }): boolean => includeEmptyStories === "true";
+
+/**
+ * Get's the `restrictLanguage` as a string array.
+ */
+const getRestrictLanguage = ({ restrictLanguage }): string[] => {
+  return maybeMap(R.split(","))(restrictLanguage);
+}
+
+/**
+ * For extracting the general search configuration [for `Content`] from the query parameters.
+ */
+const getGeneralContentSearchConfiguration = (queryParams): GeneralSearchConfiguration => {
+  return {
+    includeSnipbits: getIncludeSnipbits(queryParams),
+    includeBigbits: getIncludeBigbits(queryParams),
+    includeStories: getIncludeStories(queryParams)
+  }
+}
+
+/**
+ * For staying DRY while extracting `ContentResultManipulation` from query parameters.
+ */
+const getContentResultManipulationFromQP = ( queryParams ): ContentResultManipulation => {
+  return {
+    sortByLastModified: getSortByLastModifiedAsBoolean(queryParams),
+    sortByTextScore: getSortByTextScoreAsBoolean(queryParams),
+    pageNumber: getPageNumberAsInt(queryParams),
+    pageSize: getPageSizeAsInt(queryParams)
+  }
+}
+
+/**
+ * For staying DRY while extracting `ContentSearchFilter | StorySearchFilter` from query parameters.
+ */
+const getContentSearchFilterFromQP = ( queryParams ): ContentSearchFilter | StorySearchFilter  => {
+  return {
+    author: getAuthorAsString(queryParams),
+    searchQuery: getSearchQueryAsString(queryParams),
+    includeEmptyStories: getIncludeEmptyStories(queryParams),
+    restrictLanguage: getRestrictLanguage(queryParams)
+  }
+}
+
+/**
+ * Metadata the backend uses such as `textScore` need to be stripped prior to sending to the frontend.
+ */
+const removeMetadataForResponse = (obj) => {
+  delete obj.textScore;
+  return obj;
 }

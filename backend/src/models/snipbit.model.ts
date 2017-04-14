@@ -2,10 +2,12 @@
 
 import * as kleen from "kleen";
 import moment from 'moment';
+import R from "ramda";
 
-import { malformedFieldError, isNullOrUndefined } from '../util';
-import { collection, renameIDField, toMongoObjectID } from '../db';
-import { MongoID, MongoObjectID, ErrorCode, Language, TargetID } from '../types';
+import { malformedFieldError, isNullOrUndefined, dropNullAndUndefinedProperties } from '../util';
+import { collection, renameIDField, toMongoObjectID, paginateResults } from '../db';
+import { MongoID, MongoObjectID, ErrorCode, TargetID } from '../types';
+import { ContentSearchFilter, ContentResultManipulation, ContentType, getContent } from "./content.model";
 import { Range, emptyRange } from './range.model';
 import * as KS from './kleen-schemas';
 
@@ -24,7 +26,7 @@ export interface Snipbit {
 
   // Added/modified by the backend.
   id?: MongoID; // When sending to the frontend, we switch `_id` to `id`.
-  language: MongoID; // Backend converts language string to MongoID of language in DB.
+  language: string;
   _id?: MongoID;
   author?: MongoID;
   createdAt?: Date;
@@ -40,18 +42,14 @@ export interface SnipbitHighlightedComment {
 }
 
 /**
- * The search options for getting snipbits from the db.
+ * The search options.
  */
-export interface SnipbitSearchFilter {
-  forUser?: MongoID;
-}
+export interface SnipbitSearchFilter extends ContentSearchFilter { }
 
 /**
- * The internal search filter for querying the DB.
+ * The result manipulation options.
  */
-interface InternalSnipbitSearchFilter {
-  author?: MongoObjectID;
-}
+export interface SnipbitResultManipulation extends ContentResultManipulation { }
 
 /**
 * Kleen schema for a HighlightComment.
@@ -70,7 +68,7 @@ const snipbitSchema: kleen.objectSchema = {
   objectProperties: {
     "language": KS.languageSchema(ErrorCode.snipbitInvalidLanguage),
     "name": KS.nameSchema(ErrorCode.snipbitEmptyName, ErrorCode.snipbitNameTooLong),
-    "description": KS.descriptionSchema(ErrorCode.snipbitEmptyDescription),
+    "description": KS.descriptionSchema(ErrorCode.snipbitEmptyDescription, ErrorCode.snipbitDescriptionTooLong),
     "tags": KS.tagsSchema(ErrorCode.snipbitEmptyTag, ErrorCode.snipbitNoTags),
     "code": KS.codeSchema(ErrorCode.snipbitEmptyCode),
     "introduction": KS.introductionSchema(ErrorCode.snipbitEmptyIntroduction),
@@ -88,71 +86,14 @@ const snipbitSchema: kleen.objectSchema = {
 };
 
 /**
- * Validates a snipbit coming in from the frontend, and
- * updates it to the structure stored on the backend (the language
- * must be switched to the MongoID).
- *
- * NOTE: This function does not attach an author.
- */
-const validifyAndUpdateSnipbit = (snipbit: Snipbit): Promise<Snipbit> => {
-
-  return new Promise<Snipbit>((resolve, reject) => {
-
-    kleen.validModel(snipbitSchema)(snipbit)
-    .then(() => {
-      return collection("languages");
-    })
-    .then((languagesCollection) => {
-      return (languagesCollection.findOne({ encodedName: snipbit.language }) as Promise<Language>);
-    })
-    .then((language: Language) => {
-      if(!language) {
-        reject({
-          errorCode: ErrorCode.snipbitInvalidLanguage,
-          message: `Language ${snipbit.language} is not a valid encoded language.`
-        });
-        return;
-      }
-
-      snipbit.language = language._id;
-      resolve(snipbit);
-      return;
-    })
-    .catch(reject);
-  });
-};
-
-/**
- * Prepares a snipbit for the frontend. This includes renaming the `_id` field
- * as well as switching the language ID with the encoded name.
+ * Prepares a snipbit for the frontend:
+ *   - renaming the `_id` field
  *
  * @WARNING Mutates `snipbit`.
  */
-const prepareSnipbitForResponse = (snipbit: Snipbit): Promise<Snipbit> => {
+const prepareSnipbitForResponse = (snipbit: Snipbit): Snipbit => {
   renameIDField(snipbit);
-
-  return new Promise((resolve, reject) => {
-
-    collection("languages")
-    .then<Language>((languageCollection) => {
-      return languageCollection.findOne({ _id: toMongoObjectID(snipbit.language) });
-    })
-    .then((language) => {
-
-      if(!language) {
-        reject({
-          errorCode: ErrorCode.internalError,
-          message: `Language ID ${snipbit.language} was invalid`
-        });
-        return;
-      }
-
-      // Update language to encoded language name.
-      snipbit.language = language.encodedName;
-      resolve(snipbit);
-    })
-    .catch(reject);
-  });
+  return snipbit;
 };
 
 /**
@@ -161,21 +102,21 @@ const prepareSnipbitForResponse = (snipbit: Snipbit): Promise<Snipbit> => {
 export const snipbitDBActions = {
 
   /**
-   * Adds a new snipbit for a user. Handles all logic of converting snipbits to
-   * proper format (attaching an author, converting languages).
+   * Adds a new snipbit for a user, automatically attaches user as `author`, also adds `createdAt` and `lastModified`.
    */
   addNewSnipbit: (userID: MongoID, snipbit: Snipbit): Promise<TargetID> => {
-    return validifyAndUpdateSnipbit(snipbit)
-    .then((updatedSnipbit: Snipbit) => {
+    return kleen.validModel(snipbitSchema)(snipbit)
+    .then(() => {
       const dateNow = moment.utc().toDate();
+      const validSnipbit = R.clone(snipbit);
 
-      updatedSnipbit.author = userID;
-      updatedSnipbit.createdAt = dateNow;
-      updatedSnipbit.lastModified = dateNow;
+      validSnipbit.author = userID;
+      validSnipbit.createdAt = dateNow;
+      validSnipbit.lastModified = dateNow;
 
       return collection("snipbits")
       .then((snipbitCollection) => {
-        return snipbitCollection.insertOne(updatedSnipbit);
+        return snipbitCollection.insertOne(validSnipbit);
       })
       .then((insertSnipbitResult) => {
         return { targetID: insertSnipbitResult.insertedId };
@@ -184,22 +125,10 @@ export const snipbitDBActions = {
   },
 
   /**
-   * Gets snipbits, customizable through the search filter.
+   * Gets snipbits, customizable through the `SnipbitSearchFilter` and `SnipbitResultManipulation`.
    */
-  getSnipbits: (filter: SnipbitSearchFilter): Promise<Snipbit[]> => {
-    return collection("snipbits")
-    .then((snipbitCollection) => {
-      const mongoSearchFilter: InternalSnipbitSearchFilter = {};
-
-      if(!isNullOrUndefined(filter.forUser)) {
-        mongoSearchFilter.author = toMongoObjectID(filter.forUser);
-      }
-
-      return snipbitCollection.find(mongoSearchFilter).toArray();
-    })
-    .then((snipbits) => {
-      return Promise.all(snipbits.map(prepareSnipbitForResponse));
-    });
+  getSnipbits: (filter: SnipbitSearchFilter, resultManipulation: SnipbitResultManipulation): Promise<Snipbit[]> => {
+    return getContent(ContentType.Snipbit, filter, resultManipulation, prepareSnipbitForResponse);
   },
 
   /**
@@ -220,7 +149,7 @@ export const snipbitDBActions = {
         });
       }
 
-      return prepareSnipbitForResponse(snipbit);
+      return Promise.resolve(prepareSnipbitForResponse(snipbit));
     });
   },
 

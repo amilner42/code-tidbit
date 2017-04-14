@@ -5,6 +5,7 @@ require("./Styles/global.scss");
 require("./Styles/mixins.scss");
 require("./Styles/variables.scss");
 
+require("./Pages/Browse/Styles.scss");
 require("./Pages/Create/Styles.scss");
 require("./Pages/CreateBigbit/Styles.scss");
 require("./Pages/CreateSnipbit/Styles.scss");
@@ -17,6 +18,7 @@ require("./Pages/ViewSnipbit/Styles.scss");
 require("./Pages/ViewStory/Styles.scss");
 require("./Pages/Welcome/Styles.scss");
 
+require("./Elements/ContentBox.scss");
 require("./Elements/Editor.scss");
 require("./Elements/FileStructure.scss");
 require("./Elements/Markdown.scss");
@@ -63,6 +65,30 @@ window.addEventListener('scroll', function(e) {
 // Saves the model to local storage.
 app.ports.saveModelToLocalStorage.subscribe(function(model) {
   localStorage.setItem(modelKey, JSON.stringify(model));
+});
+
+// Expanded/hide the advanced search options.
+app.ports.expandSearchAdvancedOptions.subscribe(function(expand) {
+
+  // If we don't request the animation frame then the port can be triggered before the html is rendered.
+  window.requestAnimationFrame(() => {
+    const subBar = document.querySelector(".sub-bar");
+    const subBarGhost = document.querySelector(".sub-bar-ghost");
+
+    // Element may not be on page.
+    if(subBar && subBarGhost) {
+
+      if(expand) {
+        subBar.classList.add("advanced-options");
+        subBarGhost.classList.add("advanced-options");
+        return;
+      }
+
+      subBar.classList.remove("advanced-options");
+      subBarGhost.classList.remove("advanced-options");
+      return;
+    }
+  });
 });
 
 // Load the model from localStorage and send message to subscription over

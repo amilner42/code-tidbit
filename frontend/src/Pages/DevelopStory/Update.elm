@@ -16,6 +16,9 @@ import Ports
 update : CommonSubPageUtil Model Shared Msg -> Msg -> Model -> Shared -> ( Model, Shared, Cmd Msg )
 update { doNothing, justSetShared, justSetModel, justUpdateModel, justProduceCmd } msg model shared =
     case msg of
+        NoOp ->
+            doNothing
+
         GoTo route ->
             justProduceCmd <| Route.navigateTo route
 
@@ -44,7 +47,7 @@ update { doNothing, justSetShared, justSetModel, justUpdateModel, justProduceCmd
                         , maybeMapWithDefault
                             (\{ id } ->
                                 if Util.isNothing shared.userTidbits then
-                                    Api.getTidbits [ ( "forUser", Just id ) ] OnGetTidbitsFailure OnGetTidbitsSuccess
+                                    Api.getTidbits [ ( "author", Just id ) ] OnGetTidbitsFailure OnGetTidbitsSuccess
                                 else
                                     Cmd.none
                             )
