@@ -65,18 +65,18 @@ update ({ doNothing, justSetShared, justUpdateModel, justSetModel, justProduceCm
             performSearch False ( model, shared )
 
         OnUpdateSearch newSearchQuery ->
-            if String.isEmpty newSearchQuery then
-                common.handleAll
-                    [ (\( model, shared ) ->
-                        ( { model | searchQuery = "" }
-                        , shared
-                        , Cmd.none
-                        )
-                      )
-                    , performSearch True
-                    ]
-            else
-                justSetModel { model | searchQuery = newSearchQuery }
+            common.handleAll
+                [ -- Always update the model.
+                  (\( model, shared ) -> ( { model | searchQuery = newSearchQuery }, shared, Cmd.none ))
+
+                -- Only perform a search automatically if we're back to an empty search query.
+                , (\( chainedModel, chainedShared ) ->
+                    if String.isEmpty newSearchQuery then
+                        performSearch True ( chainedModel, chainedShared )
+                    else
+                        ( chainedModel, chainedShared, Cmd.none )
+                  )
+                ]
 
         Search ->
             performSearch True ( model, shared )
@@ -197,7 +197,9 @@ update ({ doNothing, justSetShared, justUpdateModel, justSetModel, justProduceCm
             if forEmail == (Tuple.first model.contentFilterAuthor) then
                 common.handleAll
                     [ -- We always update the model.
-                      (\( model, shared ) -> justSetModel { model | contentFilterAuthor = newContentFilterAuthor })
+                      (\( model, shared ) ->
+                        ( { model | contentFilterAuthor = newContentFilterAuthor }, shared, Cmd.none )
+                      )
 
                     -- If a valid email has been past then we perform a search (with the user filter).
                     , (\( chainedModel, chainedShared ) ->
@@ -211,10 +213,7 @@ update ({ doNothing, justSetShared, justUpdateModel, justSetModel, justProduceCm
                 doNothing
 
 
-{-| Get's the results for a specific search query.
-
-Updates the model accordingly dependent on whether it is the `initialSearch` and whether the `model.searchQuery` is
-empty.
+{-| Performs a search based on `initialSearch` and the current model, handles updating the model.
 -}
 performSearch : Bool -> ( Model, Shared ) -> ( Model, Shared, Cmd Msg )
 performSearch initialSearch ( model, shared ) =
@@ -291,7 +290,9 @@ getContent queryParams =
 
 
 {-| Checks if this is gauranteed to be the last content by seeing if less than the full page size is being returned from
-the server (for all collections).
+the server (for all collections). But because this does not query the backend and just uses the pageSize, it could
+happen that the backend returns the exact pageSize as the last content, but this function will assume there could be
+more content.
 -}
 isNoMoreContent : Int -> List Content.Content -> Bool
 isNoMoreContent pageSize content =

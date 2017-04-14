@@ -97,14 +97,9 @@ export const contentDBActions = {
       }
     }
 
-    // We don't want to include fields just used on the `StorySearchFilter` for a search on a collection other than the
-    // story collection.
-    const contentSearchFilter = R.clone(searchFilter);
-    delete (contentSearchFilter as StorySearchFilter).includeEmptyStories;
-
     return Promise.all([
-      generalSearchConfig.includeSnipbits ? snipbitDBActions.getSnipbits(contentSearchFilter, resultManipulation) : [],
-      generalSearchConfig.includeBigbits ? bigbitDBActions.getBigbits(contentSearchFilter, resultManipulation) : [],
+      generalSearchConfig.includeSnipbits ? snipbitDBActions.getSnipbits(searchFilter, resultManipulation) : [],
+      generalSearchConfig.includeBigbits ? bigbitDBActions.getBigbits(searchFilter, resultManipulation) : [],
       generalSearchConfig.includeStories ? storyDBActions.getStories(searchFilter, resultManipulation) : []
     ])
     .then<Content[]>(([ snipbits, bigbits, stories ]) => {

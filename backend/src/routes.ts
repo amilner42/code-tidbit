@@ -369,12 +369,12 @@ export const routes: AppRoutes = {
 }
 
 /**
- * Get's `sortByLastModified` from query params as a boolean.
+ * Get's `sortByLastModified` from query params as a boolean. Will default to `false` unless "true" is passed.
  */
 const getSortByLastModifiedAsBoolean = ({ sortByLastModified }): boolean => sortByLastModified === "true";
 
 /**
- * Get's `sortByTextScore` from query params as a boolean.
+ * Get's `sortByTextScore` from query params as a boolean. Will default to `false` unless "true" is passed.
  */
 const getSortByTextScoreAsBoolean = ({ sortByTextScore }): boolean => sortByTextScore === "true";
 

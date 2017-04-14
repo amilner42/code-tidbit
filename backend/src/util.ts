@@ -80,23 +80,6 @@ export const getTime = (date: Date): number => {
 }
 
 /**
- * For getting a number from a orderable-comparison, useful for sorting.
- */
-export const numberFromComparison = <T1>(sortOrder: SortOrder, left: T1, right: T1): number => {
-  let resultNumber;
-
-  if (left < right) {
-    resultNumber = 1;
-  } else if (left > right) {
-    resultNumber = -1;
-  } else {
-    resultNumber = 0;
-  }
-
-  return (sortOrder === SortOrder.Descending) ? resultNumber : resultNumber * -1;
-}
-
-/**
  * The different sort orders.
  */
 export enum SortOrder {
@@ -115,6 +98,22 @@ export type Sorter<T1> = [ SortOrder, (val: T1) => any ];
  * to break ties when needed.
  */
 export const sortByAll = <T1>(sorters: Sorter<T1>[], listOfT1: T1[]) => {
+
+  // For getting a number from an orderable-comparison for sorting.
+  const numberFromComparison = <T1>(sortOrder: SortOrder, left: T1, right: T1): number => {
+    let resultNumber;
+
+    if (left < right) {
+      resultNumber = 1;
+    } else if (left > right) {
+      resultNumber = -1;
+    } else {
+      resultNumber = 0;
+    }
+
+    return (sortOrder === SortOrder.Descending) ? resultNumber : resultNumber * -1;
+  }
+
   return R.sort<T1>((left, right) => {
     let result = 0;
     for (let i = 0; result === 0 && i < sorters.length; i++) {

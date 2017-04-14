@@ -34,8 +34,6 @@ export interface Folder<FolderMetadata, FileMetadata> {
 /**
 * Maps async functions across all 3 levels of metadata, rejects if any promise rejects, othewise succeeds.
 *
-* @NOTE: Returns a new copy, does not modify existing FS.
-*
 * @WARNING: Doesn't do null-checks, expects a valid FS.
 */
 export const metaMap = <a, b, c, a1, b1, c1>
@@ -140,10 +138,10 @@ export const swapPeriodsWithStars = <a,b,c>(goingIntoDB: boolean, fs: FileStruct
 /**
  * Folds over the files.
  */
-export const fileFold =
-  <FileMetadata, ReturnType>( fs: FileStructure<any,any,FileMetadata>,
+export const fileFold = <FileMetadata, ReturnType>
+  ( fs: FileStructure<any,any,FileMetadata>,
     startVal: ReturnType,
-    folderFunction: (fileMetadata: FileMetadata, currentVal: ReturnType) => ReturnType
+    foldFunction: (fileMetadata: FileMetadata, currentVal: ReturnType) => ReturnType
   ): ReturnType => {
 
   const go = (folder: Folder<any,FileMetadata>, startVal: ReturnType): ReturnType => {
@@ -153,7 +151,7 @@ export const fileFold =
     // First go through files.
     for(let file in folder.files) {
       const { content, fileMetadata } = folder.files[file];
-      currentVal = folderFunction(fileMetadata, currentVal);
+      currentVal = foldFunction(fileMetadata, currentVal);
     }
 
     // Then go through folders.

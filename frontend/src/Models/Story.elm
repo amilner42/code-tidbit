@@ -2,6 +2,7 @@ module Models.Story exposing (..)
 
 import Date
 import DefaultServices.Util exposing (maybeMapWithDefault, getAt)
+import Elements.Editor exposing (Language)
 import Models.Route as Route
 import Models.Tidbit as Tidbit
 import Models.TidbitPointer as TidbitPointer
@@ -19,7 +20,7 @@ type alias Story =
     , createdAt : Date.Date
     , lastModified : Date.Date
     , userHasCompleted : Maybe (List Bool)
-    , languages : List String
+    , languages : List Language
     }
 
 

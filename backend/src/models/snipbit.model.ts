@@ -2,6 +2,7 @@
 
 import * as kleen from "kleen";
 import moment from 'moment';
+import R from "ramda";
 
 import { malformedFieldError, isNullOrUndefined, dropNullAndUndefinedProperties } from '../util';
 import { collection, renameIDField, toMongoObjectID, paginateResults } from '../db';
@@ -107,14 +108,15 @@ export const snipbitDBActions = {
     return kleen.validModel(snipbitSchema)(snipbit)
     .then(() => {
       const dateNow = moment.utc().toDate();
+      const validSnipbit = R.clone(snipbit);
 
-      snipbit.author = userID;
-      snipbit.createdAt = dateNow;
-      snipbit.lastModified = dateNow;
+      validSnipbit.author = userID;
+      validSnipbit.createdAt = dateNow;
+      validSnipbit.lastModified = dateNow;
 
       return collection("snipbits")
       .then((snipbitCollection) => {
-        return snipbitCollection.insertOne(snipbit);
+        return snipbitCollection.insertOne(validSnipbit);
       })
       .then((insertSnipbitResult) => {
         return { targetID: insertSnipbitResult.insertedId };
