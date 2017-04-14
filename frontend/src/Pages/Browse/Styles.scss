@@ -94,6 +94,8 @@
                     border: 1px solid $color13;
                     background-color: white;
                     color: $color12;
+                    -moz-appearance:none;
+                    border-radius: 5px;
 
                     &:focus {
                         outline: none;
@@ -262,7 +264,7 @@
             box-sizing: border-box;
             position: relative;
             display: inline-flex;
-            width: 300px;
+            width: 0;
             min-width: 300px;
             max-width: 375px;
             margin: 0 10px 0 10px;
