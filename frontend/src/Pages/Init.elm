@@ -1,5 +1,6 @@
 module Pages.Init exposing (init)
 
+import Flags exposing (Flags)
 import Models.Route as Route
 import Navigation
 import Pages.DefaultModel exposing (..)
@@ -10,8 +11,8 @@ import Pages.Update exposing (..)
 
 {-| `Base` init.
 -}
-init : Navigation.Location -> ( Model, Cmd Msg )
-init location =
+init : Flags -> Navigation.Location -> ( Model, Cmd Msg )
+init flags location =
     let
         route =
             Maybe.withDefault
@@ -24,6 +25,7 @@ init location =
                 | shared =
                     { defaultShared
                         | route = route
+                        , flags = flags
                     }
             }
     in

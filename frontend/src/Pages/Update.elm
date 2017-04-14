@@ -59,6 +59,12 @@ updateCacheIf msg model shouldCache =
         shared =
             model.shared
 
+        api =
+            Api.api shared.flags.apiBaseUrl
+
+        getUser () =
+            api.get.account OnGetUserFailure OnGetUserSuccess
+
         doNothing =
             ( model, Cmd.none )
 
@@ -559,13 +565,6 @@ handleKeyPress model =
 handleKeyRelease : KK.Key -> Model -> ( Model, Cmd Msg )
 handleKeyRelease releasedKey model =
     ( model, Cmd.none )
-
-
-{-| Gets the user from the API.
--}
-getUser : () -> Cmd Msg
-getUser () =
-    Api.getAccount OnGetUserFailure OnGetUserSuccess
 
 
 {-| Updates the model `route` field when the route is updated. This function handles the cases where the user is logged

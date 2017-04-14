@@ -14,7 +14,7 @@ import Ports
 {-| `Browse` update.
 -}
 update : CommonSubPageUtil Model Shared Msg -> Msg -> Model -> Shared -> ( Model, Shared, Cmd Msg )
-update ({ doNothing, justSetShared, justUpdateModel, justSetModel, justProduceCmd } as common) msg model shared =
+update ({ doNothing, justSetShared, justUpdateModel, justSetModel, justProduceCmd, api } as common) msg model shared =
     case msg of
         NoOp ->
             doNothing
@@ -183,7 +183,7 @@ update ({ doNothing, justSetShared, justUpdateModel, justSetModel, justProduceCm
                     else
                         ( chainedModel
                         , chainedShared
-                        , Api.getUserExistsWrapper newAuthorInput OnGetUserExistsFailure OnGetUserExistsSuccess
+                        , api.get.userExistsWrapper newAuthorInput OnGetUserExistsFailure OnGetUserExistsSuccess
                         )
                   )
                 ]
@@ -218,6 +218,14 @@ update ({ doNothing, justSetShared, justUpdateModel, justSetModel, justProduceCm
 performSearch : Bool -> ( Model, Shared ) -> ( Model, Shared, Cmd Msg )
 performSearch initialSearch ( model, shared ) =
     let
+        api =
+            Api.api shared.flags.apiBaseUrl
+
+        {- Get's the content with specific query params. -}
+        getContent : List ( String, Maybe String ) -> Cmd Msg
+        getContent queryParams =
+            api.get.content queryParams OnGetContentFailure OnGetContentSuccess
+
         toJSBool bool =
             if bool then
                 "true"
@@ -280,13 +288,6 @@ performSearch initialSearch ( model, shared ) =
                          )
                        ]
             )
-
-
-{-| Get's the content with specific query params.
--}
-getContent : List ( String, Maybe String ) -> Cmd Msg
-getContent queryParams =
-    Api.getContent queryParams OnGetContentFailure OnGetContentSuccess
 
 
 {-| Checks if this is gauranteed to be the last content by seeing if less than the full page size is being returned from

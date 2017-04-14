@@ -2,6 +2,7 @@ module Pages.JSON exposing (..)
 
 import DefaultServices.Util exposing (justValueOrNull)
 import Elements.Editor as Editor
+import JSON.Flags
 import JSON.Route
 import JSON.Story
 import JSON.Tidbit
@@ -73,6 +74,7 @@ sharedEncoder shared =
         , ( "userStories", Encode.null )
         , ( "userTidbits", Encode.null )
         , ( "viewingStory", Encode.null )
+        , ( "flags", JSON.Flags.encoder shared.flags )
         ]
 
 
@@ -88,3 +90,4 @@ sharedDecoder =
         |> hardcoded Nothing
         |> hardcoded Nothing
         |> hardcoded Nothing
+        |> required "flags" JSON.Flags.decoder

@@ -1,6 +1,5 @@
 module Pages.Welcome.Update exposing (update)
 
-import Api
 import DefaultServices.CommonSubPageUtil exposing (CommonSubPageUtil)
 import Models.ApiError as ApiError
 import Models.Route as Route
@@ -13,7 +12,7 @@ import Pages.Welcome.Model exposing (..)
 {-| `Welcome` update.
 -}
 update : CommonSubPageUtil Model Shared Msg -> Msg -> Model -> Shared -> ( Model, Shared, Cmd Msg )
-update { justSetModel, justProduceCmd } msg model shared =
+update { justSetModel, justProduceCmd, api } msg model shared =
     case msg of
         -- On top of going to a route, wipes the errors on the welcome page.
         GoTo route ->
@@ -34,7 +33,7 @@ update { justSetModel, justProduceCmd } msg model shared =
         Register ->
             if model.password == model.confirmPassword then
                 justProduceCmd <|
-                    Api.postRegister
+                    api.post.register
                         { name = model.name
                         , email = model.email
                         , password = model.password
@@ -53,7 +52,7 @@ update { justSetModel, justProduceCmd } msg model shared =
 
         Login ->
             justProduceCmd <|
-                Api.postLogin { email = model.email, password = model.password } OnLoginFailure OnLoginSuccess
+                api.post.login { email = model.email, password = model.password } OnLoginFailure OnLoginSuccess
 
         OnLoginSuccess newUser ->
             ( init, { shared | user = Just newUser }, Route.navigateTo Route.BrowsePage )

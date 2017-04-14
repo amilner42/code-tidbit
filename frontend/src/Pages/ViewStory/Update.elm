@@ -12,6 +12,9 @@ import Ports
 update : Msg -> Shared -> ( Shared, Cmd Msg )
 update msg shared =
     let
+        api =
+            Api.api shared.flags.apiBaseUrl
+
         doNothing =
             ( shared, Cmd.none )
 
@@ -32,7 +35,7 @@ update msg shared =
                         ( { shared | viewingStory = Nothing }
                         , Cmd.batch
                             [ Ports.smoothScrollToSubBar
-                            , Api.getExpandedStoryWithCompleted
+                            , api.get.expandedStoryWithCompleted
                                 mongoID
                                 OnGetExpandedStoryFailure
                                 OnGetExpandedStorySuccess

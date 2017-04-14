@@ -1,6 +1,5 @@
 module Pages.ViewBigbit.Update exposing (..)
 
-import Api
 import Array
 import DefaultServices.CommonSubPageUtil exposing (CommonSubPageUtil)
 import DefaultServices.Util as Util exposing (maybeMapWithDefault)
@@ -22,7 +21,7 @@ import Ports
 {-| `ViewBigbit` update.
 -}
 update : CommonSubPageUtil Model Shared Msg -> Msg -> Model -> Shared -> ( Model, Shared, Cmd Msg )
-update ({ doNothing, justSetModel, justUpdateModel, justSetShared, justProduceCmd } as common) msg model shared =
+update ({ doNothing, justSetModel, justUpdateModel, justSetShared, justProduceCmd, api } as common) msg model shared =
     case msg of
         NoOp ->
             doNothing
@@ -54,7 +53,7 @@ update ({ doNothing, justSetModel, justUpdateModel, justSetShared, justProduceCm
                                 getBigbit mongoID =
                                     ( setBigbit Nothing model
                                     , shared
-                                    , Api.getBigbit mongoID OnGetBigbitFailure OnGetBigbitSuccess
+                                    , api.get.bigbit mongoID OnGetBigbitFailure OnGetBigbitSuccess
                                     )
                             in
                                 case model.bigbit of
@@ -80,7 +79,7 @@ update ({ doNothing, justSetModel, justUpdateModel, justSetShared, justProduceCm
                                 getBigbitIsCompleted userID =
                                     ( setIsCompleted Nothing model
                                     , shared
-                                    , Api.postCheckCompletedWrapper
+                                    , api.post.checkCompletedWrapper
                                         (Completed.Completed currentTidbitPointer userID)
                                         OnGetCompletedFailure
                                         OnGetCompletedSuccess
@@ -108,7 +107,7 @@ update ({ doNothing, justSetModel, justUpdateModel, justSetShared, justProduceCm
                                     Maybe.map .id shared.viewingStory
 
                                 getStory storyID =
-                                    Api.getExpandedStoryWithCompleted
+                                    api.get.expandedStoryWithCompleted
                                         storyID
                                         OnGetExpandedStoryFailure
                                         OnGetExpandedStorySuccess
@@ -152,7 +151,7 @@ update ({ doNothing, justSetModel, justUpdateModel, justSetShared, justProduceCm
                                                 Completed.completedFromIsCompleted isCompleted user.id
                                         in
                                             if isCompleted.complete == False then
-                                                Api.postAddCompletedWrapper
+                                                api.post.addCompletedWrapper
                                                     completed
                                                     OnMarkAsCompleteFailure
                                                     OnMarkAsCompleteSuccess
@@ -335,7 +334,7 @@ update ({ doNothing, justSetModel, justUpdateModel, justSetShared, justProduceCm
 
         MarkAsComplete completed ->
             justProduceCmd <|
-                Api.postAddCompletedWrapper
+                api.post.addCompletedWrapper
                     completed
                     OnMarkAsCompleteFailure
                     OnMarkAsCompleteSuccess
@@ -349,7 +348,7 @@ update ({ doNothing, justSetModel, justUpdateModel, justSetShared, justProduceCm
 
         MarkAsIncomplete completed ->
             justProduceCmd <|
-                Api.postRemoveCompletedWrapper
+                api.post.removeCompletedWrapper
                     completed
                     OnMarkAsIncompleteFailure
                     OnMarkAsIncompleteSuccess

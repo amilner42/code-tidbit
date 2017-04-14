@@ -183,6 +183,7 @@ const createExpressServer = () => {
     }, toPairs<string, Handler>(handlers));
   }, toPairs<string, { [methodType: string]: Handler; }>(routes));
 
+  // TODO We don't want to serve this up in production mode (files served statically).
   // Because of html 5 routing we meed to pass the `index.html` in the case that
   // they directly go to a route (such as `domainName.com/route/<some-param>`)
   // instead of going to `domainName.com`

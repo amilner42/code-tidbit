@@ -1,6 +1,5 @@
 module Pages.CreateBigbit.Update exposing (..)
 
-import Api
 import Array
 import DefaultServices.CommonSubPageUtil exposing (CommonSubPageUtil, commonSubPageUtil)
 import DefaultServices.Util as Util exposing (maybeMapWithDefault, togglePreviewMarkdown)
@@ -21,7 +20,7 @@ import Ports
 {-| `CreateBigbit` update.
 -}
 update : CommonSubPageUtil Model Shared Msg -> Msg -> Model -> Shared -> ( Model, Shared, Cmd Msg )
-update { doNothing, justSetModel, justUpdateModel, justUpdateShared, justProduceCmd, withCmd } msg model shared =
+update { doNothing, justSetModel, justUpdateModel, justUpdateShared, justProduceCmd, withCmd, api } msg model shared =
     let
         currentBigbitHighlightedComments =
             model.highlightedComments
@@ -628,7 +627,7 @@ update { doNothing, justSetModel, justUpdateModel, justUpdateShared, justProduce
                     ( newModel, shared, newCmd )
 
             Publish bigbit ->
-                justProduceCmd <| Api.postCreateBigbit bigbit OnPublishFailure OnPublishSuccess
+                justProduceCmd <| api.post.createBigbit bigbit OnPublishFailure OnPublishSuccess
 
             OnPublishSuccess { targetID } ->
                 ( init

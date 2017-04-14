@@ -1,6 +1,7 @@
 module Pages.Model exposing (..)
 
 import Elements.Editor as Editor
+import Flags exposing (Flags)
 import Keyboard.Extra as KK
 import Models.Route as Route
 import Models.Story as Story
@@ -50,6 +51,7 @@ type alias Shared =
     , userStories : Maybe (List Story.Story)
     , userTidbits : Maybe (List Tidbit.Tidbit)
     , viewingStory : Maybe Story.ExpandedStory
+    , flags : Flags
     }
 
 

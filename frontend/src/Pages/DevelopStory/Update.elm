@@ -1,6 +1,5 @@
 module Pages.DevelopStory.Update exposing (..)
 
-import Api
 import DefaultServices.CommonSubPageUtil exposing (CommonSubPageUtil)
 import DefaultServices.Util as Util exposing (maybeMapWithDefault)
 import Models.Route as Route
@@ -14,7 +13,7 @@ import Ports
 {-| `DevelopStory` update.
 -}
 update : CommonSubPageUtil Model Shared Msg -> Msg -> Model -> Shared -> ( Model, Shared, Cmd Msg )
-update { doNothing, justSetShared, justSetModel, justUpdateModel, justProduceCmd } msg model shared =
+update { doNothing, justSetShared, justSetModel, justUpdateModel, justProduceCmd, api } msg model shared =
     case msg of
         NoOp ->
             doNothing
@@ -43,11 +42,11 @@ update { doNothing, justSetShared, justSetModel, justUpdateModel, justProduceCmd
                       }
                     , shared
                     , Cmd.batch
-                        [ Api.getExpandedStory storyID OnGetStoryFailure OnGetStorySuccess
+                        [ api.get.expandedStory storyID OnGetStoryFailure OnGetStorySuccess
                         , maybeMapWithDefault
                             (\{ id } ->
                                 if Util.isNothing shared.userTidbits then
-                                    Api.getTidbits [ ( "author", Just id ) ] OnGetTidbitsFailure OnGetTidbitsSuccess
+                                    api.get.tidbits [ ( "author", Just id ) ] OnGetTidbitsFailure OnGetTidbitsSuccess
                                 else
                                     Cmd.none
                             )
@@ -93,7 +92,7 @@ update { doNothing, justSetShared, justSetModel, justUpdateModel, justProduceCmd
         PublishAddedTidbits storyID tidbits ->
             if List.length tidbits > 0 then
                 justProduceCmd <|
-                    Api.postAddTidbitsToStory
+                    api.post.addTidbitsToStory
                         storyID
                         (List.map Tidbit.compressTidbit tidbits)
                         OnPublishAddedTidbitsFailure
