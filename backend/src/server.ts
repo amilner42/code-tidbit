@@ -163,10 +163,6 @@ const createExpressServer = () => {
     name: APP_CONFIG.sessionCookieName
   }));
 
-  // This should be after `server.use(expressSession...`, or too many sessions
-  // may be created!
-  server.use(express.static('./frontend/dist'));
-
   // Set up passport middleware.
   setUpPassport();
 
@@ -183,15 +179,21 @@ const createExpressServer = () => {
     }, toPairs<string, Handler>(handlers));
   }, toPairs<string, { [methodType: string]: Handler; }>(routes));
 
-  // TODO We don't want to serve this up in production mode (files served statically).
-  // Because of html 5 routing we meed to pass the `index.html` in the case that
-  // they directly go to a route (such as `domainName.com/route/<some-param>`)
-  // instead of going to `domainName.com`
-  server.get('*', (req, res) => {
-    res.status(200).sendFile(
-      path.resolve(__dirname + '/../../../frontend/dist/index.html')
-    );
-  });
+  // This should be after `server.use(expressSession...`, or too many sessions may be created! This should also be
+  // after adding all the API routes.
+  if(APP_CONFIG.mode === "dev") {
+    console.log("Serving frontend through the backend...");
+    server.use(express.static('./frontend/dist'));
+    // If it's in `dev` mode then we just serve the files directly by the backend.
+    // Because of html 5 routing we meed to pass the `index.html` in the case that
+    // they directly go to a route (such as `domainName.com/route/<some-param>`)
+    // instead of going to `domainName.com`
+    server.get('*', (req, res) => {
+      res.status(200).sendFile(
+        path.resolve(__dirname + '/../../../frontend/dist/index.html')
+      );
+    });
+  }
 
   return server;
 }
