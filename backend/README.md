@@ -35,8 +35,7 @@ runtime validation library that can be found
     you should try to avoid putting a lot of logic in this file, simply put the
     routes (otherwise this file bloats).
 - server.ts
-  - Does all the configuration to get our express server up and running,
-    including setting up the hosting for our static frontend.
+  - Does all the configuration to get our express server up and running.
 - types.ts
   - As recommend by basarat (the typescript guy) it is nice to have a file
     where all your types live. It makes it easy to build more complex types

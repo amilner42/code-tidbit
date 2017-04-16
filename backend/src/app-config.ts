@@ -96,7 +96,7 @@ const defaultDevelopmentConfig: AppConfig = {
   sessionDuration: 1000 * 60 * 60 * 24 * 365 * 10,
   sessionCookieName: "CodeTidbit",
   dbUrl: "mongodb://localhost:27017/CodeTidbit",
-  port: 3000,
+  port: 3001,
   isHttps: false
 };
 

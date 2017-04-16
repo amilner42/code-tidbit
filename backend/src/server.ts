@@ -139,14 +139,22 @@ const createExpressServer = () => {
   // Parse requests as JSON, available on `req.body`.
   server.use(bodyParser.json());
 
-  // TODO do we even want to allow cross domain requests.
-  // Allow cross domain requests.
+  // Allow cross domain requests from the frontend: `http://localhost:3000` in dev and `http://codetidbit.com` in prod.
   server.use(function allowCrossDomain(req, res, next) {
-    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Credentials', "true");
+    switch(APP_CONFIG.mode) {
+      case "dev":
+        res.header('Access-Control-Allow-Origin', 'http://localhost:3000');
+        break;
+
+      case "prod":
+        res.header('Access-Control-Allow-Origin', 'http://codetidbit.com');
+        break;
+    }
     res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
     res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
     // intercept OPTIONS method
-    ('OPTIONS' === req.method) ? res.send(200) : next();
+    ('OPTIONS' === req.method) ? res.sendStatus(200) : next();
   });
 
   // Use `expressSession` to handle storing the cookies which we send to the
@@ -178,22 +186,6 @@ const createExpressServer = () => {
       }
     }, toPairs<string, Handler>(handlers));
   }, toPairs<string, { [methodType: string]: Handler; }>(routes));
-
-  // This should be after `server.use(expressSession...`, or too many sessions may be created! This should also be
-  // after adding all the API routes.
-  if(APP_CONFIG.mode === "dev") {
-    console.log("Serving frontend through the backend...");
-    server.use(express.static('./frontend/dist'));
-    // If it's in `dev` mode then we just serve the files directly by the backend.
-    // Because of html 5 routing we meed to pass the `index.html` in the case that
-    // they directly go to a route (such as `domainName.com/route/<some-param>`)
-    // instead of going to `domainName.com`
-    server.get('*', (req, res) => {
-      res.status(200).sendFile(
-        path.resolve(__dirname + '/../../../frontend/dist/index.html')
-      );
-    });
-  }
 
   return server;
 }

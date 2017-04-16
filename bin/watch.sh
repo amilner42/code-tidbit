@@ -12,21 +12,15 @@ BACKEND_TSC_COMPILE_SECONDS=5;
 # Watches all the files while you develop, building both the frontend and
 # backend into `frontend/dist` and `backend/lib` respectively.
 
-echo "========================================================"
-echo "STARTING TASK: CD into top directory"
-echo "========================================================"
 cd "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"/../;
-echo "========================================================"
-echo "COMPLETE TASK"
-echo "========================================================"
 
 . ./bin/helper-scripts/set-node-module-paths.sh;
 
 echo "========================================================"
-echo "STARTING BACKGROUND TASK: Watch Frontend"
+echo "STARTING BACKGROUND TASK: Watch and Host Frontend"
 echo "========================================================"
 cd frontend;
-"$FRONTEND_NODE_MODULES_BIN"/webpack --watch &
+"$FRONTEND_NODE_MODULES_BIN"/webpack-dev-server --colors --watch &
 pid[0]=$!;
 cd -;
 

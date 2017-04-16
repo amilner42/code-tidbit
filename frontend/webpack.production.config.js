@@ -50,15 +50,8 @@ module.exports = {
        { from: 'assets/', to: 'assets/'}
     ]),
     new webpack.DefinePlugin({
-        __WEBPACK_CONSTANT_API_BASE_URL__: JSON.stringify("http://localhost:3001/api/")
+        __WEBPACK_CONSTANT_API_BASE_URL__: JSON.stringify("http://api.codetidbit.com/")
     })
-  ],
-
-  devServer: {
-    contentBase: path.join(__dirname, "dist"),
-    inline: true,
-    stats: { colors: true },
-    port: 3000
-  },
+  ]
 
 };

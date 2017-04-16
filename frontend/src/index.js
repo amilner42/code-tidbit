@@ -29,8 +29,7 @@ require("./Elements/Tags.scss");
 require('./index.html');
 var AceRange = ace.require('ace/range').Range;
 
-// TODO Hook up to webpack so prod mode can specify "api.codetidbit.com"
-var flags = { apiBaseUrl: "api/" };
+var flags = { apiBaseUrl: __WEBPACK_CONSTANT_API_BASE_URL__ };
 
 var Elm = require('./Main.elm');
 var mountNode = document.getElementById('main');
