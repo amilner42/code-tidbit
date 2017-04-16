@@ -14,7 +14,13 @@
   "bugs": {
     "url": "https://github.com/amilner42/meen-kickstarter/issues"
   },
-  "scripts": {},
+  "scripts": {
+    "install": "elm-package install -y;",
+    "build:dev": "webpack;",
+    "build:prod": "webpack --config webpack.production.config.js;",
+    "watch": "webpack --colors --watch",
+    "start": "webpack-dev-server --colors --watch"
+  },
   "homepage": "https://github.com/amilner42/meen-kickstarter",
   "dependencies": {
     "highlightjs": "^9.8.0"

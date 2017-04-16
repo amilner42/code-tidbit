@@ -11,6 +11,13 @@
   "build": {
     "port": 3000
   },
+  "scripts": {
+    "install": "typings install;",
+    "build": "tsc; babel . --out-dir lib --source-maps --ignore lib,node_modules;",
+    "test": "npm run build; mocha lib/tests;",
+    "watch": "concurrently -p name --names TSC,BABEL --prefix-colors yellow,blue --kill-others \"tsc --project tsconfig.json --watch\" \"babel . --watch --out-dir ./lib --source-maps --ignore lib,node_modules\"",
+    "start": "concurrently --raw --kill-others \"npm run watch\" \"node lib/src/main.js\""
+  },
   "author": "Arie Milner",
   "license": "MIT",
   "dependencies": {
@@ -34,6 +41,7 @@
   "devDependencies": {
     "babel-cli": "^6.10.1",
     "babel-preset-es2015": "^6.9.0",
+    "concurrently": "^3.4.0",
     "mocha": "^3.0.2",
     "nodemon": "^1.11.0",
     "typescript": "^2.3.0-dev.20170318",

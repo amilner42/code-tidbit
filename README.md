@@ -14,14 +14,32 @@ You don't _need_ these versions, but it's more likely to work properly if at lea
 
 ##### Project Dependencies
 
-Once you have those local dependencies, simply run `./bin/install.sh` to install all node/elm modules as well as
-typings...that's it!
+```bash
+# Npm install has hooks to install extra dependencies (elm packages + typings).
+codetidbit: cd backend;
+backend: npm install;
+backend: cd ../frontend;
+frontend: npm install;
+```
 
 ### Developing
 
-To develop run `./bin/dev.sh` which will compile and run your backend express server as well as compiling your frontend
-and hosting it through webpack with `devServer`. This **will** live-reload your webapp, and we cache the frontend
-application state, so it ends up _basically_ hot-reloading.
+Currently everything works though npm scripts. It's best to use 2 terminals when developing, one for the frontend and
+one for the backend (this keeps STDOUT less jumbled).
+
+Terminal 1
+```bash
+# This will watch for changes, TODO set up live-reload.
+cd backend;
+npm start;
+```
+
+Terminal 2
+```bash
+# This will watch for changes and live-reload the browser.
+cd frontend;
+npm start;
+```
 
 ##### IDE
 
@@ -45,9 +63,8 @@ and then just call it in prod mode with the required flags.
 
 ```bash
 # Note that you must be in the `backend` directory when building the backend.
-backend: ./node_modules/.bin/tsc
-backend: ./node_modules/.bin/babel . --out-dir dist --source-maps --ignore lib,node_modules;
-backend: node ./dist/src/main.js --mode=prod --is-https=false --port=80 --db-url="<mongodb-url>" --session-secret-key=dev-secret-key
+backend: npm run build;
+backend: node ./lib/src/main.js --mode=prod --is-https=... --port=... --db-url=... --session-secret-key=...
 ```
 
 It will throw an error if you forget to pass the required flags and you ran in "prod" mode.
@@ -59,7 +76,7 @@ The frontend needs to be compiled to static files so it builds to different targ
 
 ```bash
 # Note that you must be in the `frontend` directory when you build the frontend.
-frontend: ./node_modules/.bin/webpack --config webpack.production.config.js
+frontend: npm run build:prod;
 ```
 
 ### Project File Structure
@@ -67,7 +84,7 @@ frontend: ./node_modules/.bin/webpack --config webpack.production.config.js
 Let's keep it simple...
   - frontend in `/frontend`
   - backend in `/backend`
-  - tooling scripts in `/bin`
+  - bash tooling scripts in `/bin`
 
 As well, the [frontend README](/frontend/README.md) and the [backend README](/backend/README.md) each have a segment on
 their file structure.
