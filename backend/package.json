@@ -16,7 +16,7 @@
     "build": "tsc; babel . --out-dir lib --source-maps --ignore lib,node_modules;",
     "test": "npm run build; mocha lib/tests;",
     "watch": "concurrently -p name --names TSC,BABEL --prefix-colors yellow,blue --kill-others \"tsc --project tsconfig.json --watch\" \"babel . --watch --out-dir ./lib --source-maps --ignore lib,node_modules\"",
-    "start": "concurrently --raw --kill-others \"npm run watch\" \"node lib/src/main.js\""
+    "start": "concurrently --raw --kill-others \"npm run watch\" \"nodemon --ignore ./src --delay 1 lib/src/main.js\""
   },
   "author": "Arie Milner",
   "license": "MIT",

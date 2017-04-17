@@ -29,7 +29,7 @@ one for the backend (this keeps STDOUT less jumbled).
 
 Terminal 1
 ```bash
-# This will watch for changes, TODO set up live-reload.
+# This will watch for changes and restart the server automatically.
 cd backend;
 npm start;
 ```
