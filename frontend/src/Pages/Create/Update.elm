@@ -1,6 +1,5 @@
 module Pages.Create.Update exposing (..)
 
-import Api
 import DefaultServices.CommonSubPageUtil exposing (CommonSubPageUtil)
 import DefaultServices.Util as Util
 import Models.Route as Route
@@ -12,7 +11,7 @@ import Pages.Model exposing (Shared)
 {-| `Create` update.
 -}
 update : CommonSubPageUtil Model Shared Msg -> Msg -> Model -> Shared -> ( Model, Shared, Cmd Msg )
-update { doNothing, justSetShared, justUpdateModel, justProduceCmd } msg model shared =
+update { doNothing, justSetShared, justUpdateModel, justProduceCmd, api } msg model shared =
     case msg of
         GoTo route ->
             justProduceCmd <| Route.navigateTo route
@@ -25,7 +24,7 @@ update { doNothing, justSetShared, justUpdateModel, justProduceCmd } msg model s
                         (\{ id } ->
                             if Util.isNothing shared.userStories then
                                 justProduceCmd <|
-                                    Api.getStories
+                                    api.get.stories
                                         [ ( "author", Just id ), ( "includeEmptyStories", Just "true" ) ]
                                         OnGetAccountStoriesFailure
                                         OnGetAccountStoriesSuccess

@@ -1,6 +1,5 @@
 module Pages.NewStory.Update exposing (..)
 
-import Api
 import DefaultServices.CommonSubPageUtil exposing (CommonSubPageUtil)
 import DefaultServices.Util as Util
 import Models.Route as Route
@@ -14,7 +13,7 @@ import Pages.NewStory.Model exposing (..)
 {-| `NewStory` update.
 -}
 update : CommonSubPageUtil Model Shared Msg -> Msg -> Model -> Shared -> ( Model, Shared, Cmd Msg )
-update { doNothing, justUpdateModel, justProduceCmd } msg model shared =
+update { doNothing, justUpdateModel, justProduceCmd, api } msg model shared =
     case msg of
         NoOp ->
             doNothing
@@ -43,7 +42,7 @@ update { doNothing, justUpdateModel, justProduceCmd } msg model shared =
                                 , shared
                                 , Cmd.batch
                                     [ Util.domFocus (\_ -> NoOp) theID
-                                    , Api.getStory storyID OnGetEditingStoryFailure OnGetEditingStorySuccess
+                                    , api.get.story storyID OnGetEditingStoryFailure OnGetEditingStorySuccess
                                     ]
                                 )
             in
@@ -123,7 +122,7 @@ update { doNothing, justUpdateModel, justProduceCmd } msg model shared =
         Publish ->
             if newStoryDataReadyForPublication model then
                 justProduceCmd <|
-                    Api.postCreateNewStory
+                    api.post.createNewStory
                         model.newStory
                         OnPublishFailure
                         OnPublishSuccess
@@ -158,7 +157,7 @@ update { doNothing, justUpdateModel, justProduceCmd } msg model shared =
                     }
             in
                 justProduceCmd <|
-                    Api.postUpdateStoryInformation
+                    api.post.updateStoryInformation
                         storyID
                         editingStoryInformation
                         OnSaveEditsFailure

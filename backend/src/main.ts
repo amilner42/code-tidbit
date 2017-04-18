@@ -7,4 +7,4 @@ import { APP_CONFIG } from './app-config';
 
 
 server.listen(APP_CONFIG.port);
-console.log(`Running app on port ${APP_CONFIG.port}`);
+console.log(`Running API on port ${APP_CONFIG.port} in ${APP_CONFIG.mode.toUpperCase()} mode`);

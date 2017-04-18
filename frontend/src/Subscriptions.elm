@@ -14,7 +14,7 @@ import Ports
 subscriptions : Model -> Sub Pages.Messages.Msg
 subscriptions model =
     Sub.batch
-        [ Ports.onLoadModelFromLocalStorage LocalStorage.onLoadModel
+        [ Ports.onLoadModelFromLocalStorage (LocalStorage.onLoadModel model)
         , Ports.onCodeEditorUpdate CodeEditorUpdate
         , Ports.onCodeEditorSelectionUpdate CodeEditorSelectionUpdate
         , Sub.map (CreateSnipbitMessage << OnUpdateACState) AC.subscription

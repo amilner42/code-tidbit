@@ -29,9 +29,11 @@ require("./Elements/Tags.scss");
 require('./index.html');
 var AceRange = ace.require('ace/range').Range;
 
+var flags = { apiBaseUrl: __WEBPACK_CONSTANT_API_BASE_URL__ };
+
 var Elm = require('./Main.elm');
 var mountNode = document.getElementById('main');
-var app = Elm.Main.embed(mountNode); // The third value on embed are the initial values for incomming ports into Elm
+var app = Elm.Main.embed(mountNode, flags);
 var modelKey = "model"; // The key for the model in localStorage.
 var aceCodeEditors = {}; // Dictionary, id names mapped to ace editors.
 var aceCodeEditorsUndoManager = {}; // Stores the undoManager for editors.

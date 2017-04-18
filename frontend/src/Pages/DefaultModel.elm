@@ -1,6 +1,7 @@
 module Pages.DefaultModel exposing (..)
 
 import Elements.Editor as Editor
+import Flags exposing (blankFlags)
 import Keyboard.Extra as KK
 import Models.Route as Route
 import Pages.Browse.Init as BrowseInit
@@ -48,4 +49,5 @@ defaultShared =
     , userStories = Nothing
     , userTidbits = Nothing
     , viewingStory = Nothing
+    , flags = blankFlags
     }

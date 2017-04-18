@@ -45,10 +45,10 @@ encoder model =
 
 {-| `Base` decoder.
 -}
-decoder : Decode.Decoder Model
-decoder =
+decoder : Model -> Decode.Decoder Model
+decoder model =
     decode Model
-        |> required "shared" sharedDecoder
+        |> required "shared" (sharedDecoder model.shared)
         |> required "welcomePage" (WelcomeJSON.decoder)
         |> required "viewSnipbitPage" ViewSnipbitJSON.decoder
         |> required "viewBigbitPage" ViewBigbitJSON.decoder
@@ -73,13 +73,14 @@ sharedEncoder shared =
         , ( "userStories", Encode.null )
         , ( "userTidbits", Encode.null )
         , ( "viewingStory", Encode.null )
+        , ( "flags", Encode.null )
         ]
 
 
 {-| `Shared` decoder.
 -}
-sharedDecoder : Decode.Decoder Shared
-sharedDecoder =
+sharedDecoder : Shared -> Decode.Decoder Shared
+sharedDecoder shared =
     decode Shared
         |> required "user" (Decode.maybe JSON.User.decoder)
         |> required "route" JSON.Route.decoder
@@ -88,3 +89,4 @@ sharedDecoder =
         |> hardcoded Nothing
         |> hardcoded Nothing
         |> hardcoded Nothing
+        |> required "flags" (Decode.succeed shared.flags)

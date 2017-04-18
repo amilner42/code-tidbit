@@ -1,6 +1,5 @@
 module Pages.Profile.Update exposing (..)
 
-import Api
 import DefaultServices.CommonSubPageUtil exposing (CommonSubPageUtil)
 import DefaultServices.Editable as Editable
 import Models.Route as Route
@@ -13,7 +12,7 @@ import Pages.Profile.Model exposing (..)
 {-| `Profile` update.
 -}
 update : CommonSubPageUtil Model Shared Msg -> Msg -> Model -> Shared -> ( Model, Shared, Cmd Msg )
-update { doNothing, justSetModel, justUpdateModel, justProduceCmd } msg model shared =
+update { doNothing, justSetModel, justUpdateModel, justProduceCmd, api } msg model shared =
     case msg of
         OnEditName originalName newName ->
             justUpdateModel <| setName originalName newName
@@ -28,7 +27,7 @@ update { doNothing, justSetModel, justUpdateModel, justProduceCmd } msg model sh
 
                 Just editableName ->
                     justProduceCmd <|
-                        Api.postUpdateUser
+                        api.post.updateUser
                             { defaultUserUpdateRecord | name = Just <| Editable.getBuffer editableName }
                             OnSaveEditedNameFailure
                             OnSaveEditedNameSuccess
@@ -56,7 +55,7 @@ update { doNothing, justSetModel, justUpdateModel, justProduceCmd } msg model sh
 
                 Just editableBio ->
                     justProduceCmd <|
-                        Api.postUpdateUser
+                        api.post.updateUser
                             { defaultUserUpdateRecord | bio = Just <| Editable.getBuffer editableBio }
                             OnSaveBioEditedFailure
                             OnSaveEditedBioSuccess
@@ -72,7 +71,7 @@ update { doNothing, justSetModel, justUpdateModel, justProduceCmd } msg model sh
             doNothing
 
         LogOut ->
-            justProduceCmd <| Api.getLogOut OnLogOutFailure OnLogOutSuccess
+            justProduceCmd <| api.get.logOut OnLogOutFailure OnLogOutSuccess
 
         OnLogOutSuccess basicResponse ->
             -- The base update will check for this message and reset the entire model.

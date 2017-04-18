@@ -1,6 +1,5 @@
 module Pages.CreateSnipbit.Update exposing (..)
 
-import Api
 import Array
 import Autocomplete as AC
 import DefaultServices.ArrayExtra as ArrayExtra
@@ -22,7 +21,7 @@ import Ports
 {-| `CreateSnipbit` update.
 -}
 update : CommonSubPageUtil Model Shared Msg -> Msg -> Model -> Shared -> ( Model, Shared, Cmd Msg )
-update { doNothing, justSetModel, justProduceCmd } msg model shared =
+update { doNothing, justSetModel, justProduceCmd, api } msg model shared =
     let
         currentHighlightedComments =
             model.highlightedComments
@@ -417,7 +416,7 @@ update { doNothing, justSetModel, justProduceCmd } msg model shared =
                 justSetModel { model | conclusion = newConclusion }
 
             Publish snipbit ->
-                justProduceCmd <| Api.postCreateSnipbit snipbit OnPublishFailure OnPublishSuccess
+                justProduceCmd <| api.post.createSnipbit snipbit OnPublishFailure OnPublishSuccess
 
             OnPublishSuccess { targetID } ->
                 ( init

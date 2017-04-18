@@ -55,9 +55,9 @@ saveModel model =
 
 {-| Will be used for the port subscription.
 -}
-onLoadModel : String -> Msg
-onLoadModel modelAsStringFromStorage =
-    case (Util.fromJsonString decoder modelAsStringFromStorage) of
+onLoadModel : Model -> String -> Msg
+onLoadModel currentModel modelAsStringFromStorage =
+    case (Util.fromJsonString (decoder currentModel) modelAsStringFromStorage) of
         Ok model ->
             OnLoadModelFromLocalStorageSuccess model
 
