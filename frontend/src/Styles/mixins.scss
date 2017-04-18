@@ -63,6 +63,11 @@
     cursor: default;
 }
 
+// An even stronger box shadow. Good paired with `strong-box-shadow` (use `strongest-box-shadow` on hover).
+@mixin strongest-box-shadow() {
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3), 0 1px 8px rgba(0,0,0,0.6);
+}
+
 // A stronger box shadow used for more effect.
 // Check out this codepen: https://codepen.io/sdthornton/pen/wBZdXq
 @mixin strong-box-shadow() {

@@ -470,39 +470,6 @@ textarea {
     }
 }
 
-.story-box {
-    box-sizing: border-box;
-    display: inline-flex;
-    position: relative;
-    width: 275px;
-    height: 275px;
-    margin: 0 10px 20px 10px;
-    border: none;
-    flex-grow: 1;
-    max-width: 350px;
-    background-color: $content-color2;
-    color: white;
-    cursor: pointer;
-    @include strong-box-shadow();
-
-    &:hover {
-        opacity: 0.9;
-    }
-
-    .story-box-name {
-        box-sizing: border-box;
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        width: 100%;
-        text-align: center;
-        font-weight: 700;
-        font-size: 28px;
-        padding: 10px;
-    }
-}
-
 // General styling for code tab.
 .create-tidbit-code {
     width: $min-width-supported;
