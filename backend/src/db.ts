@@ -3,6 +3,7 @@
 
 import { MongoClient, Collection, ObjectID, Cursor, UpdateWriteOpResult, FindAndModifyWriteOpResultObject } from 'mongodb';
 import * as R from "ramda";
+import { readFileSync } from 'fs';
 
 import { APP_CONFIG } from './app-config';
 import { isNullOrUndefined, internalError } from './util';
@@ -12,7 +13,11 @@ import { MongoID, MongoObjectID, MongoStringID } from './types';
 /**
  * Promise will resolve to the db.
  */
-const DB_PROMISE = MongoClient.connect(APP_CONFIG.dbUrl);
+const DB_PROMISE = MongoClient.connect(APP_CONFIG.dbUrl, {
+  ssl: true,
+  sslValidate: true,
+  sslCA: [readFileSync(__dirname + '/../../compose.pem')]
+});
 
 /**
  * Get a mongodb collection using the existing mongo connection.
