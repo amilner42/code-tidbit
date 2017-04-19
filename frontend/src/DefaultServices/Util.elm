@@ -370,3 +370,19 @@ markdownOr condition markdownText backUpHtml =
 togglePreviewMarkdown : { a | previewMarkdown : Bool } -> { a | previewMarkdown : Bool }
 togglePreviewMarkdown record =
     { record | previewMarkdown = not record.previewMarkdown }
+
+
+{-| For pluralizing words if there isn't just 1 thing.
+
+xThings "thing" "s" 1 = "1 thing"
+xThings "thing" "s" 3 = "3 things"
+-}
+xThings : String -> String -> Int -> String
+xThings baseWord suffix number =
+    (toString number)
+        ++ " "
+        ++ (if number == 1 then
+                baseWord
+            else
+                baseWord ++ suffix
+           )

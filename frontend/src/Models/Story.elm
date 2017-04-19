@@ -13,6 +13,7 @@ import Models.TidbitPointer as TidbitPointer
 type alias Story =
     { id : String
     , author : String
+    , authorEmail : String
     , name : String
     , description : String
     , tags : List String
@@ -29,6 +30,7 @@ type alias Story =
 type alias ExpandedStory =
     { id : String
     , author : String
+    , authorEmail : String
     , name : String
     , description : String
     , tags : List String
@@ -69,6 +71,7 @@ blankStory : Story
 blankStory =
     { id = ""
     , author = ""
+    , authorEmail = ""
     , name = ""
     , description = ""
     , tags = []

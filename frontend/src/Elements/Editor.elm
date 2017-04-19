@@ -329,6 +329,13 @@ languageFromHumanReadableName languageAsString =
         |> Maybe.map Tuple.first
 
 
+{-| Prints out the languages nicely.
+-}
+prettyPrintLanguages : List Language -> String
+prettyPrintLanguages =
+    List.map getHumanReadableName >> List.sort >> String.join " "
+
+
 {-| Given a file name, like `bla.py`, returns the appropriate language [python].
 
 NOTE: Due to ambiguity in certain file extensions (.sql), we return a list of the possible languages it could be. An

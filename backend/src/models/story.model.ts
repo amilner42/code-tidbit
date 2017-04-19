@@ -20,13 +20,14 @@ import { Tidbit, TidbitPointer, TidbitType, tidbitPointerSchema, tidbitDBActions
  * Internal for staying DRY.
  */
 interface StoryBase {
-  author: MongoID;
   name: string;
   description: string;
   tags: string[];
 
   _id?: MongoID;
   id?: MongoID;
+  author?: MongoID;
+  authorEmail?: string;
   createdAt?: Date;
   lastModified?: Date;
   userHasCompleted?: boolean[];
@@ -182,7 +183,7 @@ export const storyDBActions = {
   /**
    * Creates a new story for the user.
    */
-  createNewStory: (userID: MongoID, newStory: NewStory): Promise<TargetID> => {
+  createNewStory: (userID: MongoID, userEmail: string, newStory: NewStory): Promise<TargetID> => {
     return kleen.validModel(newStorySchema)(newStory)
     .then(() => {
       return collection("stories");
@@ -191,6 +192,7 @@ export const storyDBActions = {
       const dateNow = moment.utc().toDate();
       const defaultFields = {
         author: userID,
+        authorEmail: userEmail,
         tidbitPointers: [],
         createdAt: dateNow,
         lastModified: dateNow,

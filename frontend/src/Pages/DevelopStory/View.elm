@@ -1,6 +1,7 @@
 module Pages.DevelopStory.View exposing (..)
 
 import DefaultServices.Util as Util
+import Elements.Editor exposing (prettyPrintLanguages)
 import Html exposing (Html, div, button, text, i, span)
 import Html.Attributes exposing (class, classList, id)
 import Html.Events exposing (onClick)
@@ -181,18 +182,20 @@ tidbitBox renderConfig tidbit =
             Finalized index ->
                 div
                     [ class "tidbit-box-page-number" ]
-                    [ text <| toString <| index + 1 ]
+                    [ text <| (++) "#" <| toString <| index + 1 ]
 
             _ ->
                 Util.hiddenDiv
         , div
             [ class "tidbit-box-name" ]
             [ text <| Tidbit.getName tidbit ]
-        , div
-            [ class "view-tidbit"
+        , i
+            [ class "view-tidbit material-icons"
             , Util.onClickWithoutPropigation <| GoTo <| Tidbit.getTidbitRoute Nothing tidbit
             ]
-            [ i [ class "material-icons" ] [ text "remove_red_eye" ]
-            , span [] [ text "View" ]
+            [ text "open_in_new" ]
+        , div
+            [ class "tidbit-box-languages" ]
+            [ text <| prettyPrintLanguages <| Tidbit.getLanguages tidbit
             ]
         ]

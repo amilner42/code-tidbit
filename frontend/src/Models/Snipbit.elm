@@ -19,6 +19,7 @@ type alias Snipbit =
     , conclusion : String
     , highlightedComments : Array.Array HighlightedComment
     , author : String
+    , authorEmail : String
     , createdAt : Date.Date
     , lastModified : Date.Date
     }

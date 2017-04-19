@@ -217,9 +217,10 @@ export const routes: AppRoutes = {
      */
     post: (req, res): Promise<TargetID> => {
       const userID = req.user._id;
+      const userEmail = req.user.email;
       const snipbit = req.body;
 
-      return snipbitDBActions.addNewSnipbit(userID, snipbit);
+      return snipbitDBActions.addNewSnipbit(userID, userEmail, snipbit);
     }
   },
 
@@ -240,9 +241,10 @@ export const routes: AppRoutes = {
      */
     post: (req, res): Promise<TargetID> => {
       const userID = req.user._id;
+      const userEmail = req.user.email;
       const bigbit = req.body;
 
-      return bigbitDBActions.addNewBigbit(userID, bigbit);
+      return bigbitDBActions.addNewBigbit(userID, userEmail, bigbit);
     }
   },
 
@@ -290,8 +292,9 @@ export const routes: AppRoutes = {
     post: (req, res): Promise<TargetID> => {
       const newStory: NewStory  = req.body;
       const userID = req.user._id;
+      const userEmail = req.user.email;
 
-      return storyDBActions.createNewStory(userID, newStory);
+      return storyDBActions.createNewStory(userID, userEmail, newStory);
     }
   },
 

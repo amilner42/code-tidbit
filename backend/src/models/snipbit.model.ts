@@ -29,6 +29,7 @@ export interface Snipbit {
   language: string;
   _id?: MongoID;
   author?: MongoID;
+  authorEmail?: string;
   createdAt?: Date;
   lastModified?: Date;
 }
@@ -102,15 +103,20 @@ const prepareSnipbitForResponse = (snipbit: Snipbit): Snipbit => {
 export const snipbitDBActions = {
 
   /**
-   * Adds a new snipbit for a user, automatically attaches user as `author`, also adds `createdAt` and `lastModified`.
+   * Adds a new snipbit for a user, automatically attaches:
+   *  - `author` (user ID)
+   *  - `authorEmail`
+   *  - `createdAt`
+   *  - `lastModified`
    */
-  addNewSnipbit: (userID: MongoID, snipbit: Snipbit): Promise<TargetID> => {
+  addNewSnipbit: (userID: MongoID, userEmail: string, snipbit: Snipbit): Promise<TargetID> => {
     return kleen.validModel(snipbitSchema)(snipbit)
     .then(() => {
       const dateNow = moment.utc().toDate();
       const validSnipbit = R.clone(snipbit);
 
       validSnipbit.author = userID;
+      validSnipbit.authorEmail = userEmail;
       validSnipbit.createdAt = dateNow;
       validSnipbit.lastModified = dateNow;
 

@@ -25,6 +25,7 @@ encoder snipbit =
         , ( "highlightedComments", Encode.array <| Array.map hcEncoder snipbit.highlightedComments )
         , ( "id", Encode.string snipbit.id )
         , ( "author", Encode.string snipbit.author )
+        , ( "authorEmail", Encode.string snipbit.authorEmail )
         , ( "createdAt", Util.dateEncoder snipbit.createdAt )
         , ( "lastModified", Util.dateEncoder snipbit.lastModified )
         ]
@@ -45,6 +46,7 @@ decoder =
         |> required "conclusion" Decode.string
         |> required "highlightedComments" (Decode.array hcDecoder)
         |> required "author" Decode.string
+        |> required "authorEmail" Decode.string
         |> required "createdAt" Util.dateDecoder
         |> required "lastModified" Util.dateDecoder
 

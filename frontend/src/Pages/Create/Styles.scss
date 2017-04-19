@@ -211,6 +211,7 @@
         color: $content-color2;
         background-color: $color9;
         cursor: pointer;
+        hyphens: auto;
         @include strong-box-shadow();
 
         &:hover {
@@ -228,6 +229,25 @@
             font-weight: 700;
             font-size: 28px;
             padding: 10px;
+        }
+
+        .story-box-languages {
+            font-size: 12px;
+            color: $color5;
+            position: absolute;
+            font-style: italic;
+            bottom: 5px;
+            right: 5px;
+            width: 60%;
+            text-align: right;
+        }
+
+        .story-box-tidbit-count {
+            font-size: 12px;
+            position: absolute;
+            color: $color5;
+            bottom: 5px;
+            left: 5px;
         }
     }
 }

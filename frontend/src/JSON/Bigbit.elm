@@ -32,6 +32,7 @@ encoder bigbit =
             , ( "fs", fsEncoder bigbit.fs )
             , ( "highlightedComments", Encode.array <| Array.map highlightedCommentEncoder bigbit.highlightedComments )
             , ( "author", Encode.string bigbit.author )
+            , ( "authorEmail", Encode.string bigbit.authorEmail )
             , ( "id", Encode.string bigbit.id )
             , ( "createdAt", Util.dateEncoder bigbit.createdAt )
             , ( "lastModified", Util.dateEncoder bigbit.lastModified )
@@ -65,6 +66,7 @@ decoder =
             |> required "fs" fsDecoder
             |> required "highlightedComments" (Decode.array highlightedCommentDecoder)
             |> required "author" Decode.string
+            |> required "authorEmail" Decode.string
             |> required "id" Decode.string
             |> required "createdAt" Util.dateDecoder
             |> required "lastModified" Util.dateDecoder

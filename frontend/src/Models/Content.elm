@@ -1,5 +1,6 @@
 module Models.Content exposing (..)
 
+import Elements.Editor exposing (Language)
 import Models.Bigbit exposing (Bigbit)
 import Models.Route as Route
 import Models.Snipbit exposing (Snipbit)
@@ -43,6 +44,36 @@ getDescription content =
 
         Story { description } ->
             description
+
+
+{-| Get's the languages of content.
+-}
+getLanguages : Content -> List Language
+getLanguages content =
+    case content of
+        Snipbit { language } ->
+            [ language ]
+
+        Bigbit { languages } ->
+            languages
+
+        Story { languages } ->
+            languages
+
+
+{-| Get's the `authorEmail` of the content.
+-}
+getAuthorEmail : Content -> String
+getAuthorEmail content =
+    case content of
+        Snipbit { authorEmail } ->
+            authorEmail
+
+        Bigbit { authorEmail } ->
+            authorEmail
+
+        Story { authorEmail } ->
+            authorEmail
 
 
 {-| Returns true if the content is a snipbit.
