@@ -17,6 +17,7 @@ encoder story =
     Encode.object
         [ ( "id", Encode.string story.id )
         , ( "author", Encode.string story.author )
+        , ( "authorEmail", Encode.string story.authorEmail )
         , ( "name", Encode.string story.name )
         , ( "description", Encode.string story.description )
         , ( "tags", Encode.list <| List.map Encode.string story.tags )
@@ -35,6 +36,7 @@ decoder =
     decode Story
         |> required "id" Decode.string
         |> required "author" Decode.string
+        |> required "authorEmail" Decode.string
         |> required "name" Decode.string
         |> required "description" Decode.string
         |> required "tags" (Decode.list Decode.string)
@@ -52,6 +54,7 @@ expandedStoryEncoder expandedStory =
     Encode.object
         [ ( "id", Encode.string expandedStory.id )
         , ( "author", Encode.string expandedStory.author )
+        , ( "authorEmail", Encode.string expandedStory.authorEmail )
         , ( "name", Encode.string expandedStory.name )
         , ( "description", Encode.string expandedStory.description )
         , ( "tags", Encode.list <| List.map Encode.string expandedStory.tags )
@@ -70,6 +73,7 @@ expandedStoryDecoder =
     decode ExpandedStory
         |> required "id" Decode.string
         |> required "author" Decode.string
+        |> required "authorEmail" Decode.string
         |> required "name" Decode.string
         |> required "description" Decode.string
         |> required "tags" (Decode.list Decode.string)

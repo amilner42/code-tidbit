@@ -22,6 +22,7 @@ type alias Bigbit =
     , fs : FS.FileStructure FSMetadata FolderMetadata FileMetadata
     , highlightedComments : Array.Array HighlightedComment
     , author : String
+    , authorEmail : String
     , id : String
     , createdAt : Date.Date
     , lastModified : Date.Date

@@ -3,7 +3,7 @@
 
 .content-box {
     box-sizing: border-box;
-    min-height: 300px;
+    min-height: 310px;
     min-width: 300px;
     max-width: 375px;
     width: 0;
@@ -41,7 +41,8 @@
     .name {
         height: 100px;
         line-height: 100px;
-        font-size: 24px;
+        font-size: 18px;
+        font-weight: 600;
         max-width: 285px;
         text-align: center;
         margin: 0 auto 0 auto;
@@ -65,5 +66,37 @@
         background-color: white;
         color: $color5;
         hyphens: auto;
+    }
+
+    .languages {
+        position: absolute;
+        top: 109px;
+        right: 5px;
+        font-size: 10px;
+        width: 45%;
+
+        .language-text {
+            position: absolute;
+            text-align: right;
+            width: 100%;
+            bottom: 0;
+            font-style: italic;
+        }
+    }
+
+    .story-tidbit-count {
+        position: absolute;
+        top: 88px;
+        left: 5px;
+        font-size: 10px;
+    }
+
+    .author {
+        position: absolute;
+        text-align: left;
+        width: 45%;
+        top: 98px;
+        left: 5px;
+        font-size: 10px;
     }
 }

@@ -1,6 +1,7 @@
 module Models.Tidbit exposing (..)
 
 import Date as Date
+import Elements.Editor exposing (Language)
 import Models.Bigbit as BigbitModel
 import Models.Route as Route
 import Models.Snipbit as SnipbitModel
@@ -48,6 +49,18 @@ getLastModified tidbit =
 
         Bigbit { lastModified } ->
             lastModified
+
+
+{-| Get's the languages.
+-}
+getLanguages : Tidbit -> List Language
+getLanguages tidbit =
+    case tidbit of
+        Snipbit { language } ->
+            [ language ]
+
+        Bigbit { languages } ->
+            languages
 
 
 {-| Gets the route-base for viewing the tidbit, still requires the ID to become a full `Route`.

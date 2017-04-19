@@ -29,6 +29,7 @@ export interface Bigbit {
   _id?: MongoID;
   fs : FileStructure<{},{},{ language : string }>;
   author?: MongoID;
+  authorEmail?: string;
   languages?: string[];
   createdAt?: Date;
   lastModified?: Date;
@@ -133,10 +134,11 @@ export const bigbitDBActions = {
    * Adds a new bigbit to the database for a user. Handles:
    *  - renaming files/folders to avoid having a "." in them
    *  - Adds `createdAt` and `lastModified` timestamps
-   *  - Adds user as `author`
+   *  - Adds user id as `author`
+   *  - Adds user email as `authorEmail`
    *  - Adds a `languages` field containing all the languages used in the bigbit
    */
-  addNewBigbit: (userID: MongoID, bigbit: Bigbit): Promise<TargetID> => {
+  addNewBigbit: (userID: MongoID, userEmail: string, bigbit: Bigbit): Promise<TargetID> => {
     return kleen.validModel(bigbitSchema)(bigbit)
     .then(() => {
       bigbit.fs = swapPeriodsWithStars(true, bigbit.fs);
@@ -146,6 +148,7 @@ export const bigbitDBActions = {
       const dateNow = moment.utc().toDate();
 
       updatedBigbit.author = userID;
+      updatedBigbit.authorEmail = userEmail;
       updatedBigbit.createdAt = dateNow;
       updatedBigbit.lastModified = dateNow;
       updatedBigbit.languages = getLanguagesUsedInBigbit(updatedBigbit);

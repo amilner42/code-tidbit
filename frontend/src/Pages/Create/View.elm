@@ -1,6 +1,7 @@
 module Pages.Create.View exposing (..)
 
 import DefaultServices.Util as Util
+import Elements.Editor exposing (prettyPrintLanguages)
 import Html exposing (Html, div, text, button, i)
 import Html.Attributes exposing (class, classList)
 import Html.Events exposing (onClick)
@@ -99,6 +100,13 @@ view model shared =
                                                 [ div
                                                     [ class "story-box-name" ]
                                                     [ text story.name ]
+                                                , div
+                                                    [ class "story-box-languages" ]
+                                                    [ text <| prettyPrintLanguages <| story.languages
+                                                    ]
+                                                , div
+                                                    [ class "story-box-tidbit-count" ]
+                                                    [ text <| Util.xThings "tidbit" "s" <| List.length story.tidbitPointers ]
                                                 ]
                                         )
                                         (List.reverse <| Util.sortByDate .lastModified userStories)

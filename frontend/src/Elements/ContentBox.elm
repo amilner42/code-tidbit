@@ -1,5 +1,7 @@
 module Elements.ContentBox exposing (..)
 
+import DefaultServices.Util as Util
+import Elements.Editor exposing (prettyPrintLanguages)
 import Html exposing (Html, div, text)
 import Html.Attributes exposing (class, classList)
 import Html.Events exposing (onClick)
@@ -39,4 +41,21 @@ contentBox { goToMsg, darkenBox, forStory } content =
         , div
             [ class "description" ]
             [ text <| getDescription content ]
+        , div
+            [ class "languages" ]
+            [ div
+                [ class "language-text" ]
+                [ text <| prettyPrintLanguages <| getLanguages content ]
+            ]
+        , case content of
+            Story { tidbitPointers } ->
+                div
+                    [ class "story-tidbit-count" ]
+                    [ text <| Util.xThings "tidbit" "s" (List.length tidbitPointers) ]
+
+            _ ->
+                Util.hiddenDiv
+        , div
+            [ class "author" ]
+            [ text <| getAuthorEmail content ]
         ]
