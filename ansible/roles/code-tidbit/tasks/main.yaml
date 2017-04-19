@@ -1,0 +1,7 @@
+---
+  - name: Push API
+    synchronize: src=../api/
+                 dest="/usr/local/code-tidbit"
+                 recursive=yes
+                 rsync_opts="--verbose, --exclude /bin --exclude /_build/migrations --exclude /test --exclude /tests --exclude /files --exclude /spec"
+                 archive=no

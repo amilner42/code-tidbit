@@ -1,0 +1,60 @@
+---
+- hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    instance_type: 't2.small'
+    region: 'us-east-1'
+    aws_zone: 'c'
+  tasks:
+  - name: Launch Instance
+    ec2:
+      image: 'ami-80861296'
+      instance_type: "{{ instance_type }}"
+      keypair: 'ansible'
+      instance_tags:
+        Environment": "code-tidbit"
+        Name: "code-tidbit (immutable)"
+      region: '{{ region }}'
+      aws_zone: '{{ region }}{{ aws_zone }}'
+      group: 'sg_code-tidbit'
+      vpc_subnet_id: 'subnet-f89b76d4'
+      assign_public_ip: yes
+      wait: true
+    register: ec2_info
+
+  - debug:
+      msg: "Created instances: {{ ec2_info.instances }}"
+
+  - add_host: hostname="{{ item.public_ip }}" groupname="code-tidbit,ec2hosts"
+    with_items: "{{ ec2_info.instances }}"
+
+  - name: Wait for instances to listen on port 22
+    wait_for:
+      state=started
+      host="{{ item.public_dns_name }}"
+      port=22
+    with_items: "{{ ec2_info.instances }}"
+
+# Run your specific roles that install and configure your application
+- hosts: ec2hosts
+  gather_facts: true
+  user: ubuntu
+  sudo: yes
+  roles:
+    - code-tidbit
+
+- hosts: ec2hosts
+  vars:
+    region: 'us-east-1'
+  tasks:
+  - name: Gather ec2 facts
+    ec2_facts:
+  - debug: var=ansible_ec2_instance_id # You can remove this if you like
+  - name: Add newly created instance to elb
+    local_action:
+      module: ec2_elb
+      region: "{{ region }}"
+      instance_id: "{{ ansible_ec2_instance_id }}"
+      ec2_elbs: "lb-code-tidbit-prod"
+      state: present

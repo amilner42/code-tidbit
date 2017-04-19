@@ -1,0 +1,2 @@
+#!/usr/bin/env sh
+rsync -Pav -e "ssh -i ./ansible/ansible.pem" ./backend/ --exclude /src --exclude /tests --exclude /typings* --exclude /node_modules --exclude /migrations --exclude /README.md --exclude /.gitignore ubuntu@ec2-54-221-147-61.compute-1.amazonaws.com:/home/ubuntu/app
