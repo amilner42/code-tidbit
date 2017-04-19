@@ -12,12 +12,24 @@ import { MongoID, MongoObjectID, MongoStringID } from './types';
 
 /**
  * Promise will resolve to the db.
+ *
+ * NOTE: Will attach SSL certifiate if running in prod (will expect a `compose.pem` file to exist).
  */
-const DB_PROMISE = MongoClient.connect(APP_CONFIG.dbUrl, {
-  ssl: true,
-  sslValidate: true,
-  sslCA: [readFileSync(__dirname + '/../../compose.pem')]
-});
+const DB_PROMISE = (() => {
+  switch(APP_CONFIG.mode) {
+    case "prod":
+      const prodSettings = {
+        ssl: true,
+        sslValidate: true,
+        sslCA: [readFileSync(__dirname + '/../../compose.pem')]
+      };
+      return MongoClient.connect(APP_CONFIG.dbUrl, prodSettings);
+
+    case "dev":
+      return MongoClient.connect(APP_CONFIG.dbUrl);
+  }
+})();
+
 
 /**
  * Get a mongodb collection using the existing mongo connection.

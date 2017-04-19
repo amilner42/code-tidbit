@@ -90,7 +90,7 @@ if (isDev === true) {
         },
         plugins: [
             new webpack.DefinePlugin({
-            __WEBPACK_CONSTANT_API_BASE_URL__: JSON.stringify("http://localhost:3001/api/")
+            __WEBPACK_CONSTANT_API_BASE_URL__: JSON.stringify("http://localhost:3001/")
             }),
 
             // Repeated because it doesn't merge with webpack-merge.

@@ -25,6 +25,7 @@ import { internalError, combineArrays, maybeMap } from './util';
  * authentication.
  */
 export const authlessRoutes: AppRoutesAuth = {
+  '/': { get: true },
   '/register': { post: true },
   '/login': { post: true },
   '/userID': { post: true },
@@ -44,6 +45,15 @@ export const authlessRoutes: AppRoutesAuth = {
  * The routes for the API.
  */
 export const routes: AppRoutes = {
+
+  '/': {
+    /**
+     * For checking that the API is alive.
+     */
+    get: (req, res) => {
+      return Promise.resolve({ status: "OK" });
+    }
+  },
 
   '/register': {
     /**

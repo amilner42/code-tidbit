@@ -186,13 +186,12 @@ const createExpressServer = () => {
 
   // Add all API routes.
   map(([apiUrl, handlers]) => {
-    const apiUrlWithPrefix = '/api' + apiUrl;
 
     map(([method, handler]: [string, any]) => {
       if(authlessRoutes[apiUrl] && authlessRoutes[apiUrl][method]) {
-        server[method](apiUrlWithPrefix, wrapRouteHandler(handler));
+        server[method](apiUrl, wrapRouteHandler(handler));
       } else {
-        server[method](apiUrlWithPrefix, isAuthenticated, wrapRouteHandler(handler));
+        server[method](apiUrl, isAuthenticated, wrapRouteHandler(handler));
       }
     }, toPairs<string, Handler>(handlers));
   }, toPairs<string, { [methodType: string]: Handler; }>(routes));
