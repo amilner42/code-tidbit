@@ -38,7 +38,8 @@
         }
 
         .empty-tidbit-box-for-flex-align {
-            width: 300px;
+            width: 0;
+            min-width: 300px;
             max-width: 375px;
         }
     }
