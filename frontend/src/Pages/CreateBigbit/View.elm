@@ -136,26 +136,7 @@ view model shared =
                         _ ->
                             ( False, False, Nothing )
 
-                bigbitEditor =
-                    div
-                        [ class "bigbit-editor" ]
-                        [ div
-                            [ class "current-file" ]
-                            [ text <|
-                                if introTab then
-                                    "Bigbit introductions do not link to files or highlights, but you can browse and edit your code"
-                                else if conclusionTab then
-                                    "Bigbit conclusions do not link to files or highlights, but you can browse and edit your code"
-                                else
-                                    Maybe.withDefault "No File Selected" currentActiveFile
-                            ]
-                        , div
-                            [ class "create-tidbit-code" ]
-                            [ Editor.editor "create-bigbit-code-editor"
-                            ]
-                        ]
-
-                bigbitCommentBox =
+                bigbitFS =
                     let
                         fsMetadata =
                             FS.getFSMetadata <| model.fs
@@ -194,17 +175,9 @@ view model shared =
                         validFolderInput =
                             Util.resultToBool validFolderInputResult
 
-                        fsOpen =
-                            Bigbit.isFSOpen model.fs
-
-                        markdownOpen =
-                            model.previewMarkdown
-
                         fs =
                             div
-                                [ class "file-structure"
-                                , hidden <| not <| fsOpen
-                                ]
+                                [ class "file-structure" ]
                                 [ FS.fileStructure
                                     { isFileSelected = viewingFile
                                     , fileSelectedMsg = SelectFile
@@ -420,25 +393,32 @@ view model shared =
                                     ]
                                     [ text "Remove Folder" ]
                                 ]
+                    in
+                        div [ class "bigbit-fs" ] [ fs ]
+
+                bigbitEditor =
+                    div
+                        [ class "bigbit-editor" ]
+                        [ div
+                            [ class "current-file" ]
+                            [ text <| Maybe.withDefault "No File Selected" currentActiveFile ]
+                        , div
+                            [ class "create-tidbit-code" ]
+                            [ Editor.editor "create-bigbit-code-editor"
+                            ]
+                        ]
+
+                bigbitCommentBox =
+                    let
+                        markdownOpen =
+                            model.previewMarkdown
 
                         body =
                             div
                                 [ class "comment-body" ]
-                                [ fs
-                                , div
-                                    [ class "expand-file-structure"
-                                    , onClick ToggleFS
-                                    , hidden markdownOpen
-                                    ]
-                                    [ if fsOpen then
-                                        text "Close File Structure"
-                                      else
-                                        text "View File Structure"
-                                    ]
-                                , div
+                                [ div
                                     [ class "preview-markdown"
                                     , onClick TogglePreviewMarkdown
-                                    , hidden fsOpen
                                     ]
                                     [ if markdownOpen then
                                         text "Close Preview"
@@ -454,7 +434,6 @@ view model shared =
                                                 [ placeholder "Introduction"
                                                 , id "introduction-input"
                                                 , onInput <| OnUpdateIntroduction
-                                                , hidden <| Bigbit.isFSOpen model.fs
                                                 , value model.introduction
                                                 , Util.onKeydownPreventDefault
                                                     (\key ->
@@ -500,7 +479,6 @@ view model shared =
                                                     , id "frame-input"
                                                     , onInput <| OnUpdateFrameComment frameNumber
                                                     , value frameText
-                                                    , hidden <| fsOpen
                                                     , Util.onKeydownPreventDefault
                                                         (\key ->
                                                             let
@@ -545,7 +523,6 @@ view model shared =
                                                 [ placeholder "Conclusion"
                                                 , id "conclusion-input"
                                                 , onInput OnUpdateConclusion
-                                                , hidden <| fsOpen
                                                 , value model.conclusion
                                                 , Util.onKeydownPreventDefault
                                                     (\key ->
@@ -608,7 +585,7 @@ view model shared =
                             in
                                 div
                                     [ class "comment-body-bottom-buttons"
-                                    , hidden <| fsOpen || markdownOpen
+                                    , hidden markdownOpen
                                     ]
                                     [ button
                                         [ onClick <| GoTo <| Route.CreateBigbitCodeIntroductionPage Nothing
@@ -654,8 +631,12 @@ view model shared =
             in
                 div
                     [ class "create-bigbit-code" ]
-                    [ bigbitEditor
-                    , bigbitCommentBox
+                    [ div
+                        [ class "bigbit-extended-view" ]
+                        [ bigbitFS
+                        , bigbitEditor
+                        , bigbitCommentBox
+                        ]
                     ]
     in
         div

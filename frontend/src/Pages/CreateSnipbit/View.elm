@@ -413,19 +413,7 @@ view model shared =
                     [ Editor.editor "create-snipbit-code-editor"
                     , div
                         [ class "comment-creator" ]
-                        [ div
-                            [ class "above-editor-text" ]
-                            [ text <|
-                                if currentRoute == Route.CreateSnipbitCodeIntroductionPage then
-                                    "Snipbit introductions do not link to highlights, but you can browse "
-                                        ++ "and edit your code"
-                                else if currentRoute == Route.CreateSnipbitCodeConclusionPage then
-                                    "Snipbit conclusions do not link to highlights, but you can browse "
-                                        ++ "and edit your code"
-                                else
-                                    ""
-                            ]
-                        , body
+                        [ body
                         , tabBar
                         ]
                     ]

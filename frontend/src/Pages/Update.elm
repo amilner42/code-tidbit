@@ -473,7 +473,7 @@ handleKeyPress model =
 
             Route.CreateBigbitTagsPage ->
                 watchForTabAndShiftTab
-                    (Route.navigateTo <| Route.CreateBigbitCodeIntroductionPage Nothing)
+                    (Util.cmdFromMsg <| CreateBigbitMessage CreateBigbitMessages.GoToCodeTab)
                     (Route.navigateTo Route.CreateBigbitDescriptionPage)
 
             Route.CreateSnipbitNamePage ->
@@ -493,7 +493,7 @@ handleKeyPress model =
 
             Route.CreateSnipbitTagsPage ->
                 watchForTabAndShiftTab
-                    (Route.navigateTo Route.CreateSnipbitCodeIntroductionPage)
+                    (Util.cmdFromMsg <| CreateSnipbitMessage CreateSnipbitMessages.GoToCodeTab)
                     (Route.navigateTo Route.CreateSnipbitLanguagePage)
 
             Route.ViewSnipbitIntroductionPage fromStoryID mongoID ->
