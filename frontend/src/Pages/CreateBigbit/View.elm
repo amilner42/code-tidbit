@@ -431,7 +431,7 @@ view model shared =
                                             markdownOpen
                                             model.introduction
                                             (textarea
-                                                [ placeholder "Introduction"
+                                                [ placeholder "General Introduction"
                                                 , id "introduction-input"
                                                 , onInput <| OnUpdateIntroduction
                                                 , value model.introduction
@@ -475,7 +475,11 @@ view model shared =
                                                 markdownOpen
                                                 frameText
                                                 (textarea
-                                                    [ placeholder <| "Frame " ++ (toString frameNumber)
+                                                    [ placeholder <|
+                                                        "Frame "
+                                                            ++ (toString frameNumber)
+                                                            ++ "\n\n"
+                                                            ++ "Highlight a chunk of code and explain it..."
                                                     , id "frame-input"
                                                     , onInput <| OnUpdateFrameComment frameNumber
                                                     , value frameText
@@ -520,7 +524,7 @@ view model shared =
                                             markdownOpen
                                             model.conclusion
                                             (textarea
-                                                [ placeholder "Conclusion"
+                                                [ placeholder "General Conclusion"
                                                 , id "conclusion-input"
                                                 , onInput OnUpdateConclusion
                                                 , value model.conclusion
