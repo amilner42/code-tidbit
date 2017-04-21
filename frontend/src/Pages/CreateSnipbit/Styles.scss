@@ -97,6 +97,7 @@
 
     .create-snipbit-code {
         @extend .create-tidbit-code;
+        padding-left: 8px;
 
         .preview-markdown {
             @extend .above-comment-block-button;

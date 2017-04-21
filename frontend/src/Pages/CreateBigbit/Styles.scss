@@ -7,6 +7,29 @@
 
     height: 100%;
 
+    &.fs-closed {
+
+        .create-bigbit-code {
+            overflow-x: hidden;
+            padding: 0px;
+
+            .bigbit-extended-view {
+                width: $min-width-supported;
+                padding-left: 8px;
+            }
+
+            .bigbit-editor {
+                .current-file {
+                    left: 10px;
+                }
+            }
+
+            .bigbit-fs {
+                width: 0px;
+            }
+        }
+    }
+
     .create-tidbit-navbar {
         width: 496px;
     }
@@ -60,10 +83,11 @@
         overflow-x: auto;
         overflow-y: hidden;
         margin-top: 0;
-        padding: 0 10px 0 10px;
+        padding: 0 9px 0 16px;
 
         .bigbit-extended-view {
-            min-width: 1400px;
+            width: 1377px;
+            margin: auto;
         }
 
         .bigbit-editor {
@@ -72,9 +96,11 @@
             .current-file {
                 position: absolute;
                 top: -20px;
-                left: 380px;
-                font-size: 12px;
+                left: 370px;
+                font-size: 16px;
                 color: $color4;
+                @include no-select();
+                cursor: pointer;
             }
         }
 
@@ -84,7 +110,6 @@
             width: 360px;
             height: 600px;
             float: left;
-            margin: 0 10px 0 0;
 
             button {
                 @include no-select();
@@ -95,6 +120,17 @@
                 line-height: 30px;
                 text-align: center;
                 background-color: white;
+                cursor: pointer;
+            }
+
+            .close-fs {
+                position: absolute;
+                top: 2px;
+                left: 335px;
+                z-index: 1;
+                font-size: 25px;
+                color: $color4;
+                @include no-select();
                 cursor: pointer;
             }
 

@@ -35,6 +35,9 @@ view model shared =
         currentRoute =
             shared.route
 
+        fsOpen =
+            Bigbit.isFSOpen model.fs
+
         {- It should be disabled unles everything is filled out. -}
         publishButton =
             case toPublicationData model of
@@ -394,13 +397,30 @@ view model shared =
                                     [ text "Remove Folder" ]
                                 ]
                     in
-                        div [ class "bigbit-fs" ] [ fs ]
+                        div
+                            [ class "bigbit-fs" ]
+                            [ div [ hidden <| not fsOpen ] [ fs ]
+                            , i
+                                [ classList
+                                    [ ( "close-fs material-icons", True )
+                                    , ( "hidden", not fsOpen )
+                                    ]
+                                , onClick ToggleFS
+                                ]
+                                [ text "close" ]
+                            ]
 
                 bigbitEditor =
                     div
                         [ class "bigbit-editor" ]
                         [ div
-                            [ class "current-file" ]
+                            [ class "current-file"
+                            , onClick <|
+                                if not fsOpen then
+                                    ToggleFS
+                                else
+                                    NoOp
+                            ]
                             [ text <| Maybe.withDefault "No File Selected" currentActiveFile ]
                         , div
                             [ class "create-tidbit-code" ]
@@ -644,7 +664,11 @@ view model shared =
                     ]
     in
         div
-            [ class "create-bigbit" ]
+            [ classList
+                [ ( "create-bigbit", True )
+                , ( "fs-closed", not fsOpen )
+                ]
+            ]
             [ div
                 [ class "sub-bar" ]
                 [ button
