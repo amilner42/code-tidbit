@@ -194,8 +194,20 @@ view model shared =
                                         NotStarted
                             , maxPosition = Array.length snipbit.highlightedComments
                             , disabledStyling = isViewSnipbitRHCTabOpen model
-                            , onClickMsg = NoOp
-                            , allowClick = False
+                            , onClickMsg = GoTo shared.route
+                            , allowClick =
+                                (case shared.route of
+                                    Route.ViewSnipbitFramePage _ _ _ ->
+                                        True
+
+                                    _ ->
+                                        False
+                                )
+                                    && (maybeMapWithDefault
+                                            (not << ViewerRelevantHC.browsingFrames)
+                                            True
+                                            model.relevantHC
+                                       )
                             , textFormat =
                                 Custom
                                     { notStarted = "Not Started"
