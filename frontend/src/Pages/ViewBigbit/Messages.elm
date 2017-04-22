@@ -36,3 +36,4 @@ type Msg
     | MarkAsIncomplete Completed
     | OnMarkAsIncompleteSuccess IsCompleted
     | OnMarkAsIncompleteFailure ApiError
+    | BackToTutorialSpot

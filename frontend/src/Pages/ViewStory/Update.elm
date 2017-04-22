@@ -25,6 +25,9 @@ update msg shared =
             ( shared, newCmd )
     in
         case msg of
+            NoOp ->
+                doNothing
+
             GoTo route ->
                 justProduceCmd <| Route.navigateTo route
 

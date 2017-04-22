@@ -4,7 +4,7 @@ import Array
 import DefaultServices.Util as Util exposing (maybeMapWithDefault)
 import Elements.Editor as Editor
 import Elements.Markdown exposing (githubMarkdown)
-import Elements.ProgressBar exposing (progressBar)
+import Elements.ProgressBar exposing (TextFormat(Custom), State(..), progressBar)
 import Html exposing (Html, div, text, button, i)
 import Html.Attributes exposing (class, classList, disabled, hidden, id)
 import Html.Events exposing (onClick)
@@ -182,18 +182,28 @@ view model shared =
                             ]
                             [ text "Introduction" ]
                         , progressBar
-                            (case shared.route of
-                                Route.ViewSnipbitFramePage _ _ frameNumber ->
-                                    Just (frameNumber - 1)
+                            { state =
+                                case shared.route of
+                                    Route.ViewSnipbitFramePage _ _ frameNumber ->
+                                        Started frameNumber
 
-                                Route.ViewSnipbitConclusionPage _ _ ->
-                                    Just <| Array.length snipbit.highlightedComments
+                                    Route.ViewSnipbitConclusionPage _ _ ->
+                                        Completed
 
-                                _ ->
-                                    Nothing
-                            )
-                            (Array.length snipbit.highlightedComments)
-                            (isViewSnipbitRHCTabOpen model)
+                                    _ ->
+                                        NotStarted
+                            , maxPosition = Array.length snipbit.highlightedComments
+                            , disabledStyling = isViewSnipbitRHCTabOpen model
+                            , onClickMsg = NoOp
+                            , allowClick = False
+                            , textFormat =
+                                Custom
+                                    { notStarted = "Not Started"
+                                    , started = (\frameNumber -> "Frame " ++ (toString frameNumber))
+                                    , done = "Completed"
+                                    }
+                            , shiftLeft = True
+                            }
                         , div
                             [ onClick <|
                                 if isViewSnipbitRHCTabOpen model then

@@ -2,7 +2,7 @@ module Pages.ViewStory.View exposing (..)
 
 import DefaultServices.Util as Util
 import Elements.ContentBox exposing (contentBox)
-import Elements.ProgressBar exposing (progressBar)
+import Elements.ProgressBar exposing (TextFormat(Percentage), State(..), progressBar)
 import Html exposing (Html, div, button, text, i)
 import Html.Attributes exposing (class, classList)
 import Html.Events exposing (onClick)
@@ -112,7 +112,21 @@ view shared =
                                         , div
                                             [ classList [ ( "story-progress-bar-bar", True ) ]
                                             ]
-                                            [ progressBar (Just totalCompleted) totalTidbits False
+                                            [ progressBar
+                                                { state =
+                                                    if totalCompleted == 0 then
+                                                        NotStarted
+                                                    else if totalCompleted == totalTidbits then
+                                                        Completed
+                                                    else
+                                                        Started totalCompleted
+                                                , maxPosition = totalTidbits
+                                                , disabledStyling = False
+                                                , onClickMsg = NoOp
+                                                , allowClick = False
+                                                , textFormat = Percentage
+                                                , shiftLeft = False
+                                                }
                                             ]
                                         ]
 

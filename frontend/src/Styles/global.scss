@@ -266,7 +266,6 @@ textarea {
         display: inline-block;
         width: 360px;
         height: 600px;
-        margin-left: 10px;
 
         textarea {
             box-sizing: border-box;
@@ -309,15 +308,6 @@ textarea {
             width: 156px;
         }
     }
-}
-
-// Should be put in the comment-block for correct positioning.
-.above-editor-text {
-    position: absolute;
-    top: -20px;
-    left: -645px;
-    font-size: 12px;
-    color: $color4;
 }
 
 .above-comment-block-button {

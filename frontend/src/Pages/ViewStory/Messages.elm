@@ -8,7 +8,8 @@ import Models.Story exposing (ExpandedStory)
 {-| `ViewStory` msg.
 -}
 type Msg
-    = GoTo Route
+    = NoOp
+    | GoTo Route
     | OnRouteHit Route
     | OnGetExpandedStorySuccess ExpandedStory
     | OnGetExpandedStoryFailure ApiError

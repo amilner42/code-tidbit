@@ -7,7 +7,6 @@ import DefaultServices.Util as Util exposing (maybeMapWithDefault, togglePreview
 import Dict
 import Elements.Editor as Editor
 import Elements.FileStructure as FS
-import Elements.ProgressBar exposing (progressBar)
 import Elements.Tags exposing (tags)
 import Html exposing (Html, div, text, textarea, button, input, h1, h3, img, hr, i)
 import Html.Attributes exposing (class, classList, disabled, placeholder, value, hidden, id, src, style)
