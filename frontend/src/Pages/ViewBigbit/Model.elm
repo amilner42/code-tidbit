@@ -70,24 +70,8 @@ isBigbitRHCTabOpen =
     maybeMapWithDefault browsingFrames False
 
 
-{-| Returns true if the user is currently browsing the FS.
--}
-isBigbitFSTabOpen : Maybe Bigbit -> Maybe ViewingBigbitRelevantHC -> Bool
-isBigbitFSTabOpen maybeBigbit maybeRHC =
-    (not <| isBigbitRHCTabOpen maybeRHC) && isBigbitFSOpen maybeBigbit
-
-
-{-| Returns true if the FS is open, this is NOT the same as the FS tab being open, the FS can be open but have the
-browsing-rhc over-top it.
+{-| Returns true if the FS is open.
 -}
 isBigbitFSOpen : Maybe Bigbit -> Bool
 isBigbitFSOpen =
-    Maybe.map .fs
-        >> maybeMapWithDefault isFSOpen False
-
-
-{-| Returns true if the user is currently browsing the tutorial.
--}
-isBigbitTutorialTabOpen : Maybe Bigbit -> Maybe ViewingBigbitRelevantHC -> Bool
-isBigbitTutorialTabOpen maybeBigbit maybeRHC =
-    (not <| isBigbitRHCTabOpen maybeRHC) && (not <| isBigbitFSTabOpen maybeBigbit maybeRHC)
+    Maybe.map .fs >> maybeMapWithDefault isFSOpen False

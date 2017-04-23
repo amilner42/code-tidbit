@@ -91,3 +91,10 @@ toggleFSFolder absolutePath fs =
             FS.Folder files folders { folderMetadata | isExpanded = not folderMetadata.isExpanded }
         )
         fs
+
+
+{-| Get's a highlighted comment at a specific index if it exists.
+-}
+getHighlightedComment : Int -> Bigbit -> Maybe HighlightedComment
+getHighlightedComment frameNumber bigbit =
+    Array.get (frameNumber - 1) bigbit.highlightedComments

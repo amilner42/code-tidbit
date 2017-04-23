@@ -6,6 +6,35 @@
 .create-bigbit {
 
     height: 100%;
+    width: 100%;
+    min-width: $min-width-supported-1;
+
+    &.viewing-fs-open {
+        min-width: $min-width-supported-3;
+    }
+
+    &.fs-closed {
+        .create-bigbit-code {
+
+            .bigbit-extended-view {
+                width: 995px;
+            }
+
+            .bigbit-editor {
+                .current-file {
+                    left: 0;
+                }
+            }
+
+            .bigbit-fs {
+                width: 0px;
+            }
+        }
+
+        #code-editor-wrapper {
+            padding-left: 0;
+        }
+    }
 
     .create-tidbit-navbar {
         width: 496px;
@@ -54,15 +83,14 @@
 
     .create-bigbit-code {
         @extend .create-tidbit-code;
+        box-sizing: border-box;
+        width: 100%;
+        margin-top: 0;
+        padding: 0;
 
-        .expand-file-structure {
-            @extend .above-comment-block-button;
-            right: 0px;
-        }
-
-        .preview-markdown {
-            @extend .above-comment-block-button;
-            right: 181px;
+        .bigbit-extended-view {
+            width: 1367px;
+            margin: auto;
         }
 
         .bigbit-editor {
@@ -71,127 +99,155 @@
             .current-file {
                 position: absolute;
                 top: -20px;
-                left: 10px;
-                font-size: 12px;
+                left: 370px;
+                font-size: 16px;
                 color: $color4;
+                @include no-select();
+                cursor: pointer;
             }
         }
 
-        .close-fs-icon {
-            margin-top: -5px;
-            margin-left: 320px;
-        }
-
-        .file-structure {
+        .bigbit-fs {
+            position: relative;
             box-sizing: border-box;
-            position: block;
-            display: relative;
-            height: 600px;
             width: 360px;
-            border: 1px solid $color13;
-            margin-bottom: 10px;
-            padding-left: 10px;
+            height: 600px;
+            float: left;
 
-            .add-file, .add-folder, .remove-file, .remove-folder {
-                width: 163px;
-                height: 36px;
-            }
-
-            .selected-action-button {
-                background-color: $color13;
-                color: $color5;
-            }
-
-            .add-file {
-                position: absolute;
-                bottom: 10px;
-                left: 10px;
-            }
-
-            .add-folder {
-                position: absolute;
-                bottom: 10px;
-                right: 12px;
-            }
-
-            .remove-file {
-                position: absolute;
-                bottom: 56px;
-                left: 10px;
-            }
-
-            .remove-folder {
-                position: absolute;
-                bottom: 56px;
-                right: 12px;
-            }
-
-            .fs-action-input {
-                position: absolute;
-                height: 53px;
-                bottom: 105px;
-                left: 11px;
+            button {
+                @include no-select();
+                color: $color4;
+                border: 1px solid $color13;
+                margin: 1px;
+                font-size: 16px;
+                line-height: 30px;
                 text-align: center;
+                background-color: white;
+                cursor: pointer;
+            }
 
-                input {
-                    box-sizing: border-box;
-                    text-align: center;
-                    width: 336px;
-                    height: 100%;
-                    border: 1px solid $color13;
+            .close-fs {
+                position: absolute;
+                top: 2px;
+                left: 335px;
+                z-index: 1;
+                font-size: 25px;
+                color: $color4;
+                @include no-select();
+                cursor: pointer;
+            }
+
+            .file-structure {
+                box-sizing: border-box;
+                position: block;
+                display: relative;
+                height: 600px;
+                width: 360px;
+                border: 1px solid $color13;
+                margin-bottom: 10px;
+                padding-left: 10px;
+
+                .add-file, .add-folder, .remove-file, .remove-folder {
+                    width: 163px;
+                    height: 36px;
                 }
 
-                .fs-action-input-text {
-                    position: absolute;
-                    top: -16px;
-                    left: 1px;
-                    font-size: 12px;
+                .selected-action-button {
+                    background-color: $color13;
                     color: $color5;
-                    text-align: left;
+                }
 
-                    .fs-action-input-select-language-text {
+                .add-file {
+                    position: absolute;
+                    bottom: 10px;
+                    left: 10px;
+                }
+
+                .add-folder {
+                    position: absolute;
+                    bottom: 10px;
+                    right: 12px;
+                }
+
+                .remove-file {
+                    position: absolute;
+                    bottom: 56px;
+                    left: 10px;
+                }
+
+                .remove-folder {
+                    position: absolute;
+                    bottom: 56px;
+                    right: 12px;
+                }
+
+                .fs-action-input {
+                    position: absolute;
+                    height: 53px;
+                    bottom: 105px;
+                    left: 11px;
+                    text-align: center;
+
+                    input {
+                        box-sizing: border-box;
+                        text-align: center;
+                        width: 336px;
+                        height: 100%;
+                        border: 1px solid $color13;
+                    }
+
+                    .fs-action-input-text {
                         position: absolute;
-                        top: -27px;
-                        width: 300px;
+                        top: -16px;
+                        left: 1px;
+                        font-size: 12px;
+                        color: $color5;
+                        text-align: left;
 
-                        .language-options {
-                            width: 100%;
+                        .fs-action-input-select-language-text {
+                            position: absolute;
+                            top: -27px;
+                            width: 300px;
 
-                            button {
-                                border-radius: 5px;
-                                height: 25px;
-                                line-height: 20px;
-                                font-size: 12px;
-                                margin: 3px 6px 3px -3px;
-                                padding: 3px;
+                            .language-options {
+                                width: 100%;
 
-                                &:hover {
-                                    background-color: $color13;
-                                    color: $color5;
+                                button {
+                                    border-radius: 5px;
+                                    height: 25px;
+                                    line-height: 20px;
+                                    font-size: 12px;
+                                    margin: 3px 6px 3px -3px;
+                                    padding: 3px;
+
+                                    &:hover {
+                                        background-color: $color13;
+                                        color: $color5;
+                                    }
                                 }
                             }
                         }
                     }
+
+                    .action-button-submit-icon {
+                      position: absolute;
+                      top: 5px;
+                      right: 3px;
+                      font-size: 43px;
+                      color: $color2;
+                      cursor: pointer;
+                    }
+
+                    .arrow-confirmed {
+                      color: red;
+                    }
                 }
 
-                .action-button-submit-icon {
-                  position: absolute;
-                  top: 5px;
-                  right: 3px;
-                  font-size: 43px;
-                  color: $color2;
-                  cursor: pointer;
+                .close-action-input {
+                    position: absolute;
+                    bottom: 25px;
+                    font-size: 32px;
                 }
-
-                .arrow-confirmed {
-                  color: red;
-                }
-            }
-
-            .close-action-input {
-                position: absolute;
-                bottom: 25px;
-                font-size: 32px;
             }
         }
     }

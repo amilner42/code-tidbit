@@ -256,10 +256,7 @@ update { doNothing, justSetModel, justUpdateModel, justUpdateShared, justProduce
                         doNothing
 
             GoToCodeTab ->
-                ( { model
-                    | previewMarkdown = False
-                    , fs = model.fs |> FS.updateFSMetadata (\fsMetadata -> { fsMetadata | openFS = False })
-                  }
+                ( { model | previewMarkdown = False }
                 , shared
                 , Route.navigateTo <| Route.CreateBigbitCodeIntroductionPage Nothing
                 )

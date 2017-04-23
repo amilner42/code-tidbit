@@ -31,6 +31,14 @@
         border-color: $color1;
     }
 
+    &.completed {
+        border-color: $color8;
+    }
+
+    &.click-allowed {
+        cursor: pointer;
+    }
+
     &.disabled {
         border-color: $color13;
         color: $color8;

@@ -7,7 +7,6 @@ import DefaultServices.Util as Util exposing (maybeMapWithDefault, togglePreview
 import Dict
 import Elements.Editor as Editor
 import Elements.FileStructure as FS
-import Elements.ProgressBar exposing (progressBar)
 import Elements.Tags exposing (tags)
 import Html exposing (Html, div, text, textarea, button, input, h1, h3, img, hr, i)
 import Html.Attributes exposing (class, classList, disabled, placeholder, value, hidden, id, src, style)
@@ -34,6 +33,9 @@ view model shared =
     let
         currentRoute =
             shared.route
+
+        fsOpen =
+            Bigbit.isFSOpen model.fs
 
         {- It should be disabled unles everything is filled out. -}
         publishButton =
@@ -136,26 +138,7 @@ view model shared =
                         _ ->
                             ( False, False, Nothing )
 
-                bigbitEditor =
-                    div
-                        [ class "bigbit-editor" ]
-                        [ div
-                            [ class "current-file" ]
-                            [ text <|
-                                if introTab then
-                                    "Bigbit introductions do not link to files or highlights, but you can browse and edit your code"
-                                else if conclusionTab then
-                                    "Bigbit conclusions do not link to files or highlights, but you can browse and edit your code"
-                                else
-                                    Maybe.withDefault "No File Selected" currentActiveFile
-                            ]
-                        , div
-                            [ class "create-tidbit-code" ]
-                            [ Editor.editor "create-bigbit-code-editor"
-                            ]
-                        ]
-
-                bigbitCommentBox =
+                bigbitFS =
                     let
                         fsMetadata =
                             FS.getFSMetadata <| model.fs
@@ -194,17 +177,9 @@ view model shared =
                         validFolderInput =
                             Util.resultToBool validFolderInputResult
 
-                        fsOpen =
-                            Bigbit.isFSOpen model.fs
-
-                        markdownOpen =
-                            model.previewMarkdown
-
                         fs =
                             div
-                                [ class "file-structure"
-                                , hidden <| not <| fsOpen
-                                ]
+                                [ class "file-structure" ]
                                 [ FS.fileStructure
                                     { isFileSelected = viewingFile
                                     , fileSelectedMsg = SelectFile
@@ -420,25 +395,49 @@ view model shared =
                                     ]
                                     [ text "Remove Folder" ]
                                 ]
+                    in
+                        div
+                            [ class "bigbit-fs" ]
+                            [ div [ hidden <| not fsOpen ] [ fs ]
+                            , i
+                                [ classList
+                                    [ ( "close-fs material-icons", True )
+                                    , ( "hidden", not fsOpen )
+                                    ]
+                                , onClick ToggleFS
+                                ]
+                                [ text "close" ]
+                            ]
+
+                bigbitEditor =
+                    div
+                        [ class "bigbit-editor" ]
+                        [ div
+                            [ class "current-file"
+                            , onClick <|
+                                if not fsOpen then
+                                    ToggleFS
+                                else
+                                    NoOp
+                            ]
+                            [ text <| Maybe.withDefault "No File Selected" currentActiveFile ]
+                        , div
+                            [ class "create-tidbit-code" ]
+                            [ Editor.editor "create-bigbit-code-editor"
+                            ]
+                        ]
+
+                bigbitCommentBox =
+                    let
+                        markdownOpen =
+                            model.previewMarkdown
 
                         body =
                             div
                                 [ class "comment-body" ]
-                                [ fs
-                                , div
-                                    [ class "expand-file-structure"
-                                    , onClick ToggleFS
-                                    , hidden markdownOpen
-                                    ]
-                                    [ if fsOpen then
-                                        text "Close File Structure"
-                                      else
-                                        text "View File Structure"
-                                    ]
-                                , div
+                                [ div
                                     [ class "preview-markdown"
                                     , onClick TogglePreviewMarkdown
-                                    , hidden fsOpen
                                     ]
                                     [ if markdownOpen then
                                         text "Close Preview"
@@ -451,10 +450,9 @@ view model shared =
                                             markdownOpen
                                             model.introduction
                                             (textarea
-                                                [ placeholder "Introduction"
+                                                [ placeholder "General Introduction"
                                                 , id "introduction-input"
                                                 , onInput <| OnUpdateIntroduction
-                                                , hidden <| Bigbit.isFSOpen model.fs
                                                 , value model.introduction
                                                 , Util.onKeydownPreventDefault
                                                     (\key ->
@@ -496,11 +494,14 @@ view model shared =
                                                 markdownOpen
                                                 frameText
                                                 (textarea
-                                                    [ placeholder <| "Frame " ++ (toString frameNumber)
+                                                    [ placeholder <|
+                                                        "Frame "
+                                                            ++ (toString frameNumber)
+                                                            ++ "\n\n"
+                                                            ++ "Highlight a chunk of code and explain it..."
                                                     , id "frame-input"
                                                     , onInput <| OnUpdateFrameComment frameNumber
                                                     , value frameText
-                                                    , hidden <| fsOpen
                                                     , Util.onKeydownPreventDefault
                                                         (\key ->
                                                             let
@@ -542,10 +543,9 @@ view model shared =
                                             markdownOpen
                                             model.conclusion
                                             (textarea
-                                                [ placeholder "Conclusion"
+                                                [ placeholder "General Conclusion"
                                                 , id "conclusion-input"
                                                 , onInput OnUpdateConclusion
-                                                , hidden <| fsOpen
                                                 , value model.conclusion
                                                 , Util.onKeydownPreventDefault
                                                     (\key ->
@@ -608,7 +608,7 @@ view model shared =
                             in
                                 div
                                     [ class "comment-body-bottom-buttons"
-                                    , hidden <| fsOpen || markdownOpen
+                                    , hidden markdownOpen
                                     ]
                                     [ button
                                         [ onClick <| GoTo <| Route.CreateBigbitCodeIntroductionPage Nothing
@@ -654,12 +654,34 @@ view model shared =
             in
                 div
                     [ class "create-bigbit-code" ]
-                    [ bigbitEditor
-                    , bigbitCommentBox
+                    [ div
+                        [ class "bigbit-extended-view" ]
+                        [ bigbitFS
+                        , bigbitEditor
+                        , bigbitCommentBox
+                        ]
                     ]
     in
         div
-            [ class "create-bigbit" ]
+            [ classList
+                [ ( "create-bigbit", True )
+                , ( "fs-closed", not fsOpen )
+                , ( "viewing-fs-open"
+                  , case shared.route of
+                        Route.CreateBigbitCodeIntroductionPage _ ->
+                            fsOpen
+
+                        Route.CreateBigbitCodeFramePage _ _ ->
+                            fsOpen
+
+                        Route.CreateBigbitCodeConclusionPage _ ->
+                            fsOpen
+
+                        _ ->
+                            False
+                  )
+                ]
+            ]
             [ div
                 [ class "sub-bar" ]
                 [ button

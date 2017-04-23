@@ -20,7 +20,7 @@ init =
     , fs =
         FS.emptyFS
             { activeFile = Nothing
-            , openFS = False
+            , openFS = True
             , actionButtonState = Nothing
             , actionButtonInput = ""
             , actionButtonSubmitConfirmed = False

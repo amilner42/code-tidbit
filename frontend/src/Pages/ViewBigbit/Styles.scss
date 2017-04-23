@@ -4,28 +4,84 @@
 
 .view-bigbit-page {
     height: 100%;
+    width: 100%;
+    min-width: $min-width-supported-2;
+
+    &.fs-closed {
+        min-width: $min-width-supported-1;
+
+        .viewer {
+            width: 995px;
+            padding-left: 0;
+
+            .view-bigbit-fs {
+                width: 0px;
+                margin: 0;
+                padding: 0;
+                border: none;
+
+                .fs {
+                    display: none;
+                }
+
+                .close-fs-icon {
+                    display: none;
+                }
+
+                .above-editor-text {
+                    left: 0;
+                }
+            }
+        }
+
+        #code-editor-wrapper {
+            padding-left: 0;
+        }
+    }
 
     .sub-bar {
+        width: 100%;
+
         .sub-bar-button {
             margin-left: 10px;
         }
+    }
 
-        .explore-fs {
-            width: 150px;
+    .viewer {
+        width: 1305px;
+
+        .view-bigbit-fs {
+            box-sizing: border-box;
+            position: relative;
+            padding-left: 10px;
+            display: inline-block;
+            float: left;
+            width: 100%;
+            height: 100%;
+            border: 1px solid $color13;
+            width: 300px;
+            height: 600px;
+
+            .above-editor-text {
+                position: absolute;
+                white-space: nowrap;
+                top: -20px;
+                left: 309px;
+                font-size: 16px;
+                color: $color4;
+                @include no-select();
+                cursor: pointer;
+            }
+
+            .close-fs-icon {
+                position: absolute;
+                display: block;
+                color: $color4;
+                left: 275px;
+                top: 0;
+                @include no-select();
+                cursor: pointer;
+            }
         }
-    }
-
-    .view-bigbit-toggle-fs {
-        @extend .above-comment-block-button;
-        right: 0;
-        width: 200px !important;
-    }
-
-    .view-bigbit-fs {
-        box-sizing: border-box;
-        padding-left: 10px;
-        width: 100%;
-        height: 100%;
-        border: 1px solid $color13;
     }
 }

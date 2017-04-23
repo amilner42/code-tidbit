@@ -97,10 +97,15 @@
 
     .create-snipbit-code {
         @extend .create-tidbit-code;
+        width: 995px;
 
         .preview-markdown {
             @extend .above-comment-block-button;
             right: 0;
+        }
+
+        #code-editor-wrapper {
+            padding-left: 0;
         }
     }
 

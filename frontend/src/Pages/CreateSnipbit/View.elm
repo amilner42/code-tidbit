@@ -242,7 +242,7 @@ view model shared =
                                     markdownOpen
                                     model.introduction
                                     (textarea
-                                        [ placeholder "Introduction"
+                                        [ placeholder "General Introduction"
                                         , id "introduction-input"
                                         , onInput <| OnUpdateIntroduction
                                         , value model.introduction
@@ -282,7 +282,11 @@ view model shared =
                                         markdownOpen
                                         frameText
                                         (textarea
-                                            [ placeholder <| "Frame " ++ (toString frameNumber)
+                                            [ placeholder <|
+                                                "Frame "
+                                                    ++ (toString frameNumber)
+                                                    ++ "\n\n"
+                                                    ++ "Highlight a chunk of code and explain it..."
                                             , id "frame-input"
                                             , onInput <| OnUpdateFrameComment frameIndex
                                             , value frameText
@@ -319,7 +323,7 @@ view model shared =
                                     markdownOpen
                                     model.conclusion
                                     (textarea
-                                        [ placeholder "Conclusion"
+                                        [ placeholder "General Conclusion"
                                         , id "conclusion-input"
                                         , onInput <| OnUpdateConclusion
                                         , value model.conclusion
@@ -413,19 +417,7 @@ view model shared =
                     [ Editor.editor "create-snipbit-code-editor"
                     , div
                         [ class "comment-creator" ]
-                        [ div
-                            [ class "above-editor-text" ]
-                            [ text <|
-                                if currentRoute == Route.CreateSnipbitCodeIntroductionPage then
-                                    "Snipbit introductions do not link to highlights, but you can browse "
-                                        ++ "and edit your code"
-                                else if currentRoute == Route.CreateSnipbitCodeConclusionPage then
-                                    "Snipbit conclusions do not link to highlights, but you can browse "
-                                        ++ "and edit your code"
-                                else
-                                    ""
-                            ]
-                        , body
+                        [ body
                         , tabBar
                         ]
                     ]

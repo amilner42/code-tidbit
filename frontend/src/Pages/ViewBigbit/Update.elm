@@ -223,37 +223,29 @@ update ({ doNothing, justSetModel, justUpdateModel, justSetShared, justProduceCm
             doNothing
 
         ToggleFS ->
-            let
-                -- We have a `not` because we toggle the fs state.
-                fsJustOpened =
-                    model.bigbit
-                        |> Maybe.map (not << Bigbit.isFSOpen << .fs)
-                        |> Maybe.withDefault False
-            in
-                ( Util.multipleUpdates
-                    [ updateBigbit
-                        (\currentViewingBigbit ->
-                            { currentViewingBigbit
-                                | fs = Bigbit.toggleFS currentViewingBigbit.fs
-                            }
-                        )
-                    , setRelevantHC Nothing
-                    ]
-                    model
-                , shared
-                , if fsJustOpened then
-                    Route.navigateToSameUrlWithFilePath
-                        (Maybe.andThen
-                            (Route.viewBigbitPageCurrentActiveFile shared.route)
-                            model.bigbit
-                        )
-                        shared.route
-                  else
-                    Route.navigateToSameUrlWithFilePath Nothing shared.route
-                )
+            justUpdateModel <|
+                updateBigbit
+                    (\currentViewingBigbit ->
+                        { currentViewingBigbit
+                            | fs = Bigbit.toggleFS currentViewingBigbit.fs
+                        }
+                    )
 
         SelectFile absolutePath ->
-            justProduceCmd <| Route.navigateToSameUrlWithFilePath (Just absolutePath) shared.route
+            let
+                tutorialFile =
+                    case shared.route of
+                        Route.ViewBigbitFramePage _ _ frameNumber _ ->
+                            Maybe.andThen (Bigbit.getHighlightedComment frameNumber) model.bigbit
+                                |> Maybe.map .file
+
+                        _ ->
+                            Nothing
+            in
+                if Just absolutePath == tutorialFile then
+                    justProduceCmd <| Route.navigateToSameUrlWithFilePath Nothing shared.route
+                else
+                    justProduceCmd <| Route.navigateToSameUrlWithFilePath (Just absolutePath) shared.route
 
         ToggleFolder absolutePath ->
             justUpdateModel <|
@@ -318,16 +310,7 @@ update ({ doNothing, justSetModel, justUpdateModel, justSetShared, justProduceCm
                 )
 
         JumpToFrame route ->
-            ( Util.multipleUpdates
-                [ updateBigbit
-                    (\currentViewingBigbit ->
-                        { currentViewingBigbit
-                            | fs = Bigbit.closeFS currentViewingBigbit.fs
-                        }
-                    )
-                , setRelevantHC Nothing
-                ]
-                model
+            ( setRelevantHC Nothing model
             , shared
             , Route.navigateTo route
             )
@@ -359,6 +342,14 @@ update ({ doNothing, justSetModel, justUpdateModel, justSetShared, justProduceCm
         OnMarkAsIncompleteFailure apiError ->
             -- TODO handle error.
             doNothing
+
+        BackToTutorialSpot ->
+            case shared.route of
+                Route.ViewBigbitFramePage _ _ _ _ ->
+                    justProduceCmd <| Route.navigateToSameUrlWithFilePath Nothing shared.route
+
+                _ ->
+                    doNothing
 
 
 {-| Creates the code editor for the bigbit when browsing relevant HC.

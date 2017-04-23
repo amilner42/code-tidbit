@@ -14,6 +14,14 @@
             height: 50px;
             background-color: $color12;
 
+            &.nav-wide-2 {
+                min-width: $min-width-supported-2 !important;
+            }
+
+            &.nav-wide-3 {
+                min-width: $min-width-supported-3 !important;
+            }
+
             .logo {
                 @include no-select();
                 box-sizing: border-box;

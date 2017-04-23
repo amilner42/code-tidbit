@@ -48,7 +48,7 @@ decoder =
         fsDecoder =
             JSON.FileStructure.decoder
                 (decode (\isOpen -> { openFS = isOpen })
-                    |> optional "openFS" Decode.bool False
+                    |> optional "openFS" Decode.bool True
                 )
                 (decode (\isExpanded -> { isExpanded = isExpanded })
                     |> optional "isExpanded" Decode.bool True
