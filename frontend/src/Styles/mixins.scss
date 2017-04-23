@@ -6,13 +6,13 @@
 
     position: absolute;
 
-    @media screen and (min-width: $min-width-supported) and (min-height: $min-height-supported) {
+    @media screen and (min-width: $min-width-supported-1) and (min-height: $min-height-supported) {
         top: $top-distance;
         left: 50%;
         transform: translate(-50%, -50%);
     }
 
-    @media screen and (max-width: $min-width-supported) {
+    @media screen and (max-width: $min-width-supported-1) {
         top: $top-distance;
         left: 0;
         transform: translate(0, -50%);
@@ -24,7 +24,7 @@
         transform: translate(-50%, 0);
     }
 
-    @media screen and (max-height: $min-height-supported) and (max-width: $min-width-supported) {
+    @media screen and (max-height: $min-height-supported) and (max-width: $min-width-supported-1) {
         top: 0;
         left: 0;
         transform: none;

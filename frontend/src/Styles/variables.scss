@@ -1,6 +1,5 @@
-// Avoid naming variables "main-grey", "or light-grey", it's best to not have
-// the color in the variable name, that way it's easier to change color schemes
-// without having your "light-grey" be blue...
+// Avoid naming variables "main-grey", "or light-grey", it's best to not have the color in the variable name, that way
+// it's easier to change color schemes without having your "light-grey" be blue...
 $color1: #0E7CE7;
 $color2: #3090ED;
 $color3: #7FC0FF;
@@ -19,13 +18,15 @@ $color15: #DDDDDD;
 $color16: #FEFEFE;
 
 $error-color1: red;
-$error-color13: #ec437d;
+$error-color2: #ec437d;
 
 $content-color1: #11C0DE;
 $content-color3: #81BD41;
 $content-color2: #5B2E81;
 
-// At what point should your website stop adjusting to the size and start
-// becoming "scrolly".
-$min-width-supported: 1024px;
+// At what point should your website stop adjusting to the size and start becoming "scrolly". We have different
+// min-widths on different pages, we try to keep pages as small as possible but sometimes more space is required.
+$min-width-supported-1: 1024px;
+$min-width-supported-2: 1350px;
+$min-width-supported-3: 1400px;
 $min-height-supported: 768px;

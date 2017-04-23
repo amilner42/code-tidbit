@@ -5,13 +5,13 @@
 .view-bigbit-page {
     height: 100%;
     width: 100%;
-    min-width: 1350px;
+    min-width: $min-width-supported-2;
 
     &.fs-closed {
-        min-width: $min-width-supported;
+        min-width: $min-width-supported-1;
 
         .viewer {
-            width: $min-width-supported;
+            width: 995px;
             padding-left: 0;
 
             .view-bigbit-fs {
@@ -29,9 +29,13 @@
                 }
 
                 .above-editor-text {
-                    left: 15px;
+                    left: 0;
                 }
             }
+        }
+
+        #code-editor-wrapper {
+            padding-left: 0;
         }
     }
 
@@ -44,8 +48,7 @@
     }
 
     .viewer {
-        width: 1320px;
-        padding-left: 10px;
+        width: 1305px;
 
         .view-bigbit-fs {
             box-sizing: border-box;
@@ -63,7 +66,7 @@
                 position: absolute;
                 white-space: nowrap;
                 top: -20px;
-                left: 315px;
+                left: 309px;
                 font-size: 16px;
                 color: $color4;
                 @include no-select();
@@ -79,10 +82,6 @@
                 @include no-select();
                 cursor: pointer;
             }
-        }
-
-        #code-editor-wrapper {
-            padding-left: 14px;
         }
     }
 }

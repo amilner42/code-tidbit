@@ -103,12 +103,12 @@ progressBar { state, maxPosition, disabledStyling, onClickMsg, allowClick, textF
                 []
             , div
                 []
-                [ case textFormat of
-                    Percentage ->
-                        text <| (toString <| round <| percentComplete) ++ "%"
+                [ text <|
+                    case textFormat of
+                        Percentage ->
+                            (toString <| round <| percentComplete) ++ "%"
 
-                    Custom { notStarted, started, done } ->
-                        text <|
+                        Custom { notStarted, started, done } ->
                             case state of
                                 NotStarted ->
                                     notStarted

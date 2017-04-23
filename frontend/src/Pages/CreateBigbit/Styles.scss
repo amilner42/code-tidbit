@@ -7,10 +7,10 @@
 
     height: 100%;
     width: 100%;
-    min-width: $min-width-supported;
+    min-width: $min-width-supported-1;
 
     &.viewing-fs-open {
-        min-width: 1400px;
+        min-width: $min-width-supported-3;
     }
 
     &.fs-closed {
@@ -91,10 +91,6 @@
         .bigbit-extended-view {
             width: 1367px;
             margin: auto;
-        }
-
-        .comment-creator {
-            margin-right: 0px;
         }
 
         .bigbit-editor {

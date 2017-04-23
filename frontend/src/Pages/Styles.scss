@@ -14,12 +14,12 @@
             height: 50px;
             background-color: $color12;
 
-            &.nav-wide-1 {
-                min-width: 1350px !important;
+            &.nav-wide-2 {
+                min-width: $min-width-supported-2 !important;
             }
 
-            &.nav-wide-2 {
-                min-width: 1400px !important;
+            &.nav-wide-3 {
+                min-width: $min-width-supported-3 !important;
             }
 
             .logo {

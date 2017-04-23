@@ -363,8 +363,8 @@ navbar model =
         div
             [ classList
                 [ ( "nav", True )
-                , ( "nav-wide-1", isWideNav1 model )
                 , ( "nav-wide-2", isWideNav2 model )
+                , ( "nav-wide-3", isWideNav3 model )
                 ]
             ]
             [ img
@@ -426,12 +426,12 @@ navbar model =
             ]
 
 
-{-| Returns true if the nav needs to be in wide-mode-1 (1350px).
+{-| Returns true if the nav needs to be `$min-width-supported-2` wide.
 
-Currently wide-mode-1 is required for viewing bigbits when the FS is expanded.
+Currently wide-mode-2 is required for viewing bigbits when the FS is expanded.
 -}
-isWideNav1 : Model -> Bool
-isWideNav1 model =
+isWideNav2 : Model -> Bool
+isWideNav2 model =
     let
         viewBigbitFSOpen =
             ViewBigbitModel.isBigbitFSOpen model.viewBigbitPage.bigbit
@@ -450,12 +450,12 @@ isWideNav1 model =
                 False
 
 
-{-| Returns true if the nav needs to be in wide-mode-2 (1400 px).
+{-| Returns true if the nav needs to be `$min-width-supported-3` wide.
 
-Currently wide-mode-2 is required for creating bigbits when the fs is expanded.
+Currently wide-mode-3 is required for creating bigbits when the fs is expanded.
 -}
-isWideNav2 : Model -> Bool
-isWideNav2 model =
+isWideNav3 : Model -> Bool
+isWideNav3 model =
     let
         createBigbitFSOpen =
             Bigbit.isFSOpen model.createBigbitPage.fs
