@@ -6,27 +6,31 @@
 .create-bigbit {
 
     height: 100%;
+    width: 100%;
+    min-width: 1400px;
 
     &.fs-closed {
+        min-width: $min-width-supported;
 
         .create-bigbit-code {
-            overflow-x: hidden;
-            padding: 0px;
 
             .bigbit-extended-view {
-                width: $min-width-supported;
-                padding-left: 8px;
+                width: 995px;
             }
 
             .bigbit-editor {
                 .current-file {
-                    left: 10px;
+                    left: 0;
                 }
             }
 
             .bigbit-fs {
                 width: 0px;
             }
+        }
+
+        #code-editor-wrapper {
+            padding-left: 0;
         }
     }
 
@@ -79,15 +83,16 @@
         @extend .create-tidbit-code;
         box-sizing: border-box;
         width: 100%;
-        max-width: 1410px;
-        overflow-x: auto;
-        overflow-y: hidden;
         margin-top: 0;
-        padding: 0 9px 0 16px;
+        padding: 0;
 
         .bigbit-extended-view {
-            width: 1377px;
+            width: 1367px;
             margin: auto;
+        }
+
+        .comment-creator {
+            margin-right: 0px;
         }
 
         .bigbit-editor {

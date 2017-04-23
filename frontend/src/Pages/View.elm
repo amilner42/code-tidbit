@@ -4,6 +4,7 @@ import DefaultServices.Util as Util
 import Html exposing (Html, div, img, text)
 import Html.Attributes exposing (class, src, classList)
 import Html.Events exposing (onClick)
+import Models.Bigbit as Bigbit
 import Models.Route as Route
 import Pages.Browse.Model as BrowseModel
 import Pages.Browse.View as BrowseView
@@ -42,7 +43,7 @@ view model =
         [ class "base-page-wrapper" ]
         [ div
             [ class "base-page" ]
-            [ navbarIfOnRoute model.shared
+            [ navbarIfOnRoute model
             , viewForRoute model
             ]
 
@@ -264,9 +265,9 @@ browseView browseModel shared =
 
 {-| Displays the navbar if the route is not on the welcome page.
 -}
-navbarIfOnRoute : Shared -> Html Msg
-navbarIfOnRoute shared =
-    case shared.route of
+navbarIfOnRoute : Model -> Html Msg
+navbarIfOnRoute model =
+    case model.shared.route of
         Route.LoginPage ->
             Util.hiddenDiv
 
@@ -274,14 +275,17 @@ navbarIfOnRoute shared =
             Util.hiddenDiv
 
         _ ->
-            navbar shared
+            navbar model
 
 
 {-| Horizontal navbar to go above the views.
 -}
-navbar : Shared -> Html Msg
-navbar shared =
+navbar : Model -> Html Msg
+navbar model =
     let
+        shared =
+            model.shared
+
         browseViewSelected =
             case shared.route of
                 Route.BrowsePage ->
@@ -356,7 +360,13 @@ navbar shared =
                         ]
                     )
     in
-        div [ class "nav" ]
+        div
+            [ classList
+                [ ( "nav", True )
+                , ( "nav-wide-1", isWideNav1 model )
+                , ( "nav-wide-2", isWideNav2 model )
+                ]
+            ]
             [ img
                 [ class "logo"
                 , src "assets/ct-logo-small.png"
@@ -414,3 +424,51 @@ navbar shared =
                 ]
                 [ text "Login" ]
             ]
+
+
+{-| Returns true if the nav needs to be in wide-mode-1 (1350px).
+
+Currently wide-mode-1 is required for viewing bigbits when the FS is expanded.
+-}
+isWideNav1 : Model -> Bool
+isWideNav1 model =
+    let
+        viewBigbitFSOpen =
+            ViewBigbitModel.isBigbitFSOpen model.viewBigbitPage.bigbit
+    in
+        case model.shared.route of
+            Route.ViewBigbitIntroductionPage _ _ _ ->
+                viewBigbitFSOpen
+
+            Route.ViewBigbitFramePage _ _ _ _ ->
+                viewBigbitFSOpen
+
+            Route.ViewBigbitConclusionPage _ _ _ ->
+                viewBigbitFSOpen
+
+            _ ->
+                False
+
+
+{-| Returns true if the nav needs to be in wide-mode-2 (1400 px).
+
+Currently wide-mode-2 is required for creating bigbits when the fs is expanded.
+-}
+isWideNav2 : Model -> Bool
+isWideNav2 model =
+    let
+        createBigbitFSOpen =
+            Bigbit.isFSOpen model.createBigbitPage.fs
+    in
+        case model.shared.route of
+            Route.CreateBigbitCodeIntroductionPage _ ->
+                createBigbitFSOpen
+
+            Route.CreateBigbitCodeFramePage _ _ ->
+                createBigbitFSOpen
+
+            Route.CreateBigbitCodeConclusionPage _ ->
+                createBigbitFSOpen
+
+            _ ->
+                False

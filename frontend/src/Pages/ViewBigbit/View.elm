@@ -133,205 +133,202 @@ view model shared =
 
                 Just bigbit ->
                     div
-                        [ class "scroll-box" ]
+                        [ class "viewer" ]
                         [ div
-                            [ class "extended-viewer viewer" ]
-                            [ div
-                                [ class "viewer-navbar" ]
-                                [ i
-                                    [ classList
-                                        [ ( "material-icons action-button", True )
-                                        , ( "disabled-icon"
-                                          , if notGoingThroughTutorial then
-                                                True
-                                            else
-                                                case currentRoute of
-                                                    Route.ViewBigbitIntroductionPage _ _ _ ->
-                                                        True
-
-                                                    _ ->
-                                                        False
-                                          )
-                                        ]
-                                    , onClick <|
-                                        if notGoingThroughTutorial then
-                                            NoOp
+                            [ class "viewer-navbar" ]
+                            [ i
+                                [ classList
+                                    [ ( "material-icons action-button", True )
+                                    , ( "disabled-icon"
+                                      , if notGoingThroughTutorial then
+                                            True
                                         else
                                             case currentRoute of
-                                                Route.ViewBigbitConclusionPage fromStoryID mongoID _ ->
-                                                    JumpToFrame <|
-                                                        Route.ViewBigbitFramePage
-                                                            fromStoryID
-                                                            mongoID
-                                                            (Array.length bigbit.highlightedComments)
-                                                            Nothing
-
-                                                Route.ViewBigbitFramePage fromStoryID mongoID frameNumber _ ->
-                                                    JumpToFrame <|
-                                                        Route.ViewBigbitFramePage
-                                                            fromStoryID
-                                                            mongoID
-                                                            (frameNumber - 1)
-                                                            Nothing
-
-                                                _ ->
-                                                    NoOp
-                                    ]
-                                    [ text "arrow_back" ]
-                                , div
-                                    [ onClick <|
-                                        if notGoingThroughTutorial then
-                                            NoOp
-                                        else
-                                            JumpToFrame <|
-                                                Route.ViewBigbitIntroductionPage
-                                                    (Route.getFromStoryQueryParamOnViewBigbitRoute currentRoute)
-                                                    bigbit.id
-                                                    Nothing
-                                    , classList
-                                        [ ( "viewer-navbar-item", True )
-                                        , ( "selected"
-                                          , case currentRoute of
                                                 Route.ViewBigbitIntroductionPage _ _ _ ->
                                                     True
 
                                                 _ ->
                                                     False
-                                          )
-                                        , ( "disabled", notGoingThroughTutorial )
-                                        ]
+                                      )
                                     ]
-                                    [ text "Introduction" ]
-                                , progressBar
-                                    { state =
+                                , onClick <|
+                                    if notGoingThroughTutorial then
+                                        NoOp
+                                    else
                                         case currentRoute of
-                                            Route.ViewBigbitFramePage _ _ frameNumber _ ->
-                                                Started frameNumber
+                                            Route.ViewBigbitConclusionPage fromStoryID mongoID _ ->
+                                                JumpToFrame <|
+                                                    Route.ViewBigbitFramePage
+                                                        fromStoryID
+                                                        mongoID
+                                                        (Array.length bigbit.highlightedComments)
+                                                        Nothing
 
-                                            Route.ViewBigbitConclusionPage _ _ _ ->
-                                                Completed
+                                            Route.ViewBigbitFramePage fromStoryID mongoID frameNumber _ ->
+                                                JumpToFrame <|
+                                                    Route.ViewBigbitFramePage
+                                                        fromStoryID
+                                                        mongoID
+                                                        (frameNumber - 1)
+                                                        Nothing
 
                                             _ ->
-                                                NotStarted
-                                    , maxPosition = Array.length bigbit.highlightedComments
-                                    , disabledStyling = notGoingThroughTutorial
-                                    , onClickMsg = BackToTutorialSpot
-                                    , allowClick =
-                                        (not <| notGoingThroughTutorial)
-                                            && (case shared.route of
-                                                    Route.ViewBigbitFramePage _ _ _ _ ->
-                                                        True
+                                                NoOp
+                                ]
+                                [ text "arrow_back" ]
+                            , div
+                                [ onClick <|
+                                    if notGoingThroughTutorial then
+                                        NoOp
+                                    else
+                                        JumpToFrame <|
+                                            Route.ViewBigbitIntroductionPage
+                                                (Route.getFromStoryQueryParamOnViewBigbitRoute currentRoute)
+                                                bigbit.id
+                                                Nothing
+                                , classList
+                                    [ ( "viewer-navbar-item", True )
+                                    , ( "selected"
+                                      , case currentRoute of
+                                            Route.ViewBigbitIntroductionPage _ _ _ ->
+                                                True
 
-                                                    _ ->
-                                                        False
-                                               )
-                                    , textFormat =
-                                        Custom
-                                            { notStarted = "Not Started"
-                                            , started = (\frameNumber -> "Frame " ++ (toString frameNumber))
-                                            , done = "Complete"
-                                            }
-                                    , shiftLeft = True
-                                    }
-                                , div
-                                    [ onClick <|
-                                        if notGoingThroughTutorial then
-                                            NoOp
+                                            _ ->
+                                                False
+                                      )
+                                    , ( "disabled", notGoingThroughTutorial )
+                                    ]
+                                ]
+                                [ text "Introduction" ]
+                            , progressBar
+                                { state =
+                                    case currentRoute of
+                                        Route.ViewBigbitFramePage _ _ frameNumber _ ->
+                                            Started frameNumber
+
+                                        Route.ViewBigbitConclusionPage _ _ _ ->
+                                            Completed
+
+                                        _ ->
+                                            NotStarted
+                                , maxPosition = Array.length bigbit.highlightedComments
+                                , disabledStyling = notGoingThroughTutorial
+                                , onClickMsg = BackToTutorialSpot
+                                , allowClick =
+                                    (not <| notGoingThroughTutorial)
+                                        && (case shared.route of
+                                                Route.ViewBigbitFramePage _ _ _ _ ->
+                                                    True
+
+                                                _ ->
+                                                    False
+                                           )
+                                , textFormat =
+                                    Custom
+                                        { notStarted = "Not Started"
+                                        , started = (\frameNumber -> "Frame " ++ (toString frameNumber))
+                                        , done = "Complete"
+                                        }
+                                , shiftLeft = True
+                                }
+                            , div
+                                [ onClick <|
+                                    if notGoingThroughTutorial then
+                                        NoOp
+                                    else
+                                        JumpToFrame <|
+                                            Route.ViewBigbitConclusionPage
+                                                (Route.getFromStoryQueryParamOnViewBigbitRoute currentRoute)
+                                                bigbit.id
+                                                Nothing
+                                , classList
+                                    [ ( "viewer-navbar-item", True )
+                                    , ( "selected"
+                                      , case currentRoute of
+                                            Route.ViewBigbitConclusionPage _ _ _ ->
+                                                True
+
+                                            _ ->
+                                                False
+                                      )
+                                    , ( "disabled", notGoingThroughTutorial )
+                                    ]
+                                ]
+                                [ text "Conclusion" ]
+                            , i
+                                [ classList
+                                    [ ( "material-icons action-button", True )
+                                    , ( "disabled-icon"
+                                      , if notGoingThroughTutorial then
+                                            True
                                         else
-                                            JumpToFrame <|
-                                                Route.ViewBigbitConclusionPage
-                                                    (Route.getFromStoryQueryParamOnViewBigbitRoute currentRoute)
-                                                    bigbit.id
-                                                    Nothing
-                                    , classList
-                                        [ ( "viewer-navbar-item", True )
-                                        , ( "selected"
-                                          , case currentRoute of
+                                            case currentRoute of
                                                 Route.ViewBigbitConclusionPage _ _ _ ->
                                                     True
 
                                                 _ ->
                                                     False
-                                          )
-                                        , ( "disabled", notGoingThroughTutorial )
-                                        ]
+                                      )
                                     ]
-                                    [ text "Conclusion" ]
-                                , i
-                                    [ classList
-                                        [ ( "material-icons action-button", True )
-                                        , ( "disabled-icon"
-                                          , if notGoingThroughTutorial then
-                                                True
-                                            else
-                                                case currentRoute of
-                                                    Route.ViewBigbitConclusionPage _ _ _ ->
-                                                        True
+                                , onClick <|
+                                    if notGoingThroughTutorial then
+                                        NoOp
+                                    else
+                                        case currentRoute of
+                                            Route.ViewBigbitIntroductionPage fromStoryID mongoID _ ->
+                                                JumpToFrame <|
+                                                    Route.ViewBigbitFramePage fromStoryID mongoID 1 Nothing
 
-                                                    _ ->
-                                                        False
-                                          )
-                                        ]
-                                    , onClick <|
-                                        if notGoingThroughTutorial then
-                                            NoOp
-                                        else
-                                            case currentRoute of
-                                                Route.ViewBigbitIntroductionPage fromStoryID mongoID _ ->
-                                                    JumpToFrame <|
-                                                        Route.ViewBigbitFramePage fromStoryID mongoID 1 Nothing
+                                            Route.ViewBigbitFramePage fromStoryID mongoID frameNumber _ ->
+                                                JumpToFrame <|
+                                                    Route.ViewBigbitFramePage
+                                                        fromStoryID
+                                                        mongoID
+                                                        (frameNumber + 1)
+                                                        Nothing
 
-                                                Route.ViewBigbitFramePage fromStoryID mongoID frameNumber _ ->
-                                                    JumpToFrame <|
-                                                        Route.ViewBigbitFramePage
-                                                            fromStoryID
-                                                            mongoID
-                                                            (frameNumber + 1)
-                                                            Nothing
-
-                                                _ ->
-                                                    NoOp
-                                    ]
-                                    [ text "arrow_forward" ]
+                                            _ ->
+                                                NoOp
                                 ]
-                            , div
-                                [ class "view-bigbit-fs" ]
-                                [ FS.fileStructure
-                                    { isFileSelected =
-                                        (\absolutePath ->
-                                            Route.viewBigbitPageCurrentActiveFile currentRoute bigbit
-                                                |> Maybe.map (FS.isSameFilePath absolutePath)
-                                                |> Maybe.withDefault False
-                                        )
-                                    , fileSelectedMsg = SelectFile
-                                    , folderSelectedMsg = ToggleFolder
-                                    }
-                                    bigbit.fs
-                                , i
-                                    [ class "close-fs-icon material-icons"
-                                    , onClick ToggleFS
-                                    ]
-                                    [ text "close" ]
-                                , div
-                                    [ class "above-editor-text"
-                                    , onClick <|
-                                        if fsOpen then
-                                            NoOp
-                                        else
-                                            ToggleFS
-                                    ]
-                                    [ text <|
-                                        case Route.viewBigbitPageCurrentActiveFile currentRoute bigbit of
-                                            Nothing ->
-                                                "No File Selected"
-
-                                            Just activeFile ->
-                                                activeFile
-                                    ]
-                                ]
-                            , Editor.editor "view-bigbit-code-editor"
-                            , viewBigbitCommentBox bigbit model.relevantHC currentRoute
+                                [ text "arrow_forward" ]
                             ]
+                        , div
+                            [ class "view-bigbit-fs" ]
+                            [ FS.fileStructure
+                                { isFileSelected =
+                                    (\absolutePath ->
+                                        Route.viewBigbitPageCurrentActiveFile currentRoute bigbit
+                                            |> Maybe.map (FS.isSameFilePath absolutePath)
+                                            |> Maybe.withDefault False
+                                    )
+                                , fileSelectedMsg = SelectFile
+                                , folderSelectedMsg = ToggleFolder
+                                }
+                                bigbit.fs
+                            , i
+                                [ class "close-fs-icon material-icons"
+                                , onClick ToggleFS
+                                ]
+                                [ text "close" ]
+                            , div
+                                [ class "above-editor-text"
+                                , onClick <|
+                                    if fsOpen then
+                                        NoOp
+                                    else
+                                        ToggleFS
+                                ]
+                                [ text <|
+                                    case Route.viewBigbitPageCurrentActiveFile currentRoute bigbit of
+                                        Nothing ->
+                                            "No File Selected"
+
+                                        Just activeFile ->
+                                            activeFile
+                                ]
+                            ]
+                        , Editor.editor "view-bigbit-code-editor"
+                        , viewBigbitCommentBox bigbit model.relevantHC currentRoute
                         ]
             ]
 

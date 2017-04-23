@@ -4,10 +4,13 @@
 
 .view-bigbit-page {
     height: 100%;
+    width: 100%;
+    min-width: 1350px;
 
     &.fs-closed {
+        min-width: $min-width-supported;
 
-        .extended-viewer {
+        .viewer {
             width: $min-width-supported;
             padding-left: 0;
 
@@ -33,18 +36,14 @@
     }
 
     .sub-bar {
+        width: 100%;
+
         .sub-bar-button {
             margin-left: 10px;
         }
     }
 
-    .scroll-box {
-        width: 100%;
-        min-width: $min-width-supported;
-        overflow-x: auto;
-    }
-
-    .extended-viewer {
+    .viewer {
         width: 1320px;
         padding-left: 10px;
 
