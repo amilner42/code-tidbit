@@ -666,6 +666,20 @@ view model shared =
             [ classList
                 [ ( "create-bigbit", True )
                 , ( "fs-closed", not fsOpen )
+                , ( "viewing-fs-open"
+                  , case shared.route of
+                        Route.CreateBigbitCodeIntroductionPage _ ->
+                            fsOpen
+
+                        Route.CreateBigbitCodeFramePage _ _ ->
+                            fsOpen
+
+                        Route.CreateBigbitCodeConclusionPage _ ->
+                            fsOpen
+
+                        _ ->
+                            False
+                  )
                 ]
             ]
             [ div

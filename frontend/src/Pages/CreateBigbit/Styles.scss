@@ -7,11 +7,13 @@
 
     height: 100%;
     width: 100%;
-    min-width: 1400px;
+    min-width: $min-width-supported;
+
+    &.viewing-fs-open {
+        min-width: 1400px;
+    }
 
     &.fs-closed {
-        min-width: $min-width-supported;
-
         .create-bigbit-code {
 
             .bigbit-extended-view {
