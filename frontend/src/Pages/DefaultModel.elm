@@ -50,4 +50,5 @@ defaultShared route flags =
     , userTidbits = Nothing
     , viewingStory = Nothing
     , flags = flags
+    , apiModalError = Nothing
     }

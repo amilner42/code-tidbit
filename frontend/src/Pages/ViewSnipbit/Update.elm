@@ -173,8 +173,7 @@ update ({ doNothing, justSetModel, justUpdateModel, justSetShared, justProduceCm
             justUpdateModel <| setViewingSnipbitIsCompleted <| Just isCompleted
 
         OnGetCompletedFailure apiError ->
-            -- TODO handle error.
-            doNothing
+            common.justSetModalError apiError
 
         OnGetSnipbitSuccess snipbit ->
             ( Util.multipleUpdates
@@ -187,15 +186,13 @@ update ({ doNothing, justSetModel, justUpdateModel, justSetShared, justProduceCm
             )
 
         OnGetSnipbitFailure apiError ->
-            -- TODO handle error.
-            doNothing
+            common.justSetModalError apiError
 
         OnGetExpandedStorySuccess expandedStory ->
             justSetShared { shared | viewingStory = Just expandedStory }
 
         OnGetExpandedStoryFailure apiError ->
-            -- TODO handle error.
-            doNothing
+            common.justSetModalError apiError
 
         OnRangeSelected selectedRange ->
             case model.snipbit of
@@ -283,8 +280,7 @@ update ({ doNothing, justSetModel, justUpdateModel, justSetShared, justProduceCm
             justUpdateModel <| setViewingSnipbitIsCompleted <| Just isCompleted
 
         OnMarkAsCompleteFailure apiError ->
-            -- TODO handle error.
-            doNothing
+            common.justSetModalError apiError
 
         MarkAsIncomplete completed ->
             justProduceCmd <|
@@ -294,8 +290,7 @@ update ({ doNothing, justSetModel, justUpdateModel, justSetShared, justProduceCm
             justUpdateModel <| setViewingSnipbitIsCompleted <| Just isCompleted
 
         OnMarkAsIncompleteFailure apiError ->
-            -- TODO handle error.
-            doNothing
+            common.justSetModalError apiError
 
 
 {-| Creates the editor for the snipbit.

@@ -4,6 +4,7 @@ import DefaultServices.Util as Util
 import Html exposing (Html, div, img, text)
 import Html.Attributes exposing (class, src, classList)
 import Html.Events exposing (onClick)
+import Models.ApiError as ApiError
 import Models.Bigbit as Bigbit
 import Models.Route as Route
 import Pages.Browse.Model as BrowseModel
@@ -47,10 +48,38 @@ view model =
             , viewForRoute model
             ]
 
+        -- The modal for displaying errors.
+        , Util.maybeMapWithDefault errorModal Util.hiddenDiv model.shared.apiModalError
+
         -- Used for smooth scrolling to the bottom.
-        , div
-            [ class "invisible-bottom" ]
+        , div [ class "invisible-bottom" ] []
+        ]
+
+
+{-| A basic modal for displaying the message in human readable format.
+-}
+errorModal : ApiError.ApiError -> Html Msg
+errorModal apiError =
+    div
+        []
+        [ -- The modal background.
+          div
+            [ classList [ ( "modal-bg", True ) ]
+            , onClick CloseModal
+            ]
             []
+
+        -- The actual modal box.
+        , div
+            [ classList [ ( "modal-box", True ) ]
+            ]
+            [ div
+                [ class "modal-title" ]
+                [ text "An Error Occured" ]
+            , div
+                [ class "modal-message" ]
+                [ text <| ApiError.humanReadable apiError ]
+            ]
         ]
 
 

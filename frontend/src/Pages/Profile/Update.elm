@@ -12,7 +12,7 @@ import Pages.Profile.Model exposing (..)
 {-| `Profile` update.
 -}
 update : CommonSubPageUtil Model Shared Msg -> Msg -> Model -> Shared -> ( Model, Shared, Cmd Msg )
-update { doNothing, justSetModel, justUpdateModel, justProduceCmd, api } msg model shared =
+update { doNothing, justSetModel, justUpdateModel, justProduceCmd, api, justSetModalError } msg model shared =
     case msg of
         OnEditName originalName newName ->
             justUpdateModel <| setName originalName newName
@@ -39,8 +39,7 @@ update { doNothing, justSetModel, justUpdateModel, justProduceCmd, api } msg mod
             )
 
         OnSaveEditedNameFailure apiError ->
-            -- TODO handle failure.
-            doNothing
+            justSetModalError apiError
 
         OnEditBio originalBio newBio ->
             justUpdateModel <| setBio originalBio newBio
@@ -67,8 +66,7 @@ update { doNothing, justSetModel, justUpdateModel, justProduceCmd, api } msg mod
             )
 
         OnSaveBioEditedFailure apiError ->
-            -- TODO handle error.
-            doNothing
+            justSetModalError apiError
 
         LogOut ->
             justProduceCmd <| api.get.logOut OnLogOutFailure OnLogOutSuccess

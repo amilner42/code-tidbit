@@ -3,6 +3,7 @@ module Pages.Model exposing (..)
 import Elements.Editor as Editor
 import Flags exposing (Flags)
 import Keyboard.Extra as KK
+import Models.ApiError as ApiError
 import Models.Route as Route
 import Models.Story as Story
 import Models.Tidbit as Tidbit
@@ -52,6 +53,7 @@ type alias Shared =
     , userTidbits : Maybe (List Tidbit.Tidbit)
     , viewingStory : Maybe Story.ExpandedStory
     , flags : Flags
+    , apiModalError : Maybe ApiError.ApiError
     }
 
 

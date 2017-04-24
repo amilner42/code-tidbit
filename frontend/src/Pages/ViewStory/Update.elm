@@ -23,6 +23,9 @@ update msg shared =
 
         justProduceCmd newCmd =
             ( shared, newCmd )
+
+        justSetModalError apiError =
+            ( { shared | apiModalError = Just apiError }, Cmd.none )
     in
         case msg of
             NoOp ->
@@ -52,5 +55,4 @@ update msg shared =
                 justSetShared <| { shared | viewingStory = Just expandedStory }
 
             OnGetExpandedStoryFailure apiError ->
-                -- TODO handle error.
-                doNothing
+                justSetModalError apiError

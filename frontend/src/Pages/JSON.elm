@@ -74,6 +74,7 @@ sharedEncoder shared =
         , ( "userTidbits", Encode.null )
         , ( "viewingStory", Encode.null )
         , ( "flags", Encode.null )
+        , ( "apiModalError", Encode.null )
         ]
 
 
@@ -90,3 +91,4 @@ sharedDecoder shared =
         |> hardcoded Nothing
         |> hardcoded Nothing
         |> required "flags" (Decode.succeed shared.flags)
+        |> hardcoded Nothing

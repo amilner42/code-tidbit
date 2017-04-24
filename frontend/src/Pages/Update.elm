@@ -384,6 +384,11 @@ updateCacheIf msg model shouldCache =
 
                                 KK.Up keyCode ->
                                     handleKeyRelease (KK.fromCode keyCode) modelWithNewKeys
+
+                CloseModal ->
+                    ( { model | shared = { shared | apiModalError = Nothing } }
+                    , Cmd.none
+                    )
     in
         case shouldCache of
             True ->

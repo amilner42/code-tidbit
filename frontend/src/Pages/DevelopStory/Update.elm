@@ -13,7 +13,7 @@ import Ports
 {-| `DevelopStory` update.
 -}
 update : CommonSubPageUtil Model Shared Msg -> Msg -> Model -> Shared -> ( Model, Shared, Cmd Msg )
-update { doNothing, justSetShared, justSetModel, justUpdateModel, justProduceCmd, api } msg model shared =
+update ({ doNothing, justSetShared, justSetModel, justUpdateModel, justProduceCmd, api } as common) msg model shared =
     case msg of
         NoOp ->
             doNothing
@@ -73,8 +73,7 @@ update { doNothing, justSetShared, justSetModel, justUpdateModel, justProduceCmd
                 shared.user
 
         OnGetStoryFailure apiError ->
-            -- TODO handle error
-            doNothing
+            common.justSetModalError apiError
 
         OnGetTidbitsSuccess tidbits ->
             justSetShared { shared | userTidbits = Just tidbits }
@@ -111,5 +110,4 @@ update { doNothing, justSetShared, justSetModel, justUpdateModel, justProduceCmd
             )
 
         OnPublishAddedTidbitsFailure apiError ->
-            -- TODO handle error.
-            doNothing
+            common.justSetModalError apiError

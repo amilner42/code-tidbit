@@ -21,7 +21,7 @@ import Ports
 {-| `CreateSnipbit` update.
 -}
 update : CommonSubPageUtil Model Shared Msg -> Msg -> Model -> Shared -> ( Model, Shared, Cmd Msg )
-update { doNothing, justSetModel, justProduceCmd, api } msg model shared =
+update { doNothing, justSetModel, justProduceCmd, api, justSetModalError } msg model shared =
     let
         currentHighlightedComments =
             model.highlightedComments
@@ -425,8 +425,7 @@ update { doNothing, justSetModel, justProduceCmd, api } msg model shared =
                 )
 
             OnPublishFailure apiError ->
-                -- TODO Handle Publish Failures.
-                doNothing
+                justSetModalError apiError
 
 
 {-| Config for language-list auto-complete (used in snipbit creation).
