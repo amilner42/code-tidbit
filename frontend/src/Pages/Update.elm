@@ -62,8 +62,8 @@ updateCacheIf msg model shouldCache =
         api =
             Api.api shared.flags.apiBaseUrl
 
-        getUser () =
-            api.get.account OnGetUserFailure OnGetUserSuccess
+        getUserAndThenRefresh () =
+            api.get.account OnGetUserAndThenRefreshFailure OnGetUserAndThenRefreshSuccess
 
         doNothing =
             ( model, Cmd.none )
@@ -87,31 +87,27 @@ updateCacheIf msg model shouldCache =
                     ( model, LocalStorage.loadModel () )
 
                 OnLoadModelFromLocalStorageSuccess newModel ->
+                    {- If the state was properly cached in localStorage, we simply load the cached model and refresh
+                       the page to trigger route hooks.
+                    -}
                     ( newModel, Route.navigateTo shared.route )
 
                 OnLoadModelFromLocalStorageFailure err ->
-                    ( model, getUser () )
+                    {- If the state wasn't cached in localStorage, we attempt to get the user (for the narrow
+                       use-case where they have the cookies to be logged in but they cleared their localStorage), and
+                       then regardless we trigger a page refresh to trigger route hooks.
+                    -}
+                    ( model, getUserAndThenRefresh () )
 
-                GetUser ->
-                    ( model, getUser () )
-
-                OnGetUserSuccess user ->
+                OnGetUserAndThenRefreshSuccess user ->
                     let
                         newModel =
-                            { model
-                                | shared = { shared | user = Just user }
-                            }
+                            { model | shared = { shared | user = Just user } }
                     in
                         ( newModel, Route.navigateTo shared.route )
 
-                OnGetUserFailure newApiError ->
-                    let
-                        newModel =
-                            { model
-                                | shared = { shared | route = Route.RegisterPage }
-                            }
-                    in
-                        ( newModel, Route.navigateTo newModel.shared.route )
+                OnGetUserAndThenRefreshFailure newApiError ->
+                    ( model, Route.navigateTo shared.route )
 
                 WelcomeMessage subMsg ->
                     let

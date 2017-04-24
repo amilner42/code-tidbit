@@ -29,9 +29,8 @@ type Msg
     | LoadModelFromLocalStorage
     | OnLoadModelFromLocalStorageSuccess Model
     | OnLoadModelFromLocalStorageFailure String
-    | GetUser
-    | OnGetUserSuccess User
-    | OnGetUserFailure ApiError.ApiError
+    | OnGetUserAndThenRefreshSuccess User
+    | OnGetUserAndThenRefreshFailure ApiError.ApiError
     | WelcomeMessage WelcomeMessages.Msg
     | ViewSnipbitMessage ViewSnipbitMessages.Msg
     | ViewBigbitMessage ViewBigbitMessages.Msg
