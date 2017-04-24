@@ -191,7 +191,7 @@ updateCacheIf msg model shouldCache =
 
                         newModel =
                             if justLoggedOut then
-                                defaultModel
+                                defaultModel newShared.route newShared.flags
                             else
                                 { model
                                     | profilePage = newProfileModel

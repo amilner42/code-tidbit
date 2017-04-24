@@ -1,7 +1,7 @@
 module Pages.DefaultModel exposing (..)
 
 import Elements.Editor as Editor
-import Flags exposing (blankFlags)
+import Flags exposing (Flags)
 import Keyboard.Extra as KK
 import Models.Route as Route
 import Pages.Browse.Init as BrowseInit
@@ -22,9 +22,9 @@ import Pages.Welcome.Init as WelcomeInit
 NOTE: This default model is outside of `Pages/Init.elm` to avoid circular dependencies, sometimes sub-pages want access
       to `defaultShared`.
 -}
-defaultModel : Model.Model
-defaultModel =
-    { shared = defaultShared
+defaultModel : Route.Route -> Flags -> Model.Model
+defaultModel route flags =
+    { shared = defaultShared route flags
     , welcomePage = WelcomeInit.init
     , viewSnipbitPage = ViewSnipbitInit.init
     , viewBigbitPage = ViewBigbitInit.init
@@ -40,14 +40,14 @@ defaultModel =
 
 {-| The defult shared model.
 -}
-defaultShared : Model.Shared
-defaultShared =
+defaultShared : Route.Route -> Flags -> Model.Shared
+defaultShared route flags =
     { user = Nothing
-    , route = Route.LoginPage
+    , route = route
     , languages = Editor.humanReadableListOfLanguages
     , keysDown = KK.init
     , userStories = Nothing
     , userTidbits = Nothing
     , viewingStory = Nothing
-    , flags = blankFlags
+    , flags = flags
     }
