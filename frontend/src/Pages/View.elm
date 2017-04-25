@@ -64,15 +64,14 @@ errorModal apiError =
         []
         [ -- The modal background.
           div
-            [ classList [ ( "modal-bg", True ) ]
+            [ class "modal-bg"
             , onClick CloseModal
             ]
             []
 
         -- The actual modal box.
         , div
-            [ classList [ ( "modal-box", True ) ]
-            ]
+            [ class "modal-box" ]
             [ div
                 [ class "modal-title" ]
                 [ text "An Error Occured" ]

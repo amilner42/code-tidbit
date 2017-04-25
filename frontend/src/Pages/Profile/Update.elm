@@ -26,11 +26,14 @@ update { doNothing, justSetModel, justUpdateModel, justProduceCmd, api, justSetM
                     doNothing
 
                 Just editableName ->
-                    justProduceCmd <|
-                        api.post.updateUser
-                            { defaultUserUpdateRecord | name = Just <| Editable.getBuffer editableName }
-                            OnSaveEditedNameFailure
-                            OnSaveEditedNameSuccess
+                    if Editable.bufferIs (not << String.isEmpty) editableName then
+                        justProduceCmd <|
+                            api.post.updateUser
+                                { defaultUserUpdateRecord | name = Just <| Editable.getBuffer editableName }
+                                OnSaveEditedNameFailure
+                                OnSaveEditedNameSuccess
+                    else
+                        doNothing
 
         OnSaveEditedNameSuccess updatedUser ->
             ( setAccountNameToNothing model
@@ -53,11 +56,14 @@ update { doNothing, justSetModel, justUpdateModel, justProduceCmd, api, justSetM
                     doNothing
 
                 Just editableBio ->
-                    justProduceCmd <|
-                        api.post.updateUser
-                            { defaultUserUpdateRecord | bio = Just <| Editable.getBuffer editableBio }
-                            OnSaveBioEditedFailure
-                            OnSaveEditedBioSuccess
+                    if Editable.bufferIs (not << String.isEmpty) editableBio then
+                        justProduceCmd <|
+                            api.post.updateUser
+                                { defaultUserUpdateRecord | bio = Just <| Editable.getBuffer editableBio }
+                                OnSaveBioEditedFailure
+                                OnSaveEditedBioSuccess
+                    else
+                        doNothing
 
         OnSaveEditedBioSuccess updatedUser ->
             ( setAccountBioToNothing model

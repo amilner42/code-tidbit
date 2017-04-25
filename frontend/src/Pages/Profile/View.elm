@@ -1,5 +1,6 @@
 module Pages.Profile.View exposing (..)
 
+import DefaultServices.Editable exposing (bufferIs)
 import DefaultServices.Util as Util
 import Html exposing (Html, div, button, text, input, i, textarea)
 import Html.Attributes exposing (class, classList, hidden, placeholder, value)
@@ -61,6 +62,12 @@ view model shared =
                                 [ classList
                                     [ ( "material-icons", True )
                                     , ( "hidden", not <| isEditingName model )
+                                    , ( "disabled"
+                                      , Util.maybeMapWithDefault
+                                            (bufferIs String.isEmpty)
+                                            False
+                                            model.accountName
+                                      )
                                     ]
                                 , onClick SaveEditedName
                                 ]
@@ -95,6 +102,12 @@ view model shared =
                                     [ classList
                                         [ ( "material-icons", True )
                                         , ( "hidden", not <| isEditingBio model )
+                                        , ( "disabled"
+                                          , Util.maybeMapWithDefault
+                                                (bufferIs String.isEmpty)
+                                                False
+                                                model.accountBio
+                                          )
                                         ]
                                     , onClick SaveEditedBio
                                     ]
