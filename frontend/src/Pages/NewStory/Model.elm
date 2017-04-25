@@ -114,28 +114,28 @@ removeEditTag oldTag =
 -}
 nameTabFilledIn : Model -> Bool
 nameTabFilledIn =
-    .newStory >> .name >> String.isEmpty >> not
+    .newStory >> .name >> Util.justStringInRange 1 50 >> Util.isNotNothing
 
 
 {-| Returns True if the name tab is filled in for the story being editd.
 -}
 editingNameTabFilledIn : Model -> Bool
 editingNameTabFilledIn =
-    .editingStory >> .name >> String.isEmpty >> not
+    .editingStory >> .name >> Util.justStringInRange 1 50 >> Util.isNotNothing
 
 
 {-| Returns True if the description tab is filled in.
 -}
 descriptionTabFilledIn : Model -> Bool
 descriptionTabFilledIn =
-    .newStory >> .description >> String.isEmpty >> not
+    .newStory >> .description >> Util.justStringInRange 1 300 >> Util.isNotNothing
 
 
 {-| Returns True if the description tab is filled for the story being edited.
 -}
 editingDescriptionTabFilledIn : Model -> Bool
 editingDescriptionTabFilledIn =
-    .editingStory >> .description >> String.isEmpty >> not
+    .editingStory >> .description >> Util.justStringInRange 1 300 >> Util.isNotNothing
 
 
 {-| Returns True if the tags tab is filled in.

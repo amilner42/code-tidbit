@@ -28,6 +28,15 @@
             height: 53px;
             width: 800px;
         }
+
+        .char-count {
+            position: absolute;
+            top: 60px;
+            left: calc(50% + 300px);
+            color: $color4;
+            width: 100px;
+            text-align: right;
+        }
     }
 
     .create-new-story-description {
@@ -36,6 +45,15 @@
         textarea {
             height: 400px;
             width: 600px;
+        }
+
+        .char-count {
+            width: 100px;
+            position: absolute;
+            top: 450px;
+            left: calc(50% + 220px);
+            color: $color4;
+            text-align: right;
         }
     }
 

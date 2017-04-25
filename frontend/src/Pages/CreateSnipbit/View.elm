@@ -143,9 +143,7 @@ view model shared =
                         )
                     ]
                     []
-                , div
-                    [ class "char-count" ]
-                    [ text <| (toString <| String.length model.name) ++ " / 50" ]
+                , Util.limitCharsText 50 model.name
                 ]
 
         descriptionView : Html Msg
@@ -167,9 +165,7 @@ view model shared =
                         )
                     ]
                     []
-                , div
-                    [ class "char-count" ]
-                    [ text <| (toString <| String.length model.description) ++ " / 300" ]
+                , Util.limitCharsText 300 model.description
                 ]
 
         languageView : Html Msg

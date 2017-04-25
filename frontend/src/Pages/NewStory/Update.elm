@@ -154,12 +154,15 @@ update { doNothing, justUpdateModel, justProduceCmd, api, justSetModalError } ms
                     , tags = editingStory.tags
                     }
             in
-                justProduceCmd <|
-                    api.post.updateStoryInformation
-                        storyID
-                        editingStoryInformation
-                        OnSaveEditsFailure
-                        OnSaveEditsSuccess
+                if editingStoryDataReadyForSave model then
+                    justProduceCmd <|
+                        api.post.updateStoryInformation
+                            storyID
+                            editingStoryInformation
+                            OnSaveEditsFailure
+                            OnSaveEditsSuccess
+                else
+                    doNothing
 
         OnSaveEditsSuccess { targetID } ->
             ( model

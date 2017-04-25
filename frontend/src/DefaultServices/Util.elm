@@ -400,3 +400,12 @@ xThings baseWord suffix number =
             else
                 baseWord ++ suffix
            )
+
+
+{-| For generating a `div.char-count` with the "<length-of-text> / <text-limit>" string.
+-}
+limitCharsText : Int -> String -> Html msg
+limitCharsText limit string =
+    div
+        [ class "char-count" ]
+        [ text <| (toString <| String.length string) ++ " / " ++ (toString limit) ]

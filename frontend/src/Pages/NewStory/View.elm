@@ -140,9 +140,9 @@ view model shared =
                 Route.CreateStoryNamePage qpEditingStory ->
                     div
                         [ class "create-new-story-name" ]
-                        [ case qpEditingStory of
+                        (case qpEditingStory of
                             Nothing ->
-                                input
+                                [ input
                                     [ placeholder "Name"
                                     , id "name-input"
                                     , onInput OnUpdateName
@@ -156,9 +156,11 @@ view model shared =
                                         )
                                     ]
                                     []
+                                , Util.limitCharsText 50 model.newStory.name
+                                ]
 
                             _ ->
-                                input
+                                [ input
                                     [ placeholder "Edit Story Name"
                                     , id "name-input"
                                     , onInput OnEditingUpdateName
@@ -172,14 +174,16 @@ view model shared =
                                         )
                                     ]
                                     []
-                        ]
+                                , Util.limitCharsText 50 model.editingStory.name
+                                ]
+                        )
 
                 Route.CreateStoryDescriptionPage qpEditingStory ->
                     div
                         [ class "create-new-story-description" ]
-                        [ case qpEditingStory of
+                        (case qpEditingStory of
                             Nothing ->
-                                textarea
+                                [ textarea
                                     [ placeholder "Description"
                                     , id "description-input"
                                     , onInput OnUpdateDescription
@@ -193,9 +197,11 @@ view model shared =
                                         )
                                     ]
                                     []
+                                , Util.limitCharsText 300 model.newStory.description
+                                ]
 
                             Just editingStory ->
-                                textarea
+                                [ textarea
                                     [ placeholder "Edit Story Description"
                                     , id "description-input"
                                     , onInput OnEditingUpdateDescription
@@ -209,7 +215,9 @@ view model shared =
                                         )
                                     ]
                                     []
-                        ]
+                                , Util.limitCharsText 300 model.editingStory.description
+                                ]
+                        )
 
                 Route.CreateStoryTagsPage qpEditingStory ->
                     div
