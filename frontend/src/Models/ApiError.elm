@@ -154,7 +154,7 @@ humanReadable apiError =
             "Language selected was not valid!"
 
         InvalidName ->
-            "Please enter your preffered name"
+            "The name you entered is not valid!"
 
         SnipbitDoesNotExist ->
             "Snipbit does not exist!"

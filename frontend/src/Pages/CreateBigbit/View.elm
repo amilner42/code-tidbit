@@ -720,6 +720,7 @@ view model shared =
                                 )
                             ]
                             []
+                        , Util.limitCharsText 50 model.name
                         ]
 
                 Route.CreateBigbitDescriptionPage ->
@@ -739,6 +740,7 @@ view model shared =
                                 )
                             ]
                             []
+                        , Util.limitCharsText 300 model.description
                         ]
 
                 Route.CreateBigbitTagsPage ->

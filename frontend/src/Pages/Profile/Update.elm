@@ -12,7 +12,7 @@ import Pages.Profile.Model exposing (..)
 {-| `Profile` update.
 -}
 update : CommonSubPageUtil Model Shared Msg -> Msg -> Model -> Shared -> ( Model, Shared, Cmd Msg )
-update { doNothing, justSetModel, justUpdateModel, justProduceCmd, api } msg model shared =
+update { doNothing, justSetModel, justUpdateModel, justProduceCmd, api, justSetModalError } msg model shared =
     case msg of
         OnEditName originalName newName ->
             justUpdateModel <| setName originalName newName
@@ -26,11 +26,14 @@ update { doNothing, justSetModel, justUpdateModel, justProduceCmd, api } msg mod
                     doNothing
 
                 Just editableName ->
-                    justProduceCmd <|
-                        api.post.updateUser
-                            { defaultUserUpdateRecord | name = Just <| Editable.getBuffer editableName }
-                            OnSaveEditedNameFailure
-                            OnSaveEditedNameSuccess
+                    if Editable.bufferIs (not << String.isEmpty) editableName then
+                        justProduceCmd <|
+                            api.post.updateUser
+                                { defaultUserUpdateRecord | name = Just <| Editable.getBuffer editableName }
+                                OnSaveEditedNameFailure
+                                OnSaveEditedNameSuccess
+                    else
+                        doNothing
 
         OnSaveEditedNameSuccess updatedUser ->
             ( setAccountNameToNothing model
@@ -39,8 +42,7 @@ update { doNothing, justSetModel, justUpdateModel, justProduceCmd, api } msg mod
             )
 
         OnSaveEditedNameFailure apiError ->
-            -- TODO handle failure.
-            doNothing
+            justSetModalError apiError
 
         OnEditBio originalBio newBio ->
             justUpdateModel <| setBio originalBio newBio
@@ -54,11 +56,14 @@ update { doNothing, justSetModel, justUpdateModel, justProduceCmd, api } msg mod
                     doNothing
 
                 Just editableBio ->
-                    justProduceCmd <|
-                        api.post.updateUser
-                            { defaultUserUpdateRecord | bio = Just <| Editable.getBuffer editableBio }
-                            OnSaveBioEditedFailure
-                            OnSaveEditedBioSuccess
+                    if Editable.bufferIs (not << String.isEmpty) editableBio then
+                        justProduceCmd <|
+                            api.post.updateUser
+                                { defaultUserUpdateRecord | bio = Just <| Editable.getBuffer editableBio }
+                                OnSaveBioEditedFailure
+                                OnSaveEditedBioSuccess
+                    else
+                        doNothing
 
         OnSaveEditedBioSuccess updatedUser ->
             ( setAccountBioToNothing model
@@ -67,8 +72,7 @@ update { doNothing, justSetModel, justUpdateModel, justProduceCmd, api } msg mod
             )
 
         OnSaveBioEditedFailure apiError ->
-            -- TODO handle error.
-            doNothing
+            justSetModalError apiError
 
         LogOut ->
             justProduceCmd <| api.get.logOut OnLogOutFailure OnLogOutSuccess

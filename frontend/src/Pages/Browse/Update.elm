@@ -58,8 +58,7 @@ update ({ doNothing, justSetShared, justUpdateModel, justSetModel, justProduceCm
                         }
 
         OnGetContentFailure apiError ->
-            -- TODO handle error.
-            doNothing
+            common.justSetModalError apiError
 
         LoadMoreContent ->
             performSearch False ( model, shared )
@@ -189,8 +188,7 @@ update ({ doNothing, justSetShared, justUpdateModel, justSetModel, justProduceCm
                 ]
 
         OnGetUserExistsFailure apiError ->
-            -- TODO Handle error.
-            doNothing
+            common.justSetModalError apiError
 
         OnGetUserExistsSuccess (( forEmail, maybeID ) as newContentFilterAuthor) ->
             -- The user may have typed more before the request returned, in which case we don't care about the request.

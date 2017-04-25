@@ -238,6 +238,20 @@ justNonBlankString string =
         Just string
 
 
+{-| If the string is in the range (inclusive) then returns `Just` the string, otherwise `Nothing`.
+-}
+justStringInRange : Int -> Int -> String -> Maybe String
+justStringInRange lower upper string =
+    let
+        stringLength =
+            String.length string
+    in
+        if (stringLength >= lower) && (stringLength <= upper) then
+            Just string
+        else
+            Nothing
+
+
 {-| If the list is empty, returns `Nothing`, otherwise `Just` the list.
 -}
 justNonEmptyList : List a -> Maybe (List a)
@@ -386,3 +400,12 @@ xThings baseWord suffix number =
             else
                 baseWord ++ suffix
            )
+
+
+{-| For generating a `div.char-count` with the "<length-of-text> / <text-limit>" string.
+-}
+limitCharsText : Int -> String -> Html msg
+limitCharsText limit string =
+    div
+        [ class "char-count" ]
+        [ text <| (toString <| String.length string) ++ " / " ++ (toString limit) ]

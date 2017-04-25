@@ -20,7 +20,7 @@ import Ports
 {-| `CreateBigbit` update.
 -}
 update : CommonSubPageUtil Model Shared Msg -> Msg -> Model -> Shared -> ( Model, Shared, Cmd Msg )
-update { doNothing, justSetModel, justUpdateModel, justUpdateShared, justProduceCmd, withCmd, api } msg model shared =
+update ({ doNothing, justSetModel, justUpdateModel, justProduceCmd, withCmd, api } as common) msg model shared =
     let
         currentBigbitHighlightedComments =
             model.highlightedComments
@@ -633,5 +633,4 @@ update { doNothing, justSetModel, justUpdateModel, justUpdateShared, justProduce
                 )
 
             OnPublishFailure apiError ->
-                -- TODO Handle bigbit publish failures.
-                doNothing
+                common.justSetModalError apiError

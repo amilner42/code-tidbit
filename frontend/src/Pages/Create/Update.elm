@@ -11,7 +11,7 @@ import Pages.Model exposing (Shared)
 {-| `Create` update.
 -}
 update : CommonSubPageUtil Model Shared Msg -> Msg -> Model -> Shared -> ( Model, Shared, Cmd Msg )
-update { doNothing, justSetShared, justUpdateModel, justProduceCmd, api } msg model shared =
+update { doNothing, justSetShared, justUpdateModel, justProduceCmd, api, justSetModalError } msg model shared =
     case msg of
         GoTo route ->
             justProduceCmd <| Route.navigateTo route
@@ -41,8 +41,7 @@ update { doNothing, justSetShared, justUpdateModel, justProduceCmd, api } msg mo
             justSetShared { shared | userStories = Just userStories }
 
         OnGetAccountStoriesFailure apiError ->
-            -- TODO handle error.
-            doNothing
+            justSetModalError apiError
 
         ShowInfoFor maybeTidbitType ->
             justUpdateModel <| setShowInfoFor maybeTidbitType

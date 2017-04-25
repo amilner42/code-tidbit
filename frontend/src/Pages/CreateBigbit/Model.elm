@@ -231,14 +231,14 @@ isValidRemoveFolderInput absolutePath fs =
 -}
 nameFilledIn : Model -> Maybe String
 nameFilledIn =
-    .name >> Util.justNonEmptyString
+    .name >> Util.justStringInRange 1 50
 
 
 {-| Returns the filled-in description or `Nothing`.
 -}
 descriptionFilledIn : Model -> Maybe String
 descriptionFilledIn =
-    .description >> Util.justNonEmptyString
+    .description >> Util.justStringInRange 1 300
 
 
 {-| Returns the filled-in tags or `Nothing`.

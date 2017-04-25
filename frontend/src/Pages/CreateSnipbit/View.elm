@@ -143,6 +143,7 @@ view model shared =
                         )
                     ]
                     []
+                , Util.limitCharsText 50 model.name
                 ]
 
         descriptionView : Html Msg
@@ -164,6 +165,7 @@ view model shared =
                         )
                     ]
                     []
+                , Util.limitCharsText 300 model.description
                 ]
 
         languageView : Html Msg

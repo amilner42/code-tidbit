@@ -205,22 +205,19 @@ update ({ doNothing, justSetModel, justUpdateModel, justSetShared, justProduceCm
             )
 
         OnGetBigbitFailure apiError ->
-            -- TODO handle get bigbit failure.
-            doNothing
+            common.justSetModalError apiError
 
         OnGetCompletedSuccess isCompleted ->
             justUpdateModel <| setIsCompleted <| Just isCompleted
 
         OnGetCompletedFailure apiError ->
-            -- TODO handle error.
-            doNothing
+            common.justSetModalError apiError
 
         OnGetExpandedStorySuccess story ->
             justSetShared { shared | viewingStory = Just story }
 
         OnGetExpandedStoryFailure apiError ->
-            -- TODO handle error
-            doNothing
+            common.justSetModalError apiError
 
         ToggleFS ->
             justUpdateModel <|
@@ -326,8 +323,7 @@ update ({ doNothing, justSetModel, justUpdateModel, justSetShared, justProduceCm
             justUpdateModel <| setIsCompleted <| Just isCompleted
 
         OnMarkAsCompleteFailure apiError ->
-            -- TODO handle error.
-            doNothing
+            common.justSetModalError apiError
 
         MarkAsIncomplete completed ->
             justProduceCmd <|
@@ -340,8 +336,7 @@ update ({ doNothing, justSetModel, justUpdateModel, justSetShared, justProduceCm
             justUpdateModel <| setIsCompleted <| Just isCompleted
 
         OnMarkAsIncompleteFailure apiError ->
-            -- TODO handle error.
-            doNothing
+            common.justSetModalError apiError
 
         BackToTutorialSpot ->
             case shared.route of

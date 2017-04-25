@@ -171,3 +171,15 @@ decoder decodeOfType =
                 |> Decode.map NotEditing
     in
         Decode.oneOf [ decodeEditing, decodeNotEditing ]
+
+
+{-| Returns true if the editable is in editing mode and the buffer satisfies the predicate.
+-}
+bufferIs : (ofType -> Bool) -> Editable ofType -> Bool
+bufferIs predicate editable =
+    case editable of
+        Editing { buffer } ->
+            predicate buffer
+
+        _ ->
+            False

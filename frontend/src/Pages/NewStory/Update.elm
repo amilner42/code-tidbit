@@ -13,7 +13,7 @@ import Pages.NewStory.Model exposing (..)
 {-| `NewStory` update.
 -}
 update : CommonSubPageUtil Model Shared Msg -> Msg -> Model -> Shared -> ( Model, Shared, Cmd Msg )
-update { doNothing, justUpdateModel, justProduceCmd, api } msg model shared =
+update { doNothing, justUpdateModel, justProduceCmd, api, justSetModalError } msg model shared =
     case msg of
         NoOp ->
             doNothing
@@ -71,8 +71,7 @@ update { doNothing, justUpdateModel, justProduceCmd, api } msg model shared =
                         justProduceCmd <| Route.modifyTo <| Route.CreatePage
 
         OnGetEditingStoryFailure apiError ->
-            -- TODO handle error.
-            doNothing
+            justSetModalError apiError
 
         OnUpdateName newName ->
             justUpdateModel <| updateName newName
@@ -136,8 +135,7 @@ update { doNothing, justUpdateModel, justProduceCmd, api } msg model shared =
             )
 
         OnPublishFailure apiError ->
-            -- TODO handle error.
-            doNothing
+            justSetModalError apiError
 
         CancelEdits storyID ->
             ( updateEditStory (always Story.blankStory) model
@@ -156,12 +154,15 @@ update { doNothing, justUpdateModel, justProduceCmd, api } msg model shared =
                     , tags = editingStory.tags
                     }
             in
-                justProduceCmd <|
-                    api.post.updateStoryInformation
-                        storyID
-                        editingStoryInformation
-                        OnSaveEditsFailure
-                        OnSaveEditsSuccess
+                if editingStoryDataReadyForSave model then
+                    justProduceCmd <|
+                        api.post.updateStoryInformation
+                            storyID
+                            editingStoryInformation
+                            OnSaveEditsFailure
+                            OnSaveEditsSuccess
+                else
+                    doNothing
 
         OnSaveEditsSuccess { targetID } ->
             ( model
@@ -170,5 +171,4 @@ update { doNothing, justUpdateModel, justProduceCmd, api } msg model shared =
             )
 
         OnSaveEditsFailure apiError ->
-            -- TODO handle error.
-            doNothing
+            justSetModalError apiError

@@ -2,6 +2,8 @@ module DefaultServices.CommonSubPageUtil exposing (..)
 
 import Api
 import Flags exposing (Flags)
+import Pages.Model exposing (Shared)
+import Models.ApiError as ApiError
 
 
 {-| All the common utilities needed in most sub-pages.
@@ -16,12 +18,13 @@ type alias CommonSubPageUtil model shared msg =
     , withCmd : Cmd.Cmd msg -> ( model, shared, Cmd.Cmd msg ) -> ( model, shared, Cmd.Cmd msg )
     , handleAll : List (( model, shared ) -> ( model, shared, Cmd msg )) -> ( model, shared, Cmd msg )
     , api : Api.API msg
+    , justSetModalError : ApiError.ApiError -> ( model, shared, Cmd.Cmd msg )
     }
 
 
 {-| Creates the `CommonSubPageUtil` given the `model` and `shared`.
 -}
-commonSubPageUtil : model -> { shared | flags : Flags } -> CommonSubPageUtil model { shared | flags : Flags } msg
+commonSubPageUtil : model -> Shared -> CommonSubPageUtil model Shared msg
 commonSubPageUtil model shared =
     let
         withCmd withCmd ( newModel, newShared, newCmd ) =
@@ -48,4 +51,5 @@ commonSubPageUtil model shared =
         , withCmd = withCmd
         , handleAll = handleAll
         , api = Api.api shared.flags.apiBaseUrl
+        , justSetModalError = (\apiError -> ( model, { shared | apiModalError = Just apiError }, Cmd.none ))
         }
