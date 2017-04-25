@@ -238,6 +238,20 @@ justNonBlankString string =
         Just string
 
 
+{-| If the string is in the range (inclusive) then returns `Just` the string, otherwise `Nothing`.
+-}
+justStringInRange : Int -> Int -> String -> Maybe String
+justStringInRange lower upper string =
+    let
+        stringLength =
+            String.length string
+    in
+        if (stringLength >= lower) && (stringLength <= upper) then
+            Just string
+        else
+            Nothing
+
+
 {-| If the list is empty, returns `Nothing`, otherwise `Just` the list.
 -}
 justNonEmptyList : List a -> Maybe (List a)

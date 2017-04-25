@@ -720,6 +720,9 @@ view model shared =
                                 )
                             ]
                             []
+                        , div
+                            [ class "char-count" ]
+                            [ text <| (toString <| String.length model.name) ++ " / 50" ]
                         ]
 
                 Route.CreateBigbitDescriptionPage ->
@@ -739,6 +742,9 @@ view model shared =
                                 )
                             ]
                             []
+                        , div
+                            [ class "char-count" ]
+                            [ text <| (toString <| String.length model.description) ++ " / 300" ]
                         ]
 
                 Route.CreateBigbitTagsPage ->
