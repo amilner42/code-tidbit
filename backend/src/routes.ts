@@ -4,8 +4,10 @@
 import passport from 'passport';
 import * as R from "ramda";
 
+import { toMongoObjectID  } from "./db";
+import { opinionDBActions, Rating, Ratings } from "./models/opinion.model";
 import { completedDBActions } from "./models/completed.model";
-import { Content, contentDBActions, ContentSearchFilter, GeneralSearchConfiguration, ContentResultManipulation } from "./models/content.model";
+import { Content, contentDBActions, ContentSearchFilter, GeneralSearchConfiguration, ContentResultManipulation, ContentPointer, ContentType } from "./models/content.model";
 import { User, userDBActions, prepareUserForResponse } from './models/user.model';
 import { Snipbit, snipbitDBActions } from './models/snipbit.model';
 import { Bigbit, bigbitDBActions } from './models/bigbit.model';
@@ -31,7 +33,8 @@ export const authlessRoutes: AppRoutesAuth = {
   '/stories': { get: true },
   '/stories/:id': { get: true },
   '/tidbits': { get: true },
-  '/content': { get: true }
+  '/content': { get: true },
+  '/opinions/:contentType/:contentID': { get: true }
 };
 
 /**
@@ -197,6 +200,34 @@ export const routes: AppRoutes = {
       const completed = req.body;
 
       return completedDBActions.isCompleted(completed, userID);
+    }
+  },
+
+  '/account/getOpinion/:contentType/:contentID': {
+    /**
+     * Get's a user's opinion on specific content.
+     */
+    get: (req, res): Promise<Rating> => {
+      const { contentType, contentID } = req.params;
+      const userID = req.user._id;
+      const contentPointer = {
+        contentType: parseInt(contentType),
+        contentID
+      };
+
+      return opinionDBActions.getUsersOpinionOnContent(contentPointer, userID);
+    }
+  },
+
+  '/account/addOpinion': {
+    /**
+     * Adds an opinion, will overwrite the previous opinion if one existed.
+     */
+    post: (req, res): Promise<boolean> => {
+      const userID = req.user._id;
+      const { contentPointer, rating } = req.body;
+
+      return opinionDBActions.addOpinion(contentPointer, rating, userID);
     }
   },
 
@@ -367,6 +398,21 @@ export const routes: AppRoutes = {
 
       return contentDBActions.getContent(generalSearchConfig, searchFilter, resultManipulation)
       .then(R.map(removeMetadataForResponse));
+    }
+  },
+
+  '/opinions/:contentType/:contentID': {
+    /**
+    * Get's `Ratings` for a specific snipbit.
+    */
+    get: (req, res): Promise<Ratings> => {
+      const params = req.params;
+      const contentPointer: ContentPointer = {
+        contentType: parseInt(params.contentType),
+        contentID: params.contentID
+      };
+
+      return opinionDBActions.getAllOpinionsOnContent(contentPointer);
     }
   }
 }

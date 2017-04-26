@@ -2,9 +2,11 @@
 
 import { Collection, Cursor } from "mongodb";
 import * as R from "ramda";
+import * as kleen from "kleen";
 
+import { mongoStringIDSchema } from "./kleen-schemas";
 import { toMongoObjectID, paginateResults, collection } from "../db";
-import { combineArrays, isNullOrUndefined, dropNullAndUndefinedProperties, getTime, sortByAll, SortOrder, isBlankString }  from "../util";
+import { combineArrays, isNullOrUndefined, dropNullAndUndefinedProperties, getTime, sortByAll, SortOrder, isBlankString, malformedFieldError }  from "../util";
 import { MongoID, MongoObjectID } from "../types"
 import { Bigbit, bigbitDBActions } from "./bigbit.model";
 import { Snipbit, snipbitDBActions } from "./snipbit.model";
@@ -25,6 +27,14 @@ export enum ContentType {
  * Content represents basically any content that the user creates, used on the browse page.
  */
 export type Content = Snipbit | Bigbit | Story;
+
+/**
+ * A means for referring-to/finding specific content.
+ */
+export interface ContentPointer {
+  contentType: ContentType,
+  contentID: MongoID
+};
 
 /**
  * General search configuration which does not apply to each collection individually.
@@ -59,6 +69,23 @@ export interface ContentResultManipulation {
   pageSize?: number;
   pageNumber?: number;
 }
+
+/**
+ * For validating a `ContentPointer` has a valid `ContentType` and a valid mongoID (string) for the pointer.
+ */
+export const contentPointerSchema: kleen.objectSchema = {
+  objectProperties: {
+    contentType: {
+      primitiveType: kleen.kindOfPrimitive.number,
+      typeFailureError: malformedFieldError("contentType"),
+      restriction: (contentType) => {
+        if(!(contentType in ContentType)) return Promise.reject(malformedFieldError("contentType"));
+      }
+    },
+    contentID: mongoStringIDSchema(malformedFieldError("contentID"))
+  },
+  typeFailureError: malformedFieldError("contentPointer")
+};
 
 /**
  * All the db helpers for content.
@@ -239,4 +266,11 @@ export const getLanguages = (content: Content): string[] => {
   }
 
   return [];
+}
+
+/**
+ * Converts the `contentID` to an `ObjectID` so it can be used in search queries.
+ */
+export const contentPointerToDBQueryForm = ({ contentType, contentID }: ContentPointer): ContentPointer => {
+  return { contentType, contentID: toMongoObjectID(contentID) }
 }
