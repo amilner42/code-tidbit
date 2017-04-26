@@ -1,6 +1,7 @@
 /// Module for encapsulating helper functions for the Opinion model.
 
 import * as kleen from "kleen";
+import { Collection } from "mongodb";
 
 import { mongoStringIDSchema } from "./kleen-schemas";
 import { malformedFieldError, internalError } from "../util";
@@ -111,7 +112,7 @@ export const opinionDBActions = {
     .then(() => {
       return contentDBActions.contentPointerExists(contentPointer);
     })
-    .then((contentExists) => {
+    .then<Collection>((contentExists) => {
       if(!contentExists) {
         return Promise.reject(internalError("Pointing to non-existant content"));
       }
