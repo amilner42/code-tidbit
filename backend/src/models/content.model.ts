@@ -153,6 +153,36 @@ export const contentDBActions = {
 
       return contentArray;
     });
+  },
+
+  /**
+   * Returns true if the `contentPointer` is pointing to actual content.
+   */
+  contentPointerExists: (contentPointer: ContentPointer): Promise<boolean> => {
+    const collectionName = (() => {
+      switch(contentPointer.contentType) {
+        case ContentType.Snipbit:
+          return "snipbits"
+
+        case ContentType.Bigbit:
+          return "bigbits"
+
+        case ContentType.Story:
+          return "stories"
+      }
+    })();
+
+    return collection(collectionName)
+    .then((collectionX) => {
+      return collectionX.findOne({ _id: toMongoObjectID(contentPointer.contentID) })
+    })
+    .then((x) => {
+      if(x) {
+        return true;
+      }
+
+      return false;
+    });
   }
 }
 

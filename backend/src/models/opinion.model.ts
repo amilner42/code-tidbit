@@ -3,10 +3,10 @@
 import * as kleen from "kleen";
 
 import { mongoStringIDSchema } from "./kleen-schemas";
-import { malformedFieldError } from "../util";
+import { malformedFieldError, internalError } from "../util";
 import { collection, toMongoObjectID } from "../db";
 import { MongoID, MongoObjectID  } from "../types";
-import { ContentPointer, contentPointerToDBQueryForm, ContentType, contentPointerSchema } from "./content.model";
+import { ContentPointer, contentPointerToDBQueryForm, ContentType, contentPointerSchema, contentDBActions } from "./content.model";
 
 
 /**
@@ -109,6 +109,13 @@ export const opinionDBActions = {
       kleen.validModel(ratingSchema)(rating)
     ])
     .then(() => {
+      return contentDBActions.contentPointerExists(contentPointer);
+    })
+    .then((contentExists) => {
+      if(!contentExists) {
+        return Promise.reject(internalError("Pointing to non-existant content"));
+      }
+
       return collection("opinions");
     })
     .then((opinions) => {
