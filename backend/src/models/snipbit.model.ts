@@ -34,7 +34,6 @@ export interface Snipbit {
   createdAt?: Date;
   lastModified?: Date;
   likes?: number;     // In the `opinions` collection, attached by the backend.
-  dislikes?: number;  // In the `opinions` collection, attached by the backend.
 }
 
 /**
@@ -92,7 +91,7 @@ const snipbitSchema: kleen.objectSchema = {
 /**
  * Prepares a snipbit for the frontend:
  *   - renaming the `_id` field
- *   - fetching likes/dislikes
+ *   - fetching and attaching ratings.
  */
 const prepareSnipbitForResponse = (snipbit: Snipbit): Promise<Snipbit> => {
   const snipbitCopy = R.clone(snipbit);
@@ -102,9 +101,8 @@ const prepareSnipbitForResponse = (snipbit: Snipbit): Promise<Snipbit> => {
   };
 
   return opinionDBActions.getAllOpinionsOnContent(contentPointer)
-  .then(({ likes, dislikes }) => {
+  .then(({ likes }) => {
     snipbitCopy.likes = likes;
-    snipbitCopy.dislikes = dislikes;
 
     return renameIDField(snipbitCopy);
   });

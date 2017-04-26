@@ -34,7 +34,6 @@ interface StoryBase {
   userHasCompleted?: boolean[];
   languages?: string[];
   likes?: number;       // In the `opinions` collection, attached by the backend.
-  dislikes?: number;    // In the `opinions` collection, attached by the backend.
 }
 
 /**
@@ -87,7 +86,7 @@ const newStorySchema: kleen.objectSchema = {
 
 /**
  * Prepares a story/expanded-story for the response.
- *  -  Fetches and attaches likes/dislikes.
+ *  -  Fetches and attaches ratings.
  *  - Rename `_id` to `id`.
  */
 const prepareStoryForResponse = (story: Story | ExpandedStory): Promise<Story | ExpandedStory> => {
@@ -98,9 +97,8 @@ const prepareStoryForResponse = (story: Story | ExpandedStory): Promise<Story | 
   };
 
   return opinionDBActions.getAllOpinionsOnContent(contentPointer)
-  .then(({ likes, dislikes }) => {
+  .then(({ likes }) => {
     storyCopy.likes = likes;
-    storyCopy.dislikes = dislikes;
 
     return renameIDField(storyCopy);
   });

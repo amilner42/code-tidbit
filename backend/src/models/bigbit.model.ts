@@ -36,7 +36,6 @@ export interface Bigbit {
   createdAt?: Date;
   lastModified?: Date;
   likes?: number;     // In the `opinions` collection, attached by the backend.
-  dislikes?: number;  // In the `opinions` collection, attached by the backend.
 };
 
 /**
@@ -107,7 +106,7 @@ const bigbitSchema: kleen.objectSchema = {
  * Prepare a bigbit for the frontend, this includes:
  *  - Renaming _id to id
  *  - Reversing the folder/file-names to once again have '.'
- *  - Fetching and attaching likes/dislikes.
+ *  - Fetching and attaching ratings.
  */
 const prepareBigbitForResponse = (bigbit: Bigbit): Promise<Bigbit> => {
   const bigbitCopy = R.clone(bigbit);
@@ -119,9 +118,8 @@ const prepareBigbitForResponse = (bigbit: Bigbit): Promise<Bigbit> => {
   bigbitCopy.fs = swapPeriodsWithStars(false, bigbitCopy.fs);
 
   return opinionDBActions.getAllOpinionsOnContent(contentPointer)
-  .then(({ likes, dislikes }) => {
+  .then(({ likes }) => {
     bigbitCopy.likes = likes;
-    bigbitCopy.dislikes = dislikes;
 
     return renameIDField(bigbitCopy);
   });

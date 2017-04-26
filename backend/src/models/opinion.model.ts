@@ -23,15 +23,15 @@ export interface Opinion {
  * All the ratings for some content.
  */
 export interface Ratings {
-  dislikes: number,
   likes: number
 }
 
 /**
- * You can either like or dislike content.
+ * All ways to rate content.
+ *
+ * Currently we only allow to "like" content.
  */
 export enum Rating {
-  Dislike = -1,
   Like = 1
 };
 
@@ -51,9 +51,9 @@ export const ratingSchema = {
  */
 export const opinionDBActions = {
   /**
-   * Returns dislikes/likes for specific content.
+   * Returns `Rating`s for specific content.
    *
-   * NOTE: If the contentPointer doesn't point to existant content it will just return 0 likes/dislikes.
+   * NOTE: If the contentPointer doesn't point to existant content it will just return 0 for all `Rating`s.
    */
   getAllOpinionsOnContent: (contentPointer: ContentPointer): Promise<Ratings> => {
     return kleen.validModel(contentPointerSchema)(contentPointer)
@@ -61,7 +61,7 @@ export const opinionDBActions = {
       return collection("opinions");
     })
     .then((opinions) => {
-      // Count how many ratings the content (`contentPointer`) has for a specific rating.
+      // Count how many ratings the content (`contentPointer`) has for a specific `Rating`.
       const countWithRating = (rating: Rating): PromiseLike<number> => {
         return opinions.find({
           contentPointer: contentPointerToDBQueryForm(contentPointer),
@@ -69,10 +69,10 @@ export const opinionDBActions = {
         }).count(false);
       }
 
-      return Promise.all([ countWithRating(Rating.Dislike), countWithRating(Rating.Like) ]);
+      return Promise.all([ countWithRating(Rating.Like) ]);
     })
-    .then(([dislikes, likes]) => {
-      return { dislikes, likes };
+    .then(([ likes ]) => {
+      return { likes };
     });
   },
 
