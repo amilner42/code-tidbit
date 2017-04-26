@@ -28,6 +28,7 @@ encoder snipbit =
         , ( "authorEmail", Encode.string snipbit.authorEmail )
         , ( "createdAt", Util.dateEncoder snipbit.createdAt )
         , ( "lastModified", Util.dateEncoder snipbit.lastModified )
+        , ( "likes", Encode.int snipbit.likes )
         ]
 
 
@@ -49,6 +50,8 @@ decoder =
         |> required "authorEmail" Decode.string
         |> required "createdAt" Util.dateDecoder
         |> required "lastModified" Util.dateDecoder
+        -- Optional for backwards compatibility.
+        |> optional "likes" Decode.int 0
 
 
 {-| `HighlightedComment` encoder.

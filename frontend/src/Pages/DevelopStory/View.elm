@@ -198,4 +198,9 @@ tidbitBox renderConfig tidbit =
             [ class "tidbit-box-languages" ]
             [ text <| prettyPrintLanguages <| Tidbit.getLanguages tidbit
             ]
+        , div
+            [ class "tidbit-box-opinions" ]
+            [ div [ class "like-count" ] [ text <| toString <| Tidbit.getLikes tidbit ]
+            , i [ class "material-icons" ] [ text "favorite" ]
+            ]
         ]

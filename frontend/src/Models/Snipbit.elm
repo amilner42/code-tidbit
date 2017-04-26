@@ -22,6 +22,7 @@ type alias Snipbit =
     , authorEmail : String
     , createdAt : Date.Date
     , lastModified : Date.Date
+    , likes : Int
     }
 
 

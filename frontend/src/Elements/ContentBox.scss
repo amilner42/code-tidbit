@@ -99,4 +99,28 @@
         left: 5px;
         font-size: 10px;
     }
+
+    .opinions {
+        position: absolute;
+        width: 80px;
+        top: 3px;
+        right: 3px;
+        text-align: right;
+
+        i {
+            display: inline-block;
+            float: right;
+            font-size: 16px;
+        }
+
+        .like-count {
+            font-family: monospace;
+            position: relative;
+            display: inline-block;
+            float: right;
+            font-size: 14px;
+            top: -1px;
+            margin-right: 1px;
+        }
+    }
 }

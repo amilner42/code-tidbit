@@ -61,6 +61,10 @@
             &:hover {
                 @include strongest-box-shadow();
             }
+
+            .tidbit-box-opinions {
+                color: $color8;
+            }
         }
 
         &.snipbit {
@@ -118,6 +122,30 @@
             font-style: italic;
             width: 50%;
             text-align: right;
+        }
+
+        .tidbit-box-opinions {
+            position: absolute;
+            bottom: 3px;
+            left: 3px;
+            width: 80px;
+            color: $color4;
+
+            i {
+                display: inline-block;
+                float: left;
+                font-size: 16px;
+            }
+
+            .like-count {
+                display: inline-block;
+                float: left;
+                font-family: monospace;
+                position: relative;
+                font-size: 14px;
+                top: -1px;
+                margin: 0 1px 0 3px;
+            }
         }
     }
 

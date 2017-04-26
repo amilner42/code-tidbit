@@ -37,6 +37,7 @@ encoder bigbit =
             , ( "createdAt", Util.dateEncoder bigbit.createdAt )
             , ( "lastModified", Util.dateEncoder bigbit.lastModified )
             , ( "languages", Encode.list <| List.map JSON.Language.encoder bigbit.languages )
+            , ( "likes", Encode.int bigbit.likes )
             ]
 
 
@@ -71,6 +72,8 @@ decoder =
             |> required "createdAt" Util.dateDecoder
             |> required "lastModified" Util.dateDecoder
             |> required "languages" (Decode.list JSON.Language.decoder)
+            -- Optional for backwards compatibility.
+            |> optional "likes" Decode.int 0
 
 
 {-| `HighlightedComment` encoder.

@@ -249,5 +249,29 @@
             bottom: 5px;
             left: 5px;
         }
+
+        .story-box-opinions {
+            position: absolute;
+            top: 3px;
+            right: 3px;
+            width: 50px;
+            color: $color4;
+            text-align: right;
+
+            i {
+                float: right;
+                font-size: 16px;
+            }
+
+            .like-count {
+                font-family: monospace;
+                position: relative;
+                display: inline-block;
+                float: right;
+                font-size: 14px;
+                top: -1px;
+                margin-right: 1px;
+            }
+        }
     }
 }
