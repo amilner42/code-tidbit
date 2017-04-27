@@ -38,7 +38,7 @@ export enum Rating {
 /**
  * The schema for a `Rating`.
  */
-export const ratingSchema = {
+export const ratingSchema: kleen.primitiveSchema = {
   primitiveType: kleen.kindOfPrimitive.number,
   typeFailureError: malformedFieldError("rating"),
   restriction: (rating: Rating) => {
@@ -139,6 +139,29 @@ export const opinionDBActions = {
         return true;
       }
       return false;
+    });
+  },
+
+  /**
+   * Removes an opinion, opposite to `addOpinion`. Will return true if the opinion existed and was deleted, otherwise
+   * if it didn't exist to begin with will return false.
+   */
+  removeOpinion: (contentPointer: ContentPointer, rating: Rating, userID: MongoObjectID): Promise<boolean> => {
+    return Promise.all([
+      kleen.validModel(contentPointerSchema)(contentPointer),
+      kleen.validModel(ratingSchema)(rating)
+    ])
+    .then(() => {
+      return collection("opinions");
+    })
+    .then((opinions) => {
+      const contentPointerInDBForm: ContentPointer = contentPointerToDBQueryForm(contentPointer);
+      const opinion: Opinion = { contentPointer: contentPointerInDBForm, rating, userID };
+
+      return opinions.deleteOne(opinion);
+    })
+    .then((deleteResult) => {
+      return deleteResult.deletedCount === 1;
     });
   }
 }

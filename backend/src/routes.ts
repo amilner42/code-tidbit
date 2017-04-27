@@ -231,6 +231,19 @@ export const routes: AppRoutes = {
     }
   },
 
+  '/account/removeOpinion': {
+    /**
+     * Removes an opinion, returns `true` if the opinion existed and was deleted, returns false if it didn't exist to
+     * begin with.
+     */
+    post: (req, res): Promise<boolean> => {
+      const userID = req.user._id;
+      const { contentPointer, rating } = req.body;
+
+      return opinionDBActions.removeOpinion(contentPointer, rating, userID);
+    }
+  },
+
   '/snipbits': {
     /**
      * Gets snipbits, customizable through query params.
