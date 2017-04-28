@@ -17,6 +17,7 @@ import Pages.NewStory.Model as NewStoryModel
 import Pages.Profile.Model as ProfileModel
 import Pages.ViewBigbit.Model as ViewBigbitModel
 import Pages.ViewSnipbit.Model as ViewSnipbitModel
+import Pages.ViewStory.Model as ViewStoryModel
 import Pages.Welcome.Model as WelcomeModel
 
 
@@ -37,6 +38,7 @@ type alias Model =
     , createSnipbitPage : CreateSnipbitModel.Model
     , createBigbitPage : CreateBigbitModel.Model
     , browsePage : BrowseModel.Model
+    , viewStoryPage : ViewStoryModel.Model
     }
 
 

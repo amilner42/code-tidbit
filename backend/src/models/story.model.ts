@@ -5,12 +5,13 @@ import * as kleen from "kleen";
 import { Collection } from 'mongodb';
 import moment from "moment";
 
+import { opinionDBActions } from "./opinion.model";
 import { renameIDField, collection, toMongoObjectID, toMongoStringID, sameID, paginateResults } from '../db';
 import { malformedFieldError, isNullOrUndefined, dropNullAndUndefinedProperties } from '../util';
 import { mongoStringIDSchema, nameSchema, descriptionSchema, optional, tagsSchema, nonEmptyArraySchema } from "./kleen-schemas";
 import { MongoID, MongoObjectID, ErrorCode, TargetID } from '../types';
 import { completedDBActions } from './completed.model';
-import { ContentSearchFilter, ContentResultManipulation, ContentType, getContent, getLanguages } from "./content.model";
+import { ContentSearchFilter, ContentResultManipulation, ContentType, ContentPointer, getContent, getLanguages } from "./content.model";
 import { Snipbit, snipbitDBActions } from './snipbit.model';
 import { Bigbit, bigbitDBActions } from './bigbit.model';
 import { Tidbit, TidbitPointer, TidbitType, tidbitPointerSchema, tidbitDBActions } from './tidbit.model';
@@ -32,6 +33,7 @@ interface StoryBase {
   lastModified?: Date;
   userHasCompleted?: boolean[];
   languages?: string[];
+  likes?: number;       // In the `opinions` collection, attached by the backend.
 }
 
 /**
@@ -83,27 +85,23 @@ const newStorySchema: kleen.objectSchema = {
 };
 
 /**
- * Prepares a story for the response.
- *
- * - Rename `_id` to `id`.
- *
- * @WARNING Mutates `story`
+ * Prepares a story/expanded-story for the response.
+ *  -  Fetches and attaches ratings.
+ *  - Rename `_id` to `id`.
  */
-const prepareStoryForResponse = (story: Story): Story => {
-  renameIDField(story);
-  return story;
-};
+const prepareStoryForResponse = (story: Story | ExpandedStory): Promise<Story | ExpandedStory> => {
+  const storyCopy = R.clone(story);
+  const contentPointer: ContentPointer = {
+    contentID: storyCopy._id.toString(),
+    contentType: ContentType.Story
+  };
 
-/**
- * Prepares an expanded story for the response.
- *
- * - Rename `_id` to `id`.
- *
- * @WARNING Mutates `expandedStory`
- */
-const prepareExpandedStoryForResponse = (expandedStory: ExpandedStory): ExpandedStory => {
-  renameIDField(expandedStory);
-  return expandedStory;
+  return opinionDBActions.getAllOpinionsOnContent(contentPointer)
+  .then(({ likes }) => {
+    storyCopy.likes = likes;
+
+    return renameIDField(storyCopy);
+  });
 };
 
 /**
@@ -122,7 +120,7 @@ export const storyDBActions = {
       const storyBase: StoryBase = R.omit(["tidbitPointers"])(story);
       const expandedStory: ExpandedStory = R.merge({ tidbits },  storyBase);
 
-      return prepareExpandedStoryForResponse(expandedStory);
+      return prepareStoryForResponse(expandedStory);
     });
   },
 

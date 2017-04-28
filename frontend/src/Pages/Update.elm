@@ -34,6 +34,7 @@ import Pages.ViewSnipbit.Messages as ViewSnipbitMessages
 import Pages.ViewSnipbit.Model as ViewSnipbitModel
 import Pages.ViewSnipbit.Update as ViewSnipbitUpdate
 import Pages.ViewStory.Messages as ViewStoryMessages
+import Pages.ViewStory.Model as ViewStoryModel
 import Pages.ViewStory.Update as ViewStoryUpdate
 import Pages.Welcome.Update as WelcomeUpdate
 import Ports
@@ -162,13 +163,18 @@ updateCacheIf msg model shouldCache =
 
                 ViewStoryMessage subMsg ->
                     let
-                        ( newShared, newSubMsg ) =
+                        ( newViewStoryModel, newShared, newSubMsg ) =
                             ViewStoryUpdate.update
+                                (commonSubPageUtil model.viewStoryPage model.shared)
                                 subMsg
+                                model.viewStoryPage
                                 model.shared
 
                         newModel =
-                            { model | shared = newShared }
+                            { model
+                                | viewStoryPage = newViewStoryModel
+                                , shared = newShared
+                            }
                     in
                         ( newModel, Cmd.map ViewStoryMessage newSubMsg )
 

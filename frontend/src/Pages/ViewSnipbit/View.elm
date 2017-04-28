@@ -9,6 +9,7 @@ import Html exposing (Html, div, text, button, i)
 import Html.Attributes exposing (class, classList, disabled, hidden, id)
 import Html.Events exposing (onClick)
 import Models.Completed as Completed
+import Models.Rating as Rating
 import Models.Route as Route
 import Models.Snipbit as Snipbit
 import Models.Story as Story
@@ -108,6 +109,35 @@ view model shared =
                             , onClick <| MarkAsComplete <| Completed.completedFromIsCompleted isCompleted user.id
                             ]
                             [ text "Mark Snipbit as Complete" ]
+
+                _ ->
+                    Util.hiddenDiv
+            , case ( shared.user, model.possibleOpinion ) of
+                ( Just user, Just possibleOpinion ) ->
+                    let
+                        ( newMsg, buttonText ) =
+                            case possibleOpinion.rating of
+                                Nothing ->
+                                    ( AddOpinion
+                                        { contentPointer = possibleOpinion.contentPointer
+                                        , rating = Rating.Like
+                                        }
+                                    , "Love it!"
+                                    )
+
+                                Just rating ->
+                                    ( RemoveOpinion
+                                        { contentPointer = possibleOpinion.contentPointer
+                                        , rating = rating
+                                        }
+                                    , "Take Back Love"
+                                    )
+                    in
+                        button
+                            [ class "sub-bar-button heart-button"
+                            , onClick <| newMsg
+                            ]
+                            [ text buttonText ]
 
                 _ ->
                     Util.hiddenDiv

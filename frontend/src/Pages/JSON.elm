@@ -21,6 +21,8 @@ import Pages.NewStory.JSON as NewStoryJSON
 import Pages.Profile.JSON as ProfileJSON
 import Pages.ViewBigbit.JSON as ViewBigbitJSON
 import Pages.ViewSnipbit.JSON as ViewSnipbitJSON
+import Pages.ViewStory.Init as ViewStoryInit
+import Pages.ViewStory.JSON as ViewStoryJSON
 import Pages.Welcome.JSON as WelcomeJSON
 
 
@@ -40,6 +42,7 @@ encoder model =
         , ( "createSnipbitPage", CreateSnipbitJSON.encoder model.createSnipbitPage )
         , ( "createBigbitPage", CreateBigbitJSON.encoder model.createBigbitPage )
         , ( "browsePage", BrowseJSON.encoder model.browsePage )
+        , ( "viewStoryPage", ViewStoryJSON.encoder model.viewStoryPage )
         ]
 
 
@@ -59,6 +62,8 @@ decoder model =
         |> required "createSnipbitPage" CreateSnipbitJSON.decoder
         |> required "createBigbitPage" CreateBigbitJSON.decoder
         |> required "browsePage" BrowseJSON.decoder
+        -- Optional for backwards compatibility.
+        |> optional "viewStoryPage" ViewStoryJSON.decoder ViewStoryInit.init
 
 
 {-| `Shared` encoder.

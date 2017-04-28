@@ -4,10 +4,11 @@ import * as kleen from "kleen";
 import moment from 'moment';
 import R from "ramda";
 
+import { opinionDBActions } from "./opinion.model";
 import { malformedFieldError, isNullOrUndefined, dropNullAndUndefinedProperties } from '../util';
 import { collection, renameIDField, toMongoObjectID, paginateResults } from '../db';
 import { MongoID, MongoObjectID, ErrorCode, TargetID } from '../types';
-import { ContentSearchFilter, ContentResultManipulation, ContentType, getContent } from "./content.model";
+import { ContentSearchFilter, ContentResultManipulation, ContentType, ContentPointer, getContent } from "./content.model";
 import { Range, emptyRange } from './range.model';
 import * as KS from './kleen-schemas';
 
@@ -32,6 +33,7 @@ export interface Snipbit {
   authorEmail?: string;
   createdAt?: Date;
   lastModified?: Date;
+  likes?: number;     // In the `opinions` collection, attached by the backend.
 }
 
 /**
@@ -89,12 +91,21 @@ const snipbitSchema: kleen.objectSchema = {
 /**
  * Prepares a snipbit for the frontend:
  *   - renaming the `_id` field
- *
- * @WARNING Mutates `snipbit`.
+ *   - fetching and attaching ratings.
  */
-const prepareSnipbitForResponse = (snipbit: Snipbit): Snipbit => {
-  renameIDField(snipbit);
-  return snipbit;
+const prepareSnipbitForResponse = (snipbit: Snipbit): Promise<Snipbit> => {
+  const snipbitCopy = R.clone(snipbit);
+  const contentPointer: ContentPointer = {
+    contentID: snipbitCopy._id.toString(),
+    contentType: ContentType.Snipbit
+  };
+
+  return opinionDBActions.getAllOpinionsOnContent(contentPointer)
+  .then(({ likes }) => {
+    snipbitCopy.likes = likes;
+
+    return renameIDField(snipbitCopy);
+  });
 };
 
 /**

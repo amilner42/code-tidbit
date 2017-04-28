@@ -107,6 +107,11 @@ view model shared =
                                                 , div
                                                     [ class "story-box-tidbit-count" ]
                                                     [ text <| Util.xThings "tidbit" "s" <| List.length story.tidbitPointers ]
+                                                , div
+                                                    [ class "story-box-opinions" ]
+                                                    [ i [ class "material-icons" ] [ text "favorite" ]
+                                                    , div [ class "like-count" ] [ text <| toString <| story.likes ]
+                                                    ]
                                                 ]
                                         )
                                         (List.reverse <| Util.sortByDate .lastModified userStories)

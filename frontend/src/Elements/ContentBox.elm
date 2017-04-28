@@ -2,7 +2,7 @@ module Elements.ContentBox exposing (..)
 
 import DefaultServices.Util as Util
 import Elements.Editor exposing (prettyPrintLanguages)
-import Html exposing (Html, div, text)
+import Html exposing (Html, div, text, i)
 import Html.Attributes exposing (class, classList)
 import Html.Events exposing (onClick)
 import Models.Content exposing (..)
@@ -58,4 +58,12 @@ contentBox { goToMsg, darkenBox, forStory } content =
         , div
             [ class "author" ]
             [ text <| getAuthorEmail content ]
+        , div
+            [ class "opinions" ]
+            [ div
+                [ class "likes" ]
+                [ i [ class "material-icons" ] [ text "favorite" ]
+                , div [ class "like-count" ] [ text <| toString <| getLikes content ]
+                ]
+            ]
         ]

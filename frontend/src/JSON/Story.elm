@@ -26,6 +26,7 @@ encoder story =
         , ( "lastModified", Util.dateEncoder story.lastModified )
         , ( "userHasCompleted", Util.justValueOrNull (Encode.list << List.map Encode.bool) story.userHasCompleted )
         , ( "languages", Encode.list <| List.map JSON.Language.encoder story.languages )
+        , ( "likes", Encode.int story.likes )
         ]
 
 
@@ -45,6 +46,8 @@ decoder =
         |> required "lastModified" Util.dateDecoder
         |> optional "userHasCompleted" (Decode.maybe <| Decode.list Decode.bool) Nothing
         |> required "languages" (Decode.list JSON.Language.decoder)
+        -- Optional for backwards compatibility.
+        |> optional "likes" Decode.int 0
 
 
 {-| `ExpandedStory` encoder.
@@ -63,6 +66,7 @@ expandedStoryEncoder expandedStory =
         , ( "lastModified", Util.dateEncoder expandedStory.lastModified )
         , ( "userHasCompleted", Util.justValueOrNull (Encode.list << List.map Encode.bool) expandedStory.userHasCompleted )
         , ( "languages", Encode.list <| List.map Encode.string expandedStory.languages )
+        , ( "likes", Encode.int expandedStory.likes )
         ]
 
 
@@ -82,6 +86,8 @@ expandedStoryDecoder =
         |> required "lastModified" Util.dateDecoder
         |> optional "userHasCompleted" (Decode.maybe <| Decode.list Decode.bool) Nothing
         |> required "languages" (Decode.list Decode.string)
+        -- Optional for backwards compatibility.
+        |> optional "likes" Decode.int 0
 
 
 {-| `NewStory` encoder.

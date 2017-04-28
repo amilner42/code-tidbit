@@ -76,6 +76,21 @@ getAuthorEmail content =
             authorEmail
 
 
+{-| Get's the `likes` of the content.
+-}
+getLikes : Content -> Int
+getLikes content =
+    case content of
+        Snipbit { likes } ->
+            likes
+
+        Bigbit { likes } ->
+            likes
+
+        Story { likes } ->
+            likes
+
+
 {-| Returns true if the content is a snipbit.
 -}
 isSnipbit : Content -> Bool

@@ -14,6 +14,7 @@ import Pages.NewStory.Init as NewStoryInit
 import Pages.Profile.Init as ProfileInit
 import Pages.ViewBigbit.Init as ViewBigbitInit
 import Pages.ViewSnipbit.Init as ViewSnipbitInit
+import Pages.ViewStory.Init as ViewStoryInit
 import Pages.Welcome.Init as WelcomeInit
 
 
@@ -35,6 +36,7 @@ defaultModel route flags =
     , createSnipbitPage = CreateSnipbitInit.init
     , createBigbitPage = CreateBigbitInit.init
     , browsePage = BrowseInit.init
+    , viewStoryPage = ViewStoryInit.init
     }
 
 

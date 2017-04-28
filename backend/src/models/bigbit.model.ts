@@ -3,12 +3,14 @@
 import * as kleen from "kleen";
 import moment from 'moment';
 import { Cursor } from "mongodb";
+import * as R from "ramda";
 
+import { opinionDBActions } from "./opinion.model";
 import { malformedFieldError, asyncIdentity, isNullOrUndefined, dropNullAndUndefinedProperties } from '../util';
 import { collection, renameIDField, toMongoObjectID, paginateResults } from '../db';
 import { MongoID, MongoObjectID, ErrorCode, TargetID } from '../types';
 import { Range } from './range.model';
-import { ContentSearchFilter, ContentResultManipulation, ContentType, getContent } from "./content.model";
+import { ContentSearchFilter, ContentResultManipulation, ContentType, ContentPointer, getContent } from "./content.model";
 import { FileStructure, swapPeriodsWithStars, fileFold } from './file-structure.model';
 import * as KS from './kleen-schemas';
 
@@ -33,6 +35,7 @@ export interface Bigbit {
   languages?: string[];
   createdAt?: Date;
   lastModified?: Date;
+  likes?: number;     // In the `opinions` collection, attached by the backend.
 };
 
 /**
@@ -103,13 +106,23 @@ const bigbitSchema: kleen.objectSchema = {
  * Prepare a bigbit for the frontend, this includes:
  *  - Renaming _id to id
  *  - Reversing the folder/file-names to once again have '.'
- *
- * @WARNING Mutates `bigbit`.
+ *  - Fetching and attaching ratings.
  */
-const prepareBigbitForResponse = (bigbit: Bigbit): Bigbit => {
-  renameIDField(bigbit);
-  bigbit.fs = swapPeriodsWithStars(false, bigbit.fs);
-  return bigbit;
+const prepareBigbitForResponse = (bigbit: Bigbit): Promise<Bigbit> => {
+  const bigbitCopy = R.clone(bigbit);
+  const contentPointer: ContentPointer = {
+    contentType: ContentType.Bigbit,
+    contentID: bigbitCopy._id.toString()
+  };
+
+  bigbitCopy.fs = swapPeriodsWithStars(false, bigbitCopy.fs);
+
+  return opinionDBActions.getAllOpinionsOnContent(contentPointer)
+  .then(({ likes }) => {
+    bigbitCopy.likes = likes;
+
+    return renameIDField(bigbitCopy);
+  });
 };
 
 /**

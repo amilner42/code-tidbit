@@ -39,6 +39,18 @@ getID tidbit =
             id
 
 
+{-| Gets the `likes` of a tidbit.
+-}
+getLikes : Tidbit -> Int
+getLikes tidbit =
+    case tidbit of
+        Snipbit { likes } ->
+            likes
+
+        Bigbit { likes } ->
+            likes
+
+
 {-| Gets the date a tidbit was last modified.
 -}
 getLastModified : Tidbit -> Date.Date

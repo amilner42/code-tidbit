@@ -9,5 +9,6 @@ init : Model
 init =
     { snipbit = Nothing
     , isCompleted = Nothing
+    , possibleOpinion = Nothing
     , relevantHC = Nothing
     }
