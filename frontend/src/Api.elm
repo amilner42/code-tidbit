@@ -6,7 +6,10 @@ import JSON.BasicResponse
 import JSON.Bigbit
 import JSON.Completed
 import JSON.Content
+import JSON.ContentPointer
 import JSON.IDResponse
+import JSON.Opinion
+import JSON.Rating
 import JSON.Snipbit
 import JSON.Story
 import JSON.Tidbit
@@ -20,7 +23,10 @@ import Models.BasicResponse as BasicResponse
 import Models.Bigbit as Bigbit
 import Models.Completed as Completed
 import Models.Content as Content
+import Models.ContentPointer as ContentPointer
 import Models.IDResponse as IDResponse
+import Models.Opinion as Opinion
+import Models.Rating as Rating
 import Models.Snipbit as Snipbit
 import Models.Story as Story
 import Models.Tidbit as Tidbit
@@ -48,6 +54,8 @@ type alias API b =
         , bigbit : String -> (ApiError.ApiError -> b) -> (Bigbit.Bigbit -> b) -> Cmd b
         , tidbits : List ( String, Maybe String ) -> (ApiError.ApiError -> b) -> (List Tidbit.Tidbit -> b) -> Cmd b
         , content : List ( String, Maybe String ) -> (ApiError.ApiError -> b) -> (List Content.Content -> b) -> Cmd b
+        , opinion : ContentPointer.ContentPointer -> (ApiError.ApiError -> b) -> (Maybe Rating.Rating -> b) -> Cmd b
+        , opinionWrapper : ContentPointer.ContentPointer -> (ApiError.ApiError -> b) -> (Opinion.MaybeOpinion -> b) -> Cmd b
         }
     , post :
         { login : User.UserForLogin -> (ApiError.ApiError -> b) -> (User.User -> b) -> Cmd b
@@ -64,6 +72,10 @@ type alias API b =
         , removeCompletedWrapper : Completed.Completed -> (ApiError.ApiError -> b) -> (Completed.IsCompleted -> b) -> Cmd b
         , checkCompleted : Completed.Completed -> (ApiError.ApiError -> b) -> (Bool -> b) -> Cmd b
         , checkCompletedWrapper : Completed.Completed -> (ApiError.ApiError -> b) -> (Completed.IsCompleted -> b) -> Cmd b
+        , addOpinion : Opinion.Opinion -> (ApiError.ApiError -> b) -> (Bool -> b) -> Cmd b
+        , addOpinionWrapper : Opinion.Opinion -> (ApiError.ApiError -> b) -> (Opinion.Opinion -> b) -> Cmd b
+        , removeOpinion : Opinion.Opinion -> (ApiError.ApiError -> b) -> (Bool -> b) -> Cmd b
+        , removeOpinionWrapper : Opinion.Opinion -> (ApiError.ApiError -> b) -> (Opinion.Opinion -> b) -> Cmd b
         }
     }
 
@@ -110,6 +122,16 @@ api apiBaseUrl =
             apiGet
                 ("stories" :/: storyID)
                 JSON.Story.decoder
+
+        {- Get's a user's opinion. -}
+        getOpinion : ContentPointer.ContentPointer -> (ApiError.ApiError -> b) -> (Maybe Rating.Rating -> b) -> Cmd b
+        getOpinion contentPointer =
+            apiGet
+                ("account/getOpinion"
+                    :/: (toString <| JSON.ContentPointer.contentTypeToInt contentPointer.contentType)
+                    :/: (contentPointer.contentID)
+                )
+                (Decode.maybe JSON.Rating.decoder)
 
         {- Gets a single expanded story. -}
         getExpandedStory : String -> (ApiError.ApiError -> b) -> (Story.ExpandedStory -> b) -> Cmd b
@@ -242,7 +264,31 @@ api apiBaseUrl =
                 Decode.bool
                 (JSON.Completed.encoder completed)
 
+        {- Adds an opinion for a logged-in user. -}
+        postAddOpinion : Opinion.Opinion -> (ApiError.ApiError -> b) -> (Bool -> b) -> Cmd b
+        postAddOpinion opinion =
+            apiPost
+                "account/addOpinion"
+                Decode.bool
+                (JSON.Opinion.encoder opinion)
+
+        {- Removes an opinion for a logged-in user. -}
+        postRemoveOpinion : Opinion.Opinion -> (ApiError.ApiError -> b) -> (Bool -> b) -> Cmd b
+        postRemoveOpinion opinion =
+            apiPost
+                "account/removeOpinion"
+                Decode.bool
+                (JSON.Opinion.encoder opinion)
+
         -- API Request Wrappers
+        {- Wrapper around `getOpinion`, returns in `Opinion` form using the inputs. -}
+        getOpinionWrapper : ContentPointer.ContentPointer -> (ApiError.ApiError -> b) -> (Opinion.MaybeOpinion -> b) -> Cmd b
+        getOpinionWrapper contentPointer handleError handleSuccess =
+            getOpinion
+                contentPointer
+                handleError
+                (Opinion.MaybeOpinion contentPointer >> handleSuccess)
+
         {- Wrapper around `getUserExists` that also returns the email that was passed in. -}
         getUserExistsWrapper : String -> (ApiError.ApiError -> b) -> (( String, Maybe String ) -> b) -> Cmd b
         getUserExistsWrapper email handleError handleSuccess =
@@ -280,6 +326,22 @@ api apiBaseUrl =
                 completed
                 handleError
                 (Completed.IsCompleted completed.tidbitPointer >> handleSuccess)
+
+        {- Wrapper around `postAddOpinion` to return the opinion that was just added. -}
+        postAddOpinionWrapper : Opinion.Opinion -> (ApiError.ApiError -> b) -> (Opinion.Opinion -> b) -> Cmd b
+        postAddOpinionWrapper opinion handleError handleSuccess =
+            postAddOpinion
+                opinion
+                handleError
+                (always <| handleSuccess opinion)
+
+        {- Wrapper around `postRemoveOpinion` that returns the removed opinion. -}
+        postRemoveOpinionWrapper : Opinion.Opinion -> (ApiError.ApiError -> b) -> (Opinion.Opinion -> b) -> Cmd b
+        postRemoveOpinionWrapper opinion handleError handleSuccess =
+            postRemoveOpinion
+                opinion
+                handleError
+                (always <| handleSuccess opinion)
     in
         { get =
             { userExists = getUserExists
@@ -294,6 +356,8 @@ api apiBaseUrl =
             , bigbit = getBigbit
             , tidbits = getTidbits
             , content = getContent
+            , opinion = getOpinion
+            , opinionWrapper = getOpinionWrapper
             }
         , post =
             { login = postLogin
@@ -310,6 +374,10 @@ api apiBaseUrl =
             , removeCompletedWrapper = postRemoveCompletedWrapper
             , checkCompleted = postCheckCompleted
             , checkCompletedWrapper = postCheckCompletedWrapper
+            , addOpinion = postAddOpinion
+            , addOpinionWrapper = postAddOpinionWrapper
+            , removeOpinion = postRemoveOpinion
+            , removeOpinionWrapper = postRemoveOpinionWrapper
             }
         }
 

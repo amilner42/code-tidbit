@@ -15,6 +15,7 @@ encoder model =
     Encode.object
         [ ( "bigbit", Util.justValueOrNull JSON.Bigbit.encoder model.bigbit )
         , ( "isCompleted", Encode.null )
+        , ( "maybeOpinion", Encode.null )
         , ( "relevantHC", Encode.null )
         ]
 
@@ -25,5 +26,6 @@ decoder : Decode.Decoder Model
 decoder =
     decode Model
         |> required "bigbit" (Decode.maybe JSON.Bigbit.decoder)
+        |> hardcoded Nothing
         |> hardcoded Nothing
         |> hardcoded Nothing

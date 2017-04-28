@@ -11,6 +11,7 @@ import Html.Attributes exposing (class, classList, hidden)
 import Html.Events exposing (onClick)
 import Models.Bigbit as Bigbit
 import Models.Completed as Completed
+import Models.Rating as Rating
 import Models.Route as Route
 import Models.Story as Story
 import Models.ViewerRelevantHC as ViewerRelevantHC
@@ -123,6 +124,35 @@ view model shared =
                                 , onClick <| MarkAsComplete <| Completed.completedFromIsCompleted isCompleted user.id
                                 ]
                                 [ text "Mark Bigbit as Complete" ]
+
+                    _ ->
+                        Util.hiddenDiv
+                , case ( shared.user, model.maybeOpinion ) of
+                    ( Just user, Just maybeOpinion ) ->
+                        let
+                            ( newMsg, buttonText ) =
+                                case maybeOpinion.rating of
+                                    Nothing ->
+                                        ( AddOpinion
+                                            { contentPointer = maybeOpinion.contentPointer
+                                            , rating = Rating.Like
+                                            }
+                                        , "Love it!"
+                                        )
+
+                                    Just rating ->
+                                        ( RemoveOpinion
+                                            { contentPointer = maybeOpinion.contentPointer
+                                            , rating = rating
+                                            }
+                                        , "Undo Love"
+                                        )
+                        in
+                            button
+                                [ class "sub-bar-button heart-button"
+                                , onClick <| newMsg
+                                ]
+                                [ text buttonText ]
 
                     _ ->
                         Util.hiddenDiv
