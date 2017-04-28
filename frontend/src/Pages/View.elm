@@ -29,6 +29,7 @@ import Pages.ViewBigbit.Model as ViewBigbitModel
 import Pages.ViewBigbit.View as ViewBigbitView
 import Pages.ViewSnipbit.Model as ViewSnipbitModel
 import Pages.ViewSnipbit.View as ViewSnipbitView
+import Pages.ViewStory.Model as ViewStoryModel
 import Pages.ViewStory.View as ViewStoryView
 import Pages.Welcome.Model as WelcomeModel
 import Pages.Welcome.View as WelcomeView
@@ -102,7 +103,7 @@ viewForRoute model =
             viewBigbitView model.viewBigbitPage model.shared
 
         viewStoryPage =
-            viewStoryView model.shared
+            viewStoryView model.viewStoryPage model.shared
 
         profilePage =
             profileView model.profilePage model.shared
@@ -237,9 +238,9 @@ viewBigbitView viewBigbitModel shared =
 
 {-| `ViewStory` view.
 -}
-viewStoryView : Shared -> Html.Html Msg
-viewStoryView shared =
-    Html.map ViewStoryMessage <| ViewStoryView.view shared
+viewStoryView : ViewStoryModel.Model -> Shared -> Html.Html Msg
+viewStoryView viewStoryModel shared =
+    Html.map ViewStoryMessage <| ViewStoryView.view viewStoryModel shared
 
 
 {-| `Profile` view.
