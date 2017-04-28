@@ -37,14 +37,14 @@ update ({ doNothing, justSetModel, justUpdateModel, justSetShared, justProduceCm
                    - May need to fetch tidbit itself
                    - May need to fetch story
                    - May need to fetch if the tidbit is completed by the user.
-                   - May need to fetch if the tidbit is liked by the user.
+                   - may need to fetch the users opinion on the tidbit.
 
                    If any of the 4 datums above are already cached, assumes that they are up-to-date. The bigbit itself
                    basically never changes, the `isCompleted` will change a lot but it's unlikely the user completes
                    that exact tidbit in another browser at the same time. The story itself changes frequently but it
                    doesn't make sense to constantly update it, so we only update the story when we are on the
-                   `viewStory` page. The same reasoning for `isComplete` applies to `isLiked`, it's unlikely to be done
-                   in another browser at the same time, so we cache it in localStorage.
+                   `viewStory` page. The same reasoning for `isComplete` applies to `maybeOpinion`, it's unlikely to be
+                   done in another browser at the same time, so we cache it in the browser, but not in localStorage.
                 -}
                 fetchOrRenderViewBigbitData mongoID =
                     let

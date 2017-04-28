@@ -1,10 +1,12 @@
 module Pages.ViewSnipbit.Update exposing (..)
 
 import Array
-import DefaultServices.CommonSubPageUtil exposing (CommonSubPageUtil)
+import DefaultServices.CommonSubPageUtil exposing (CommonSubPageUtil, commonSubPageUtil)
 import DefaultServices.Util as Util exposing (maybeMapWithDefault)
 import Elements.Editor as Editor
 import Models.Completed as Completed
+import Models.ContentPointer as ContentPointer
+import Models.Opinion as Opinion
 import Models.Range as Range
 import Models.Route as Route
 import Models.Snipbit as Snipbit
@@ -34,12 +36,14 @@ update ({ doNothing, justSetModel, justUpdateModel, justSetShared, justProduceCm
                     - May need to fetch tidbit itself
                     - May need to fetch story
                     - May need to fetch if the tidbit is completed by the user.
+                    - may need to fetch the users opinion on the tidbit.
 
-                   If any of the 3 datums above are already cached, assumes that they are up-to-date. The snipbit itself
+                   If any of the 4 datums above are already cached, assumes that they are up-to-date. The snipbit itself
                    basically never changes, the `isCompleted` will change a lot but it's unlikely the user completes
                    that exact tidbit in another browser at the same time. The story itself changes frequently but it
                    doesn't make sense to constantly update it, so we only update the story when we are on the
-                   `viewStory` page.
+                   `viewStory` page. The same reasoning for `isComplete` applies to `maybeOpinion`, it's unlikely to be
+                   done in another browser at the same time, so we cache it in the browser, but not in localStorage.
                 -}
                 fetchOrRenderViewSnipbitData mongoID =
                     let
@@ -99,6 +103,38 @@ update ({ doNothing, justSetModel, justUpdateModel, justSetShared, justProduceCm
                                     _ ->
                                         doNothing
 
+                        handleGetSnipbitOpinion ( model, shared ) =
+                            let
+                                { doNothing, justProduceCmd } =
+                                    commonSubPageUtil model shared
+
+                                contentPointer =
+                                    { contentType = ContentPointer.Snipbit
+                                    , contentID = mongoID
+                                    }
+
+                                getOpinion =
+                                    ( { model | maybeOpinion = Nothing }
+                                    , shared
+                                    , api.get.opinionWrapper
+                                        contentPointer
+                                        OnGetOpinionFailure
+                                        OnGetOpinionSuccess
+                                    )
+                            in
+                                case ( shared.user, model.maybeOpinion ) of
+                                    ( Just user, Just { contentPointer, rating } ) ->
+                                        if contentPointer.contentID == mongoID then
+                                            doNothing
+                                        else
+                                            getOpinion
+
+                                    ( Just user, Nothing ) ->
+                                        getOpinion
+
+                                    _ ->
+                                        doNothing
+
                         -- Handle getting story if viewing snipbit from story.
                         handleGetStoryForSnipbit ( model, shared ) =
                             let
@@ -133,6 +169,7 @@ update ({ doNothing, justSetModel, justUpdateModel, justSetShared, justProduceCm
                         common.handleAll
                             [ handleGetSnipbit
                             , handleGetSnipbitIsCompleted
+                            , handleGetSnipbitOpinion
                             , handleGetStoryForSnipbit
                             ]
             in
@@ -186,6 +223,38 @@ update ({ doNothing, justSetModel, justUpdateModel, justSetShared, justProduceCm
             )
 
         OnGetSnipbitFailure apiError ->
+            common.justSetModalError apiError
+
+        OnGetOpinionSuccess maybeOpinion ->
+            justSetModel { model | maybeOpinion = Just maybeOpinion }
+
+        OnGetOpinionFailure apiError ->
+            common.justSetModalError apiError
+
+        AddOpinion opinion ->
+            justProduceCmd <|
+                api.post.addOpinionWrapper opinion OnAddOpinionFailure OnAddOpinionSuccess
+
+        OnAddOpinionSuccess opinion ->
+            justSetModel { model | maybeOpinion = Just (Opinion.toMaybeOpinion opinion) }
+
+        OnAddOpinionFailure apiError ->
+            common.justSetModalError apiError
+
+        RemoveOpinion opinion ->
+            justProduceCmd <|
+                api.post.removeOpinionWrapper opinion OnRemoveOpinionFailure OnRemoveOpinionSuccess
+
+        {- Currently it doesn't matter what opinion we removed because you can only have 1, but it may change in the
+           future where we have multiple opinions, then use the `opinion` to figure out which to remove.
+        -}
+        OnRemoveOpinionSuccess { contentPointer, rating } ->
+            justSetModel
+                { model
+                    | maybeOpinion = Just { contentPointer = contentPointer, rating = Nothing }
+                }
+
+        OnRemoveOpinionFailure apiError ->
             common.justSetModalError apiError
 
         OnGetExpandedStorySuccess expandedStory ->

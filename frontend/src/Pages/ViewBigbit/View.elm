@@ -145,7 +145,7 @@ view model shared =
                                             { contentPointer = maybeOpinion.contentPointer
                                             , rating = rating
                                             }
-                                        , "Undo Love"
+                                        , "Take Back Love"
                                         )
                         in
                             button

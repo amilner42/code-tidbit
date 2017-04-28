@@ -16,6 +16,7 @@ encoder model =
     Encode.object
         [ ( "snipbit", Util.justValueOrNull JSON.Snipbit.encoder model.snipbit )
         , ( "isCompleted", Encode.null )
+        , ( "maybeOpinion", Encode.null )
         , ( "relevantHC", Encode.null )
         ]
 
@@ -26,5 +27,6 @@ decoder : Decode.Decoder Model
 decoder =
     decode Model
         |> required "snipbit" (Decode.maybe JSON.Snipbit.decoder)
+        |> hardcoded Nothing
         |> hardcoded Nothing
         |> hardcoded Nothing
