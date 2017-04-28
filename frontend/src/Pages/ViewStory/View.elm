@@ -65,14 +65,14 @@ view model shared =
                                             Util.hiddenDiv
                                   )
                                 , ( "view-story-opinions-button"
-                                  , case model.maybeOpinion of
-                                        Just maybeOpinion ->
+                                  , case model.possibleOpinion of
+                                        Just possibleOpinion ->
                                             let
                                                 ( newMsg, buttonText ) =
-                                                    case maybeOpinion.rating of
+                                                    case possibleOpinion.rating of
                                                         Nothing ->
                                                             ( AddOpinion
-                                                                { contentPointer = maybeOpinion.contentPointer
+                                                                { contentPointer = possibleOpinion.contentPointer
                                                                 , rating = Rating.Like
                                                                 }
                                                             , "Love it!"
@@ -80,7 +80,7 @@ view model shared =
 
                                                         Just rating ->
                                                             ( RemoveOpinion
-                                                                { contentPointer = maybeOpinion.contentPointer
+                                                                { contentPointer = possibleOpinion.contentPointer
                                                                 , rating = rating
                                                                 }
                                                             , "Take Back Love"

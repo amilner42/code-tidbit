@@ -16,7 +16,7 @@ encoder model =
     Encode.object
         [ ( "snipbit", Util.justValueOrNull JSON.Snipbit.encoder model.snipbit )
         , ( "isCompleted", Encode.null )
-        , ( "maybeOpinion", Encode.null )
+        , ( "possibleOpinion", Encode.null )
         , ( "relevantHC", Encode.null )
         ]
 

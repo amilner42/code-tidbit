@@ -416,7 +416,7 @@ export const routes: AppRoutes = {
 
   '/opinions/:contentType/:contentID': {
     /**
-    * Get's `Ratings` for a specific snipbit.
+    * Get's `Rating`s for some specific `Content`.
     */
     get: (req, res): Promise<Ratings> => {
       const params = req.params;

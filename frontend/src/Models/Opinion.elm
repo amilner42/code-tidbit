@@ -18,16 +18,16 @@ type alias Opinion =
 
 Useful for rendering on the frontend where `Nothing` for the rating signafies that the user has no opinion.
 -}
-type alias MaybeOpinion =
+type alias PossibleOpinion =
     { contentPointer : ContentPointer
     , rating : Maybe Rating
     }
 
 
-{-| Converting an `Opinion` to a `MaybeOpinion`.
+{-| Converting an `Opinion` to a `PossibleOpinion`.
 -}
-toMaybeOpinion : Opinion -> MaybeOpinion
-toMaybeOpinion opinion =
+toPossibleOpinion : Opinion -> PossibleOpinion
+toPossibleOpinion opinion =
     { contentPointer = opinion.contentPointer
     , rating = Just opinion.rating
     }

@@ -1,7 +1,7 @@
 module Pages.ViewStory.Messages exposing (..)
 
 import Models.ApiError exposing (ApiError)
-import Models.Opinion exposing (Opinion, MaybeOpinion)
+import Models.Opinion exposing (Opinion, PossibleOpinion)
 import Models.Route exposing (Route)
 import Models.Story exposing (ExpandedStory)
 
@@ -12,7 +12,7 @@ type Msg
     = NoOp
     | GoTo Route
     | OnRouteHit Route
-    | OnGetOpinionSuccess MaybeOpinion
+    | OnGetOpinionSuccess PossibleOpinion
     | OnGetOpinionFailure ApiError
     | AddOpinion Opinion
     | OnAddOpinionSuccess Opinion

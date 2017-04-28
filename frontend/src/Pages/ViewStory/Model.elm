@@ -1,10 +1,10 @@
 module Pages.ViewStory.Model exposing (..)
 
-import Models.Opinion exposing (MaybeOpinion)
+import Models.Opinion exposing (PossibleOpinion)
 
 
 {-| `ViewStory` model.
 -}
 type alias Model =
-    { maybeOpinion : Maybe MaybeOpinion
+    { possibleOpinion : Maybe PossibleOpinion
     }

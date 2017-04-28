@@ -43,7 +43,7 @@ update ({ doNothing, justSetModel, justUpdateModel, justSetShared, justProduceCm
                    basically never changes, the `isCompleted` will change a lot but it's unlikely the user completes
                    that exact tidbit in another browser at the same time. The story itself changes frequently but it
                    doesn't make sense to constantly update it, so we only update the story when we are on the
-                   `viewStory` page. The same reasoning for `isComplete` applies to `maybeOpinion`, it's unlikely to be
+                   `viewStory` page. The same reasoning for `isComplete` applies to `possibleOpinion`, it's unlikely to be
                    done in another browser at the same time, so we cache it in the browser, but not in localStorage.
                 -}
                 fetchOrRenderViewBigbitData mongoID =
@@ -104,7 +104,7 @@ update ({ doNothing, justSetModel, justUpdateModel, justSetShared, justProduceCm
 
                         handleGetBigbitOpinion ( model, shared ) =
                             let
-                                { doNothing, justProduceCmd } =
+                                { doNothing } =
                                     commonSubPageUtil model shared
 
                                 contentPointer =
@@ -113,7 +113,7 @@ update ({ doNothing, justSetModel, justUpdateModel, justSetShared, justProduceCm
                                     }
 
                                 getOpinion =
-                                    ( { model | maybeOpinion = Nothing }
+                                    ( { model | possibleOpinion = Nothing }
                                     , shared
                                     , api.get.opinionWrapper
                                         contentPointer
@@ -121,7 +121,7 @@ update ({ doNothing, justSetModel, justUpdateModel, justSetShared, justProduceCm
                                         OnGetOpinionSuccess
                                     )
                             in
-                                case ( shared.user, model.maybeOpinion ) of
+                                case ( shared.user, model.possibleOpinion ) of
                                     ( Just user, Just { contentPointer, rating } ) ->
                                         if contentPointer.contentID == mongoID then
                                             doNothing
@@ -250,8 +250,8 @@ update ({ doNothing, justSetModel, justUpdateModel, justSetShared, justProduceCm
         OnGetCompletedFailure apiError ->
             common.justSetModalError apiError
 
-        OnGetOpinionSuccess maybeOpinion ->
-            justSetModel { model | maybeOpinion = Just maybeOpinion }
+        OnGetOpinionSuccess possibleOpinion ->
+            justSetModel { model | possibleOpinion = Just possibleOpinion }
 
         OnGetOpinionFailure apiError ->
             common.justSetModalError apiError
@@ -261,7 +261,7 @@ update ({ doNothing, justSetModel, justUpdateModel, justSetShared, justProduceCm
                 api.post.addOpinionWrapper opinion OnAddOpinionFailure OnAddOpinionSuccess
 
         OnAddOpinionSuccess opinion ->
-            justSetModel { model | maybeOpinion = Just (Opinion.toMaybeOpinion opinion) }
+            justSetModel { model | possibleOpinion = Just (Opinion.toPossibleOpinion opinion) }
 
         OnAddOpinionFailure apiError ->
             common.justSetModalError apiError
@@ -276,7 +276,7 @@ update ({ doNothing, justSetModel, justUpdateModel, justSetShared, justProduceCm
         OnRemoveOpinionSuccess { contentPointer, rating } ->
             justSetModel
                 { model
-                    | maybeOpinion = Just { contentPointer = contentPointer, rating = Nothing }
+                    | possibleOpinion = Just { contentPointer = contentPointer, rating = Nothing }
                 }
 
         OnRemoveOpinionFailure apiError ->

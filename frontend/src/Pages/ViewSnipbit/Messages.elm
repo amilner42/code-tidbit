@@ -6,7 +6,7 @@ import Models.Range exposing (Range)
 import Models.Route exposing (Route)
 import Models.Snipbit exposing (Snipbit)
 import Models.Story exposing (ExpandedStory)
-import Models.Opinion exposing (Opinion, MaybeOpinion)
+import Models.Opinion exposing (Opinion, PossibleOpinion)
 
 
 {-| `ViewSnipbit` msg.
@@ -19,7 +19,7 @@ type Msg
     | OnGetCompletedFailure ApiError
     | OnGetSnipbitSuccess Snipbit
     | OnGetSnipbitFailure ApiError
-    | OnGetOpinionSuccess MaybeOpinion
+    | OnGetOpinionSuccess PossibleOpinion
     | OnGetOpinionFailure ApiError
     | AddOpinion Opinion
     | OnAddOpinionSuccess Opinion

@@ -15,7 +15,7 @@ encoder model =
     Encode.object
         [ ( "bigbit", Util.justValueOrNull JSON.Bigbit.encoder model.bigbit )
         , ( "isCompleted", Encode.null )
-        , ( "maybeOpinion", Encode.null )
+        , ( "possibleOpinion", Encode.null )
         , ( "relevantHC", Encode.null )
         ]
 

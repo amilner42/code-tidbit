@@ -1,7 +1,7 @@
 module Pages.ViewSnipbit.Model exposing (..)
 
 import DefaultServices.Util as Util exposing (maybeMapWithDefault)
-import Models.Opinion exposing (MaybeOpinion)
+import Models.Opinion exposing (PossibleOpinion)
 import Models.Completed exposing (IsCompleted)
 import Models.Snipbit exposing (Snipbit, HighlightedComment)
 import Models.ViewerRelevantHC exposing (ViewerRelevantHC, browsingFrames)
@@ -12,7 +12,7 @@ import Models.ViewerRelevantHC exposing (ViewerRelevantHC, browsingFrames)
 type alias Model =
     { snipbit : Maybe Snipbit
     , isCompleted : Maybe IsCompleted
-    , maybeOpinion : Maybe MaybeOpinion
+    , possibleOpinion : Maybe PossibleOpinion
     , relevantHC : Maybe ViewingSnipbitRelevantHC
     }
 

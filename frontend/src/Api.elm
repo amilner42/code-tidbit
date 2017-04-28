@@ -55,7 +55,7 @@ type alias API b =
         , tidbits : List ( String, Maybe String ) -> (ApiError.ApiError -> b) -> (List Tidbit.Tidbit -> b) -> Cmd b
         , content : List ( String, Maybe String ) -> (ApiError.ApiError -> b) -> (List Content.Content -> b) -> Cmd b
         , opinion : ContentPointer.ContentPointer -> (ApiError.ApiError -> b) -> (Maybe Rating.Rating -> b) -> Cmd b
-        , opinionWrapper : ContentPointer.ContentPointer -> (ApiError.ApiError -> b) -> (Opinion.MaybeOpinion -> b) -> Cmd b
+        , opinionWrapper : ContentPointer.ContentPointer -> (ApiError.ApiError -> b) -> (Opinion.PossibleOpinion -> b) -> Cmd b
         }
     , post :
         { login : User.UserForLogin -> (ApiError.ApiError -> b) -> (User.User -> b) -> Cmd b
@@ -282,12 +282,12 @@ api apiBaseUrl =
 
         -- API Request Wrappers
         {- Wrapper around `getOpinion`, returns in `Opinion` form using the inputs. -}
-        getOpinionWrapper : ContentPointer.ContentPointer -> (ApiError.ApiError -> b) -> (Opinion.MaybeOpinion -> b) -> Cmd b
+        getOpinionWrapper : ContentPointer.ContentPointer -> (ApiError.ApiError -> b) -> (Opinion.PossibleOpinion -> b) -> Cmd b
         getOpinionWrapper contentPointer handleError handleSuccess =
             getOpinion
                 contentPointer
                 handleError
-                (Opinion.MaybeOpinion contentPointer >> handleSuccess)
+                (Opinion.PossibleOpinion contentPointer >> handleSuccess)
 
         {- Wrapper around `getUserExists` that also returns the email that was passed in. -}
         getUserExistsWrapper : String -> (ApiError.ApiError -> b) -> (( String, Maybe String ) -> b) -> Cmd b

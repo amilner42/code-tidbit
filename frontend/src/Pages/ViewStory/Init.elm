@@ -7,4 +7,4 @@ import Pages.ViewStory.Model exposing (..)
 -}
 init : Model
 init =
-    { maybeOpinion = Nothing }
+    { possibleOpinion = Nothing }

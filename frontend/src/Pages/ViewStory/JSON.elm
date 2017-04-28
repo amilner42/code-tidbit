@@ -11,7 +11,7 @@ import Pages.ViewStory.Model exposing (..)
 encoder : Model -> Encode.Value
 encoder model =
     Encode.object
-        [ ( "maybeOpinion", Encode.null ) ]
+        [ ( "possibleOpinion", Encode.null ) ]
 
 
 {-| `ViewStory` decoder.

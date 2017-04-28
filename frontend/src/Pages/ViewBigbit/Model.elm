@@ -3,7 +3,7 @@ module Pages.ViewBigbit.Model exposing (..)
 import DefaultServices.Util as Util exposing (maybeMapWithDefault)
 import Models.Bigbit exposing (Bigbit, HighlightedComment, isFSOpen)
 import Models.Completed exposing (IsCompleted)
-import Models.Opinion exposing (Opinion, MaybeOpinion)
+import Models.Opinion exposing (Opinion, PossibleOpinion)
 import Models.ViewerRelevantHC exposing (ViewerRelevantHC, browsingFrames)
 
 
@@ -12,7 +12,7 @@ import Models.ViewerRelevantHC exposing (ViewerRelevantHC, browsingFrames)
 type alias Model =
     { bigbit : Maybe Bigbit
     , isCompleted : Maybe IsCompleted
-    , maybeOpinion : Maybe MaybeOpinion
+    , possibleOpinion : Maybe PossibleOpinion
     , relevantHC : Maybe ViewingBigbitRelevantHC
     }
 

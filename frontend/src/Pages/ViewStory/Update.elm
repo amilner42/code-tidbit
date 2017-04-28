@@ -3,7 +3,7 @@ module Pages.ViewStory.Update exposing (..)
 import Api
 import DefaultServices.CommonSubPageUtil exposing (CommonSubPageUtil, commonSubPageUtil)
 import Models.ContentPointer as ContentPointer
-import Models.Opinion exposing (toMaybeOpinion)
+import Models.Opinion exposing (toPossibleOpinion)
 import Models.Route as Route
 import Pages.Model exposing (Shared)
 import Pages.ViewStory.Messages exposing (..)
@@ -46,7 +46,7 @@ update ({ doNothing, justSetModel, justProduceCmd, justSetShared, justSetModalEr
                         -- Fetch's the opinion if needed.
                         getOpinion ( model, shared ) =
                             let
-                                { doNothing, justProduceCmd } =
+                                { doNothing } =
                                     commonSubPageUtil model shared
 
                                 contentPointer =
@@ -55,7 +55,7 @@ update ({ doNothing, justSetModel, justProduceCmd, justSetShared, justSetModalEr
                                     }
 
                                 getOpinion =
-                                    ( { model | maybeOpinion = Nothing }
+                                    ( { model | possibleOpinion = Nothing }
                                     , shared
                                     , api.get.opinionWrapper
                                         contentPointer
@@ -63,7 +63,7 @@ update ({ doNothing, justSetModel, justProduceCmd, justSetShared, justSetModalEr
                                         OnGetOpinionSuccess
                                     )
                             in
-                                case ( shared.user, model.maybeOpinion ) of
+                                case ( shared.user, model.possibleOpinion ) of
                                     ( Just user, Just { contentPointer, rating } ) ->
                                         if contentPointer.contentID == mongoID then
                                             doNothing
@@ -90,8 +90,8 @@ update ({ doNothing, justSetModel, justProduceCmd, justSetShared, justSetModalEr
         OnGetExpandedStoryFailure apiError ->
             justSetModalError apiError
 
-        OnGetOpinionSuccess maybeOpinion ->
-            justSetModel { model | maybeOpinion = Just maybeOpinion }
+        OnGetOpinionSuccess possibleOpinion ->
+            justSetModel { model | possibleOpinion = Just possibleOpinion }
 
         OnGetOpinionFailure apiError ->
             common.justSetModalError apiError
@@ -101,7 +101,7 @@ update ({ doNothing, justSetModel, justProduceCmd, justSetShared, justSetModalEr
                 api.post.addOpinionWrapper opinion OnAddOpinionFailure OnAddOpinionSuccess
 
         OnAddOpinionSuccess opinion ->
-            justSetModel { model | maybeOpinion = Just <| toMaybeOpinion opinion }
+            justSetModel { model | possibleOpinion = Just <| toPossibleOpinion opinion }
 
         OnAddOpinionFailure apiError ->
             common.justSetModalError apiError
@@ -113,7 +113,7 @@ update ({ doNothing, justSetModel, justProduceCmd, justSetShared, justSetModalEr
         OnRemoveOpinionSuccess { contentPointer } ->
             justSetModel
                 { model
-                    | maybeOpinion = Just { contentPointer = contentPointer, rating = Nothing }
+                    | possibleOpinion = Just { contentPointer = contentPointer, rating = Nothing }
                 }
 
         OnRemoveOpinionFailure apiError ->

@@ -77,7 +77,7 @@ export const opinionDBActions = {
   },
 
   /**
-   * For checking if a user has already liked/disliked content.
+   * For getting a users opinion on some content.
    *
    * NOTE: Returns `null` if the `user` has no opinion yet or if the `contentPointer`/`user` don't exist.
    */
