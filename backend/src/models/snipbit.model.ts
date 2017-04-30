@@ -11,6 +11,8 @@ import { MongoID, MongoObjectID, ErrorCode, TargetID } from '../types';
 import { ContentSearchFilter, ContentResultManipulation, ContentType, ContentPointer, getContent } from "./content.model";
 import { Range, emptyRange } from './range.model';
 import * as KS from './kleen-schemas';
+import { qaDBActions } from "./qa.model";
+import { TidbitType } from "./tidbit.model";
 
 
 /**
@@ -119,6 +121,8 @@ export const snipbitDBActions = {
    *  - `authorEmail`
    *  - `createdAt`
    *  - `lastModified`
+   *
+   * Will additionally initialize the QA for the given snipbit.
    */
   addNewSnipbit: (userID: MongoID, userEmail: string, snipbit: Snipbit): Promise<TargetID> => {
     return kleen.validModel(snipbitSchema)(snipbit)
@@ -135,8 +139,18 @@ export const snipbitDBActions = {
       .then((snipbitCollection) => {
         return snipbitCollection.insertOne(validSnipbit);
       })
+      // After inserting snipbit, we initialize the QA for that snipbit.
       .then((insertSnipbitResult) => {
-        return { targetID: insertSnipbitResult.insertedId };
+        return qaDBActions.newBlankQAForTidbit(
+          false,
+          {
+            targetID: insertSnipbitResult.insertedId,
+            tidbitType: TidbitType.Snipbit
+          }
+        );
+      })
+      .then((newSnipbitQA) => {
+        return { targetID: newSnipbitQA.tidbitID };
       });
     });
   },
