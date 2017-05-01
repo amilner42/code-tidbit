@@ -343,6 +343,59 @@ export const qaDBActions = {
     .then((result) => {
       return result.modifiedCount === 1;
     });
+  },
+
+  /**
+   * Answer a question.
+   */
+  answerQuestion:
+    ( doValidation: boolean
+    , tidbitPointer: TidbitPointer
+    , questionID: MongoID
+    , answerText: string
+    , authorID: MongoObjectID
+    , authorEmail: string
+    ) : Promise<boolean> => {
+
+    // Validate user input: `tidbitPointer`, `questionID`, `answerText`.
+    const resolveIfValid = (): Promise<any> => {
+      return Promise.all([
+        kleen.validModel(tidbitPointerSchema)(tidbitPointer),
+        kleen.validModel(mongoStringIDSchema(malformedFieldError("questionID")))(questionID),
+        kleen.validModel(answerTextSchema)(answerText)
+      ]);
+    }
+
+    return (doValidation ? resolveIfValid() : Promise.resolve())
+    .then(() => {
+      return collection(qaCollectionName(tidbitPointer.tidbitType));
+    })
+    .then((collectionX) => {
+      const dateNow = moment.utc().toDate();
+      const id = new ObjectID();
+
+      const answer: Answer = {
+        id,
+        answerText,
+        authorEmail,
+        authorID,
+        createdAt: dateNow,
+        lastModified: dateNow,
+        downvotes: [],
+        upvotes: [],
+        pinned: false,
+        questionID: toMongoObjectID(questionID)
+      }
+
+      return collectionX.updateOne(
+        { tidbitID: toMongoObjectID(tidbitPointer.targetID), "questions.id": toMongoObjectID(questionID) },
+        { $push: { answers: answer } },
+        { upsert: false }
+      );
+    })
+    .then((result) => {
+      return result.modifiedCount === 1;
+    });
   }
 }
 
@@ -377,7 +430,13 @@ const qaCollectionName = (tidbitType: TidbitType) => {
  * The schema for the `questionText` part of a `Question`.
  */
 const questionTextSchema: kleen.primitiveSchema =
-  stringInRange("question", 1, ErrorCode.internalError, 300, ErrorCode.internalError);
+  stringInRange("questionText", 1, ErrorCode.internalError, 300, ErrorCode.internalError);
+
+/**
+ * The schema for the `answerText` part of an `Answer`.
+ */
+const answerTextSchema: kleen.primitiveSchema =
+  stringInRange("answerText", 1, ErrorCode.internalError, 1000, ErrorCode.internalError);
 
 /**
  * For validifying a bigbit code-pointer.

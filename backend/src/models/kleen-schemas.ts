@@ -184,14 +184,14 @@ export const stringInRange =
       if(str.length < minLength) {
         return Promise.reject({
           errorCode: stringTooSmallErrorCode,
-          message: `String too small, had length ${str.length}, but minimum length was ${minLength}!`
+          message: `${fieldName} is too small, had length ${str.length}, but minimum length was ${minLength}!`
         });
       }
 
       if(str.length > maxLength) {
         return Promise.reject({
           errorCode: stringTooLongErrorCode,
-          message: `String too big, had length ${str.length}, but maximum length was ${maxLength}!`
+          message: `${fieldName} is too big, had length ${str.length}, but maximum length was ${maxLength}!`
         });
       }
     },

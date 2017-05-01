@@ -522,6 +522,26 @@ export const routes: AppRoutes = {
         _id
       );
     }
+  },
+
+  '/qa/:tidbitType/:tidbitID/answerQuestion': {
+    /**
+     * Answers an existing question, returns true if all succeeded and the answer was added.
+     */
+    post: (req, res): Promise<boolean> => {
+      const { tidbitType, tidbitID } = req.params;
+      const { answerText, questionID } = req.body;
+      const { _id, email } = req.user;
+
+      return qaDBActions.answerQuestion(
+        true,
+        { tidbitType: parseInt(tidbitType), targetID: tidbitID },
+        questionID,
+        answerText,
+        _id,
+        email
+      );
+    }
   }
 }
 
