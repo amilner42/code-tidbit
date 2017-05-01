@@ -13,6 +13,7 @@ import { Snipbit, snipbitDBActions } from './models/snipbit.model';
 import { Bigbit, bigbitDBActions } from './models/bigbit.model';
 import { Story, NewStory, ExpandedStory, storyDBActions, StorySearchFilter } from "./models/story.model";
 import { Tidbit, tidbitDBActions } from './models/tidbit.model';
+import { QA, qaDBActions } from "./models/qa.model";
 import { AppRoutes, AppRoutesAuth, FrontendError, TargetID, ErrorCode, BasicResponse, MongoID } from './types';
 import { internalError, combineArrays, maybeMap } from './util';
 
@@ -34,7 +35,8 @@ export const authlessRoutes: AppRoutesAuth = {
   '/stories/:id': { get: true },
   '/tidbits': { get: true },
   '/content': { get: true },
-  '/opinions/:contentType/:contentID': { get: true }
+  '/opinions/:contentType/:contentID': { get: true },
+  '/qa/:tidbitType/:tidbitID': { get: true }
 };
 
 /**
@@ -426,6 +428,37 @@ export const routes: AppRoutes = {
       };
 
       return opinionDBActions.getAllOpinionsOnContent(contentPointer);
+    }
+  },
+
+  '/qa/:tidbitType/:tidbitID': {
+    /**
+     * Get's the full QA document for a specific tidbit.
+     */
+    get: (req, res): Promise<QA<any>> => {
+      const { tidbitType, tidbitID } = req.params;
+
+      return qaDBActions.getQAForTidbit(true, { tidbitType: parseInt(tidbitType), targetID: tidbitID });
+    }
+  },
+
+  '/qa/:tidbitType/:tidbitID/askQuestion': {
+    /**
+     * Asks a question (requires the user be logged-in).
+     */
+    post: (req, res): Promise<boolean> => {
+      const { tidbitType, tidbitID } = req.params;
+      const { questionText, codePointer } = req.body;
+      const { _id, email } = req.user;
+
+      return qaDBActions.askQuestion(
+        true,
+        { tidbitType: parseInt(tidbitType), targetID: tidbitID },
+        questionText,
+        codePointer,
+        _id,
+        email
+      );
     }
   }
 }
