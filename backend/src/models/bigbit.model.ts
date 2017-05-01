@@ -181,7 +181,8 @@ export const bigbitDBActions = {
           {
             tidbitType: TidbitType.Bigbit ,
             targetID: insertBigbitResult.insertedId
-          }
+          },
+          toMongoObjectID(userID)
         );
       })
       .then((newBigbitQA) => {

@@ -9,7 +9,7 @@ import { MongoObjectID, MongoID, ErrorCode } from "../types";
 import { collection, toMongoObjectID, renameIDField } from "../db";
 import { Range } from "./range.model";
 import { TidbitPointer, TidbitType, tidbitPointerSchema } from "./tidbit.model";
-import { stringInRange, rangeSchema, nonEmptyStringSchema, mongoStringIDSchema } from "./kleen-schemas";
+import { stringInRange, rangeSchema, nonEmptyStringSchema, mongoStringIDSchema, booleanSchema } from "./kleen-schemas";
 
 
 /**
@@ -18,6 +18,7 @@ import { stringInRange, rangeSchema, nonEmptyStringSchema, mongoStringIDSchema }
 export interface QA<CodePointer> {
   _id?: MongoObjectID,
   tidbitID: MongoObjectID,
+  tidbitAuthor: MongoObjectID,
   questions: Question<CodePointer>[],
   answers: Answer[],
   allQuestionComments: { questionID: MongoObjectID, questionComments: Comment[] }[],
@@ -101,7 +102,12 @@ export const qaDBActions = {
    *
    * Will only create the new default QA object if one doesn't already exist for that tidbit.
    */
-  newBlankQAForTidbit: (doValidation: boolean, tidbitPointer: TidbitPointer): Promise<QA<any>> => {
+  newBlankQAForTidbit:
+    ( doValidation: boolean
+    , tidbitPointer: TidbitPointer
+    , tidbitAuthor: MongoObjectID
+    ) : Promise<QA<any>> => {
+
     return (doValidation ? kleen.validModel(tidbitPointerSchema)(tidbitPointer) : Promise.resolve())
     .then(() => {
       return collection(qaCollectionName(tidbitPointer.tidbitType));
@@ -111,7 +117,7 @@ export const qaDBActions = {
 
       return collectionX.findOneAndUpdate(
         { tidbitID },
-        { $setOnInsert: defaultQAObject(tidbitID) },
+        { $setOnInsert: defaultQAObject(tidbitID, tidbitAuthor) },
         { upsert: true, returnOriginal: false }
       );
     })
@@ -209,11 +215,7 @@ export const qaDBActions = {
       );
     })
     .then((result) => {
-      if(result.modifiedCount === 1) {
-        return true;
-      }
-
-      return false;
+      return result.modifiedCount === 1;
     });
   },
 
@@ -261,11 +263,7 @@ export const qaDBActions = {
       );
     })
     .then((result) => {
-      if(result.modifiedCount === 1) {
-        return true;
-      }
-
-      return false;
+      return result.modifiedCount === 1;
     });
   },
 
@@ -301,11 +299,49 @@ export const qaDBActions = {
       );
     })
     .then((result) => {
-      if(result.modifiedCount === 1) {
-        return true;
-      }
+      return result.modifiedCount === 1;
+    });
+  },
 
-      return false;
+  /**
+   * Pins/unpins a question, can only be done by the author of the tidbit.
+   *
+   * Returns true if the change was successful (setting the same pin state will return false).
+   */
+  pinQuestion:
+    ( doValidation: boolean
+    , tidbitPointer: TidbitPointer
+    , questionID: MongoID
+    , pin: boolean
+    , userID: MongoObjectID
+    ) : Promise<boolean>  => {
+
+    // Checks user input: `tidbitPointer` and `questionID`, and `pin`.
+    const resolveIfValid = (): Promise<any> => {
+      return Promise.all([
+        kleen.validModel(tidbitPointerSchema)(tidbitPointer),
+        kleen.validModel(mongoStringIDSchema(malformedFieldError("questionID")))(questionID),
+        kleen.validModel(booleanSchema(malformedFieldError("pin")))(pin)
+      ]);
+    }
+
+    return (doValidation ? resolveIfValid() : Promise.resolve())
+    .then(() => {
+      return collection(qaCollectionName(tidbitPointer.tidbitType));
+    })
+    .then((collectionX) => {
+      return collectionX.updateOne(
+        {
+          tidbitID: toMongoObjectID(tidbitPointer.targetID),
+          tidbitAuthor: userID,
+          "questions.id": toMongoObjectID(questionID)
+        },
+        { $set: { "questions.$.pinned": pin } },
+        { upsert: false }
+      );
+    })
+    .then((result) => {
+      return result.modifiedCount === 1;
     });
   }
 }
@@ -313,9 +349,10 @@ export const qaDBActions = {
 /**
  * A default QA object, for when we originally put the empty QA object in the database.
  */
-export const defaultQAObject = (tidbitID: MongoObjectID): QA<any> => {
+export const defaultQAObject = (tidbitID: MongoObjectID, tidbitAuthor: MongoObjectID): QA<any> => {
   return {
     tidbitID,
+    tidbitAuthor,
     questions: [],
     allAnswerComments: [],
     allQuestionComments: [],

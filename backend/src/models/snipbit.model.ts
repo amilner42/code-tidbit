@@ -146,7 +146,8 @@ export const snipbitDBActions = {
           {
             targetID: insertSnipbitResult.insertedId,
             tidbitType: TidbitType.Snipbit
-          }
+          },
+          toMongoObjectID(userID)
         );
       })
       .then((newSnipbitQA) => {

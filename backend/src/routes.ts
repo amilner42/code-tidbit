@@ -501,6 +501,27 @@ export const routes: AppRoutes = {
         _id
       );
     }
+  },
+
+  '/qa/:tidbitType/:tidbitID/pinQuestion': {
+    /**
+     * Pins/unpins a question, only the author of the tidbit is allowed to do this.
+     *
+     * Returns true if the pin/un-pin was performed and the original document was modified.
+     */
+    post: (req, res): Promise<boolean> => {
+      const { tidbitType, tidbitID } = req.params;
+      const { pin, questionID } = req.body;
+      const { _id } = req.user;
+
+      return qaDBActions.pinQuestion(
+        true,
+        { tidbitType: parseInt(tidbitType), targetID: tidbitID },
+        questionID,
+        pin,
+        _id
+      );
+    }
   }
 }
 

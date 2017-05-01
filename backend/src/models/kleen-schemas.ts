@@ -346,3 +346,13 @@ export const mongoStringIDSchema = (invalidMongoIDError: FrontendError): kleen.p
     }
   }
 };
+
+/**
+ * Validates a boolean.
+ */
+export const booleanSchema = (typeFailureError: FrontendError): kleen.primitiveSchema => {
+  return {
+    primitiveType: kleen.kindOfPrimitive.boolean,
+    typeFailureError
+  }
+}
