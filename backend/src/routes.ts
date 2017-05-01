@@ -583,6 +583,25 @@ export const routes: AppRoutes = {
         _id
       );
     }
+  },
+
+  '/qa/:tidbitType/:tidbitID/pinAnswer': {
+    /**
+     * Pins an answer, only the author of the tidbit is allowed to perform this action.
+     */
+    post: (req, res): Promise<boolean> => {
+      const { tidbitType, tidbitID } = req.params;
+      const { pin, answerID } = req.body;
+      const { _id } = req.user;
+
+      return qaDBActions.pinAnswer(
+        true,
+        { tidbitType: parseInt(tidbitType), targetID: tidbitID },
+        answerID,
+        pin,
+        _id
+      );
+    }
   }
 }
 

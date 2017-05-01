@@ -438,7 +438,7 @@ export const qaDBActions = {
       return collectionX.updateOne(
         { tidbitID: toMongoObjectID(tidbitPointer.targetID), "answers.id": toMongoObjectID(answerID)  },
         updateObject,
-        { upsert: true }
+        { upsert: false }
       );
     })
     .then((result) => {
@@ -474,6 +474,46 @@ export const qaDBActions = {
       return collectionX.updateOne(
         { tidbitID: toMongoObjectID(tidbitPointer.targetID), "answers.id": toMongoObjectID(answerID) },
         { $pull: { "answers.$.upvotes": userID, "answers.$.downvotes": userID } },
+        { upsert: false }
+      );
+    })
+    .then((result) => {
+      return result.modifiedCount === 1;
+    });
+  },
+
+  /**
+   * Pins/unpins an answer, can only be performed by the author of the tidbit.
+   */
+  pinAnswer:
+    ( doValidation: boolean
+    , tidbitPointer: TidbitPointer
+    , answerID: MongoID
+    , pin: boolean
+    , userID: MongoObjectID
+    ) : Promise<boolean> => {
+
+    // Checks user input: `tidbitPointer`, `answerID`, and `pin`.
+    const resolveIfValid = (): Promise<any> => {
+      return Promise.all([
+        kleen.validModel(tidbitPointerSchema)(tidbitPointer),
+        kleen.validModel(mongoStringIDSchema(malformedFieldError("answerID")))(answerID),
+        kleen.validModel(booleanSchema(malformedFieldError("pin")))(pin)
+      ]);
+    }
+
+    return (doValidation ? resolveIfValid() : Promise.resolve())
+    .then(() => {
+      return collection(qaCollectionName(tidbitPointer.tidbitType));
+    })
+    .then((collectionX) => {
+      return collectionX.updateOne(
+        {
+          tidbitID: toMongoObjectID(tidbitPointer.targetID),
+          tidbitAuthor: userID,
+          "answers.id": toMongoObjectID(answerID)
+        },
+        { $set: { "answers.$.pinned": pin } },
         { upsert: false }
       );
     })
