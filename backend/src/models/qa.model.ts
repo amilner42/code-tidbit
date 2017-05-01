@@ -222,7 +222,7 @@ export const qaDBActions = {
   /**
    * Rates a question.
    *
-   * Returns true if the rating was successful.
+   * Returns true if the rating was successful and a change was made (setting same rating will return false).
    */
   rateQuestion:
     ( doValidation: boolean
@@ -306,7 +306,7 @@ export const qaDBActions = {
   /**
    * Pins/unpins a question, can only be done by the author of the tidbit.
    *
-   * Returns true if the change was successful (setting the same pin state will return false).
+   * Returns true if the pin/unpin was successful and a change was made (setting the same pin state will return false).
    */
   pinQuestion:
     ( doValidation: boolean
@@ -390,6 +390,90 @@ export const qaDBActions = {
       return collectionX.updateOne(
         { tidbitID: toMongoObjectID(tidbitPointer.targetID), "questions.id": toMongoObjectID(questionID) },
         { $push: { answers: answer } },
+        { upsert: false }
+      );
+    })
+    .then((result) => {
+      return result.modifiedCount === 1;
+    });
+  },
+
+  /**
+   * Rates an answer.
+   *
+   * Returns true if the rating was successful and a change was made (setting same rating returns false).
+   */
+  rateAnswer:
+    ( doValidation: boolean
+    , vote: Vote
+    , tidbitPointer: TidbitPointer
+    , answerID: MongoID
+    , userID: MongoObjectID
+    ) : Promise<boolean> => {
+
+    // Checks user input: `tidbitPointer`, `vote`, and `answerID`.
+    const resolveIfValid = (): Promise<any> => {
+      return Promise.all([
+        kleen.validModel(tidbitPointerSchema)(tidbitPointer),
+        kleen.validModel(voteSchema)(vote),
+        kleen.validModel(mongoStringIDSchema(malformedFieldError("answerID")))(answerID)
+      ]);
+    }
+
+    return (doValidation ? resolveIfValid() : Promise.resolve())
+    .then(() => {
+      return collection(qaCollectionName(tidbitPointer.tidbitType));
+    })
+    .then((collectionX) => {
+      const updateObject = (() => {
+        switch(vote) {
+          case Vote.Upvote:
+            return { $addToSet: { "answers.$.upvotes": userID }, $pull: { "answers.$.downvotes": userID }};
+
+          case Vote.Downvote:
+            return { $addToSet: { "answers.$.downvotes": userID }, $pull: { "answers.$.upvotes": userID }};
+        }
+      })();
+
+      return collectionX.updateOne(
+        { tidbitID: toMongoObjectID(tidbitPointer.targetID), "answers.id": toMongoObjectID(answerID)  },
+        updateObject,
+        { upsert: true }
+      );
+    })
+    .then((result) => {
+      return result.modifiedCount === 1;
+    });
+  },
+
+  /**
+   * Removes a rating for an answer.
+   *
+   * Returns true if the rating existed before and is now removed.
+   */
+  removeAnswerRating:
+    ( doValidation: boolean
+    , tidbitPointer: TidbitPointer
+    , answerID: MongoID
+    , userID: MongoObjectID
+    ) : Promise<boolean> => {
+
+    // Checks user input: `tidbitPointer` and `answerID`.
+    const resolveIfValid = (): Promise<any> => {
+      return Promise.all([
+        kleen.validModel(tidbitPointerSchema)(tidbitPointer),
+        kleen.validModel(mongoStringIDSchema(malformedFieldError("answerID")))(answerID)
+      ]);
+    }
+
+    return (doValidation ? resolveIfValid() : Promise.resolve())
+    .then(() => {
+      return collection(qaCollectionName(tidbitPointer.tidbitType))
+    })
+    .then((collectionX) => {
+      return collectionX.updateOne(
+        { tidbitID: toMongoObjectID(tidbitPointer.targetID), "answers.id": toMongoObjectID(answerID) },
+        { $pull: { "answers.$.upvotes": userID, "answers.$.downvotes": userID } },
         { upsert: false }
       );
     })

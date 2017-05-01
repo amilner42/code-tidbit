@@ -542,6 +542,47 @@ export const routes: AppRoutes = {
         email
       );
     }
+  },
+
+  '/qa/:tidbitType/:tidbitID/rateAnswer': {
+    /**
+     * Rates an answer.
+     *
+     * Returns true if the intended rating was added. If the document was left unchanged returns false.
+     */
+    post: (req, res): Promise<boolean> => {
+      const { tidbitType, tidbitID } = req.params;
+      const { vote, answerID } = req.body;
+      const { _id } = req.user;
+
+      return qaDBActions.rateAnswer(
+        true,
+        vote,
+        { tidbitType: parseInt(tidbitType), targetID: tidbitID },
+        answerID,
+        _id
+      );
+    }
+  },
+
+  '/qa/:tidbitType/:tidbitID/removeAnswerRating': {
+    /**
+     * Removes a rating on an answer.
+     *
+     * Returns true if a rating existed before and it was removed successfully.
+     */
+    post: (req, res): Promise<boolean> => {
+      const { tidbitType, tidbitID } = req.params;
+      const { answerID } = req.body;
+      const { _id } = req.user;
+
+      return qaDBActions.removeAnswerRating(
+        true,
+        { tidbitType: parseInt(tidbitType), targetID: tidbitID },
+        answerID,
+        _id
+      );
+    }
   }
 }
 
