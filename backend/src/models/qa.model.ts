@@ -177,14 +177,8 @@ export const qaDBActions = {
       ])
       // Check `codePointer` is valid for the given `tidbitPointer`. We do this after we validate the `tidbitPointer`.
       .then(() => {
-        switch(tidbitPointer.tidbitType) {
-          case TidbitType.Snipbit:
-            return kleen.validModel(rangeSchema(ErrorCode.internalError))(codePointer)
-
-          case TidbitType.Bigbit:
-            return kleen.validModel(bigbitCodePointerSchema)(codePointer)
-        }
-      })
+        return kleen.validModel(codePointerSchema(tidbitPointer.tidbitType))(codePointer);
+      });
     };
 
     return ( doValidation ? resolveIfValid() : Promise.resolve() )
@@ -211,6 +205,57 @@ export const qaDBActions = {
       return collectionX.updateOne(
         { tidbitID: toMongoObjectID(tidbitPointer.targetID) },
         { $push: { questions: question } },
+        { upsert: false }
+      );
+    })
+    .then((result) => {
+      return result.modifiedCount === 1;
+    });
+  },
+
+  /**
+   * Edits a question that the user wrote.
+   */
+  editQuestion: <CodePointer>
+    ( doValidation: boolean
+    , tidbitPointer: TidbitPointer
+    , questionID : MongoID
+    , questionText: string
+    , codePointer: CodePointer
+    , userID: MongoObjectID
+    ) : Promise<boolean> => {
+
+    // Checks user input: `tidbitPointer`, `questionText`, `questionID`, and `codePointer`.
+    const resolveIfValid = (): Promise<any> => {
+      return Promise.all([
+        kleen.validModel(tidbitPointerSchema)(tidbitPointer),
+        kleen.validModel(mongoStringIDSchema(malformedFieldError("questionID")))(questionID),
+        kleen.validModel(questionTextSchema)(questionText)
+      ])
+      .then(() => {
+        return kleen.validModel(codePointerSchema(tidbitPointer.tidbitType))(codePointer);
+      });
+    }
+
+    return (doValidation ? resolveIfValid() : Promise.resolve())
+    .then(() => {
+      return collection(qaCollectionName(tidbitPointer.tidbitType));
+    })
+    .then((collectionX) => {
+      const dateNow = moment.utc().toDate();
+      return collectionX.updateOne(
+        {
+          tidbitID: toMongoObjectID(tidbitPointer.targetID),
+          "questions.id": toMongoObjectID(questionID),
+          "questions.authorID": userID
+        },
+        { $set:
+          {
+            "questions.$.questionText": questionText,
+            "questions.$.codePointer": codePointer,
+            "questions.$.lastModified": dateNow
+          }
+        },
         { upsert: false }
       );
     })
@@ -585,5 +630,18 @@ const voteSchema: kleen.primitiveSchema = {
     if(vote in Vote) return Promise.resolve();
 
     return Promise.reject(internalError(`Vote must be in the enum, not: ${vote}`));
+  }
+}
+
+/**
+ * Returns the `typeSchema` based on the `tidbitType`.
+ */
+const codePointerSchema = (tidbitType: TidbitType): kleen.typeSchema => {
+  switch(tidbitType) {
+    case TidbitType.Snipbit:
+      return rangeSchema(ErrorCode.internalError);
+
+    case TidbitType.Bigbit:
+      return bigbitCodePointerSchema
   }
 }
