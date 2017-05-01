@@ -564,6 +564,25 @@ export const routes: AppRoutes = {
     }
   },
 
+  '/qa/:tidbitType/:tidbitID/editAnswer': {
+    /**
+     * Edits an existing answer that the user wrote, returns true if edit successful.
+     */
+    post: (req, res): Promise<boolean> => {
+      const { tidbitType, tidbitID } = req.params;
+      const { answerText, answerID } = req.body;
+      const { _id } = req.user;
+
+      return qaDBActions.editAnswer(
+        true,
+        { tidbitType: parseInt(tidbitType), targetID: tidbitID },
+        answerID,
+        answerText,
+        _id
+      );
+    }
+  },
+
   '/qa/:tidbitType/:tidbitID/rateAnswer': {
     /**
      * Rates an answer.

@@ -444,6 +444,53 @@ export const qaDBActions = {
   },
 
   /**
+   * Edits an existing answer that the user wrote.
+   */
+  editAnswer:
+    ( doValidation: boolean
+    , tidbitPointer: TidbitPointer
+    , answerID: MongoID
+    , answerText: string
+    , userID: MongoObjectID
+    ) : Promise<boolean> => {
+
+    // Checks user input: `tidbitPointer`, `answerID`, and `answerText`.
+    const resolveIfValid = (): Promise<any> => {
+      return Promise.all([
+        kleen.validModel(tidbitPointerSchema)(tidbitPointer),
+        kleen.validModel(mongoStringIDSchema(malformedFieldError("answerID")))(answerID),
+        kleen.validModel(answerTextSchema)(answerText)
+      ]);
+    }
+
+    return (doValidation ? resolveIfValid() : Promise.resolve() )
+    .then(() => {
+      return collection(qaCollectionName(tidbitPointer.tidbitType));
+    })
+    .then((collectionX) => {
+      const dateNow = moment.utc().toDate();
+
+      return collectionX.updateOne(
+        {
+          tidbitID: toMongoObjectID(tidbitPointer.targetID),
+          "answers.id": toMongoObjectID(answerID),
+          "answers.authorID": userID
+        },
+        { $set:
+            {
+              "answers.$.answerText": answerText,
+              "answers.$.lastModified": dateNow
+            }
+        },
+        { upsert: false }
+      )
+    })
+    .then((result) => {
+      return result.modifiedCount === 1;
+    });
+  },
+
+  /**
    * Rates an answer.
    *
    * Returns true if the rating was successful and a change was made (setting same rating returns false).
