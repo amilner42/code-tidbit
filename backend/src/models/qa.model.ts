@@ -5,11 +5,11 @@ import * as moment from "moment";
 import { ObjectID } from "mongodb";
 
 import { internalError, isNullOrUndefined, malformedFieldError } from '../util';
-import { MongoObjectID, ErrorCode } from "../types";
+import { MongoObjectID, MongoID, ErrorCode } from "../types";
 import { collection, toMongoObjectID, renameIDField } from "../db";
 import { Range } from "./range.model";
 import { TidbitPointer, TidbitType, tidbitPointerSchema } from "./tidbit.model";
-import { stringInRange, rangeSchema, nonEmptyStringSchema } from "./kleen-schemas";
+import { stringInRange, rangeSchema, nonEmptyStringSchema, mongoStringIDSchema } from "./kleen-schemas";
 
 
 /**
@@ -74,6 +74,14 @@ export interface Comment {
   authorID: MongoObjectID,
   lastModified: Date,
   createdAt: Date
+}
+
+/**
+ * You can upvote/downvote questions/answers/comments.
+ */
+export enum Vote {
+  Upvote = 1,
+  Downvote
 }
 
 /**
@@ -154,7 +162,7 @@ export const qaDBActions = {
     , authorEmail: string
     ) : Promise<boolean> => {
 
-    // Check all user input: `tidbitPointer`, `codePointer` , and `question`.
+    // Check all user input: `tidbitPointer`, `codePointer` , and `questionText`.
     const resolveIfValid = (): Promise<any> => {
       // Check `tidbitPointer` and `questionText`
       return Promise.all([
@@ -197,6 +205,98 @@ export const qaDBActions = {
       return collectionX.updateOne(
         { tidbitID: toMongoObjectID(tidbitPointer.targetID) },
         { $push: { questions: question } },
+        { upsert: false }
+      );
+    })
+    .then((result) => {
+      if(result.modifiedCount === 1) {
+        return true;
+      }
+
+      return false;
+    });
+  },
+
+  /**
+   * Rates a question.
+   *
+   * Returns true if the rating was successful.
+   */
+  rateQuestion:
+    ( doValidation: boolean
+    , vote: Vote
+    , tidbitPointer: TidbitPointer
+    , questionID: MongoID
+    , userID: MongoObjectID
+    ) : Promise<boolean> => {
+
+    // Checks user input: `vote`, `tidbitPointer`, and `questionID`.
+    const resolveIfValid = (): Promise<any> => {
+      return Promise.all([
+        kleen.validModel(voteSchema)(vote),
+        kleen.validModel(tidbitPointerSchema)(tidbitPointer),
+        kleen.validModel(mongoStringIDSchema(malformedFieldError("questionID")))(questionID)
+      ]);
+    }
+
+    return (doValidation ? resolveIfValid() : Promise.resolve())
+    .then(() => {
+      return collection(qaCollectionName(tidbitPointer.tidbitType));
+    })
+    .then((collectionX) => {
+      const updateObject = (() => {
+        switch(vote) {
+          case Vote.Upvote:
+            return { $addToSet: { "questions.$.upvotes": userID }, $pull: { "questions.$.downvotes": userID }};
+
+          case Vote.Downvote:
+            return { $addToSet: { "questions.$.downvotes": userID }, $pull: { "questions.$.upvotes": userID }};
+        }
+      })();
+
+      return collectionX.updateOne(
+        { tidbitID: toMongoObjectID(tidbitPointer.targetID), "questions.id": toMongoObjectID(questionID) },
+        updateObject,
+        { upsert: false }
+      );
+    })
+    .then((result) => {
+      if(result.modifiedCount === 1) {
+        return true;
+      }
+
+      return false;
+    });
+  },
+
+  /**
+   * Removes a rating that the user made (will remove upvote/downvote).
+   *
+   * Returns true if the removal was successful (eg. a certain rating existed and now it doesn't).
+   */
+  removeQuestionRating:
+    ( doValidation: boolean
+    , tidbitPointer: TidbitPointer
+    , questionID: MongoID
+    , userID: MongoObjectID
+    ) : Promise<boolean> => {
+
+    // Checks user input: `tidbitPointer` and `questionID`.
+    const resolveIfValid = (): Promise<any> => {
+      return Promise.all([
+        kleen.validModel(tidbitPointerSchema)(tidbitPointer),
+        kleen.validModel(mongoStringIDSchema(malformedFieldError("questionID")))(questionID)
+      ]);
+    }
+
+    return (doValidation ? resolveIfValid() : Promise.resolve())
+    .then(() => {
+      return collection(qaCollectionName(tidbitPointer.tidbitType));
+    })
+    .then((collectionX) => {
+      return collectionX.updateOne(
+        { tidbitID: toMongoObjectID(tidbitPointer.targetID), "questions.id": toMongoObjectID(questionID) },
+        { $pull: { "questions.$.upvotes": userID, "questions.$.downvotes": userID } },
         { upsert: false }
       );
     })
@@ -254,3 +354,16 @@ const bigbitCodePointerSchema: kleen.objectSchema = {
   },
   typeFailureError: malformedFieldError("codePointer")
 };
+
+/**
+ * For validifying a `Vote` is indeed in the enum.
+ */
+const voteSchema: kleen.primitiveSchema = {
+  primitiveType: kleen.kindOfPrimitive.number,
+  typeFailureError: malformedFieldError("vote"),
+  restriction: (vote: number) => {
+    if(vote in Vote) return Promise.resolve();
+
+    return Promise.reject(internalError(`Vote must be in the enum, not: ${vote}`));
+  }
+}

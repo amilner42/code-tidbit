@@ -460,6 +460,47 @@ export const routes: AppRoutes = {
         email
       );
     }
+  },
+
+  '/qa/:tidbitType/:tidbitID/rateQuestion': {
+    /**
+     * Rates a question.
+     *
+     * Returns true if the intended rating was added. If the document was left unchanged returns false.
+     */
+    post: (req, res): Promise<boolean> => {
+      const { tidbitType, tidbitID } = req.params;
+      const { vote, questionID } = req.body;
+      const { _id } = req.user;
+
+      return qaDBActions.rateQuestion(
+        true,
+        vote,
+        { tidbitType: parseInt(tidbitType), targetID: tidbitID },
+        questionID,
+        _id
+      );
+    }
+  },
+
+  '/qa/:tidbitType/:tidbitID/removeQuestionRating': {
+    /**
+     * Removes the rating for a question.
+     *
+     * Returns true if a rating was removed, otherwise returns false (if no ratings existed at all for instance).
+     */
+    post: (req, res): Promise<boolean> => {
+      const { tidbitType, tidbitID } = req.params;
+      const { questionID } = req.body;
+      const { _id } = req.user;
+
+      return qaDBActions.removeQuestionRating(
+        true,
+        { tidbitType: parseInt(tidbitType), targetID: tidbitID },
+        questionID,
+        _id
+      );
+    }
   }
 }
 
