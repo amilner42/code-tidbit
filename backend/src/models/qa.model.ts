@@ -21,8 +21,8 @@ export interface QA<CodePointer> {
   tidbitAuthor: MongoObjectID,
   questions: Question<CodePointer>[],
   answers: Answer[],
-  allQuestionComments: { questionID: MongoObjectID, questionComments: Comment[] }[],
-  allAnswerComments: { answerID: MongoObjectID, answerComments: Comment[] }[]
+  allQuestionComments: Comment[],
+  allAnswerComments: Comment[]
 }
 
 /**
@@ -71,8 +71,10 @@ export interface Answer {
  * A single comment, can be for a question or an answer.
  */
 export interface Comment {
-  comment: string,
+  targetID: MongoObjectID,   // Points to the question/answer/other that this comment refers to.
+  commentText: string,
   authorID: MongoObjectID,
+  authorEmail: string,
   lastModified: Date,
   createdAt: Date
 }
@@ -612,6 +614,56 @@ export const qaDBActions = {
     .then((result) => {
       return result.modifiedCount === 1;
     });
+  },
+
+  /**
+   * Adds a comment to the comment thread on a question.
+   *
+   * Returns true if the comment was added successfully.
+   */
+  commentOnQuestion:
+    ( doValidation: boolean
+    , tidbitPointer: TidbitPointer
+    , questionID: MongoID
+    , commentText: string
+    , userID: MongoObjectID
+    , userEmail: string,
+    ) : Promise<boolean> => {
+
+    // Checks user input: `tidbitPointer`, `questionID`, and `commentText`.
+    const resolveIfValid = (): Promise<any> => {
+      return Promise.all([
+        kleen.validModel(tidbitPointerSchema)(tidbitPointer),
+        kleen.validModel(mongoStringIDSchema(malformedFieldError("questionID")))(questionID),
+        kleen.validModel(commentTextSchema)(commentText)
+      ]);
+    }
+
+    return ( doValidation ? resolveIfValid() : Promise.resolve() )
+    .then(() => {
+      return collection(qaCollectionName(tidbitPointer.tidbitType));
+    })
+    .then((collectionX) => {
+      const dateNow = moment.utc().toDate();
+
+      const newComment: Comment = {
+        targetID: toMongoObjectID(questionID),
+        authorID: userID,
+        authorEmail: userEmail,
+        commentText,
+        createdAt: dateNow,
+        lastModified: dateNow
+      }
+
+      return collectionX.updateOne(
+        { tidbitID: toMongoObjectID(tidbitPointer.targetID), "questions.id": toMongoObjectID(questionID) },
+        { $push: { "allQuestionComments": newComment }},
+        { upsert: false }
+      );
+    })
+    .then((result) => {
+      return result.modifiedCount === 1;
+    });
   }
 }
 
@@ -653,6 +705,12 @@ const questionTextSchema: kleen.primitiveSchema =
  */
 const answerTextSchema: kleen.primitiveSchema =
   stringInRange("answerText", 1, ErrorCode.internalError, 1000, ErrorCode.internalError);
+
+/**
+ * The schema for the `comment` part of a
+ */
+const commentTextSchema: kleen.primitiveSchema =
+  stringInRange("commentText", 1, ErrorCode.internalError, 300, ErrorCode.internalError);
 
 /**
  * For validifying a bigbit code-pointer.
