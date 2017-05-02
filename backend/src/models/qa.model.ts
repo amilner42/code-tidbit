@@ -447,6 +447,51 @@ export const qaDBActions = {
   },
 
   /**
+   * Deletes an answer that the user made.
+   *
+   * Returns true if the answer was deleted.
+   */
+  deleteAnswer:
+    ( doValidation: boolean
+    , tidbitPointer: TidbitPointer
+    , answerID: MongoID
+    , userID: MongoObjectID
+    ) : Promise<boolean> => {
+
+    // Checks user input: `tidbitPointer` and `answerID`.
+    const resolveIfValid = (): Promise<any> => {
+      return Promise.all([
+        kleen.validModel(tidbitPointerSchema)(tidbitPointer),
+        kleen.validModel(mongoStringIDSchema(malformedFieldError("answerID")))(answerID)
+      ]);
+    };
+
+    return (doValidation ? resolveIfValid() : Promise.resolve())
+    .then(() => {
+      return collection(qaCollectionName(tidbitPointer.tidbitType));
+    })
+    .then((collectionX) => {
+      return collectionX.updateOne(
+        {
+          tidbitID: toMongoObjectID(tidbitPointer.targetID),
+          "answers.id": toMongoObjectID(answerID),
+          "answers.authorID": userID
+        },
+        { $pull:
+          {
+            answers: { id: toMongoObjectID(answerID) },
+            answerComments: { targetID: toMongoObjectID(answerID) }
+          }
+        },
+        { upsert: false }
+      );
+    })
+    .then((result) => {
+      return result.modifiedCount === 1;
+    });
+  },
+
+  /**
    * Edits an existing answer that the user wrote.
    */
   editAnswer:
