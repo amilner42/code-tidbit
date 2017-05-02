@@ -20,9 +20,9 @@ export interface QA<CodePointer> {
   tidbitID: MongoObjectID,
   tidbitAuthor: MongoObjectID,
   questions: Question<CodePointer>[],
+  questionComments: Comment[],
   answers: Answer[],
-  allQuestionComments: Comment[],
-  allAnswerComments: Comment[]
+  answerComments: Comment[]
 }
 
 /**
@@ -660,7 +660,7 @@ export const qaDBActions = {
 
       return collectionX.updateOne(
         { tidbitID: toMongoObjectID(tidbitPointer.targetID), "questions.id": toMongoObjectID(questionID) },
-        { $push: { "allQuestionComments": newComment }},
+        { $push: { "questionComments": newComment }},
         { upsert: false }
       );
     })
@@ -701,13 +701,13 @@ export const qaDBActions = {
       return collectionX.updateOne(
         {
           tidbitID: toMongoObjectID(tidbitPointer.targetID),
-          "allQuestionComments.authorID": userID,
-          "allQuestionComments.id": toMongoObjectID(commentID)
+          "questionComments.authorID": userID,
+          "questionComments.id": toMongoObjectID(commentID)
         },
         { $set:
           {
-            "allQuestionComments.$.lastModified": dateNow,
-            "allQuestionComments.$.commentText": commentText
+            "questionComments.$.lastModified": dateNow,
+            "questionComments.$.commentText": commentText
           }
         },
         { upsert: false }
@@ -761,7 +761,56 @@ export const qaDBActions = {
 
       return collectionX.updateOne(
         { tidbitID: toMongoObjectID(tidbitPointer.targetID), "answers.id": toMongoObjectID(answerID) },
-        { $push: { "allAnswerComments": newComment }},
+        { $push: { "answerComments": newComment }},
+        { upsert: false }
+      );
+    })
+    .then((result) => {
+      return result.modifiedCount === 1;
+    });
+  },
+
+  /**
+   * Edits a comment on an answer that the user made.
+   *
+   * Returns true if the coment was edited successfully.
+   */
+  editAnswerComment:
+    ( doValidation: boolean
+    , tidbitPointer: TidbitPointer
+    , commentID: MongoID
+    , commentText: string
+    , userID: MongoObjectID
+    ) : Promise<boolean> => {
+
+    // Checks user input: `tidbitPointer`, `commentID`, and `commentText`.
+    const resolveIfValid = (): Promise<any> => {
+      return Promise.all([
+        kleen.validModel(tidbitPointerSchema)(tidbitPointer),
+        kleen.validModel(mongoStringIDSchema(malformedFieldError("commentID")))(commentID),
+        kleen.validModel(commentTextSchema)(commentText)
+      ]);
+    }
+
+    return (doValidation ? resolveIfValid() : Promise.resolve())
+    .then(() => {
+      return collection(qaCollectionName(tidbitPointer.tidbitType));
+    })
+    .then((collectionX) => {
+      const dateNow = moment.utc().toDate();
+
+      return collectionX.updateOne(
+        {
+          tidbitID: toMongoObjectID(tidbitPointer.targetID),
+          "answerComments.id": toMongoObjectID(commentID),
+          "answerComments.authorID": userID
+        },
+        { $set:
+          {
+            "answerComments.$.commentText": commentText,
+            "answerComments.$.lastModified": dateNow
+          }
+        },
         { upsert: false }
       );
     })
@@ -779,9 +828,9 @@ export const defaultQAObject = (tidbitID: MongoObjectID, tidbitAuthor: MongoObje
     tidbitID,
     tidbitAuthor,
     questions: [],
-    allAnswerComments: [],
-    allQuestionComments: [],
-    answers: []
+    questionComments: [],
+    answers: [],
+    answerComments: []
   }
 };
 
