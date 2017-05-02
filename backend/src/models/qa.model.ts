@@ -670,6 +670,55 @@ export const qaDBActions = {
   },
 
   /**
+   * Edits a question written by the user.
+   *
+   * Returns true if the edit was successful.
+   */
+  editQuestionComment:
+    ( doValidation: boolean
+    , tidbitPointer: TidbitPointer
+    , commentID: MongoID
+    , commentText: string
+    , userID: MongoObjectID
+    ) : Promise<boolean> => {
+
+    // Checks user input: `tidbitPointer`, `commentID`, and `commentText`
+    const resolveIfValid = (): Promise<any> => {
+      return Promise.all([
+        kleen.validModel(tidbitPointerSchema)(tidbitPointer),
+        kleen.validModel(commentTextSchema)(commentText),
+        kleen.validModel(mongoStringIDSchema(malformedFieldError("commentID")))(commentID)
+      ]);
+    }
+
+    return ( doValidation ? resolveIfValid() : Promise.resolve())
+    .then(() => {
+      return collection(qaCollectionName(tidbitPointer.tidbitType));
+    })
+    .then((collectionX) => {
+      const dateNow = moment.utc().toDate();
+
+      return collectionX.updateOne(
+        {
+          tidbitID: toMongoObjectID(tidbitPointer.targetID),
+          "allQuestionComments.authorID": userID,
+          "allQuestionComments.id": toMongoObjectID(commentID)
+        },
+        { $set:
+          {
+            "allQuestionComments.$.lastModified": dateNow,
+            "allQuestionComments.$.commentText": commentText
+          }
+        },
+        { upsert: false }
+      );
+    })
+    .then((result) => {
+      return result.modifiedCount === 1;
+    });
+  },
+
+  /**
    * Comment on an answer.
    *
    * Returns true if the comment was added successfully.

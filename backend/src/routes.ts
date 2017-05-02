@@ -665,6 +665,27 @@ export const routes: AppRoutes = {
     }
   },
 
+  '/qa/:tidbitType/:tidbitID/editComment/question': {
+    /**
+     * Edits a comment created by the logged-in user.
+     *
+     * Returns true if the comment was edited.
+     */
+    post: (req, res): Promise<boolean> => {
+      const { tidbitType, tidbitID } = req.params;
+      const { commentText, commentID } = req.body;
+      const { _id } = req.user;
+
+      return qaDBActions.editQuestionComment(
+        true,
+        { tidbitType: parseInt(tidbitType), targetID: tidbitID },
+        commentID,
+        commentText,
+        _id
+      );
+    }
+  },
+
   '/qa/:tidbitType/:tidbitID/comment/answer': {
     /**
      * Comment on an answer.
