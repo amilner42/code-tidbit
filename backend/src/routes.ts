@@ -663,6 +663,28 @@ export const routes: AppRoutes = {
         email
       );
     }
+  },
+
+  '/qa/:tidbitType/:tidbitID/comment/answer': {
+    /**
+     * Comment on an answer.
+     *
+     * Returns true if the comment is added successfully.
+     */
+    post: (req, res): Promise<boolean> => {
+      const { tidbitType, tidbitID } = req.params;
+      const { answerID, commentText } = req.body;
+      const { _id, email } = req.user;
+
+      return qaDBActions.commentOnAnswer(
+        true,
+        { tidbitType: parseInt(tidbitType), targetID: tidbitID },
+        answerID,
+        commentText,
+        _id,
+        email
+      );
+    }
   }
 }
 

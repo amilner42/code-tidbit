@@ -664,6 +664,56 @@ export const qaDBActions = {
     .then((result) => {
       return result.modifiedCount === 1;
     });
+  },
+
+  /**
+   * Comment on an answer.
+   *
+   * Returns true if the comment was added successfully.
+   */
+  commentOnAnswer:
+    ( doValidation: boolean
+    , tidbitPointer: TidbitPointer
+    , answerID: MongoID
+    , commentText: string
+    , userID: MongoObjectID
+    , userEmail: string
+    ) : Promise<boolean> => {
+
+    // Checks user input: `tidbitPointer`, `answerID`, and `commentText`.
+    const resolveIfValid = (): Promise<any> => {
+      return Promise.all([
+        kleen.validModel(tidbitPointerSchema)(tidbitPointer),
+        kleen.validModel(mongoStringIDSchema(malformedFieldError("answerID")))(answerID),
+        kleen.validModel(commentTextSchema)(commentText)
+      ]);
+    }
+
+    return (doValidation ? resolveIfValid() : Promise.resolve())
+    .then(() => {
+      return collection(qaCollectionName(tidbitPointer.tidbitType));
+    })
+    .then((collectionX) => {
+      const dateNow = moment.utc().toDate();
+
+      const newComment: Comment = {
+        authorEmail: userEmail,
+        authorID: userID,
+        commentText,
+        createdAt: dateNow,
+        lastModified: dateNow,
+        targetID: toMongoObjectID(answerID)
+      };
+
+      return collectionX.updateOne(
+        { tidbitID: toMongoObjectID(tidbitPointer.targetID), "answers.id": toMongoObjectID(answerID) },
+        { $push: { "allAnswerComments": newComment }},
+        { upsert: false }
+      );
+    })
+    .then((result) => {
+      return result.modifiedCount === 1;
+    });
   }
 }
 
