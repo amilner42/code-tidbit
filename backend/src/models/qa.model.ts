@@ -71,6 +71,7 @@ export interface Answer {
  * A single comment, can be for a question or an answer.
  */
 export interface Comment {
+  id: MongoObjectID,
   targetID: MongoObjectID,   // Points to the question/answer/other that this comment refers to.
   commentText: string,
   authorID: MongoObjectID,
@@ -645,15 +646,17 @@ export const qaDBActions = {
     })
     .then((collectionX) => {
       const dateNow = moment.utc().toDate();
+      const id = new ObjectID();
 
       const newComment: Comment = {
+        id,
         targetID: toMongoObjectID(questionID),
         authorID: userID,
         authorEmail: userEmail,
         commentText,
         createdAt: dateNow,
         lastModified: dateNow
-      }
+      };
 
       return collectionX.updateOne(
         { tidbitID: toMongoObjectID(tidbitPointer.targetID), "questions.id": toMongoObjectID(questionID) },
@@ -695,8 +698,10 @@ export const qaDBActions = {
     })
     .then((collectionX) => {
       const dateNow = moment.utc().toDate();
+      const id = new ObjectID();
 
       const newComment: Comment = {
+        id,
         authorEmail: userEmail,
         authorID: userID,
         commentText,
