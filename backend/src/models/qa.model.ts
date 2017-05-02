@@ -817,6 +817,42 @@ export const qaDBActions = {
     .then((result) => {
       return result.modifiedCount === 1;
     });
+  },
+
+  /**
+   * Deletes an answer that the user made.
+   *
+   * Returns true if comment was deleted successfully.
+   */
+  deleteAnswerComment:
+    ( doValidation: boolean
+    , tidbitPointer: TidbitPointer
+    , commentID: MongoID
+    , userID: MongoObjectID
+    ) : Promise<boolean> => {
+
+    // Checks user input: `tidbitPointer` and `answerID`.
+    const resolveIfValid = (): Promise<any> => {
+      return Promise.all([
+        kleen.validModel(tidbitPointerSchema)(tidbitPointer),
+        kleen.validModel(mongoStringIDSchema(malformedFieldError("answerID")))(commentID)
+      ]);
+    }
+
+    return (doValidation ? resolveIfValid() : Promise.resolve())
+    .then(() => {
+      return collection(qaCollectionName(tidbitPointer.tidbitType));
+    })
+    .then((collectionX) => {
+      return collectionX.updateOne(
+        { tidbitID: toMongoObjectID(tidbitPointer.targetID) },
+        { $pull: { answerComments: { id: toMongoObjectID(commentID), authorID: userID } } },
+        { upsert: false }
+      );
+    })
+    .then((result) => {
+      return result.modifiedCount === 1;
+    });
   }
 }
 

@@ -727,6 +727,26 @@ export const routes: AppRoutes = {
         _id
       );
     }
+  },
+
+  '/qa/:tidbitType/:tidbitID/deleteComment/answer': {
+    /**
+     * Deletes a comment on an answer that the user made.
+     *
+     * Returns true if the comment was successfully deleted.
+     */
+    post: (req, res): Promise<boolean> => {
+      const { tidbitType, tidbitID } = req.params;
+      const { commentID } = req.body;
+      const { _id } = req.user;
+
+      return qaDBActions.deleteAnswerComment(
+        true,
+        { tidbitType: parseInt(tidbitType), targetID: tidbitID },
+        commentID,
+        _id
+      );
+    }
   }
 }
 
