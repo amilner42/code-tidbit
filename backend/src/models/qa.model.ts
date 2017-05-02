@@ -719,6 +719,42 @@ export const qaDBActions = {
   },
 
   /**
+   * Removes a comment on a question that the user made.
+   *
+   * Returns true if the comment was deleted successfully.
+   */
+  deleteQuestionComment:
+    ( doValidation: boolean
+    , tidbitPointer: TidbitPointer
+    , commentID: MongoID
+    , userID: MongoObjectID
+    ) : Promise<boolean> => {
+
+    // Checks user input: `tidbitPointer` and `commentID`.
+    const resolveIfValid = (): Promise<any> => {
+      return Promise.all([
+        kleen.validModel(tidbitPointerSchema)(tidbitPointer),
+        kleen.validModel(mongoStringIDSchema(malformedFieldError("commentID")))(commentID)
+      ]);
+    }
+
+    return (doValidation ? resolveIfValid() : Promise.resolve())
+    .then(() => {
+      return collection(qaCollectionName(tidbitPointer.tidbitType));
+    })
+    .then((collectionX) => {
+      return collectionX.updateOne(
+        { tidbitID: toMongoObjectID(tidbitPointer.targetID) },
+        { $pull: { questionComments: { id: toMongoObjectID(commentID), authorID: userID } } },
+        { upsert: false }
+      );
+    })
+    .then((result) => {
+      return result.modifiedCount === 1;
+    });
+  },
+
+  /**
    * Comment on an answer.
    *
    * Returns true if the comment was added successfully.
@@ -835,7 +871,7 @@ export const qaDBActions = {
     const resolveIfValid = (): Promise<any> => {
       return Promise.all([
         kleen.validModel(tidbitPointerSchema)(tidbitPointer),
-        kleen.validModel(mongoStringIDSchema(malformedFieldError("answerID")))(commentID)
+        kleen.validModel(mongoStringIDSchema(malformedFieldError("commentID")))(commentID)
       ]);
     }
 
