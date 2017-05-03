@@ -176,7 +176,7 @@ export const bigbitDBActions = {
       .then((bigbitCollection) => {
         return bigbitCollection.insertOne(updatedBigbit);
       })
-      // After inserting bigbit, we initialize the QA for that bigbit.
+      // After inserting bigbit, we initialize the QA for that bigbit and return the ID of the new bigbit.
       .then((insertBigbitResult) => {
         return qaDBActions.newBlankQAForTidbit(
           false,
@@ -185,10 +185,10 @@ export const bigbitDBActions = {
             targetID: insertBigbitResult.insertedId
           },
           toMongoObjectID(userID)
-        );
-      })
-      .then((newBigbitQA) => {
-        return { targetID: newBigbitQA.tidbitID };
+        )
+        .then(() => {
+          return { targetID: insertBigbitResult.insertedId };
+        });
       });
     });
   },

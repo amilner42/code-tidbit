@@ -141,7 +141,7 @@ export const snipbitDBActions = {
       .then((snipbitCollection) => {
         return snipbitCollection.insertOne(validSnipbit);
       })
-      // After inserting snipbit, we initialize the QA for that snipbit.
+      // After inserting snipbit, we initialize the QA for that snipbit and return the ID of the new snipbit.
       .then((insertSnipbitResult) => {
         return qaDBActions.newBlankQAForTidbit(
           false,
@@ -150,10 +150,10 @@ export const snipbitDBActions = {
             tidbitType: TidbitType.Snipbit
           },
           toMongoObjectID(userID)
-        );
-      })
-      .then((newSnipbitQA) => {
-        return { targetID: newSnipbitQA.tidbitID };
+        )
+        .then(() => {
+            return { targetID: insertSnipbitResult.insertedId };
+        });
       });
     });
   },

@@ -111,12 +111,14 @@ export const qaDBActions = {
    * Creates a blank new QA document for the given tidbit.
    *
    * Will only create the new default QA object if one doesn't already exist for that tidbit.
+   *
+   * Returns true if a new QA document was successfully created.
    */
   newBlankQAForTidbit:
     ( doValidation: boolean
     , tidbitPointer: TidbitPointer
     , tidbitAuthor: MongoObjectID
-    ) : Promise<QA<any>> => {
+    ) : Promise<boolean> => {
 
     return (doValidation ? kleen.validModel(tidbitPointerSchema)(tidbitPointer) : Promise.resolve())
     .then(() => {
@@ -125,18 +127,14 @@ export const qaDBActions = {
     .then((collectionX) => {
       const tidbitID = toMongoObjectID(tidbitPointer.targetID);
 
-      return collectionX.findOneAndUpdate(
+      return collectionX.updateOne(
         { tidbitID },
         { $setOnInsert: defaultQAObject(tidbitID, tidbitAuthor) },
-        { upsert: true, returnOriginal: false }
+        { upsert: true }
       );
     })
     .then((result) => {
-      if(isNullOrUndefined(result.value)) {
-        return Promise.reject(internalError(`Error adding new QA document for: ${JSON.stringify(tidbitPointer)}`));
-      }
-
-      return result.value;
+      return result.upsertedCount === 1;
     });
   },
 
