@@ -103,6 +103,8 @@ export const opinionDBActions = {
 
   /**
    * Adds an opinion, returns true if an upsert was performed.
+   *
+   * NOTE: will overwrite the previous opinion if one existed.
    */
   addOpinion: (contentPointer: ContentPointer, rating: Rating, userID: MongoObjectID): Promise<boolean> => {
     return Promise.all([

@@ -66,8 +66,9 @@ const validCompletedAndUserPermission = (completed: Completed, userMakingRequest
 export const completedDBActions = {
 
   /**
-   * Marks a tidbit as completed for a user. Does validation and permission
-   * checks.
+   * Marks a tidbit as completed for a user. Does validation and permission checks.
+   *
+   * Returns the ID of the completed document if successful.
    */
   addCompleted: (completed: Completed, userMakingRequest: MongoID): Promise<TargetID> => {
     return validCompletedAndUserPermission(completed, userMakingRequest)

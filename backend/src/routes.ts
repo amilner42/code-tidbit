@@ -137,7 +137,7 @@ export const routes: AppRoutes = {
 
   '/userID/:email': {
     /**
-     * Retrieves the id of the user with the given email, returns `null` if the user doesn't exist.
+     * @refer `userDBActions.getUserID`.
      */
     get: (req, res): Promise<MongoID> => {
       const params = req.params;
@@ -156,7 +156,7 @@ export const routes: AppRoutes = {
     },
 
     /**
-     * Updates the user and returns the new updated user.
+     * @refer `userDBActions.updateUser`.
      */
     post: (req, res): Promise<User> => {
       const userUpdateObject = req.body;
@@ -168,8 +168,7 @@ export const routes: AppRoutes = {
 
   '/account/addCompleted': {
     /**
-     * Adds the tidbit as completed for the logged-in user, if it's already
-     * completed no changes are made.
+     * @refer `completedDBActions.addCompleted`.
      */
     post: (req, res): Promise<TargetID> => {
       const userID = req.user._id;
@@ -181,9 +180,7 @@ export const routes: AppRoutes = {
 
   '/account/removeCompleted': {
     /**
-     * Removes the tidbit from the completed table for the logged-in user, no
-     * changes are made if the tidbit wasn't in the completed table to begin
-     * with.
+     * @refer `completedDBActions.removeCompleted`.
      */
     post: (req, res): Promise<boolean> => {
       const userID = req.user._id;
@@ -195,7 +192,7 @@ export const routes: AppRoutes = {
 
   '/account/checkCompleted': {
     /**
-     * Checks if a tidbit is completed for the logged-in user.
+     * @refer `completedDBActions.isCompleted`.
      */
     post: (req, res): Promise<boolean> => {
       const userID = req.user._id;
@@ -207,7 +204,7 @@ export const routes: AppRoutes = {
 
   '/account/getOpinion/:contentType/:contentID': {
     /**
-     * Get's a user's opinion on specific content.
+     * @refer `opinionDBActions.getUsersOpinionOnContent`.
      */
     get: (req, res): Promise<Rating> => {
       const { contentType, contentID } = req.params;
@@ -223,7 +220,7 @@ export const routes: AppRoutes = {
 
   '/account/addOpinion': {
     /**
-     * Adds an opinion, will overwrite the previous opinion if one existed.
+     * @refer `opinionDBActions.addOpinion`.
      */
     post: (req, res): Promise<boolean> => {
       const userID = req.user._id;
@@ -235,8 +232,7 @@ export const routes: AppRoutes = {
 
   '/account/removeOpinion': {
     /**
-     * Removes an opinion, returns `true` if the opinion existed and was deleted, returns false if it didn't exist to
-     * begin with.
+     * @refer `opinionDBActions.removeOpinion`.
      */
     post: (req, res): Promise<boolean> => {
       const userID = req.user._id;
@@ -248,7 +244,7 @@ export const routes: AppRoutes = {
 
   '/snipbits': {
     /**
-     * Gets snipbits, customizable through query params.
+     * @refer `snipbitDBActions.getSnipbits`.
      */
     get: (req, res): Promise<Snipbit[]> => {
       const queryParams = req.query;
@@ -259,7 +255,7 @@ export const routes: AppRoutes = {
     },
 
     /**
-     * Creates a new snipbit for the logged-in user.
+     * @refer `snipbitDBActions.addNewSnipbit`.
      */
     post: (req, res): Promise<TargetID> => {
       const userID = req.user._id;
@@ -272,7 +268,7 @@ export const routes: AppRoutes = {
 
   '/bigbits': {
     /**
-     * Gets bigbits, customizable through query params.
+     * @refer `bigbitDBActions.getBigbits`.
      */
     get: (req, res): Promise<Bigbit[]> => {
       const queryParams = req.query;
@@ -283,7 +279,7 @@ export const routes: AppRoutes = {
     },
 
     /**
-     * Creates a new snipbit for the logged-in user.
+     * @refer `bigbitDBActions.addNewBigbit`.
      */
     post: (req, res): Promise<TargetID> => {
       const userID = req.user._id;
@@ -296,7 +292,7 @@ export const routes: AppRoutes = {
 
   '/snipbits/:id': {
     /**
-     * Gets a snipbit.
+     * @refer `snipbitDBActions.getSnipbit`.
      */
     get: (req, res): Promise<Snipbit> => {
       const params = req.params;
@@ -308,7 +304,7 @@ export const routes: AppRoutes = {
 
   '/bigbits/:id': {
     /**
-     * Gets a bigbit.
+     * @refer `bigbitDBActions.getBigbit`.
      */
     get: (req, res): Promise<Bigbit> => {
       const params = req.params;
@@ -319,9 +315,8 @@ export const routes: AppRoutes = {
   },
 
   '/stories': {
-
     /**
-     * Get's stories, can customize query through query-params.
+     * @refer `storyDBActions.getStories`.
      */
     get: (req, res): Promise<Story[]> => {
       const userID = req.user._id;
@@ -333,7 +328,7 @@ export const routes: AppRoutes = {
     },
 
     /**
-     * For creating a new story for the given user.
+     * @refer `storyDBActions.createNewStory`.
      */
     post: (req, res): Promise<TargetID> => {
       const newStory: NewStory  = req.body;
@@ -346,7 +341,7 @@ export const routes: AppRoutes = {
 
   '/stories/:id': {
     /**
-     * Gets a story from the db, customizable through query params.
+     * @refer `storyDBActions.getStory`.
      */
     get: (req, res): Promise<Story | ExpandedStory> => {
       const params = req.params;
@@ -362,7 +357,7 @@ export const routes: AppRoutes = {
 
   '/stories/:id/information': {
     /**
-     * Updates the basic information connected to a story.
+     * @refer `storyDBActions.updateStoryInfo`.
      */
     post: (req, res): Promise<TargetID> => {
       const params = req.params;
@@ -376,7 +371,7 @@ export const routes: AppRoutes = {
 
   '/stories/:id/addTidbits': {
     /**
-     * Adds tidbits to an existing story.
+     * @refer `storyDBActions.addTidbitPointersToStory`.
      */
     post: (req, res): Promise<ExpandedStory> => {
       const params = req.params;
@@ -390,7 +385,7 @@ export const routes: AppRoutes = {
 
   '/tidbits': {
     /**
-     * Gets all the tidbits, customizable through query params.
+     * @refer `tidbitDBActions.getTidbits`.
      */
     get: (req, res): Promise<Tidbit[]> => {
       const queryParams = req.query;
@@ -403,7 +398,7 @@ export const routes: AppRoutes = {
 
   '/content': {
     /**
-     * Get's `Content` (for the browse page), customizable through query params.
+     * @refer `contentDBActions.getContent`.
      */
     get: (req, res): Promise<Content[]> => {
       const queryParams = req.query;
@@ -418,7 +413,7 @@ export const routes: AppRoutes = {
 
   '/opinions/:contentType/:contentID': {
     /**
-    * Get's `Rating`s for some specific `Content`.
+    * @refer `opinionDBActions.getAllOpinionsOnContent`.
     */
     get: (req, res): Promise<Ratings> => {
       const params = req.params;
@@ -433,7 +428,7 @@ export const routes: AppRoutes = {
 
   '/qa/:tidbitType/:tidbitID': {
     /**
-     * Get's the full QA document for a specific tidbit.
+     * @refer `qaDBActions.getQAForTidbit`.
      */
     get: (req, res): Promise<QA<any>> => {
       const { tidbitType, tidbitID } = req.params;
@@ -444,7 +439,7 @@ export const routes: AppRoutes = {
 
   '/qa/:tidbitType/:tidbitID/askQuestion': {
     /**
-     * Asks a question (requires the user be logged-in).
+     * @refer `qaDBActions.askQuestion`.
      */
     post: (req, res): Promise<boolean> => {
       const { tidbitType, tidbitID } = req.params;
@@ -464,7 +459,7 @@ export const routes: AppRoutes = {
 
   '/qa/:tidbitType/:tidbitID/editQuestion': {
     /**
-     * Edits a question that the currently logged-in user asked.
+     * @refer `qaDBActions.editQuestion`.
      */
     post: (req, res): Promise<boolean> => {
       const { tidbitType, tidbitID } = req.params;
@@ -484,9 +479,7 @@ export const routes: AppRoutes = {
 
   '/qa/:tidbitType/:tidbitID/rateQuestion': {
     /**
-     * Rates a question.
-     *
-     * Returns true if the intended rating was added. If the document was left unchanged returns false.
+     * @refer `qaDBActions.rateQuestion`.
      */
     post: (req, res): Promise<boolean> => {
       const { tidbitType, tidbitID } = req.params;
@@ -505,9 +498,7 @@ export const routes: AppRoutes = {
 
   '/qa/:tidbitType/:tidbitID/removeQuestionRating': {
     /**
-     * Removes the rating for a question.
-     *
-     * Returns true if a rating was removed, otherwise returns false (if no ratings existed at all for instance).
+     * @refer `qaDBActions.removeQuestionRating`.
      */
     post: (req, res): Promise<boolean> => {
       const { tidbitType, tidbitID } = req.params;
@@ -525,9 +516,7 @@ export const routes: AppRoutes = {
 
   '/qa/:tidbitType/:tidbitID/pinQuestion': {
     /**
-     * Pins/unpins a question, only the author of the tidbit is allowed to do this.
-     *
-     * Returns true if the pin/un-pin was performed and the original document was modified.
+     * @refer `qaDBActions.pinQuestion`.
      */
     post: (req, res): Promise<boolean> => {
       const { tidbitType, tidbitID } = req.params;
@@ -546,7 +535,7 @@ export const routes: AppRoutes = {
 
   '/qa/:tidbitType/:tidbitID/answerQuestion': {
     /**
-     * Answers an existing question, returns true if all succeeded and the answer was added.
+     * @refer `qaDBActions.answerQuestion`.
      */
     post: (req, res): Promise<boolean> => {
       const { tidbitType, tidbitID } = req.params;
@@ -566,7 +555,7 @@ export const routes: AppRoutes = {
 
   '/qa/:tidbitType/:tidbitID/editAnswer': {
     /**
-     * Edits an existing answer that the user wrote, returns true if edit successful.
+     * @refer `qaDBActions.editAnswer`.
      */
     post: (req, res): Promise<boolean> => {
       const { tidbitType, tidbitID } = req.params;
@@ -585,7 +574,7 @@ export const routes: AppRoutes = {
 
   '/qa/:tidbitType/:tidbitID/deleteAnswer': {
     /**
-     * @refer `qaDBActions.deleteAnswer`
+     * @refer `qaDBActions.deleteAnswer`.
      */
     post: (req, res): Promise<boolean> => {
       const { tidbitType, tidbitID } = req.params;
@@ -603,9 +592,7 @@ export const routes: AppRoutes = {
 
   '/qa/:tidbitType/:tidbitID/rateAnswer': {
     /**
-     * Rates an answer.
-     *
-     * Returns true if the intended rating was added. If the document was left unchanged returns false.
+     * @refer `qaDBActions.rateAnswer`.
      */
     post: (req, res): Promise<boolean> => {
       const { tidbitType, tidbitID } = req.params;
@@ -624,9 +611,7 @@ export const routes: AppRoutes = {
 
   '/qa/:tidbitType/:tidbitID/removeAnswerRating': {
     /**
-     * Removes a rating on an answer.
-     *
-     * Returns true if a rating existed before and it was removed successfully.
+     * @refer `qaDBActions.removeAnswerRating`.
      */
     post: (req, res): Promise<boolean> => {
       const { tidbitType, tidbitID } = req.params;
@@ -644,7 +629,7 @@ export const routes: AppRoutes = {
 
   '/qa/:tidbitType/:tidbitID/pinAnswer': {
     /**
-     * Pins an answer, only the author of the tidbit is allowed to perform this action.
+     * @refer `qaDBActions.pinAnswer`.
      */
     post: (req, res): Promise<boolean> => {
       const { tidbitType, tidbitID } = req.params;
@@ -663,9 +648,7 @@ export const routes: AppRoutes = {
 
   '/qa/:tidbitType/:tidbitID/comment/question': {
     /**
-     * Comment on a question.
-     *
-     * Returns true if the comment is added successfully.
+     * @refer `qaDBActions.commentOnQuestion`.
      */
     post: (req, res): Promise<boolean> => {
       const { tidbitType, tidbitID } = req.params;
@@ -685,9 +668,7 @@ export const routes: AppRoutes = {
 
   '/qa/:tidbitType/:tidbitID/editComment/question': {
     /**
-     * Edits a comment created by the logged-in user.
-     *
-     * Returns true if the comment was edited.
+     * @refer `qaDBActions.editQuestionComment`.
      */
     post: (req, res): Promise<boolean> => {
       const { tidbitType, tidbitID } = req.params;
@@ -706,9 +687,7 @@ export const routes: AppRoutes = {
 
   '/qa/:tidbitType/:tidbitID/deleteComment/question': {
     /**
-     * Deletes a comment on a question that the user made.
-     *
-     * Returns true if the comment was deleted successfully.
+     * @refer `qaDBActions.deleteQuestionComment`.
      */
     post: (req, res): Promise<boolean> => {
       const { tidbitType, tidbitID } = req.params;
@@ -726,9 +705,7 @@ export const routes: AppRoutes = {
 
   '/qa/:tidbitType/:tidbitID/comment/answer': {
     /**
-     * Comment on an answer.
-     *
-     * Returns true if the comment is added successfully.
+     * @refer `qaDBActions.commentOnAnswer`.
      */
     post: (req, res): Promise<boolean> => {
       const { tidbitType, tidbitID } = req.params;
@@ -748,9 +725,7 @@ export const routes: AppRoutes = {
 
   '/qa/:tidbitType/:tidbitID/editComment/answer': {
     /**
-     * Edit a comment on an answer that the user made.
-     *
-     * Returns true if the comment was edited successfully.
+     * @refer `qaDBActions.editAnswerComment`.
      */
     post: (req, res): Promise<boolean> => {
       const { tidbitType, tidbitID } = req.params;
@@ -769,9 +744,7 @@ export const routes: AppRoutes = {
 
   '/qa/:tidbitType/:tidbitID/deleteComment/answer': {
     /**
-     * Deletes a comment on an answer that the user made.
-     *
-     * Returns true if the comment was successfully deleted.
+     * @refer `qaDBActions.deleteAnswerComment`.
      */
     post: (req, res): Promise<boolean> => {
       const { tidbitType, tidbitID } = req.params;

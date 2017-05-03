@@ -123,6 +123,8 @@ export const snipbitDBActions = {
    *  - `lastModified`
    *
    * Will additionally initialize the QA for the given snipbit.
+   *
+   * Returns the ID of the newly created snipbit.
    */
   addNewSnipbit: (userID: MongoID, userEmail: string, snipbit: Snipbit): Promise<TargetID> => {
     return kleen.validModel(snipbitSchema)(snipbit)

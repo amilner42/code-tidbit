@@ -92,7 +92,8 @@ export const contentPointerSchema: kleen.objectSchema = {
  */
 export const contentDBActions = {
   /**
-   * Gets content from the database, customizable through params.
+   * Gets content from the database, customizable through `GeneralSearchConfiguration` and
+   * `ContentSearchFilter | StorySearchFilter` and `ContentResultManipulation`.
    */
   getContent:
     ( generalSearchConfig: GeneralSearchConfiguration

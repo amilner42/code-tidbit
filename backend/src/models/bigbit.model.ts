@@ -154,6 +154,8 @@ export const bigbitDBActions = {
    *  - Adds a `languages` field containing all the languages used in the bigbit
    *
    * Will additionally initialize the QA for the given bigbit.
+   *
+   * Returns the ID of the newly created bigbit.
    */
   addNewBigbit: (userID: MongoID, userEmail: string, bigbit: Bigbit): Promise<TargetID> => {
     return kleen.validModel(bigbitSchema)(bigbit)

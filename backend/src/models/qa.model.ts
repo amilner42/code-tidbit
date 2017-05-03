@@ -158,6 +158,8 @@ export const qaDBActions = {
   /**
    * Ask question.
    *
+   * Returns true if the question was added successfully.
+   *
    * TODO: Currently the validation does not check that the CodePointer points to actual code, it simply checks that
    *       everything is structurally correct (types). It would take an extra query to the db to retrieve the object
    *       first if we wanted to validate that the `codePointer` points to something meaningful.
@@ -218,6 +220,8 @@ export const qaDBActions = {
 
   /**
    * Edits a question that the user wrote.
+   *
+   * Returns true if the question was edited successfully.
    */
   editQuestion: <CodePointer>
     ( doValidation: boolean
@@ -395,6 +399,8 @@ export const qaDBActions = {
 
   /**
    * Answer a question.
+   *
+   * Returns true if the answer was added successfully.
    */
   answerQuestion:
     ( doValidation: boolean
@@ -447,9 +453,9 @@ export const qaDBActions = {
   },
 
   /**
-   * Deletes an answer that the user made.
+   * Deletes an answer that the user made. Deletes all related comments as well, regardless of author.
    *
-   * Returns true if the answer was deleted.
+   * Returns true if the answer and related comments were successfully deleted.
    */
   deleteAnswer:
     ( doValidation: boolean
@@ -493,6 +499,8 @@ export const qaDBActions = {
 
   /**
    * Edits an existing answer that the user wrote.
+   *
+   * Returns true if the edit was made successfully.
    */
   editAnswer:
     ( doValidation: boolean
@@ -624,6 +632,8 @@ export const qaDBActions = {
 
   /**
    * Pins/unpins an answer, can only be performed by the author of the tidbit.
+   *
+   * Returns true if the pin state was changed successfully.
    */
   pinAnswer:
     ( doValidation: boolean
