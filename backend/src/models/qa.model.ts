@@ -68,16 +68,23 @@ export interface Answer {
 }
 
 /**
- * A single comment, can be for a question or an answer.
+ * A comment on a question.
  */
-export interface Comment {
+export interface QuestionComment {
   id: MongoObjectID,
-  targetID: MongoObjectID,   // Points to the question/answer/other that this comment refers to.
+  questionID: MongoObjectID,
   commentText: string,
   authorID: MongoObjectID,
   authorEmail: string,
   lastModified: Date,
   createdAt: Date
+}
+
+/**
+ * A comment on an answer.
+ */
+export interface AnswerComment extends QuestionComment {
+  answerID: MongoObjectID
 }
 
 /**
@@ -486,7 +493,7 @@ export const qaDBActions = {
         { $pull:
           {
             answers: { id: toMongoObjectID(answerID) },
-            answerComments: { targetID: toMongoObjectID(answerID) }
+            answerComments: { answerID: toMongoObjectID(answerID) }
           }
         },
         { upsert: false }
@@ -703,9 +710,9 @@ export const qaDBActions = {
       const dateNow = moment.utc().toDate();
       const id = new ObjectID();
 
-      const newComment: Comment = {
+      const newComment: QuestionComment = {
         id,
-        targetID: toMongoObjectID(questionID),
+        questionID: toMongoObjectID(questionID),
         authorID: userID,
         authorEmail: userEmail,
         commentText,
@@ -817,16 +824,18 @@ export const qaDBActions = {
   commentOnAnswer:
     ( doValidation: boolean
     , tidbitPointer: TidbitPointer
+    , questionID
     , answerID: MongoID
     , commentText: string
     , userID: MongoObjectID
     , userEmail: string
     ) : Promise<boolean> => {
 
-    // Checks user input: `tidbitPointer`, `answerID`, and `commentText`.
+    // Checks user input: `tidbitPointer`, `questionID`, `answerID`, and `commentText`.
     const resolveIfValid = (): Promise<any> => {
       return Promise.all([
         kleen.validModel(tidbitPointerSchema)(tidbitPointer),
+        kleen.validModel(mongoStringIDSchema(malformedFieldError("questionID")))(questionID),
         kleen.validModel(mongoStringIDSchema(malformedFieldError("answerID")))(answerID),
         kleen.validModel(commentTextSchema)(commentText)
       ]);
@@ -840,18 +849,23 @@ export const qaDBActions = {
       const dateNow = moment.utc().toDate();
       const id = new ObjectID();
 
-      const newComment: Comment = {
+      const newComment: AnswerComment = {
         id,
         authorEmail: userEmail,
         authorID: userID,
         commentText,
         createdAt: dateNow,
         lastModified: dateNow,
-        targetID: toMongoObjectID(answerID)
+        questionID: toMongoObjectID(questionID),
+        answerID: toMongoObjectID(answerID)
       };
 
       return collectionX.updateOne(
-        { tidbitID: toMongoObjectID(tidbitPointer.targetID), "answers.id": toMongoObjectID(answerID) },
+        {
+          tidbitID: toMongoObjectID(tidbitPointer.targetID),
+          "answers.id": toMongoObjectID(answerID),
+          "answers.questionID": toMongoObjectID(questionID),
+        },
         { $push: { "answerComments": newComment }},
         { upsert: false }
       );

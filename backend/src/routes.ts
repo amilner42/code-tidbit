@@ -709,12 +709,13 @@ export const routes: AppRoutes = {
      */
     post: (req, res): Promise<boolean> => {
       const { tidbitType, tidbitID } = req.params;
-      const { answerID, commentText } = req.body;
+      const { answerID, questionID, commentText } = req.body;
       const { _id, email } = req.user;
 
       return qaDBActions.commentOnAnswer(
         true,
         { tidbitType: parseInt(tidbitType), targetID: tidbitID },
+        questionID,
         answerID,
         commentText,
         _id,
