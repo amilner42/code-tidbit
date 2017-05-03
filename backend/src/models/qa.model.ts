@@ -279,6 +279,56 @@ export const qaDBActions = {
   },
 
   /**
+   * Deletes a question created by the user and:
+   *  - All question comments
+   *  - All question answers
+   *  - All comments on question answers
+   *
+   * Returns true if the all the deletions were performed successfully.
+   */
+  deleteQuestion:
+    ( doValidation: boolean
+    , tidbitPointer: TidbitPointer
+    , questionID: MongoID
+    , userID: MongoObjectID
+    ) : Promise<boolean> => {
+
+    // Checks user input: `tidbitPointer` and `questionID`.
+    const resolveIfValid = (): Promise<any> => {
+      return Promise.all([
+        kleen.validModel(tidbitPointerSchema)(tidbitPointer),
+        kleen.validModel(mongoStringIDSchema(malformedFieldError("questionID")))(questionID)
+      ]);
+    };
+
+    return (doValidation ? resolveIfValid() : Promise.resolve())
+    .then(() => {
+      return collection(qaCollectionName(tidbitPointer.tidbitType));
+    })
+    .then((collectionX) => {
+      return collectionX.updateOne(
+        {
+          tidbitID: toMongoObjectID(tidbitPointer.targetID),
+          "questions.id": toMongoObjectID(questionID),
+          "questions.authorID": userID
+        },
+        { $pull:
+          {
+            "questions": { id: toMongoObjectID(questionID) },
+            "answers": { questionID: toMongoObjectID(questionID) },
+            "questionComments": { questionID: toMongoObjectID(questionID) },
+            "answerComments": { questionID: toMongoObjectID(questionID) }
+          }
+        },
+        { upsert: false }
+      )
+      .then((result) => {
+        return result.modifiedCount === 1;
+      });
+    })
+  },
+
+  /**
    * Rates a question.
    *
    * Returns true if the rating was successful and a change was made (setting same rating will return false).

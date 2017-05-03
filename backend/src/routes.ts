@@ -477,6 +477,24 @@ export const routes: AppRoutes = {
     }
   },
 
+  '/qa/:tidbitType/:tidbitID/deleteQuestion': {
+    /**
+     * @refer `qaDBActions.deleteQuestion`.
+     */
+    post: (req, res): Promise<boolean> => {
+      const { tidbitType, tidbitID } = req.params;
+      const { questionID } = req.body;
+      const { _id } = req.user;
+
+      return qaDBActions.deleteQuestion(
+        true,
+        { tidbitType: parseInt(tidbitType), targetID: tidbitID },
+        questionID,
+        _id
+      );
+    }
+  },
+
   '/qa/:tidbitType/:tidbitID/rateQuestion': {
     /**
      * @refer `qaDBActions.rateQuestion`.
