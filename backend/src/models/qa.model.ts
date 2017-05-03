@@ -3,10 +3,11 @@
 import * as kleen from "kleen";
 import * as moment from "moment";
 import { ObjectID } from "mongodb";
+import * as R from "ramda";
 
 import { internalError, isNullOrUndefined, malformedFieldError } from '../util';
 import { MongoObjectID, MongoID, ErrorCode } from "../types";
-import { collection, toMongoObjectID, renameIDField } from "../db";
+import { collection, toMongoObjectID, renameIDField, rejectIfResultNotOK, rejectIfNoneModified, rejectIfNoneMatched } from "../db";
 import { Range } from "./range.model";
 import { TidbitPointer, TidbitType, tidbitPointerSchema } from "./tidbit.model";
 import { stringInRange, rangeSchema, nonEmptyStringSchema, mongoStringIDSchema, booleanSchema } from "./kleen-schemas";
@@ -112,13 +113,13 @@ export const qaDBActions = {
    *
    * Will only create the new default QA object if one doesn't already exist for that tidbit.
    *
-   * Returns true if a new QA document was successfully created.
+   * Resolves if a new QA document was successfully created.
    */
   newBlankQAForTidbit:
     ( doValidation: boolean
     , tidbitPointer: TidbitPointer
     , tidbitAuthor: MongoObjectID
-    ) : Promise<boolean> => {
+    ) : Promise<void> => {
 
     return (doValidation ? kleen.validModel(tidbitPointerSchema)(tidbitPointer) : Promise.resolve())
     .then(() => {
@@ -133,9 +134,9 @@ export const qaDBActions = {
         { upsert: true }
       );
     })
-    .then((result) => {
-      return result.upsertedCount === 1;
-    });
+    .then(rejectIfResultNotOK)
+    .then(rejectIfNoneModified)
+    .then(R.always(null));
   },
 
   /**
@@ -150,9 +151,7 @@ export const qaDBActions = {
       return collectionX.findOne({ tidbitID: toMongoObjectID(tidbitPointer.targetID) });
     })
     .then((qaDocument) => {
-      if(qaDocument) {
-        return prepareQAForResponse(qaDocument);
-      }
+      if(qaDocument) return prepareQAForResponse(qaDocument);
 
       return Promise.reject(
         internalError(`Could not find QA object for tidbit pointer: ${JSON.stringify(tidbitPointer)}`)
@@ -163,7 +162,7 @@ export const qaDBActions = {
   /**
    * Ask question.
    *
-   * Returns true if the question was added successfully.
+   * Returns the new question if it was added successfully.
    *
    * TODO: Currently the validation does not check that the CodePointer points to actual code, it simply checks that
    *       everything is structurally correct (types). It would take an extra query to the db to retrieve the object
@@ -176,7 +175,7 @@ export const qaDBActions = {
     , codePointer: CodePointer
     , authorID: MongoObjectID
     , authorEmail: string
-    ) : Promise<boolean> => {
+    ) : Promise<Question<CodePointer>> => {
 
     // Check all user input: `tidbitPointer`, `codePointer` , and `questionText`.
     const resolveIfValid = (): Promise<any> => {
@@ -216,17 +215,18 @@ export const qaDBActions = {
         { tidbitID: toMongoObjectID(tidbitPointer.targetID) },
         { $push: { questions: question } },
         { upsert: false }
-      );
-    })
-    .then((result) => {
-      return result.modifiedCount === 1;
+      )
+      .then(rejectIfResultNotOK)
+      .then(rejectIfNoneModified)
+      .then(R.always(question));
     });
   },
 
   /**
    * Edits a question that the user wrote.
    *
-   * Returns true if the question was edited successfully.
+   * Returns the new `lastModified` date if the question was edited successfully. This allows the frontend to update
+   * the question to match the one in the DB (without having to send the full question over the wire).
    */
   editQuestion: <CodePointer>
     ( doValidation: boolean
@@ -235,7 +235,7 @@ export const qaDBActions = {
     , questionText: string
     , codePointer: CodePointer
     , userID: MongoObjectID
-    ) : Promise<boolean> => {
+    ) : Promise<Date> => {
 
     // Checks user input: `tidbitPointer`, `questionText`, `questionID`, and `codePointer`.
     const resolveIfValid = (): Promise<any> => {
@@ -269,10 +269,11 @@ export const qaDBActions = {
           }
         },
         { upsert: false }
-      );
-    })
-    .then((result) => {
-      return result.modifiedCount === 1;
+      )
+      .then(rejectIfResultNotOK)
+      .then(rejectIfNoneMatched)
+      .then(rejectIfNoneModified)
+      .then(R.always(dateNow));
     });
   },
 
@@ -282,14 +283,14 @@ export const qaDBActions = {
    *  - All question answers
    *  - All comments on question answers
    *
-   * Returns true if the all the deletions were performed successfully.
+   * Resolves if question and related data were deleted successfully.
    */
   deleteQuestion:
     ( doValidation: boolean
     , tidbitPointer: TidbitPointer
     , questionID: MongoID
     , userID: MongoObjectID
-    ) : Promise<boolean> => {
+    ) : Promise<void> => {
 
     // Checks user input: `tidbitPointer` and `questionID`.
     const resolveIfValid = (): Promise<any> => {
@@ -320,16 +321,17 @@ export const qaDBActions = {
         },
         { upsert: false }
       )
-      .then((result) => {
-        return result.modifiedCount === 1;
-      });
-    })
+      .then(rejectIfResultNotOK)
+      .then(rejectIfNoneMatched)
+      .then(rejectIfNoneModified)
+      .then(R.always(null));
+    });
   },
 
   /**
    * Rates a question.
    *
-   * Returns true if the rating was successful and a change was made (setting same rating will return false).
+   * Resolves if the question exists and the query was successful.
    */
   rateQuestion:
     ( doValidation: boolean
@@ -337,7 +339,7 @@ export const qaDBActions = {
     , tidbitPointer: TidbitPointer
     , questionID: MongoID
     , userID: MongoObjectID
-    ) : Promise<boolean> => {
+    ) : Promise<void> => {
 
     // Checks user input: `vote`, `tidbitPointer`, and `questionID`.
     const resolveIfValid = (): Promise<any> => {
@@ -369,22 +371,22 @@ export const qaDBActions = {
         { upsert: false }
       );
     })
-    .then((result) => {
-      return result.modifiedCount === 1;
-    });
+    .then(rejectIfResultNotOK)
+    .then(rejectIfNoneMatched)
+    .then(R.always(null));
   },
 
   /**
    * Removes a rating that the user made (will remove upvote/downvote).
    *
-   * Returns true if the removal was successful (eg. a certain rating existed and now it doesn't).
+   * Resolves if the question exists and the query was successful.
    */
   removeQuestionRating:
     ( doValidation: boolean
     , tidbitPointer: TidbitPointer
     , questionID: MongoID
     , userID: MongoObjectID
-    ) : Promise<boolean> => {
+    ) : Promise<void> => {
 
     // Checks user input: `tidbitPointer` and `questionID`.
     const resolveIfValid = (): Promise<any> => {
@@ -405,15 +407,15 @@ export const qaDBActions = {
         { upsert: false }
       );
     })
-    .then((result) => {
-      return result.modifiedCount === 1;
-    });
+    .then(rejectIfResultNotOK)
+    .then(rejectIfNoneMatched)
+    .then(R.always(null));
   },
 
   /**
    * Pins/unpins a question, can only be done by the author of the tidbit.
    *
-   * Returns true if the pin/unpin was successful and a change was made (setting the same pin state will return false).
+   * Resolves if the user is the author of the tidbit and the question exists and the query was successful.
    */
   pinQuestion:
     ( doValidation: boolean
@@ -421,7 +423,7 @@ export const qaDBActions = {
     , questionID: MongoID
     , pin: boolean
     , userID: MongoObjectID
-    ) : Promise<boolean>  => {
+    ) : Promise<void>  => {
 
     // Checks user input: `tidbitPointer` and `questionID`, and `pin`.
     const resolveIfValid = (): Promise<any> => {
@@ -447,15 +449,15 @@ export const qaDBActions = {
         { upsert: false }
       );
     })
-    .then((result) => {
-      return result.modifiedCount === 1;
-    });
+    .then(rejectIfResultNotOK)
+    .then(rejectIfNoneMatched)
+    .then(R.always(null))
   },
 
   /**
    * Answer a question.
    *
-   * Returns true if the answer was added successfully.
+   * Returns the answer if it was added successfully.
    */
   answerQuestion:
     ( doValidation: boolean
@@ -464,7 +466,7 @@ export const qaDBActions = {
     , answerText: string
     , authorID: MongoObjectID
     , authorEmail: string
-    ) : Promise<boolean> => {
+    ) : Promise<Answer> => {
 
     // Validate user input: `tidbitPointer`, `questionID`, `answerText`.
     const resolveIfValid = (): Promise<any> => {
@@ -500,24 +502,25 @@ export const qaDBActions = {
         { tidbitID: toMongoObjectID(tidbitPointer.targetID), "questions.id": toMongoObjectID(questionID) },
         { $push: { answers: answer } },
         { upsert: false }
-      );
-    })
-    .then((result) => {
-      return result.modifiedCount === 1;
+      )
+      .then(rejectIfResultNotOK)
+      .then(rejectIfNoneMatched)
+      .then(rejectIfNoneModified)
+      .then(R.always(answer));
     });
   },
 
   /**
    * Deletes an answer that the user made. Deletes all related comments as well, regardless of author.
    *
-   * Returns true if the answer and related comments were successfully deleted.
+   * Resolves if the answer and related data were all deleted successfully.
    */
   deleteAnswer:
     ( doValidation: boolean
     , tidbitPointer: TidbitPointer
     , answerID: MongoID
     , userID: MongoObjectID
-    ) : Promise<boolean> => {
+    ) : Promise<void> => {
 
     // Checks user input: `tidbitPointer` and `answerID`.
     const resolveIfValid = (): Promise<any> => {
@@ -547,15 +550,17 @@ export const qaDBActions = {
         { upsert: false }
       );
     })
-    .then((result) => {
-      return result.modifiedCount === 1;
-    });
+    .then(rejectIfResultNotOK)
+    .then(rejectIfNoneMatched)
+    .then(rejectIfNoneModified)
+    .then(R.always(null));
   },
 
   /**
    * Edits an existing answer that the user wrote.
    *
-   * Returns true if the edit was made successfully.
+   * Returns the new `lastModified` date of the answer if the edit was made successfully. This allows the frontend to
+   * update the answer to match the one in the DB (without having to send the full answer over the wire).
    */
   editAnswer:
     ( doValidation: boolean
@@ -563,7 +568,7 @@ export const qaDBActions = {
     , answerID: MongoID
     , answerText: string
     , userID: MongoObjectID
-    ) : Promise<boolean> => {
+    ) : Promise<Date> => {
 
     // Checks user input: `tidbitPointer`, `answerID`, and `answerText`.
     const resolveIfValid = (): Promise<any> => {
@@ -595,16 +600,17 @@ export const qaDBActions = {
         },
         { upsert: false }
       )
-    })
-    .then((result) => {
-      return result.modifiedCount === 1;
+      .then(rejectIfResultNotOK)
+      .then(rejectIfNoneMatched)
+      .then(rejectIfNoneModified)
+      .then(R.always(dateNow));
     });
   },
 
   /**
    * Rates an answer.
    *
-   * Returns true if the rating was successful and a change was made (setting same rating returns false).
+   * Resolves if answer exists and the query was successful.
    */
   rateAnswer:
     ( doValidation: boolean
@@ -612,7 +618,7 @@ export const qaDBActions = {
     , tidbitPointer: TidbitPointer
     , answerID: MongoID
     , userID: MongoObjectID
-    ) : Promise<boolean> => {
+    ) : Promise<void> => {
 
     // Checks user input: `tidbitPointer`, `vote`, and `answerID`.
     const resolveIfValid = (): Promise<any> => {
@@ -644,22 +650,22 @@ export const qaDBActions = {
         { upsert: false }
       );
     })
-    .then((result) => {
-      return result.modifiedCount === 1;
-    });
+    .then(rejectIfResultNotOK)
+    .then(rejectIfNoneMatched)
+    .then(R.always(null));
   },
 
   /**
    * Removes a rating for an answer.
    *
-   * Returns true if the rating existed before and is now removed.
+   * Resolves if the answer exists and the query was successful.
    */
   removeAnswerRating:
     ( doValidation: boolean
     , tidbitPointer: TidbitPointer
     , answerID: MongoID
     , userID: MongoObjectID
-    ) : Promise<boolean> => {
+    ) : Promise<void> => {
 
     // Checks user input: `tidbitPointer` and `answerID`.
     const resolveIfValid = (): Promise<any> => {
@@ -680,15 +686,15 @@ export const qaDBActions = {
         { upsert: false }
       );
     })
-    .then((result) => {
-      return result.modifiedCount === 1;
-    });
+    .then(rejectIfResultNotOK)
+    .then(rejectIfNoneMatched)
+    .then(R.always(null));
   },
 
   /**
    * Pins/unpins an answer, can only be performed by the author of the tidbit.
    *
-   * Returns true if the pin state was changed successfully.
+   * Resolves if the user is the author of the tidbit and the answer exists and the query was successful.
    */
   pinAnswer:
     ( doValidation: boolean
@@ -696,7 +702,7 @@ export const qaDBActions = {
     , answerID: MongoID
     , pin: boolean
     , userID: MongoObjectID
-    ) : Promise<boolean> => {
+    ) : Promise<void> => {
 
     // Checks user input: `tidbitPointer`, `answerID`, and `pin`.
     const resolveIfValid = (): Promise<any> => {
@@ -722,15 +728,15 @@ export const qaDBActions = {
         { upsert: false }
       );
     })
-    .then((result) => {
-      return result.modifiedCount === 1;
-    });
+    .then(rejectIfResultNotOK)
+    .then(rejectIfNoneMatched)
+    .then(R.always(null));
   },
 
   /**
    * Adds a comment to the comment thread on a question.
    *
-   * Returns true if the comment was added successfully.
+   * Returns the comment if it was added successfully.
    */
   commentOnQuestion:
     ( doValidation: boolean
@@ -739,7 +745,7 @@ export const qaDBActions = {
     , commentText: string
     , userID: MongoObjectID
     , userEmail: string,
-    ) : Promise<boolean> => {
+    ) : Promise<QuestionComment> => {
 
     // Checks user input: `tidbitPointer`, `questionID`, and `commentText`.
     const resolveIfValid = (): Promise<any> => {
@@ -772,17 +778,19 @@ export const qaDBActions = {
         { tidbitID: toMongoObjectID(tidbitPointer.targetID), "questions.id": toMongoObjectID(questionID) },
         { $push: { "questionComments": newComment }},
         { upsert: false }
-      );
-    })
-    .then((result) => {
-      return result.modifiedCount === 1;
+      )
+      .then(rejectIfResultNotOK)
+      .then(rejectIfNoneMatched)
+      .then(rejectIfNoneModified)
+      .then(R.always(newComment));
     });
   },
 
   /**
    * Edits a question written by the user.
    *
-   * Returns true if the edit was successful.
+   * Returns the new `lastModified` date if the question was edited successfully. This allows the frontend to update
+   * it's copy of the question comment to match the one in the DB (without having to send it over the wire).
    */
   editQuestionComment:
     ( doValidation: boolean
@@ -790,7 +798,7 @@ export const qaDBActions = {
     , commentID: MongoID
     , commentText: string
     , userID: MongoObjectID
-    ) : Promise<boolean> => {
+    ) : Promise<Date> => {
 
     // Checks user input: `tidbitPointer`, `commentID`, and `commentText`
     const resolveIfValid = (): Promise<any> => {
@@ -821,24 +829,25 @@ export const qaDBActions = {
           }
         },
         { upsert: false }
-      );
-    })
-    .then((result) => {
-      return result.modifiedCount === 1;
+      )
+      .then(rejectIfResultNotOK)
+      .then(rejectIfNoneMatched)
+      .then(rejectIfNoneModified)
+      .then(R.always(dateNow));
     });
   },
 
   /**
    * Removes a comment on a question that the user made.
    *
-   * Returns true if the comment was deleted successfully.
+   * Resolves if the comment was deleted successfully.
    */
   deleteQuestionComment:
     ( doValidation: boolean
     , tidbitPointer: TidbitPointer
     , commentID: MongoID
     , userID: MongoObjectID
-    ) : Promise<boolean> => {
+    ) : Promise<void> => {
 
     // Checks user input: `tidbitPointer` and `commentID`.
     const resolveIfValid = (): Promise<any> => {
@@ -859,15 +868,16 @@ export const qaDBActions = {
         { upsert: false }
       );
     })
-    .then((result) => {
-      return result.modifiedCount === 1;
-    });
+    .then(rejectIfResultNotOK)
+    .then(rejectIfNoneMatched)
+    .then(rejectIfNoneModified)
+    .then(R.always(null));
   },
 
   /**
    * Comment on an answer.
    *
-   * Returns true if the comment was added successfully.
+   * Returns the comment if it was added successfully.
    */
   commentOnAnswer:
     ( doValidation: boolean
@@ -877,7 +887,7 @@ export const qaDBActions = {
     , commentText: string
     , userID: MongoObjectID
     , userEmail: string
-    ) : Promise<boolean> => {
+    ) : Promise<AnswerComment> => {
 
     // Checks user input: `tidbitPointer`, `questionID`, `answerID`, and `commentText`.
     const resolveIfValid = (): Promise<any> => {
@@ -916,17 +926,19 @@ export const qaDBActions = {
         },
         { $push: { "answerComments": newComment }},
         { upsert: false }
-      );
-    })
-    .then((result) => {
-      return result.modifiedCount === 1;
+      )
+      .then(rejectIfResultNotOK)
+      .then(rejectIfNoneMatched)
+      .then(rejectIfNoneModified)
+      .then(R.always(newComment));
     });
   },
 
   /**
    * Edits a comment on an answer that the user made.
    *
-   * Returns true if the coment was edited successfully.
+   * Returns the new `lastModified` date if the answer comment was edited successfully. This allows the frontend to
+   * update the answer comment to match the DB (without having to send the full answer comment over the wire).
    */
   editAnswerComment:
     ( doValidation: boolean
@@ -934,7 +946,7 @@ export const qaDBActions = {
     , commentID: MongoID
     , commentText: string
     , userID: MongoObjectID
-    ) : Promise<boolean> => {
+    ) : Promise<Date> => {
 
     // Checks user input: `tidbitPointer`, `commentID`, and `commentText`.
     const resolveIfValid = (): Promise<any> => {
@@ -965,24 +977,25 @@ export const qaDBActions = {
           }
         },
         { upsert: false }
-      );
-    })
-    .then((result) => {
-      return result.modifiedCount === 1;
+      )
+      .then(rejectIfResultNotOK)
+      .then(rejectIfNoneMatched)
+      .then(rejectIfNoneModified)
+      .then(R.always(dateNow));
     });
   },
 
   /**
    * Deletes an answer that the user made.
    *
-   * Returns true if comment was deleted successfully.
+   * Resolves if comment was deleted successfully.
    */
   deleteAnswerComment:
     ( doValidation: boolean
     , tidbitPointer: TidbitPointer
     , commentID: MongoID
     , userID: MongoObjectID
-    ) : Promise<boolean> => {
+    ) : Promise<void> => {
 
     // Checks user input: `tidbitPointer` and `answerID`.
     const resolveIfValid = (): Promise<any> => {
@@ -1003,9 +1016,10 @@ export const qaDBActions = {
         { upsert: false }
       );
     })
-    .then((result) => {
-      return result.modifiedCount === 1;
-    });
+    .then(rejectIfResultNotOK)
+    .then(rejectIfNoneMatched)
+    .then(rejectIfNoneModified)
+    .then(R.always(null));
   }
 }
 

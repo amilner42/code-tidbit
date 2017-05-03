@@ -13,7 +13,7 @@ import { Snipbit, snipbitDBActions } from './models/snipbit.model';
 import { Bigbit, bigbitDBActions } from './models/bigbit.model';
 import { Story, NewStory, ExpandedStory, storyDBActions, StorySearchFilter } from "./models/story.model";
 import { Tidbit, tidbitDBActions } from './models/tidbit.model';
-import { QA, qaDBActions } from "./models/qa.model";
+import { QA, Question, Answer, AnswerComment, QuestionComment, qaDBActions } from "./models/qa.model";
 import { AppRoutes, AppRoutesAuth, FrontendError, TargetID, ErrorCode, BasicResponse, MongoID } from './types';
 import { internalError, combineArrays, maybeMap } from './util';
 
@@ -441,7 +441,7 @@ export const routes: AppRoutes = {
     /**
      * @refer `qaDBActions.askQuestion`.
      */
-    post: (req, res): Promise<boolean> => {
+    post: (req, res): Promise<Question<any>> => {
       const { tidbitType, tidbitID } = req.params;
       const { questionText, codePointer } = req.body;
       const { _id, email } = req.user;
@@ -461,7 +461,7 @@ export const routes: AppRoutes = {
     /**
      * @refer `qaDBActions.editQuestion`.
      */
-    post: (req, res): Promise<boolean> => {
+    post: (req, res): Promise<Date> => {
       const { tidbitType, tidbitID } = req.params;
       const { questionID, questionText, codePointer } = req.body;
       const { _id } = req.user;
@@ -481,7 +481,7 @@ export const routes: AppRoutes = {
     /**
      * @refer `qaDBActions.deleteQuestion`.
      */
-    post: (req, res): Promise<boolean> => {
+    post: (req, res): Promise<void> => {
       const { tidbitType, tidbitID } = req.params;
       const { questionID } = req.body;
       const { _id } = req.user;
@@ -499,7 +499,7 @@ export const routes: AppRoutes = {
     /**
      * @refer `qaDBActions.rateQuestion`.
      */
-    post: (req, res): Promise<boolean> => {
+    post: (req, res): Promise<void> => {
       const { tidbitType, tidbitID } = req.params;
       const { vote, questionID } = req.body;
       const { _id } = req.user;
@@ -518,7 +518,7 @@ export const routes: AppRoutes = {
     /**
      * @refer `qaDBActions.removeQuestionRating`.
      */
-    post: (req, res): Promise<boolean> => {
+    post: (req, res): Promise<void> => {
       const { tidbitType, tidbitID } = req.params;
       const { questionID } = req.body;
       const { _id } = req.user;
@@ -536,7 +536,7 @@ export const routes: AppRoutes = {
     /**
      * @refer `qaDBActions.pinQuestion`.
      */
-    post: (req, res): Promise<boolean> => {
+    post: (req, res): Promise<void> => {
       const { tidbitType, tidbitID } = req.params;
       const { pin, questionID } = req.body;
       const { _id } = req.user;
@@ -555,7 +555,7 @@ export const routes: AppRoutes = {
     /**
      * @refer `qaDBActions.answerQuestion`.
      */
-    post: (req, res): Promise<boolean> => {
+    post: (req, res): Promise<Answer> => {
       const { tidbitType, tidbitID } = req.params;
       const { answerText, questionID } = req.body;
       const { _id, email } = req.user;
@@ -575,7 +575,7 @@ export const routes: AppRoutes = {
     /**
      * @refer `qaDBActions.editAnswer`.
      */
-    post: (req, res): Promise<boolean> => {
+    post: (req, res): Promise<Date> => {
       const { tidbitType, tidbitID } = req.params;
       const { answerText, answerID } = req.body;
       const { _id } = req.user;
@@ -594,7 +594,7 @@ export const routes: AppRoutes = {
     /**
      * @refer `qaDBActions.deleteAnswer`.
      */
-    post: (req, res): Promise<boolean> => {
+    post: (req, res): Promise<void> => {
       const { tidbitType, tidbitID } = req.params;
       const { answerID } = req.body;
       const { _id } = req.user;
@@ -612,7 +612,7 @@ export const routes: AppRoutes = {
     /**
      * @refer `qaDBActions.rateAnswer`.
      */
-    post: (req, res): Promise<boolean> => {
+    post: (req, res): Promise<void> => {
       const { tidbitType, tidbitID } = req.params;
       const { vote, answerID } = req.body;
       const { _id } = req.user;
@@ -631,7 +631,7 @@ export const routes: AppRoutes = {
     /**
      * @refer `qaDBActions.removeAnswerRating`.
      */
-    post: (req, res): Promise<boolean> => {
+    post: (req, res): Promise<void> => {
       const { tidbitType, tidbitID } = req.params;
       const { answerID } = req.body;
       const { _id } = req.user;
@@ -649,7 +649,7 @@ export const routes: AppRoutes = {
     /**
      * @refer `qaDBActions.pinAnswer`.
      */
-    post: (req, res): Promise<boolean> => {
+    post: (req, res): Promise<void> => {
       const { tidbitType, tidbitID } = req.params;
       const { pin, answerID } = req.body;
       const { _id } = req.user;
@@ -668,7 +668,7 @@ export const routes: AppRoutes = {
     /**
      * @refer `qaDBActions.commentOnQuestion`.
      */
-    post: (req, res): Promise<boolean> => {
+    post: (req, res): Promise<QuestionComment> => {
       const { tidbitType, tidbitID } = req.params;
       const { questionID, commentText } = req.body;
       const { _id, email } = req.user;
@@ -688,7 +688,7 @@ export const routes: AppRoutes = {
     /**
      * @refer `qaDBActions.editQuestionComment`.
      */
-    post: (req, res): Promise<boolean> => {
+    post: (req, res): Promise<Date> => {
       const { tidbitType, tidbitID } = req.params;
       const { commentText, commentID } = req.body;
       const { _id } = req.user;
@@ -707,7 +707,7 @@ export const routes: AppRoutes = {
     /**
      * @refer `qaDBActions.deleteQuestionComment`.
      */
-    post: (req, res): Promise<boolean> => {
+    post: (req, res): Promise<void> => {
       const { tidbitType, tidbitID } = req.params;
       const { commentID } = req.body;
       const { _id } = req.user;
@@ -725,7 +725,7 @@ export const routes: AppRoutes = {
     /**
      * @refer `qaDBActions.commentOnAnswer`.
      */
-    post: (req, res): Promise<boolean> => {
+    post: (req, res): Promise<AnswerComment> => {
       const { tidbitType, tidbitID } = req.params;
       const { answerID, questionID, commentText } = req.body;
       const { _id, email } = req.user;
@@ -746,7 +746,7 @@ export const routes: AppRoutes = {
     /**
      * @refer `qaDBActions.editAnswerComment`.
      */
-    post: (req, res): Promise<boolean> => {
+    post: (req, res): Promise<Date> => {
       const { tidbitType, tidbitID } = req.params;
       const { commentID, commentText } = req.body;
       const { _id } = req.user;
@@ -765,7 +765,7 @@ export const routes: AppRoutes = {
     /**
      * @refer `qaDBActions.deleteAnswerComment`.
      */
-    post: (req, res): Promise<boolean> => {
+    post: (req, res): Promise<void> => {
       const { tidbitType, tidbitID } = req.params;
       const { commentID } = req.body;
       const { _id } = req.user;
