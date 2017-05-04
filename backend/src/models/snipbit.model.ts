@@ -151,9 +151,7 @@ export const snipbitDBActions = {
           },
           toMongoObjectID(userID)
         )
-        .then(() => {
-            return { targetID: insertSnipbitResult.insertedId };
-        });
+        .then(R.always({ targetID: insertSnipbitResult.insertedId }));
       });
     });
   },

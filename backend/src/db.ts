@@ -121,3 +121,12 @@ export const rejectIfNoneMatched = (result: UpdateWriteOpResult): Promise<Update
 
   return Promise.resolve(result);
 };
+
+/**
+ * If no documents were upserted, rejects with an internal error, otherwise returns the original result.
+ */
+export const rejectIfNoneUpserted = (result: UpdateWriteOpResult): Promise<UpdateWriteOpResult> => {
+  if(result.upsertedCount === 0) return Promise.reject(internalError("No upserts were performed"));
+
+  return Promise.resolve(result);
+};

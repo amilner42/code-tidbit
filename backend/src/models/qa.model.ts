@@ -7,7 +7,7 @@ import * as R from "ramda";
 
 import { internalError, isNullOrUndefined, malformedFieldError } from '../util';
 import { MongoObjectID, MongoID, ErrorCode } from "../types";
-import { collection, toMongoObjectID, renameIDField, rejectIfResultNotOK, rejectIfNoneModified, rejectIfNoneMatched } from "../db";
+import { collection, toMongoObjectID, renameIDField, rejectIfResultNotOK, rejectIfNoneModified, rejectIfNoneMatched, rejectIfNoneUpserted } from "../db";
 import { Range } from "./range.model";
 import { TidbitPointer, TidbitType, tidbitPointerSchema } from "./tidbit.model";
 import { stringInRange, rangeSchema, nonEmptyStringSchema, mongoStringIDSchema, booleanSchema } from "./kleen-schemas";
@@ -37,7 +37,7 @@ export type SnipbitQA = QA<Range>;
 export type BigbitQA = QA<{ file: string, range: Range }>;
 
 /**
- * A single question about some part of `Tidbit`.
+ * A single question about some code in a `Tidbit`.
  */
 export interface Question<CodePointer> {
   id: MongoObjectID,
@@ -89,7 +89,7 @@ export interface AnswerComment extends QuestionComment {
 }
 
 /**
- * You can upvote/downvote questions/answers/comments.
+ * You can upvote/downvote questions and answers.
  */
 export enum Vote {
   Upvote = 1,
@@ -130,12 +130,21 @@ export const qaDBActions = {
 
       return collectionX.updateOne(
         { tidbitID },
-        { $setOnInsert: defaultQAObject(tidbitID, tidbitAuthor) },
+        { $setOnInsert: defaultQAObject<any>(tidbitID, tidbitAuthor) },
         { upsert: true }
       );
     })
     .then(rejectIfResultNotOK)
-    .then(rejectIfNoneModified)
+    .then((updateWriteOpResult) => {
+      if(updateWriteOpResult.matchedCount === 1) {
+        return Promise.reject(
+          internalError(`You've already created a QA document for tidbit pointer: ${JSON.stringify(tidbitPointer)}`)
+        );
+      }
+
+      return Promise.resolve(updateWriteOpResult);
+    })
+    .then(rejectIfNoneUpserted)
     .then(R.always(null));
   },
 
@@ -496,7 +505,7 @@ export const qaDBActions = {
         upvotes: [],
         pinned: false,
         questionID: toMongoObjectID(questionID)
-      }
+      };
 
       return collectionX.updateOne(
         { tidbitID: toMongoObjectID(tidbitPointer.targetID), "questions.id": toMongoObjectID(questionID) },
@@ -997,7 +1006,7 @@ export const qaDBActions = {
     , userID: MongoObjectID
     ) : Promise<void> => {
 
-    // Checks user input: `tidbitPointer` and `answerID`.
+    // Checks user input: `tidbitPointer` and `commentID`.
     const resolveIfValid = (): Promise<any> => {
       return Promise.all([
         kleen.validModel(tidbitPointerSchema)(tidbitPointer),
@@ -1026,7 +1035,11 @@ export const qaDBActions = {
 /**
  * A default QA object, for when we originally put the empty QA object in the database.
  */
-export const defaultQAObject = (tidbitID: MongoObjectID, tidbitAuthor: MongoObjectID): QA<any> => {
+export const defaultQAObject = <CodePointer>
+  ( tidbitID: MongoObjectID
+  , tidbitAuthor: MongoObjectID
+  ): QA<CodePointer> => {
+
   return {
     tidbitID,
     tidbitAuthor,
@@ -1063,7 +1076,7 @@ const answerTextSchema: kleen.primitiveSchema =
   stringInRange("answerText", 1, ErrorCode.internalError, 1000, ErrorCode.internalError);
 
 /**
- * The schema for the `comment` part of a
+ * The schema for the `commentText` part of a `QuestionComment`/`AnswerComment`.
  */
 const commentTextSchema: kleen.primitiveSchema =
   stringInRange("commentText", 1, ErrorCode.internalError, 300, ErrorCode.internalError);
@@ -1075,14 +1088,14 @@ const commentTextSchema: kleen.primitiveSchema =
  */
 const bigbitCodePointerSchema: kleen.objectSchema = {
   objectProperties: {
-    file: nonEmptyStringSchema(malformedFieldError("file"), malformedFieldError("file")),
+    file: nonEmptyStringSchema(malformedFieldError("codePointer.file"), malformedFieldError("codePointer.file")),
     range: rangeSchema(ErrorCode.internalError)
   },
   typeFailureError: malformedFieldError("codePointer")
 };
 
 /**
- * For validifying a `Vote` is indeed in the enum.
+ * For validifying a `Vote` (must be a number).
  */
 const voteSchema: kleen.primitiveSchema = {
   primitiveType: kleen.kindOfPrimitive.number,
@@ -1095,7 +1108,7 @@ const voteSchema: kleen.primitiveSchema = {
 }
 
 /**
- * Returns the `typeSchema` based on the `tidbitType`.
+ * Returns the `typeSchema` for the `codePointer` based on the `tidbitType`.
  */
 const codePointerSchema = (tidbitType: TidbitType): kleen.typeSchema => {
   switch(tidbitType) {
@@ -1103,6 +1116,6 @@ const codePointerSchema = (tidbitType: TidbitType): kleen.typeSchema => {
       return rangeSchema(ErrorCode.internalError);
 
     case TidbitType.Bigbit:
-      return bigbitCodePointerSchema
+      return bigbitCodePointerSchema;
   }
 }

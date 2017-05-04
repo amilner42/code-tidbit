@@ -186,9 +186,7 @@ export const bigbitDBActions = {
           },
           toMongoObjectID(userID)
         )
-        .then(() => {
-          return { targetID: insertBigbitResult.insertedId };
-        });
+        .then(R.always({ targetID: insertBigbitResult.insertedId }));
       });
     });
   },
