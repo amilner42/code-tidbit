@@ -432,8 +432,10 @@ export const routes: AppRoutes = {
      */
     get: (req, res): Promise<QA<any>> => {
       const { tidbitType, tidbitID } = req.params;
+      // Auth is optional, changes results (but not result type).
+      const userID = req.user ? req.user._id : null;
 
-      return qaDBActions.getQAForTidbit(true, { tidbitType: parseInt(tidbitType), targetID: tidbitID });
+      return qaDBActions.getQAForTidbit(true, { tidbitType: parseInt(tidbitType), targetID: tidbitID }, userID);
     }
   },
 

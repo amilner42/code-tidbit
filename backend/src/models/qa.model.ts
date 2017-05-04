@@ -45,8 +45,8 @@ export interface Question<CodePointer> {
   authorID: MongoObjectID,
   authorEmail: string,
   codePointer: CodePointer,
-  upvotes: MongoObjectID[],
-  downvotes: MongoObjectID[],
+  upvotes: MongoObjectID[] | [boolean, number],
+  downvotes: MongoObjectID[] | [boolean, number],
   pinned: boolean,
   lastModified: Date,
   createdAt: Date
@@ -61,8 +61,8 @@ export interface Answer {
   answerText: String,
   authorID: MongoObjectID,
   authorEmail: string,
-  upvotes: MongoObjectID[],
-  downvotes: MongoObjectID[],
+  upvotes: MongoObjectID[] | [boolean, number],
+  downvotes: MongoObjectID[] | [boolean, number],
   pinned: boolean,
   lastModified: Date,
   createdAt: Date
@@ -97,12 +97,39 @@ export enum Vote {
 }
 
 /**
+ * Changes the `upvotes`/`downvotes` format from `MongoObjectID[]` -> `[boolean, number]`. The boolean reflects whether
+ * the user upvoted/downvoted that `question`/`answer`, the number represents the total `upvotes`/`downvotes`.
+ */
+const prepareQuestionOrAnswerForResponse = <T1 extends Question<any> | Answer>
+  ( userID: MongoObjectID
+  , answerOrQuestion: T1
+  ): T1 => {
+
+  const copy = R.clone(answerOrQuestion);
+
+  copy.downvotes = [ R.contains<MongoObjectID>(userID, copy.downvotes as MongoObjectID[]), R.length(copy.downvotes) ];
+  copy.upvotes = [ R.contains<MongoObjectID>(userID, copy.upvotes as MongoObjectID[]), R.length(copy.upvotes) ];
+
+  return copy;
+};
+
+/**
  * Prepares `qa` for the response by:
  *    - renaming id field
+ *    - compressing upvotes/downvotes to their short form.
  */
-const prepareQAForResponse = (qa: QA<any>) => {
-  return renameIDField(qa);
-}
+const prepareQAForResponse = <CodePointer>(qa: QA<CodePointer>, userID: MongoObjectID): QA<CodePointer> => {
+  const copy = R.clone(qa);
+
+  copy.answers = copy.answers.map(
+    R.curry<MongoObjectID, Answer, Answer>(prepareQuestionOrAnswerForResponse)(userID)
+  );
+  copy.questions = copy.questions.map(
+    R.curry<MongoObjectID, Question<CodePointer>, Question<CodePointer>>(prepareQuestionOrAnswerForResponse)(userID)
+  );
+
+  return renameIDField(copy);
+};
 
 /**
  * All the db helpers for handling QA related tasks.
@@ -149,9 +176,15 @@ export const qaDBActions = {
   },
 
   /**
-   * Get's the QA document for the given tidbit.
+   * Get's the QA document for the given tidbit. If the user is not logged in when making the requst, just pass `null`
+   * for the `userID`. This action does not require authentication.
    */
-  getQAForTidbit: <CodePointer>(doValidation: boolean, tidbitPointer: TidbitPointer): Promise<QA<CodePointer>> => {
+  getQAForTidbit: <CodePointer>
+    ( doValidation: boolean
+    , tidbitPointer: TidbitPointer
+    , userID: MongoObjectID
+    ): Promise<QA<CodePointer>> => {
+
     return (doValidation ? kleen.validModel(tidbitPointerSchema)(tidbitPointer) : Promise.resolve())
     .then(() => {
       return collection(qaCollectionName(tidbitPointer.tidbitType));
@@ -159,8 +192,8 @@ export const qaDBActions = {
     .then((collectionX) => {
       return collectionX.findOne({ tidbitID: toMongoObjectID(tidbitPointer.targetID) });
     })
-    .then((qaDocument) => {
-      if(qaDocument) return prepareQAForResponse(qaDocument);
+    .then((qaDocument: QA<CodePointer>) => {
+      if(qaDocument) return Promise.resolve(prepareQAForResponse(qaDocument,  userID));
 
       return Promise.reject(
         internalError(`Could not find QA object for tidbit pointer: ${JSON.stringify(tidbitPointer)}`)
@@ -227,7 +260,7 @@ export const qaDBActions = {
       )
       .then(rejectIfResultNotOK)
       .then(rejectIfNoneModified)
-      .then(R.always(question));
+      .then(R.always(prepareQuestionOrAnswerForResponse(authorID, question)));
     });
   },
 
@@ -515,7 +548,7 @@ export const qaDBActions = {
       .then(rejectIfResultNotOK)
       .then(rejectIfNoneMatched)
       .then(rejectIfNoneModified)
-      .then(R.always(answer));
+      .then(R.always(prepareQuestionOrAnswerForResponse(authorID, answer)));
     });
   },
 
