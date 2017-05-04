@@ -1,10 +1,10 @@
 /// Module for interacting with the mongodb through the standard node driver.
 /// Will get the URL for the mongodb from the global config `app-config.ts`.
 
-import { MongoClient, Collection, ObjectID, Cursor } from 'mongodb';
+import { MongoClient, Collection, ObjectID, Cursor, UpdateWriteOpResult } from 'mongodb';
 
 import { APP_CONFIG } from './app-config';
-import { isNullOrUndefined } from './util';
+import { isNullOrUndefined, internalError } from './util';
 import { MongoID, MongoObjectID, MongoStringID } from './types';
 
 
@@ -90,3 +90,43 @@ export const paginateResults = (pageNumber: number, pageSize: number, cursor: Cu
   const amountToSkip = (pageNumber - 1) * pageSize;
   return cursor.skip(amountToSkip).limit(pageSize);
 }
+
+/**
+ * Mongo can resolve even though an error occured, to avoid this behaviour we reject if the result is not ok.
+ *
+ * Returns the original `result` if it's ok so this can easily be added to promise chains.
+ *
+ * @refer: http://mongodb.github.io/node-mongodb-native/2.1/api/Collection.html#~updateWriteOpResult
+ */
+export const rejectIfResultNotOK = (result: UpdateWriteOpResult): Promise<UpdateWriteOpResult> => {
+  if(result.result.ok !== 1) return Promise.reject(internalError(`Mongo query not ok: ${result.result.ok}`));
+
+  return Promise.resolve(result);
+};
+
+/**
+ * If no modifications were made rejects with an internal error, otherwise returns the original `result`.
+ */
+export const rejectIfNoneModified = (result: UpdateWriteOpResult): Promise<UpdateWriteOpResult> => {
+  if (result.modifiedCount === 0) return Promise.reject(internalError("No modifications were performed"));
+
+  return Promise.resolve(result);
+};
+
+/**
+ * If no documents were matched rejects with an internal error, otherwise returns the original result.
+ */
+export const rejectIfNoneMatched = (result: UpdateWriteOpResult): Promise<UpdateWriteOpResult> => {
+  if(result.matchedCount === 0) return Promise.reject(internalError("No matching documents were found"));
+
+  return Promise.resolve(result);
+};
+
+/**
+ * If no documents were upserted, rejects with an internal error, otherwise returns the original result.
+ */
+export const rejectIfNoneUpserted = (result: UpdateWriteOpResult): Promise<UpdateWriteOpResult> => {
+  if(result.upsertedCount === 0) return Promise.reject(internalError("No upserts were performed"));
+
+  return Promise.resolve(result);
+};

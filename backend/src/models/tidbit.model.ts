@@ -97,7 +97,7 @@ export const tidbitDBActions = {
   },
 
   /**
-   * Gets tidbits from the database, customizable through search filter.
+   * Gets tidbits from the database, customizable through `TidbitSearchFilter` and `TidbitSearchResultManipulation`.
    */
   getTidbits: (searchFilter: TidbitSearchFilter, resultManipulation: TidbitSearchResultManipulation): Promise<Tidbit[]> => {
     return contentDBActions.getContent(

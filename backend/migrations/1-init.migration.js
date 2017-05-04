@@ -1,4 +1,4 @@
-/// 1st migration file.
+/// 1st migration file - Initilize a bunch of indexes for our initial data models.
 
 // Initial Regular Indexes
 
