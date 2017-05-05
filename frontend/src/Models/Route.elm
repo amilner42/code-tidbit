@@ -8,41 +8,72 @@ import Navigation
 import UrlParser exposing (Parser, s, (</>), (<?>), oneOf, map, top, int, string, stringParam)
 
 
-{-| For clarity in `Route`.
--}
-type alias MongoID =
+type alias StoryID =
     String
 
 
+type alias EditingStoryID =
+    String
+
+
+type alias SnipbitID =
+    String
+
+
+type alias BigbitID =
+    String
+
+
+type alias QuestionID =
+    String
+
+
+type alias AnswerID =
+    String
+
+
+type alias FrameNumber =
+    Int
+
+
 {-| All of the app routes.
+
+NOTE: When creating routes, use type aliases to make sure that the purpose of each parameter is clear (eg. StoryID).
 -}
 type Route
     = BrowsePage
-    | ViewSnipbitIntroductionPage (Maybe MongoID) MongoID
-    | ViewSnipbitConclusionPage (Maybe MongoID) MongoID
-    | ViewSnipbitFramePage (Maybe MongoID) MongoID Int
-    | ViewBigbitIntroductionPage (Maybe MongoID) MongoID (Maybe FS.Path)
-    | ViewBigbitFramePage (Maybe MongoID) MongoID Int (Maybe FS.Path)
-    | ViewBigbitConclusionPage (Maybe MongoID) MongoID (Maybe FS.Path)
-    | ViewStoryPage MongoID
+    | ViewSnipbitIntroductionPage (Maybe StoryID) SnipbitID
+    | ViewSnipbitConclusionPage (Maybe StoryID) SnipbitID
+    | ViewSnipbitFramePage (Maybe StoryID) SnipbitID FrameNumber
+    | ViewSnipbitQuestionsPage (Maybe StoryID) SnipbitID
+    | ViewSnipbitQuestionPage (Maybe StoryID) SnipbitID QuestionID (Maybe AnswerID)
+    | ViewSnipbitQuestionFrame (Maybe StoryID) SnipbitID FrameNumber (Maybe AnswerID)
+    | ViewSnipbitAskQuestion (Maybe StoryID) SnipbitID
+    | ViewSnipbitAnswerQuestion (Maybe StoryID) SnipbitID QuestionID
+    | ViewSnipbitEditQuestion (Maybe StoryID) SnipbitID QuestionID
+    | ViewSnipbitEditAnswer (Maybe StoryID) SnipbitID AnswerID
+    | ViewBigbitIntroductionPage (Maybe StoryID) BigbitID (Maybe FS.Path)
+    | ViewBigbitFramePage (Maybe StoryID) BigbitID FrameNumber (Maybe FS.Path)
+    | ViewBigbitConclusionPage (Maybe StoryID) BigbitID (Maybe FS.Path)
+    | ViewStoryPage StoryID
     | CreatePage
     | CreateSnipbitNamePage
     | CreateSnipbitDescriptionPage
     | CreateSnipbitLanguagePage
     | CreateSnipbitTagsPage
     | CreateSnipbitCodeIntroductionPage
-    | CreateSnipbitCodeFramePage Int
+    | CreateSnipbitCodeFramePage FrameNumber
     | CreateSnipbitCodeConclusionPage
     | CreateBigbitNamePage
     | CreateBigbitDescriptionPage
     | CreateBigbitTagsPage
     | CreateBigbitCodeIntroductionPage (Maybe FS.Path)
-    | CreateBigbitCodeFramePage Int (Maybe FS.Path)
+    | CreateBigbitCodeFramePage FrameNumber (Maybe FS.Path)
     | CreateBigbitCodeConclusionPage (Maybe FS.Path)
-    | CreateStoryNamePage (Maybe MongoID)
-    | CreateStoryDescriptionPage (Maybe MongoID)
-    | CreateStoryTagsPage (Maybe MongoID)
-    | DevelopStoryPage MongoID
+    | CreateStoryNamePage (Maybe EditingStoryID)
+    | CreateStoryDescriptionPage (Maybe EditingStoryID)
+    | CreateStoryTagsPage (Maybe EditingStoryID)
+    | DevelopStoryPage StoryID
     | ProfilePage
     | LoginPage
     | RegisterPage
@@ -72,6 +103,27 @@ matchers =
 
         viewSnipbitFrame =
             viewSnipbit </> s "frame" </> int
+
+        viewSnipbitQuestionsPage =
+            viewSnipbit </> s "questions"
+
+        viewSnipbitQuestionPage =
+            viewSnipbit </> s "question" </> string <?> qpAnswerID
+
+        viewSnipbitQuestionFrame =
+            viewSnipbit </> s "questions" </> int <?> qpAnswerID
+
+        viewSnipbitAskQuestion =
+            viewSnipbit </> s "askQuestion"
+
+        viewSnipbitAnswerQuestion =
+            viewSnipbit </> s "answerQuestion" </> string
+
+        viewSnipbitEditQuestion =
+            viewSnipbit </> s "editQuestion" </> string
+
+        viewSnipbitEditAnswer =
+            viewSnipbit </> s "editAnswer" </> string
 
         viewBigbit =
             view </> s "bigbit" <?> qpFromStory </> string
@@ -167,6 +219,9 @@ matchers =
         qpFromStory =
             stringParam "fromStory"
 
+        qpAnswerID =
+            stringParam "answerID"
+
         profile =
             s "profile"
 
@@ -181,6 +236,13 @@ matchers =
             , map ViewSnipbitIntroductionPage viewSnipbitIntroduction
             , map ViewSnipbitConclusionPage viewSnipbitConclusion
             , map ViewSnipbitFramePage viewSnipbitFrame
+            , map ViewSnipbitQuestionsPage viewSnipbitQuestionsPage
+            , map ViewSnipbitQuestionPage viewSnipbitQuestionPage
+            , map ViewSnipbitQuestionFrame viewSnipbitQuestionFrame
+            , map ViewSnipbitAskQuestion viewSnipbitAskQuestion
+            , map ViewSnipbitAnswerQuestion viewSnipbitAnswerQuestion
+            , map ViewSnipbitEditQuestion viewSnipbitEditQuestion
+            , map ViewSnipbitEditAnswer viewSnipbitEditAnswer
             , map ViewBigbitIntroductionPage viewBigbitIntroduction
             , map ViewBigbitFramePage viewBigbitFrame
             , map ViewBigbitConclusionPage viewBigbitConclusion
@@ -309,6 +371,53 @@ toHashUrl route =
                     ++ mongoID
                     ++ "/frame/"
                     ++ (toString frameNumber)
+                    ++ Util.queryParamsToString [ ( "fromStory", qpStoryID ) ]
+
+            ViewSnipbitQuestionsPage qpStoryID snipbitID ->
+                "view/snipbit/"
+                    ++ snipbitID
+                    ++ "/questions"
+                    ++ Util.queryParamsToString [ ( "fromStory", qpStoryID ) ]
+
+            ViewSnipbitQuestionPage qpStoryID snipbitID questionID qpAnswerID ->
+                "view/snipbit/"
+                    ++ snipbitID
+                    ++ "/question/"
+                    ++ questionID
+                    ++ Util.queryParamsToString [ ( "fromStory", qpStoryID ), ( "answerID", qpAnswerID ) ]
+
+            ViewSnipbitQuestionFrame qpStoryID snipbitID frameNumber qpAnswerID ->
+                "view/snipbit/"
+                    ++ snipbitID
+                    ++ "/questions/"
+                    ++ (toString frameNumber)
+                    ++ Util.queryParamsToString [ ( "fromStory", qpStoryID ), ( "answerID", qpAnswerID ) ]
+
+            ViewSnipbitAskQuestion qpStoryID snipbitID ->
+                "view/snipbit/"
+                    ++ snipbitID
+                    ++ "/askQuestion"
+                    ++ Util.queryParamsToString [ ( "fromStory", qpStoryID ) ]
+
+            ViewSnipbitAnswerQuestion qpStoryID snipbitID answerID ->
+                "view/snipbit/"
+                    ++ snipbitID
+                    ++ "/answerQuestion/"
+                    ++ answerID
+                    ++ Util.queryParamsToString [ ( "fromStory", qpStoryID ) ]
+
+            ViewSnipbitEditQuestion qpStoryID snipbitID questionID ->
+                "view/snipbit/"
+                    ++ snipbitID
+                    ++ "/editQuestion/"
+                    ++ questionID
+                    ++ Util.queryParamsToString [ ( "fromStory", qpStoryID ) ]
+
+            ViewSnipbitEditAnswer qpStoryID snipbitID answerID ->
+                "view/snipbit/"
+                    ++ snipbitID
+                    ++ "/editAnswer/"
+                    ++ answerID
                     ++ Util.queryParamsToString [ ( "fromStory", qpStoryID ) ]
 
             ViewBigbitIntroductionPage qpStoryID mongoID qpFile ->
@@ -472,7 +581,7 @@ navigateToSameUrlWithFilePath maybePath route =
 
 {-| Returns the query paramater "editingStory" if on the create new story routes and the parameter is present.
 -}
-getEditingStoryQueryParamOnCreateNewStoryRoute : Route -> Maybe MongoID
+getEditingStoryQueryParamOnCreateNewStoryRoute : Route -> Maybe EditingStoryID
 getEditingStoryQueryParamOnCreateNewStoryRoute route =
     case route of
         CreateStoryNamePage qpEditingStory ->
@@ -490,7 +599,7 @@ getEditingStoryQueryParamOnCreateNewStoryRoute route =
 
 {-| Returns the query parameter "fromStory" if viewing a snipbit and that query param is present.
 -}
-getFromStoryQueryParamOnViewSnipbitRoute : Route -> Maybe MongoID
+getFromStoryQueryParamOnViewSnipbitRoute : Route -> Maybe StoryID
 getFromStoryQueryParamOnViewSnipbitRoute route =
     case route of
         ViewSnipbitIntroductionPage fromStoryID _ ->
@@ -508,7 +617,7 @@ getFromStoryQueryParamOnViewSnipbitRoute route =
 
 {-| Returns the query parameter "fromStory" if viewing a bigbit and that query param is present.
 -}
-getFromStoryQueryParamOnViewBigbitRoute : Route -> Maybe MongoID
+getFromStoryQueryParamOnViewBigbitRoute : Route -> Maybe StoryID
 getFromStoryQueryParamOnViewBigbitRoute route =
     case route of
         ViewBigbitIntroductionPage fromStoryID _ _ ->

@@ -145,6 +145,27 @@ viewForRoute model =
             Route.ViewSnipbitFramePage _ _ _ ->
                 viewSnipbitPage
 
+            Route.ViewSnipbitQuestionsPage _ _ ->
+                viewSnipbitPage
+
+            Route.ViewSnipbitQuestionPage _ _ _ _ ->
+                viewSnipbitPage
+
+            Route.ViewSnipbitQuestionFrame _ _ _ _ ->
+                viewSnipbitPage
+
+            Route.ViewSnipbitAskQuestion _ _ ->
+                viewSnipbitPage
+
+            Route.ViewSnipbitAnswerQuestion _ _ _ ->
+                viewSnipbitPage
+
+            Route.ViewSnipbitEditQuestion _ _ _ ->
+                viewSnipbitPage
+
+            Route.ViewSnipbitEditAnswer _ _ _ ->
+                viewSnipbitPage
+
             Route.ViewBigbitIntroductionPage _ _ _ ->
                 viewBigbitPage
 
@@ -327,6 +348,27 @@ navbar model =
                     True
 
                 Route.ViewSnipbitConclusionPage _ _ ->
+                    True
+
+                Route.ViewSnipbitQuestionsPage _ _ ->
+                    True
+
+                Route.ViewSnipbitQuestionPage _ _ _ _ ->
+                    True
+
+                Route.ViewSnipbitQuestionFrame _ _ _ _ ->
+                    True
+
+                Route.ViewSnipbitAskQuestion _ _ ->
+                    True
+
+                Route.ViewSnipbitAnswerQuestion _ _ _ ->
+                    True
+
+                Route.ViewSnipbitEditQuestion _ _ _ ->
+                    True
+
+                Route.ViewSnipbitEditAnswer _ _ _ ->
                     True
 
                 Route.ViewBigbitIntroductionPage _ _ _ ->
