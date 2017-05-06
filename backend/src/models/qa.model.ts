@@ -21,9 +21,9 @@ export interface QA<CodePointer> {
   tidbitID: MongoObjectID,
   tidbitAuthor: MongoObjectID,
   questions: Question<CodePointer>[],
-  questionComments: Comment[],
+  questionComments: QuestionComment[],
   answers: Answer[],
-  answerComments: Comment[]
+  answerComments: AnswerComment[]
 }
 
 /**
