@@ -1,7 +1,7 @@
 module Pages.ViewBigbit.Update exposing (..)
 
 import Array
-import DefaultServices.CommonSubPageUtil exposing (CommonSubPageUtil, commonSubPageUtil)
+import DefaultServices.CommonSubPageUtil exposing (CommonSubPageUtil(..), commonSubPageUtil)
 import DefaultServices.Util as Util exposing (maybeMapWithDefault)
 import Elements.Editor as Editor
 import Elements.FileStructure as FS
@@ -23,10 +23,10 @@ import Ports
 {-| `ViewBigbit` update.
 -}
 update : CommonSubPageUtil Model Shared Msg -> Msg -> Model -> Shared -> ( Model, Shared, Cmd Msg )
-update ({ doNothing, justSetModel, justUpdateModel, justSetShared, justProduceCmd, api } as common) msg model shared =
+update (Common common) msg model shared =
     case msg of
         NoOp ->
-            doNothing
+            common.doNothing
 
         GoTo route ->
             ( model, shared, Route.navigateTo route )
@@ -52,12 +52,12 @@ update ({ doNothing, justSetModel, justUpdateModel, justSetShared, justProduceCm
                             TidbitPointer.TidbitPointer TidbitPointer.Bigbit mongoID
 
                         -- Handle getting bigbit if needed.
-                        handleGetBigbit ( model, shared ) =
+                        handleGetBigbit (Common common) ( model, shared ) =
                             let
                                 getBigbit mongoID =
                                     ( setBigbit Nothing model
                                     , shared
-                                    , api.get.bigbit mongoID OnGetBigbitFailure OnGetBigbitSuccess
+                                    , common.api.get.bigbit mongoID OnGetBigbitFailure OnGetBigbitSuccess
                                     )
                             in
                                 case model.bigbit of
@@ -74,16 +74,13 @@ update ({ doNothing, justSetModel, justUpdateModel, justSetShared, justProduceCm
                                             getBigbit mongoID
 
                         -- Handle getting bigbit is-completed if needed.
-                        handleGetBigbitIsCompleted ( model, shared ) =
+                        handleGetBigbitIsCompleted (Common common) ( model, shared ) =
                             let
-                                doNothing =
-                                    ( model, shared, Cmd.none )
-
                                 -- Command for fetching the `isCompleted`
                                 getBigbitIsCompleted userID =
                                     ( setIsCompleted Nothing model
                                     , shared
-                                    , api.post.checkCompletedWrapper
+                                    , common.api.post.checkCompletedWrapper
                                         (Completed.Completed currentTidbitPointer userID)
                                         OnGetCompletedFailure
                                         OnGetCompletedSuccess
@@ -92,7 +89,7 @@ update ({ doNothing, justSetModel, justUpdateModel, justSetShared, justProduceCm
                                 case ( shared.user, model.isCompleted ) of
                                     ( Just user, Just currentCompleted ) ->
                                         if currentCompleted.tidbitPointer == currentTidbitPointer then
-                                            doNothing
+                                            common.doNothing
                                         else
                                             getBigbitIsCompleted user.id
 
@@ -100,13 +97,10 @@ update ({ doNothing, justSetModel, justUpdateModel, justSetShared, justProduceCm
                                         getBigbitIsCompleted user.id
 
                                     _ ->
-                                        doNothing
+                                        common.doNothing
 
-                        handleGetBigbitOpinion ( model, shared ) =
+                        handleGetBigbitOpinion (Common common) ( model, shared ) =
                             let
-                                { doNothing } =
-                                    commonSubPageUtil model shared
-
                                 contentPointer =
                                     { contentType = ContentPointer.Bigbit
                                     , contentID = mongoID
@@ -115,7 +109,7 @@ update ({ doNothing, justSetModel, justUpdateModel, justSetShared, justProduceCm
                                 getOpinion =
                                     ( { model | possibleOpinion = Nothing }
                                     , shared
-                                    , api.get.opinionWrapper
+                                    , common.api.get.opinionWrapper
                                         contentPointer
                                         OnGetOpinionFailure
                                         OnGetOpinionSuccess
@@ -124,7 +118,7 @@ update ({ doNothing, justSetModel, justUpdateModel, justSetShared, justProduceCm
                                 case ( shared.user, model.possibleOpinion ) of
                                     ( Just user, Just { contentPointer, rating } ) ->
                                         if contentPointer.contentID == mongoID then
-                                            doNothing
+                                            common.doNothing
                                         else
                                             getOpinion
 
@@ -132,18 +126,15 @@ update ({ doNothing, justSetModel, justUpdateModel, justSetShared, justProduceCm
                                         getOpinion
 
                                     _ ->
-                                        doNothing
+                                        common.doNothing
 
-                        handleGetStoryForBigbit ( model, shared ) =
+                        handleGetStoryForBigbit (Common common) ( model, shared ) =
                             let
-                                doNothing =
-                                    ( model, shared, Cmd.none )
-
                                 maybeViewingStoryID =
                                     Maybe.map .id shared.viewingStory
 
                                 getStory storyID =
-                                    api.get.expandedStoryWithCompleted
+                                    common.api.get.expandedStoryWithCompleted
                                         storyID
                                         OnGetExpandedStoryFailure
                                         OnGetExpandedStorySuccess
@@ -151,7 +142,7 @@ update ({ doNothing, justSetModel, justUpdateModel, justSetShared, justProduceCm
                                 case Route.getFromStoryQueryParamOnViewBigbitRoute shared.route of
                                     Just fromStoryID ->
                                         if Just fromStoryID == maybeViewingStoryID then
-                                            doNothing
+                                            common.doNothing
                                         else
                                             ( model
                                             , { shared | viewingStory = Nothing }
@@ -159,10 +150,7 @@ update ({ doNothing, justSetModel, justUpdateModel, justSetShared, justProduceCm
                                             )
 
                                     _ ->
-                                        ( model
-                                        , { shared | viewingStory = Nothing }
-                                        , Cmd.none
-                                        )
+                                        common.justSetShared { shared | viewingStory = Nothing }
                     in
                         common.handleAll
                             [ handleGetBigbit
@@ -188,7 +176,7 @@ update ({ doNothing, justSetModel, justUpdateModel, justSetShared, justProduceCm
                                                 Completed.completedFromIsCompleted isCompleted user.id
                                         in
                                             if isCompleted.complete == False then
-                                                api.post.addCompletedWrapper
+                                                common.api.post.addCompletedWrapper
                                                     completed
                                                     OnMarkAsCompleteFailure
                                                     OnMarkAsCompleteSuccess
@@ -200,16 +188,16 @@ update ({ doNothing, justSetModel, justUpdateModel, justSetShared, justProduceCm
                                 )
 
                     _ ->
-                        doNothing
+                        common.doNothing
 
         OnRangeSelected selectedRange ->
             case model.bigbit of
                 Nothing ->
-                    doNothing
+                    common.doNothing
 
                 Just aBigbit ->
                     if Range.isEmptyRange selectedRange then
-                        justUpdateModel <| setRelevantHC Nothing
+                        common.justUpdateModel <| setRelevantHC Nothing
                     else
                         aBigbit.highlightedComments
                             |> Array.indexedMap (,)
@@ -223,7 +211,7 @@ update ({ doNothing, justSetModel, justUpdateModel, justSetShared, justProduceCm
                                            )
                                 )
                             |> (\relevantHC ->
-                                    justUpdateModel <|
+                                    common.justUpdateModel <|
                                         setRelevantHC <|
                                             Just
                                                 { currentHC = Nothing
@@ -245,36 +233,36 @@ update ({ doNothing, justSetModel, justUpdateModel, justSetShared, justProduceCm
             common.justSetModalError apiError
 
         OnGetCompletedSuccess isCompleted ->
-            justUpdateModel <| setIsCompleted <| Just isCompleted
+            common.justUpdateModel <| setIsCompleted <| Just isCompleted
 
         OnGetCompletedFailure apiError ->
             common.justSetModalError apiError
 
         OnGetOpinionSuccess possibleOpinion ->
-            justSetModel { model | possibleOpinion = Just possibleOpinion }
+            common.justSetModel { model | possibleOpinion = Just possibleOpinion }
 
         OnGetOpinionFailure apiError ->
             common.justSetModalError apiError
 
         AddOpinion opinion ->
-            justProduceCmd <|
-                api.post.addOpinionWrapper opinion OnAddOpinionFailure OnAddOpinionSuccess
+            common.justProduceCmd <|
+                common.api.post.addOpinionWrapper opinion OnAddOpinionFailure OnAddOpinionSuccess
 
         OnAddOpinionSuccess opinion ->
-            justSetModel { model | possibleOpinion = Just (Opinion.toPossibleOpinion opinion) }
+            common.justSetModel { model | possibleOpinion = Just (Opinion.toPossibleOpinion opinion) }
 
         OnAddOpinionFailure apiError ->
             common.justSetModalError apiError
 
         RemoveOpinion opinion ->
-            justProduceCmd <|
-                api.post.removeOpinionWrapper opinion OnRemoveOpinionFailure OnRemoveOpinionSuccess
+            common.justProduceCmd <|
+                common.api.post.removeOpinionWrapper opinion OnRemoveOpinionFailure OnRemoveOpinionSuccess
 
         {- Currently it doesn't matter what opinion we removed because you can only have 1, but it may change in the
            future where we have multiple opinions, then use the `opinion` to figure out which to remove.
         -}
         OnRemoveOpinionSuccess { contentPointer, rating } ->
-            justSetModel
+            common.justSetModel
                 { model
                     | possibleOpinion = Just { contentPointer = contentPointer, rating = Nothing }
                 }
@@ -283,13 +271,13 @@ update ({ doNothing, justSetModel, justUpdateModel, justSetShared, justProduceCm
             common.justSetModalError apiError
 
         OnGetExpandedStorySuccess story ->
-            justSetShared { shared | viewingStory = Just story }
+            common.justSetShared { shared | viewingStory = Just story }
 
         OnGetExpandedStoryFailure apiError ->
             common.justSetModalError apiError
 
         ToggleFS ->
-            justUpdateModel <|
+            common.justUpdateModel <|
                 updateBigbit
                     (\currentViewingBigbit ->
                         { currentViewingBigbit
@@ -309,12 +297,12 @@ update ({ doNothing, justSetModel, justUpdateModel, justSetShared, justProduceCm
                             Nothing
             in
                 if Just absolutePath == tutorialFile then
-                    justProduceCmd <| Route.navigateToSameUrlWithFilePath Nothing shared.route
+                    common.justProduceCmd <| Route.navigateToSameUrlWithFilePath Nothing shared.route
                 else
-                    justProduceCmd <| Route.navigateToSameUrlWithFilePath (Just absolutePath) shared.route
+                    common.justProduceCmd <| Route.navigateToSameUrlWithFilePath (Just absolutePath) shared.route
 
         ToggleFolder absolutePath ->
-            justUpdateModel <|
+            common.justUpdateModel <|
                 updateBigbit <|
                     (\currentViewingBigbit ->
                         { currentViewingBigbit
@@ -382,27 +370,27 @@ update ({ doNothing, justSetModel, justUpdateModel, justSetShared, justProduceCm
             )
 
         MarkAsComplete completed ->
-            justProduceCmd <|
-                api.post.addCompletedWrapper
+            common.justProduceCmd <|
+                common.api.post.addCompletedWrapper
                     completed
                     OnMarkAsCompleteFailure
                     OnMarkAsCompleteSuccess
 
         OnMarkAsCompleteSuccess isCompleted ->
-            justUpdateModel <| setIsCompleted <| Just isCompleted
+            common.justUpdateModel <| setIsCompleted <| Just isCompleted
 
         OnMarkAsCompleteFailure apiError ->
             common.justSetModalError apiError
 
         MarkAsIncomplete completed ->
-            justProduceCmd <|
-                api.post.removeCompletedWrapper
+            common.justProduceCmd <|
+                common.api.post.removeCompletedWrapper
                     completed
                     OnMarkAsIncompleteFailure
                     OnMarkAsIncompleteSuccess
 
         OnMarkAsIncompleteSuccess isCompleted ->
-            justUpdateModel <| setIsCompleted <| Just isCompleted
+            common.justUpdateModel <| setIsCompleted <| Just isCompleted
 
         OnMarkAsIncompleteFailure apiError ->
             common.justSetModalError apiError
@@ -410,10 +398,10 @@ update ({ doNothing, justSetModel, justUpdateModel, justSetShared, justProduceCm
         BackToTutorialSpot ->
             case shared.route of
                 Route.ViewBigbitFramePage _ _ _ _ ->
-                    justProduceCmd <| Route.navigateToSameUrlWithFilePath Nothing shared.route
+                    common.justProduceCmd <| Route.navigateToSameUrlWithFilePath Nothing shared.route
 
                 _ ->
-                    doNothing
+                    common.doNothing
 
 
 {-| Creates the code editor for the bigbit when browsing relevant HC.

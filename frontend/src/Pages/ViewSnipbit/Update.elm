@@ -1,7 +1,7 @@
 module Pages.ViewSnipbit.Update exposing (..)
 
 import Array
-import DefaultServices.CommonSubPageUtil exposing (CommonSubPageUtil, commonSubPageUtil)
+import DefaultServices.CommonSubPageUtil exposing (CommonSubPageUtil(..), commonSubPageUtil)
 import DefaultServices.Util as Util exposing (maybeMapWithDefault)
 import Elements.Editor as Editor
 import Models.Completed as Completed
@@ -22,13 +22,13 @@ import Ports
 {-| `ViewSnipbit` update.
 -}
 update : CommonSubPageUtil Model Shared Msg -> Msg -> Model -> Shared -> ( Model, Shared, Cmd Msg )
-update ({ doNothing, justSetModel, justUpdateModel, justSetShared, justProduceCmd, api } as common) msg model shared =
+update (Common common) msg model shared =
     case msg of
         NoOp ->
-            doNothing
+            common.doNothing
 
         GoTo route ->
-            justProduceCmd <| Route.navigateTo route
+            common.justProduceCmd <| Route.navigateTo route
 
         OnRouteHit route ->
             let
@@ -51,12 +51,12 @@ update ({ doNothing, justSetModel, justUpdateModel, justSetShared, justProduceCm
                             TidbitPointer.TidbitPointer TidbitPointer.Snipbit mongoID
 
                         -- Handle getting snipbit if needed.
-                        handleGetSnipbit ( model, shared ) =
+                        handleGetSnipbit (Common common) ( model, shared ) =
                             let
                                 getSnipbit mongoID =
                                     ( setViewingSnipbit Nothing model
                                     , shared
-                                    , api.get.snipbit
+                                    , common.api.get.snipbit
                                         mongoID
                                         OnGetSnipbitFailure
                                         OnGetSnipbitSuccess
@@ -76,15 +76,12 @@ update ({ doNothing, justSetModel, justUpdateModel, justSetShared, justProduceCm
                                             getSnipbit mongoID
 
                         -- Handle getting snipbit is-completed if needed.
-                        handleGetSnipbitIsCompleted ( model, shared ) =
+                        handleGetSnipbitIsCompleted (Common common) ( model, shared ) =
                             let
-                                doNothing =
-                                    ( model, shared, Cmd.none )
-
                                 getSnipbitIsCompleted userID =
                                     ( setViewingSnipbitIsCompleted Nothing model
                                     , shared
-                                    , api.post.checkCompletedWrapper
+                                    , common.api.post.checkCompletedWrapper
                                         (Completed.Completed currentTidbitPointer userID)
                                         OnGetCompletedFailure
                                         OnGetCompletedSuccess
@@ -96,18 +93,15 @@ update ({ doNothing, justSetModel, justUpdateModel, justSetShared, justProduceCm
 
                                     ( Just user, Just currentCompleted ) ->
                                         if currentCompleted.tidbitPointer == currentTidbitPointer then
-                                            doNothing
+                                            common.doNothing
                                         else
                                             getSnipbitIsCompleted user.id
 
                                     _ ->
-                                        doNothing
+                                        common.doNothing
 
-                        handleGetSnipbitOpinion ( model, shared ) =
+                        handleGetSnipbitOpinion (Common common) ( model, shared ) =
                             let
-                                { doNothing } =
-                                    commonSubPageUtil model shared
-
                                 contentPointer =
                                     { contentType = ContentPointer.Snipbit
                                     , contentID = mongoID
@@ -116,7 +110,7 @@ update ({ doNothing, justSetModel, justUpdateModel, justSetShared, justProduceCm
                                 getOpinion =
                                     ( { model | possibleOpinion = Nothing }
                                     , shared
-                                    , api.get.opinionWrapper
+                                    , common.api.get.opinionWrapper
                                         contentPointer
                                         OnGetOpinionFailure
                                         OnGetOpinionSuccess
@@ -125,7 +119,7 @@ update ({ doNothing, justSetModel, justUpdateModel, justSetShared, justProduceCm
                                 case ( shared.user, model.possibleOpinion ) of
                                     ( Just user, Just { contentPointer, rating } ) ->
                                         if contentPointer.contentID == mongoID then
-                                            doNothing
+                                            common.doNothing
                                         else
                                             getOpinion
 
@@ -133,19 +127,16 @@ update ({ doNothing, justSetModel, justUpdateModel, justSetShared, justProduceCm
                                         getOpinion
 
                                     _ ->
-                                        doNothing
+                                        common.doNothing
 
                         -- Handle getting story if viewing snipbit from story.
-                        handleGetStoryForSnipbit ( model, shared ) =
+                        handleGetStoryForSnipbit (Common common) ( model, shared ) =
                             let
-                                doNothing =
-                                    ( model, shared, Cmd.none )
-
                                 maybeViewingStoryID =
                                     Maybe.map .id shared.viewingStory
 
                                 getStory storyID =
-                                    api.get.expandedStoryWithCompleted
+                                    common.api.get.expandedStoryWithCompleted
                                         storyID
                                         OnGetExpandedStoryFailure
                                         OnGetExpandedStorySuccess
@@ -153,7 +144,7 @@ update ({ doNothing, justSetModel, justUpdateModel, justSetShared, justProduceCm
                                 case Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route of
                                     Just storyID ->
                                         if (Just storyID) == maybeViewingStoryID then
-                                            doNothing
+                                            common.doNothing
                                         else
                                             ( model
                                             , { shared | viewingStory = Nothing }
@@ -161,10 +152,7 @@ update ({ doNothing, justSetModel, justUpdateModel, justSetShared, justProduceCm
                                             )
 
                                     _ ->
-                                        ( model
-                                        , { shared | viewingStory = Nothing }
-                                        , Cmd.none
-                                        )
+                                        common.justSetShared { shared | viewingStory = Nothing }
                     in
                         common.handleAll
                             [ handleGetSnipbit
@@ -192,7 +180,7 @@ update ({ doNothing, justSetModel, justUpdateModel, justSetShared, justProduceCm
                                                     user.id
                                         in
                                             if isCompleted.complete == False then
-                                                api.post.addCompletedWrapper
+                                                common.api.post.addCompletedWrapper
                                                     completed
                                                     OnMarkAsCompleteFailure
                                                     OnMarkAsCompleteSuccess
@@ -204,10 +192,10 @@ update ({ doNothing, justSetModel, justUpdateModel, justSetShared, justProduceCm
                                 )
 
                     _ ->
-                        doNothing
+                        common.doNothing
 
         OnGetCompletedSuccess isCompleted ->
-            justUpdateModel <| setViewingSnipbitIsCompleted <| Just isCompleted
+            common.justUpdateModel <| setViewingSnipbitIsCompleted <| Just isCompleted
 
         OnGetCompletedFailure apiError ->
             common.justSetModalError apiError
@@ -226,30 +214,30 @@ update ({ doNothing, justSetModel, justUpdateModel, justSetShared, justProduceCm
             common.justSetModalError apiError
 
         OnGetOpinionSuccess possibleOpinion ->
-            justSetModel { model | possibleOpinion = Just possibleOpinion }
+            common.justSetModel { model | possibleOpinion = Just possibleOpinion }
 
         OnGetOpinionFailure apiError ->
             common.justSetModalError apiError
 
         AddOpinion opinion ->
-            justProduceCmd <|
-                api.post.addOpinionWrapper opinion OnAddOpinionFailure OnAddOpinionSuccess
+            common.justProduceCmd <|
+                common.api.post.addOpinionWrapper opinion OnAddOpinionFailure OnAddOpinionSuccess
 
         OnAddOpinionSuccess opinion ->
-            justSetModel { model | possibleOpinion = Just (Opinion.toPossibleOpinion opinion) }
+            common.justSetModel { model | possibleOpinion = Just (Opinion.toPossibleOpinion opinion) }
 
         OnAddOpinionFailure apiError ->
             common.justSetModalError apiError
 
         RemoveOpinion opinion ->
-            justProduceCmd <|
-                api.post.removeOpinionWrapper opinion OnRemoveOpinionFailure OnRemoveOpinionSuccess
+            common.justProduceCmd <|
+                common.api.post.removeOpinionWrapper opinion OnRemoveOpinionFailure OnRemoveOpinionSuccess
 
         {- Currently it doesn't matter what opinion we removed because you can only have 1, but it may change in the
            future where we have multiple opinions, then use the `opinion` to figure out which to remove.
         -}
         OnRemoveOpinionSuccess { contentPointer, rating } ->
-            justSetModel
+            common.justSetModel
                 { model
                     | possibleOpinion = Just { contentPointer = contentPointer, rating = Nothing }
                 }
@@ -258,7 +246,7 @@ update ({ doNothing, justSetModel, justUpdateModel, justSetShared, justProduceCm
             common.justSetModalError apiError
 
         OnGetExpandedStorySuccess expandedStory ->
-            justSetShared { shared | viewingStory = Just expandedStory }
+            common.justSetShared { shared | viewingStory = Just expandedStory }
 
         OnGetExpandedStoryFailure apiError ->
             common.justSetModalError apiError
@@ -266,11 +254,11 @@ update ({ doNothing, justSetModel, justUpdateModel, justSetShared, justProduceCm
         OnRangeSelected selectedRange ->
             case model.snipbit of
                 Nothing ->
-                    doNothing
+                    common.doNothing
 
                 Just aSnipbit ->
                     if Range.isEmptyRange selectedRange then
-                        justUpdateModel <| setViewingSnipbitRelevantHC Nothing
+                        common.justUpdateModel <| setViewingSnipbitRelevantHC Nothing
                     else
                         aSnipbit.highlightedComments
                             |> Array.indexedMap (,)
@@ -280,7 +268,7 @@ update ({ doNothing, justSetModel, justUpdateModel, justSetShared, justProduceCm
                                     >> (Range.overlappingRanges selectedRange)
                                 )
                             |> (\relevantHC ->
-                                    justUpdateModel <|
+                                    common.justUpdateModel <|
                                         setViewingSnipbitRelevantHC <|
                                             Just
                                                 { currentHC = Nothing
@@ -343,20 +331,20 @@ update ({ doNothing, justSetModel, justUpdateModel, justSetShared, justProduceCm
             )
 
         MarkAsComplete completed ->
-            justProduceCmd <| api.post.addCompletedWrapper completed OnMarkAsCompleteFailure OnMarkAsCompleteSuccess
+            common.justProduceCmd <| common.api.post.addCompletedWrapper completed OnMarkAsCompleteFailure OnMarkAsCompleteSuccess
 
         OnMarkAsCompleteSuccess isCompleted ->
-            justUpdateModel <| setViewingSnipbitIsCompleted <| Just isCompleted
+            common.justUpdateModel <| setViewingSnipbitIsCompleted <| Just isCompleted
 
         OnMarkAsCompleteFailure apiError ->
             common.justSetModalError apiError
 
         MarkAsIncomplete completed ->
-            justProduceCmd <|
-                api.post.removeCompletedWrapper completed OnMarkAsIncompleteFailure OnMarkAsIncompleteSuccess
+            common.justProduceCmd <|
+                common.api.post.removeCompletedWrapper completed OnMarkAsIncompleteFailure OnMarkAsIncompleteSuccess
 
         OnMarkAsIncompleteSuccess isCompleted ->
-            justUpdateModel <| setViewingSnipbitIsCompleted <| Just isCompleted
+            common.justUpdateModel <| setViewingSnipbitIsCompleted <| Just isCompleted
 
         OnMarkAsIncompleteFailure apiError ->
             common.justSetModalError apiError

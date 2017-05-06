@@ -1,7 +1,7 @@
 module Pages.CreateBigbit.Update exposing (..)
 
 import Array
-import DefaultServices.CommonSubPageUtil exposing (CommonSubPageUtil, commonSubPageUtil)
+import DefaultServices.CommonSubPageUtil exposing (CommonSubPageUtil(..), commonSubPageUtil)
 import DefaultServices.Util as Util exposing (maybeMapWithDefault, togglePreviewMarkdown)
 import Dict
 import Elements.Editor as Editor
@@ -20,17 +20,17 @@ import Ports
 {-| `CreateBigbit` update.
 -}
 update : CommonSubPageUtil Model Shared Msg -> Msg -> Model -> Shared -> ( Model, Shared, Cmd Msg )
-update ({ doNothing, justSetModel, justUpdateModel, justProduceCmd, withCmd, api } as common) msg model shared =
+update (Common common) msg model shared =
     let
         currentBigbitHighlightedComments =
             model.highlightedComments
     in
         case msg of
             NoOp ->
-                doNothing
+                common.doNothing
 
             GoTo route ->
-                justProduceCmd <| Route.navigateTo route
+                common.justProduceCmd <| Route.navigateTo route
 
             OnRouteHit route ->
                 let
@@ -69,7 +69,7 @@ update ({ doNothing, justSetModel, justUpdateModel, justProduceCmd, withCmd, api
                             ]
 
                     focusOn theID =
-                        justProduceCmd <| Util.domFocus (\_ -> NoOp) theID
+                        common.justProduceCmd <| Util.domFocus (\_ -> NoOp) theID
                 in
                     case route of
                         Route.CreateBigbitNamePage ->
@@ -82,7 +82,7 @@ update ({ doNothing, justSetModel, justUpdateModel, justProduceCmd, withCmd, api
                             focusOn "tags-input"
 
                         Route.CreateBigbitCodeIntroductionPage maybeFilePath ->
-                            justProduceCmd <|
+                            common.justProduceCmd <|
                                 Cmd.batch
                                     [ createCreateBigbitEditorForCurrentFile
                                         Nothing
@@ -93,9 +93,9 @@ update ({ doNothing, justSetModel, justUpdateModel, justProduceCmd, withCmd, api
 
                         Route.CreateBigbitCodeFramePage frameNumber maybeFilePath ->
                             if frameNumber < 1 then
-                                justProduceCmd <| Route.modifyTo <| Route.CreateBigbitCodeIntroductionPage Nothing
+                                common.justProduceCmd <| Route.modifyTo <| Route.CreateBigbitCodeIntroductionPage Nothing
                             else if frameNumber > (Array.length currentBigbitHighlightedComments) then
-                                justProduceCmd <| Route.modifyTo <| Route.CreateBigbitCodeConclusionPage Nothing
+                                common.justProduceCmd <| Route.modifyTo <| Route.CreateBigbitCodeConclusionPage Nothing
                             else
                                 let
                                     -- Update the HC if the route has a file path.
@@ -158,7 +158,7 @@ update ({ doNothing, justSetModel, justUpdateModel, justProduceCmd, withCmd, api
                                     )
 
                         Route.CreateBigbitCodeConclusionPage maybeFilePath ->
-                            justProduceCmd <|
+                            common.justProduceCmd <|
                                 Cmd.batch
                                     [ createCreateBigbitEditorForCurrentFile
                                         Nothing
@@ -168,13 +168,13 @@ update ({ doNothing, justSetModel, justUpdateModel, justProduceCmd, withCmd, api
                                     ]
 
                         _ ->
-                            doNothing
+                            common.doNothing
 
             -- Update the code and also check if any ranges are out of range and update those ranges.
             OnUpdateCode { newCode, action, deltaRange } ->
                 case createBigbitPageCurrentActiveFile shared.route of
                     Nothing ->
-                        doNothing
+                        common.doNothing
 
                     Just filePath ->
                         let
@@ -221,7 +221,7 @@ update ({ doNothing, justSetModel, justUpdateModel, justProduceCmd, withCmd, api
                                     )
                                     currentBigbitHighlightedComments
                         in
-                            justSetModel
+                            common.justSetModel
                                 { model
                                     | fs = newFS
                                     , highlightedComments = newHC
@@ -232,15 +232,15 @@ update ({ doNothing, justSetModel, justUpdateModel, justProduceCmd, withCmd, api
                     Route.CreateBigbitCodeFramePage frameNumber currentPath ->
                         case Array.get (frameNumber - 1) currentBigbitHighlightedComments of
                             Nothing ->
-                                doNothing
+                                common.doNothing
 
                             Just highlightedComment ->
                                 case highlightedComment.fileAndRange of
                                     Nothing ->
-                                        doNothing
+                                        common.doNothing
 
                                     Just fileAndRange ->
-                                        justSetModel
+                                        common.justSetModel
                                             { model
                                                 | highlightedComments =
                                                     Array.set
@@ -253,7 +253,7 @@ update ({ doNothing, justSetModel, justUpdateModel, justProduceCmd, withCmd, api
                                             }
 
                     _ ->
-                        doNothing
+                        common.doNothing
 
             GoToCodeTab ->
                 ( { model | previewMarkdown = False }
@@ -286,7 +286,7 @@ update ({ doNothing, justSetModel, justUpdateModel, justProduceCmd, withCmd, api
 
             RemoveFrame ->
                 if Array.length currentBigbitHighlightedComments == 1 then
-                    doNothing
+                    common.doNothing
                 else
                     let
                         newHighlightedComments =
@@ -320,19 +320,19 @@ update ({ doNothing, justSetModel, justUpdateModel, justProduceCmd, withCmd, api
                         ( newModel, shared, newCmd )
 
             ToggleFS ->
-                justSetModel { model | fs = Bigbit.toggleFS model.fs }
+                common.justSetModel { model | fs = Bigbit.toggleFS model.fs }
 
             ToggleFolder folderPath ->
-                justSetModel { model | fs = Bigbit.toggleFSFolder folderPath model.fs }
+                common.justSetModel { model | fs = Bigbit.toggleFSFolder folderPath model.fs }
 
             SelectFile absolutePath ->
-                justProduceCmd <| Route.navigateToSameUrlWithFilePath (Just absolutePath) shared.route
+                common.justProduceCmd <| Route.navigateToSameUrlWithFilePath (Just absolutePath) shared.route
 
             TogglePreviewMarkdown ->
-                justUpdateModel togglePreviewMarkdown
+                common.justUpdateModel togglePreviewMarkdown
 
             AddFile absolutePath language ->
-                justSetModel <|
+                common.justSetModel <|
                     { model
                         | fs =
                             model.fs
@@ -358,13 +358,13 @@ update ({ doNothing, justSetModel, justUpdateModel, justProduceCmd, withCmd, api
                         )
 
                     _ ->
-                        doNothing
+                        common.doNothing
 
             OnUpdateName newName ->
-                justSetModel { model | name = newName }
+                common.justSetModel { model | name = newName }
 
             OnUpdateDescription newDescription ->
-                justSetModel { model | description = newDescription }
+                common.justSetModel { model | description = newDescription }
 
             OnUpdateTagInput newTagInput ->
                 if String.endsWith " " newTagInput then
@@ -375,34 +375,34 @@ update ({ doNothing, justSetModel, justUpdateModel, justProduceCmd, withCmd, api
                         newTags =
                             Util.addUniqueNonEmptyString newTag model.tags
                     in
-                        justSetModel
+                        common.justSetModel
                             { model
                                 | tags = newTags
                                 , tagInput = ""
                             }
                 else
-                    justSetModel { model | tagInput = newTagInput }
+                    common.justSetModel { model | tagInput = newTagInput }
 
             AddTag tagName ->
-                justSetModel
+                common.justSetModel
                     { model
                         | tags = Util.addUniqueNonEmptyString tagName model.tags
                         , tagInput = ""
                     }
 
             RemoveTag tagName ->
-                justSetModel { model | tags = List.filter (\tag -> tag /= tagName) model.tags }
+                common.justSetModel { model | tags = List.filter (\tag -> tag /= tagName) model.tags }
 
             OnUpdateIntroduction newIntro ->
-                justSetModel { model | introduction = newIntro }
+                common.justSetModel { model | introduction = newIntro }
 
             OnUpdateFrameComment frameNumber newComment ->
                 case Array.get (frameNumber - 1) currentBigbitHighlightedComments of
                     Nothing ->
-                        doNothing
+                        common.doNothing
 
                     Just highlightedComment ->
-                        justSetModel
+                        common.justSetModel
                             { model
                                 | highlightedComments =
                                     Array.set
@@ -412,7 +412,7 @@ update ({ doNothing, justSetModel, justUpdateModel, justProduceCmd, withCmd, api
                             }
 
             OnUpdateConclusion newConclusion ->
-                justSetModel { model | conclusion = newConclusion }
+                common.justSetModel { model | conclusion = newConclusion }
 
             UpdateActionButtonState newActionState ->
                 ( { model
@@ -435,7 +435,7 @@ update ({ doNothing, justSetModel, justUpdateModel, justProduceCmd, withCmd, api
                 )
 
             OnUpdateActionInput newActionButtonInput ->
-                justSetModel
+                common.justSetModel
                     { model
                         | fs =
                             model.fs
@@ -624,7 +624,7 @@ update ({ doNothing, justSetModel, justUpdateModel, justProduceCmd, withCmd, api
                     ( newModel, shared, newCmd )
 
             Publish bigbit ->
-                justProduceCmd <| api.post.createBigbit bigbit OnPublishFailure OnPublishSuccess
+                common.justProduceCmd <| common.api.post.createBigbit bigbit OnPublishFailure OnPublishSuccess
 
             OnPublishSuccess { targetID } ->
                 ( init

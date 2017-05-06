@@ -1,6 +1,6 @@
 module Pages.Profile.Update exposing (..)
 
-import DefaultServices.CommonSubPageUtil exposing (CommonSubPageUtil)
+import DefaultServices.CommonSubPageUtil exposing (CommonSubPageUtil(..))
 import DefaultServices.Editable as Editable
 import Models.Route as Route
 import Models.User exposing (defaultUserUpdateRecord)
@@ -12,28 +12,28 @@ import Pages.Profile.Model exposing (..)
 {-| `Profile` update.
 -}
 update : CommonSubPageUtil Model Shared Msg -> Msg -> Model -> Shared -> ( Model, Shared, Cmd Msg )
-update { doNothing, justSetModel, justUpdateModel, justProduceCmd, api, justSetModalError } msg model shared =
+update (Common common) msg model shared =
     case msg of
         OnEditName originalName newName ->
-            justUpdateModel <| setName originalName newName
+            common.justUpdateModel <| setName originalName newName
 
         CancelEditedName ->
-            justUpdateModel cancelEditingName
+            common.justUpdateModel cancelEditingName
 
         SaveEditedName ->
             case model.accountName of
                 Nothing ->
-                    doNothing
+                    common.doNothing
 
                 Just editableName ->
                     if Editable.bufferIs (not << String.isEmpty) editableName then
-                        justProduceCmd <|
-                            api.post.updateUser
+                        common.justProduceCmd <|
+                            common.api.post.updateUser
                                 { defaultUserUpdateRecord | name = Just <| Editable.getBuffer editableName }
                                 OnSaveEditedNameFailure
                                 OnSaveEditedNameSuccess
                     else
-                        doNothing
+                        common.doNothing
 
         OnSaveEditedNameSuccess updatedUser ->
             ( setAccountNameToNothing model
@@ -42,28 +42,28 @@ update { doNothing, justSetModel, justUpdateModel, justProduceCmd, api, justSetM
             )
 
         OnSaveEditedNameFailure apiError ->
-            justSetModalError apiError
+            common.justSetModalError apiError
 
         OnEditBio originalBio newBio ->
-            justUpdateModel <| setBio originalBio newBio
+            common.justUpdateModel <| setBio originalBio newBio
 
         CancelEditedBio ->
-            justUpdateModel cancelEditingBio
+            common.justUpdateModel cancelEditingBio
 
         SaveEditedBio ->
             case model.accountBio of
                 Nothing ->
-                    doNothing
+                    common.doNothing
 
                 Just editableBio ->
                     if Editable.bufferIs (not << String.isEmpty) editableBio then
-                        justProduceCmd <|
-                            api.post.updateUser
+                        common.justProduceCmd <|
+                            common.api.post.updateUser
                                 { defaultUserUpdateRecord | bio = Just <| Editable.getBuffer editableBio }
                                 OnSaveBioEditedFailure
                                 OnSaveEditedBioSuccess
                     else
-                        doNothing
+                        common.doNothing
 
         OnSaveEditedBioSuccess updatedUser ->
             ( setAccountBioToNothing model
@@ -72,14 +72,14 @@ update { doNothing, justSetModel, justUpdateModel, justProduceCmd, api, justSetM
             )
 
         OnSaveBioEditedFailure apiError ->
-            justSetModalError apiError
+            common.justSetModalError apiError
 
         LogOut ->
-            justProduceCmd <| api.get.logOut OnLogOutFailure OnLogOutSuccess
+            common.justProduceCmd <| common.api.get.logOut OnLogOutFailure OnLogOutSuccess
 
         OnLogOutSuccess basicResponse ->
             -- The base update will check for this message and reset the entire model.
-            justProduceCmd <| Route.navigateTo Route.RegisterPage
+            common.justProduceCmd <| Route.navigateTo Route.RegisterPage
 
         OnLogOutFailure apiError ->
-            justSetModel <| { model | logOutError = Just apiError }
+            common.justSetModel <| { model | logOutError = Just apiError }

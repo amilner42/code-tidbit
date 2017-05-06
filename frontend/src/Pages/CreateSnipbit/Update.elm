@@ -3,7 +3,7 @@ module Pages.CreateSnipbit.Update exposing (..)
 import Array
 import Autocomplete as AC
 import DefaultServices.ArrayExtra as ArrayExtra
-import DefaultServices.CommonSubPageUtil exposing (CommonSubPageUtil, commonSubPageUtil)
+import DefaultServices.CommonSubPageUtil exposing (CommonSubPageUtil(..), commonSubPageUtil)
 import DefaultServices.Util as Util exposing (togglePreviewMarkdown, maybeMapWithDefault)
 import Elements.Editor as Editor
 import JSON.Language
@@ -21,17 +21,17 @@ import Ports
 {-| `CreateSnipbit` update.
 -}
 update : CommonSubPageUtil Model Shared Msg -> Msg -> Model -> Shared -> ( Model, Shared, Cmd Msg )
-update { doNothing, justSetModel, justProduceCmd, api, justSetModalError } msg model shared =
+update (Common common) msg model shared =
     let
         currentHighlightedComments =
             model.highlightedComments
     in
         case msg of
             NoOp ->
-                doNothing
+                common.doNothing
 
             GoTo route ->
-                justProduceCmd <| Route.navigateTo route
+                common.justProduceCmd <| Route.navigateTo route
 
             OnRouteHit route ->
                 let
@@ -58,7 +58,7 @@ update { doNothing, justSetModel, justProduceCmd, api, justSetModalError } msg m
                                 ]
 
                     focusOn theID =
-                        justProduceCmd <| Util.domFocus (\_ -> NoOp) theID
+                        common.justProduceCmd <| Util.domFocus (\_ -> NoOp) theID
                 in
                     case route of
                         Route.CreateSnipbitNamePage ->
@@ -74,7 +74,7 @@ update { doNothing, justSetModel, justProduceCmd, api, justSetModalError } msg m
                             focusOn "tags-input"
 
                         Route.CreateSnipbitCodeIntroductionPage ->
-                            justProduceCmd <|
+                            common.justProduceCmd <|
                                 Cmd.batch
                                     [ createCreateSnipbitEditor Nothing
                                     , Util.domFocus (\_ -> NoOp) "introduction-input"
@@ -93,9 +93,9 @@ update { doNothing, justSetModel, justProduceCmd, api, justSetModalError } msg m
                                     frameIndex < 0
                             in
                                 if frameIndexTooLow then
-                                    justProduceCmd <| Route.modifyTo Route.CreateSnipbitCodeIntroductionPage
+                                    common.justProduceCmd <| Route.modifyTo Route.CreateSnipbitCodeIntroductionPage
                                 else if frameIndexTooHigh then
-                                    justProduceCmd <| Route.modifyTo Route.CreateSnipbitCodeConclusionPage
+                                    common.justProduceCmd <| Route.modifyTo Route.CreateSnipbitCodeConclusionPage
                                 else
                                     let
                                         -- Either the existing range, the range from
@@ -128,22 +128,22 @@ update { doNothing, justSetModel, justProduceCmd, api, justSetModalError } msg m
                                         )
 
                         Route.CreateSnipbitCodeConclusionPage ->
-                            justProduceCmd <|
+                            common.justProduceCmd <|
                                 Cmd.batch
                                     [ createCreateSnipbitEditor Nothing
                                     , Util.domFocus (\_ -> NoOp) "conclusion-input"
                                     ]
 
                         _ ->
-                            doNothing
+                            common.doNothing
 
             OnRangeSelected newRange ->
                 case shared.route of
                     Route.CreateSnipbitCodeIntroductionPage ->
-                        doNothing
+                        common.doNothing
 
                     Route.CreateSnipbitCodeConclusionPage ->
-                        doNothing
+                        common.doNothing
 
                     Route.CreateSnipbitCodeFramePage frameNumber ->
                         let
@@ -152,7 +152,7 @@ update { doNothing, justSetModel, justProduceCmd, api, justSetModalError } msg m
                         in
                             case (Array.get frameIndex currentHighlightedComments) of
                                 Nothing ->
-                                    doNothing
+                                    common.doNothing
 
                                 Just currentFrameHighlightedComment ->
                                     let
@@ -162,11 +162,11 @@ update { doNothing, justSetModel, justProduceCmd, api, justSetModalError } msg m
                                         newHighlightedComments =
                                             Array.set frameIndex newFrame currentHighlightedComments
                                     in
-                                        justSetModel { model | highlightedComments = newHighlightedComments }
+                                        common.justSetModel { model | highlightedComments = newHighlightedComments }
 
                     -- Should never happen (highlighting when not on the editor pages).
                     _ ->
-                        doNothing
+                        common.doNothing
 
             OnUpdateACState acMsg ->
                 let
@@ -186,13 +186,13 @@ update { doNothing, justSetModel, justProduceCmd, api, justSetModalError } msg m
                 in
                     case maybeMsg of
                         Nothing ->
-                            justSetModel newModel
+                            common.justSetModel newModel
 
                         Just updateMsg ->
                             update (commonSubPageUtil newModel shared) updateMsg newModel shared
 
             OnUpdateACWrap toTop ->
-                justSetModel
+                common.justSetModel
                     { model
                         | languageQueryACState =
                             (if toTop then
@@ -234,7 +234,7 @@ update { doNothing, justSetModel, justProduceCmd, api, justSetModalError } msg m
                             )
                             currentHighlightedComments
                 in
-                    justSetModel
+                    common.justSetModel
                         { model
                             | code = newCode
                             , highlightedComments = newHighlightedComments
@@ -272,10 +272,10 @@ update { doNothing, justSetModel, justProduceCmd, api, justSetModalError } msg m
                 in
                     case shared.route of
                         Route.CreateSnipbitCodeIntroductionPage ->
-                            justSetModel newModel
+                            common.justSetModel newModel
 
                         Route.CreateSnipbitCodeConclusionPage ->
-                            justSetModel newModel
+                            common.justSetModel newModel
 
                         -- We need to go "down" a tab if the user was on the last tab and they removed a tab.
                         Route.CreateSnipbitCodeFramePage frameNumber ->
@@ -293,14 +293,14 @@ update { doNothing, justSetModel, justProduceCmd, api, justSetModalError } msg m
                                         newModel
                                         shared
                                 else
-                                    justSetModel newModel
+                                    common.justSetModel newModel
 
                         -- Should never happen.
                         _ ->
-                            justSetModel newModel
+                            common.justSetModel newModel
 
             TogglePreviewMarkdown ->
-                justSetModel <| Util.togglePreviewMarkdown model
+                common.justSetModel <| Util.togglePreviewMarkdown model
 
             JumpToLineFromPreviousFrame ->
                 case shared.route of
@@ -317,10 +317,10 @@ update { doNothing, justSetModel, justProduceCmd, api, justSetModalError } msg m
                         )
 
                     _ ->
-                        doNothing
+                        common.doNothing
 
             OnUpdateLanguageQuery newLanguageQuery ->
-                justSetModel { model | languageQuery = newLanguageQuery }
+                common.justSetModel { model | languageQuery = newLanguageQuery }
 
             SelectLanguage maybeEncodedLang ->
                 let
@@ -362,10 +362,10 @@ update { doNothing, justSetModel, justProduceCmd, api, justSetModalError } msg m
                     ( newModel, shared, newCmd )
 
             OnUpdateName newName ->
-                justSetModel { model | name = newName }
+                common.justSetModel { model | name = newName }
 
             OnUpdateDescription newDescription ->
-                justSetModel { model | description = newDescription }
+                common.justSetModel { model | description = newDescription }
 
             OnUpdateTagInput newTagInput ->
                 if String.endsWith " " newTagInput then
@@ -376,19 +376,19 @@ update { doNothing, justSetModel, justProduceCmd, api, justSetModalError } msg m
                         newTags =
                             Util.addUniqueNonEmptyString newTag model.tags
                     in
-                        justSetModel
+                        common.justSetModel
                             { model
                                 | tagInput = ""
                                 , tags = newTags
                             }
                 else
-                    justSetModel { model | tagInput = newTagInput }
+                    common.justSetModel { model | tagInput = newTagInput }
 
             RemoveTag tagName ->
-                justSetModel { model | tags = List.filter (\aTag -> aTag /= tagName) model.tags }
+                common.justSetModel { model | tags = List.filter (\aTag -> aTag /= tagName) model.tags }
 
             AddTag tagName ->
-                justSetModel
+                common.justSetModel
                     { model
                         | tags = Util.addUniqueNonEmptyString tagName model.tags
                         , tagInput = ""
@@ -397,7 +397,7 @@ update { doNothing, justSetModel, justProduceCmd, api, justSetModalError } msg m
             OnUpdateFrameComment index newComment ->
                 case Array.get index currentHighlightedComments of
                     Nothing ->
-                        doNothing
+                        common.doNothing
 
                     Just highlightComment ->
                         let
@@ -407,16 +407,16 @@ update { doNothing, justSetModel, justProduceCmd, api, justSetModalError } msg m
                             newHighlightedComments =
                                 Array.set index newHighlightComment currentHighlightedComments
                         in
-                            justSetModel { model | highlightedComments = newHighlightedComments }
+                            common.justSetModel { model | highlightedComments = newHighlightedComments }
 
             OnUpdateIntroduction newIntro ->
-                justSetModel { model | introduction = newIntro }
+                common.justSetModel { model | introduction = newIntro }
 
             OnUpdateConclusion newConclusion ->
-                justSetModel { model | conclusion = newConclusion }
+                common.justSetModel { model | conclusion = newConclusion }
 
             Publish snipbit ->
-                justProduceCmd <| api.post.createSnipbit snipbit OnPublishFailure OnPublishSuccess
+                common.justProduceCmd <| common.api.post.createSnipbit snipbit OnPublishFailure OnPublishSuccess
 
             OnPublishSuccess { targetID } ->
                 ( init
@@ -425,7 +425,7 @@ update { doNothing, justSetModel, justProduceCmd, api, justSetModalError } msg m
                 )
 
             OnPublishFailure apiError ->
-                justSetModalError apiError
+                common.justSetModalError apiError
 
 
 {-| Config for language-list auto-complete (used in snipbit creation).
