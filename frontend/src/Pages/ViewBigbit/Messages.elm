@@ -39,10 +39,6 @@ type Msg
     | NextRelevantHC
     | PreviousRelevantHC
     | JumpToFrame Route
-    | MarkAsComplete Completed
     | OnMarkAsCompleteSuccess IsCompleted
     | OnMarkAsCompleteFailure ApiError
-    | MarkAsIncomplete Completed
-    | OnMarkAsIncompleteSuccess IsCompleted
-    | OnMarkAsIncompleteFailure ApiError
     | BackToTutorialSpot

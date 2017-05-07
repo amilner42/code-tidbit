@@ -4,7 +4,7 @@ import Array
 import DefaultServices.Util as Util exposing (maybeMapWithDefault)
 import Elements.Editor as Editor
 import Elements.Markdown exposing (githubMarkdown)
-import Elements.ProgressBar exposing (TextFormat(Custom), State(..), progressBar)
+import Elements.ProgressBar as ProgressBar exposing (TextFormat(Custom), State(..), progressBar)
 import Html exposing (Html, div, text, button, i)
 import Html.Attributes exposing (class, classList, disabled, hidden, id)
 import Html.Events exposing (onClick)
@@ -27,7 +27,36 @@ view model shared =
         [ class "view-snipbit-page" ]
         [ div
             [ class "sub-bar" ]
-            [ case ( shared.viewingStory, model.snipbit ) of
+            [ case ( shared.user, model.possibleOpinion ) of
+                ( Just user, Just possibleOpinion ) ->
+                    let
+                        ( newMsg, buttonText ) =
+                            case possibleOpinion.rating of
+                                Nothing ->
+                                    ( AddOpinion
+                                        { contentPointer = possibleOpinion.contentPointer
+                                        , rating = Rating.Like
+                                        }
+                                    , "Love it!"
+                                    )
+
+                                Just rating ->
+                                    ( RemoveOpinion
+                                        { contentPointer = possibleOpinion.contentPointer
+                                        , rating = rating
+                                        }
+                                    , "Take Back Love"
+                                    )
+                    in
+                        button
+                            [ class "sub-bar-button heart-button"
+                            , onClick <| newMsg
+                            ]
+                            [ text buttonText ]
+
+                _ ->
+                    Util.hiddenDiv
+            , case ( shared.viewingStory, model.snipbit ) of
                 ( Just story, Just snipbit ) ->
                     case Story.getPreviousTidbitRoute snipbit.id story.id story.tidbits of
                         Just previousTidbitRoute ->
@@ -95,52 +124,6 @@ view model shared =
                 , onClick <| CancelBrowseRelevantHC
                 ]
                 [ text "Close Related Frames" ]
-            , case ( shared.user, model.isCompleted ) of
-                ( Just user, Just ({ complete } as isCompleted) ) ->
-                    if complete then
-                        button
-                            [ class "sub-bar-button complete-button"
-                            , onClick <| MarkAsIncomplete <| Completed.completedFromIsCompleted isCompleted user.id
-                            ]
-                            [ text "Mark Snipbit as Incomplete" ]
-                    else
-                        button
-                            [ class "sub-bar-button complete-button"
-                            , onClick <| MarkAsComplete <| Completed.completedFromIsCompleted isCompleted user.id
-                            ]
-                            [ text "Mark Snipbit as Complete" ]
-
-                _ ->
-                    Util.hiddenDiv
-            , case ( shared.user, model.possibleOpinion ) of
-                ( Just user, Just possibleOpinion ) ->
-                    let
-                        ( newMsg, buttonText ) =
-                            case possibleOpinion.rating of
-                                Nothing ->
-                                    ( AddOpinion
-                                        { contentPointer = possibleOpinion.contentPointer
-                                        , rating = Rating.Like
-                                        }
-                                    , "Love it!"
-                                    )
-
-                                Just rating ->
-                                    ( RemoveOpinion
-                                        { contentPointer = possibleOpinion.contentPointer
-                                        , rating = rating
-                                        }
-                                    , "Take Back Love"
-                                    )
-                    in
-                        button
-                            [ class "sub-bar-button heart-button"
-                            , onClick <| newMsg
-                            ]
-                            [ text buttonText ]
-
-                _ ->
-                    Util.hiddenDiv
             ]
         , case model.snipbit of
             Nothing ->
@@ -240,11 +223,21 @@ view model shared =
                                        )
                             , textFormat =
                                 Custom
-                                    { notStarted = "Not Started"
+                                    { notStarted = "0%"
                                     , started = (\frameNumber -> "Frame " ++ (toString frameNumber))
-                                    , done = "Completed"
+                                    , done = "100%"
                                     }
                             , shiftLeft = True
+                            , alreadyComplete =
+                                { for = ProgressBar.Tidbit
+                                , complete =
+                                    case ( shared.user, model.isCompleted ) of
+                                        ( Just _, Just { complete } ) ->
+                                            complete
+
+                                        _ ->
+                                            False
+                                }
                             }
                         , div
                             [ onClick <|

@@ -6,6 +6,7 @@ import Models.Range exposing (Range)
 import Models.Route exposing (Route)
 import Models.Snipbit exposing (Snipbit)
 import Models.Story exposing (ExpandedStory)
+import Models.QA exposing (SnipbitQA)
 import Models.Opinion exposing (Opinion, PossibleOpinion)
 
 
@@ -21,6 +22,8 @@ type Msg
     | OnGetSnipbitFailure ApiError
     | OnGetOpinionSuccess PossibleOpinion
     | OnGetOpinionFailure ApiError
+    | OnGetQAFailure ApiError
+    | OnGetQASuccess SnipbitQA
     | AddOpinion Opinion
     | OnAddOpinionSuccess Opinion
     | OnAddOpinionFailure ApiError
@@ -35,9 +38,5 @@ type Msg
     | NextRelevantHC
     | PreviousRelevantHC
     | JumpToFrame Route
-    | MarkAsComplete Completed
     | OnMarkAsCompleteSuccess IsCompleted
     | OnMarkAsCompleteFailure ApiError
-    | MarkAsIncomplete Completed
-    | OnMarkAsIncompleteSuccess IsCompleted
-    | OnMarkAsIncompleteFailure ApiError

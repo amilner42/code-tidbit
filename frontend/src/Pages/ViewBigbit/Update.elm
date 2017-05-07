@@ -369,30 +369,10 @@ update (Common common) msg model shared =
             , Route.navigateTo route
             )
 
-        MarkAsComplete completed ->
-            common.justProduceCmd <|
-                common.api.post.addCompletedWrapper
-                    completed
-                    OnMarkAsCompleteFailure
-                    OnMarkAsCompleteSuccess
-
         OnMarkAsCompleteSuccess isCompleted ->
             common.justUpdateModel <| setIsCompleted <| Just isCompleted
 
         OnMarkAsCompleteFailure apiError ->
-            common.justSetModalError apiError
-
-        MarkAsIncomplete completed ->
-            common.justProduceCmd <|
-                common.api.post.removeCompletedWrapper
-                    completed
-                    OnMarkAsIncompleteFailure
-                    OnMarkAsIncompleteSuccess
-
-        OnMarkAsIncompleteSuccess isCompleted ->
-            common.justUpdateModel <| setIsCompleted <| Just isCompleted
-
-        OnMarkAsIncompleteFailure apiError ->
             common.justSetModalError apiError
 
         BackToTutorialSpot ->

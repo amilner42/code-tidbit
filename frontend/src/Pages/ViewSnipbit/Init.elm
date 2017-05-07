@@ -11,4 +11,6 @@ init =
     , isCompleted = Nothing
     , possibleOpinion = Nothing
     , relevantHC = Nothing
+    , qa = Nothing
+    , relevantQuestions = Nothing
     }

@@ -30,6 +30,18 @@ type alias QA codePointerType =
     }
 
 
+{-| Snipbits use `Range`s as their code pointers.
+-}
+type alias SnipbitQuestion =
+    Question Range.Range
+
+
+{-| Bigbits use `BigbitCodePointer` as their code pointers.
+-}
+type alias BigbitQuestion =
+    Question BigbitCodePointer
+
+
 {-| A single question referring to some code.
 -}
 type alias Question codePointerType =

@@ -2,7 +2,7 @@ module Pages.ViewStory.View exposing (..)
 
 import DefaultServices.Util as Util
 import Elements.ContentBox exposing (contentBox)
-import Elements.ProgressBar exposing (TextFormat(Percentage), State(..), progressBar)
+import Elements.ProgressBar as ProgressBar exposing (TextFormat(Percentage), State(..), progressBar)
 import Html exposing (Html, div, button, text, i)
 import Html.Attributes exposing (class, classList)
 import Html.Events exposing (onClick)
@@ -157,6 +157,7 @@ view model shared =
                                                 , allowClick = False
                                                 , textFormat = Percentage
                                                 , shiftLeft = False
+                                                , alreadyComplete = { complete = doneStory, for = ProgressBar.Story }
                                                 }
                                             ]
                                         ]

@@ -5,6 +5,7 @@ import Models.Opinion exposing (PossibleOpinion)
 import Models.Completed exposing (IsCompleted)
 import Models.Snipbit exposing (Snipbit, HighlightedComment)
 import Models.ViewerRelevantHC exposing (ViewerRelevantHC, browsingFrames)
+import Models.QA exposing (SnipbitQA, SnipbitQuestion)
 
 
 {-| `ViewSnipbit` model.
@@ -14,6 +15,8 @@ type alias Model =
     , isCompleted : Maybe IsCompleted
     , possibleOpinion : Maybe PossibleOpinion
     , relevantHC : Maybe ViewingSnipbitRelevantHC
+    , qa : Maybe SnipbitQA
+    , relevantQuestions : Maybe (List SnipbitQuestion)
     }
 
 

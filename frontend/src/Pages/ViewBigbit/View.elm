@@ -5,7 +5,7 @@ import DefaultServices.Util as Util exposing (maybeMapWithDefault)
 import Elements.Editor as Editor
 import Elements.FileStructure as FS
 import Elements.Markdown exposing (githubMarkdown)
-import Elements.ProgressBar exposing (TextFormat(Custom), State(..), progressBar)
+import Elements.ProgressBar as ProgressBar exposing (TextFormat(Custom), State(..), progressBar)
 import Html exposing (Html, div, button, text, i)
 import Html.Attributes exposing (class, classList, hidden)
 import Html.Events exposing (onClick)
@@ -33,6 +33,14 @@ view model shared =
 
         currentRoute =
             shared.route
+
+        userDoneBigbit =
+            case ( shared.user, model.isCompleted ) of
+                ( Just _, Just { complete } ) ->
+                    complete
+
+                _ ->
+                    False
     in
         div
             [ classList
@@ -42,7 +50,36 @@ view model shared =
             ]
             [ div
                 [ class "sub-bar" ]
-                [ case ( shared.viewingStory, model.bigbit ) of
+                [ case ( shared.user, model.possibleOpinion ) of
+                    ( Just user, Just possibleOpinion ) ->
+                        let
+                            ( newMsg, buttonText ) =
+                                case possibleOpinion.rating of
+                                    Nothing ->
+                                        ( AddOpinion
+                                            { contentPointer = possibleOpinion.contentPointer
+                                            , rating = Rating.Like
+                                            }
+                                        , "Love it!"
+                                        )
+
+                                    Just rating ->
+                                        ( RemoveOpinion
+                                            { contentPointer = possibleOpinion.contentPointer
+                                            , rating = rating
+                                            }
+                                        , "Take Back Love"
+                                        )
+                        in
+                            button
+                                [ class "sub-bar-button heart-button"
+                                , onClick <| newMsg
+                                ]
+                                [ text buttonText ]
+
+                    _ ->
+                        Util.hiddenDiv
+                , case ( shared.viewingStory, model.bigbit ) of
                     ( Just story, Just bigbit ) ->
                         case Story.getPreviousTidbitRoute bigbit.id story.id story.tidbits of
                             Just previousTidbitRoute ->
@@ -110,52 +147,6 @@ view model shared =
                     , onClick CancelBrowseRelevantHC
                     ]
                     [ text "Close Related Frames" ]
-                , case ( shared.user, model.isCompleted ) of
-                    ( Just user, Just ({ complete } as isCompleted) ) ->
-                        if complete then
-                            button
-                                [ classList [ ( "sub-bar-button complete-button", True ) ]
-                                , onClick <| MarkAsIncomplete <| Completed.completedFromIsCompleted isCompleted user.id
-                                ]
-                                [ text "Mark Bigbit as Incomplete" ]
-                        else
-                            button
-                                [ classList [ ( "sub-bar-button complete-button", True ) ]
-                                , onClick <| MarkAsComplete <| Completed.completedFromIsCompleted isCompleted user.id
-                                ]
-                                [ text "Mark Bigbit as Complete" ]
-
-                    _ ->
-                        Util.hiddenDiv
-                , case ( shared.user, model.possibleOpinion ) of
-                    ( Just user, Just possibleOpinion ) ->
-                        let
-                            ( newMsg, buttonText ) =
-                                case possibleOpinion.rating of
-                                    Nothing ->
-                                        ( AddOpinion
-                                            { contentPointer = possibleOpinion.contentPointer
-                                            , rating = Rating.Like
-                                            }
-                                        , "Love it!"
-                                        )
-
-                                    Just rating ->
-                                        ( RemoveOpinion
-                                            { contentPointer = possibleOpinion.contentPointer
-                                            , rating = rating
-                                            }
-                                        , "Take Back Love"
-                                        )
-                        in
-                            button
-                                [ class "sub-bar-button heart-button"
-                                , onClick <| newMsg
-                                ]
-                                [ text buttonText ]
-
-                    _ ->
-                        Util.hiddenDiv
                 ]
             , case model.bigbit of
                 Nothing ->
@@ -255,11 +246,12 @@ view model shared =
                                            )
                                 , textFormat =
                                     Custom
-                                        { notStarted = "Not Started"
+                                        { notStarted = "0%"
                                         , started = (\frameNumber -> "Frame " ++ (toString frameNumber))
-                                        , done = "Complete"
+                                        , done = "100%"
                                         }
                                 , shiftLeft = True
+                                , alreadyComplete = { complete = userDoneBigbit, for = ProgressBar.Tidbit }
                                 }
                             , div
                                 [ onClick <|

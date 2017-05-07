@@ -164,8 +164,9 @@ textarea {
         }
 
         &.heart-button {
-            width: 150px;
+            width: 130px;
             display: inline-block;
+            float: left;
         }
 
         &.view-relevant-ranges {
@@ -185,7 +186,8 @@ textarea {
         }
 
         &.complete-button {
-            width: 180px;
+            width: 170px;
+            float: left;
         }
 
         &.next-tidbit-button {

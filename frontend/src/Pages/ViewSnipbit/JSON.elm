@@ -18,6 +18,8 @@ encoder model =
         , ( "isCompleted", Encode.null )
         , ( "possibleOpinion", Encode.null )
         , ( "relevantHC", Encode.null )
+        , ( "qa", Encode.null )
+        , ( "relevantQuestions", Encode.null )
         ]
 
 
@@ -27,6 +29,8 @@ decoder : Decode.Decoder Model
 decoder =
     decode Model
         |> required "snipbit" (Decode.maybe JSON.Snipbit.decoder)
+        |> hardcoded Nothing
+        |> hardcoded Nothing
         |> hardcoded Nothing
         |> hardcoded Nothing
         |> hardcoded Nothing

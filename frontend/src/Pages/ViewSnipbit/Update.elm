@@ -33,17 +33,11 @@ update (Common common) msg model shared =
         OnRouteHit route ->
             let
                 {- Get's data for viewing snipbit as required:
-                    - May need to fetch tidbit itself
-                    - May need to fetch story
-                    - May need to fetch if the tidbit is completed by the user.
-                    - may need to fetch the users opinion on the tidbit.
-
-                   If any of the 4 datums above are already cached, assumes that they are up-to-date. The snipbit itself
-                   basically never changes, the `isCompleted` will change a lot but it's unlikely the user completes
-                   that exact tidbit in another browser at the same time. The story itself changes frequently but it
-                   doesn't make sense to constantly update it, so we only update the story when we are on the
-                   `viewStory` page. The same reasoning for `isComplete` applies to `possibleOpinion`, it's unlikely to be
-                   done in another browser at the same time, so we cache it in the browser, but not in localStorage.
+                   - May need to fetch tidbit itself                             [Cache level: localStorage]
+                   - May need to fetch story                                     [Cache level: browserModel]
+                   - May need to fetch if the tidbit is completed by the user.   [Cache level: browserModel]
+                   - may need to fetch the users opinion on the tidbit.          [Cache level: browserModel]
+                   - Always fetch QA                                             [Cache level: None, always query]
                 -}
                 fetchOrRenderViewSnipbitData mongoID =
                     let
@@ -153,12 +147,16 @@ update (Common common) msg model shared =
 
                                     _ ->
                                         common.justSetShared { shared | viewingStory = Nothing }
+
+                        handleGetQA (Common common) ( model, shared ) =
+                            common.justProduceCmd <| common.api.get.snipbitQA mongoID OnGetQAFailure OnGetQASuccess
                     in
                         common.handleAll
                             [ handleGetSnipbit
                             , handleGetSnipbitIsCompleted
                             , handleGetSnipbitOpinion
                             , handleGetStoryForSnipbit
+                            , handleGetQA
                             ]
             in
                 case route of
@@ -218,6 +216,12 @@ update (Common common) msg model shared =
 
         OnGetOpinionFailure apiError ->
             common.justSetModalError apiError
+
+        OnGetQAFailure apiError ->
+            common.justSetModalError apiError
+
+        OnGetQASuccess qa ->
+            common.justSetModel { model | qa = Just qa }
 
         AddOpinion opinion ->
             common.justProduceCmd <|
@@ -330,23 +334,10 @@ update (Common common) msg model shared =
             , Route.navigateTo route
             )
 
-        MarkAsComplete completed ->
-            common.justProduceCmd <| common.api.post.addCompletedWrapper completed OnMarkAsCompleteFailure OnMarkAsCompleteSuccess
-
         OnMarkAsCompleteSuccess isCompleted ->
             common.justUpdateModel <| setViewingSnipbitIsCompleted <| Just isCompleted
 
         OnMarkAsCompleteFailure apiError ->
-            common.justSetModalError apiError
-
-        MarkAsIncomplete completed ->
-            common.justProduceCmd <|
-                common.api.post.removeCompletedWrapper completed OnMarkAsIncompleteFailure OnMarkAsIncompleteSuccess
-
-        OnMarkAsIncompleteSuccess isCompleted ->
-            common.justUpdateModel <| setViewingSnipbitIsCompleted <| Just isCompleted
-
-        OnMarkAsIncompleteFailure apiError ->
             common.justSetModalError apiError
 
 
