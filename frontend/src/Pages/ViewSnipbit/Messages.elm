@@ -40,3 +40,5 @@ type Msg
     | JumpToFrame Route
     | OnMarkAsCompleteSuccess IsCompleted
     | OnMarkAsCompleteFailure ApiError
+    | AskQuestion
+    | BrowseQuestions

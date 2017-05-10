@@ -26,7 +26,7 @@ encoder model =
         , ( "relevantQuestions", Encode.null )
         , ( "bookmark", Encode.null )
         , ( "qaState", JSON.QA.qaStateEncoder JSON.Range.encoder model.qaState )
-        , ( "tutorialHighlight", Encode.null )
+        , ( "tutorialCodePointer", Encode.null )
         ]
 
 

@@ -115,26 +115,14 @@ view model shared =
                 ( Just snipbitID, False, Just [] ) ->
                     button
                         [ class "sub-bar-button ask-question"
-
-                        -- TODO Set the askQuestion codePointer then navigate.
-                        , onClick <|
-                            GoTo <|
-                                Route.ViewSnipbitAskQuestion
-                                    (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
-                                    snipbitID
+                        , onClick <| AskQuestion
                         ]
                         [ text "Ask Question" ]
 
                 ( Just snipbitID, False, Just _ ) ->
                     button
                         [ class "sub-bar-button view-relevant-questions"
-
-                        -- TODO Set the browseCodePointer then navigate.
-                        , onClick <|
-                            GoTo <|
-                                Route.ViewSnipbitQuestionsPage
-                                    (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
-                                    snipbitID
+                        , onClick <| BrowseQuestions
                         ]
                         [ text "Browse Related Questions" ]
 

@@ -22,7 +22,7 @@ type alias Model =
     , relevantQuestions : Maybe (List SnipbitQuestion)
     , bookmark : TB.TutorialBookmark
     , qaState : SnipbitQAState
-    , tutorialHighlight : Maybe Range
+    , tutorialCodePointer : Maybe Range
     }
 
 

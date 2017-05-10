@@ -42,7 +42,7 @@ update (Common common) msg model shared =
                         { model
                             | relevantHC = Nothing
                             , relevantQuestions = Nothing
-                            , tutorialHighlight = Nothing
+                            , tutorialCodePointer = Nothing
                         }
 
                 {- Get's data for viewing snipbit as required:
@@ -392,8 +392,8 @@ update (Common common) msg model shared =
 
         OnRangeSelected selectedRange ->
             let
-                handleSetTutorialHighlight (Common common) ( model, shared ) =
-                    common.justSetModel { model | tutorialHighlight = Just selectedRange }
+                handleSetTutorialCodePointer (Common common) ( model, shared ) =
+                    common.justSetModel { model | tutorialCodePointer = Just selectedRange }
 
                 handleFindRelevantFrames (Common common) ( model, shared ) =
                     case model.snipbit of
@@ -438,21 +438,21 @@ update (Common common) msg model shared =
                 case shared.route of
                     Route.ViewSnipbitIntroductionPage _ _ ->
                         common.handleAll
-                            [ handleSetTutorialHighlight
+                            [ handleSetTutorialCodePointer
                             , handleFindRelevantFrames
                             , handleFindRelevantQuestions
                             ]
 
                     Route.ViewSnipbitFramePage _ _ _ ->
                         common.handleAll
-                            [ handleSetTutorialHighlight
+                            [ handleSetTutorialCodePointer
                             , handleFindRelevantFrames
                             , handleFindRelevantQuestions
                             ]
 
                     Route.ViewSnipbitConclusionPage _ _ ->
                         common.handleAll
-                            [ handleSetTutorialHighlight
+                            [ handleSetTutorialCodePointer
                             , handleFindRelevantFrames
                             , handleFindRelevantQuestions
                             ]
@@ -463,7 +463,13 @@ update (Common common) msg model shared =
 
                     Route.ViewSnipbitAskQuestion _ snipbitID ->
                         common.justSetModel
-                            { model | qaState = QA.setNewQuestionCodePointer snipbitID selectedRange model.qaState }
+                            { model
+                                | qaState =
+                                    QA.updateNewQuestion
+                                        snipbitID
+                                        (\newQuestion -> { newQuestion | codePointer = Just selectedRange })
+                                        model.qaState
+                            }
 
                     Route.ViewSnipbitEditQuestion _ snipbitID questionID ->
                         case Maybe.andThen (.questions >> QA.getQuestionByID questionID) model.qa of
@@ -477,8 +483,23 @@ update (Common common) msg model shared =
                                             QA.setEditQuestionCodePointer
                                                 snipbitID
                                                 questionID
-                                                selectedRange
-                                                question
+                                                (\maybeQuestionEdit ->
+                                                    case maybeQuestionEdit of
+                                                        Nothing ->
+                                                            { questionText =
+                                                                Editable.newEditing question.questionText
+                                                            , codePointer =
+                                                                Editable.newEditing selectedRange
+                                                            }
+
+                                                        Just questionEdit ->
+                                                            { questionEdit
+                                                                | codePointer =
+                                                                    Editable.setBuffer
+                                                                        questionEdit.codePointer
+                                                                        selectedRange
+                                                            }
+                                                )
                                                 model.qaState
                                     }
 
@@ -541,6 +562,53 @@ update (Common common) msg model shared =
 
         OnMarkAsCompleteFailure apiError ->
             common.justSetModalError apiError
+
+        AskQuestion ->
+            let
+                codePointer =
+                    Maybe.withDefault Range.zeroRange model.tutorialCodePointer
+            in
+                case (Route.getViewingContentID shared.route) of
+                    Nothing ->
+                        common.doNothing
+
+                    Just snipbitID ->
+                        ( { model
+                            | qaState =
+                                QA.updateNewQuestion
+                                    snipbitID
+                                    (\newQuestion ->
+                                        { newQuestion
+                                            | codePointer = Just codePointer
+                                            , questionText = ""
+                                        }
+                                    )
+                                    model.qaState
+                          }
+                        , shared
+                        , Route.navigateTo <|
+                            Route.ViewSnipbitAskQuestion
+                                (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
+                                snipbitID
+                        )
+
+        BrowseQuestions ->
+            let
+                codePointer =
+                    Maybe.withDefault Range.zeroRange model.tutorialCodePointer
+            in
+                case (Route.getViewingContentID shared.route) of
+                    Nothing ->
+                        common.doNothing
+
+                    Just snipbitID ->
+                        ( { model | qaState = QA.setBrowsingCodePointer snipbitID codePointer model.qaState }
+                        , shared
+                        , Route.navigateTo <|
+                            Route.ViewSnipbitQuestionsPage
+                                (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
+                                snipbitID
+                        )
 
 
 {-| Creates the editor for the snipbit.

@@ -132,7 +132,7 @@ State includes creating new and editing: question / answers on questions / comme
 -}
 type alias TidbitQAState codePointer =
     { browsingCodePointer : Maybe codePointer
-    , newQuestion : { questionText : QuestionText, codePointer : Maybe codePointer }
+    , newQuestion : NewQuestion codePointer
     , questionEdits : Dict.Dict QuestionID (QuestionEdit codePointer)
     , newAnswers : Dict.Dict QuestionID AnswerText
     , answerEdits : Dict.Dict AnswerID (Editable.Editable String)
@@ -148,6 +148,14 @@ type alias TidbitQAState codePointer =
 type alias QuestionEdit codePointer =
     { questionText : Editable.Editable QuestionText
     , codePointer : Editable.Editable codePointer
+    }
+
+
+{-| A new question being created.
+-}
+type alias NewQuestion codePointer =
+    { questionText : QuestionText
+    , codePointer : Maybe codePointer
     }
 
 
@@ -191,50 +199,36 @@ setBrowsingCodePointer snipbitID codePointer =
     setTidbitQAState snipbitID (\tidbitQAState -> { tidbitQAState | browsingCodePointer = Just codePointer })
 
 
-{-| NewQuestion.codePointer setter, handles setting default tidbitQAState if needed.
+{-| NewQuestion updater, handles setting default tidbitQAState if needed.
 -}
-setNewQuestionCodePointer : SnipbitID -> codePointer -> QAState codePointer -> QAState codePointer
-setNewQuestionCodePointer snipbitID codePointer =
+updateNewQuestion :
+    SnipbitID
+    -> (NewQuestion codePointer -> NewQuestion codePointer)
+    -> QAState codePointer
+    -> QAState codePointer
+updateNewQuestion snipbitID newQuestionUpdater =
     setTidbitQAState snipbitID
-        (\tidbitQAState ->
-            { tidbitQAState
-                | newQuestion =
-                    case tidbitQAState.newQuestion of
-                        currentNewQuestion ->
-                            { currentNewQuestion | codePointer = Just codePointer }
-            }
-        )
+        (\tidbitQAState -> { tidbitQAState | newQuestion = newQuestionUpdater tidbitQAState.newQuestion })
 
 
-{-| questionEdits setter, handles setting default tidbitQAState and questionEdit if needed.
+{-| questionEdit updater, handles setting default tidbitQAState if needed.
+
+Updater has to handle case where no edit exits yet (hence `Maybe QuestionEdit...`).
 -}
 setEditQuestionCodePointer :
     SnipbitID
     -> QuestionID
-    -> codePointer
-    -> Question codePointer
+    -> (Maybe (QuestionEdit codePointer) -> QuestionEdit codePointer)
     -> QAState codePointer
     -> QAState codePointer
-setEditQuestionCodePointer snipbitID questionID codePointer originalQuestion =
+setEditQuestionCodePointer snipbitID questionID questionEditUpdater =
     setTidbitQAState snipbitID
         (\tidbitQAState ->
             { tidbitQAState
                 | questionEdits =
                     Dict.update
                         questionID
-                        (\maybeQuestionEdit ->
-                            Just <|
-                                case maybeQuestionEdit of
-                                    Nothing ->
-                                        { questionText = Editable.newEditing originalQuestion.questionText
-                                        , codePointer = Editable.newEditing originalQuestion.codePointer
-                                        }
-
-                                    Just questionEdit ->
-                                        { questionEdit
-                                            | codePointer = Editable.setBuffer questionEdit.codePointer codePointer
-                                        }
-                        )
+                        (\maybeQuestionEdit -> Just <| questionEditUpdater maybeQuestionEdit)
                         tidbitQAState.questionEdits
             }
         )

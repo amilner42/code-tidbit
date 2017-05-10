@@ -18,5 +18,5 @@ init =
     , relevantQuestions = Nothing
     , bookmark = TB.Introduction
     , qaState = Dict.empty
-    , tutorialHighlight = Nothing
+    , tutorialCodePointer = Nothing
     }
