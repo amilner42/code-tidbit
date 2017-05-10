@@ -1,5 +1,8 @@
 module Pages.ViewSnipbit.Init exposing (..)
 
+import Dict
+import Models.QA as QA
+import Models.TutorialBookmark as TB
 import Pages.ViewSnipbit.Model exposing (..)
 
 
@@ -13,4 +16,7 @@ init =
     , relevantHC = Nothing
     , qa = Nothing
     , relevantQuestions = Nothing
+    , bookmark = TB.Introduction
+    , qaState = Dict.empty
+    , tutorialHighlight = Nothing
     }

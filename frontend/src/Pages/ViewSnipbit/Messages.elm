@@ -18,12 +18,12 @@ type Msg
     | OnRouteHit Route
     | OnGetCompletedSuccess IsCompleted
     | OnGetCompletedFailure ApiError
-    | OnGetSnipbitSuccess Snipbit
+    | OnGetSnipbitSuccess Bool Snipbit
     | OnGetSnipbitFailure ApiError
     | OnGetOpinionSuccess PossibleOpinion
     | OnGetOpinionFailure ApiError
     | OnGetQAFailure ApiError
-    | OnGetQASuccess SnipbitQA
+    | OnGetQASuccess Bool SnipbitQA
     | AddOpinion Opinion
     | OnAddOpinionSuccess Opinion
     | OnAddOpinionFailure ApiError

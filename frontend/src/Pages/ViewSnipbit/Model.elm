@@ -1,11 +1,14 @@
 module Pages.ViewSnipbit.Model exposing (..)
 
 import DefaultServices.Util as Util exposing (maybeMapWithDefault)
-import Models.Opinion exposing (PossibleOpinion)
 import Models.Completed exposing (IsCompleted)
+import Models.Opinion exposing (PossibleOpinion)
+import Models.QA exposing (SnipbitQA, SnipbitQuestion, SnipbitQAState)
+import Models.Range exposing (Range)
+import Models.Route as Route
 import Models.Snipbit exposing (Snipbit, HighlightedComment)
+import Models.TutorialBookmark as TB
 import Models.ViewerRelevantHC exposing (ViewerRelevantHC, browsingFrames)
-import Models.QA exposing (SnipbitQA, SnipbitQuestion)
 
 
 {-| `ViewSnipbit` model.
@@ -17,6 +20,9 @@ type alias Model =
     , relevantHC : Maybe ViewingSnipbitRelevantHC
     , qa : Maybe SnipbitQA
     , relevantQuestions : Maybe (List SnipbitQuestion)
+    , bookmark : TB.TutorialBookmark
+    , qaState : SnipbitQAState
+    , tutorialHighlight : Maybe Range
     }
 
 
@@ -76,3 +82,18 @@ setViewingSnipbitIsCompleted maybeIsCompleted model =
 setViewingSnipbitRelevantHC : Maybe ViewingSnipbitRelevantHC -> Model -> Model
 setViewingSnipbitRelevantHC maybeRelevantHC model =
     { model | relevantHC = maybeRelevantHC }
+
+
+{-| Get's the route from the bookmark.
+-}
+routeForBookmark : Maybe String -> String -> TB.TutorialBookmark -> Route.Route
+routeForBookmark maybeStoryID snipbitID bookmark =
+    case bookmark of
+        TB.Introduction ->
+            Route.ViewSnipbitIntroductionPage maybeStoryID snipbitID
+
+        TB.FrameNumber frameNumber ->
+            Route.ViewSnipbitFramePage maybeStoryID snipbitID frameNumber
+
+        TB.Conclusion ->
+            Route.ViewSnipbitConclusionPage maybeStoryID snipbitID

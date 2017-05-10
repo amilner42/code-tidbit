@@ -169,16 +169,25 @@ textarea {
             float: left;
         }
 
-        &.view-relevant-ranges {
+        &.view-relevant-ranges, &.view-relevant-questions, &.ask-question {
             width: 150px !important;
             float: right;
             margin-right: 10px;
+            margin-left: 0;
             background-color: $color1;
             color: white;
 
             &:hover {
                 opacity: 0.9;
             }
+        }
+
+        &.ask-question {
+            width: 100px !important;
+        }
+
+        &.view-relevant-questions {
+            width: 160px !important;
         }
 
         &.previous-frame-location {

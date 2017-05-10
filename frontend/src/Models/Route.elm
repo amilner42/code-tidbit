@@ -5,35 +5,8 @@ import DefaultServices.Util as Util
 import Elements.FileStructure as FS
 import Models.Bigbit as Bigbit
 import Navigation
+import ProjectTypeAliases exposing (..)
 import UrlParser exposing (Parser, s, (</>), (<?>), oneOf, map, top, int, string, stringParam)
-
-
-type alias StoryID =
-    String
-
-
-type alias EditingStoryID =
-    String
-
-
-type alias SnipbitID =
-    String
-
-
-type alias BigbitID =
-    String
-
-
-type alias QuestionID =
-    String
-
-
-type alias AnswerID =
-    String
-
-
-type alias FrameNumber =
-    Int
 
 
 {-| All of the app routes.
@@ -671,3 +644,84 @@ viewBigbitPageCurrentActiveFile route bigbit =
 
         _ ->
             Nothing
+
+
+{-| Get's the ID of the content that we are viewing.
+-}
+getViewingContentID : Route -> Maybe ContentID
+getViewingContentID route =
+    case route of
+        ViewSnipbitIntroductionPage _ snipbitID ->
+            Just snipbitID
+
+        ViewSnipbitConclusionPage _ snipbitID ->
+            Just snipbitID
+
+        ViewSnipbitFramePage _ snipbitID _ ->
+            Just snipbitID
+
+        ViewSnipbitQuestionsPage _ snipbitID ->
+            Just snipbitID
+
+        ViewSnipbitQuestionPage _ snipbitID _ _ ->
+            Just snipbitID
+
+        ViewSnipbitQuestionFrame _ snipbitID _ _ ->
+            Just snipbitID
+
+        ViewSnipbitAskQuestion _ snipbitID ->
+            Just snipbitID
+
+        ViewSnipbitAnswerQuestion _ snipbitID _ ->
+            Just snipbitID
+
+        ViewSnipbitEditQuestion _ snipbitID _ ->
+            Just snipbitID
+
+        ViewSnipbitEditAnswer _ snipbitID _ ->
+            Just snipbitID
+
+        ViewBigbitIntroductionPage _ bigbitID _ ->
+            Just bigbitID
+
+        ViewBigbitFramePage _ bigbitID _ _ ->
+            Just bigbitID
+
+        ViewBigbitConclusionPage _ bigbitID _ ->
+            Just bigbitID
+
+        ViewStoryPage storyID ->
+            Just storyID
+
+        _ ->
+            Nothing
+
+
+{-| Returns true if on one of the viewing snipbit QA routes.
+-}
+isOnViewSnipbitQARoute : Route -> Bool
+isOnViewSnipbitQARoute route =
+    case route of
+        ViewSnipbitQuestionsPage _ _ ->
+            True
+
+        ViewSnipbitQuestionPage _ _ _ _ ->
+            True
+
+        ViewSnipbitQuestionFrame _ _ _ _ ->
+            True
+
+        ViewSnipbitAskQuestion _ _ ->
+            True
+
+        ViewSnipbitAnswerQuestion _ _ _ ->
+            True
+
+        ViewSnipbitEditQuestion _ _ _ ->
+            True
+
+        ViewSnipbitEditAnswer _ _ _ ->
+            True
+
+        _ ->
+            False

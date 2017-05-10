@@ -1,8 +1,11 @@
 module Models.QA exposing (..)
 
 import Date
+import DefaultServices.Editable as Editable
+import Dict
 import Elements.FileStructure as FS
 import Models.Range as Range
+import ProjectTypeAliases exposing (..)
 
 
 {-| The QA for snipbits.
@@ -25,7 +28,7 @@ type alias QA codePointerType =
     , tidbitAuthor : String
     , questions : List (Question codePointerType)
     , questionComments : List QuestionComment
-    , answer : List Answer
+    , answers : List Answer
     , answerComments : List AnswerComment
     }
 
@@ -105,3 +108,171 @@ type alias AnswerComment =
 -}
 type alias BigbitCodePointer =
     { file : FS.Path, range : Range.Range }
+
+
+{-| The user's QA states for all the tidbits.
+
+For keeping track of things like half-written questions, or new questions etc...
+
+NOTE: The state for each tidbit is saved separately so tidbit-states do not overwrite each other.
+-}
+type alias QAState codePointer =
+    Dict.Dict TidbitID (TidbitQAState codePointer)
+
+
+{-| The QAState for snipbits.
+-}
+type alias SnipbitQAState =
+    QAState Range.Range
+
+
+{-| The QA state for a single tidbit.
+
+State includes creating new and editing: question / answers on questions / comment on answers / comment on questions.
+-}
+type alias TidbitQAState codePointer =
+    { browsingCodePointer : Maybe codePointer
+    , newQuestion : { questionText : QuestionText, codePointer : Maybe codePointer }
+    , questionEdits : Dict.Dict QuestionID (QuestionEdit codePointer)
+    , newAnswers : Dict.Dict QuestionID AnswerText
+    , answerEdits : Dict.Dict AnswerID (Editable.Editable String)
+    , newQuestionComments : Dict.Dict QuestionID CommentText
+    , newAnswerComments : Dict.Dict AnswerID CommentText
+    , questionCommentEdits : Dict.Dict CommentID (Editable.Editable CommentText)
+    , answerCommentEdits : Dict.Dict CommentID (Editable.Editable CommentText)
+    }
+
+
+{-| A question being edited.
+-}
+type alias QuestionEdit codePointer =
+    { questionText : Editable.Editable QuestionText
+    , codePointer : Editable.Editable codePointer
+    }
+
+
+{-| Get's a question by the ID.
+-}
+getQuestionByID : QuestionID -> List (Question codePointer) -> Maybe (Question codePointer)
+getQuestionByID questionID questions =
+    List.filter (\{ id } -> id == questionID) questions
+        |> List.head
+
+
+{-| Get's an answer by the ID.
+-}
+getAnswerByID : AnswerID -> List Answer -> Maybe Answer
+getAnswerByID answerID answers =
+    List.filter (\{ id } -> id == answerID) answers
+        |> List.head
+
+
+{-| Get's a question for a given answer.
+-}
+getQuestionByAnswerID : SnipbitID -> AnswerID -> QA codePointer -> Maybe (Question codePointer)
+getQuestionByAnswerID snipbitID answerID qa =
+    getAnswerByID answerID qa.answers
+        |> Maybe.map .questionID
+        |> Maybe.andThen (\questionID -> getQuestionByID questionID qa.questions)
+
+
+{-| Get's a questionEdit by the ID.
+-}
+getQuestionEditByID : SnipbitID -> QuestionID -> QAState codePointer -> Maybe (QuestionEdit codePointer)
+getQuestionEditByID snipbitID questionID qaState =
+    Dict.get snipbitID qaState
+        |> Maybe.andThen (.questionEdits >> Dict.get questionID)
+
+
+{-| BrowseCodePointer setter, handles setting default tidbitQAState if needed.
+-}
+setBrowsingCodePointer : SnipbitID -> codePointer -> QAState codePointer -> QAState codePointer
+setBrowsingCodePointer snipbitID codePointer =
+    setTidbitQAState snipbitID (\tidbitQAState -> { tidbitQAState | browsingCodePointer = Just codePointer })
+
+
+{-| NewQuestion.codePointer setter, handles setting default tidbitQAState if needed.
+-}
+setNewQuestionCodePointer : SnipbitID -> codePointer -> QAState codePointer -> QAState codePointer
+setNewQuestionCodePointer snipbitID codePointer =
+    setTidbitQAState snipbitID
+        (\tidbitQAState ->
+            { tidbitQAState
+                | newQuestion =
+                    case tidbitQAState.newQuestion of
+                        currentNewQuestion ->
+                            { currentNewQuestion | codePointer = Just codePointer }
+            }
+        )
+
+
+{-| questionEdits setter, handles setting default tidbitQAState and questionEdit if needed.
+-}
+setEditQuestionCodePointer :
+    SnipbitID
+    -> QuestionID
+    -> codePointer
+    -> Question codePointer
+    -> QAState codePointer
+    -> QAState codePointer
+setEditQuestionCodePointer snipbitID questionID codePointer originalQuestion =
+    setTidbitQAState snipbitID
+        (\tidbitQAState ->
+            { tidbitQAState
+                | questionEdits =
+                    Dict.update
+                        questionID
+                        (\maybeQuestionEdit ->
+                            Just <|
+                                case maybeQuestionEdit of
+                                    Nothing ->
+                                        { questionText = Editable.newEditing originalQuestion.questionText
+                                        , codePointer = Editable.newEditing originalQuestion.codePointer
+                                        }
+
+                                    Just questionEdit ->
+                                        { questionEdit
+                                            | codePointer = Editable.setBuffer questionEdit.codePointer codePointer
+                                        }
+                        )
+                        tidbitQAState.questionEdits
+            }
+        )
+
+
+{-| Helper for creating setters which automatically handle the `tidbitQAState` being missing (use default).
+-}
+setTidbitQAState :
+    SnipbitID
+    -> (TidbitQAState codePointer -> TidbitQAState codePointer)
+    -> QAState codePointer
+    -> QAState codePointer
+setTidbitQAState snipbitID tidbitQAStateUpdater qaState =
+    Dict.update
+        snipbitID
+        (\maybeTidbitQAState ->
+            Just <|
+                case maybeTidbitQAState of
+                    Nothing ->
+                        tidbitQAStateUpdater defaultTidbitQAState
+
+                    Just tidbitQAState ->
+                        tidbitQAStateUpdater tidbitQAState
+        )
+        qaState
+
+
+{-| The default state for `TidbitQAState`.
+-}
+defaultTidbitQAState : TidbitQAState codePointer
+defaultTidbitQAState =
+    { browsingCodePointer = Nothing
+    , newQuestion = { questionText = "", codePointer = Nothing }
+    , questionEdits = Dict.empty
+    , newAnswers = Dict.empty
+    , answerEdits = Dict.empty
+    , newQuestionComments = Dict.empty
+    , newAnswerComments = Dict.empty
+    , questionCommentEdits = Dict.empty
+    , answerCommentEdits = Dict.empty
+    }

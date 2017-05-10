@@ -1,5 +1,6 @@
 module JSON.QA exposing (..)
 
+import DefaultServices.Editable as Editable
 import DefaultServices.Util as Util
 import JSON.Range
 import Json.Decode as Decode
@@ -123,3 +124,92 @@ bigbitCodePointerEncoder codePointer =
         [ ( "file", Encode.string codePointer.file )
         , ( "range", JSON.Range.encoder codePointer.range )
         ]
+
+
+{-| `QAState` encoder.
+-}
+qaStateEncoder : (codePointer -> Encode.Value) -> QAState codePointer -> Encode.Value
+qaStateEncoder codePointerEncoder =
+    Util.encodeStringDict <| tidbitQAStateEncoder codePointerEncoder
+
+
+{-| `TidbitQAState` encoder.
+-}
+tidbitQAStateEncoder : (codePointer -> Encode.Value) -> TidbitQAState codePointer -> Encode.Value
+tidbitQAStateEncoder codePointerEncoder qaState =
+    let
+        editableStringEncoder editableString =
+            Editable.encoder Encode.string editableString
+
+        stringToStringDictEncoder dict =
+            Util.encodeStringDict Encode.string dict
+
+        stringToEditableStringDictEncoder dict =
+            Util.encodeStringDict editableStringEncoder dict
+
+        newQuestionEncoder { questionText, codePointer } =
+            Encode.object
+                [ ( "questionText", Encode.string questionText )
+                , ( "codePointer", Util.justValueOrNull codePointerEncoder codePointer )
+                ]
+
+        questionEditEncoder { questionText, codePointer } =
+            Encode.object
+                [ ( "questionText", editableStringEncoder questionText )
+                , ( "codePointer", Editable.encoder codePointerEncoder codePointer )
+                ]
+    in
+        Encode.object
+            [ ( "browsingCodePointer", Util.justValueOrNull codePointerEncoder qaState.browsingCodePointer )
+            , ( "newQuestion", newQuestionEncoder qaState.newQuestion )
+            , ( "questionEdits", Util.encodeStringDict questionEditEncoder qaState.questionEdits )
+            , ( "newAnswers", stringToStringDictEncoder qaState.newAnswers )
+            , ( "answerEdits", stringToEditableStringDictEncoder qaState.answerEdits )
+            , ( "newQuestionComments", stringToStringDictEncoder qaState.newQuestionComments )
+            , ( "newAnswerComments", stringToStringDictEncoder qaState.newAnswerComments )
+            , ( "questionCommentEdits", stringToEditableStringDictEncoder qaState.questionCommentEdits )
+            , ( "answerCommentEdits", stringToEditableStringDictEncoder qaState.answerCommentEdits )
+            ]
+
+
+{-| `QAState` decoder.
+-}
+qaStateDecoder : Decode.Decoder codePointer -> Decode.Decoder (QAState codePointer)
+qaStateDecoder codePointerDecoder =
+    Util.decodeStringDict <| tidbitQAStateDecoder codePointerDecoder
+
+
+{-| `TidbitQAState` decoder.
+-}
+tidbitQAStateDecoder : Decode.Decoder codePointer -> Decode.Decoder (TidbitQAState codePointer)
+tidbitQAStateDecoder codePointerDecoder =
+    let
+        editableStringDecoder =
+            Editable.decoder Decode.string
+
+        stringToStringDictDecoder =
+            Util.decodeStringDict Decode.string
+
+        stringToEditableStringDictDecoder =
+            Util.decodeStringDict editableStringDecoder
+
+        newQuestionDecoder =
+            decode (\questionText codePointer -> { questionText = questionText, codePointer = codePointer })
+                |> required "questionText" Decode.string
+                |> required "codePointer" (Decode.maybe codePointerDecoder)
+
+        questionEditDecoder =
+            decode (\questionText codePointer -> { questionText = questionText, codePointer = codePointer })
+                |> required "questionText" editableStringDecoder
+                |> required "codePointer" (Editable.decoder codePointerDecoder)
+    in
+        decode TidbitQAState
+            |> required "browsingCodePointer" (Decode.maybe codePointerDecoder)
+            |> required "newQuestion" newQuestionDecoder
+            |> required "questionEdits" (Util.decodeStringDict questionEditDecoder)
+            |> required "newAnswers" stringToStringDictDecoder
+            |> required "answerEdits" stringToEditableStringDictDecoder
+            |> required "newQuestionComments" stringToStringDictDecoder
+            |> required "newAnswerComments" stringToStringDictDecoder
+            |> required "questionCommentEdits" stringToEditableStringDictDecoder
+            |> required "answerCommentEdits" stringToEditableStringDictDecoder

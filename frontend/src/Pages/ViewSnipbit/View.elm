@@ -13,6 +13,7 @@ import Models.Rating as Rating
 import Models.Route as Route
 import Models.Snipbit as Snipbit
 import Models.Story as Story
+import Models.TutorialBookmark as TB
 import Models.ViewerRelevantHC as ViewerRelevantHC
 import Pages.Model exposing (Shared)
 import Pages.ViewSnipbit.Messages exposing (Msg(..))
@@ -110,6 +111,35 @@ view model shared =
                 , onClick <| BrowseRelevantHC
                 ]
                 [ text "Browse Related Frames" ]
+            , case ( Route.getViewingContentID shared.route, isViewSnipbitRHCTabOpen model, model.relevantQuestions ) of
+                ( Just snipbitID, False, Just [] ) ->
+                    button
+                        [ class "sub-bar-button ask-question"
+
+                        -- TODO Set the askQuestion codePointer then navigate.
+                        , onClick <|
+                            GoTo <|
+                                Route.ViewSnipbitAskQuestion
+                                    (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
+                                    snipbitID
+                        ]
+                        [ text "Ask Question" ]
+
+                ( Just snipbitID, False, Just _ ) ->
+                    button
+                        [ class "sub-bar-button view-relevant-questions"
+
+                        -- TODO Set the browseCodePointer then navigate.
+                        , onClick <|
+                            GoTo <|
+                                Route.ViewSnipbitQuestionsPage
+                                    (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
+                                    snipbitID
+                        ]
+                        [ text "Browse Related Questions" ]
+
+                _ ->
+                    Util.hiddenDiv
             , button
                 [ classList
                     [ ( "sub-bar-button view-relevant-ranges", True )
@@ -123,7 +153,25 @@ view model shared =
                     ]
                 , onClick <| CancelBrowseRelevantHC
                 ]
-                [ text "Close Related Frames" ]
+                [ text "Resume Tutorial" ]
+            , case Route.getViewingContentID shared.route of
+                Just snipbitID ->
+                    button
+                        [ classList
+                            [ ( "sub-bar-button view-relevant-questions", True )
+                            , ( "hidden", not <| Route.isOnViewSnipbitQARoute shared.route )
+                            ]
+                        , onClick <|
+                            GoTo <|
+                                routeForBookmark
+                                    (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
+                                    snipbitID
+                                    model.bookmark
+                        ]
+                        [ text "Resume Tutorial" ]
+
+                _ ->
+                    Util.hiddenDiv
             ]
         , case model.snipbit of
             Nothing ->
@@ -146,6 +194,7 @@ view model shared =
                                             False
                                     )
                                         || (isViewSnipbitRHCTabOpen model)
+                                        || Route.isOnViewSnipbitQARoute shared.route
                                   )
                                 ]
                             , onClick <|
@@ -173,7 +222,7 @@ view model shared =
                             [ text "arrow_back" ]
                         , div
                             [ onClick <|
-                                if isViewSnipbitRHCTabOpen model then
+                                if isViewSnipbitRHCTabOpen model || Route.isOnViewSnipbitQARoute shared.route then
                                     NoOp
                                 else
                                     GoTo <|
@@ -190,23 +239,26 @@ view model shared =
                                         _ ->
                                             False
                                   )
-                                , ( "disabled", isViewSnipbitRHCTabOpen model )
+                                , ( "disabled"
+                                  , isViewSnipbitRHCTabOpen model || Route.isOnViewSnipbitQARoute shared.route
+                                  )
                                 ]
                             ]
                             [ text "Introduction" ]
                         , progressBar
                             { state =
-                                case shared.route of
-                                    Route.ViewSnipbitFramePage _ _ frameNumber ->
+                                case model.bookmark of
+                                    TB.Introduction ->
+                                        NotStarted
+
+                                    TB.FrameNumber frameNumber ->
                                         Started frameNumber
 
-                                    Route.ViewSnipbitConclusionPage _ _ ->
+                                    TB.Conclusion ->
                                         Completed
-
-                                    _ ->
-                                        NotStarted
                             , maxPosition = Array.length snipbit.highlightedComments
-                            , disabledStyling = isViewSnipbitRHCTabOpen model
+                            , disabledStyling =
+                                isViewSnipbitRHCTabOpen model || Route.isOnViewSnipbitQARoute shared.route
                             , onClickMsg = GoTo shared.route
                             , allowClick =
                                 (case shared.route of
@@ -241,7 +293,7 @@ view model shared =
                             }
                         , div
                             [ onClick <|
-                                if isViewSnipbitRHCTabOpen model then
+                                if isViewSnipbitRHCTabOpen model || Route.isOnViewSnipbitQARoute shared.route then
                                     NoOp
                                 else
                                     GoTo <|
@@ -258,7 +310,9 @@ view model shared =
                                         _ ->
                                             False
                                   )
-                                , ( "disabled", isViewSnipbitRHCTabOpen model )
+                                , ( "disabled"
+                                  , isViewSnipbitRHCTabOpen model || Route.isOnViewSnipbitQARoute shared.route
+                                  )
                                 ]
                             ]
                             [ text "Conclusion" ]
@@ -274,6 +328,7 @@ view model shared =
                                             False
                                     )
                                         || (isViewSnipbitRHCTabOpen model)
+                                        || Route.isOnViewSnipbitQARoute shared.route
                                   )
                                 ]
                             , onClick <|
@@ -296,7 +351,7 @@ view model shared =
                     , Editor.editor "view-snipbit-code-editor"
                     , div
                         [ class "comment-block" ]
-                        [ commentBox snipbit model.relevantHC shared.route ]
+                        [ commentBox snipbit model shared ]
                     ]
         ]
 
@@ -304,8 +359,8 @@ view model shared =
 {-| Gets the comment box for the view snipbit page, can be the markdown for the intro/conclusion/frame or the markdown
 with a few extra buttons for a selected range.
 -}
-commentBox : Snipbit.Snipbit -> Maybe ViewingSnipbitRelevantHC -> Route.Route -> Html Msg
-commentBox snipbit relevantHC route =
+commentBox : Snipbit.Snipbit -> Model -> Shared -> Html Msg
+commentBox snipbit { relevantHC } { route } =
     let
         -- To display if no relevant HC.
         htmlIfNoRelevantHC =
@@ -327,62 +382,78 @@ commentBox snipbit relevantHC route =
 
                     _ ->
                         ""
-    in
-        case relevantHC of
-            Nothing ->
-                htmlIfNoRelevantHC
 
-            Just ({ currentHC, relevantHC } as viewerRelevantHC) ->
-                case currentHC of
-                    Nothing ->
-                        htmlIfNoRelevantHC
+        -- On the tutorial routes we display the tutorial or the relevantHC.
+        tutorialRoute =
+            case relevantHC of
+                Nothing ->
+                    htmlIfNoRelevantHC
 
-                    Just index ->
-                        div
-                            [ class "view-relevant-hc" ]
-                            [ case ViewerRelevantHC.currentFramePair viewerRelevantHC of
-                                Nothing ->
-                                    Util.hiddenDiv
+                Just ({ currentHC, relevantHC } as viewerRelevantHC) ->
+                    case currentHC of
+                        Nothing ->
+                            htmlIfNoRelevantHC
 
-                                Just currentFramePair ->
-                                    ViewerRelevantHC.relevantHCTextAboveFrameSpecifyingPosition currentFramePair
-                            , div
-                                [ classList
-                                    [ ( "above-comment-block-button", True )
-                                    , ( "disabled", ViewerRelevantHC.onFirstFrame viewerRelevantHC )
+                        Just index ->
+                            div
+                                [ class "view-relevant-hc" ]
+                                [ case ViewerRelevantHC.currentFramePair viewerRelevantHC of
+                                    Nothing ->
+                                        Util.hiddenDiv
+
+                                    Just currentFramePair ->
+                                        ViewerRelevantHC.relevantHCTextAboveFrameSpecifyingPosition currentFramePair
+                                , div
+                                    [ classList
+                                        [ ( "above-comment-block-button", True )
+                                        , ( "disabled", ViewerRelevantHC.onFirstFrame viewerRelevantHC )
+                                        ]
+                                    , onClick PreviousRelevantHC
                                     ]
-                                , onClick PreviousRelevantHC
-                                ]
-                                [ text "Previous" ]
-                            , div
-                                [ classList
-                                    [ ( "above-comment-block-button go-to-frame-button", True ) ]
-                                , onClick
+                                    [ text "Previous" ]
+                                , div
+                                    [ classList
+                                        [ ( "above-comment-block-button go-to-frame-button", True ) ]
+                                    , onClick
+                                        (Array.get index relevantHC
+                                            |> Maybe.map
+                                                (JumpToFrame
+                                                    << Route.ViewSnipbitFramePage
+                                                        (Route.getFromStoryQueryParamOnViewSnipbitRoute route)
+                                                        snipbit.id
+                                                    << ((+) 1)
+                                                    << Tuple.first
+                                                )
+                                            |> Maybe.withDefault NoOp
+                                        )
+                                    ]
+                                    [ text "Jump To Frame" ]
+                                , div
+                                    [ classList
+                                        [ ( "above-comment-block-button next-button", True )
+                                        , ( "disabled", ViewerRelevantHC.onLastFrame viewerRelevantHC )
+                                        ]
+                                    , onClick NextRelevantHC
+                                    ]
+                                    [ text "Next" ]
+                                , githubMarkdown
+                                    []
                                     (Array.get index relevantHC
-                                        |> Maybe.map
-                                            (JumpToFrame
-                                                << Route.ViewSnipbitFramePage
-                                                    (Route.getFromStoryQueryParamOnViewSnipbitRoute route)
-                                                    snipbit.id
-                                                << ((+) 1)
-                                                << Tuple.first
-                                            )
-                                        |> Maybe.withDefault NoOp
+                                        |> Maybe.map (Tuple.second >> .comment)
+                                        |> Maybe.withDefault ""
                                     )
                                 ]
-                                [ text "Jump To Frame" ]
-                            , div
-                                [ classList
-                                    [ ( "above-comment-block-button next-button", True )
-                                    , ( "disabled", ViewerRelevantHC.onLastFrame viewerRelevantHC )
-                                    ]
-                                , onClick NextRelevantHC
-                                ]
-                                [ text "Next" ]
-                            , githubMarkdown
-                                []
-                                (Array.get index relevantHC
-                                    |> Maybe.map (Tuple.second >> .comment)
-                                    |> Maybe.withDefault ""
-                                )
-                            ]
+    in
+        case route of
+            Route.ViewSnipbitIntroductionPage _ _ ->
+                tutorialRoute
+
+            Route.ViewSnipbitConclusionPage _ _ ->
+                tutorialRoute
+
+            Route.ViewSnipbitFramePage _ _ _ ->
+                tutorialRoute
+
+            _ ->
+                -- TODO CONTINUE Comment Box for QA routes.
+                Util.hiddenDiv

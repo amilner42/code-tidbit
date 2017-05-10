@@ -43,6 +43,12 @@
     &.disabled {
         border-color: $color13;
         color: $color8;
+
+        .completion-symbol {
+            i {
+                color: $color8;
+            }
+        }
     }
 
     .completion-symbol {
