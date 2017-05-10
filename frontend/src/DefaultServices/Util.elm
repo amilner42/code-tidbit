@@ -11,6 +11,7 @@ import Html.Keyed as Keyed
 import Json.Decode as Decode
 import Json.Encode as Encode
 import Keyboard.Extra as KK
+import ProjectTypeAliases exposing (..)
 import Set
 import Task
 
@@ -195,7 +196,7 @@ Eg.
   [("path", Just "asdf"), ("bla", Just "bla")] -> "?path=asdf&bla=bla"
 
 -}
-queryParamsToString : List ( String, Maybe String ) -> String
+queryParamsToString : QueryParams -> String
 queryParamsToString listOfMaybeQueryParams =
     listOfMaybeQueryParams
         |> List.foldl

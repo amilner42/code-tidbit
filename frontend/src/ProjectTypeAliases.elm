@@ -55,3 +55,15 @@ type alias CommentID =
 
 type alias CommentText =
     String
+
+
+type alias Email =
+    String
+
+
+type alias UserID =
+    String
+
+
+type alias QueryParams =
+    List ( String, Maybe String )

@@ -9,6 +9,7 @@ import Pages.Browse.Messages exposing (..)
 import Pages.Browse.Model exposing (..)
 import Pages.Model exposing (Shared)
 import Ports
+import ProjectTypeAliases exposing (..)
 
 
 {-| `Browse` update.
@@ -203,7 +204,7 @@ performSearch : Bool -> CommonSubPageUtil Model Shared Msg -> ( Model, Shared ) 
 performSearch initialSearch (Common common) ( model, shared ) =
     let
         {- Get's the content with specific query params. -}
-        getContent : List ( String, Maybe String ) -> Cmd Msg
+        getContent : QueryParams -> Cmd Msg
         getContent queryParams =
             common.api.get.content queryParams OnGetContentFailure OnGetContentSuccess
 
