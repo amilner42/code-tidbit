@@ -151,6 +151,7 @@ tidbitQAStateEncoder codePointerEncoder qaState =
             Encode.object
                 [ ( "questionText", Encode.string questionText )
                 , ( "codePointer", Util.justValueOrNull codePointerEncoder codePointer )
+                , ( "previewMarkdown", Encode.null )
                 ]
 
         questionEditEncoder { questionText, codePointer } =
@@ -194,7 +195,10 @@ tidbitQAStateDecoder codePointerDecoder =
             Util.decodeStringDict editableStringDecoder
 
         newQuestionDecoder =
-            decode (\questionText codePointer -> { questionText = questionText, codePointer = codePointer })
+            decode
+                (\questionText codePointer ->
+                    { questionText = questionText, codePointer = codePointer, previewMarkdown = False }
+                )
                 |> required "questionText" Decode.string
                 |> required "codePointer" (Decode.maybe codePointerDecoder)
 

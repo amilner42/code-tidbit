@@ -43,6 +43,7 @@ import Pages.CreateBigbit.JSON as CreateBigbitJSON
 import Pages.CreateBigbit.Model as CreateBigbitModel
 import Pages.CreateSnipbit.JSON as CreateSnipbitJSON
 import Pages.CreateSnipbit.Model as CreateSnipbitModel
+import ProjectTypeAliases exposing (..)
 
 
 {-| The API to access the backend.
@@ -86,6 +87,7 @@ type alias API b =
         , removeOpinion : Opinion.Opinion -> (ApiError.ApiError -> b) -> (Bool -> b) -> Cmd b
         , removeOpinionWrapper : Opinion.Opinion -> (ApiError.ApiError -> b) -> (Opinion.Opinion -> b) -> Cmd b
         , askQuestionOnSnipbit : String -> String -> Range.Range -> (ApiError.ApiError -> b) -> (QA.Question Range.Range -> b) -> Cmd b
+        , askQuestionOnSnipbitWrapper : SnipbitID -> QuestionText -> Range.Range -> (ApiError.ApiError -> b) -> (SnipbitID -> QA.Question Range.Range -> b) -> Cmd b
         , askQuestionOnBigbit : String -> String -> QA.BigbitCodePointer -> (ApiError.ApiError -> b) -> (QA.Question QA.BigbitCodePointer -> b) -> Cmd b
         , editQuestionOnSnipbit : String -> String -> String -> Range.Range -> (ApiError.ApiError -> b) -> (Date.Date -> b) -> Cmd b
         , editQuestionOnBigbit : String -> String -> String -> QA.BigbitCodePointer -> (ApiError.ApiError -> b) -> (Date.Date -> b) -> Cmd b
@@ -599,6 +601,22 @@ api apiBaseUrl =
                 opinion
                 handleError
                 (always <| handleSuccess opinion)
+
+        {- Wrapper around `postAskQuestionOnSnipbit` that also returns the snipbitID. -}
+        postAskQuestionOnSnipbitWrapper :
+            SnipbitID
+            -> QuestionText
+            -> Range.Range
+            -> (ApiError.ApiError -> b)
+            -> (SnipbitID -> QA.Question Range.Range -> b)
+            -> Cmd b
+        postAskQuestionOnSnipbitWrapper snipbitID questionText range handleError handleSuccess =
+            postAskQuestionOnSnipbit
+                snipbitID
+                questionText
+                range
+                handleError
+                (handleSuccess snipbitID)
     in
         { get =
             { userExists = getUserExists
@@ -638,6 +656,7 @@ api apiBaseUrl =
             , removeOpinion = postRemoveOpinion
             , removeOpinionWrapper = postRemoveOpinionWrapper
             , askQuestionOnSnipbit = postAskQuestionOnSnipbit
+            , askQuestionOnSnipbitWrapper = postAskQuestionOnSnipbitWrapper
             , askQuestionOnBigbit = postAskQuestionOnBigbit
             , editQuestionOnSnipbit = postEditQuestionOnSnipbit
             , editQuestionOnBigbit = postEditQuestionOnBigbit

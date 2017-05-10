@@ -5,10 +5,12 @@ import DefaultServices.Util as Util exposing (maybeMapWithDefault)
 import Elements.Editor as Editor
 import Elements.Markdown exposing (githubMarkdown)
 import Elements.ProgressBar as ProgressBar exposing (TextFormat(Custom), State(..), progressBar)
-import Html exposing (Html, div, text, button, i)
-import Html.Attributes exposing (class, classList, disabled, hidden, id)
-import Html.Events exposing (onClick)
+import Html exposing (Html, div, text, button, i, textarea)
+import Html.Attributes exposing (class, classList, disabled, hidden, id, placeholder, value)
+import Html.Events exposing (onClick, onInput)
 import Models.Completed as Completed
+import Models.QA as QA
+import Models.Range as Range
 import Models.Rating as Rating
 import Models.Route as Route
 import Models.Snipbit as Snipbit
@@ -115,14 +117,14 @@ view model shared =
                 ( Just snipbitID, False, Just [] ) ->
                     button
                         [ class "sub-bar-button ask-question"
-                        , onClick <| AskQuestion
+                        , onClick <| GoToAskQuestion
                         ]
                         [ text "Ask Question" ]
 
                 ( Just snipbitID, False, Just _ ) ->
                     button
                         [ class "sub-bar-button view-relevant-questions"
-                        , onClick <| BrowseQuestions
+                        , onClick <| GoToBrowseQuestions
                         ]
                         [ text "Browse Related Questions" ]
 
@@ -348,7 +350,7 @@ view model shared =
 with a few extra buttons for a selected range.
 -}
 commentBox : Snipbit.Snipbit -> Model -> Shared -> Html Msg
-commentBox snipbit { relevantHC } { route } =
+commentBox snipbit { relevantHC, qaState } { route } =
     let
         -- To display if no relevant HC.
         htmlIfNoRelevantHC =
@@ -441,6 +443,74 @@ commentBox snipbit { relevantHC } { route } =
 
             Route.ViewSnipbitFramePage _ _ _ ->
                 tutorialRoute
+
+            Route.ViewSnipbitAskQuestion maybeStoryID snipbitID ->
+                let
+                    tidbitQAState =
+                        QA.getNewQuestion snipbitID qaState
+
+                    previewingMarkdown =
+                        tidbitQAState |> Util.maybeMapWithDefault .previewMarkdown False
+
+                    questionText =
+                        tidbitQAState |> Util.maybeMapWithDefault .questionText ""
+
+                    maybeReadyQuestion =
+                        QA.getNewQuestion snipbitID qaState
+                            |> Maybe.andThen
+                                (\{ codePointer, questionText } ->
+                                    case
+                                        ( Maybe.andThen Range.nonEmptyRangeOrNothing codePointer
+                                        , Util.justNonBlankString questionText
+                                        )
+                                    of
+                                        ( Just range, Just questionText ) ->
+                                            Just { codePointer = range, questionText = questionText }
+
+                                        _ ->
+                                            Nothing
+                                )
+
+                    questionIsReady =
+                        Util.isNotNothing maybeReadyQuestion
+                in
+                    div
+                        [ class "ask-question" ]
+                        [ div
+                            [ class "preview-markdown"
+                            , onClick AskQuestionTogglePreviewMarkdown
+                            ]
+                            [ text <|
+                                if previewingMarkdown then
+                                    "Close Preview"
+                                else
+                                    "Markdown Preview"
+                            ]
+                        , if previewingMarkdown then
+                            githubMarkdown [] questionText
+                          else
+                            textarea
+                                [ placeholder "Highlight code and ask your question"
+                                , onInput OnAskQuestionTextInput
+                                , value questionText
+                                ]
+                                []
+                        , div
+                            [ classList
+                                [ ( "ask-question-submit", True )
+                                , ( "not-ready", not questionIsReady )
+                                , ( "hidden", previewingMarkdown )
+                                ]
+                            , onClick <|
+                                case maybeReadyQuestion of
+                                    Just { codePointer, questionText } ->
+                                        AskQuestion snipbitID codePointer questionText
+
+                                    Nothing ->
+                                        NoOp
+                            ]
+                            [ text "Ask Question" ]
+                        ]
 
             _ ->
                 -- TODO CONTINUE Comment Box for QA routes.

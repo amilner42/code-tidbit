@@ -563,15 +563,12 @@ update (Common common) msg model shared =
         OnMarkAsCompleteFailure apiError ->
             common.justSetModalError apiError
 
-        AskQuestion ->
+        GoToAskQuestion ->
             let
                 codePointer =
                     Maybe.withDefault Range.zeroRange model.tutorialCodePointer
             in
                 case (Route.getViewingContentID shared.route) of
-                    Nothing ->
-                        common.doNothing
-
                     Just snipbitID ->
                         ( { model
                             | qaState =
@@ -592,15 +589,15 @@ update (Common common) msg model shared =
                                 snipbitID
                         )
 
-        BrowseQuestions ->
+                    Nothing ->
+                        common.doNothing
+
+        GoToBrowseQuestions ->
             let
                 codePointer =
                     Maybe.withDefault Range.zeroRange model.tutorialCodePointer
             in
                 case (Route.getViewingContentID shared.route) of
-                    Nothing ->
-                        common.doNothing
-
                     Just snipbitID ->
                         ( { model | qaState = QA.setBrowsingCodePointer snipbitID codePointer model.qaState }
                         , shared
@@ -609,6 +606,78 @@ update (Common common) msg model shared =
                                 (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
                                 snipbitID
                         )
+
+                    Nothing ->
+                        common.doNothing
+
+        OnAskQuestionTextInput questionText ->
+            case (Route.getViewingContentID shared.route) of
+                Just snipbitID ->
+                    common.justSetModel
+                        { model
+                            | qaState =
+                                QA.updateNewQuestion
+                                    snipbitID
+                                    (\newQuestion ->
+                                        { newQuestion | questionText = questionText }
+                                    )
+                                    model.qaState
+                        }
+
+                Nothing ->
+                    common.doNothing
+
+        AskQuestionTogglePreviewMarkdown ->
+            case (Route.getViewingContentID shared.route) of
+                Just snipbitID ->
+                    common.justSetModel
+                        { model
+                            | qaState =
+                                QA.updateNewQuestion
+                                    snipbitID
+                                    (\newQuestion ->
+                                        { newQuestion | previewMarkdown = not newQuestion.previewMarkdown }
+                                    )
+                                    model.qaState
+                        }
+
+                Nothing ->
+                    common.doNothing
+
+        AskQuestion snipbitID codePointer questionText ->
+            common.justProduceCmd <|
+                common.api.post.askQuestionOnSnipbitWrapper
+                    snipbitID
+                    questionText
+                    codePointer
+                    OnAskQuestionFailure
+                    OnAskQuestionSuccess
+
+        OnAskQuestionSuccess snipbitID question ->
+            case model.qa of
+                Just qa ->
+                    ( { model
+                        | qa = Just { qa | questions = qa.questions ++ [ question ] }
+                        , qaState =
+                            QA.updateNewQuestion
+                                snipbitID
+                                (always { codePointer = Nothing, questionText = "", previewMarkdown = False })
+                                model.qaState
+                      }
+                    , shared
+                    , Route.navigateTo <|
+                        Route.ViewSnipbitQuestionPage
+                            (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
+                            snipbitID
+                            question.id
+                            Nothing
+                    )
+
+                Nothing ->
+                    common.doNothing
+
+        OnAskQuestionFailure apiError ->
+            common.justSetModalError apiError
 
 
 {-| Creates the editor for the snipbit.

@@ -6,8 +6,9 @@ import Models.Range exposing (Range)
 import Models.Route exposing (Route)
 import Models.Snipbit exposing (Snipbit)
 import Models.Story exposing (ExpandedStory)
-import Models.QA exposing (SnipbitQA)
+import Models.QA exposing (SnipbitQA, Question)
 import Models.Opinion exposing (Opinion, PossibleOpinion)
+import ProjectTypeAliases exposing (..)
 
 
 {-| `ViewSnipbit` msg.
@@ -40,5 +41,10 @@ type Msg
     | JumpToFrame Route
     | OnMarkAsCompleteSuccess IsCompleted
     | OnMarkAsCompleteFailure ApiError
-    | AskQuestion
-    | BrowseQuestions
+    | GoToAskQuestion
+    | GoToBrowseQuestions
+    | OnAskQuestionTextInput String
+    | AskQuestionTogglePreviewMarkdown
+    | AskQuestion SnipbitID Range QuestionText
+    | OnAskQuestionSuccess SnipbitID (Question Range)
+    | OnAskQuestionFailure ApiError

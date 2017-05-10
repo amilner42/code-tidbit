@@ -156,6 +156,7 @@ type alias QuestionEdit codePointer =
 type alias NewQuestion codePointer =
     { questionText : QuestionText
     , codePointer : Maybe codePointer
+    , previewMarkdown : Bool
     }
 
 
@@ -190,6 +191,14 @@ getQuestionEditByID : SnipbitID -> QuestionID -> QAState codePointer -> Maybe (Q
 getQuestionEditByID snipbitID questionID qaState =
     Dict.get snipbitID qaState
         |> Maybe.andThen (.questionEdits >> Dict.get questionID)
+
+
+{-| Get's the `newQuestion` for the given snipbitID.
+-}
+getNewQuestion : SnipbitID -> QAState codePointer -> Maybe (NewQuestion codePointer)
+getNewQuestion snipbitID qaState =
+    Dict.get snipbitID qaState
+        |> Maybe.map .newQuestion
 
 
 {-| BrowseCodePointer setter, handles setting default tidbitQAState if needed.
@@ -261,7 +270,7 @@ setTidbitQAState snipbitID tidbitQAStateUpdater qaState =
 defaultTidbitQAState : TidbitQAState codePointer
 defaultTidbitQAState =
     { browsingCodePointer = Nothing
-    , newQuestion = { questionText = "", codePointer = Nothing }
+    , newQuestion = { questionText = "", codePointer = Nothing, previewMarkdown = False }
     , questionEdits = Dict.empty
     , newAnswers = Dict.empty
     , answerEdits = Dict.empty
