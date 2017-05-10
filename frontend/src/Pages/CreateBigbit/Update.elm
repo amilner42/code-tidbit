@@ -45,6 +45,7 @@ update (Common common) msg model shared =
                                         , theme = User.getTheme shared.user
                                         , value = ""
                                         , range = Nothing
+                                        , useMarker = True -- Doesn't matter, no range.
                                         , readOnly = True
                                         , selectAllowed = True
                                         }
@@ -62,6 +63,7 @@ update (Common common) msg model shared =
                                                 , theme = User.getTheme shared.user
                                                 , value = content
                                                 , range = maybeRange
+                                                , useMarker = False
                                                 , readOnly = False
                                                 , selectAllowed = True
                                                 }

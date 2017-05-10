@@ -401,6 +401,7 @@ createViewBigbitHCCodeEditor maybeBigbit maybeRHC user =
                         , theme = User.getTheme user
                         , value = code
                         , range = Just range
+                        , useMarker = True
                         , readOnly = True
                         , selectAllowed = False
                         }
@@ -446,6 +447,7 @@ createViewBigbitCodeEditor bigbit { route, user } =
                 , theme = User.getTheme user
                 , value = ""
                 , range = Nothing
+                , useMarker = True
                 , readOnly = True
                 , selectAllowed = True
                 }
@@ -468,6 +470,7 @@ createViewBigbitCodeEditor bigbit { route, user } =
                                 , theme = User.getTheme user
                                 , value = content
                                 , range = Nothing
+                                , useMarker = True
                                 , readOnly = True
                                 , selectAllowed = True
                                 }
@@ -501,6 +504,7 @@ createViewBigbitCodeEditor bigbit { route, user } =
                                                 , theme = User.getTheme user
                                                 , value = content
                                                 , range = Just hc.range
+                                                , useMarker = True
                                                 , readOnly = True
                                                 , selectAllowed = True
                                                 }

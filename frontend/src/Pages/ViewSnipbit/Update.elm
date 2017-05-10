@@ -551,7 +551,7 @@ createViewSnipbitCodeEditor : Snipbit.Snipbit -> Shared -> Cmd msg
 createViewSnipbitCodeEditor snipbit { route, user } =
     let
         editorWithRange range =
-            snipbitEditor snipbit user True True range
+            snipbitEditor snipbit user True True True range
     in
         Cmd.batch
             [ case route of
@@ -594,8 +594,8 @@ createViewSnipbitQACodeEditor :
     -> Cmd msg
 createViewSnipbitQACodeEditor ( snipbit, qa, qaState ) bookmark { route, user } =
     let
-        editorWithRange range =
-            snipbitEditor snipbit user True True range
+        editorWithRange { selectAllowed, useMarker } range =
+            snipbitEditor snipbit user True selectAllowed useMarker range
 
         redirectToTutorial maybeStoryID snipbitID =
             Route.modifyTo <| routeForBookmark maybeStoryID snipbitID bookmark
@@ -606,7 +606,7 @@ createViewSnipbitQACodeEditor ( snipbit, qa, qaState ) bookmark { route, user } 
                 Route.ViewSnipbitQuestionsPage _ snipbitID ->
                     Dict.get snipbitID qaState
                         |> Maybe.andThen .browsingCodePointer
-                        |> editorWithRange
+                        |> editorWithRange { selectAllowed = True, useMarker = False }
 
                 -- Highlight question codePointer.
                 Route.ViewSnipbitQuestionPage maybeStoryID snipbitID questionID _ ->
@@ -615,7 +615,7 @@ createViewSnipbitQACodeEditor ( snipbit, qa, qaState ) bookmark { route, user } 
                             redirectToTutorial maybeStoryID snipbitID
 
                         Just { codePointer } ->
-                            editorWithRange <| Just codePointer
+                            editorWithRange { selectAllowed = False, useMarker = True } <| Just codePointer
 
                 -- Highlight question codePointer for given frameNumber.
                 Route.ViewSnipbitQuestionFrame maybeStoryID snipbitID frameNumber _ ->
@@ -624,14 +624,14 @@ createViewSnipbitQACodeEditor ( snipbit, qa, qaState ) bookmark { route, user } 
                             redirectToTutorial maybeStoryID snipbitID
 
                         Just { codePointer } ->
-                            editorWithRange <| Just codePointer
+                            editorWithRange { selectAllowed = False, useMarker = True } <| Just codePointer
 
                 -- Higlight newQuestion codePointer or Nothing.
                 Route.ViewSnipbitAskQuestion maybeStoryID snipbitID ->
                     Dict.get snipbitID qaState
                         |> Maybe.map .newQuestion
                         |> Maybe.andThen .codePointer
-                        |> editorWithRange
+                        |> editorWithRange { selectAllowed = True, useMarker = False }
 
                 -- Highlight question codePointer.
                 Route.ViewSnipbitAnswerQuestion maybeStoryID snipbitID questionID ->
@@ -640,7 +640,7 @@ createViewSnipbitQACodeEditor ( snipbit, qa, qaState ) bookmark { route, user } 
                             redirectToTutorial maybeStoryID snipbitID
 
                         Just { codePointer } ->
-                            editorWithRange <| Just codePointer
+                            editorWithRange { selectAllowed = False, useMarker = True } <| Just codePointer
 
                 -- Highlight questionEdit codePointer or original question codePointer.
                 Route.ViewSnipbitEditQuestion maybeStoryID snipbitID questionID ->
@@ -654,10 +654,14 @@ createViewSnipbitQACodeEditor ( snipbit, qa, qaState ) bookmark { route, user } 
                                     |> (\maybeEdit ->
                                             case maybeEdit of
                                                 Nothing ->
-                                                    editorWithRange (Just codePointer)
+                                                    editorWithRange
+                                                        { selectAllowed = True, useMarker = False }
+                                                        (Just codePointer)
 
                                                 Just { codePointer } ->
-                                                    editorWithRange <| Just <| Editable.getBuffer codePointer
+                                                    editorWithRange
+                                                        { selectAllowed = True, useMarker = False }
+                                                        (Just <| Editable.getBuffer codePointer)
                                        )
                             else
                                 redirectToTutorial maybeStoryID snipbitID
@@ -669,7 +673,7 @@ createViewSnipbitQACodeEditor ( snipbit, qa, qaState ) bookmark { route, user } 
                             redirectToTutorial maybeStoryID snipbitID
 
                         Just { codePointer } ->
-                            editorWithRange <| Just codePointer
+                            editorWithRange { selectAllowed = False, useMarker = True } <| Just codePointer
 
                 _ ->
                     Cmd.none
@@ -692,7 +696,7 @@ createViewSnipbitHCCodeEditor maybeSnipbit maybeRHC user =
                 Just index ->
                     Array.get index relevantHC
                         |> maybeMapWithDefault
-                            (snipbitEditor snipbit user True False << Just << .range << Tuple.second)
+                            (snipbitEditor snipbit user True False True << Just << .range << Tuple.second)
                             Cmd.none
 
         _ ->
@@ -701,8 +705,8 @@ createViewSnipbitHCCodeEditor maybeSnipbit maybeRHC user =
 
 {-| Wrapper around the port for creating an editor with the view-snipbit-settings pre-filled.
 -}
-snipbitEditor : Snipbit.Snipbit -> Maybe User.User -> Bool -> Bool -> Maybe Range.Range -> Cmd msg
-snipbitEditor snipbit user readOnly selectAllowed range =
+snipbitEditor : Snipbit.Snipbit -> Maybe User.User -> Bool -> Bool -> Bool -> Maybe Range.Range -> Cmd msg
+snipbitEditor snipbit user readOnly selectAllowed useMarker range =
     Ports.createCodeEditor
         { id = "view-snipbit-code-editor"
         , fileID = ""
@@ -710,6 +714,7 @@ snipbitEditor snipbit user readOnly selectAllowed range =
         , theme = User.getTheme user
         , value = snipbit.code
         , range = range
+        , useMarker = useMarker
         , readOnly = readOnly
         , selectAllowed = selectAllowed
         }

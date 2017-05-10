@@ -51,6 +51,7 @@ update (Common common) msg model shared =
                                     , theme = User.getTheme shared.user
                                     , value = model.code
                                     , range = aceRange
+                                    , useMarker = False
                                     , readOnly = False
                                     , selectAllowed = True
                                     }

@@ -50,6 +50,7 @@ type alias CreateCodeEditorConfig =
     , theme : String
     , value : String
     , range : Maybe Range
+    , useMarker : Bool -- If true will use a marker for the range, otherwise will just use a selection.
     , readOnly : Bool
     , selectAllowed : Bool
     }
