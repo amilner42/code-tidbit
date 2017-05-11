@@ -1,6 +1,7 @@
 module Pages.ViewSnipbit.View exposing (..)
 
 import Array
+import DefaultServices.Editable as Editable
 import DefaultServices.Util as Util exposing (maybeMapWithDefault)
 import Elements.Editor as Editor
 import Elements.Markdown exposing (githubMarkdown)
@@ -350,7 +351,7 @@ view model shared =
 with a few extra buttons for a selected range.
 -}
 commentBox : Snipbit.Snipbit -> Model -> Shared -> Html Msg
-commentBox snipbit { relevantHC, qaState } { route } =
+commentBox snipbit { relevantHC, qaState, qa } { route } =
     let
         -- To display if no relevant HC.
         htmlIfNoRelevantHC =
@@ -444,6 +445,18 @@ commentBox snipbit { relevantHC, qaState } { route } =
             Route.ViewSnipbitFramePage _ _ _ ->
                 tutorialRoute
 
+            Route.ViewSnipbitQuestionsPage maybeStoryID snipbitID ->
+                -- TODO
+                Util.hiddenDiv
+
+            Route.ViewSnipbitQuestionPage maybeStoryID snipbitID questionID maybeAnswerID ->
+                -- TODO
+                Util.hiddenDiv
+
+            Route.ViewSnipbitQuestionFrame maybeStoryID snipbitID frameNumber maybeAnswerID ->
+                -- TODO
+                Util.hiddenDiv
+
             Route.ViewSnipbitAskQuestion maybeStoryID snipbitID ->
                 let
                     tidbitQAState =
@@ -478,7 +491,7 @@ commentBox snipbit { relevantHC, qaState } { route } =
                         [ class "ask-question" ]
                         [ div
                             [ class "preview-markdown"
-                            , onClick AskQuestionTogglePreviewMarkdown
+                            , onClick <| AskQuestionTogglePreviewMarkdown snipbitID
                             ]
                             [ text <|
                                 if previewingMarkdown then
@@ -491,7 +504,7 @@ commentBox snipbit { relevantHC, qaState } { route } =
                           else
                             textarea
                                 [ placeholder "Highlight code and ask your question"
-                                , onInput OnAskQuestionTextInput
+                                , onInput <| OnAskQuestionTextInput snipbitID
                                 , value questionText
                                 ]
                                 []
@@ -512,6 +525,88 @@ commentBox snipbit { relevantHC, qaState } { route } =
                             [ text "Ask Question" ]
                         ]
 
+            Route.ViewSnipbitAnswerQuestion maybeStoryID snipbitID questionID ->
+                -- TODO
+                Util.hiddenDiv
+
+            Route.ViewSnipbitEditQuestion maybeStoryID snipbitID questionID ->
+                case Maybe.andThen (QA.getQuestionByID questionID) (Maybe.map .questions qa) of
+                    Just question ->
+                        let
+                            maybeQuestionEdit =
+                                QA.getQuestionEditByID snipbitID questionID qaState
+
+                            questionText =
+                                maybeQuestionEdit
+                                    |> Maybe.map (.questionText >> Editable.getBuffer)
+                                    |> Maybe.withDefault question.questionText
+
+                            codePointer =
+                                maybeQuestionEdit
+                                    |> Maybe.map (.codePointer >> Editable.getBuffer)
+                                    |> Maybe.withDefault question.codePointer
+
+                            maybeReadyQuestion =
+                                case ( Range.nonEmptyRangeOrNothing codePointer, Util.justNonBlankString questionText ) of
+                                    ( Just range, Just questionText ) ->
+                                        Just { codePointer = range, questionText = questionText }
+
+                                    _ ->
+                                        Nothing
+
+                            questionIsReady =
+                                Util.isNotNothing maybeReadyQuestion
+
+                            previewMarkdown =
+                                maybeQuestionEdit
+                                    |> Util.maybeMapWithDefault .previewMarkdown False
+                        in
+                            div
+                                [ class "edit-question" ]
+                                [ div
+                                    [ class "preview-markdown"
+                                    , onClick <| EditQuestionTogglePreviewMarkdown snipbitID questionID question
+                                    ]
+                                    [ text <|
+                                        if previewMarkdown then
+                                            "Close Preview"
+                                        else
+                                            "Markdown Preview"
+                                    ]
+                                , Util.markdownOr
+                                    previewMarkdown
+                                    questionText
+                                    (textarea
+                                        [ placeholder "Edit Question Text"
+                                        , value questionText
+                                        , onInput <| OnEditQuestionTextInput snipbitID questionID question
+                                        ]
+                                        []
+                                    )
+                                , div
+                                    [ classList
+                                        [ ( "edit-question-submit", True )
+                                        , ( "not-ready", not questionIsReady )
+                                        , ( "hidden", previewMarkdown )
+                                        ]
+                                    , onClick <|
+                                        case maybeReadyQuestion of
+                                            Just { codePointer, questionText } ->
+                                                EditQuestion snipbitID questionID questionText codePointer
+
+                                            Nothing ->
+                                                NoOp
+                                    ]
+                                    [ text "Update Question" ]
+                                ]
+
+                    -- This will never happen, if the question doesn't exist we will have redirected URLs.
+                    _ ->
+                        Util.hiddenDiv
+
+            Route.ViewSnipbitEditAnswer maybeStoryID snipbitID answerID ->
+                -- TODO
+                Util.hiddenDiv
+
             _ ->
-                -- TODO CONTINUE Comment Box for QA routes.
                 Util.hiddenDiv

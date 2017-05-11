@@ -148,6 +148,7 @@ type alias TidbitQAState codePointer =
 type alias QuestionEdit codePointer =
     { questionText : Editable.Editable QuestionText
     , codePointer : Editable.Editable codePointer
+    , previewMarkdown : Bool
     }
 
 
@@ -157,6 +158,16 @@ type alias NewQuestion codePointer =
     { questionText : QuestionText
     , codePointer : Maybe codePointer
     , previewMarkdown : Bool
+    }
+
+
+{-| Creates a `QuestionEdit` from a `Question`.
+-}
+questionEditFromQuestion : Question codePointer -> QuestionEdit codePointer
+questionEditFromQuestion { questionText, codePointer } =
+    { questionText = Editable.newEditing questionText
+    , codePointer = Editable.newEditing codePointer
+    , previewMarkdown = False
     }
 
 
@@ -208,6 +219,23 @@ setBrowsingCodePointer snipbitID codePointer =
     setTidbitQAState snipbitID (\tidbitQAState -> { tidbitQAState | browsingCodePointer = Just codePointer })
 
 
+{-| Updates a [published] question in the QA.
+-}
+updateQuestion : QuestionID -> (Question codePointer -> Question codePointer) -> QA codePointer -> QA codePointer
+updateQuestion questionID questionUpdater qa =
+    { qa
+        | questions =
+            List.map
+                (\question ->
+                    if question.id == questionID then
+                        questionUpdater question
+                    else
+                        question
+                )
+                qa.questions
+    }
+
+
 {-| NewQuestion updater, handles setting default tidbitQAState if needed.
 -}
 updateNewQuestion :
@@ -224,20 +252,20 @@ updateNewQuestion snipbitID newQuestionUpdater =
 
 Updater has to handle case where no edit exits yet (hence `Maybe QuestionEdit...`).
 -}
-setEditQuestionCodePointer :
+updateEditQuestion :
     SnipbitID
     -> QuestionID
-    -> (Maybe (QuestionEdit codePointer) -> QuestionEdit codePointer)
+    -> (Maybe (QuestionEdit codePointer) -> Maybe (QuestionEdit codePointer))
     -> QAState codePointer
     -> QAState codePointer
-setEditQuestionCodePointer snipbitID questionID questionEditUpdater =
+updateEditQuestion snipbitID questionID questionEditUpdater =
     setTidbitQAState snipbitID
         (\tidbitQAState ->
             { tidbitQAState
                 | questionEdits =
                     Dict.update
                         questionID
-                        (\maybeQuestionEdit -> Just <| questionEditUpdater maybeQuestionEdit)
+                        (\maybeQuestionEdit -> questionEditUpdater maybeQuestionEdit)
                         tidbitQAState.questionEdits
             }
         )

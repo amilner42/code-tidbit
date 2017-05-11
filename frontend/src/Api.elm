@@ -90,6 +90,7 @@ type alias API b =
         , askQuestionOnSnipbitWrapper : SnipbitID -> QuestionText -> Range.Range -> (ApiError.ApiError -> b) -> (SnipbitID -> QA.Question Range.Range -> b) -> Cmd b
         , askQuestionOnBigbit : BigbitID -> QuestionText -> QA.BigbitCodePointer -> (ApiError.ApiError -> b) -> (QA.Question QA.BigbitCodePointer -> b) -> Cmd b
         , editQuestionOnSnipbit : SnipbitID -> QuestionID -> QuestionText -> Range.Range -> (ApiError.ApiError -> b) -> (Date.Date -> b) -> Cmd b
+        , editQuestionOnSnipbitWrapper : SnipbitID -> QuestionID -> QuestionText -> Range.Range -> (ApiError.ApiError -> b) -> (SnipbitID -> QuestionID -> QuestionText -> Range.Range -> Date.Date -> b) -> Cmd b
         , editQuestionOnBigbit : BigbitID -> QuestionID -> QuestionText -> QA.BigbitCodePointer -> (ApiError.ApiError -> b) -> (Date.Date -> b) -> Cmd b
         , deleteQuestion : TidbitPointer.TidbitPointer -> QuestionID -> (ApiError.ApiError -> b) -> (() -> b) -> Cmd b
         , rateQuestion : TidbitPointer.TidbitPointer -> QuestionID -> Vote.Vote -> (ApiError.ApiError -> b) -> (() -> b) -> Cmd b
@@ -611,6 +612,16 @@ api apiBaseUrl =
                 range
                 handleError
                 (handleSuccess snipbitID)
+
+        postEditQuestionOnSnipbitWrapper : SnipbitID -> QuestionID -> QuestionText -> Range.Range -> (ApiError.ApiError -> b) -> (SnipbitID -> QuestionID -> QuestionText -> Range.Range -> Date.Date -> b) -> Cmd b
+        postEditQuestionOnSnipbitWrapper snipbitID questionID questionText range handleError handleSuccess =
+            postEditQuestionOnSnipbit
+                snipbitID
+                questionID
+                questionText
+                range
+                handleError
+                (handleSuccess snipbitID questionID questionText range)
     in
         { get =
             { userExists = getUserExists
@@ -653,6 +664,7 @@ api apiBaseUrl =
             , askQuestionOnSnipbitWrapper = postAskQuestionOnSnipbitWrapper
             , askQuestionOnBigbit = postAskQuestionOnBigbit
             , editQuestionOnSnipbit = postEditQuestionOnSnipbit
+            , editQuestionOnSnipbitWrapper = postEditQuestionOnSnipbitWrapper
             , editQuestionOnBigbit = postEditQuestionOnBigbit
             , deleteQuestion = postDeleteQuestion
             , rateQuestion = postRateQuestion

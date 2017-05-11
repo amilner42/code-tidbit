@@ -480,25 +480,27 @@ update (Common common) msg model shared =
                                 common.justSetModel
                                     { model
                                         | qaState =
-                                            QA.setEditQuestionCodePointer
+                                            QA.updateEditQuestion
                                                 snipbitID
                                                 questionID
                                                 (\maybeQuestionEdit ->
-                                                    case maybeQuestionEdit of
-                                                        Nothing ->
-                                                            { questionText =
-                                                                Editable.newEditing question.questionText
-                                                            , codePointer =
-                                                                Editable.newEditing selectedRange
-                                                            }
+                                                    Just <|
+                                                        case maybeQuestionEdit of
+                                                            Nothing ->
+                                                                { questionText =
+                                                                    Editable.newEditing question.questionText
+                                                                , codePointer =
+                                                                    Editable.newEditing selectedRange
+                                                                , previewMarkdown = False
+                                                                }
 
-                                                        Just questionEdit ->
-                                                            { questionEdit
-                                                                | codePointer =
-                                                                    Editable.setBuffer
-                                                                        questionEdit.codePointer
-                                                                        selectedRange
-                                                            }
+                                                            Just questionEdit ->
+                                                                { questionEdit
+                                                                    | codePointer =
+                                                                        Editable.setBuffer
+                                                                            questionEdit.codePointer
+                                                                            selectedRange
+                                                                }
                                                 )
                                                 model.qaState
                                     }
@@ -610,39 +612,27 @@ update (Common common) msg model shared =
                     Nothing ->
                         common.doNothing
 
-        OnAskQuestionTextInput questionText ->
-            case (Route.getViewingContentID shared.route) of
-                Just snipbitID ->
-                    common.justSetModel
-                        { model
-                            | qaState =
-                                QA.updateNewQuestion
-                                    snipbitID
-                                    (\newQuestion ->
-                                        { newQuestion | questionText = questionText }
-                                    )
-                                    model.qaState
-                        }
+        OnAskQuestionTextInput snipbitID questionText ->
+            common.justSetModel
+                { model
+                    | qaState =
+                        QA.updateNewQuestion
+                            snipbitID
+                            (\newQuestion -> { newQuestion | questionText = questionText })
+                            model.qaState
+                }
 
-                Nothing ->
-                    common.doNothing
-
-        AskQuestionTogglePreviewMarkdown ->
-            case (Route.getViewingContentID shared.route) of
-                Just snipbitID ->
-                    common.justSetModel
-                        { model
-                            | qaState =
-                                QA.updateNewQuestion
-                                    snipbitID
-                                    (\newQuestion ->
-                                        { newQuestion | previewMarkdown = not newQuestion.previewMarkdown }
-                                    )
-                                    model.qaState
-                        }
-
-                Nothing ->
-                    common.doNothing
+        AskQuestionTogglePreviewMarkdown snipbitID ->
+            common.justSetModel
+                { model
+                    | qaState =
+                        QA.updateNewQuestion
+                            snipbitID
+                            (\newQuestion ->
+                                { newQuestion | previewMarkdown = not newQuestion.previewMarkdown }
+                            )
+                            model.qaState
+                }
 
         AskQuestion snipbitID codePointer questionText ->
             common.justProduceCmd <|
@@ -677,6 +667,77 @@ update (Common common) msg model shared =
                     common.doNothing
 
         OnAskQuestionFailure apiError ->
+            common.justSetModalError apiError
+
+        OnEditQuestionTextInput snipbitID questionID question questionText ->
+            common.justSetModel
+                { model
+                    | qaState =
+                        QA.updateEditQuestion
+                            snipbitID
+                            questionID
+                            (\maybeEdit ->
+                                Maybe.withDefault (QA.questionEditFromQuestion question) maybeEdit
+                                    |> (\edit ->
+                                            Just
+                                                { edit
+                                                    | questionText = Editable.setBuffer edit.questionText questionText
+                                                }
+                                       )
+                            )
+                            model.qaState
+                }
+
+        EditQuestionTogglePreviewMarkdown snipbitID questionID question ->
+            common.justSetModel
+                { model
+                    | qaState =
+                        QA.updateEditQuestion
+                            snipbitID
+                            questionID
+                            (\maybeEdit ->
+                                Maybe.withDefault (QA.questionEditFromQuestion question) maybeEdit
+                                    |> (\edit -> Just { edit | previewMarkdown = not edit.previewMarkdown })
+                            )
+                            model.qaState
+                }
+
+        EditQuestion snipbitID questionID questionText range ->
+            common.justProduceCmd <|
+                common.api.post.editQuestionOnSnipbitWrapper
+                    snipbitID
+                    questionID
+                    questionText
+                    range
+                    OnEditQuestionFailure
+                    OnEditQuestionSuccess
+
+        OnEditQuestionSuccess snipbitID questionID questionText range date ->
+            ( { model
+                | -- Get rid of question edit.
+                  qaState = QA.updateEditQuestion snipbitID questionID (always Nothing) model.qaState
+
+                -- Update question in QA.
+                , qa =
+                    Maybe.map
+                        (QA.updateQuestion
+                            questionID
+                            (\question ->
+                                { question | questionText = questionText, codePointer = range, lastModified = date }
+                            )
+                        )
+                        model.qa
+              }
+            , shared
+            , Route.navigateTo <|
+                Route.ViewSnipbitQuestionPage
+                    (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
+                    snipbitID
+                    questionID
+                    Nothing
+            )
+
+        OnEditQuestionFailure apiError ->
             common.justSetModalError apiError
 
 

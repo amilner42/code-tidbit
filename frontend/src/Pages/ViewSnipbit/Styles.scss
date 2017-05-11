@@ -17,7 +17,7 @@
     }
 
     .comment-block {
-        .ask-question {
+        .ask-question, .edit-question {
             height: 600px;
             width: 360px;
             position: absolute;
@@ -38,7 +38,7 @@
                 text-align: center;
             }
 
-            .ask-question-submit {
+            .ask-question-submit, .edit-question-submit {
                 position: absolute;
                 box-sizing: border-box;
                 width: 360px;

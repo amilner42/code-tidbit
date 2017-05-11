@@ -1,5 +1,6 @@
 module Pages.ViewSnipbit.Messages exposing (..)
 
+import Date exposing (Date)
 import Models.ApiError exposing (ApiError)
 import Models.Completed exposing (Completed, IsCompleted)
 import Models.Range exposing (Range)
@@ -43,8 +44,13 @@ type Msg
     | OnMarkAsCompleteFailure ApiError
     | GoToAskQuestion
     | GoToBrowseQuestions
-    | OnAskQuestionTextInput String
-    | AskQuestionTogglePreviewMarkdown
+    | OnAskQuestionTextInput SnipbitID QuestionText
+    | AskQuestionTogglePreviewMarkdown SnipbitID
     | AskQuestion SnipbitID Range QuestionText
     | OnAskQuestionSuccess SnipbitID (Question Range)
     | OnAskQuestionFailure ApiError
+    | OnEditQuestionTextInput SnipbitID QuestionID (Question Range) QuestionText
+    | EditQuestionTogglePreviewMarkdown SnipbitID QuestionID (Question Range)
+    | EditQuestion SnipbitID QuestionID QuestionText Range
+    | OnEditQuestionSuccess SnipbitID QuestionID QuestionText Range Date
+    | OnEditQuestionFailure ApiError
