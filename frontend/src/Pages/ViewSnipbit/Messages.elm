@@ -7,7 +7,7 @@ import Models.Range exposing (Range)
 import Models.Route exposing (Route)
 import Models.Snipbit exposing (Snipbit)
 import Models.Story exposing (ExpandedStory)
-import Models.QA exposing (SnipbitQA, Question)
+import Models.QA exposing (SnipbitQA, Question, Answer)
 import Models.Opinion exposing (Opinion, PossibleOpinion)
 import ProjectTypeAliases exposing (..)
 
@@ -54,3 +54,9 @@ type Msg
     | EditQuestion SnipbitID QuestionID QuestionText Range
     | OnEditQuestionSuccess SnipbitID QuestionID QuestionText Range Date
     | OnEditQuestionFailure ApiError
+    | NewAnswerTogglePreviewMarkdown SnipbitID QuestionID
+    | NewAnswerToggleShowCode SnipbitID QuestionID
+    | OnNewAnswerTextInput SnipbitID QuestionID AnswerText
+    | AnswerQuestion SnipbitID QuestionID AnswerText
+    | OnAnswerQuestionSuccess SnipbitID QuestionID Answer
+    | OnAnswerFailure ApiError

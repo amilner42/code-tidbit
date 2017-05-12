@@ -740,6 +740,86 @@ update (Common common) msg model shared =
         OnEditQuestionFailure apiError ->
             common.justSetModalError apiError
 
+        NewAnswerTogglePreviewMarkdown snipbitID questionID ->
+            common.justSetModel
+                { model
+                    | qaState =
+                        QA.updateNewAnswer
+                            snipbitID
+                            questionID
+                            (\maybeNewAnswer ->
+                                Maybe.withDefault QA.defaultNewAnswer maybeNewAnswer
+                                    |> (\newAnswer ->
+                                            Just
+                                                { newAnswer | previewMarkdown = not newAnswer.previewMarkdown }
+                                       )
+                            )
+                            model.qaState
+                }
+
+        NewAnswerToggleShowCode snipbitID questionID ->
+            common.justSetModel
+                { model
+                    | qaState =
+                        QA.updateNewAnswer
+                            snipbitID
+                            questionID
+                            (\maybeNewAnswer ->
+                                Maybe.withDefault QA.defaultNewAnswer maybeNewAnswer
+                                    |> (\newAnswer ->
+                                            Just
+                                                { newAnswer | showQuestion = not newAnswer.showQuestion }
+                                       )
+                            )
+                            model.qaState
+                }
+
+        OnNewAnswerTextInput snipbitID questionID answerText ->
+            common.justSetModel
+                { model
+                    | qaState =
+                        QA.updateNewAnswer
+                            snipbitID
+                            questionID
+                            (\maybeNewAnswer ->
+                                Maybe.withDefault QA.defaultNewAnswer maybeNewAnswer
+                                    |> (\newAnswer ->
+                                            Just
+                                                { newAnswer | answerText = answerText }
+                                       )
+                            )
+                            model.qaState
+                }
+
+        AnswerQuestion snipbitID questionID answerText ->
+            common.justProduceCmd <|
+                common.api.post.answerQuestionWrapper
+                    { tidbitType = TidbitPointer.Snipbit, targetID = snipbitID }
+                    questionID
+                    answerText
+                    OnAnswerFailure
+                    OnAnswerQuestionSuccess
+
+        OnAnswerQuestionSuccess snipbitID questionID answer ->
+            ( { model
+                | -- Add the answer to the published answer list.
+                  qa = Maybe.map (\qa -> { qa | answers = qa.answers ++ [ answer ] }) model.qa
+
+                -- Clear the new answer from the QAState.
+                , qaState = QA.updateNewAnswer snipbitID questionID (always Nothing) model.qaState
+              }
+            , shared
+            , Route.navigateTo <|
+                Route.ViewSnipbitQuestionPage
+                    (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
+                    snipbitID
+                    questionID
+                    (Just answer.id)
+            )
+
+        OnAnswerFailure apiError ->
+            common.justSetModalError apiError
+
 
 {-| Creates the editor for the snipbit.
 

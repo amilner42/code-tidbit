@@ -134,7 +134,7 @@ type alias TidbitQAState codePointer =
     { browsingCodePointer : Maybe codePointer
     , newQuestion : NewQuestion codePointer
     , questionEdits : Dict.Dict QuestionID (QuestionEdit codePointer)
-    , newAnswers : Dict.Dict QuestionID AnswerText
+    , newAnswers : Dict.Dict QuestionID NewAnswer
     , answerEdits : Dict.Dict AnswerID (Editable.Editable String)
     , newQuestionComments : Dict.Dict QuestionID CommentText
     , newAnswerComments : Dict.Dict AnswerID CommentText
@@ -158,6 +158,15 @@ type alias NewQuestion codePointer =
     { questionText : QuestionText
     , codePointer : Maybe codePointer
     , previewMarkdown : Bool
+    }
+
+
+{-| A new answer being created.
+-}
+type alias NewAnswer =
+    { answerText : AnswerText
+    , previewMarkdown : Bool
+    , showQuestion : Bool
     }
 
 
@@ -210,6 +219,14 @@ getNewQuestion : SnipbitID -> QAState codePointer -> Maybe (NewQuestion codePoin
 getNewQuestion snipbitID qaState =
     Dict.get snipbitID qaState
         |> Maybe.map .newQuestion
+
+
+{-| Get's the newAnswer for the given snipbit/question if it exists.
+-}
+getNewAnswer : SnipbitID -> QuestionID -> QAState codePointer -> Maybe NewAnswer
+getNewAnswer snipbitID questionID qaState =
+    Dict.get snipbitID qaState
+        |> Maybe.andThen (.newAnswers >> Dict.get questionID)
 
 
 {-| BrowseCodePointer setter, handles setting default tidbitQAState if needed.
@@ -271,6 +288,25 @@ updateEditQuestion snipbitID questionID questionEditUpdater =
         )
 
 
+{-| newAnswer updater, handles setting default tidbitQAState if needed.
+
+Updater has to handle case where no new answer exists yet for that question (hence `Maybe NewAnswer...`).
+-}
+updateNewAnswer : SnipbitID -> QuestionID -> (Maybe NewAnswer -> Maybe NewAnswer) -> QAState codePointer -> QAState codePointer
+updateNewAnswer snipbitID questionID newAnswerUpdater =
+    setTidbitQAState
+        snipbitID
+        (\tidbitQAState ->
+            { tidbitQAState
+                | newAnswers =
+                    Dict.update
+                        questionID
+                        (\maybeNewAnswer -> newAnswerUpdater maybeNewAnswer)
+                        tidbitQAState.newAnswers
+            }
+        )
+
+
 {-| Helper for creating setters which automatically handle the `tidbitQAState` being missing (use default).
 -}
 setTidbitQAState :
@@ -307,3 +343,10 @@ defaultTidbitQAState =
     , questionCommentEdits = Dict.empty
     , answerCommentEdits = Dict.empty
     }
+
+
+{-| A blank `NewAnswer`.
+-}
+defaultNewAnswer : NewAnswer
+defaultNewAnswer =
+    { answerText = "", showQuestion = True, previewMarkdown = False }

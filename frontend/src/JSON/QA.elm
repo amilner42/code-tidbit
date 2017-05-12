@@ -160,12 +160,19 @@ tidbitQAStateEncoder codePointerEncoder qaState =
                 , ( "codePointer", Editable.encoder codePointerEncoder codePointer )
                 , ( "previewMarkdown", Encode.null )
                 ]
+
+        newAnswerEncoder { answerText, previewMarkdown, showQuestion } =
+            Encode.object
+                [ ( "answerText", Encode.string answerText )
+                , ( "previewMarkdown", Encode.null )
+                , ( "showQuestion", Encode.null )
+                ]
     in
         Encode.object
             [ ( "browsingCodePointer", Util.justValueOrNull codePointerEncoder qaState.browsingCodePointer )
             , ( "newQuestion", newQuestionEncoder qaState.newQuestion )
             , ( "questionEdits", Util.encodeStringDict questionEditEncoder qaState.questionEdits )
-            , ( "newAnswers", stringToStringDictEncoder qaState.newAnswers )
+            , ( "newAnswers", Util.encodeStringDict newAnswerEncoder qaState.newAnswers )
             , ( "answerEdits", stringToEditableStringDictEncoder qaState.answerEdits )
             , ( "newQuestionComments", stringToStringDictEncoder qaState.newQuestionComments )
             , ( "newAnswerComments", stringToStringDictEncoder qaState.newAnswerComments )
@@ -210,12 +217,18 @@ tidbitQAStateDecoder codePointerDecoder =
                 )
                 |> required "questionText" editableStringDecoder
                 |> required "codePointer" (Editable.decoder codePointerDecoder)
+
+        newAnswerDecoder =
+            decode NewAnswer
+                |> required "answerText" Decode.string
+                |> hardcoded False
+                |> hardcoded True
     in
         decode TidbitQAState
             |> required "browsingCodePointer" (Decode.maybe codePointerDecoder)
             |> required "newQuestion" newQuestionDecoder
             |> required "questionEdits" (Util.decodeStringDict questionEditDecoder)
-            |> required "newAnswers" stringToStringDictDecoder
+            |> required "newAnswers" (Util.decodeStringDict newAnswerDecoder)
             |> required "answerEdits" stringToEditableStringDictDecoder
             |> required "newQuestionComments" stringToStringDictDecoder
             |> required "newAnswerComments" stringToStringDictDecoder

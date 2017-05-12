@@ -97,6 +97,7 @@ type alias API b =
         , removeQuestionRating : TidbitPointer.TidbitPointer -> QuestionID -> (ApiError.ApiError -> b) -> (() -> b) -> Cmd b
         , pinQuestion : TidbitPointer.TidbitPointer -> QuestionID -> Bool -> (ApiError.ApiError -> b) -> (() -> b) -> Cmd b
         , answerQuestion : TidbitPointer.TidbitPointer -> QuestionID -> AnswerText -> (ApiError.ApiError -> b) -> (QA.Answer -> b) -> Cmd b
+        , answerQuestionWrapper : TidbitPointer.TidbitPointer -> QuestionID -> AnswerText -> (ApiError.ApiError -> b) -> (TidbitID -> QuestionID -> QA.Answer -> b) -> Cmd b
         , editAnswer : TidbitPointer.TidbitPointer -> AnswerID -> AnswerText -> (ApiError.ApiError -> b) -> (Date.Date -> b) -> Cmd b
         , deleteAnswer : TidbitPointer.TidbitPointer -> AnswerID -> (ApiError.ApiError -> b) -> (() -> b) -> Cmd b
         , rateAnswer : TidbitPointer.TidbitPointer -> AnswerID -> Vote.Vote -> (ApiError.ApiError -> b) -> (() -> b) -> Cmd b
@@ -622,6 +623,15 @@ api apiBaseUrl =
                 range
                 handleError
                 (handleSuccess snipbitID questionID questionText range)
+
+        postAnswerQuestionWrapper : TidbitPointer.TidbitPointer -> QuestionID -> AnswerText -> (ApiError.ApiError -> b) -> (TidbitID -> QuestionID -> QA.Answer -> b) -> Cmd b
+        postAnswerQuestionWrapper tidbitPointer questionID answerText handleError handleSuccess =
+            postAnswerQuestion
+                tidbitPointer
+                questionID
+                answerText
+                handleError
+                (handleSuccess tidbitPointer.targetID questionID)
     in
         { get =
             { userExists = getUserExists
@@ -671,6 +681,7 @@ api apiBaseUrl =
             , removeQuestionRating = postRemoveQuestionRating
             , pinQuestion = postPinQuestion
             , answerQuestion = postAnswerQuestion
+            , answerQuestionWrapper = postAnswerQuestionWrapper
             , editAnswer = postEditAnswer
             , deleteAnswer = postDeleteAnswer
             , rateAnswer = postRateAnswer
