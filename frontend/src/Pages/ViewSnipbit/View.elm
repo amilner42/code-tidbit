@@ -484,7 +484,7 @@ commentBox snipbit { relevantHC, qaState, qa } { route } =
                                             Nothing
                                 )
 
-                    questionIsReady =
+                    isQuestionReady =
                         Util.isNotNothing maybeReadyQuestion
                 in
                     div
@@ -511,7 +511,7 @@ commentBox snipbit { relevantHC, qaState, qa } { route } =
                         , div
                             [ classList
                                 [ ( "ask-question-submit", True )
-                                , ( "not-ready", not questionIsReady )
+                                , ( "not-ready", not isQuestionReady )
                                 , ( "hidden", previewingMarkdown )
                                 ]
                             , onClick <|
@@ -554,7 +554,7 @@ commentBox snipbit { relevantHC, qaState, qa } { route } =
                                         [ ( "display-question", True )
                                         , ( "hidden", previewMarkdown )
                                         ]
-                                    , onClick <| NewAnswerToggleShowCode snipbitID questionID
+                                    , onClick <| NewAnswerToggleShowQuestion snipbitID questionID
                                     ]
                                     [ text <|
                                         if showQuestion then
@@ -640,7 +640,7 @@ commentBox snipbit { relevantHC, qaState, qa } { route } =
                                     _ ->
                                         Nothing
 
-                            questionIsReady =
+                            isQuestionReady =
                                 Util.isNotNothing maybeReadyQuestion
 
                             previewMarkdown =
@@ -672,7 +672,7 @@ commentBox snipbit { relevantHC, qaState, qa } { route } =
                                 , div
                                     [ classList
                                         [ ( "edit-question-submit", True )
-                                        , ( "not-ready", not questionIsReady )
+                                        , ( "not-ready", not isQuestionReady )
                                         , ( "hidden", previewMarkdown )
                                         ]
                                     , onClick <|
@@ -691,8 +691,101 @@ commentBox snipbit { relevantHC, qaState, qa } { route } =
                         Util.hiddenDiv
 
             Route.ViewSnipbitEditAnswer maybeStoryID snipbitID answerID ->
-                -- TODO
-                Util.hiddenDiv
+                case
+                    ( Maybe.andThen (QA.getAnswerByID answerID) (Maybe.map .answers qa)
+                    , Maybe.andThen (QA.getQuestionByAnswerID snipbitID answerID) qa
+                    )
+                of
+                    ( Just answer, Just question ) ->
+                        let
+                            maybeAnswerEdit =
+                                QA.getAnswerEdit snipbitID answerID qaState
+
+                            answerText =
+                                maybeAnswerEdit
+                                    |> Maybe.map (.answerText >> Editable.getBuffer)
+                                    |> Maybe.withDefault answer.answerText
+
+                            previewMarkdown =
+                                maybeAnswerEdit
+                                    |> Util.maybeMapWithDefault .previewMarkdown False
+
+                            showQuestion =
+                                maybeAnswerEdit
+                                    |> Util.maybeMapWithDefault .showQuestion True
+
+                            maybeReadyAnswer =
+                                Util.justNonBlankString answerText
+
+                            isAnswerReady =
+                                Util.isNotNothing maybeReadyAnswer
+                        in
+                            div
+                                [ class "edit-answer" ]
+                                [ div
+                                    [ classList
+                                        [ ( "display-question", True )
+                                        , ( "hidden", previewMarkdown )
+                                        ]
+                                    , onClick <| EditAnswerToggleShowQuestion snipbitID answerID answer
+                                    ]
+                                    [ text <|
+                                        if showQuestion then
+                                            "Hide Question"
+                                        else
+                                            "Show Question"
+                                    ]
+                                , githubMarkdown
+                                    [ classList
+                                        [ ( "question", True )
+                                        , ( "hidden", previewMarkdown || not showQuestion )
+                                        ]
+                                    ]
+                                    question.questionText
+                                , div
+                                    [ classList
+                                        [ ( "preview-markdown", True )
+                                        , ( "previewing-markdown", previewMarkdown )
+                                        , ( "hiding-question", not showQuestion )
+                                        ]
+                                    , onClick <| EditAnswerTogglePreviewMarkdown snipbitID answerID answer
+                                    ]
+                                    [ text <|
+                                        if previewMarkdown then
+                                            "Close Preview"
+                                        else
+                                            "Markdown Preview"
+                                    ]
+                                , Util.markdownOr
+                                    previewMarkdown
+                                    answerText
+                                    (textarea
+                                        [ classList [ ( "hiding-question", not showQuestion ) ]
+                                        , placeholder "Edit Answer Text"
+                                        , value answerText
+                                        , onInput <| OnEditAnswerTextInput snipbitID answerID answer
+                                        ]
+                                        []
+                                    )
+                                , div
+                                    [ classList
+                                        [ ( "edit-answer-submit", True )
+                                        , ( "not-ready", not isAnswerReady )
+                                        , ( "hidden", previewMarkdown )
+                                        ]
+                                    , onClick <|
+                                        case maybeReadyAnswer of
+                                            Just answerText ->
+                                                EditAnswer snipbitID question.id answerID answerText
+
+                                            Nothing ->
+                                                NoOp
+                                    ]
+                                    [ text "Update Answer" ]
+                                ]
+
+                    _ ->
+                        Util.hiddenDiv
 
             _ ->
                 Util.hiddenDiv

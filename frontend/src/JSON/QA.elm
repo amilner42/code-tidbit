@@ -167,13 +167,20 @@ tidbitQAStateEncoder codePointerEncoder qaState =
                 , ( "previewMarkdown", Encode.null )
                 , ( "showQuestion", Encode.null )
                 ]
+
+        answerEditEncoder { answerText, previewMarkdown, showQuestion } =
+            Encode.object
+                [ ( "answerText", editableStringEncoder answerText )
+                , ( "previewMarkdown", Encode.null )
+                , ( "showQuestion", Encode.null )
+                ]
     in
         Encode.object
             [ ( "browsingCodePointer", Util.justValueOrNull codePointerEncoder qaState.browsingCodePointer )
             , ( "newQuestion", newQuestionEncoder qaState.newQuestion )
             , ( "questionEdits", Util.encodeStringDict questionEditEncoder qaState.questionEdits )
             , ( "newAnswers", Util.encodeStringDict newAnswerEncoder qaState.newAnswers )
-            , ( "answerEdits", stringToEditableStringDictEncoder qaState.answerEdits )
+            , ( "answerEdits", Util.encodeStringDict answerEditEncoder qaState.answerEdits )
             , ( "newQuestionComments", stringToStringDictEncoder qaState.newQuestionComments )
             , ( "newAnswerComments", stringToStringDictEncoder qaState.newAnswerComments )
             , ( "questionCommentEdits", stringToEditableStringDictEncoder qaState.questionCommentEdits )
@@ -203,24 +210,26 @@ tidbitQAStateDecoder codePointerDecoder =
             Util.decodeStringDict editableStringDecoder
 
         newQuestionDecoder =
-            decode
-                (\questionText codePointer ->
-                    { questionText = questionText, codePointer = codePointer, previewMarkdown = False }
-                )
+            decode NewQuestion
                 |> required "questionText" Decode.string
                 |> required "codePointer" (Decode.maybe codePointerDecoder)
+                |> hardcoded False
 
         questionEditDecoder =
-            decode
-                (\questionText codePointer ->
-                    { questionText = questionText, codePointer = codePointer, previewMarkdown = False }
-                )
+            decode QuestionEdit
                 |> required "questionText" editableStringDecoder
                 |> required "codePointer" (Editable.decoder codePointerDecoder)
+                |> hardcoded False
 
         newAnswerDecoder =
             decode NewAnswer
                 |> required "answerText" Decode.string
+                |> hardcoded False
+                |> hardcoded True
+
+        answerEditDecoder =
+            decode AnswerEdit
+                |> required "answerText" editableStringDecoder
                 |> hardcoded False
                 |> hardcoded True
     in
@@ -229,7 +238,7 @@ tidbitQAStateDecoder codePointerDecoder =
             |> required "newQuestion" newQuestionDecoder
             |> required "questionEdits" (Util.decodeStringDict questionEditDecoder)
             |> required "newAnswers" (Util.decodeStringDict newAnswerDecoder)
-            |> required "answerEdits" stringToEditableStringDictDecoder
+            |> required "answerEdits" (Util.decodeStringDict answerEditDecoder)
             |> required "newQuestionComments" stringToStringDictDecoder
             |> required "newAnswerComments" stringToStringDictDecoder
             |> required "questionCommentEdits" stringToEditableStringDictDecoder

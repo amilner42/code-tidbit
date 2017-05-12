@@ -99,6 +99,7 @@ type alias API b =
         , answerQuestion : TidbitPointer.TidbitPointer -> QuestionID -> AnswerText -> (ApiError.ApiError -> b) -> (QA.Answer -> b) -> Cmd b
         , answerQuestionWrapper : TidbitPointer.TidbitPointer -> QuestionID -> AnswerText -> (ApiError.ApiError -> b) -> (TidbitID -> QuestionID -> QA.Answer -> b) -> Cmd b
         , editAnswer : TidbitPointer.TidbitPointer -> AnswerID -> AnswerText -> (ApiError.ApiError -> b) -> (Date.Date -> b) -> Cmd b
+        , editAnswerWrapper : TidbitPointer.TidbitPointer -> QuestionID -> AnswerID -> AnswerText -> (ApiError.ApiError -> b) -> (TidbitID -> QuestionID -> AnswerID -> AnswerText -> Date.Date -> b) -> Cmd b
         , deleteAnswer : TidbitPointer.TidbitPointer -> AnswerID -> (ApiError.ApiError -> b) -> (() -> b) -> Cmd b
         , rateAnswer : TidbitPointer.TidbitPointer -> AnswerID -> Vote.Vote -> (ApiError.ApiError -> b) -> (() -> b) -> Cmd b
         , removeAnswerRating : TidbitPointer.TidbitPointer -> AnswerID -> (ApiError.ApiError -> b) -> (() -> b) -> Cmd b
@@ -632,6 +633,15 @@ api apiBaseUrl =
                 answerText
                 handleError
                 (handleSuccess tidbitPointer.targetID questionID)
+
+        postEditAnswerWrapper : TidbitPointer.TidbitPointer -> QuestionID -> AnswerID -> AnswerText -> (ApiError.ApiError -> b) -> (TidbitID -> QuestionID -> AnswerID -> AnswerText -> Date.Date -> b) -> Cmd b
+        postEditAnswerWrapper tidbitPointer questionID answerID answerText handleError handleSuccess =
+            postEditAnswer
+                tidbitPointer
+                answerID
+                answerText
+                handleError
+                (handleSuccess tidbitPointer.targetID questionID answerID answerText)
     in
         { get =
             { userExists = getUserExists
@@ -683,6 +693,7 @@ api apiBaseUrl =
             , answerQuestion = postAnswerQuestion
             , answerQuestionWrapper = postAnswerQuestionWrapper
             , editAnswer = postEditAnswer
+            , editAnswerWrapper = postEditAnswerWrapper
             , deleteAnswer = postDeleteAnswer
             , rateAnswer = postRateAnswer
             , removeAnswerRating = postRemoveAnswerRating

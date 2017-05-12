@@ -480,7 +480,7 @@ update (Common common) msg model shared =
                                 common.justSetModel
                                     { model
                                         | qaState =
-                                            QA.updateEditQuestion
+                                            QA.updateQuestionEdit
                                                 snipbitID
                                                 questionID
                                                 (\maybeQuestionEdit ->
@@ -673,7 +673,7 @@ update (Common common) msg model shared =
             common.justSetModel
                 { model
                     | qaState =
-                        QA.updateEditQuestion
+                        QA.updateQuestionEdit
                             snipbitID
                             questionID
                             (\maybeEdit ->
@@ -692,7 +692,7 @@ update (Common common) msg model shared =
             common.justSetModel
                 { model
                     | qaState =
-                        QA.updateEditQuestion
+                        QA.updateQuestionEdit
                             snipbitID
                             questionID
                             (\maybeEdit ->
@@ -715,7 +715,7 @@ update (Common common) msg model shared =
         OnEditQuestionSuccess snipbitID questionID questionText range date ->
             ( { model
                 | -- Get rid of question edit.
-                  qaState = QA.updateEditQuestion snipbitID questionID (always Nothing) model.qaState
+                  qaState = QA.updateQuestionEdit snipbitID questionID (always Nothing) model.qaState
 
                 -- Update question in QA.
                 , qa =
@@ -757,7 +757,7 @@ update (Common common) msg model shared =
                             model.qaState
                 }
 
-        NewAnswerToggleShowCode snipbitID questionID ->
+        NewAnswerToggleShowQuestion snipbitID questionID ->
             common.justSetModel
                 { model
                     | qaState =
@@ -818,6 +818,96 @@ update (Common common) msg model shared =
             )
 
         OnAnswerFailure apiError ->
+            common.justSetModalError apiError
+
+        EditAnswerTogglePreviewMarkdown snipbitID answerID answer ->
+            common.justSetModel
+                { model
+                    | qaState =
+                        QA.updateAnswerEdit
+                            snipbitID
+                            answerID
+                            (\maybeAnswerEdit ->
+                                Maybe.withDefault (QA.answerEditFromAnswer answer) maybeAnswerEdit
+                                    |> (\answerEdit ->
+                                            Just { answerEdit | previewMarkdown = not answerEdit.previewMarkdown }
+                                       )
+                            )
+                            model.qaState
+                }
+
+        EditAnswerToggleShowQuestion snipbitID answerID answer ->
+            common.justSetModel
+                { model
+                    | qaState =
+                        QA.updateAnswerEdit
+                            snipbitID
+                            answerID
+                            (\maybeAnswerEdit ->
+                                Maybe.withDefault (QA.answerEditFromAnswer answer) maybeAnswerEdit
+                                    |> (\answerEdit ->
+                                            Just { answerEdit | showQuestion = not answerEdit.showQuestion }
+                                       )
+                            )
+                            model.qaState
+                }
+
+        OnEditAnswerTextInput snipbitID answerID answer answerText ->
+            common.justSetModel
+                { model
+                    | qaState =
+                        QA.updateAnswerEdit
+                            snipbitID
+                            answerID
+                            (\maybeAnswerEdit ->
+                                Maybe.withDefault (QA.answerEditFromAnswer answer) maybeAnswerEdit
+                                    |> (\answerEdit ->
+                                            Just
+                                                { answerEdit
+                                                    | answerText = Editable.setBuffer answerEdit.answerText answerText
+                                                }
+                                       )
+                            )
+                            model.qaState
+                }
+
+        EditAnswer snipbitID questionID answerID answerText ->
+            common.justProduceCmd <|
+                common.api.post.editAnswerWrapper
+                    { tidbitType = TidbitPointer.Snipbit, targetID = snipbitID }
+                    questionID
+                    answerID
+                    answerText
+                    OnEditAnswerFailure
+                    OnEditAnswerSuccess
+
+        OnEditAnswerSuccess snipbitID questionID answerID answerText date ->
+            ( { model
+                | -- Remove answer edit from QAState.
+                  qaState =
+                    QA.updateAnswerEdit snipbitID answerID (always Nothing) model.qaState
+
+                -- Update answer in QA.
+                , qa =
+                    Maybe.map
+                        (QA.updateAnswer
+                            answerID
+                            (\answer ->
+                                { answer | answerText = answerText, lastModified = date }
+                            )
+                        )
+                        model.qa
+              }
+            , shared
+            , Route.navigateTo <|
+                Route.ViewSnipbitQuestionPage
+                    (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
+                    snipbitID
+                    questionID
+                    (Just answerID)
+            )
+
+        OnEditAnswerFailure apiError ->
             common.justSetModalError apiError
 
 

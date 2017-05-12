@@ -135,7 +135,7 @@ type alias TidbitQAState codePointer =
     , newQuestion : NewQuestion codePointer
     , questionEdits : Dict.Dict QuestionID (QuestionEdit codePointer)
     , newAnswers : Dict.Dict QuestionID NewAnswer
-    , answerEdits : Dict.Dict AnswerID (Editable.Editable String)
+    , answerEdits : Dict.Dict AnswerID AnswerEdit
     , newQuestionComments : Dict.Dict QuestionID CommentText
     , newAnswerComments : Dict.Dict AnswerID CommentText
     , questionCommentEdits : Dict.Dict CommentID (Editable.Editable CommentText)
@@ -170,6 +170,15 @@ type alias NewAnswer =
     }
 
 
+{-| An answer being edited.
+-}
+type alias AnswerEdit =
+    { answerText : Editable.Editable AnswerText
+    , previewMarkdown : Bool
+    , showQuestion : Bool
+    }
+
+
 {-| Creates a `QuestionEdit` from a `Question`.
 -}
 questionEditFromQuestion : Question codePointer -> QuestionEdit codePointer
@@ -177,6 +186,16 @@ questionEditFromQuestion { questionText, codePointer } =
     { questionText = Editable.newEditing questionText
     , codePointer = Editable.newEditing codePointer
     , previewMarkdown = False
+    }
+
+
+{-| Creates an `AnswerEdit` from an `Answer` with default settings.
+-}
+answerEditFromAnswer : Answer -> AnswerEdit
+answerEditFromAnswer { answerText } =
+    { answerText = Editable.newEditing answerText
+    , previewMarkdown = False
+    , showQuestion = False
     }
 
 
@@ -229,6 +248,14 @@ getNewAnswer snipbitID questionID qaState =
         |> Maybe.andThen (.newAnswers >> Dict.get questionID)
 
 
+{-| Get's the answerEdit for the given snipbit/answerID if it exsits.
+-}
+getAnswerEdit : SnipbitID -> AnswerID -> QAState codePointer -> Maybe AnswerEdit
+getAnswerEdit snipbitID answerID qaState =
+    Dict.get snipbitID qaState
+        |> Maybe.andThen (.answerEdits >> Dict.get answerID)
+
+
 {-| BrowseCodePointer setter, handles setting default tidbitQAState if needed.
 -}
 setBrowsingCodePointer : SnipbitID -> codePointer -> QAState codePointer -> QAState codePointer
@@ -253,6 +280,23 @@ updateQuestion questionID questionUpdater qa =
     }
 
 
+{-| Updates a [published] answer in the QA.
+-}
+updateAnswer : AnswerID -> (Answer -> Answer) -> QA codePointer -> QA codePointer
+updateAnswer answerID answerUpdater qa =
+    { qa
+        | answers =
+            List.map
+                (\answer ->
+                    if answer.id == answerID then
+                        answerUpdater answer
+                    else
+                        answer
+                )
+                qa.answers
+    }
+
+
 {-| NewQuestion updater, handles setting default tidbitQAState if needed.
 -}
 updateNewQuestion :
@@ -269,13 +313,13 @@ updateNewQuestion snipbitID newQuestionUpdater =
 
 Updater has to handle case where no edit exits yet (hence `Maybe QuestionEdit...`).
 -}
-updateEditQuestion :
+updateQuestionEdit :
     SnipbitID
     -> QuestionID
     -> (Maybe (QuestionEdit codePointer) -> Maybe (QuestionEdit codePointer))
     -> QAState codePointer
     -> QAState codePointer
-updateEditQuestion snipbitID questionID questionEditUpdater =
+updateQuestionEdit snipbitID questionID questionEditUpdater =
     setTidbitQAState snipbitID
         (\tidbitQAState ->
             { tidbitQAState
@@ -292,7 +336,12 @@ updateEditQuestion snipbitID questionID questionEditUpdater =
 
 Updater has to handle case where no new answer exists yet for that question (hence `Maybe NewAnswer...`).
 -}
-updateNewAnswer : SnipbitID -> QuestionID -> (Maybe NewAnswer -> Maybe NewAnswer) -> QAState codePointer -> QAState codePointer
+updateNewAnswer :
+    SnipbitID
+    -> QuestionID
+    -> (Maybe NewAnswer -> Maybe NewAnswer)
+    -> QAState codePointer
+    -> QAState codePointer
 updateNewAnswer snipbitID questionID newAnswerUpdater =
     setTidbitQAState
         snipbitID
@@ -303,6 +352,30 @@ updateNewAnswer snipbitID questionID newAnswerUpdater =
                         questionID
                         (\maybeNewAnswer -> newAnswerUpdater maybeNewAnswer)
                         tidbitQAState.newAnswers
+            }
+        )
+
+
+{-| answerEdit updater, handles setting default tidbitQAState if needed.
+
+Updater has to handle case where no new answer edit exists (hence `Maybe AnswerEdit...`).
+-}
+updateAnswerEdit :
+    SnipbitID
+    -> AnswerID
+    -> (Maybe AnswerEdit -> Maybe AnswerEdit)
+    -> QAState codePointer
+    -> QAState codePointer
+updateAnswerEdit snipbitID answerID answerEditUpdater =
+    setTidbitQAState
+        snipbitID
+        (\tidbitQAState ->
+            { tidbitQAState
+                | answerEdits =
+                    Dict.update
+                        answerID
+                        (\maybeAnswerEdit -> answerEditUpdater maybeAnswerEdit)
+                        tidbitQAState.answerEdits
             }
         )
 

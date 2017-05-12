@@ -17,7 +17,7 @@
     }
 
     .comment-block {
-        .ask-question, .edit-question, .answer-question {
+        .ask-question, .edit-question, .answer-question, .edit-answer {
             height: 600px;
             width: 360px;
             position: absolute;
@@ -38,7 +38,7 @@
                 text-align: center;
             }
 
-            .ask-question-submit, .edit-question-submit, .answer-question-submit {
+            .ask-question-submit, .edit-question-submit, .answer-question-submit, .edit-answer-submit {
                 position: absolute;
                 box-sizing: border-box;
                 width: 360px;
@@ -69,7 +69,7 @@
             }
         }
 
-        .answer-question {
+        .answer-question, .edit-answer {
             .preview-markdown {
                 top: 235px;
 
