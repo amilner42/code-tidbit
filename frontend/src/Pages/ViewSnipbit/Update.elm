@@ -345,7 +345,10 @@ update (Common common) msg model shared =
             common.justSetModalError apiError
 
         OnGetQASuccess requireLoadingQAPreRender qa ->
-            ( { model | qa = Just qa, relevantQuestions = Nothing }
+            ( { model
+                | qa = Just { qa | questions = QA.sortQuestions qa.questions }
+                , relevantQuestions = Nothing
+              }
             , shared
             , if not requireLoadingQAPreRender then
                 Cmd.none
@@ -669,7 +672,7 @@ update (Common common) msg model shared =
             case model.qa of
                 Just qa ->
                     ( { model
-                        | qa = Just { qa | questions = qa.questions ++ [ question ] }
+                        | qa = Just { qa | questions = QA.sortQuestions <| question :: qa.questions }
                         , qaState =
                             QA.updateNewQuestion
                                 snipbitID

@@ -2,6 +2,7 @@ module Models.QA exposing (..)
 
 import Date
 import DefaultServices.Editable as Editable
+import DefaultServices.Sort as Sort
 import Dict
 import Elements.FileStructure as FS
 import Models.Range as Range
@@ -362,6 +363,22 @@ updateNewAnswer snipbitID questionID newAnswerUpdater =
                         tidbitQAState.newAnswers
             }
         )
+
+
+{-| Sorts the questions by:
+    - is pinned
+    - most numberOfUpvotes
+    - least numberOfDownvotes
+    - newest date
+-}
+sortQuestions : List (Question codePointer) -> List (Question codePointer)
+sortQuestions =
+    Sort.sortByAll
+        [ Sort.createBoolComparator .pinned
+        , Sort.reverseComparator <| Sort.createComparator (.upvotes >> Tuple.second)
+        , Sort.createComparator (.downvotes >> Tuple.second)
+        , Sort.reverseComparator <| Sort.createDateComparator .createdAt
+        ]
 
 
 {-| answerEdit updater, handles setting default tidbitQAState if needed.
