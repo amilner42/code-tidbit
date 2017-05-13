@@ -264,6 +264,15 @@ routeRequiresAuth route =
         ViewSnipbitConclusionPage _ _ ->
             False
 
+        ViewSnipbitQuestionsPage _ _ ->
+            False
+
+        ViewSnipbitQuestionPage _ _ _ _ ->
+            False
+
+        ViewSnipbitQuestionFrame _ _ _ _ ->
+            False
+
         ViewBigbitIntroductionPage _ _ _ ->
             False
 

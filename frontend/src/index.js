@@ -23,6 +23,7 @@ require("./Elements/Editor.scss");
 require("./Elements/FileStructure.scss");
 require("./Elements/Markdown.scss");
 require("./Elements/ProgressBar.scss");
+require("./Elements/Question.scss");
 require("./Elements/Tags.scss");
 
 // Require index.html so it gets copied to dist

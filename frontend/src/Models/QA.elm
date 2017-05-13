@@ -256,11 +256,19 @@ getAnswerEdit snipbitID answerID qaState =
         |> Maybe.andThen (.answerEdits >> Dict.get answerID)
 
 
+{-| Get's the browsing code pointer for a tidbit if it exsits.
+-}
+getBrowseCodePointer : TidbitID -> QAState codePointer -> Maybe codePointer
+getBrowseCodePointer tidbitID qaState =
+    Dict.get tidbitID qaState
+        |> Maybe.andThen .browsingCodePointer
+
+
 {-| BrowseCodePointer setter, handles setting default tidbitQAState if needed.
 -}
-setBrowsingCodePointer : SnipbitID -> codePointer -> QAState codePointer -> QAState codePointer
+setBrowsingCodePointer : SnipbitID -> Maybe codePointer -> QAState codePointer -> QAState codePointer
 setBrowsingCodePointer snipbitID codePointer =
-    setTidbitQAState snipbitID (\tidbitQAState -> { tidbitQAState | browsingCodePointer = Just codePointer })
+    setTidbitQAState snipbitID (\tidbitQAState -> { tidbitQAState | browsingCodePointer = codePointer })
 
 
 {-| Updates a [published] question in the QA.

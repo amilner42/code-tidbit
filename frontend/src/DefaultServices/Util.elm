@@ -410,3 +410,12 @@ limitCharsText limit string =
     div
         [ class "char-count" ]
         [ text <| (toString <| String.length string) ++ " / " ++ (toString limit) ]
+
+
+{-| Similar to `classList`, but for all attributes.
+-}
+attributeList : List ( Bool, Attribute msg ) -> List (Attribute msg)
+attributeList possibleAttributes =
+    possibleAttributes
+        |> List.filter Tuple.first
+        |> List.map Tuple.second

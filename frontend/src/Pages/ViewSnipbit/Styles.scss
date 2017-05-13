@@ -17,7 +17,7 @@
     }
 
     .comment-block {
-        .ask-question, .edit-question, .answer-question, .edit-answer {
+        .ask-question, .edit-question, .answer-question, .edit-answer, .view-questions {
             height: 600px;
             width: 360px;
             position: absolute;
@@ -67,6 +67,12 @@
                 margin-top: 30px;
                 height: 570px;
             }
+        }
+
+        .view-questions {
+            box-sizing: border-box;
+            border: 1px solid $color9;
+            padding: 8px;
         }
 
         .answer-question, .edit-answer {

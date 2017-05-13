@@ -6,6 +6,7 @@ import DefaultServices.Util as Util exposing (maybeMapWithDefault)
 import Elements.Editor as Editor
 import Elements.Markdown exposing (githubMarkdown)
 import Elements.ProgressBar as ProgressBar exposing (TextFormat(Custom), State(..), progressBar)
+import Elements.Question as Question
 import Html exposing (Html, div, text, button, i, textarea)
 import Html.Attributes exposing (class, classList, disabled, hidden, id, placeholder, value)
 import Html.Events exposing (onClick, onInput)
@@ -351,12 +352,12 @@ view model shared =
 with a few extra buttons for a selected range.
 -}
 commentBox : Snipbit.Snipbit -> Model -> Shared -> Html Msg
-commentBox snipbit { relevantHC, qaState, qa } { route } =
+commentBox snipbit model shared =
     let
         -- To display if no relevant HC.
         htmlIfNoRelevantHC =
             githubMarkdown [] <|
-                case route of
+                case shared.route of
                     Route.ViewSnipbitIntroductionPage _ _ ->
                         snipbit.introduction
 
@@ -376,7 +377,7 @@ commentBox snipbit { relevantHC, qaState, qa } { route } =
 
         -- On the tutorial routes we display the tutorial or the relevantHC.
         tutorialRoute =
-            case relevantHC of
+            case model.relevantHC of
                 Nothing ->
                     htmlIfNoRelevantHC
 
@@ -410,7 +411,7 @@ commentBox snipbit { relevantHC, qaState, qa } { route } =
                                             |> Maybe.map
                                                 (JumpToFrame
                                                     << Route.ViewSnipbitFramePage
-                                                        (Route.getFromStoryQueryParamOnViewSnipbitRoute route)
+                                                        (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
                                                         snipbit.id
                                                     << ((+) 1)
                                                     << Tuple.first
@@ -435,7 +436,7 @@ commentBox snipbit { relevantHC, qaState, qa } { route } =
                                     )
                                 ]
     in
-        case route of
+        case shared.route of
             Route.ViewSnipbitIntroductionPage _ _ ->
                 tutorialRoute
 
@@ -446,8 +447,46 @@ commentBox snipbit { relevantHC, qaState, qa } { route } =
                 tutorialRoute
 
             Route.ViewSnipbitQuestionsPage maybeStoryID snipbitID ->
-                -- TODO
-                Util.hiddenDiv
+                case model.qa of
+                    Just { questions } ->
+                        let
+                            ( isHighlighting, remainingQuestions ) =
+                                case QA.getBrowseCodePointer snipbitID model.qaState of
+                                    Nothing ->
+                                        ( False, questions )
+
+                                    Just codePointer ->
+                                        if Range.isEmptyRange codePointer then
+                                            ( False, questions )
+                                        else
+                                            ( True
+                                            , List.filter
+                                                (.codePointer >> Range.overlappingRanges codePointer)
+                                                questions
+                                            )
+                        in
+                            div
+                                [ class "view-questions" ]
+                                [ Question.questionList
+                                    { questionBoxRenderConfig =
+                                        { onClickQuestionBox =
+                                            (\question ->
+                                                GoTo <|
+                                                    Route.ViewSnipbitQuestionPage
+                                                        (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
+                                                        snipbitID
+                                                        question.id
+                                                        Nothing
+                                            )
+                                        }
+                                    , onClickAskQuestion = GoToAskQuestion
+                                    , isHighlighting = isHighlighting
+                                    }
+                                    remainingQuestions
+                                ]
+
+                    Nothing ->
+                        Util.hiddenDiv
 
             Route.ViewSnipbitQuestionPage maybeStoryID snipbitID questionID maybeAnswerID ->
                 -- TODO
@@ -460,7 +499,7 @@ commentBox snipbit { relevantHC, qaState, qa } { route } =
             Route.ViewSnipbitAskQuestion maybeStoryID snipbitID ->
                 let
                     tidbitQAState =
-                        QA.getNewQuestion snipbitID qaState
+                        QA.getNewQuestion snipbitID model.qaState
 
                     previewingMarkdown =
                         tidbitQAState |> Util.maybeMapWithDefault .previewMarkdown False
@@ -469,7 +508,7 @@ commentBox snipbit { relevantHC, qaState, qa } { route } =
                         tidbitQAState |> Util.maybeMapWithDefault .questionText ""
 
                     maybeReadyQuestion =
-                        QA.getNewQuestion snipbitID qaState
+                        QA.getNewQuestion snipbitID model.qaState
                             |> Maybe.andThen
                                 (\{ codePointer, questionText } ->
                                     case
@@ -526,11 +565,11 @@ commentBox snipbit { relevantHC, qaState, qa } { route } =
                         ]
 
             Route.ViewSnipbitAnswerQuestion maybeStoryID snipbitID questionID ->
-                case Maybe.andThen (QA.getQuestionByID questionID) (Maybe.map .questions qa) of
+                case Maybe.andThen (QA.getQuestionByID questionID) (Maybe.map .questions model.qa) of
                     Just question ->
                         let
                             newAnswer =
-                                QA.getNewAnswer snipbitID questionID qaState
+                                QA.getNewAnswer snipbitID questionID model.qaState
 
                             previewMarkdown =
                                 Util.maybeMapWithDefault .previewMarkdown False newAnswer
@@ -616,11 +655,11 @@ commentBox snipbit { relevantHC, qaState, qa } { route } =
                         Util.hiddenDiv
 
             Route.ViewSnipbitEditQuestion maybeStoryID snipbitID questionID ->
-                case Maybe.andThen (QA.getQuestionByID questionID) (Maybe.map .questions qa) of
+                case Maybe.andThen (QA.getQuestionByID questionID) (Maybe.map .questions model.qa) of
                     Just question ->
                         let
                             maybeQuestionEdit =
-                                QA.getQuestionEditByID snipbitID questionID qaState
+                                QA.getQuestionEditByID snipbitID questionID model.qaState
 
                             questionText =
                                 maybeQuestionEdit
@@ -692,14 +731,14 @@ commentBox snipbit { relevantHC, qaState, qa } { route } =
 
             Route.ViewSnipbitEditAnswer maybeStoryID snipbitID answerID ->
                 case
-                    ( Maybe.andThen (QA.getAnswerByID answerID) (Maybe.map .answers qa)
-                    , Maybe.andThen (QA.getQuestionByAnswerID snipbitID answerID) qa
+                    ( Maybe.andThen (QA.getAnswerByID answerID) (Maybe.map .answers model.qa)
+                    , Maybe.andThen (QA.getQuestionByAnswerID snipbitID answerID) model.qa
                     )
                 of
                     ( Just answer, Just question ) ->
                         let
                             maybeAnswerEdit =
-                                QA.getAnswerEdit snipbitID answerID qaState
+                                QA.getAnswerEdit snipbitID answerID model.qaState
 
                             answerText =
                                 maybeAnswerEdit

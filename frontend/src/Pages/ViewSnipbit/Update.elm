@@ -459,7 +459,7 @@ update (Common common) msg model shared =
 
                     Route.ViewSnipbitQuestionsPage _ snipbitID ->
                         common.justSetModel
-                            { model | qaState = QA.setBrowsingCodePointer snipbitID selectedRange model.qaState }
+                            { model | qaState = QA.setBrowsingCodePointer snipbitID (Just selectedRange) model.qaState }
 
                     Route.ViewSnipbitAskQuestion _ snipbitID ->
                         common.justSetModel
@@ -565,33 +565,55 @@ update (Common common) msg model shared =
         OnMarkAsCompleteFailure apiError ->
             common.justSetModalError apiError
 
+        -- Handles going to `AskQuestion` from different routes individually.
         GoToAskQuestion ->
             let
-                codePointer =
+                tutorialCodePointer =
                     Maybe.withDefault Range.zeroRange model.tutorialCodePointer
-            in
-                case (Route.getViewingContentID shared.route) of
-                    Just snipbitID ->
-                        ( { model
-                            | qaState =
-                                QA.updateNewQuestion
-                                    snipbitID
-                                    (\newQuestion ->
-                                        { newQuestion
-                                            | codePointer = Just codePointer
-                                            , questionText = ""
-                                        }
-                                    )
-                                    model.qaState
-                          }
-                        , shared
-                        , Route.navigateTo <|
-                            Route.ViewSnipbitAskQuestion
-                                (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
-                                snipbitID
-                        )
 
-                    Nothing ->
+                browseCodePointer snipbitID =
+                    Maybe.withDefault
+                        Range.zeroRange
+                        (QA.getBrowseCodePointer snipbitID model.qaState)
+
+                navigateToAskQuestionWithRange maybeStoryID snipbitID codePointer (Common common) ( model, shared ) =
+                    ( { model
+                        | qaState =
+                            QA.updateNewQuestion
+                                snipbitID
+                                (\newQuestion ->
+                                    { newQuestion
+                                        | codePointer = Just codePointer
+                                        , questionText = ""
+                                    }
+                                )
+                                model.qaState
+                      }
+                    , shared
+                    , Route.navigateTo <| Route.ViewSnipbitAskQuestion maybeStoryID snipbitID
+                    )
+
+                clearBrowseCodePointer snipbitID (Common common) ( model, shared ) =
+                    common.justSetModel
+                        { model | qaState = QA.setBrowsingCodePointer snipbitID Nothing model.qaState }
+            in
+                case shared.route of
+                    Route.ViewSnipbitIntroductionPage maybeStoryID snipbitID ->
+                        common.handleAll [ navigateToAskQuestionWithRange maybeStoryID snipbitID tutorialCodePointer ]
+
+                    Route.ViewSnipbitFramePage maybeStoryID snipbitID _ ->
+                        common.handleAll [ navigateToAskQuestionWithRange maybeStoryID snipbitID tutorialCodePointer ]
+
+                    Route.ViewSnipbitConclusionPage maybeStoryID snipbitID ->
+                        common.handleAll [ navigateToAskQuestionWithRange maybeStoryID snipbitID tutorialCodePointer ]
+
+                    Route.ViewSnipbitQuestionsPage maybeStoryID snipbitID ->
+                        common.handleAll
+                            [ navigateToAskQuestionWithRange maybeStoryID snipbitID (browseCodePointer snipbitID)
+                            , clearBrowseCodePointer snipbitID
+                            ]
+
+                    _ ->
                         common.doNothing
 
         GoToBrowseQuestions ->
@@ -601,7 +623,7 @@ update (Common common) msg model shared =
             in
                 case (Route.getViewingContentID shared.route) of
                     Just snipbitID ->
-                        ( { model | qaState = QA.setBrowsingCodePointer snipbitID codePointer model.qaState }
+                        ( { model | qaState = QA.setBrowsingCodePointer snipbitID (Just codePointer) model.qaState }
                         , shared
                         , Route.navigateTo <|
                             Route.ViewSnipbitQuestionsPage

@@ -1,0 +1,122 @@
+@import '../Styles/variables';
+@import '../Styles/mixins';
+
+
+.questions {
+    box-sizing: border-box;
+    height: 590px;
+    position: relative;
+    display: block;
+    overflow-y: none;
+
+    hr {
+        background-color: $color9;
+        height: 3px;
+        border: none;
+        margin: 5px 0 0 0;
+        padding: 0;
+    }
+
+    .questions-title {
+        padding-top: 5px;
+        font-size: 26px;
+        text-align: center;
+        color: $color4;
+        width: 340px;
+    }
+
+    .questions-list {
+        overflow: hidden;
+
+        .none-found-text, .no-questions-text {
+            box-sizing: border-box;
+            position: relative;
+            color: $color5;
+            top: 200px;
+            text-align: center;
+            font-size: 26px;
+        }
+
+        .scroll-box {
+            margin-top: 5px;
+            height: 490px;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding: 1px;
+            padding-right: 500px;
+            width: 340px !important;
+        }
+    }
+
+    .ask-question {
+        position: absolute;
+        top: 550px !important;
+        height: 30px !important;
+        width: 340px !important;
+        background-color: $color7;
+        color: white;
+        text-align: center;
+        line-height: 30px;
+        font-size: 16px;
+        cursor: pointer;
+        left: 0;
+    }
+}
+
+.question-box {
+    @include  light-box-shadow();
+
+    &:hover {
+        @include strong-box-shadow();
+    }
+
+    width: 340px;
+    min-height: 50px;
+    cursor: pointer;
+    position: relative;
+    display: block;
+    margin-bottom: 10px;
+    overflow-x: hidden;
+
+    .question-text {
+        padding: 10px;
+    }
+
+    .upvotes-and-downvotes {
+        width: 340px;
+        position: relative;
+        display: block;
+
+        .upvotes, .downvotes {
+            position: relative;
+            display: inline-block;
+            color: $color4;
+            text-align: right;
+            float: right;
+            margin-right: 5px;
+            top: -1px;
+
+            i {
+                position: relative;
+                display: inline-block;
+                font-size: 16px;
+                top: 2px;
+                left: -3px;
+            }
+
+            &.user-upvoted, &.user-downvoted {
+                color: $color6;
+            }
+        }
+
+        .upvotes {
+            margin-right: 10px;
+        }
+
+        .downvotes {
+            i {
+                top: 3px;
+            }
+        }
+    }
+}
