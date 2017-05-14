@@ -269,13 +269,25 @@ update (Common common) msg model shared =
                             , fetchOrRenderViewSnipbitData snipbitID True
                             ]
 
-                    Route.ViewSnipbitQuestionPage _ snipbitID _ _ ->
+                    Route.ViewSnipbitQuestionPage _ _ snipbitID _ ->
                         common.handleAll
                             [ clearStateOnRouteHit
                             , fetchOrRenderViewSnipbitData snipbitID True
                             ]
 
-                    Route.ViewSnipbitQuestionFrame _ snipbitID _ _ ->
+                    Route.ViewSnipbitAnswerPage _ _ snipbitID _ ->
+                        common.handleAll
+                            [ clearStateOnRouteHit
+                            , fetchOrRenderViewSnipbitData snipbitID True
+                            ]
+
+                    Route.ViewSnipbitQuestionCommentsPage _ _ snipbitID _ _ ->
+                        common.handleAll
+                            [ clearStateOnRouteHit
+                            , fetchOrRenderViewSnipbitData snipbitID True
+                            ]
+
+                    Route.ViewSnipbitAnswerCommentsPage _ _ snipbitID _ _ ->
                         common.handleAll
                             [ clearStateOnRouteHit
                             , fetchOrRenderViewSnipbitData snipbitID True
@@ -683,9 +695,9 @@ update (Common common) msg model shared =
                     , Route.navigateTo <|
                         Route.ViewSnipbitQuestionPage
                             (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
+                            Nothing
                             snipbitID
                             question.id
-                            Nothing
                     )
 
                 Nothing ->
@@ -757,9 +769,9 @@ update (Common common) msg model shared =
             , Route.navigateTo <|
                 Route.ViewSnipbitQuestionPage
                     (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
+                    Nothing
                     snipbitID
                     questionID
-                    Nothing
             )
 
         OnEditQuestionFailure apiError ->
@@ -835,11 +847,11 @@ update (Common common) msg model shared =
               }
             , shared
             , Route.navigateTo <|
-                Route.ViewSnipbitQuestionPage
+                Route.ViewSnipbitAnswerPage
                     (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
+                    Nothing
                     snipbitID
-                    questionID
-                    (Just answer.id)
+                    answer.id
             )
 
         OnAnswerFailure apiError ->
@@ -925,11 +937,11 @@ update (Common common) msg model shared =
               }
             , shared
             , Route.navigateTo <|
-                Route.ViewSnipbitQuestionPage
+                Route.ViewSnipbitAnswerPage
                     (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
+                    Nothing
                     snipbitID
-                    questionID
-                    (Just answerID)
+                    answerID
             )
 
         OnEditAnswerFailure apiError ->
@@ -1002,7 +1014,7 @@ createViewSnipbitQACodeEditor ( snipbit, qa, qaState ) bookmark { route, user } 
                         |> editorWithRange { selectAllowed = True, useMarker = False }
 
                 -- Highlight question codePointer.
-                Route.ViewSnipbitQuestionPage maybeStoryID snipbitID questionID _ ->
+                Route.ViewSnipbitQuestionPage maybeStoryID _ snipbitID questionID ->
                     case QA.getQuestionByID questionID qa.questions of
                         Nothing ->
                             redirectToTutorial maybeStoryID snipbitID
@@ -1010,9 +1022,24 @@ createViewSnipbitQACodeEditor ( snipbit, qa, qaState ) bookmark { route, user } 
                         Just { codePointer } ->
                             editorWithRange { selectAllowed = False, useMarker = True } <| Just codePointer
 
-                -- Highlight question codePointer for given frameNumber.
-                Route.ViewSnipbitQuestionFrame maybeStoryID snipbitID frameNumber _ ->
-                    case Util.getAt qa.questions (frameNumber - 1) of
+                Route.ViewSnipbitAnswerPage maybeStoryID _ snipbitID answerID ->
+                    case QA.getQuestionByAnswerID snipbitID answerID qa of
+                        Nothing ->
+                            redirectToTutorial maybeStoryID snipbitID
+
+                        Just { codePointer } ->
+                            editorWithRange { selectAllowed = False, useMarker = True } <| Just codePointer
+
+                Route.ViewSnipbitQuestionCommentsPage maybeStoryID _ snipbitID questionID maybeCommentID ->
+                    case QA.getQuestionByID questionID qa.questions of
+                        Nothing ->
+                            redirectToTutorial maybeStoryID snipbitID
+
+                        Just { codePointer } ->
+                            editorWithRange { selectAllowed = False, useMarker = True } <| Just codePointer
+
+                Route.ViewSnipbitAnswerCommentsPage maybeStoryID _ snipbitID answerID maybeCommentID ->
+                    case QA.getQuestionByAnswerID snipbitID answerID qa of
                         Nothing ->
                             redirectToTutorial maybeStoryID snipbitID
 

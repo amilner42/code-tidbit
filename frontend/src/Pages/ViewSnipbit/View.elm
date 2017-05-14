@@ -7,6 +7,7 @@ import Elements.Editor as Editor
 import Elements.Markdown exposing (githubMarkdown)
 import Elements.ProgressBar as ProgressBar exposing (TextFormat(Custom), State(..), progressBar)
 import Elements.Question as Question
+import Elements.ViewQuestion as ViewQuestion
 import Html exposing (Html, div, text, button, i, textarea)
 import Html.Attributes exposing (class, classList, disabled, hidden, id, placeholder, value)
 import Html.Events exposing (onClick, onInput)
@@ -474,9 +475,9 @@ commentBox snipbit model shared =
                                                 GoTo <|
                                                     Route.ViewSnipbitQuestionPage
                                                         (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
+                                                        Nothing
                                                         snipbitID
                                                         question.id
-                                                        Nothing
                                             )
                                         }
                                     , onClickAskQuestion = GoToAskQuestion
@@ -488,11 +489,19 @@ commentBox snipbit model shared =
                     Nothing ->
                         Util.hiddenDiv
 
-            Route.ViewSnipbitQuestionPage maybeStoryID snipbitID questionID maybeAnswerID ->
+            Route.ViewSnipbitQuestionPage maybeStoryID maybeTouringQuestions snipbitID questionID ->
                 -- TODO
                 Util.hiddenDiv
 
-            Route.ViewSnipbitQuestionFrame maybeStoryID snipbitID frameNumber maybeAnswerID ->
+            Route.ViewSnipbitAnswerPage maybeStoryID maybeTouringQuestions snipbitID answerID ->
+                -- TODO
+                Util.hiddenDiv
+
+            Route.ViewSnipbitQuestionCommentsPage maybeStoryID maybeTouringQuestions snipbitID questionID maybeCommentID ->
+                -- TODO
+                Util.hiddenDiv
+
+            Route.ViewSnipbitAnswerCommentsPage maybeStoryID maybeTouringQuestions snipbitID answerID maybeCommentID ->
                 -- TODO
                 Util.hiddenDiv
 

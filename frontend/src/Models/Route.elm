@@ -19,8 +19,10 @@ type Route
     | ViewSnipbitConclusionPage (Maybe StoryID) SnipbitID
     | ViewSnipbitFramePage (Maybe StoryID) SnipbitID FrameNumber
     | ViewSnipbitQuestionsPage (Maybe StoryID) SnipbitID
-    | ViewSnipbitQuestionPage (Maybe StoryID) SnipbitID QuestionID (Maybe AnswerID)
-    | ViewSnipbitQuestionFrame (Maybe StoryID) SnipbitID FrameNumber (Maybe AnswerID)
+    | ViewSnipbitQuestionPage (Maybe StoryID) (Maybe MeaninglessString) SnipbitID QuestionID
+    | ViewSnipbitAnswerPage (Maybe StoryID) (Maybe MeaninglessString) SnipbitID AnswerID
+    | ViewSnipbitQuestionCommentsPage (Maybe StoryID) (Maybe MeaninglessString) SnipbitID QuestionID (Maybe CommentID)
+    | ViewSnipbitAnswerCommentsPage (Maybe StoryID) (Maybe MeaninglessString) SnipbitID AnswerID (Maybe CommentID)
     | ViewSnipbitAskQuestion (Maybe StoryID) SnipbitID
     | ViewSnipbitAnswerQuestion (Maybe StoryID) SnipbitID QuestionID
     | ViewSnipbitEditQuestion (Maybe StoryID) SnipbitID QuestionID
@@ -68,6 +70,10 @@ matchers =
         viewSnipbit =
             view </> s "snipbit" <?> qpFromStory </> string
 
+        -- Abstract
+        viewSnipbitTouringQuestions =
+            view </> s "snipbit" <?> qpFromStory <?> qpTouringQuestions </> string
+
         viewSnipbitIntroduction =
             viewSnipbit </> s "introduction"
 
@@ -81,10 +87,16 @@ matchers =
             viewSnipbit </> s "questions"
 
         viewSnipbitQuestionPage =
-            viewSnipbit </> s "question" </> string <?> qpAnswerID
+            viewSnipbitTouringQuestions </> s "question" </> string
 
-        viewSnipbitQuestionFrame =
-            viewSnipbit </> s "questions" </> int <?> qpAnswerID
+        viewSnipbitAnswerPage =
+            viewSnipbitTouringQuestions </> s "answer" </> string
+
+        viewSnipbitQuestionCommentsPage =
+            viewSnipbitQuestionPage </> s "comments" <?> qpCommentID
+
+        viewSnipbitAnswerCommentsPage =
+            viewSnipbitAnswerPage </> s "comments" <?> qpCommentID
 
         viewSnipbitAskQuestion =
             viewSnipbit </> s "askQuestion"
@@ -192,8 +204,11 @@ matchers =
         qpFromStory =
             stringParam "fromStory"
 
-        qpAnswerID =
-            stringParam "answerID"
+        qpCommentID =
+            stringParam "commentID"
+
+        qpTouringQuestions =
+            stringParam "touringQuestions"
 
         profile =
             s "profile"
@@ -211,7 +226,9 @@ matchers =
             , map ViewSnipbitFramePage viewSnipbitFrame
             , map ViewSnipbitQuestionsPage viewSnipbitQuestionsPage
             , map ViewSnipbitQuestionPage viewSnipbitQuestionPage
-            , map ViewSnipbitQuestionFrame viewSnipbitQuestionFrame
+            , map ViewSnipbitAnswerPage viewSnipbitAnswerPage
+            , map ViewSnipbitQuestionCommentsPage viewSnipbitQuestionCommentsPage
+            , map ViewSnipbitAnswerCommentsPage viewSnipbitAnswerCommentsPage
             , map ViewSnipbitAskQuestion viewSnipbitAskQuestion
             , map ViewSnipbitAnswerQuestion viewSnipbitAnswerQuestion
             , map ViewSnipbitEditQuestion viewSnipbitEditQuestion
@@ -270,7 +287,13 @@ routeRequiresAuth route =
         ViewSnipbitQuestionPage _ _ _ _ ->
             False
 
-        ViewSnipbitQuestionFrame _ _ _ _ ->
+        ViewSnipbitAnswerPage _ _ _ _ ->
+            False
+
+        ViewSnipbitQuestionCommentsPage _ _ _ _ _ ->
+            False
+
+        ViewSnipbitAnswerCommentsPage _ _ _ _ _ ->
             False
 
         ViewBigbitIntroductionPage _ _ _ ->
@@ -361,19 +384,43 @@ toHashUrl route =
                     ++ "/questions"
                     ++ Util.queryParamsToString [ ( "fromStory", qpStoryID ) ]
 
-            ViewSnipbitQuestionPage qpStoryID snipbitID questionID qpAnswerID ->
+            ViewSnipbitQuestionPage qpStoryID qpTouringQuestions snipbitID questionID ->
                 "view/snipbit/"
                     ++ snipbitID
                     ++ "/question/"
                     ++ questionID
-                    ++ Util.queryParamsToString [ ( "fromStory", qpStoryID ), ( "answerID", qpAnswerID ) ]
+                    ++ Util.queryParamsToString [ ( "fromStory", qpStoryID ), ( "touringQuestions", qpTouringQuestions ) ]
 
-            ViewSnipbitQuestionFrame qpStoryID snipbitID frameNumber qpAnswerID ->
+            ViewSnipbitAnswerPage qpStoryID qpTouringQuestions snipbitID answerID ->
                 "view/snipbit/"
                     ++ snipbitID
-                    ++ "/questions/"
-                    ++ (toString frameNumber)
-                    ++ Util.queryParamsToString [ ( "fromStory", qpStoryID ), ( "answerID", qpAnswerID ) ]
+                    ++ "/answer/"
+                    ++ answerID
+                    ++ Util.queryParamsToString [ ( "fromStory", qpStoryID ), ( "touringQuestions", qpTouringQuestions ) ]
+
+            ViewSnipbitQuestionCommentsPage qpStoryID qpTouringQuestions snipbitID questionID qpCommentID ->
+                "view/snipbit/"
+                    ++ snipbitID
+                    ++ "/question/"
+                    ++ questionID
+                    ++ "/comments"
+                    ++ Util.queryParamsToString
+                        [ ( "fromStory", qpStoryID )
+                        , ( "commentID", qpCommentID )
+                        , ( "touringQuestions", qpTouringQuestions )
+                        ]
+
+            ViewSnipbitAnswerCommentsPage qpStoryID qpTouringQuestions snipbitID answerID qpCommentID ->
+                "view/snipbit/"
+                    ++ snipbitID
+                    ++ "/answer/"
+                    ++ answerID
+                    ++ "/comments"
+                    ++ Util.queryParamsToString
+                        [ ( "fromStory", qpStoryID )
+                        , ( "commentID", qpCommentID )
+                        , ( "touringQuestions", qpTouringQuestions )
+                        ]
 
             ViewSnipbitAskQuestion qpStoryID snipbitID ->
                 "view/snipbit/"
@@ -593,6 +640,54 @@ getFromStoryQueryParamOnViewSnipbitRoute route =
         ViewSnipbitConclusionPage fromStoryID _ ->
             fromStoryID
 
+        ViewSnipbitQuestionsPage fromStoryID _ ->
+            fromStoryID
+
+        ViewSnipbitQuestionPage fromStoryID _ _ _ ->
+            fromStoryID
+
+        ViewSnipbitAnswerPage fromStoryID _ _ _ ->
+            fromStoryID
+
+        ViewSnipbitQuestionCommentsPage fromStoryID _ _ _ _ ->
+            fromStoryID
+
+        ViewSnipbitAnswerCommentsPage fromStoryID _ _ _ _ ->
+            fromStoryID
+
+        ViewSnipbitAskQuestion fromStoryID _ ->
+            fromStoryID
+
+        ViewSnipbitAnswerQuestion fromStoryID _ _ ->
+            fromStoryID
+
+        ViewSnipbitEditQuestion fromStoryID _ _ ->
+            fromStoryID
+
+        ViewSnipbitEditAnswer fromStoryID _ _ ->
+            fromStoryID
+
+        _ ->
+            Nothing
+
+
+{-| Returns query param `touringQuestions` if viewing snipbit and on QA route which has that qp.
+-}
+getTouringQuestionsQueryParamOnViewSnipbitQARoute : Route -> Maybe String
+getTouringQuestionsQueryParamOnViewSnipbitQARoute route =
+    case route of
+        ViewSnipbitQuestionPage _ touringQuestions _ _ ->
+            touringQuestions
+
+        ViewSnipbitAnswerPage _ touringQuestions _ _ ->
+            touringQuestions
+
+        ViewSnipbitQuestionCommentsPage _ touringQuestions _ _ _ ->
+            touringQuestions
+
+        ViewSnipbitAnswerCommentsPage _ touringQuestions _ _ _ ->
+            touringQuestions
+
         _ ->
             Nothing
 
@@ -672,10 +767,16 @@ getViewingContentID route =
         ViewSnipbitQuestionsPage _ snipbitID ->
             Just snipbitID
 
-        ViewSnipbitQuestionPage _ snipbitID _ _ ->
+        ViewSnipbitQuestionPage _ _ snipbitID _ ->
             Just snipbitID
 
-        ViewSnipbitQuestionFrame _ snipbitID _ _ ->
+        ViewSnipbitAnswerPage _ _ snipbitID _ ->
+            Just snipbitID
+
+        ViewSnipbitQuestionCommentsPage _ _ snipbitID _ _ ->
+            Just snipbitID
+
+        ViewSnipbitAnswerCommentsPage _ _ snipbitID _ _ ->
             Just snipbitID
 
         ViewSnipbitAskQuestion _ snipbitID ->
@@ -717,7 +818,13 @@ isOnViewSnipbitQARoute route =
         ViewSnipbitQuestionPage _ _ _ _ ->
             True
 
-        ViewSnipbitQuestionFrame _ _ _ _ ->
+        ViewSnipbitAnswerPage _ _ _ _ ->
+            True
+
+        ViewSnipbitQuestionCommentsPage _ _ _ _ _ ->
+            True
+
+        ViewSnipbitAnswerCommentsPage _ _ _ _ _ ->
             True
 
         ViewSnipbitAskQuestion _ _ ->
