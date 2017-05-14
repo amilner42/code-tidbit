@@ -151,6 +151,9 @@ viewForRoute model =
             Route.ViewSnipbitQuestionPage _ _ _ _ ->
                 viewSnipbitPage
 
+            Route.ViewSnipbitAnswersPage _ _ _ _ ->
+                viewSnipbitPage
+
             Route.ViewSnipbitAnswerPage _ _ _ _ ->
                 viewSnipbitPage
 
@@ -360,6 +363,9 @@ navbar model =
                     True
 
                 Route.ViewSnipbitQuestionPage _ _ _ _ ->
+                    True
+
+                Route.ViewSnipbitAnswersPage _ _ _ _ ->
                     True
 
                 Route.ViewSnipbitAnswerPage _ _ _ _ ->

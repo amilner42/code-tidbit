@@ -705,6 +705,9 @@ handleLocationChange maybeRoute model =
                     Route.ViewSnipbitQuestionPage _ _ _ _ ->
                         triggerRouteHookOnViewSnipbitPage
 
+                    Route.ViewSnipbitAnswersPage _ _ _ _ ->
+                        triggerRouteHookOnViewSnipbitPage
+
                     Route.ViewSnipbitAnswerPage _ _ _ _ ->
                         triggerRouteHookOnViewSnipbitPage
 

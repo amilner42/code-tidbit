@@ -493,6 +493,10 @@ commentBox snipbit model shared =
                 -- TODO
                 Util.hiddenDiv
 
+            Route.ViewSnipbitAnswersPage maybeStoryID maybeTouringQuestions snipbitID questionID ->
+                -- TODO
+                Util.hiddenDiv
+
             Route.ViewSnipbitAnswerPage maybeStoryID maybeTouringQuestions snipbitID answerID ->
                 -- TODO
                 Util.hiddenDiv

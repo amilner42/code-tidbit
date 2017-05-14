@@ -275,6 +275,12 @@ update (Common common) msg model shared =
                             , fetchOrRenderViewSnipbitData snipbitID True
                             ]
 
+                    Route.ViewSnipbitAnswersPage _ _ snipbitID _ ->
+                        common.handleAll
+                            [ clearStateOnRouteHit
+                            , fetchOrRenderViewSnipbitData snipbitID True
+                            ]
+
                     Route.ViewSnipbitAnswerPage _ _ snipbitID _ ->
                         common.handleAll
                             [ clearStateOnRouteHit
@@ -1015,6 +1021,14 @@ createViewSnipbitQACodeEditor ( snipbit, qa, qaState ) bookmark { route, user } 
 
                 -- Highlight question codePointer.
                 Route.ViewSnipbitQuestionPage maybeStoryID _ snipbitID questionID ->
+                    case QA.getQuestionByID questionID qa.questions of
+                        Nothing ->
+                            redirectToTutorial maybeStoryID snipbitID
+
+                        Just { codePointer } ->
+                            editorWithRange { selectAllowed = False, useMarker = True } <| Just codePointer
+
+                Route.ViewSnipbitAnswersPage maybeStoryID _ snipbitID questionID ->
                     case QA.getQuestionByID questionID qa.questions of
                         Nothing ->
                             redirectToTutorial maybeStoryID snipbitID
