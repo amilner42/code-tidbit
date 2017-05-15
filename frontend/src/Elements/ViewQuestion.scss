@@ -1,0 +1,65 @@
+@import '../Styles/variables';
+@import '../Styles/mixins';
+
+
+.view-question {
+    .question-markdown {
+        margin-top: 30px;
+        height: 545px;
+        width: 360px;
+    }
+
+    .top-bar {
+        position: absolute;
+        top: 0;
+        left: 0;
+        height: 30px;
+
+        .tab {
+            box-sizing: border-box;
+            border: 1px solid $color13;
+            height: 28px;
+            line-height: 28px;
+            font-size: 16px;
+            width: 120px;
+            display: inline-block;
+            text-align: center;
+            cursor: pointer;
+            color: $color8;
+
+            &.selected {
+                color: $color6;
+            }
+        }
+    }
+
+    .bottom-bar {
+        position: absolute;
+        display: block;
+        top: 580px;
+        height: 30px;
+        width: 360px;
+
+        .like, .dislike, .like-count, .dislike-count {
+            text-align: left;
+            display: inline-block;
+            float: right;
+            color: $color4;
+            font-size: 20px;
+            line-height: 20px;
+            cursor: pointer;
+
+            .selected {
+                color: $color5;
+            }
+        }
+
+        .like-count {
+            margin-right: 10px;
+        }
+
+        .like, .dislike {
+            margin-right: 3px;
+        }
+    }
+}

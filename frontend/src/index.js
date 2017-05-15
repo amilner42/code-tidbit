@@ -25,6 +25,7 @@ require("./Elements/Markdown.scss");
 require("./Elements/ProgressBar.scss");
 require("./Elements/Question.scss");
 require("./Elements/Tags.scss");
+require("./Elements/ViewQuestion.scss");
 
 // Require index.html so it gets copied to dist
 require('./index.html');

@@ -436,6 +436,71 @@ commentBox snipbit model shared =
                                         |> Maybe.withDefault ""
                                     )
                                 ]
+
+        -- TODO
+        viewQuestionView qa tab question =
+            ViewQuestion.viewQuestionView
+                { tab = tab
+                , question = question
+                , answers = qa.answers
+                , questionComments = qa.questionComments
+                , answerComments = qa.answerComments
+                , onClickQuestionTab =
+                    GoTo <|
+                        Route.ViewSnipbitQuestionPage
+                            (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
+                            (Route.getTouringQuestionsQueryParamOnViewSnipbitQARoute shared.route)
+                            snipbit.id
+                            question.id
+                , onClickAnswersTab =
+                    GoTo <|
+                        Route.ViewSnipbitAnswersPage
+                            (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
+                            (Route.getTouringQuestionsQueryParamOnViewSnipbitQARoute shared.route)
+                            snipbit.id
+                            question.id
+                , onClickQuestionCommentsTab =
+                    GoTo <|
+                        Route.ViewSnipbitQuestionCommentsPage
+                            (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
+                            (Route.getTouringQuestionsQueryParamOnViewSnipbitQARoute shared.route)
+                            snipbit.id
+                            question.id
+                            Nothing
+                , onClickAnswer =
+                    (\answer ->
+                        GoTo <|
+                            Route.ViewSnipbitAnswerPage
+                                (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
+                                (Route.getTouringQuestionsQueryParamOnViewSnipbitQARoute shared.route)
+                                snipbit.id
+                                answer.id
+                    )
+                , onClickQuestionComment =
+                    (\questionComment ->
+                        GoTo <|
+                            Route.ViewSnipbitQuestionCommentsPage
+                                (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
+                                (Route.getTouringQuestionsQueryParamOnViewSnipbitQARoute shared.route)
+                                snipbit.id
+                                questionComment.questionID
+                                (Just questionComment.id)
+                    )
+                , onClickAnswerComment =
+                    (\answerComment ->
+                        GoTo <|
+                            Route.ViewSnipbitAnswerCommentsPage
+                                (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
+                                (Route.getTouringQuestionsQueryParamOnViewSnipbitQARoute shared.route)
+                                snipbit.id
+                                answerComment.answerID
+                                (Just answerComment.id)
+                    )
+                , onClickLikeQuestion = NoOp
+                , onClickDislikeQuestion = NoOp
+                , onClickLikeAnswer = always NoOp
+                , onClickDislikeAnswer = always NoOp
+                }
     in
         case shared.route of
             Route.ViewSnipbitIntroductionPage _ _ ->
@@ -490,24 +555,69 @@ commentBox snipbit model shared =
                         Util.hiddenDiv
 
             Route.ViewSnipbitQuestionPage maybeStoryID maybeTouringQuestions snipbitID questionID ->
-                -- TODO
-                Util.hiddenDiv
+                case model.qa of
+                    Just qa ->
+                        case QA.getQuestionByID questionID qa.questions of
+                            Just question ->
+                                viewQuestionView qa ViewQuestion.QuestionTab question
+
+                            Nothing ->
+                                Util.hiddenDiv
+
+                    Nothing ->
+                        Util.hiddenDiv
 
             Route.ViewSnipbitAnswersPage maybeStoryID maybeTouringQuestions snipbitID questionID ->
-                -- TODO
-                Util.hiddenDiv
+                case model.qa of
+                    Just qa ->
+                        case QA.getQuestionByID questionID qa.questions of
+                            Just question ->
+                                viewQuestionView qa ViewQuestion.AnswersTab question
+
+                            Nothing ->
+                                Util.hiddenDiv
+
+                    Nothing ->
+                        Util.hiddenDiv
 
             Route.ViewSnipbitAnswerPage maybeStoryID maybeTouringQuestions snipbitID answerID ->
-                -- TODO
-                Util.hiddenDiv
+                case model.qa of
+                    Just qa ->
+                        case QA.getQuestionByAnswerID snipbitID answerID qa of
+                            Just question ->
+                                viewQuestionView qa (ViewQuestion.AnswerTab answerID) question
+
+                            Nothing ->
+                                Util.hiddenDiv
+
+                    Nothing ->
+                        Util.hiddenDiv
 
             Route.ViewSnipbitQuestionCommentsPage maybeStoryID maybeTouringQuestions snipbitID questionID maybeCommentID ->
-                -- TODO
-                Util.hiddenDiv
+                case model.qa of
+                    Just qa ->
+                        case QA.getQuestionByID questionID qa.questions of
+                            Just question ->
+                                viewQuestionView qa (ViewQuestion.QuestionCommentsTab maybeCommentID) question
+
+                            Nothing ->
+                                Util.hiddenDiv
+
+                    Nothing ->
+                        Util.hiddenDiv
 
             Route.ViewSnipbitAnswerCommentsPage maybeStoryID maybeTouringQuestions snipbitID answerID maybeCommentID ->
-                -- TODO
-                Util.hiddenDiv
+                case model.qa of
+                    Just qa ->
+                        case QA.getQuestionByAnswerID snipbitID answerID qa of
+                            Just question ->
+                                viewQuestionView qa (ViewQuestion.AnswerCommentsTab maybeCommentID) question
+
+                            Nothing ->
+                                Util.hiddenDiv
+
+                    Nothing ->
+                        Util.hiddenDiv
 
             Route.ViewSnipbitAskQuestion maybeStoryID snipbitID ->
                 let
