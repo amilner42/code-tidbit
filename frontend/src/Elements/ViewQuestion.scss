@@ -41,6 +41,8 @@
         width: 360px;
 
         .like, .dislike, .like-count, .dislike-count {
+            @include no-select();
+
             text-align: left;
             display: inline-block;
             float: right;
@@ -49,8 +51,8 @@
             line-height: 20px;
             cursor: pointer;
 
-            .selected {
-                color: $color5;
+            &.selected {
+                color: $color6;
             }
         }
 

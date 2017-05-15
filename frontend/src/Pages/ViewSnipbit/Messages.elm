@@ -66,3 +66,15 @@ type Msg
     | EditAnswer SnipbitID QuestionID AnswerID AnswerText
     | OnEditAnswerSuccess SnipbitID QuestionID AnswerID AnswerText Date
     | OnEditAnswerFailure ApiError
+    | OnClickUpvote SnipbitID QuestionID
+    | OnClickRemoveUpvote SnipbitID QuestionID
+    | OnClickDownvote SnipbitID QuestionID
+    | OnClickRemoveDownvote SnipbitID QuestionID
+    | OnUpvoteSuccess QuestionID
+    | OnUpvoteFailure ApiError
+    | OnRemoveUpvoteSuccess QuestionID
+    | OnRemoveUpvoteFailure ApiError
+    | OnDownvoteSuccess QuestionID
+    | OnDownvoteFailure ApiError
+    | OnRemoveDownvoteSuccess QuestionID
+    | OnRemoveDownvoteFailure ApiError

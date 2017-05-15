@@ -496,8 +496,14 @@ commentBox snipbit model shared =
                                 answerComment.answerID
                                 (Just answerComment.id)
                     )
-                , onClickLikeQuestion = NoOp
-                , onClickDislikeQuestion = NoOp
+                , onClickUpvoteQuestion =
+                    OnClickUpvote snipbit.id question.id
+                , onClickRemoveUpvoteQuestion =
+                    OnClickRemoveUpvote snipbit.id question.id
+                , onClickDownvoteQuestion =
+                    OnClickDownvote snipbit.id question.id
+                , onClickRemoveDownvoteQuestion =
+                    OnClickRemoveDownvote snipbit.id question.id
                 , onClickLikeAnswer = always NoOp
                 , onClickDislikeAnswer = always NoOp
                 }

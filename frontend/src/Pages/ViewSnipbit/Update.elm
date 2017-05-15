@@ -1,8 +1,8 @@
 module Pages.ViewSnipbit.Update exposing (..)
 
 import Array
-import DefaultServices.Editable as Editable
 import DefaultServices.CommonSubPageUtil exposing (CommonSubPageUtil(..), commonSubPageUtil)
+import DefaultServices.Editable as Editable
 import DefaultServices.Util as Util exposing (maybeMapWithDefault)
 import Dict
 import Elements.Editor as Editor
@@ -17,6 +17,7 @@ import Models.TidbitPointer as TidbitPointer
 import Models.TutorialBookmark as TB
 import Models.User as User
 import Models.ViewerRelevantHC as ViewerRelevantHC
+import Models.Vote as Vote
 import Pages.Model exposing (Shared)
 import Pages.ViewSnipbit.Messages exposing (Msg(..))
 import Pages.ViewSnipbit.Model exposing (..)
@@ -951,6 +952,64 @@ update (Common common) msg model shared =
             )
 
         OnEditAnswerFailure apiError ->
+            common.justSetModalError apiError
+
+        OnClickUpvote snipbitID questionID ->
+            common.justProduceCmd <|
+                common.api.post.rateQuestionWrapper
+                    { tidbitType = TidbitPointer.Snipbit, targetID = snipbitID }
+                    questionID
+                    Vote.Upvote
+                    OnUpvoteFailure
+                    OnUpvoteSuccess
+
+        OnClickRemoveUpvote snipbitID questionID ->
+            common.justProduceCmd <|
+                common.api.post.removeQuestionRatingWrapper
+                    { tidbitType = TidbitPointer.Snipbit, targetID = snipbitID }
+                    questionID
+                    OnRemoveUpvoteFailure
+                    OnRemoveUpvoteSuccess
+
+        OnClickDownvote snipbitID questionID ->
+            common.justProduceCmd <|
+                common.api.post.rateQuestionWrapper
+                    { tidbitType = TidbitPointer.Snipbit, targetID = snipbitID }
+                    questionID
+                    Vote.Downvote
+                    OnDownvoteFailure
+                    OnDownvoteSuccess
+
+        OnClickRemoveDownvote snipbitID questionID ->
+            common.justProduceCmd <|
+                common.api.post.removeQuestionRatingWrapper
+                    { tidbitType = TidbitPointer.Snipbit, targetID = snipbitID }
+                    questionID
+                    OnRemoveDownvoteFailure
+                    OnRemoveDownvoteSuccess
+
+        OnUpvoteSuccess questionID ->
+            common.justSetModel { model | qa = Maybe.map (QA.rateQuestion questionID <| Just Vote.Upvote) model.qa }
+
+        OnUpvoteFailure apiError ->
+            common.justSetModalError apiError
+
+        OnRemoveUpvoteSuccess questionID ->
+            common.justSetModel { model | qa = Maybe.map (QA.rateQuestion questionID <| Nothing) model.qa }
+
+        OnRemoveUpvoteFailure apiError ->
+            common.justSetModalError apiError
+
+        OnDownvoteSuccess questionID ->
+            common.justSetModel { model | qa = Maybe.map (QA.rateQuestion questionID <| Just Vote.Downvote) model.qa }
+
+        OnDownvoteFailure apiError ->
+            common.justSetModalError apiError
+
+        OnRemoveDownvoteSuccess questionID ->
+            common.justSetModel { model | qa = Maybe.map (QA.rateQuestion questionID <| Nothing) model.qa }
+
+        OnRemoveDownvoteFailure apiError ->
             common.justSetModalError apiError
 
 

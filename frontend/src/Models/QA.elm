@@ -6,6 +6,7 @@ import DefaultServices.Sort as Sort
 import Dict
 import Elements.FileStructure as FS
 import Models.Range as Range
+import Models.Vote as Vote
 import ProjectTypeAliases exposing (..)
 
 
@@ -287,6 +288,58 @@ updateQuestion questionID questionUpdater qa =
                 )
                 qa.questions
     }
+
+
+{-| Updates a [published] question in the QA, handles all required logic:
+  - Upvoting/downvoting question
+  - Possibly removing previous upvote/downvote
+  - Updating upvote/downvote count
+  - Resorting questions.
+
+NOTE: If `vote` is `Nothing`, means that the user was removing a vote (could be either upvote/downvote).
+-}
+rateQuestion : QuestionID -> Maybe Vote.Vote -> QA codePointer -> QA codePointer
+rateQuestion questionID vote =
+    let
+        updateQuestionUpvotesAndDownvotesForQA qa =
+            updateQuestion
+                questionID
+                (\question ->
+                    { question
+                        | upvotes =
+                            case vote of
+                                Just Vote.Upvote ->
+                                    if Tuple.first question.upvotes then
+                                        question.upvotes
+                                    else
+                                        ( True, (+) 1 <| Tuple.second question.upvotes )
+
+                                _ ->
+                                    if Tuple.first question.upvotes then
+                                        ( False, (flip (-)) 1 <| Tuple.second question.upvotes )
+                                    else
+                                        question.upvotes
+                        , downvotes =
+                            case vote of
+                                Just Vote.Downvote ->
+                                    if Tuple.first question.downvotes then
+                                        question.downvotes
+                                    else
+                                        ( True, (+) 1 <| Tuple.second question.downvotes )
+
+                                _ ->
+                                    if Tuple.first question.downvotes then
+                                        ( False, (flip (-)) 1 <| Tuple.second question.downvotes )
+                                    else
+                                        question.downvotes
+                    }
+                )
+                qa
+
+        sortQuestionsForQA qa =
+            { qa | questions = sortQuestions qa.questions }
+    in
+        updateQuestionUpvotesAndDownvotesForQA >> sortQuestionsForQA
 
 
 {-| Updates a [published] answer in the QA.

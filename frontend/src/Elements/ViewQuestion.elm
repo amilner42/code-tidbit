@@ -23,8 +23,10 @@ type alias RenderConfig msg codePointer =
     , onClickAnswer : Answer -> msg
     , onClickQuestionComment : QuestionComment -> msg
     , onClickAnswerComment : AnswerComment -> msg
-    , onClickLikeQuestion : msg
-    , onClickDislikeQuestion : msg
+    , onClickUpvoteQuestion : msg
+    , onClickRemoveUpvoteQuestion : msg
+    , onClickDownvoteQuestion : msg
+    , onClickRemoveDownvoteQuestion : msg
     , onClickLikeAnswer : Answer -> msg
     , onClickDislikeAnswer : Answer -> msg
     }
@@ -98,25 +100,64 @@ viewQuestionView config =
             ]
         , case config.tab of
             QuestionTab ->
-                div
-                    []
-                    [ Markdown.githubMarkdown [ class "question-markdown" ] config.question.questionText
-                    , div
-                        [ class "bottom-bar" ]
-                        [ span
-                            [ class "dislike-count" ]
-                            [ text <| toString <| Tuple.second <| config.question.downvotes ]
-                        , i
-                            [ class "material-icons dislike" ]
-                            [ text "thumb_down" ]
-                        , span
-                            [ class "like-count" ]
-                            [ text <| toString <| Tuple.second <| config.question.upvotes ]
-                        , i
-                            [ class "material-icons like" ]
-                            [ text "thumb_up" ]
+                let
+                    upvotedQuestion =
+                        Tuple.first config.question.upvotes
+
+                    downvotedQuestion =
+                        Tuple.first config.question.downvotes
+
+                    onClickUpvote =
+                        if upvotedQuestion then
+                            config.onClickRemoveUpvoteQuestion
+                        else
+                            config.onClickUpvoteQuestion
+
+                    onClickDownvote =
+                        if downvotedQuestion then
+                            config.onClickRemoveDownvoteQuestion
+                        else
+                            config.onClickDownvoteQuestion
+                in
+                    div
+                        []
+                        [ Markdown.githubMarkdown [ class "question-markdown" ] config.question.questionText
+                        , div
+                            [ class "bottom-bar" ]
+                            [ span
+                                [ classList
+                                    [ ( "dislike-count", True )
+                                    , ( "selected", downvotedQuestion )
+                                    ]
+                                , onClick onClickDownvote
+                                ]
+                                [ text <| toString <| Tuple.second <| config.question.downvotes ]
+                            , i
+                                [ classList
+                                    [ ( "material-icons dislike", True )
+                                    , ( "selected", downvotedQuestion )
+                                    ]
+                                , onClick onClickDownvote
+                                ]
+                                [ text "thumb_down" ]
+                            , span
+                                [ classList
+                                    [ ( "like-count", True )
+                                    , ( "selected", upvotedQuestion )
+                                    ]
+                                , onClick onClickUpvote
+                                ]
+                                [ text <| toString <| Tuple.second <| config.question.upvotes ]
+                            , i
+                                [ classList
+                                    [ ( "material-icons like", True )
+                                    , ( "selected", upvotedQuestion )
+                                    ]
+                                , onClick onClickUpvote
+                                ]
+                                [ text "thumb_up" ]
+                            ]
                         ]
-                    ]
 
             QuestionCommentsTab maybeCommentID ->
                 -- TODO
