@@ -442,9 +442,9 @@ commentBox snipbit model shared =
             ViewQuestion.viewQuestionView
                 { tab = tab
                 , question = question
-                , answers = qa.answers
-                , questionComments = qa.questionComments
-                , answerComments = qa.answerComments
+                , answers = List.filter (.questionID >> (==) question.id) qa.answers
+                , questionComments = List.filter (.questionID >> (==) question.id) qa.questionComments
+                , answerComments = List.filter (.questionID >> (==) question.id) qa.answerComments
                 , onClickQuestionTab =
                     GoTo <|
                         Route.ViewSnipbitQuestionPage
@@ -506,6 +506,12 @@ commentBox snipbit model shared =
                     OnClickRemoveDownvote snipbit.id question.id
                 , onClickLikeAnswer = always NoOp
                 , onClickDislikeAnswer = always NoOp
+                , onClickAnswerQuestion =
+                    GoTo <|
+                        Route.ViewSnipbitAnswerQuestion
+                            (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
+                            snipbit.id
+                            question.id
                 }
     in
         case shared.route of

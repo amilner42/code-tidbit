@@ -3,11 +3,6 @@
 
 
 .view-question {
-    .question-markdown {
-        margin-top: 30px;
-        height: 545px;
-        width: 360px;
-    }
 
     .top-bar {
         position: absolute;
@@ -33,35 +28,140 @@
         }
     }
 
-    .bottom-bar {
-        position: absolute;
-        display: block;
-        top: 580px;
-        height: 30px;
-        width: 360px;
+    .question-tab {
+        .question-markdown {
+            margin-top: 30px;
+            height: 545px;
+            width: 360px;
+        }
 
-        .like, .dislike, .like-count, .dislike-count {
-            @include no-select();
+        .bottom-bar {
+            position: absolute;
+            display: block;
+            top: 580px;
+            height: 30px;
+            width: 360px;
 
-            text-align: left;
-            display: inline-block;
-            float: right;
-            color: $color4;
-            font-size: 20px;
-            line-height: 20px;
-            cursor: pointer;
+            .like, .dislike, .like-count, .dislike-count {
+                @include no-select();
 
-            &.selected {
-                color: $color6;
+                text-align: left;
+                display: inline-block;
+                float: right;
+                color: $color4;
+                font-size: 20px;
+                line-height: 20px;
+                cursor: pointer;
+
+                &.selected {
+                    color: $color6;
+                }
+            }
+
+            .like-count {
+                margin-right: 10px;
+            }
+
+            .like, .dislike {
+                margin-right: 3px;
+            }
+        }
+    }
+
+    .answers-tab {
+        width: 100%;
+        height: 100%;
+
+        .answers-box {
+            box-sizing: border-box;
+            margin-top: 30px;
+            height: 540px;
+            width: 360px;
+            border: 1px solid $color9;
+            overflow: hidden;
+
+            .no-answers-text {
+                box-sizing: border-box;
+                position: relative;
+                color: $color5;
+                top: 200px;
+                text-align: center;
+                font-size: 26px;
+            }
+
+            .answers {
+                width: 350px;
+                height: 540px;
+                overflow-x: hidden;
+                overflow-y: scroll; // Scroll is hidden anyway, just keeps widths consistent.
+                margin: 10px;
+                padding: 1px;
+                padding-right: 200px;
             }
         }
 
-        .like-count {
-            margin-right: 10px;
+        .answer-question {
+            position: absolute;
+            top: 575px;
+            left: 0;
+            width: 360px;
+            height: 25px;
+            background-color: $color7;
+            color: white;
+            text-align: center;
+            font-size: 16px;
+            line-height: 25px;
+            cursor: pointer;
+        }
+    }
+}
+
+.answer-box {
+    @include light-box-shadow();
+    box-sizing: border-box;
+    position: relative;
+    display: block;
+    width: 100%;
+    margin-bottom: 10px;
+    min-height: 50px;
+    cursor: pointer;
+
+    .answer-text {
+        box-sizing: border-box;
+        position: relative;
+        display: block;
+        width: 100%;
+        padding: 10px;
+        word-wrap: break-word;
+        hyphens: auto;
+    }
+
+    .bottom-bar {
+        position: relative;
+        display: block;
+        box-sizing: border-box;
+        bottom: 0;
+        width: 100%;
+        height: 20px;
+
+        .dislike-count, .like-count, .dislike, .like {
+            line-height: 20px;
+            color: $color4;
+            float: right;
+            display: inline-block;
+            font-size: 16px;
         }
 
-        .like, .dislike {
+        .dislike, .like {
             margin-right: 3px;
         }
+
+        .dislike-count, .like-count {
+            margin-right: 5px;
+        }
+    }
+
+    &:hover {
+        @include strong-box-shadow();
     }
 }

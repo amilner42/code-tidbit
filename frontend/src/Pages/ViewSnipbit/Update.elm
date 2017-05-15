@@ -365,7 +365,12 @@ update (Common common) msg model shared =
 
         OnGetQASuccess requireLoadingQAPreRender qa ->
             ( { model
-                | qa = Just { qa | questions = QA.sortQuestions qa.questions }
+                | qa =
+                    Just
+                        { qa
+                            | questions = QA.sortRateableContent qa.questions
+                            , answers = QA.sortRateableContent qa.answers
+                        }
                 , relevantQuestions = Nothing
               }
             , shared
@@ -691,7 +696,7 @@ update (Common common) msg model shared =
             case model.qa of
                 Just qa ->
                     ( { model
-                        | qa = Just { qa | questions = QA.sortQuestions <| question :: qa.questions }
+                        | qa = Just { qa | questions = QA.sortRateableContent <| question :: qa.questions }
                         , qaState =
                             QA.updateNewQuestion
                                 snipbitID
@@ -846,8 +851,8 @@ update (Common common) msg model shared =
 
         OnAnswerQuestionSuccess snipbitID questionID answer ->
             ( { model
-                | -- Add the answer to the published answer list.
-                  qa = Maybe.map (\qa -> { qa | answers = qa.answers ++ [ answer ] }) model.qa
+                | -- Add the answer to the published answer list (and re-sort).
+                  qa = Maybe.map (\qa -> { qa | answers = QA.sortRateableContent <| answer :: qa.answers }) model.qa
 
                 -- Clear the new answer from the QAState.
                 , qaState = QA.updateNewAnswer snipbitID questionID (always Nothing) model.qaState

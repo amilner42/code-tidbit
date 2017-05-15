@@ -80,6 +80,8 @@
 
     .question-text {
         padding: 10px;
+        word-break: break-all;
+        hyphens: auto;
     }
 
     .upvotes-and-downvotes {

@@ -29,6 +29,7 @@ type alias RenderConfig msg codePointer =
     , onClickRemoveDownvoteQuestion : msg
     , onClickLikeAnswer : Answer -> msg
     , onClickDislikeAnswer : Answer -> msg
+    , onClickAnswerQuestion : msg
     }
 
 
@@ -120,7 +121,7 @@ viewQuestionView config =
                             config.onClickDownvoteQuestion
                 in
                     div
-                        []
+                        [ class "question-tab" ]
                         [ Markdown.githubMarkdown [ class "question-markdown" ] config.question.questionText
                         , div
                             [ class "bottom-bar" ]
@@ -164,8 +165,22 @@ viewQuestionView config =
                 Util.hiddenDiv
 
             AnswersTab ->
-                -- TODO
-                Util.hiddenDiv
+                div
+                    [ class "answers-tab" ]
+                    [ div
+                        [ class "answers-box" ]
+                        [ if List.isEmpty config.answers then
+                            div [ class "no-answers-text" ] [ text "Be the first to answer the question" ]
+                          else
+                            div [ class "answers" ] <|
+                                List.map (answerBox config.onClickAnswer) config.answers
+                        ]
+                    , div
+                        [ class "answer-question"
+                        , onClick config.onClickAnswerQuestion
+                        ]
+                        [ text "Answer Question" ]
+                    ]
 
             AnswerTab answerID ->
                 -- TODO
@@ -174,4 +189,23 @@ viewQuestionView config =
             AnswerCommentsTab maybeCommentID ->
                 -- TODO
                 Util.hiddenDiv
+        ]
+
+
+{-| Renders an answer box.
+-}
+answerBox : (Answer -> msg) -> Answer -> Html msg
+answerBox onClickAnswer answer =
+    div
+        [ class "answer-box"
+        , onClick <| onClickAnswer answer
+        ]
+        [ div [ class "answer-text" ] [ text <| answer.answerText ]
+        , div
+            [ class "bottom-bar" ]
+            [ span [ class "dislike-count" ] [ text <| toString <| Tuple.second <| answer.upvotes ]
+            , i [ class "material-icons dislike" ] [ text "thumb_down" ]
+            , span [ class "like-count" ] [ text <| toString <| Tuple.second <| answer.downvotes ]
+            , i [ class "material-icons like" ] [ text "thumb_up" ]
+            ]
         ]

@@ -106,6 +106,12 @@ type alias AnswerComment =
     }
 
 
+{-| Currently both questions/answers are RateableContent, useful for sorting based on ratings.
+-}
+type alias RateableContent x =
+    { x | pinned : Bool, upvotes : ( Bool, Int ), downvotes : ( Bool, Int ), createdAt : Date.Date }
+
+
 {-| Bigbit codePointers need to include the file and range.
 -}
 type alias BigbitCodePointer =
@@ -337,7 +343,7 @@ rateQuestion questionID vote =
                 qa
 
         sortQuestionsForQA qa =
-            { qa | questions = sortQuestions qa.questions }
+            { qa | questions = sortRateableContent qa.questions }
     in
         updateQuestionUpvotesAndDownvotesForQA >> sortQuestionsForQA
 
@@ -418,14 +424,14 @@ updateNewAnswer snipbitID questionID newAnswerUpdater =
         )
 
 
-{-| Sorts the questions by:
+{-| Sorts the RateableContent by:
     - is pinned
-    - most numberOfUpvotes
-    - least numberOfDownvotes
+    - most upvotes
+    - least downvotes
     - newest date
 -}
-sortQuestions : List (Question codePointer) -> List (Question codePointer)
-sortQuestions =
+sortRateableContent : List (RateableContent x) -> List (RateableContent x)
+sortRateableContent =
     Sort.sortByAll
         [ Sort.createBoolComparator .pinned
         , Sort.reverseComparator <| Sort.createComparator (.upvotes >> Tuple.second)
