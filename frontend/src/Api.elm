@@ -104,7 +104,9 @@ type alias API b =
         , editAnswerWrapper : TidbitPointer.TidbitPointer -> QuestionID -> AnswerID -> AnswerText -> (ApiError.ApiError -> b) -> (TidbitID -> QuestionID -> AnswerID -> AnswerText -> Date.Date -> b) -> Cmd b
         , deleteAnswer : TidbitPointer.TidbitPointer -> AnswerID -> (ApiError.ApiError -> b) -> (() -> b) -> Cmd b
         , rateAnswer : TidbitPointer.TidbitPointer -> AnswerID -> Vote.Vote -> (ApiError.ApiError -> b) -> (() -> b) -> Cmd b
+        , rateAnswerWrapper : TidbitPointer.TidbitPointer -> AnswerID -> Vote.Vote -> (ApiError.ApiError -> b) -> (AnswerID -> b) -> Cmd b
         , removeAnswerRating : TidbitPointer.TidbitPointer -> AnswerID -> (ApiError.ApiError -> b) -> (() -> b) -> Cmd b
+        , removeAnswerRatingWrapper : TidbitPointer.TidbitPointer -> AnswerID -> (ApiError.ApiError -> b) -> (AnswerID -> b) -> Cmd b
         , pinAnswer : TidbitPointer.TidbitPointer -> AnswerID -> Bool -> (ApiError.ApiError -> b) -> (() -> b) -> Cmd b
         , commentOnQuestion : TidbitPointer.TidbitPointer -> QuestionID -> CommentText -> (ApiError.ApiError -> b) -> (QA.QuestionComment -> b) -> Cmd b
         , editQuestionComment : TidbitPointer.TidbitPointer -> CommentID -> CommentText -> (ApiError.ApiError -> b) -> (Date.Date -> b) -> Cmd b
@@ -661,6 +663,23 @@ api apiBaseUrl =
                 questionID
                 handleError
                 (always <| handleSuccess questionID)
+
+        postRateAnswerWrapper : TidbitPointer.TidbitPointer -> AnswerID -> Vote.Vote -> (ApiError.ApiError -> b) -> (AnswerID -> b) -> Cmd b
+        postRateAnswerWrapper tidbitPointer answerID vote handleError handleSuccess =
+            postRateAnswer
+                tidbitPointer
+                answerID
+                vote
+                handleError
+                (always <| handleSuccess answerID)
+
+        postRemoveAnswerRatingWrapper : TidbitPointer.TidbitPointer -> AnswerID -> (ApiError.ApiError -> b) -> (AnswerID -> b) -> Cmd b
+        postRemoveAnswerRatingWrapper tidbitPointer answerID handleError handleSuccess =
+            postRemoveAnswerRating
+                tidbitPointer
+                answerID
+                handleError
+                (always <| handleSuccess answerID)
     in
         { get =
             { userExists = getUserExists
@@ -717,7 +736,9 @@ api apiBaseUrl =
             , editAnswerWrapper = postEditAnswerWrapper
             , deleteAnswer = postDeleteAnswer
             , rateAnswer = postRateAnswer
+            , rateAnswerWrapper = postRateAnswerWrapper
             , removeAnswerRating = postRemoveAnswerRating
+            , removeAnswerRatingWrapper = postRemoveAnswerRatingWrapper
             , pinAnswer = postPinAnswer
             , commentOnQuestion = postCommentOnQuestion
             , editQuestionComment = postEditQuestionComment

@@ -4,7 +4,7 @@
 
 .view-question {
 
-    .top-bar {
+    .top-bar, .extended-top-bar {
         position: absolute;
         top: 0;
         left: 0;
@@ -25,6 +25,24 @@
             &.selected {
                 color: $color6;
             }
+
+            &.center-tab {
+                margin: 0 1px 0 1px;
+                width: 118px;
+            }
+        }
+    }
+
+    .extended-top-bar {
+        top: 29px;
+
+        .tab {
+            width: 180px;
+
+            &.left-tab {
+                margin-right: 1px;
+                width: 179px;
+            }
         }
     }
 
@@ -33,38 +51,6 @@
             margin-top: 30px;
             height: 545px;
             width: 360px;
-        }
-
-        .bottom-bar {
-            position: absolute;
-            display: block;
-            top: 580px;
-            height: 30px;
-            width: 360px;
-
-            .like, .dislike, .like-count, .dislike-count {
-                @include no-select();
-
-                text-align: left;
-                display: inline-block;
-                float: right;
-                color: $color4;
-                font-size: 20px;
-                line-height: 20px;
-                cursor: pointer;
-
-                &.selected {
-                    color: $color6;
-                }
-            }
-
-            .like-count {
-                margin-right: 10px;
-            }
-
-            .like, .dislike {
-                margin-right: 3px;
-            }
         }
     }
 
@@ -112,6 +98,46 @@
             font-size: 16px;
             line-height: 25px;
             cursor: pointer;
+        }
+    }
+
+    .answer-tab {
+        .answer-markdown {
+            height: 515px;
+            margin-top: 60px;
+
+        }
+    }
+
+    .reactive-bottom-bar {
+        position: absolute;
+        display: block;
+        top: 580px;
+        height: 30px;
+        width: 360px;
+
+        .like, .dislike, .like-count, .dislike-count {
+            @include no-select();
+
+            text-align: left;
+            display: inline-block;
+            float: right;
+            color: $color4;
+            font-size: 20px;
+            line-height: 20px;
+            cursor: pointer;
+
+            &.selected {
+                color: $color6;
+            }
+        }
+
+        .like-count {
+            margin-right: 10px;
+        }
+
+        .like, .dislike {
+            margin-right: 3px;
         }
     }
 }

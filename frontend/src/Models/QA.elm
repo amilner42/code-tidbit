@@ -112,6 +112,12 @@ type alias RateableContent x =
     { x | pinned : Bool, upvotes : ( Bool, Int ), downvotes : ( Bool, Int ), createdAt : Date.Date }
 
 
+{-| Anything that has upvotes and downvotes (allows for reusable functions).
+-}
+type alias ContentWithVotes x =
+    { x | upvotes : ( Bool, Int ), downvotes : ( Bool, Int ) }
+
+
 {-| Bigbit codePointers need to include the file and range.
 -}
 type alias BigbitCodePointer =
@@ -308,44 +314,32 @@ rateQuestion : QuestionID -> Maybe Vote.Vote -> QA codePointer -> QA codePointer
 rateQuestion questionID vote =
     let
         updateQuestionUpvotesAndDownvotesForQA qa =
-            updateQuestion
-                questionID
-                (\question ->
-                    { question
-                        | upvotes =
-                            case vote of
-                                Just Vote.Upvote ->
-                                    if Tuple.first question.upvotes then
-                                        question.upvotes
-                                    else
-                                        ( True, (+) 1 <| Tuple.second question.upvotes )
-
-                                _ ->
-                                    if Tuple.first question.upvotes then
-                                        ( False, (flip (-)) 1 <| Tuple.second question.upvotes )
-                                    else
-                                        question.upvotes
-                        , downvotes =
-                            case vote of
-                                Just Vote.Downvote ->
-                                    if Tuple.first question.downvotes then
-                                        question.downvotes
-                                    else
-                                        ( True, (+) 1 <| Tuple.second question.downvotes )
-
-                                _ ->
-                                    if Tuple.first question.downvotes then
-                                        ( False, (flip (-)) 1 <| Tuple.second question.downvotes )
-                                    else
-                                        question.downvotes
-                    }
-                )
-                qa
+            updateQuestion questionID (updateVotes vote) qa
 
         sortQuestionsForQA qa =
             { qa | questions = sortRateableContent qa.questions }
     in
         updateQuestionUpvotesAndDownvotesForQA >> sortQuestionsForQA
+
+
+{-| Updates a [published] answer, handles:
+    - Upvoting/downvoting answer
+    - Possibly removing previous upvote/downvote
+    - Updating upvote/downvote count
+    - Resorting answers.
+
+NOTE: If vote is `Nothing`, means the user was was removing a vote (could be either upvote/downvote).
+-}
+rateAnswer : AnswerID -> Maybe Vote.Vote -> QA codePointer -> QA codePointer
+rateAnswer answerID vote =
+    let
+        updateAnswerUpvotesAndDownvotesForQA qa =
+            updateAnswer answerID (updateVotes vote) qa
+
+        sortAnswersForQA qa =
+            { qa | answers = sortRateableContent qa.answers }
+    in
+        updateAnswerUpvotesAndDownvotesForQA >> sortAnswersForQA
 
 
 {-| Updates a [published] answer in the QA.
@@ -484,6 +478,42 @@ setTidbitQAState snipbitID tidbitQAStateUpdater qaState =
                         tidbitQAStateUpdater tidbitQAState
         )
         qaState
+
+
+{-| Helper for updating the vote count.
+
+NOTE: If `vote` is `Nothing` that means that the user was removing his vote.
+-}
+updateVotes : Maybe Vote.Vote -> ContentWithVotes x -> ContentWithVotes x
+updateVotes vote contentWithVotes =
+    { contentWithVotes
+        | upvotes =
+            case vote of
+                Just Vote.Upvote ->
+                    if Tuple.first contentWithVotes.upvotes then
+                        contentWithVotes.upvotes
+                    else
+                        ( True, (+) 1 <| Tuple.second contentWithVotes.upvotes )
+
+                _ ->
+                    if Tuple.first contentWithVotes.upvotes then
+                        ( False, (flip (-)) 1 <| Tuple.second contentWithVotes.upvotes )
+                    else
+                        contentWithVotes.upvotes
+        , downvotes =
+            case vote of
+                Just Vote.Downvote ->
+                    if Tuple.first contentWithVotes.downvotes then
+                        contentWithVotes.downvotes
+                    else
+                        ( True, (+) 1 <| Tuple.second contentWithVotes.downvotes )
+
+                _ ->
+                    if Tuple.first contentWithVotes.downvotes then
+                        ( False, (flip (-)) 1 <| Tuple.second contentWithVotes.downvotes )
+                    else
+                        contentWithVotes.downvotes
+    }
 
 
 {-| The default state for `TidbitQAState`.

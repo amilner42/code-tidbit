@@ -66,15 +66,27 @@ type Msg
     | EditAnswer SnipbitID QuestionID AnswerID AnswerText
     | OnEditAnswerSuccess SnipbitID QuestionID AnswerID AnswerText Date
     | OnEditAnswerFailure ApiError
-    | OnClickUpvote SnipbitID QuestionID
-    | OnClickRemoveUpvote SnipbitID QuestionID
-    | OnClickDownvote SnipbitID QuestionID
-    | OnClickRemoveDownvote SnipbitID QuestionID
-    | OnUpvoteSuccess QuestionID
-    | OnUpvoteFailure ApiError
-    | OnRemoveUpvoteSuccess QuestionID
-    | OnRemoveUpvoteFailure ApiError
-    | OnDownvoteSuccess QuestionID
-    | OnDownvoteFailure ApiError
-    | OnRemoveDownvoteSuccess QuestionID
-    | OnRemoveDownvoteFailure ApiError
+    | OnClickUpvoteQuestion SnipbitID QuestionID
+    | OnClickRemoveQuestionUpvote SnipbitID QuestionID
+    | OnClickDownvoteQuestion SnipbitID QuestionID
+    | OnClickRemoveQuestionDownvote SnipbitID QuestionID
+    | OnUpvoteQuestionSuccess QuestionID
+    | OnUpvoteQuestionFailure ApiError
+    | OnRemoveQuestionUpvoteSuccess QuestionID
+    | OnRemoveQuestionUpvoteFailure ApiError
+    | OnDownvoteQuestionSuccess QuestionID
+    | OnDownvoteQuestionFailure ApiError
+    | OnRemoveQuestionDownvoteSuccess QuestionID
+    | OnRemoveQuestionDownvoteFailure ApiError
+    | OnClickUpvoteAnswer SnipbitID AnswerID
+    | OnClickRemoveAnswerUpvote SnipbitID AnswerID
+    | OnClickDownvoteAnswer SnipbitID AnswerID
+    | OnClickRemoveAnswerDownvote SnipbitID AnswerID
+    | OnUpvoteAnswerSuccess AnswerID
+    | OnUpvoteAnswerFailure ApiError
+    | OnRemoveAnswerUpvoteSuccess AnswerID
+    | OnRemoveAnswerUpvoteFailure ApiError
+    | OnDownvoteAnswerSuccess AnswerID
+    | OnDownvoteAnswerFailure ApiError
+    | OnRemoveAnswerDownvoteSuccess AnswerID
+    | OnRemoveAnswerDownvoteFailure ApiError

@@ -437,7 +437,6 @@ commentBox snipbit model shared =
                                     )
                                 ]
 
-        -- TODO
         viewQuestionView qa tab question =
             ViewQuestion.viewQuestionView
                 { tab = tab
@@ -467,7 +466,7 @@ commentBox snipbit model shared =
                             snipbit.id
                             question.id
                             Nothing
-                , onClickAnswer =
+                , onClickAnswerTab =
                     (\answer ->
                         GoTo <|
                             Route.ViewSnipbitAnswerPage
@@ -475,6 +474,16 @@ commentBox snipbit model shared =
                                 (Route.getTouringQuestionsQueryParamOnViewSnipbitQARoute shared.route)
                                 snipbit.id
                                 answer.id
+                    )
+                , onClickAnswerCommentsTab =
+                    (\answer ->
+                        GoTo <|
+                            Route.ViewSnipbitAnswerCommentsPage
+                                (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
+                                (Route.getTouringQuestionsQueryParamOnViewSnipbitQARoute shared.route)
+                                snipbit.id
+                                answer.id
+                                Nothing
                     )
                 , onClickQuestionComment =
                     (\questionComment ->
@@ -496,16 +505,14 @@ commentBox snipbit model shared =
                                 answerComment.answerID
                                 (Just answerComment.id)
                     )
-                , onClickUpvoteQuestion =
-                    OnClickUpvote snipbit.id question.id
-                , onClickRemoveUpvoteQuestion =
-                    OnClickRemoveUpvote snipbit.id question.id
-                , onClickDownvoteQuestion =
-                    OnClickDownvote snipbit.id question.id
-                , onClickRemoveDownvoteQuestion =
-                    OnClickRemoveDownvote snipbit.id question.id
-                , onClickLikeAnswer = always NoOp
-                , onClickDislikeAnswer = always NoOp
+                , onClickUpvoteQuestion = OnClickUpvoteQuestion snipbit.id question.id
+                , onClickRemoveUpvoteQuestion = OnClickRemoveQuestionUpvote snipbit.id question.id
+                , onClickDownvoteQuestion = OnClickDownvoteQuestion snipbit.id question.id
+                , onClickRemoveDownvoteQuestion = OnClickRemoveQuestionDownvote snipbit.id question.id
+                , onClickUpvoteAnswer = (\answer -> OnClickUpvoteAnswer snipbit.id answer.id)
+                , onClickRemoveUpvoteAnswer = (\answer -> OnClickRemoveAnswerUpvote snipbit.id answer.id)
+                , onClickDownvoteAnswer = (\answer -> OnClickDownvoteAnswer snipbit.id answer.id)
+                , onClickRemoveDownvoteAnswer = (\answer -> OnClickRemoveAnswerDownvote snipbit.id answer.id)
                 , onClickAnswerQuestion =
                     GoTo <|
                         Route.ViewSnipbitAnswerQuestion
@@ -623,7 +630,7 @@ commentBox snipbit model shared =
                     Just qa ->
                         case QA.getQuestionByAnswerID snipbitID answerID qa of
                             Just question ->
-                                viewQuestionView qa (ViewQuestion.AnswerCommentsTab maybeCommentID) question
+                                viewQuestionView qa (ViewQuestion.AnswerCommentsTab answerID maybeCommentID) question
 
                             Nothing ->
                                 Util.hiddenDiv
