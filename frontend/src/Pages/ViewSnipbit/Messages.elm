@@ -3,6 +3,7 @@ module Pages.ViewSnipbit.Messages exposing (..)
 import Date exposing (Date)
 import Elements.AnswerQuestion as AnswerQuestion
 import Elements.AskQuestion as AskQuestion
+import Elements.EditAnswer as EditAnswer
 import Elements.EditQuestion as EditQuestion
 import Models.ApiError exposing (ApiError)
 import Models.Completed exposing (Completed, IsCompleted)
@@ -94,3 +95,4 @@ type Msg
     | AskQuestionMsg SnipbitID AskQuestion.Msg
     | EditQuestionMsg SnipbitID (Question Range) EditQuestion.Msg
     | AnswerQuestionMsg SnipbitID (Question Range) AnswerQuestion.Msg
+    | EditAnswerMsg SnipbitID AnswerID (Question Range) Answer EditAnswer.Msg

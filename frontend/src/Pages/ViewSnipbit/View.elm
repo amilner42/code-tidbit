@@ -5,6 +5,7 @@ import DefaultServices.Editable as Editable
 import DefaultServices.Util as Util exposing (maybeMapWithDefault)
 import Elements.AnswerQuestion as AnswerQuestion
 import Elements.AskQuestion as AskQuestion
+import Elements.EditAnswer as EditAnswer
 import Elements.EditQuestion as EditQuestion
 import Elements.Editor as Editor
 import Elements.Markdown exposing (githubMarkdown)
@@ -697,93 +698,17 @@ commentBox snipbit model shared =
                     )
                 of
                     ( Just answer, Just question ) ->
-                        let
-                            maybeAnswerEdit =
+                        EditAnswer.editAnswer
+                            { msgTagger = EditAnswerMsg snipbitID answerID question answer
+                            , editAnswer = EditAnswer snipbitID question.id answerID
+                            }
+                            { answerEdit =
                                 QA.getAnswerEdit snipbitID answerID model.qaState
+                                    |> Maybe.withDefault (QA.answerEditFromAnswer answer)
+                            , forQuestion = question
+                            }
 
-                            answerText =
-                                maybeAnswerEdit
-                                    |> Maybe.map (.answerText >> Editable.getBuffer)
-                                    |> Maybe.withDefault answer.answerText
-
-                            previewMarkdown =
-                                maybeAnswerEdit
-                                    |> Util.maybeMapWithDefault .previewMarkdown False
-
-                            showQuestion =
-                                maybeAnswerEdit
-                                    |> Util.maybeMapWithDefault .showQuestion True
-
-                            maybeReadyAnswer =
-                                Util.justNonBlankString answerText
-
-                            isAnswerReady =
-                                Util.isNotNothing maybeReadyAnswer
-                        in
-                            div
-                                [ class "edit-answer" ]
-                                [ div
-                                    [ classList
-                                        [ ( "display-question", True )
-                                        , ( "hidden", previewMarkdown )
-                                        ]
-                                    , onClick <| EditAnswerToggleShowQuestion snipbitID answerID answer
-                                    ]
-                                    [ text <|
-                                        if showQuestion then
-                                            "Hide Question"
-                                        else
-                                            "Show Question"
-                                    ]
-                                , githubMarkdown
-                                    [ classList
-                                        [ ( "question", True )
-                                        , ( "hidden", previewMarkdown || not showQuestion )
-                                        ]
-                                    ]
-                                    question.questionText
-                                , div
-                                    [ classList
-                                        [ ( "preview-markdown", True )
-                                        , ( "previewing-markdown", previewMarkdown )
-                                        , ( "hiding-question", not showQuestion )
-                                        ]
-                                    , onClick <| EditAnswerTogglePreviewMarkdown snipbitID answerID answer
-                                    ]
-                                    [ text <|
-                                        if previewMarkdown then
-                                            "Close Preview"
-                                        else
-                                            "Markdown Preview"
-                                    ]
-                                , Util.markdownOr
-                                    previewMarkdown
-                                    answerText
-                                    (textarea
-                                        [ classList [ ( "hiding-question", not showQuestion ) ]
-                                        , placeholder "Edit Answer Text"
-                                        , value answerText
-                                        , onInput <| OnEditAnswerTextInput snipbitID answerID answer
-                                        ]
-                                        []
-                                    )
-                                , div
-                                    [ classList
-                                        [ ( "edit-answer-submit", True )
-                                        , ( "not-ready", not isAnswerReady )
-                                        , ( "hidden", previewMarkdown )
-                                        ]
-                                    , onClick <|
-                                        case maybeReadyAnswer of
-                                            Just answerText ->
-                                                EditAnswer snipbitID question.id answerID answerText
-
-                                            Nothing ->
-                                                NoOp
-                                    ]
-                                    [ text "Update Answer" ]
-                                ]
-
+                    -- Will never happen, if answer/question don't exist we will redirect.
                     _ ->
                         Util.hiddenDiv
 

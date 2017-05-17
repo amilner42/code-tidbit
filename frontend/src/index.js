@@ -21,6 +21,7 @@ require("./Pages/Welcome/Styles.scss");
 require("./Elements/AnswerQuestion.scss");
 require("./Elements/AskQuestion.scss");
 require("./Elements/ContentBox.scss");
+require("./Elements/EditAnswer.scss")
 require("./Elements/EditQuestion.scss");
 require("./Elements/Editor.scss");
 require("./Elements/FileStructure.scss");
