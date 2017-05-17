@@ -67,7 +67,8 @@ questionBoxView { onClickQuestionBox } question =
         [ div [ class "question-text" ] [ text question.questionText ]
         , div
             [ class "upvotes-and-downvotes" ]
-            [ div
+            [ div [ class "email" ] [ text question.authorEmail ]
+            , div
                 [ classList
                     [ ( "downvotes", True )
                     , ( "user-downvoted", Tuple.first question.downvotes )

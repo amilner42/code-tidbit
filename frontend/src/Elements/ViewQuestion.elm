@@ -204,7 +204,8 @@ answerBox onClickAnswer answer =
         [ div [ class "answer-text" ] [ text <| answer.answerText ]
         , div
             [ class "bottom-bar" ]
-            [ span [ class "dislike-count" ] [ text <| toString <| Tuple.second <| answer.downvotes ]
+            [ div [ class "email" ] [ text <| answer.authorEmail ]
+            , span [ class "dislike-count" ] [ text <| toString <| Tuple.second <| answer.downvotes ]
             , i [ class "material-icons dislike" ] [ text "thumb_down" ]
             , span [ class "like-count" ] [ text <| toString <| Tuple.second <| answer.upvotes ]
             , i [ class "material-icons like" ] [ text "thumb_up" ]

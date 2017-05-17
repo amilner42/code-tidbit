@@ -185,6 +185,14 @@
         .dislike-count, .like-count {
             margin-right: 5px;
         }
+
+        .email {
+            float: left;
+            margin-left: 5px;
+            font-size: 10px;
+            color: $color8;
+            line-height: 20px;
+        }
     }
 
     &:hover {

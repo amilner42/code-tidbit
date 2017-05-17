@@ -89,6 +89,14 @@
         position: relative;
         display: block;
 
+        .email {
+            float: left;
+            margin-left: 5px;
+            font-size: 10px;
+            color: $color8;
+            line-height: 20px;
+        }
+
         .upvotes, .downvotes {
             position: relative;
             display: inline-block;
