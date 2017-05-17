@@ -412,10 +412,8 @@ limitCharsText limit string =
         [ text <| (toString <| String.length string) ++ " / " ++ (toString limit) ]
 
 
-{-| Similar to `classList`, but for all attributes.
+{-| Similar to `classList`, but for attributes, and using `Maybe` instead of a tuple.
 -}
-attributeList : List ( Bool, Attribute msg ) -> List (Attribute msg)
-attributeList possibleAttributes =
-    possibleAttributes
-        |> List.filter Tuple.first
-        |> List.map Tuple.second
+maybeAttributes : List (Maybe (Attribute msg)) -> List (Attribute msg)
+maybeAttributes =
+    List.filterMap identity

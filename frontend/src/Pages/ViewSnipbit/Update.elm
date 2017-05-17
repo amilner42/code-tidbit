@@ -5,6 +5,7 @@ import DefaultServices.CommonSubPageUtil exposing (CommonSubPageUtil(..), common
 import DefaultServices.Editable as Editable
 import DefaultServices.Util as Util exposing (maybeMapWithDefault)
 import Dict
+import Elements.AskQuestion as AskQuestion
 import Elements.Editor as Editor
 import Models.Completed as Completed
 import Models.ContentPointer as ContentPointer
@@ -661,28 +662,6 @@ update (Common common) msg model shared =
                     Nothing ->
                         common.doNothing
 
-        OnAskQuestionTextInput snipbitID questionText ->
-            common.justSetModel
-                { model
-                    | qaState =
-                        QA.updateNewQuestion
-                            snipbitID
-                            (\newQuestion -> { newQuestion | questionText = questionText })
-                            model.qaState
-                }
-
-        AskQuestionTogglePreviewMarkdown snipbitID ->
-            common.justSetModel
-                { model
-                    | qaState =
-                        QA.updateNewQuestion
-                            snipbitID
-                            (\newQuestion ->
-                                { newQuestion | previewMarkdown = not newQuestion.previewMarkdown }
-                            )
-                            model.qaState
-                }
-
         AskQuestion snipbitID codePointer questionText ->
             common.justProduceCmd <|
                 common.api.post.askQuestionOnSnipbitWrapper
@@ -1074,6 +1053,20 @@ update (Common common) msg model shared =
 
         OnRemoveAnswerDownvoteFailure apiError ->
             common.justSetModalError apiError
+
+        AskQuestionMsg snipbitID askQuestionMsg ->
+            let
+                askQuestionModel =
+                    QA.getNewQuestion snipbitID model.qaState
+                        |> Maybe.withDefault QA.defaultNewQuestion
+
+                ( newAskQuestionModel, newAskQuestionMsg ) =
+                    AskQuestion.update askQuestionMsg askQuestionModel
+            in
+                ( { model | qaState = QA.updateNewQuestion snipbitID (always newAskQuestionModel) model.qaState }
+                , shared
+                , Cmd.map (AskQuestionMsg snipbitID) newAskQuestionMsg
+                )
 
 
 {-| Creates the editor for the snipbit.

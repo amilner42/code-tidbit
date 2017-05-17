@@ -1,6 +1,7 @@
 module Pages.ViewSnipbit.Messages exposing (..)
 
 import Date exposing (Date)
+import Elements.AskQuestion as AskQuestion
 import Models.ApiError exposing (ApiError)
 import Models.Completed exposing (Completed, IsCompleted)
 import Models.Range exposing (Range)
@@ -44,8 +45,6 @@ type Msg
     | OnMarkAsCompleteFailure ApiError
     | GoToAskQuestion
     | GoToBrowseQuestions
-    | OnAskQuestionTextInput SnipbitID QuestionText
-    | AskQuestionTogglePreviewMarkdown SnipbitID
     | AskQuestion SnipbitID Range QuestionText
     | OnAskQuestionSuccess SnipbitID (Question Range)
     | OnAskQuestionFailure ApiError
@@ -90,3 +89,4 @@ type Msg
     | OnDownvoteAnswerFailure ApiError
     | OnRemoveAnswerDownvoteSuccess AnswerID
     | OnRemoveAnswerDownvoteFailure ApiError
+    | AskQuestionMsg SnipbitID AskQuestion.Msg

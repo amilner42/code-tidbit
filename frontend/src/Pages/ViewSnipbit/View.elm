@@ -7,6 +7,7 @@ import Elements.Editor as Editor
 import Elements.Markdown exposing (githubMarkdown)
 import Elements.ProgressBar as ProgressBar exposing (TextFormat(Custom), State(..), progressBar)
 import Elements.Question as Question
+import Elements.AskQuestion as AskQuestion
 import Elements.ViewQuestion as ViewQuestion
 import Html exposing (Html, div, text, button, i, textarea)
 import Html.Attributes exposing (class, classList, disabled, hidden, id, placeholder, value)
@@ -640,71 +641,16 @@ commentBox snipbit model shared =
 
             Route.ViewSnipbitAskQuestion maybeStoryID snipbitID ->
                 let
-                    tidbitQAState =
+                    newQuestion =
                         QA.getNewQuestion snipbitID model.qaState
-
-                    previewingMarkdown =
-                        tidbitQAState |> Util.maybeMapWithDefault .previewMarkdown False
-
-                    questionText =
-                        tidbitQAState |> Util.maybeMapWithDefault .questionText ""
-
-                    maybeReadyQuestion =
-                        QA.getNewQuestion snipbitID model.qaState
-                            |> Maybe.andThen
-                                (\{ codePointer, questionText } ->
-                                    case
-                                        ( Maybe.andThen Range.nonEmptyRangeOrNothing codePointer
-                                        , Util.justNonBlankString questionText
-                                        )
-                                    of
-                                        ( Just range, Just questionText ) ->
-                                            Just { codePointer = range, questionText = questionText }
-
-                                        _ ->
-                                            Nothing
-                                )
-
-                    isQuestionReady =
-                        Util.isNotNothing maybeReadyQuestion
+                            |> Maybe.withDefault QA.defaultNewQuestion
                 in
-                    div
-                        [ class "ask-question" ]
-                        [ div
-                            [ class "preview-markdown"
-                            , onClick <| AskQuestionTogglePreviewMarkdown snipbitID
-                            ]
-                            [ text <|
-                                if previewingMarkdown then
-                                    "Close Preview"
-                                else
-                                    "Markdown Preview"
-                            ]
-                        , if previewingMarkdown then
-                            githubMarkdown [] questionText
-                          else
-                            textarea
-                                [ placeholder "Highlight code and ask your question"
-                                , onInput <| OnAskQuestionTextInput snipbitID
-                                , value questionText
-                                ]
-                                []
-                        , div
-                            [ classList
-                                [ ( "ask-question-submit", True )
-                                , ( "not-ready", not isQuestionReady )
-                                , ( "hidden", previewingMarkdown )
-                                ]
-                            , onClick <|
-                                case maybeReadyQuestion of
-                                    Just { codePointer, questionText } ->
-                                        AskQuestion snipbitID codePointer questionText
-
-                                    Nothing ->
-                                        NoOp
-                            ]
-                            [ text "Ask Question" ]
-                        ]
+                    AskQuestion.askQuestion
+                        { msgTagger = AskQuestionMsg snipbitID
+                        , askQuestion = AskQuestion snipbitID
+                        , isReadyCodePointer = not << Range.isEmptyRange
+                        }
+                        newQuestion
 
             Route.ViewSnipbitAnswerQuestion maybeStoryID snipbitID questionID ->
                 case Maybe.andThen (QA.getQuestionByID questionID) (Maybe.map .questions model.qa) of

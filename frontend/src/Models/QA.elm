@@ -537,3 +537,10 @@ defaultTidbitQAState =
 defaultNewAnswer : NewAnswer
 defaultNewAnswer =
     { answerText = "", showQuestion = True, previewMarkdown = False }
+
+
+{-| A defualt `NewQuestion`.
+-}
+defaultNewQuestion : NewQuestion codePointer
+defaultNewQuestion =
+    { codePointer = Nothing, questionText = "", previewMarkdown = False }
