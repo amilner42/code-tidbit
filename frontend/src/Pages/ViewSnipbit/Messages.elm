@@ -2,6 +2,7 @@ module Pages.ViewSnipbit.Messages exposing (..)
 
 import Date exposing (Date)
 import Elements.AskQuestion as AskQuestion
+import Elements.EditQuestion as EditQuestion
 import Models.ApiError exposing (ApiError)
 import Models.Completed exposing (Completed, IsCompleted)
 import Models.Range exposing (Range)
@@ -90,3 +91,4 @@ type Msg
     | OnRemoveAnswerDownvoteSuccess AnswerID
     | OnRemoveAnswerDownvoteFailure ApiError
     | AskQuestionMsg SnipbitID AskQuestion.Msg
+    | EditQuestionMsg SnipbitID (Question Range) EditQuestion.Msg

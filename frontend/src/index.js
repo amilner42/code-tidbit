@@ -20,6 +20,7 @@ require("./Pages/Welcome/Styles.scss");
 
 require("./Elements/AskQuestion.scss");
 require("./Elements/ContentBox.scss");
+require("./Elements/EditQuestion.scss");
 require("./Elements/Editor.scss");
 require("./Elements/FileStructure.scss");
 require("./Elements/Markdown.scss");

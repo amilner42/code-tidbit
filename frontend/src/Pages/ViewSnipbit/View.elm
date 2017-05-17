@@ -3,11 +3,12 @@ module Pages.ViewSnipbit.View exposing (..)
 import Array
 import DefaultServices.Editable as Editable
 import DefaultServices.Util as Util exposing (maybeMapWithDefault)
+import Elements.AskQuestion as AskQuestion
+import Elements.EditQuestion as EditQuestion
 import Elements.Editor as Editor
 import Elements.Markdown exposing (githubMarkdown)
 import Elements.ProgressBar as ProgressBar exposing (TextFormat(Custom), State(..), progressBar)
 import Elements.Question as Question
-import Elements.AskQuestion as AskQuestion
 import Elements.ViewQuestion as ViewQuestion
 import Html exposing (Html, div, text, button, i, textarea)
 import Html.Attributes exposing (class, classList, disabled, hidden, id, placeholder, value)
@@ -746,72 +747,16 @@ commentBox snipbit model shared =
                 case Maybe.andThen (QA.getQuestionByID questionID) (Maybe.map .questions model.qa) of
                     Just question ->
                         let
-                            maybeQuestionEdit =
+                            questionEdit =
                                 QA.getQuestionEditByID snipbitID questionID model.qaState
-
-                            questionText =
-                                maybeQuestionEdit
-                                    |> Maybe.map (.questionText >> Editable.getBuffer)
-                                    |> Maybe.withDefault question.questionText
-
-                            codePointer =
-                                maybeQuestionEdit
-                                    |> Maybe.map (.codePointer >> Editable.getBuffer)
-                                    |> Maybe.withDefault question.codePointer
-
-                            maybeReadyQuestion =
-                                case ( Range.nonEmptyRangeOrNothing codePointer, Util.justNonBlankString questionText ) of
-                                    ( Just range, Just questionText ) ->
-                                        Just { codePointer = range, questionText = questionText }
-
-                                    _ ->
-                                        Nothing
-
-                            isQuestionReady =
-                                Util.isNotNothing maybeReadyQuestion
-
-                            previewMarkdown =
-                                maybeQuestionEdit
-                                    |> Util.maybeMapWithDefault .previewMarkdown False
+                                    |> Maybe.withDefault (QA.questionEditFromQuestion question)
                         in
-                            div
-                                [ class "edit-question" ]
-                                [ div
-                                    [ class "preview-markdown"
-                                    , onClick <| EditQuestionTogglePreviewMarkdown snipbitID questionID question
-                                    ]
-                                    [ text <|
-                                        if previewMarkdown then
-                                            "Close Preview"
-                                        else
-                                            "Markdown Preview"
-                                    ]
-                                , Util.markdownOr
-                                    previewMarkdown
-                                    questionText
-                                    (textarea
-                                        [ placeholder "Edit Question Text"
-                                        , value questionText
-                                        , onInput <| OnEditQuestionTextInput snipbitID questionID question
-                                        ]
-                                        []
-                                    )
-                                , div
-                                    [ classList
-                                        [ ( "edit-question-submit", True )
-                                        , ( "not-ready", not isQuestionReady )
-                                        , ( "hidden", previewMarkdown )
-                                        ]
-                                    , onClick <|
-                                        case maybeReadyQuestion of
-                                            Just { codePointer, questionText } ->
-                                                EditQuestion snipbitID questionID questionText codePointer
-
-                                            Nothing ->
-                                                NoOp
-                                    ]
-                                    [ text "Update Question" ]
-                                ]
+                            EditQuestion.editQuestion
+                                { msgTagger = EditQuestionMsg snipbitID question
+                                , isReadyCodePointer = not << Range.isEmptyRange
+                                , editQuestion = EditQuestion snipbitID questionID
+                                }
+                                questionEdit
 
                     -- This will never happen, if the question doesn't exist we will have redirected URLs.
                     _ ->

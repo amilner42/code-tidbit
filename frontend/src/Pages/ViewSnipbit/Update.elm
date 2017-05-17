@@ -6,6 +6,7 @@ import DefaultServices.Editable as Editable
 import DefaultServices.Util as Util exposing (maybeMapWithDefault)
 import Dict
 import Elements.AskQuestion as AskQuestion
+import Elements.EditQuestion as EditQuestion
 import Elements.Editor as Editor
 import Models.Completed as Completed
 import Models.ContentPointer as ContentPointer
@@ -1066,6 +1067,27 @@ update (Common common) msg model shared =
                 ( { model | qaState = QA.updateNewQuestion snipbitID (always newAskQuestionModel) model.qaState }
                 , shared
                 , Cmd.map (AskQuestionMsg snipbitID) newAskQuestionMsg
+                )
+
+        EditQuestionMsg snipbitID question editQuestionMsg ->
+            let
+                editQuestionModel =
+                    QA.getQuestionEditByID snipbitID question.id model.qaState
+                        |> Maybe.withDefault (QA.questionEditFromQuestion question)
+
+                ( newEditQuestionModel, newEditQuestionMsg ) =
+                    EditQuestion.update editQuestionMsg editQuestionModel
+            in
+                ( { model
+                    | qaState =
+                        QA.updateQuestionEdit
+                            snipbitID
+                            question.id
+                            (always <| Just newEditQuestionModel)
+                            model.qaState
+                  }
+                , shared
+                , Cmd.map (EditQuestionMsg snipbitID question) newEditQuestionMsg
                 )
 
 
