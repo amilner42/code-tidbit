@@ -1,0 +1,83 @@
+@import '../Styles/variables';
+
+
+.answer-question {
+    height: 600px;
+    width: 360px;
+    position: absolute;
+    top: 0;
+
+    .preview-markdown, .question-tab, .display-question {
+        position: absolute;
+        box-sizing: border-box;
+        width: 360px;
+        height: 25px;
+        font-size: 16px;
+        line-height: 25px;
+        padding: 0;
+        top: 0;
+        background-color: $color6;
+        color: white;
+        cursor: pointer;
+        text-align: center;
+    }
+
+    .answer-question-submit {
+        position: absolute;
+        box-sizing: border-box;
+        width: 360px;
+        height: 25px;
+        font-size: 16px;
+        line-height: 25px;
+        padding: 0;
+        bottom: 0;
+        background-color: $color7;
+        color: white;
+        cursor: pointer;
+        text-align: center;
+
+        &.not-ready {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+    }
+
+    textarea {
+        margin-top: 30px;
+        height: 540px;
+    }
+
+    .markdown-box {
+        margin-top: 30px;
+        height: 570px;
+    }
+}
+
+.answer-question {
+    .preview-markdown {
+        top: 235px;
+
+        &.hiding-question {
+            top: 30px;
+        }
+
+        &.previewing-markdown {
+            top: 0;
+        }
+    }
+
+    .question {
+        height: 200px;
+    }
+
+    textarea {
+        position: absolute;
+        top: 235px !important;
+        height: 305px !important;
+
+        &.hiding-question {
+            top: 30px !important;
+            height: 510px !important;
+        }
+    }
+}

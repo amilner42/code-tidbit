@@ -18,6 +18,7 @@ require("./Pages/ViewSnipbit/Styles.scss");
 require("./Pages/ViewStory/Styles.scss");
 require("./Pages/Welcome/Styles.scss");
 
+require("./Elements/AnswerQuestion.scss");
 require("./Elements/AskQuestion.scss");
 require("./Elements/ContentBox.scss");
 require("./Elements/EditQuestion.scss");

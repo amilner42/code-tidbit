@@ -3,6 +3,7 @@ module Pages.ViewSnipbit.View exposing (..)
 import Array
 import DefaultServices.Editable as Editable
 import DefaultServices.Util as Util exposing (maybeMapWithDefault)
+import Elements.AnswerQuestion as AnswerQuestion
 import Elements.AskQuestion as AskQuestion
 import Elements.EditQuestion as EditQuestion
 import Elements.Editor as Editor
@@ -656,88 +657,15 @@ commentBox snipbit model shared =
             Route.ViewSnipbitAnswerQuestion maybeStoryID snipbitID questionID ->
                 case Maybe.andThen (QA.getQuestionByID questionID) (Maybe.map .questions model.qa) of
                     Just question ->
-                        let
-                            newAnswer =
+                        AnswerQuestion.answerQuestion
+                            { msgTagger = AnswerQuestionMsg snipbitID question
+                            , answerQuestion = AnswerQuestion snipbitID questionID
+                            }
+                            { newAnswer =
                                 QA.getNewAnswer snipbitID questionID model.qaState
-
-                            previewMarkdown =
-                                Util.maybeMapWithDefault .previewMarkdown False newAnswer
-
-                            showQuestion =
-                                Util.maybeMapWithDefault .showQuestion True newAnswer
-
-                            answerText =
-                                Util.maybeMapWithDefault .answerText "" newAnswer
-
-                            maybeReadyAnswer =
-                                Util.justNonBlankString answerText
-
-                            isAnswerReady =
-                                Util.isNotNothing maybeReadyAnswer
-                        in
-                            div
-                                [ class "answer-question" ]
-                                [ div
-                                    [ classList
-                                        [ ( "display-question", True )
-                                        , ( "hidden", previewMarkdown )
-                                        ]
-                                    , onClick <| NewAnswerToggleShowQuestion snipbitID questionID
-                                    ]
-                                    [ text <|
-                                        if showQuestion then
-                                            "Hide Question"
-                                        else
-                                            "Show Question"
-                                    ]
-                                , githubMarkdown
-                                    [ classList
-                                        [ ( "question", True )
-                                        , ( "hidden", previewMarkdown || not showQuestion )
-                                        ]
-                                    ]
-                                    question.questionText
-                                , div
-                                    [ classList
-                                        [ ( "preview-markdown", True )
-                                        , ( "previewing-markdown", previewMarkdown )
-                                        , ( "hiding-question", not showQuestion )
-                                        ]
-                                    , onClick <| NewAnswerTogglePreviewMarkdown snipbitID questionID
-                                    ]
-                                    [ text <|
-                                        if previewMarkdown then
-                                            "Close Preview"
-                                        else
-                                            "Markdown Preview"
-                                    ]
-                                , Util.markdownOr
-                                    previewMarkdown
-                                    answerText
-                                    (textarea
-                                        [ classList [ ( "hiding-question", not showQuestion ) ]
-                                        , placeholder "Answer Question"
-                                        , onInput <| OnNewAnswerTextInput snipbitID questionID
-                                        , value answerText
-                                        ]
-                                        []
-                                    )
-                                , div
-                                    [ classList
-                                        [ ( "answer-question-submit", True )
-                                        , ( "hidden", previewMarkdown )
-                                        , ( "not-ready", not isAnswerReady )
-                                        ]
-                                    , onClick <|
-                                        case maybeReadyAnswer of
-                                            Just answerText ->
-                                                AnswerQuestion snipbitID questionID answerText
-
-                                            Nothing ->
-                                                NoOp
-                                    ]
-                                    [ text "Submit Answer" ]
-                                ]
+                                    |> Maybe.withDefault QA.defaultNewAnswer
+                            , forQuestion = question
+                            }
 
                     -- Will never happen, if the question doesn't exist we will redirect.
                     Nothing ->

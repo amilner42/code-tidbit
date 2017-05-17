@@ -17,7 +17,7 @@
     }
 
     .comment-block {
-        .answer-question, .edit-answer, .view-questions {
+        .edit-answer, .view-questions {
             height: 600px;
             width: 360px;
             position: absolute;
@@ -38,7 +38,7 @@
                 text-align: center;
             }
 
-            .answer-question-submit, .edit-answer-submit {
+            .edit-answer-submit {
                 position: absolute;
                 box-sizing: border-box;
                 width: 360px;
@@ -75,7 +75,7 @@
             padding: 8px;
         }
 
-        .answer-question, .edit-answer {
+        .edit-answer {
             .preview-markdown {
                 top: 235px;
 

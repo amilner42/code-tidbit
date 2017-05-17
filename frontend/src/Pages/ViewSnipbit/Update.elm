@@ -5,6 +5,7 @@ import DefaultServices.CommonSubPageUtil exposing (CommonSubPageUtil(..), common
 import DefaultServices.Editable as Editable
 import DefaultServices.Util as Util exposing (maybeMapWithDefault)
 import Dict
+import Elements.AnswerQuestion as AnswerQuestion
 import Elements.AskQuestion as AskQuestion
 import Elements.EditQuestion as EditQuestion
 import Elements.Editor as Editor
@@ -1088,6 +1089,31 @@ update (Common common) msg model shared =
                   }
                 , shared
                 , Cmd.map (EditQuestionMsg snipbitID question) newEditQuestionMsg
+                )
+
+        AnswerQuestionMsg snipbitID question answerQuestionMsg ->
+            let
+                answerQuestionModel =
+                    { newAnswer =
+                        QA.getNewAnswer snipbitID question.id model.qaState
+                            |> Maybe.withDefault QA.defaultNewAnswer
+                    , forQuestion =
+                        question
+                    }
+
+                ( newAnswerQuestionModel, newAnswerQuestionMsg ) =
+                    AnswerQuestion.update answerQuestionMsg answerQuestionModel
+            in
+                ( { model
+                    | qaState =
+                        QA.updateNewAnswer
+                            snipbitID
+                            question.id
+                            (always <| Just newAnswerQuestionModel.newAnswer)
+                            model.qaState
+                  }
+                , shared
+                , Cmd.map (AnswerQuestionMsg snipbitID question) newAnswerQuestionMsg
                 )
 
 

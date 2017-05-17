@@ -1,16 +1,17 @@
 module Pages.ViewSnipbit.Messages exposing (..)
 
 import Date exposing (Date)
+import Elements.AnswerQuestion as AnswerQuestion
 import Elements.AskQuestion as AskQuestion
 import Elements.EditQuestion as EditQuestion
 import Models.ApiError exposing (ApiError)
 import Models.Completed exposing (Completed, IsCompleted)
+import Models.Opinion exposing (Opinion, PossibleOpinion)
+import Models.QA exposing (SnipbitQA, Question, Answer)
 import Models.Range exposing (Range)
 import Models.Route exposing (Route)
 import Models.Snipbit exposing (Snipbit)
 import Models.Story exposing (ExpandedStory)
-import Models.QA exposing (SnipbitQA, Question, Answer)
-import Models.Opinion exposing (Opinion, PossibleOpinion)
 import ProjectTypeAliases exposing (..)
 
 
@@ -92,3 +93,4 @@ type Msg
     | OnRemoveAnswerDownvoteFailure ApiError
     | AskQuestionMsg SnipbitID AskQuestion.Msg
     | EditQuestionMsg SnipbitID (Question Range) EditQuestion.Msg
+    | AnswerQuestionMsg SnipbitID (Question Range) AnswerQuestion.Msg
