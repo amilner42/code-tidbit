@@ -116,7 +116,7 @@
         height: 30px;
         width: 360px;
 
-        .like, .dislike, .like-count, .dislike-count, .pin-icon {
+        .like, .dislike, .like-count, .dislike-count, .pin-icon, .edit-icon {
             @include no-select();
 
             text-align: left;
@@ -140,7 +140,7 @@
             margin-right: 3px;
         }
 
-        .pin-icon {
+        .pin-icon, .edit-icon {
             float: left;
 
             &.unclickable {

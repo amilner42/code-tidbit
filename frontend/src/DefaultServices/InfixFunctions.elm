@@ -9,8 +9,17 @@ module DefaultServices.InfixFunctions exposing (..)
 
 {-| An alias for `Maybe.map`.
 
-Purposefully a similar ligature to |> as it has the same infix-function-application style.
+Purposefully a similar ligature to |> as it has the same type but with `Maybe`.
 -}
 (||>) : Maybe a -> (a -> b) -> Maybe b
 (||>) maybeA func =
+    Maybe.map func maybeA
+
+
+{-| An alias for `Maybe.map`.
+
+Purposefully a similar ligature to <| as it has the same type but with `Maybe`.
+-}
+(<||) : (a -> b) -> Maybe a -> Maybe b
+(<||) func maybeA =
     Maybe.map func maybeA

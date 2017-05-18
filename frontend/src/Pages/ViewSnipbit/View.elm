@@ -530,6 +530,18 @@ commentBox snipbit model shared =
                             (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
                             snipbit.id
                             question.id
+                , onClickEditQuestion =
+                    GoTo <|
+                        Route.ViewSnipbitEditQuestion
+                            (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
+                            snipbit.id
+                            question.id
+                , onClickEditAnswer =
+                    GoTo
+                        << Route.ViewSnipbitEditAnswer
+                            (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
+                            snipbit.id
+                        << .id
                 }
     in
         case shared.route of

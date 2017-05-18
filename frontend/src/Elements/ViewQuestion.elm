@@ -39,6 +39,8 @@ type alias RenderConfig msg codePointer =
     , onClickPinAnswer : Answer -> msg
     , onClickUnpinAnswer : Answer -> msg
     , onClickAnswerQuestion : msg
+    , onClickEditQuestion : msg
+    , onClickEditAnswer : Answer -> msg
     }
 
 
@@ -147,6 +149,7 @@ viewQuestionView config =
                             , pinned = config.question.pinned
                             , isAuthor = config.userID == (Just config.question.authorID)
                             , isTidbitAuthor = config.userID == (Just config.tidbitAuthorID)
+                            , onClickEdit = config.onClickEditQuestion
                             }
                         ]
 
@@ -191,6 +194,7 @@ viewQuestionView config =
                                     , pinned = answer.pinned
                                     , isAuthor = config.userID == (Just answer.authorID)
                                     , isTidbitAuthor = config.userID == (Just config.tidbitAuthorID)
+                                    , onClickEdit = config.onClickEditAnswer answer
                                     }
                                 ]
 
@@ -250,6 +254,7 @@ type alias ReactiveRatingsBottomBarRenderConfig msg =
     , pinned : Bool
     , isAuthor : Bool
     , isTidbitAuthor : Bool
+    , onClickEdit : msg
     }
 
 
@@ -334,4 +339,12 @@ reactiveRatingsBottomBar config =
                 -- Not author, not pinned
                 ( False, False ) ->
                     Util.hiddenDiv
+            , if config.isAuthor then
+                i
+                    [ class "material-icons edit-icon"
+                    , onClick config.onClickEdit
+                    ]
+                    [ text "mode_edit" ]
+              else
+                Util.hiddenDiv
             ]
