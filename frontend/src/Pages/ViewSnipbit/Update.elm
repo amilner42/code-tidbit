@@ -700,39 +700,6 @@ update (Common common) msg model shared =
         OnAskQuestionFailure apiError ->
             common.justSetModalError apiError
 
-        OnEditQuestionTextInput snipbitID questionID question questionText ->
-            common.justSetModel
-                { model
-                    | qaState =
-                        QA.updateQuestionEdit
-                            snipbitID
-                            questionID
-                            (\maybeEdit ->
-                                Maybe.withDefault (QA.questionEditFromQuestion question) maybeEdit
-                                    |> (\edit ->
-                                            Just
-                                                { edit
-                                                    | questionText = Editable.setBuffer edit.questionText questionText
-                                                }
-                                       )
-                            )
-                            model.qaState
-                }
-
-        EditQuestionTogglePreviewMarkdown snipbitID questionID question ->
-            common.justSetModel
-                { model
-                    | qaState =
-                        QA.updateQuestionEdit
-                            snipbitID
-                            questionID
-                            (\maybeEdit ->
-                                Maybe.withDefault (QA.questionEditFromQuestion question) maybeEdit
-                                    |> (\edit -> Just { edit | previewMarkdown = not edit.previewMarkdown })
-                            )
-                            model.qaState
-                }
-
         EditQuestion snipbitID questionID questionText range ->
             common.justProduceCmd <|
                 common.api.post.editQuestionOnSnipbitWrapper
@@ -771,57 +738,6 @@ update (Common common) msg model shared =
         OnEditQuestionFailure apiError ->
             common.justSetModalError apiError
 
-        NewAnswerTogglePreviewMarkdown snipbitID questionID ->
-            common.justSetModel
-                { model
-                    | qaState =
-                        QA.updateNewAnswer
-                            snipbitID
-                            questionID
-                            (\maybeNewAnswer ->
-                                Maybe.withDefault QA.defaultNewAnswer maybeNewAnswer
-                                    |> (\newAnswer ->
-                                            Just
-                                                { newAnswer | previewMarkdown = not newAnswer.previewMarkdown }
-                                       )
-                            )
-                            model.qaState
-                }
-
-        NewAnswerToggleShowQuestion snipbitID questionID ->
-            common.justSetModel
-                { model
-                    | qaState =
-                        QA.updateNewAnswer
-                            snipbitID
-                            questionID
-                            (\maybeNewAnswer ->
-                                Maybe.withDefault QA.defaultNewAnswer maybeNewAnswer
-                                    |> (\newAnswer ->
-                                            Just
-                                                { newAnswer | showQuestion = not newAnswer.showQuestion }
-                                       )
-                            )
-                            model.qaState
-                }
-
-        OnNewAnswerTextInput snipbitID questionID answerText ->
-            common.justSetModel
-                { model
-                    | qaState =
-                        QA.updateNewAnswer
-                            snipbitID
-                            questionID
-                            (\maybeNewAnswer ->
-                                Maybe.withDefault QA.defaultNewAnswer maybeNewAnswer
-                                    |> (\newAnswer ->
-                                            Just
-                                                { newAnswer | answerText = answerText }
-                                       )
-                            )
-                            model.qaState
-                }
-
         AnswerQuestion snipbitID questionID answerText ->
             common.justProduceCmd <|
                 common.api.post.answerQuestionWrapper
@@ -850,57 +766,6 @@ update (Common common) msg model shared =
 
         OnAnswerFailure apiError ->
             common.justSetModalError apiError
-
-        EditAnswerTogglePreviewMarkdown snipbitID answerID answer ->
-            common.justSetModel
-                { model
-                    | qaState =
-                        QA.updateAnswerEdit
-                            snipbitID
-                            answerID
-                            (\maybeAnswerEdit ->
-                                Maybe.withDefault (QA.answerEditFromAnswer answer) maybeAnswerEdit
-                                    |> (\answerEdit ->
-                                            Just { answerEdit | previewMarkdown = not answerEdit.previewMarkdown }
-                                       )
-                            )
-                            model.qaState
-                }
-
-        EditAnswerToggleShowQuestion snipbitID answerID answer ->
-            common.justSetModel
-                { model
-                    | qaState =
-                        QA.updateAnswerEdit
-                            snipbitID
-                            answerID
-                            (\maybeAnswerEdit ->
-                                Maybe.withDefault (QA.answerEditFromAnswer answer) maybeAnswerEdit
-                                    |> (\answerEdit ->
-                                            Just { answerEdit | showQuestion = not answerEdit.showQuestion }
-                                       )
-                            )
-                            model.qaState
-                }
-
-        OnEditAnswerTextInput snipbitID answerID answer answerText ->
-            common.justSetModel
-                { model
-                    | qaState =
-                        QA.updateAnswerEdit
-                            snipbitID
-                            answerID
-                            (\maybeAnswerEdit ->
-                                Maybe.withDefault (QA.answerEditFromAnswer answer) maybeAnswerEdit
-                                    |> (\answerEdit ->
-                                            Just
-                                                { answerEdit
-                                                    | answerText = Editable.setBuffer answerEdit.answerText answerText
-                                                }
-                                       )
-                            )
-                            model.qaState
-                }
 
         EditAnswer snipbitID questionID answerID answerText ->
             common.justProduceCmd <|

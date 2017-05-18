@@ -51,20 +51,12 @@ type Msg
     | AskQuestion SnipbitID Range QuestionText
     | OnAskQuestionSuccess SnipbitID (Question Range)
     | OnAskQuestionFailure ApiError
-    | OnEditQuestionTextInput SnipbitID QuestionID (Question Range) QuestionText
-    | EditQuestionTogglePreviewMarkdown SnipbitID QuestionID (Question Range)
     | EditQuestion SnipbitID QuestionID QuestionText Range
     | OnEditQuestionSuccess SnipbitID QuestionID QuestionText Range Date
     | OnEditQuestionFailure ApiError
-    | NewAnswerTogglePreviewMarkdown SnipbitID QuestionID
-    | NewAnswerToggleShowQuestion SnipbitID QuestionID
-    | OnNewAnswerTextInput SnipbitID QuestionID AnswerText
     | AnswerQuestion SnipbitID QuestionID AnswerText
     | OnAnswerQuestionSuccess SnipbitID QuestionID Answer
     | OnAnswerFailure ApiError
-    | EditAnswerTogglePreviewMarkdown SnipbitID AnswerID Answer
-    | EditAnswerToggleShowQuestion SnipbitID AnswerID Answer
-    | OnEditAnswerTextInput SnipbitID AnswerID Answer AnswerText
     | EditAnswer SnipbitID QuestionID AnswerID AnswerText
     | OnEditAnswerSuccess SnipbitID QuestionID AnswerID AnswerText Date
     | OnEditAnswerFailure ApiError
