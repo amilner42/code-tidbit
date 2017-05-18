@@ -1,4 +1,4 @@
-module Elements.ProgressBar exposing (..)
+module Elements.Simple.ProgressBar exposing (..)
 
 import DefaultServices.Util as Util
 import Html exposing (Html, div, text, i)
@@ -58,9 +58,7 @@ type alias CompleteConfig =
     { complete : Bool, for : CompletedFor }
 
 
-{-| The config for rendering a progress bar.
-
-NOTE: `shiftLeft` will make the `Completed` state 100% of the bar and x/x frames will render (x-1/x)% of the bar.
+{-| NOTE: `shiftLeft` will make the `Completed` state 100% of the bar and x/x frames will render (x-1/x)% of the bar.
 -}
 type alias RenderConfig msg =
     { state : State
@@ -74,10 +72,8 @@ type alias RenderConfig msg =
     }
 
 
-{-| Builds a progress bar with an additional click event if `allowClick`.
--}
-progressBar : RenderConfig msg -> Html msg
-progressBar { state, maxPosition, disabledStyling, onClickMsg, allowClick, textFormat, shiftLeft, alreadyComplete } =
+view : RenderConfig msg -> Html msg
+view { state, maxPosition, disabledStyling, onClickMsg, allowClick, textFormat, shiftLeft, alreadyComplete } =
     let
         percentComplete =
             case state of

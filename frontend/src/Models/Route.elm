@@ -2,7 +2,7 @@ module Models.Route exposing (..)
 
 import Array
 import DefaultServices.Util as Util
-import Elements.FileStructure as FS
+import Elements.Simple.FileStructure as FS
 import Models.Bigbit as Bigbit
 import Navigation
 import ProjectTypeAliases exposing (..)

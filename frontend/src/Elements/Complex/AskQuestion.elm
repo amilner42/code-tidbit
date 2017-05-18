@@ -1,51 +1,40 @@
-module Elements.EditQuestion exposing (..)
+module Elements.Complex.AskQuestion exposing (..)
 
-import DefaultServices.Editable as Editable
 import DefaultServices.Util as Util
+import Elements.Simple.Markdown as Markdown
 import Html exposing (Html, div, text, textarea)
 import Html.Attributes exposing (class, classList, placeholder, value)
-import Html.Events exposing (onClick, onInput)
+import Html.Events exposing (onInput, onClick)
 import Models.QA exposing (..)
 import ProjectTypeAliases exposing (..)
 
 
-{-| The model for the `EditQuestion` element.
--}
-type alias Model codePointer =
-    QuestionEdit codePointer
-
-
-{-| The Msg for the `EditQuestion` element.
--}
 type Msg
     = TogglePreviewMarkdown
-    | OnQuestionTextInput QuestionText
+    | OnQuestionTextInput String
 
 
-{-| The config for rendering a `EditQuestion` element.
--}
+type alias Model codePointer =
+    NewQuestion codePointer
+
+
 type alias RenderConfig msg codePointer =
     { msgTagger : Msg -> msg
+    , askQuestion : codePointer -> QuestionText -> msg
     , isReadyCodePointer : codePointer -> Bool
-    , editQuestion : QuestionText -> codePointer -> msg
     }
 
 
-{-| The view for the `EditQuestion` element.
--}
-editQuestion : RenderConfig msg codePointer -> Model codePointer -> Html msg
-editQuestion config model =
+view : RenderConfig msg codePointer -> Model codePointer -> Html msg
+view config model =
     let
-        questionText =
-            Editable.getBuffer model.questionText
-
-        codePointer =
-            Editable.getBuffer model.codePointer
-
         maybeReadyQuestion =
-            case ( Util.justNonBlankString questionText, config.isReadyCodePointer codePointer ) of
-                ( Just questionText, True ) ->
-                    Just { questionText = questionText, codePointer = codePointer }
+            case ( model.codePointer, Util.justNonBlankString model.questionText ) of
+                ( Just codePointer, Just questionText ) ->
+                    if config.isReadyCodePointer codePointer then
+                        Just { codePointer = codePointer, questionText = questionText }
+                    else
+                        Nothing
 
                 _ ->
                     Nothing
@@ -54,7 +43,7 @@ editQuestion config model =
             Util.isNotNothing maybeReadyQuestion
     in
         div
-            [ class "edit-question" ]
+            [ class "ask-question" ]
             [ div
                 [ class "preview-markdown"
                 , onClick <| config.msgTagger TogglePreviewMarkdown
@@ -65,35 +54,32 @@ editQuestion config model =
                     else
                         "Markdown Preview"
                 ]
-            , Util.markdownOr
-                model.previewMarkdown
-                questionText
-                (textarea
-                    [ placeholder "Edit Question Text"
-                    , value questionText
+            , if model.previewMarkdown then
+                Markdown.view [] model.questionText
+              else
+                textarea
+                    [ placeholder "Highlight code and ask your question"
                     , onInput (OnQuestionTextInput >> config.msgTagger)
+                    , value model.questionText
                     ]
                     []
-                )
             , div
                 (Util.maybeAttributes
                     [ Just <|
                         classList
-                            [ ( "edit-question-submit", True )
+                            [ ( "ask-question-submit", True )
                             , ( "not-ready", not isQuestionReady )
                             , ( "hidden", model.previewMarkdown )
                             ]
                     , Maybe.map
-                        (\{ codePointer, questionText } -> onClick <| config.editQuestion questionText codePointer)
+                        (\{ codePointer, questionText } -> onClick <| config.askQuestion codePointer questionText)
                         maybeReadyQuestion
                     ]
                 )
-                [ text "Update Question" ]
+                [ text "Ask Question" ]
             ]
 
 
-{-| The update for the `EditQuestion` element.
--}
 update : Msg -> Model codePointer -> ( Model codePointer, Cmd Msg )
 update msg model =
     case msg of
@@ -101,4 +87,4 @@ update msg model =
             ( { model | previewMarkdown = not model.previewMarkdown }, Cmd.none )
 
         OnQuestionTextInput questionText ->
-            ( { model | questionText = Editable.setBuffer model.questionText questionText }, Cmd.none )
+            ( { model | questionText = questionText }, Cmd.none )

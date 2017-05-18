@@ -1,6 +1,6 @@
 module Pages.DefaultModel exposing (..)
 
-import Elements.Editor as Editor
+import Elements.Simple.Editor as Editor
 import Flags exposing (Flags)
 import Keyboard.Extra as KK
 import Models.Route as Route

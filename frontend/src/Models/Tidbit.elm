@@ -1,7 +1,7 @@
 module Models.Tidbit exposing (..)
 
 import Date as Date
-import Elements.Editor exposing (Language)
+import Elements.Simple.Editor exposing (Language)
 import Models.Bigbit as BigbitModel
 import Models.Route as Route
 import Models.Snipbit as SnipbitModel

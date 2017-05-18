@@ -1,6 +1,6 @@
 module Pages.ViewBigbit.Messages exposing (..)
 
-import Elements.FileStructure as FS
+import Elements.Simple.FileStructure as FS
 import Models.ApiError exposing (ApiError)
 import Models.Bigbit exposing (Bigbit)
 import Models.Completed exposing (Completed, IsCompleted)

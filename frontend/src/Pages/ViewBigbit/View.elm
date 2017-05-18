@@ -2,10 +2,10 @@ module Pages.ViewBigbit.View exposing (..)
 
 import Array
 import DefaultServices.Util as Util exposing (maybeMapWithDefault)
-import Elements.Editor as Editor
-import Elements.FileStructure as FS
-import Elements.Markdown exposing (githubMarkdown)
-import Elements.ProgressBar as ProgressBar exposing (TextFormat(Custom), State(..), progressBar)
+import Elements.Simple.Editor as Editor
+import Elements.Simple.FileStructure as FS
+import Elements.Simple.Markdown as Markdown
+import Elements.Simple.ProgressBar as ProgressBar exposing (TextFormat(Custom), State(..))
 import Html exposing (Html, div, button, text, i)
 import Html.Attributes exposing (class, classList, hidden)
 import Html.Events exposing (onClick)
@@ -221,7 +221,7 @@ view model shared =
                                     ]
                                 ]
                                 [ text "Introduction" ]
-                            , progressBar
+                            , ProgressBar.view
                                 { state =
                                     case currentRoute of
                                         Route.ViewBigbitFramePage _ _ frameNumber _ ->
@@ -316,7 +316,7 @@ view model shared =
                             ]
                         , div
                             [ class "view-bigbit-fs" ]
-                            [ FS.fileStructure
+                            [ FS.view
                                 { isFileSelected =
                                     (\absolutePath ->
                                         Route.viewBigbitPageCurrentActiveFile currentRoute bigbit
@@ -349,7 +349,7 @@ view model shared =
                                             activeFile
                                 ]
                             ]
-                        , Editor.editor "view-bigbit-code-editor"
+                        , Editor.view "view-bigbit-code-editor"
                         , viewBigbitCommentBox bigbit model.relevantHC currentRoute
                         ]
             ]
@@ -369,7 +369,7 @@ viewBigbitCommentBox bigbit maybeRHC route =
     in
         div
             [ class "comment-block" ]
-            [ githubMarkdown [ hidden <| not <| tutorialOpen ] <|
+            [ Markdown.view [ hidden <| not <| tutorialOpen ] <|
                 case route of
                     Route.ViewBigbitIntroductionPage _ _ _ ->
                         bigbit.introduction
@@ -407,7 +407,7 @@ viewBigbitCommentBox bigbit maybeRHC route =
 
                                     Just currentFramePair ->
                                         ViewerRelevantHC.relevantHCTextAboveFrameSpecifyingPosition currentFramePair
-                                , githubMarkdown
+                                , Markdown.view
                                     []
                                     (Array.get index rhc.relevantHC
                                         |> maybeMapWithDefault (Tuple.second >> .comment) ""

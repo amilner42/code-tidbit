@@ -3,7 +3,7 @@ module Pages.CreateSnipbit.Model exposing (..)
 import Array
 import Autocomplete as AC
 import DefaultServices.Util as Util
-import Elements.Editor as Editor exposing (Language)
+import Elements.Simple.Editor as Editor exposing (Language)
 import Models.Range as Range
 import Models.Route as Route
 import Models.Snipbit exposing (MaybeHighlightedComment, HighlightedComment)

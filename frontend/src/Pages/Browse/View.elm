@@ -1,8 +1,8 @@
 module Pages.Browse.View exposing (..)
 
 import DefaultServices.Util as Util
-import Elements.ContentBox exposing (contentBox)
-import Elements.Editor as Editor
+import Elements.Simple.ContentBox as ContentBox
+import Elements.Simple.Editor as Editor
 import Html exposing (Html, div, text, button, input, span, i, select, option)
 import Html.Attributes exposing (class, hidden, classList, placeholder, value, id, disabled, selected)
 import Html.Events exposing (onClick, onInput)
@@ -152,7 +152,7 @@ view model shared =
                     , div
                         [ class "all-content" ]
                         (content
-                            |> List.map (contentBox { goToMsg = GoTo, darkenBox = False, forStory = Nothing })
+                            |> List.map (ContentBox.view { goToMsg = GoTo, darkenBox = False, forStory = Nothing })
                             |> (flip (++)) Util.emptyFlexBoxesForAlignment
                         )
                     , button

@@ -1,6 +1,6 @@
 module Models.Content exposing (..)
 
-import Elements.Editor exposing (Language)
+import Elements.Simple.Editor exposing (Language)
 import Models.Bigbit exposing (Bigbit)
 import Models.Route as Route
 import Models.Snipbit exposing (Snipbit)

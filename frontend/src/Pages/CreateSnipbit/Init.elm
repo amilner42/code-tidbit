@@ -2,7 +2,7 @@ module Pages.CreateSnipbit.Init exposing (..)
 
 import Array
 import Autocomplete as AC
-import Elements.Editor exposing (humanReadableListOfLanguages)
+import Elements.Simple.Editor exposing (humanReadableListOfLanguages)
 import Pages.CreateSnipbit.Model exposing (..)
 
 

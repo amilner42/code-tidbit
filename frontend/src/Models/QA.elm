@@ -4,7 +4,7 @@ import Date
 import DefaultServices.Editable as Editable
 import DefaultServices.Sort as Sort
 import Dict
-import Elements.FileStructure as FS
+import Elements.Simple.FileStructure as FS
 import Models.Range as Range
 import Models.Vote as Vote
 import ProjectTypeAliases exposing (..)

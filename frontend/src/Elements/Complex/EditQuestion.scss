@@ -1,13 +1,13 @@
-@import '../Styles/variables';
+@import '../../Styles/variables';
 
 
-.edit-answer {
+.edit-question {
     height: 600px;
     width: 360px;
     position: absolute;
     top: 0;
 
-    .preview-markdown, .question-tab, .display-question {
+    .preview-markdown {
         position: absolute;
         box-sizing: border-box;
         width: 360px;
@@ -22,7 +22,7 @@
         text-align: center;
     }
 
-    .edit-answer-submit {
+    .edit-question-submit {
         position: absolute;
         box-sizing: border-box;
         width: 360px;
@@ -44,40 +44,11 @@
 
     textarea {
         margin-top: 30px;
-        height: 540px;
+        height: 540px !important;
     }
 
     .markdown-box {
         margin-top: 30px;
         height: 570px;
-    }
-}
-
-.edit-answer {
-    .preview-markdown {
-        top: 235px;
-
-        &.hiding-question {
-            top: 30px;
-        }
-
-        &.previewing-markdown {
-            top: 0;
-        }
-    }
-
-    .question {
-        height: 200px;
-    }
-
-    textarea {
-        position: absolute;
-        top: 235px !important;
-        height: 305px !important;
-
-        &.hiding-question {
-            top: 30px !important;
-            height: 510px !important;
-        }
     }
 }

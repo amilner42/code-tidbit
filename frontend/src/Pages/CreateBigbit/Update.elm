@@ -4,8 +4,8 @@ import Array
 import DefaultServices.CommonSubPageUtil exposing (CommonSubPageUtil(..), commonSubPageUtil)
 import DefaultServices.Util as Util exposing (maybeMapWithDefault, togglePreviewMarkdown)
 import Dict
-import Elements.Editor as Editor
-import Elements.FileStructure as FS
+import Elements.Simple.Editor as Editor
+import Elements.Simple.FileStructure as FS
 import Models.Bigbit as Bigbit
 import Models.Range as Range
 import Models.Route as Route exposing (createBigbitPageCurrentActiveFile)

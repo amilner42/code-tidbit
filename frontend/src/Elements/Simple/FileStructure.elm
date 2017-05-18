@@ -1,4 +1,4 @@
-module Elements.FileStructure exposing (..)
+module Elements.Simple.FileStructure exposing (..)
 
 import DefaultServices.Util as Util
 import Dict
@@ -608,9 +608,23 @@ removeFolder absolutePath (FileStructure rootFolder fsMetadata) =
             |> ((flip FileStructure) fsMetadata)
 
 
-{-| All the config for rendering a file structure.
+{-| Updates the fs metadata.
 -}
-type alias RenderConfig b c msg =
+updateFSMetadata : (a -> a2) -> FileStructure a b c -> FileStructure a2 b c
+updateFSMetadata fsMetadataUpdater (FileStructure rootFolder fsMetadata) =
+    FileStructure
+        rootFolder
+        (fsMetadataUpdater fsMetadata)
+
+
+{-| Basic helper for getting the fsMetadata from a FS.
+-}
+getFSMetadata : FileStructure a b c -> a
+getFSMetadata (FileStructure _ fsMetadata) =
+    fsMetadata
+
+
+type alias SkeletonViewRenderConfig b c msg =
     { fileStructureClass : String
     , folderAndSubContentClass : String
     , subContentClass : String
@@ -622,13 +636,10 @@ type alias RenderConfig b c msg =
     }
 
 
-{-| For rendering a FileStructure, allows for complete customization.
+{-| The skeleton view allows you to create your own FS elements, `view` below is created from this skeleton view.
 -}
-render :
-    RenderConfig b c msg
-    -> FileStructure a b c
-    -> Html.Html msg
-render renderConfig (FileStructure rootFolder fsMetadata) =
+skeletonView : SkeletonViewRenderConfig b c msg -> FileStructure a b c -> Html.Html msg
+skeletonView renderConfig (FileStructure rootFolder fsMetadata) =
     let
         renderFolder : Name -> Path -> Folder b c -> Html.Html msg
         renderFolder name absolutePath (Folder files folders folderMetadata) =
@@ -667,20 +678,16 @@ render renderConfig (FileStructure rootFolder fsMetadata) =
             [ (renderFolder "" "/" rootFolder) ]
 
 
-{-| The config for creating a file-structure element.
--}
-type alias FileStructureConfig msg =
+type alias RenderConfig msg =
     { isFileSelected : Path -> Bool
     , fileSelectedMsg : Path -> msg
     , folderSelectedMsg : Path -> msg
     }
 
 
-{-| For creating a cookie-cutter file-structure, use `render` if more customization is required.
--}
-fileStructure : FileStructureConfig msg -> FileStructure a { b | isExpanded : Bool } c -> Html msg
-fileStructure fsConfig fs =
-    render
+view : RenderConfig msg -> FileStructure a { b | isExpanded : Bool } c -> Html msg
+view fsConfig fs =
+    skeletonView
         { fileStructureClass = "fs"
         , folderAndSubContentClass = "fs-folder-and-sub-content"
         , subContentClass = "fs-sub-content"
@@ -736,19 +743,3 @@ fileStructure fsConfig fs =
         , expandFolderIf = .isExpanded
         }
         fs
-
-
-{-| Updates the fs metadata.
--}
-updateFSMetadata : (a -> a2) -> FileStructure a b c -> FileStructure a2 b c
-updateFSMetadata fsMetadataUpdater (FileStructure rootFolder fsMetadata) =
-    FileStructure
-        rootFolder
-        (fsMetadataUpdater fsMetadata)
-
-
-{-| Basic helper for getting the fsMetadata from a FS.
--}
-getFSMetadata : FileStructure a b c -> a
-getFSMetadata (FileStructure _ fsMetadata) =
-    fsMetadata

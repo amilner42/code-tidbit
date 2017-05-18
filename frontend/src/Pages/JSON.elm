@@ -1,7 +1,7 @@
 module Pages.JSON exposing (..)
 
 import DefaultServices.Util exposing (justValueOrNull)
-import Elements.Editor as Editor
+import Elements.Simple.Editor as Editor
 import JSON.Route
 import JSON.Story
 import JSON.Tidbit

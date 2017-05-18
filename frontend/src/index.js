@@ -18,18 +18,18 @@ require("./Pages/ViewSnipbit/Styles.scss");
 require("./Pages/ViewStory/Styles.scss");
 require("./Pages/Welcome/Styles.scss");
 
-require("./Elements/AnswerQuestion.scss");
-require("./Elements/AskQuestion.scss");
-require("./Elements/ContentBox.scss");
-require("./Elements/EditAnswer.scss")
-require("./Elements/EditQuestion.scss");
-require("./Elements/Editor.scss");
-require("./Elements/FileStructure.scss");
-require("./Elements/Markdown.scss");
-require("./Elements/ProgressBar.scss");
-require("./Elements/Question.scss");
-require("./Elements/Tags.scss");
-require("./Elements/ViewQuestion.scss");
+require("./Elements/Complex/AnswerQuestion.scss");
+require("./Elements/Complex/AskQuestion.scss");
+require("./Elements/Complex/EditAnswer.scss")
+require("./Elements/Complex/EditQuestion.scss");
+require("./Elements/Simple/ContentBox.scss");
+require("./Elements/Simple/Editor.scss");
+require("./Elements/Simple/FileStructure.scss");
+require("./Elements/Simple/Markdown.scss");
+require("./Elements/Simple/ProgressBar.scss");
+require("./Elements/Simple/QuestionList.scss");
+require("./Elements/Simple/Tags.scss");
+require("./Elements/Simple/ViewQuestion.scss");
 
 // Require index.html so it gets copied to dist
 require('./index.html');

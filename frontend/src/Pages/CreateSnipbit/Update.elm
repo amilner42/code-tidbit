@@ -5,7 +5,7 @@ import Autocomplete as AC
 import DefaultServices.ArrayExtra as ArrayExtra
 import DefaultServices.CommonSubPageUtil exposing (CommonSubPageUtil(..), commonSubPageUtil)
 import DefaultServices.Util as Util exposing (togglePreviewMarkdown, maybeMapWithDefault)
-import Elements.Editor as Editor
+import Elements.Simple.Editor as Editor
 import JSON.Language
 import Json.Decode as Decode
 import Models.Range as Range

@@ -6,11 +6,11 @@ import DefaultServices.Editable as Editable
 import DefaultServices.InfixFunctions exposing (..)
 import DefaultServices.Util as Util exposing (maybeMapWithDefault)
 import Dict
-import Elements.AnswerQuestion as AnswerQuestion
-import Elements.AskQuestion as AskQuestion
-import Elements.EditAnswer as EditAnswer
-import Elements.EditQuestion as EditQuestion
-import Elements.Editor as Editor
+import Elements.Complex.AnswerQuestion as AnswerQuestion
+import Elements.Complex.AskQuestion as AskQuestion
+import Elements.Complex.EditAnswer as EditAnswer
+import Elements.Complex.EditQuestion as EditQuestion
+import Elements.Simple.Editor as Editor
 import Models.Completed as Completed
 import Models.ContentPointer as ContentPointer
 import Models.Opinion as Opinion

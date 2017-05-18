@@ -4,15 +4,15 @@ import Array
 import DefaultServices.Editable as Editable
 import DefaultServices.InfixFunctions exposing (..)
 import DefaultServices.Util as Util exposing (maybeMapWithDefault)
-import Elements.AnswerQuestion as AnswerQuestion
-import Elements.AskQuestion as AskQuestion
-import Elements.EditAnswer as EditAnswer
-import Elements.EditQuestion as EditQuestion
-import Elements.Editor as Editor
-import Elements.Markdown exposing (githubMarkdown)
-import Elements.ProgressBar as ProgressBar exposing (TextFormat(Custom), State(..), progressBar)
-import Elements.Question as Question
-import Elements.ViewQuestion as ViewQuestion
+import Elements.Complex.AnswerQuestion as AnswerQuestion
+import Elements.Complex.AskQuestion as AskQuestion
+import Elements.Complex.EditAnswer as EditAnswer
+import Elements.Complex.EditQuestion as EditQuestion
+import Elements.Simple.Editor as Editor
+import Elements.Simple.Markdown as Markdown
+import Elements.Simple.ProgressBar as ProgressBar exposing (TextFormat(Custom), State(..))
+import Elements.Simple.QuestionList as QuestionList
+import Elements.Simple.ViewQuestion as ViewQuestion
 import Html exposing (Html, div, text, button, i, textarea)
 import Html.Attributes exposing (class, classList, disabled, hidden, id, placeholder, value)
 import Html.Events exposing (onClick, onInput)
@@ -243,7 +243,7 @@ view model shared =
                                 ]
                             ]
                             [ text "Introduction" ]
-                        , progressBar
+                        , ProgressBar.view
                             { state =
                                 case model.bookmark of
                                     TB.Introduction ->
@@ -346,7 +346,7 @@ view model shared =
                             ]
                             [ text "arrow_forward" ]
                         ]
-                    , Editor.editor "view-snipbit-code-editor"
+                    , Editor.view "view-snipbit-code-editor"
                     , div
                         [ class "comment-block" ]
                         [ commentBox snipbit model shared ]
@@ -362,7 +362,7 @@ commentBox snipbit model shared =
     let
         -- To display if no relevant HC.
         htmlIfNoRelevantHC =
-            githubMarkdown [] <|
+            Markdown.view [] <|
                 case shared.route of
                     Route.ViewSnipbitIntroductionPage _ _ ->
                         snipbit.introduction
@@ -434,7 +434,7 @@ commentBox snipbit model shared =
                                     , onClick NextRelevantHC
                                     ]
                                     [ text "Next" ]
-                                , githubMarkdown
+                                , Markdown.view
                                     []
                                     (Array.get index relevantHC
                                         |> Maybe.map (Tuple.second >> .comment)
@@ -443,7 +443,7 @@ commentBox snipbit model shared =
                                 ]
 
         viewQuestionView qa tab question =
-            ViewQuestion.viewQuestionView
+            ViewQuestion.view
                 { userID = shared.user ||> .id
                 , tidbitAuthorID = qa.tidbitAuthor
                 , tab = tab
@@ -575,7 +575,7 @@ commentBox snipbit model shared =
                         in
                             div
                                 [ class "view-questions" ]
-                                [ Question.questionList
+                                [ QuestionList.view
                                     { questionBoxRenderConfig =
                                         { onClickQuestionBox =
                                             (\question ->
@@ -667,7 +667,7 @@ commentBox snipbit model shared =
                         QA.getNewQuestion snipbitID model.qaState
                             |> Maybe.withDefault QA.defaultNewQuestion
                 in
-                    AskQuestion.askQuestion
+                    AskQuestion.view
                         { msgTagger = AskQuestionMsg snipbitID
                         , askQuestion = AskQuestion snipbitID
                         , isReadyCodePointer = not << Range.isEmptyRange
@@ -677,7 +677,7 @@ commentBox snipbit model shared =
             Route.ViewSnipbitAnswerQuestion maybeStoryID snipbitID questionID ->
                 case Maybe.andThen (QA.getQuestionByID questionID) (Maybe.map .questions model.qa) of
                     Just question ->
-                        AnswerQuestion.answerQuestion
+                        AnswerQuestion.view
                             { msgTagger = AnswerQuestionMsg snipbitID question
                             , answerQuestion = AnswerQuestion snipbitID questionID
                             }
@@ -699,7 +699,7 @@ commentBox snipbit model shared =
                                 QA.getQuestionEditByID snipbitID questionID model.qaState
                                     |> Maybe.withDefault (QA.questionEditFromQuestion question)
                         in
-                            EditQuestion.editQuestion
+                            EditQuestion.view
                                 { msgTagger = EditQuestionMsg snipbitID question
                                 , isReadyCodePointer = not << Range.isEmptyRange
                                 , editQuestion = EditQuestion snipbitID questionID
@@ -717,7 +717,7 @@ commentBox snipbit model shared =
                     )
                 of
                     ( Just answer, Just question ) ->
-                        EditAnswer.editAnswer
+                        EditAnswer.view
                             { msgTagger = EditAnswerMsg snipbitID answerID question answer
                             , editAnswer = EditAnswer snipbitID question.id answerID
                             }

@@ -1,4 +1,4 @@
-module Elements.Question exposing (..)
+module Elements.Simple.QuestionList exposing (..)
 
 import DefaultServices.Util as Util
 import Html exposing (Html, div, text, i, hr)
@@ -7,25 +7,19 @@ import Html.Events exposing (onClick)
 import Models.QA as QA
 
 
-{-| Render config for the full question list.
--}
-type alias QuestionListRenderConfig codePointer msg =
+type alias RenderConfig codePointer msg =
     { questionBoxRenderConfig : QuestionBoxRenderConfig codePointer msg
     , onClickAskQuestion : msg
     , isHighlighting : Bool
     }
 
 
-{-| Render config for a single question box.
--}
 type alias QuestionBoxRenderConfig codePointer msg =
     { onClickQuestionBox : QA.Question codePointer -> msg }
 
 
-{-| For rendering a scrollable list of questions.
--}
-questionList : QuestionListRenderConfig codePointer msg -> List (QA.Question codePointer) -> Html msg
-questionList { questionBoxRenderConfig, onClickAskQuestion, isHighlighting } questions =
+view : RenderConfig codePointer msg -> List (QA.Question codePointer) -> Html msg
+view { questionBoxRenderConfig, onClickAskQuestion, isHighlighting } questions =
     div [ class "questions" ] <|
         [ div [ class "questions-title" ]
             [ text <|
@@ -56,8 +50,6 @@ questionList { questionBoxRenderConfig, onClickAskQuestion, isHighlighting } que
         ]
 
 
-{-| A view for a question box.
--}
 questionBoxView : QuestionBoxRenderConfig codePointer msg -> QA.Question codePointer -> Html msg
 questionBoxView { onClickQuestionBox } question =
     div

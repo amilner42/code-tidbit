@@ -1,45 +1,41 @@
-module Elements.AnswerQuestion exposing (..)
+module Elements.Complex.EditAnswer exposing (..)
 
+import DefaultServices.Editable as Editable
 import DefaultServices.Util as Util
-import Elements.Markdown as Markdown
+import Elements.Simple.Markdown as Markdown
 import Html exposing (Html, div, text, textarea)
-import Html.Attributes exposing (class, classList, value, placeholder)
+import Html.Attributes exposing (class, classList, placeholder, value)
 import Html.Events exposing (onInput, onClick)
 import Models.QA exposing (..)
 import ProjectTypeAliases exposing (..)
 
 
-{-| The Model for the `AnswerQuestion` element.
--}
 type alias Model codePointer =
-    { newAnswer : NewAnswer
+    { answerEdit : AnswerEdit
     , forQuestion : Question codePointer
     }
 
 
-{-| The Msg for the `AnswerQuestion` element.
--}
 type Msg
     = ToggleShowQuestion
     | TogglePreviewMarkdown
     | OnAnswerTextInput AnswerText
 
 
-{-| The config for rendering the `AnswerQuestion` element.
--}
 type alias RenderConfig msg =
     { msgTagger : Msg -> msg
-    , answerQuestion : AnswerText -> msg
+    , editAnswer : AnswerText -> msg
     }
 
 
-{-| The view for the `AnswerQuestion` element.
--}
-answerQuestion : RenderConfig msg -> Model codePointer -> Html msg
-answerQuestion config model =
+view : RenderConfig msg -> Model codePointer -> Html msg
+view config model =
     let
-        { previewMarkdown, showQuestion, answerText } =
-            model.newAnswer
+        { previewMarkdown, showQuestion } =
+            model.answerEdit
+
+        answerText =
+            Editable.getBuffer model.answerEdit.answerText
 
         maybeReadyAnswer =
             Util.justNonBlankString answerText
@@ -48,7 +44,7 @@ answerQuestion config model =
             Util.isNotNothing maybeReadyAnswer
     in
         div
-            [ class "answer-question" ]
+            [ class "edit-answer" ]
             [ div
                 [ classList
                     [ ( "display-question", True )
@@ -62,7 +58,7 @@ answerQuestion config model =
                     else
                         "Show Question"
                 ]
-            , Markdown.githubMarkdown
+            , Markdown.view
                 [ classList
                     [ ( "question", True )
                     , ( "hidden", previewMarkdown || not showQuestion )
@@ -88,9 +84,9 @@ answerQuestion config model =
                 answerText
                 (textarea
                     [ classList [ ( "hiding-question", not showQuestion ) ]
-                    , placeholder "Answer Question"
-                    , onInput (config.msgTagger << OnAnswerTextInput)
+                    , placeholder "Edit Answer Text"
                     , value answerText
+                    , onInput (config.msgTagger << OnAnswerTextInput)
                     ]
                     []
                 )
@@ -98,46 +94,46 @@ answerQuestion config model =
                 (Util.maybeAttributes
                     [ Just <|
                         classList
-                            [ ( "answer-question-submit", True )
-                            , ( "hidden", previewMarkdown )
+                            [ ( "edit-answer-submit", True )
                             , ( "not-ready", not isAnswerReady )
+                            , ( "hidden", previewMarkdown )
                             ]
-                    , Maybe.map (onClick << config.answerQuestion) maybeReadyAnswer
+                    , Maybe.map
+                        (onClick << config.editAnswer)
+                        maybeReadyAnswer
                     ]
                 )
-                [ text "Submit Answer" ]
+                [ text "Update Answer" ]
             ]
 
 
-{-| The update for the `AnswerQuestion` element.
--}
 update : Msg -> Model codePointer -> ( Model codePointer, Cmd Msg )
 update msg model =
     case msg of
         ToggleShowQuestion ->
-            ( updateNewAnswer
-                (\newAnswer -> { newAnswer | showQuestion = not newAnswer.showQuestion })
+            ( updateAnswerEdit
+                (\answerEdit -> { answerEdit | showQuestion = not answerEdit.showQuestion })
                 model
             , Cmd.none
             )
 
         TogglePreviewMarkdown ->
-            ( updateNewAnswer
-                (\newAnswer -> { newAnswer | previewMarkdown = not newAnswer.previewMarkdown })
+            ( updateAnswerEdit
+                (\answerEdit -> { answerEdit | previewMarkdown = not answerEdit.previewMarkdown })
                 model
             , Cmd.none
             )
 
         OnAnswerTextInput answerText ->
-            ( updateNewAnswer
-                (\newAnswer -> { newAnswer | answerText = answerText })
+            ( updateAnswerEdit
+                (\answerEdit -> { answerEdit | answerText = Editable.setBuffer answerEdit.answerText answerText })
                 model
             , Cmd.none
             )
 
 
-{-| Helper for updating the nested field `newAnswer`.
+{-| Helper for updating the nested field `answerEdit`.
 -}
-updateNewAnswer : (NewAnswer -> NewAnswer) -> Model codePointer -> Model codePointer
-updateNewAnswer updater model =
-    { model | newAnswer = updater model.newAnswer }
+updateAnswerEdit : (AnswerEdit -> AnswerEdit) -> Model codePointer -> Model codePointer
+updateAnswerEdit updater model =
+    { model | answerEdit = updater model.answerEdit }

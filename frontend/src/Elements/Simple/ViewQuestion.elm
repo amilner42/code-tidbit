@@ -1,7 +1,7 @@
-module Elements.ViewQuestion exposing (..)
+module Elements.Simple.ViewQuestion exposing (..)
 
 import DefaultServices.Util as Util
-import Elements.Markdown as Markdown
+import Elements.Simple.Markdown as Markdown
 import Html exposing (Html, div, span, text, button, i)
 import Html.Attributes exposing (class, classList)
 import Html.Events exposing (onClick)
@@ -9,8 +9,6 @@ import Models.QA exposing (..)
 import ProjectTypeAliases exposing (..)
 
 
-{-| The full config for rendering a question view.
--}
 type alias RenderConfig msg codePointer =
     { userID : Maybe UserID
     , tidbitAuthorID : UserID
@@ -44,44 +42,8 @@ type alias RenderConfig msg codePointer =
     }
 
 
-{-| The possible tabs within the question view.
--}
-type Tab
-    = QuestionTab
-    | QuestionCommentsTab (Maybe CommentID)
-    | AnswersTab
-    | AnswerTab AnswerID
-    | AnswerCommentsTab AnswerID (Maybe CommentID)
-
-
-{-| Returns true if `QuestionCommentsTab`.
--}
-isQuestionCommentsTab : Tab -> Bool
-isQuestionCommentsTab tab =
-    case tab of
-        QuestionCommentsTab _ ->
-            True
-
-        _ ->
-            False
-
-
-{-| Returns true if `AnswerCommentsTab`.
--}
-isAnswerCommentsTab : Tab -> Bool
-isAnswerCommentsTab tab =
-    case tab of
-        AnswerCommentsTab _ _ ->
-            True
-
-        _ ->
-            False
-
-
-{-| Generates the view for viewing a question.
--}
-viewQuestionView : RenderConfig msg codePointer -> Html msg
-viewQuestionView config =
+view : RenderConfig msg codePointer -> Html msg
+view config =
     let
         extendedTopBar isAnswerTab answer =
             div
@@ -136,8 +98,8 @@ viewQuestionView config =
                 QuestionTab ->
                     div
                         [ class "question-tab" ]
-                        [ Markdown.githubMarkdown [ class "question-markdown" ] config.question.questionText
-                        , reactiveRatingsBottomBar
+                        [ Markdown.view [ class "question-markdown" ] config.question.questionText
+                        , reactiveRatingsBottomBarView
                             { upvotes = config.question.upvotes
                             , downvotes = config.question.downvotes
                             , onClickUpvote = config.onClickUpvoteQuestion
@@ -166,7 +128,7 @@ viewQuestionView config =
                                 div [ class "no-answers-text" ] [ text "Be the first to answer the question" ]
                               else
                                 div [ class "answers" ] <|
-                                    List.map (answerBox config.onClickAnswerTab) config.answers
+                                    List.map (answerBoxView config.onClickAnswerTab) config.answers
                             ]
                         , div
                             [ class "answer-question"
@@ -181,8 +143,8 @@ viewQuestionView config =
                             div
                                 [ class "answer-tab" ]
                                 [ extendedTopBar True answer
-                                , Markdown.githubMarkdown [ class "answer-markdown" ] answer.answerText
-                                , reactiveRatingsBottomBar
+                                , Markdown.view [ class "answer-markdown" ] answer.answerText
+                                , reactiveRatingsBottomBarView
                                     { upvotes = answer.upvotes
                                     , downvotes = answer.downvotes
                                     , onClickUpvote = config.onClickUpvoteAnswer answer
@@ -213,10 +175,8 @@ viewQuestionView config =
             ]
 
 
-{-| Renders an answer box.
--}
-answerBox : (Answer -> msg) -> Answer -> Html msg
-answerBox onClickAnswer answer =
+answerBoxView : (Answer -> msg) -> Answer -> Html msg
+answerBoxView onClickAnswer answer =
     div
         [ class "answer-box"
         , onClick <| onClickAnswer answer
@@ -240,8 +200,6 @@ answerBox onClickAnswer answer =
         ]
 
 
-{-| The config for rendering the bottom bar with the reactive upvote/downvote buttons.
--}
 type alias ReactiveRatingsBottomBarRenderConfig msg =
     { upvotes : ( Bool, Int )
     , downvotes : ( Bool, Int )
@@ -260,8 +218,8 @@ type alias ReactiveRatingsBottomBarRenderConfig msg =
 
 {-| The bottom bar with the upvotes/downvotes and attached click handlers for upvoting/downvoting.
 -}
-reactiveRatingsBottomBar : ReactiveRatingsBottomBarRenderConfig msg -> Html msg
-reactiveRatingsBottomBar config =
+reactiveRatingsBottomBarView : ReactiveRatingsBottomBarRenderConfig msg -> Html msg
+reactiveRatingsBottomBarView config =
     let
         upvotedQuestion =
             Tuple.first config.upvotes
@@ -348,3 +306,37 @@ reactiveRatingsBottomBar config =
               else
                 Util.hiddenDiv
             ]
+
+
+{-| The possible tabs within the question view.
+-}
+type Tab
+    = QuestionTab
+    | QuestionCommentsTab (Maybe CommentID)
+    | AnswersTab
+    | AnswerTab AnswerID
+    | AnswerCommentsTab AnswerID (Maybe CommentID)
+
+
+{-| Returns true if `QuestionCommentsTab`.
+-}
+isQuestionCommentsTab : Tab -> Bool
+isQuestionCommentsTab tab =
+    case tab of
+        QuestionCommentsTab _ ->
+            True
+
+        _ ->
+            False
+
+
+{-| Returns true if `AnswerCommentsTab`.
+-}
+isAnswerCommentsTab : Tab -> Bool
+isAnswerCommentsTab tab =
+    case tab of
+        AnswerCommentsTab _ _ ->
+            True
+
+        _ ->
+            False

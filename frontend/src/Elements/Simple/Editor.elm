@@ -1,4 +1,4 @@
-module Elements.Editor exposing (..)
+module Elements.Simple.Editor exposing (..)
 
 import DefaultServices.Util as Util
 import Html exposing (Html, div)
@@ -6,6 +6,11 @@ import Html.Attributes exposing (class, id)
 
 
 -- TODO Dup code here is driving me crazy, some is needed but some can be definitely be removed. Not a priority.
+
+
+view : String -> Html msg
+view editorID =
+    div [ id "code-editor-wrapper" ] [ Util.keyedDiv [ id editorID ] [] ]
 
 
 {-| The languages the Ace Editor supports.
@@ -800,18 +805,3 @@ aceThemeLocation theme =
                     "xcode"
     in
         baseLocation ++ themeLocation
-
-
-{-| Use this to create a code editor with id `editorID`.
-
-NOTE: You should only ever have one editor at a time.
--}
-editor : String -> Html msg
-editor editorID =
-    div
-        [ id "code-editor-wrapper"
-        ]
-        [ Util.keyedDiv
-            [ id editorID ]
-            []
-        ]

@@ -3,7 +3,7 @@ module DefaultServices.Util exposing (..)
 import Date
 import Dict
 import Dom
-import Elements.Markdown exposing (githubMarkdown)
+import Elements.Simple.Markdown as Markdown
 import Html exposing (Html, Attribute, div, i, text)
 import Html.Attributes exposing (hidden, class)
 import Html.Events exposing (Options, on, onWithOptions, keyCode, defaultOptions, targetValue)
@@ -375,7 +375,7 @@ emptyFlexBoxesForAlignment =
 markdownOr : Bool -> String -> Html msg -> Html msg
 markdownOr condition markdownText backUpHtml =
     if condition then
-        githubMarkdown [] markdownText
+        Markdown.view [] markdownText
     else
         backUpHtml
 

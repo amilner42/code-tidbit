@@ -1,7 +1,7 @@
 module Pages.CreateBigbit.Messages exposing (..)
 
-import Elements.Editor exposing (Language)
-import Elements.FileStructure as FS
+import Elements.Simple.Editor exposing (Language)
+import Elements.Simple.FileStructure as FS
 import Models.ApiError exposing (ApiError)
 import Models.IDResponse exposing (IDResponse)
 import Models.Range exposing (Range)

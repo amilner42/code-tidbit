@@ -1,10 +1,10 @@
 module Pages.ViewSnipbit.Messages exposing (..)
 
 import Date exposing (Date)
-import Elements.AnswerQuestion as AnswerQuestion
-import Elements.AskQuestion as AskQuestion
-import Elements.EditAnswer as EditAnswer
-import Elements.EditQuestion as EditQuestion
+import Elements.Complex.AnswerQuestion as AnswerQuestion
+import Elements.Complex.AskQuestion as AskQuestion
+import Elements.Complex.EditAnswer as EditAnswer
+import Elements.Complex.EditQuestion as EditQuestion
 import Models.ApiError exposing (ApiError)
 import Models.Completed exposing (Completed, IsCompleted)
 import Models.Opinion exposing (Opinion, PossibleOpinion)

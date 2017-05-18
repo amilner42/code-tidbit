@@ -5,7 +5,7 @@ import Array
 import DefaultServices.CommonSubPageUtil exposing (commonSubPageUtil)
 import DefaultServices.LocalStorage as LocalStorage
 import DefaultServices.Util as Util exposing (maybeMapWithDefault)
-import Elements.Editor as Editor
+import Elements.Simple.Editor as Editor
 import Keyboard.Extra as KK
 import Models.Route as Route
 import Navigation

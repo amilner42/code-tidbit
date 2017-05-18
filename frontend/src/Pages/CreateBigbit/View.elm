@@ -5,9 +5,9 @@ import Autocomplete as AC
 import DefaultServices.Editable as Editable
 import DefaultServices.Util as Util exposing (maybeMapWithDefault, togglePreviewMarkdown)
 import Dict
-import Elements.Editor as Editor
-import Elements.FileStructure as FS
-import Elements.Tags exposing (tags)
+import Elements.Simple.Editor as Editor
+import Elements.Simple.FileStructure as FS
+import Elements.Simple.Tags as Tags
 import Html exposing (Html, div, text, textarea, button, input, h1, h3, img, hr, i)
 import Html.Attributes exposing (class, classList, disabled, placeholder, value, hidden, id, src, style)
 import Html.Events exposing (onClick, onInput)
@@ -180,7 +180,7 @@ view model shared =
                         fs =
                             div
                                 [ class "file-structure" ]
-                                [ FS.fileStructure
+                                [ FS.view
                                     { isFileSelected = viewingFile
                                     , fileSelectedMsg = SelectFile
                                     , folderSelectedMsg = ToggleFolder
@@ -423,7 +423,7 @@ view model shared =
                             [ text <| Maybe.withDefault "No File Selected" currentActiveFile ]
                         , div
                             [ class "create-tidbit-code" ]
-                            [ Editor.editor "create-bigbit-code-editor"
+                            [ Editor.view "create-bigbit-code-editor"
                             ]
                         ]
 
@@ -762,7 +762,7 @@ view model shared =
                                 )
                             ]
                             []
-                        , tags RemoveTag model.tags
+                        , Tags.view RemoveTag model.tags
                         ]
 
                 Route.CreateBigbitCodeIntroductionPage _ ->

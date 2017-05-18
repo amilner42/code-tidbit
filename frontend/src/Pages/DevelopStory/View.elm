@@ -1,7 +1,7 @@
 module Pages.DevelopStory.View exposing (..)
 
 import DefaultServices.Util as Util
-import Elements.Editor exposing (prettyPrintLanguages)
+import Elements.Simple.Editor exposing (prettyPrintLanguages)
 import Html exposing (Html, div, button, text, i, span)
 import Html.Attributes exposing (class, classList, id)
 import Html.Events exposing (onClick)
