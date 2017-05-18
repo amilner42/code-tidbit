@@ -2,6 +2,7 @@ module Pages.ViewSnipbit.View exposing (..)
 
 import Array
 import DefaultServices.Editable as Editable
+import DefaultServices.InfixFunctions exposing (..)
 import DefaultServices.Util as Util exposing (maybeMapWithDefault)
 import Elements.AnswerQuestion as AnswerQuestion
 import Elements.AskQuestion as AskQuestion
@@ -443,7 +444,9 @@ commentBox snipbit model shared =
 
         viewQuestionView qa tab question =
             ViewQuestion.viewQuestionView
-                { tab = tab
+                { userID = shared.user ||> .id
+                , tidbitAuthorID = qa.tidbitAuthor
+                , tab = tab
                 , question = question
                 , answers = List.filter (.questionID >> (==) question.id) qa.answers
                 , questionComments = List.filter (.questionID >> (==) question.id) qa.questionComments
@@ -517,6 +520,10 @@ commentBox snipbit model shared =
                 , onClickRemoveUpvoteAnswer = (\answer -> OnClickRemoveAnswerUpvote snipbit.id answer.id)
                 , onClickDownvoteAnswer = (\answer -> OnClickDownvoteAnswer snipbit.id answer.id)
                 , onClickRemoveDownvoteAnswer = (\answer -> OnClickRemoveAnswerDownvote snipbit.id answer.id)
+                , onClickPinQuestion = PinQuestion snipbit.id question.id
+                , onClickUnpinQuestion = UnpinQuestion snipbit.id question.id
+                , onClickPinAnswer = (\answer -> PinAnswer snipbit.id answer.id)
+                , onClickUnpinAnswer = (\answer -> UnpinAnswer snipbit.id answer.id)
                 , onClickAnswerQuestion =
                     GoTo <|
                         Route.ViewSnipbitAnswerQuestion

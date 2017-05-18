@@ -12,7 +12,9 @@ import ProjectTypeAliases exposing (..)
 {-| The full config for rendering a question view.
 -}
 type alias RenderConfig msg codePointer =
-    { tab : Tab
+    { userID : Maybe UserID
+    , tidbitAuthorID : UserID
+    , tab : Tab
     , question : Question codePointer
     , answers : List Answer
     , questionComments : List QuestionComment
@@ -32,6 +34,10 @@ type alias RenderConfig msg codePointer =
     , onClickRemoveUpvoteAnswer : Answer -> msg
     , onClickDownvoteAnswer : Answer -> msg
     , onClickRemoveDownvoteAnswer : Answer -> msg
+    , onClickPinQuestion : msg
+    , onClickUnpinQuestion : msg
+    , onClickPinAnswer : Answer -> msg
+    , onClickUnpinAnswer : Answer -> msg
     , onClickAnswerQuestion : msg
     }
 
@@ -136,6 +142,11 @@ viewQuestionView config =
                             , onClickRemoveUpvote = config.onClickRemoveUpvoteQuestion
                             , onClickDownvote = config.onClickDownvoteQuestion
                             , onClickRemoveDownvote = config.onClickRemoveDownvoteQuestion
+                            , onClickPin = config.onClickPinQuestion
+                            , onClickUnpin = config.onClickUnpinQuestion
+                            , pinned = config.question.pinned
+                            , isAuthor = config.userID == (Just config.question.authorID)
+                            , isTidbitAuthor = config.userID == (Just config.tidbitAuthorID)
                             }
                         ]
 
@@ -175,6 +186,11 @@ viewQuestionView config =
                                     , onClickRemoveUpvote = config.onClickRemoveUpvoteAnswer answer
                                     , onClickDownvote = config.onClickDownvoteAnswer answer
                                     , onClickRemoveDownvote = config.onClickRemoveDownvoteAnswer answer
+                                    , onClickPin = config.onClickPinAnswer answer
+                                    , onClickUnpin = config.onClickUnpinAnswer answer
+                                    , pinned = answer.pinned
+                                    , isAuthor = config.userID == (Just answer.authorID)
+                                    , isTidbitAuthor = config.userID == (Just config.tidbitAuthorID)
                                     }
                                 ]
 
@@ -209,6 +225,13 @@ answerBox onClickAnswer answer =
             , i [ class "material-icons dislike" ] [ text "thumb_down" ]
             , span [ class "like-count" ] [ text <| toString <| Tuple.second <| answer.upvotes ]
             , i [ class "material-icons like" ] [ text "thumb_up" ]
+            , i
+                [ classList
+                    [ ( "material-icons pinned", True )
+                    , ( "hidden", not answer.pinned )
+                    ]
+                ]
+                [ text "star" ]
             ]
         ]
 
@@ -222,6 +245,11 @@ type alias ReactiveRatingsBottomBarRenderConfig msg =
     , onClickRemoveUpvote : msg
     , onClickDownvote : msg
     , onClickRemoveDownvote : msg
+    , onClickPin : msg
+    , onClickUnpin : msg
+    , pinned : Bool
+    , isAuthor : Bool
+    , isTidbitAuthor : Bool
     }
 
 
@@ -282,4 +310,28 @@ reactiveRatingsBottomBar config =
                 , onClick onClickUpvote
                 ]
                 [ text "thumb_up" ]
+            , case ( config.isTidbitAuthor, config.pinned ) of
+                -- Is author, pinned
+                ( True, True ) ->
+                    i
+                        [ class "material-icons pin-icon"
+                        , onClick <| config.onClickUnpin
+                        ]
+                        [ text "star" ]
+
+                -- Is author, not pinned
+                ( True, False ) ->
+                    i
+                        [ class "material-icons pin-icon"
+                        , onClick <| config.onClickPin
+                        ]
+                        [ text "star_border" ]
+
+                -- Not Author, pinned
+                ( False, True ) ->
+                    i [ class "material-icons pin-icon unclickable" ] [ text "star" ]
+
+                -- Not author, not pinned
+                ( False, False ) ->
+                    Util.hiddenDiv
             ]

@@ -116,7 +116,7 @@
         height: 30px;
         width: 360px;
 
-        .like, .dislike, .like-count, .dislike-count {
+        .like, .dislike, .like-count, .dislike-count, .pin-icon {
             @include no-select();
 
             text-align: left;
@@ -138,6 +138,14 @@
 
         .like, .dislike {
             margin-right: 3px;
+        }
+
+        .pin-icon {
+            float: left;
+
+            &.unclickable {
+                cursor: default;
+            }
         }
     }
 }
@@ -170,7 +178,7 @@
         width: 100%;
         height: 20px;
 
-        .dislike-count, .like-count, .dislike, .like {
+        .dislike-count, .like-count, .dislike, .like, .pinned {
             line-height: 20px;
             color: $color4;
             float: right;
@@ -184,6 +192,10 @@
 
         .dislike-count, .like-count {
             margin-right: 5px;
+        }
+
+        .pinned {
+            margin-right: 6px;
         }
 
         .email {

@@ -86,5 +86,12 @@ questionBoxView { onClickQuestionBox } question =
                 [ i [ class "material-icons" ] [ text "thumb_up" ]
                 , text <| toString <| Tuple.second question.upvotes
                 ]
+            , div
+                [ classList
+                    [ ( "pinned", True )
+                    , ( "hidden", not question.pinned )
+                    ]
+                ]
+                [ i [ class "material-icons" ] [ text "star" ] ]
             ]
         ]

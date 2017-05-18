@@ -98,6 +98,7 @@ type alias API b =
         , removeQuestionRating : TidbitPointer.TidbitPointer -> QuestionID -> (ApiError.ApiError -> b) -> (() -> b) -> Cmd b
         , removeQuestionRatingWrapper : TidbitPointer.TidbitPointer -> QuestionID -> (ApiError.ApiError -> b) -> (QuestionID -> b) -> Cmd b
         , pinQuestion : TidbitPointer.TidbitPointer -> QuestionID -> Bool -> (ApiError.ApiError -> b) -> (() -> b) -> Cmd b
+        , pinQuestionWrapper : TidbitPointer.TidbitPointer -> QuestionID -> Bool -> (ApiError.ApiError -> b) -> (TidbitID -> QuestionID -> b) -> Cmd b
         , answerQuestion : TidbitPointer.TidbitPointer -> QuestionID -> AnswerText -> (ApiError.ApiError -> b) -> (QA.Answer -> b) -> Cmd b
         , answerQuestionWrapper : TidbitPointer.TidbitPointer -> QuestionID -> AnswerText -> (ApiError.ApiError -> b) -> (TidbitID -> QuestionID -> QA.Answer -> b) -> Cmd b
         , editAnswer : TidbitPointer.TidbitPointer -> AnswerID -> AnswerText -> (ApiError.ApiError -> b) -> (Date.Date -> b) -> Cmd b
@@ -108,6 +109,7 @@ type alias API b =
         , removeAnswerRating : TidbitPointer.TidbitPointer -> AnswerID -> (ApiError.ApiError -> b) -> (() -> b) -> Cmd b
         , removeAnswerRatingWrapper : TidbitPointer.TidbitPointer -> AnswerID -> (ApiError.ApiError -> b) -> (AnswerID -> b) -> Cmd b
         , pinAnswer : TidbitPointer.TidbitPointer -> AnswerID -> Bool -> (ApiError.ApiError -> b) -> (() -> b) -> Cmd b
+        , pinAnswerWrapper : TidbitPointer.TidbitPointer -> AnswerID -> Bool -> (ApiError.ApiError -> b) -> (TidbitID -> AnswerID -> b) -> Cmd b
         , commentOnQuestion : TidbitPointer.TidbitPointer -> QuestionID -> CommentText -> (ApiError.ApiError -> b) -> (QA.QuestionComment -> b) -> Cmd b
         , editQuestionComment : TidbitPointer.TidbitPointer -> CommentID -> CommentText -> (ApiError.ApiError -> b) -> (Date.Date -> b) -> Cmd b
         , deleteQuestionComment : TidbitPointer.TidbitPointer -> CommentID -> (ApiError.ApiError -> b) -> (() -> b) -> Cmd b
@@ -680,6 +682,24 @@ api apiBaseUrl =
                 answerID
                 handleError
                 (always <| handleSuccess answerID)
+
+        postPinQuestionWrapper : TidbitPointer.TidbitPointer -> QuestionID -> Bool -> (ApiError.ApiError -> b) -> (TidbitID -> QuestionID -> b) -> Cmd b
+        postPinQuestionWrapper tidbitPointer questionID pin handleError handleSuccess =
+            postPinQuestion
+                tidbitPointer
+                questionID
+                pin
+                handleError
+                (always <| handleSuccess tidbitPointer.targetID questionID)
+
+        postPinAnswerWrapper : TidbitPointer.TidbitPointer -> AnswerID -> Bool -> (ApiError.ApiError -> b) -> (TidbitID -> AnswerID -> b) -> Cmd b
+        postPinAnswerWrapper tidbitPointer answerID pin handleError handleSuccess =
+            postPinAnswer
+                tidbitPointer
+                answerID
+                pin
+                handleError
+                (always <| handleSuccess tidbitPointer.targetID answerID)
     in
         { get =
             { userExists = getUserExists
@@ -730,6 +750,7 @@ api apiBaseUrl =
             , removeQuestionRating = postRemoveQuestionRating
             , removeQuestionRatingWrapper = postRemoveQuestionRatingWrapper
             , pinQuestion = postPinQuestion
+            , pinQuestionWrapper = postPinQuestionWrapper
             , answerQuestion = postAnswerQuestion
             , answerQuestionWrapper = postAnswerQuestionWrapper
             , editAnswer = postEditAnswer
@@ -740,6 +761,7 @@ api apiBaseUrl =
             , removeAnswerRating = postRemoveAnswerRating
             , removeAnswerRatingWrapper = postRemoveAnswerRatingWrapper
             , pinAnswer = postPinAnswer
+            , pinAnswerWrapper = postPinAnswerWrapper
             , commentOnQuestion = postCommentOnQuestion
             , editQuestionComment = postEditQuestionComment
             , deleteQuestionComment = postDeleteQuestionComment

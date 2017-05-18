@@ -3,6 +3,7 @@ module Pages.ViewSnipbit.Update exposing (..)
 import Array
 import DefaultServices.CommonSubPageUtil exposing (CommonSubPageUtil(..), commonSubPageUtil)
 import DefaultServices.Editable as Editable
+import DefaultServices.InfixFunctions exposing (..)
 import DefaultServices.Util as Util exposing (maybeMapWithDefault)
 import Dict
 import Elements.AnswerQuestion as AnswerQuestion
@@ -1006,6 +1007,66 @@ update (Common common) msg model shared =
                 , shared
                 , Cmd.map (EditAnswerMsg snipbitID answerID question answer) newEditAnswerMsg
                 )
+
+        PinQuestion snipbitID questionID ->
+            common.justProduceCmd <|
+                common.api.post.pinQuestionWrapper
+                    { targetID = snipbitID, tidbitType = TidbitPointer.Snipbit }
+                    questionID
+                    True
+                    OnPinQuestionFailure
+                    OnPinQuestionSuccess
+
+        OnPinQuestionSuccess snipbitID questionID ->
+            common.justSetModel <| { model | qa = model.qa ||> QA.pinQuestion questionID True }
+
+        OnPinQuestionFailure apiError ->
+            common.justSetModalError apiError
+
+        UnpinQuestion snipbitID questionID ->
+            common.justProduceCmd <|
+                common.api.post.pinQuestionWrapper
+                    { targetID = snipbitID, tidbitType = TidbitPointer.Snipbit }
+                    questionID
+                    False
+                    OnUnpinQuestionFailure
+                    OnUnpinQuestionSuccess
+
+        OnUnpinQuestionSuccess snipbitID questionID ->
+            common.justSetModel <| { model | qa = model.qa ||> QA.pinQuestion questionID False }
+
+        OnUnpinQuestionFailure apiError ->
+            common.justSetModalError apiError
+
+        PinAnswer snipbitID answerID ->
+            common.justProduceCmd <|
+                common.api.post.pinAnswerWrapper
+                    { targetID = snipbitID, tidbitType = TidbitPointer.Snipbit }
+                    answerID
+                    True
+                    OnPinAnswerFailure
+                    OnPinAnswerSuccess
+
+        OnPinAnswerSuccess snipbitID answerID ->
+            common.justSetModel { model | qa = model.qa ||> QA.pinAnswer answerID True }
+
+        OnPinAnswerFailure apiError ->
+            common.justSetModalError apiError
+
+        UnpinAnswer snipbitID answerID ->
+            common.justProduceCmd <|
+                common.api.post.pinAnswerWrapper
+                    { targetID = snipbitID, tidbitType = TidbitPointer.Snipbit }
+                    answerID
+                    False
+                    OnUnpinAnswerFailure
+                    OnUnpinAnswerSuccess
+
+        OnUnpinAnswerSuccess snipbitID answerID ->
+            common.justSetModel { model | qa = model.qa ||> QA.pinAnswer answerID False }
+
+        OnUnpinAnswerFailure apiError ->
+            common.justSetModalError apiError
 
 
 {-| Creates the editor for the snipbit.

@@ -88,3 +88,15 @@ type Msg
     | EditQuestionMsg SnipbitID (Question Range) EditQuestion.Msg
     | AnswerQuestionMsg SnipbitID (Question Range) AnswerQuestion.Msg
     | EditAnswerMsg SnipbitID AnswerID (Question Range) Answer EditAnswer.Msg
+    | PinQuestion SnipbitID QuestionID
+    | OnPinQuestionSuccess SnipbitID QuestionID
+    | OnPinQuestionFailure ApiError
+    | UnpinQuestion SnipbitID QuestionID
+    | OnUnpinQuestionSuccess SnipbitID QuestionID
+    | OnUnpinQuestionFailure ApiError
+    | PinAnswer SnipbitID AnswerID
+    | OnPinAnswerSuccess SnipbitID AnswerID
+    | OnPinAnswerFailure ApiError
+    | UnpinAnswer SnipbitID AnswerID
+    | OnUnpinAnswerSuccess SnipbitID AnswerID
+    | OnUnpinAnswerFailure ApiError

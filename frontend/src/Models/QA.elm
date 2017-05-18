@@ -315,11 +315,15 @@ rateQuestion questionID vote =
     let
         updateQuestionUpvotesAndDownvotesForQA qa =
             updateQuestion questionID (updateVotes vote) qa
-
-        sortQuestionsForQA qa =
-            { qa | questions = sortRateableContent qa.questions }
     in
-        updateQuestionUpvotesAndDownvotesForQA >> sortQuestionsForQA
+        updateQuestionUpvotesAndDownvotesForQA >> sortQuestions
+
+
+{-| Sorts the questions on a QA.
+-}
+sortQuestions : QA codePointer -> QA codePointer
+sortQuestions qa =
+    { qa | questions = sortRateableContent qa.questions }
 
 
 {-| Updates a [published] answer, handles:
@@ -335,11 +339,41 @@ rateAnswer answerID vote =
     let
         updateAnswerUpvotesAndDownvotesForQA qa =
             updateAnswer answerID (updateVotes vote) qa
-
-        sortAnswersForQA qa =
-            { qa | answers = sortRateableContent qa.answers }
     in
-        updateAnswerUpvotesAndDownvotesForQA >> sortAnswersForQA
+        updateAnswerUpvotesAndDownvotesForQA >> sortAnswers
+
+
+{-| Sorts the answers on a QA.
+-}
+sortAnswers : QA codePointer -> QA codePointer
+sortAnswers qa =
+    { qa | answers = sortRateableContent qa.answers }
+
+
+{-| Updates a [published] question, handles:
+    - Pinning/unpinning question
+    - Resorting questions
+-}
+pinQuestion : QuestionID -> Bool -> QA codePointer -> QA codePointer
+pinQuestion questionID isPinned =
+    let
+        updatePin =
+            updateQuestion questionID (\question -> { question | pinned = isPinned })
+    in
+        updatePin >> sortQuestions
+
+
+{-| Updates a [published] answer, handles:
+    - Pinning/unpinning answer
+    - Resorting answers
+-}
+pinAnswer : AnswerID -> Bool -> QA codePointer -> QA codePointer
+pinAnswer answerID isPinned =
+    let
+        updatePin =
+            updateAnswer answerID (\answer -> { answer | pinned = isPinned })
+    in
+        updatePin >> sortAnswers
 
 
 {-| Updates a [published] answer in the QA.
