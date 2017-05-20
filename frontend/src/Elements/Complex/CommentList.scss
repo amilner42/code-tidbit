@@ -1,0 +1,12 @@
+@import '../../Styles/variables';
+
+
+.comment-list {
+    .new-comment-textarea {
+        position: absolute;
+        box-sizing: border-box;
+        bottom: 0;
+        height: 100px !important;
+        width: 360px !important;
+    }
+}

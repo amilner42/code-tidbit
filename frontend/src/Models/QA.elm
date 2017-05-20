@@ -2,9 +2,12 @@ module Models.QA exposing (..)
 
 import Date
 import DefaultServices.Editable as Editable
+import DefaultServices.InfixFunctions exposing (..)
 import DefaultServices.Sort as Sort
+import DefaultServices.Util as Util
 import Dict
 import Elements.Simple.FileStructure as FS
+import List.Extra
 import Models.Range as Range
 import Models.Vote as Vote
 import ProjectTypeAliases exposing (..)
@@ -76,6 +79,20 @@ type alias Answer =
     , pinned : Bool
     , lastModified : Date.Date
     , createdAt : Date.Date
+    }
+
+
+{-| Comments should contain these fields.
+-}
+type alias Comment additional =
+    { additional
+        | id : String
+        , questionID : String
+        , commentText : String
+        , authorID : String
+        , authorEmail : String
+        , lastModified : Date.Date
+        , createdAt : Date.Date
     }
 
 
@@ -276,6 +293,43 @@ getBrowseCodePointer : TidbitID -> QAState codePointer -> Maybe codePointer
 getBrowseCodePointer tidbitID qaState =
     Dict.get tidbitID qaState
         |> Maybe.andThen .browsingCodePointer
+
+
+{-| Get's the `questionCommentEdits` for a given tidbit from the `qaState` (or an empty dictionary).
+-}
+getQuestionCommentEdits : TidbitID -> QAState codePointer -> Dict.Dict CommentID (Editable.Editable CommentText)
+getQuestionCommentEdits tidbitID qaState =
+    Dict.get tidbitID qaState
+        ||> .questionCommentEdits
+        ?> Dict.empty
+
+
+{-| Get's the `answerCommentEdits` for a given tidbit from the `qaState` (or an empty dictionary).
+-}
+getAnswerCommentEdits : TidbitID -> QAState codePointer -> Dict.Dict CommentID (Editable.Editable CommentText)
+getAnswerCommentEdits tidbitID qaState =
+    Dict.get tidbitID qaState
+        ||> .answerCommentEdits
+        ?> Dict.empty
+
+
+{-| Get's the new question comment for a question if it exists, otherwise returns an empty string.
+-}
+getNewQuestionComment : TidbitID -> QuestionID -> QAState codePointer -> CommentText
+getNewQuestionComment tidbitID questionID qaState =
+    Dict.get tidbitID qaState
+        ||> .newQuestionComments
+        |||> Dict.get questionID
+        ?> ""
+
+
+{-| Get's all the `newAnswerComments` for a given tidbit (or an empty dictionary).
+-}
+getNewAnswerComments : TidbitID -> QAState codePointer -> Dict.Dict AnswerID CommentText
+getNewAnswerComments tidbitID qaState =
+    Dict.get tidbitID qaState
+        ||> .newAnswerComments
+        ?> Dict.empty
 
 
 {-| BrowseCodePointer setter, handles setting default tidbitQAState if needed.
@@ -492,10 +546,58 @@ updateAnswerEdit snipbitID answerID answerEditUpdater =
         )
 
 
+{-| Sets the `questionCommentEdits` on a `qaState`, handles setting default if no `tidbitQAState` exists.
+-}
+setQuestionCommentEdits :
+    TidbitID
+    -> Dict.Dict CommentID (Editable.Editable CommentText)
+    -> QAState codePointer
+    -> QAState codePointer
+setQuestionCommentEdits tidbitID questionCommentEdits =
+    setTidbitQAState
+        tidbitID
+        (\tidbitQAState -> { tidbitQAState | questionCommentEdits = questionCommentEdits })
+
+
+{-| Sets the `answerCommentEdits` on a `qaState`, handles setting default if no `tidbitQAState` exists.
+-}
+setAnswerCommentEdits :
+    TidbitID
+    -> Dict.Dict CommentID (Editable.Editable CommentText)
+    -> QAState codePointer
+    -> QAState codePointer
+setAnswerCommentEdits tidbitID answerCommentEdits =
+    setTidbitQAState
+        tidbitID
+        (\tidbitQAState -> { tidbitQAState | answerCommentEdits = answerCommentEdits })
+
+
+{-| Sets the `newAnswerComments` on a `qaState`, handles setting default if not `tidbitQAState` exists.
+-}
+setNewAnswerComments : TidbitID -> Dict.Dict CommentID CommentText -> QAState codePointer -> QAState codePointer
+setNewAnswerComments tidbitID newAnswerComments =
+    setTidbitQAState
+        tidbitID
+        (\tidbitQAState -> { tidbitQAState | newAnswerComments = newAnswerComments })
+
+
+{-| Set's a single `newQuestionComment`, handles setting default if no `tidbitQAState` exists.
+-}
+setNewQuestionComment : TidbitID -> QuestionID -> CommentText -> QAState codePointer -> QAState codePointer
+setNewQuestionComment tidbitID questionID commentText =
+    setTidbitQAState
+        tidbitID
+        (\tidbitQAState ->
+            { tidbitQAState
+                | newQuestionComments = Dict.insert questionID commentText tidbitQAState.newQuestionComments
+            }
+        )
+
+
 {-| Helper for creating setters which automatically handle the `tidbitQAState` being missing (use default).
 -}
 setTidbitQAState :
-    SnipbitID
+    TidbitID
     -> (TidbitQAState codePointer -> TidbitQAState codePointer)
     -> QAState codePointer
     -> QAState codePointer

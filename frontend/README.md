@@ -120,3 +120,6 @@ in mind outside of elm-format to make your code as clear as possible.
   - getX
   - onGetXSuccess
   - onGetXFailure
+1. Extensible records can be used for type annotations, but you shouldn't use extensible records to define new types
+   because the default constructors won't be generated. Better to just manually write the types but still have the
+   extensible type for when it is needed in type annotations *to avoid losing type information*.

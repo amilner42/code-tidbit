@@ -1,6 +1,10 @@
-module Elements.Simple.ViewQuestion exposing (..)
+module Elements.Complex.ViewQuestion exposing (..)
 
+import DefaultServices.Editable as Editable
+import DefaultServices.InfixFunctions exposing (..)
 import DefaultServices.Util as Util
+import Dict
+import Elements.Complex.CommentList as CommentList
 import Elements.Simple.Markdown as Markdown
 import Html exposing (Html, div, span, text, button, i)
 import Html.Attributes exposing (class, classList)
@@ -9,8 +13,22 @@ import Models.QA exposing (..)
 import ProjectTypeAliases exposing (..)
 
 
+type Msg
+    = QuestionCommentListMsg CommentList.Msg
+    | AnswerCommentListMsg AnswerID CommentList.Msg
+
+
+type alias Model =
+    { questionCommentEdits : Dict.Dict CommentID (Editable.Editable CommentText)
+    , newQuestionComment : CommentText
+    , answerCommentEdits : Dict.Dict CommentID (Editable.Editable CommentText)
+    , newAnswerComments : Dict.Dict AnswerID CommentText
+    }
+
+
 type alias RenderConfig msg codePointer =
-    { userID : Maybe UserID
+    { msgTagger : Msg -> msg
+    , userID : Maybe UserID
     , tidbitAuthorID : UserID
     , tab : Tab
     , question : Question codePointer
@@ -42,8 +60,8 @@ type alias RenderConfig msg codePointer =
     }
 
 
-view : RenderConfig msg codePointer -> Html msg
-view config =
+view : RenderConfig msg codePointer -> Model -> Html msg
+view config model =
     let
         extendedTopBar isAnswerTab answer =
             div
@@ -116,8 +134,14 @@ view config =
                         ]
 
                 QuestionCommentsTab maybeCommentID ->
-                    -- TODO
-                    Util.hiddenDiv
+                    CommentList.view
+                        { msgTagger = config.msgTagger << QuestionCommentListMsg
+                        , comments = config.questionComments
+                        , commentBoxRenderConfig = { onClickComment = config.onClickQuestionComment }
+                        }
+                        { commentEdits = model.questionCommentEdits
+                        , newCommentText = model.newQuestionComment
+                        }
 
                 AnswersTab ->
                     div
@@ -168,11 +192,59 @@ view config =
                         Just answer ->
                             div
                                 [ class "answer-comments-tab" ]
-                                [ extendedTopBar False answer ]
+                                [ extendedTopBar False answer
+                                , CommentList.view
+                                    { msgTagger = config.msgTagger << (AnswerCommentListMsg answerID)
+                                    , comments = config.answerComments
+                                    , commentBoxRenderConfig = { onClickComment = config.onClickAnswerComment }
+                                    }
+                                    { commentEdits = model.answerCommentEdits
+                                    , newCommentText = "" <? Dict.get answerID model.newAnswerComments
+                                    }
+                                ]
 
                         Nothing ->
                             Util.hiddenDiv
             ]
+
+
+update : Msg -> Model -> ( Model, Cmd Msg )
+update msg model =
+    case msg of
+        QuestionCommentListMsg commentListMsg ->
+            let
+                commentListModel =
+                    { commentEdits = model.questionCommentEdits
+                    , newCommentText = model.newQuestionComment
+                    }
+
+                ( newCommentListModel, newCommentListMsg ) =
+                    CommentList.update commentListMsg commentListModel
+            in
+                ( { model
+                    | questionCommentEdits = newCommentListModel.commentEdits
+                    , newQuestionComment = newCommentListModel.newCommentText
+                  }
+                , Cmd.map QuestionCommentListMsg newCommentListMsg
+                )
+
+        AnswerCommentListMsg answerID commentListMsg ->
+            let
+                commentListModel =
+                    { commentEdits = model.answerCommentEdits
+                    , newCommentText = "" <? Dict.get answerID model.newAnswerComments
+                    }
+
+                ( newCommentListModel, newCommentListMsg ) =
+                    CommentList.update commentListMsg commentListModel
+            in
+                ( { model
+                    | answerCommentEdits = newCommentListModel.commentEdits
+                    , newAnswerComments =
+                        Dict.insert answerID newCommentListModel.newCommentText model.newAnswerComments
+                  }
+                , Cmd.map (AnswerCommentListMsg answerID) newCommentListMsg
+                )
 
 
 answerBoxView : (Answer -> msg) -> Answer -> Html msg

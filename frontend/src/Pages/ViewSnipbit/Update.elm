@@ -10,6 +10,7 @@ import Elements.Complex.AnswerQuestion as AnswerQuestion
 import Elements.Complex.AskQuestion as AskQuestion
 import Elements.Complex.EditAnswer as EditAnswer
 import Elements.Complex.EditQuestion as EditQuestion
+import Elements.Complex.ViewQuestion as ViewQuestion
 import Elements.Simple.Editor as Editor
 import Models.Completed as Completed
 import Models.ContentPointer as ContentPointer
@@ -1067,6 +1068,30 @@ update (Common common) msg model shared =
 
         OnUnpinAnswerFailure apiError ->
             common.justSetModalError apiError
+
+        ViewQuestionMsg snipbitID questionID viewQuestionMsg ->
+            let
+                viewQuestionModel =
+                    { questionCommentEdits = QA.getQuestionCommentEdits snipbitID model.qaState
+                    , newQuestionComment = QA.getNewQuestionComment snipbitID questionID model.qaState
+                    , answerCommentEdits = QA.getAnswerCommentEdits snipbitID model.qaState
+                    , newAnswerComments = QA.getNewAnswerComments snipbitID model.qaState
+                    }
+
+                ( newViewQuestionModel, newViewQuestionMsg ) =
+                    ViewQuestion.update viewQuestionMsg viewQuestionModel
+            in
+                ( { model
+                    | qaState =
+                        model.qaState
+                            |> QA.setQuestionCommentEdits snipbitID newViewQuestionModel.questionCommentEdits
+                            |> QA.setNewQuestionComment snipbitID questionID newViewQuestionModel.newQuestionComment
+                            |> QA.setAnswerCommentEdits snipbitID newViewQuestionModel.answerCommentEdits
+                            |> QA.setNewAnswerComments snipbitID newViewQuestionModel.newAnswerComments
+                  }
+                , shared
+                , Cmd.map (ViewQuestionMsg snipbitID questionID) newViewQuestionMsg
+                )
 
 
 {-| Creates the editor for the snipbit.

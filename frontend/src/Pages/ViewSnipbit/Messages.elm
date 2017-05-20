@@ -5,6 +5,7 @@ import Elements.Complex.AnswerQuestion as AnswerQuestion
 import Elements.Complex.AskQuestion as AskQuestion
 import Elements.Complex.EditAnswer as EditAnswer
 import Elements.Complex.EditQuestion as EditQuestion
+import Elements.Complex.ViewQuestion as ViewQuestion
 import Models.ApiError exposing (ApiError)
 import Models.Completed exposing (Completed, IsCompleted)
 import Models.Opinion exposing (Opinion, PossibleOpinion)
@@ -100,3 +101,4 @@ type Msg
     | UnpinAnswer SnipbitID AnswerID
     | OnUnpinAnswerSuccess SnipbitID AnswerID
     | OnUnpinAnswerFailure ApiError
+    | ViewQuestionMsg SnipbitID QuestionID ViewQuestion.Msg

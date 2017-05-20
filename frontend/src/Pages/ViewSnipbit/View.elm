@@ -4,15 +4,16 @@ import Array
 import DefaultServices.Editable as Editable
 import DefaultServices.InfixFunctions exposing (..)
 import DefaultServices.Util as Util exposing (maybeMapWithDefault)
+import Dict
 import Elements.Complex.AnswerQuestion as AnswerQuestion
 import Elements.Complex.AskQuestion as AskQuestion
 import Elements.Complex.EditAnswer as EditAnswer
 import Elements.Complex.EditQuestion as EditQuestion
+import Elements.Complex.ViewQuestion as ViewQuestion
 import Elements.Simple.Editor as Editor
 import Elements.Simple.Markdown as Markdown
 import Elements.Simple.ProgressBar as ProgressBar exposing (TextFormat(Custom), State(..))
 import Elements.Simple.QuestionList as QuestionList
-import Elements.Simple.ViewQuestion as ViewQuestion
 import Html exposing (Html, div, text, button, i, textarea)
 import Html.Attributes exposing (class, classList, disabled, hidden, id, placeholder, value)
 import Html.Events exposing (onClick, onInput)
@@ -442,9 +443,10 @@ commentBox snipbit model shared =
                                     )
                                 ]
 
-        viewQuestionView qa tab question =
+        viewQuestionView qa qaState tab question =
             ViewQuestion.view
-                { userID = shared.user ||> .id
+                { msgTagger = ViewQuestionMsg snipbit.id question.id
+                , userID = shared.user ||> .id
                 , tidbitAuthorID = qa.tidbitAuthor
                 , tab = tab
                 , question = question
@@ -543,6 +545,11 @@ commentBox snipbit model shared =
                             snipbit.id
                         << .id
                 }
+                { questionCommentEdits = QA.getQuestionCommentEdits snipbit.id qaState
+                , newQuestionComment = QA.getNewQuestionComment snipbit.id question.id qaState
+                , answerCommentEdits = QA.getAnswerCommentEdits snipbit.id qaState
+                , newAnswerComments = QA.getNewAnswerComments snipbit.id qaState
+                }
     in
         case shared.route of
             Route.ViewSnipbitIntroductionPage _ _ ->
@@ -601,7 +608,7 @@ commentBox snipbit model shared =
                     Just qa ->
                         case QA.getQuestionByID questionID qa.questions of
                             Just question ->
-                                viewQuestionView qa ViewQuestion.QuestionTab question
+                                viewQuestionView qa model.qaState ViewQuestion.QuestionTab question
 
                             Nothing ->
                                 Util.hiddenDiv
@@ -614,7 +621,7 @@ commentBox snipbit model shared =
                     Just qa ->
                         case QA.getQuestionByID questionID qa.questions of
                             Just question ->
-                                viewQuestionView qa ViewQuestion.AnswersTab question
+                                viewQuestionView qa model.qaState ViewQuestion.AnswersTab question
 
                             Nothing ->
                                 Util.hiddenDiv
@@ -627,7 +634,7 @@ commentBox snipbit model shared =
                     Just qa ->
                         case QA.getQuestionByAnswerID snipbitID answerID qa of
                             Just question ->
-                                viewQuestionView qa (ViewQuestion.AnswerTab answerID) question
+                                viewQuestionView qa model.qaState (ViewQuestion.AnswerTab answerID) question
 
                             Nothing ->
                                 Util.hiddenDiv
@@ -640,7 +647,7 @@ commentBox snipbit model shared =
                     Just qa ->
                         case QA.getQuestionByID questionID qa.questions of
                             Just question ->
-                                viewQuestionView qa (ViewQuestion.QuestionCommentsTab maybeCommentID) question
+                                viewQuestionView qa model.qaState (ViewQuestion.QuestionCommentsTab maybeCommentID) question
 
                             Nothing ->
                                 Util.hiddenDiv
@@ -653,7 +660,7 @@ commentBox snipbit model shared =
                     Just qa ->
                         case QA.getQuestionByAnswerID snipbitID answerID qa of
                             Just question ->
-                                viewQuestionView qa (ViewQuestion.AnswerCommentsTab answerID maybeCommentID) question
+                                viewQuestionView qa model.qaState (ViewQuestion.AnswerCommentsTab answerID maybeCommentID) question
 
                             Nothing ->
                                 Util.hiddenDiv
