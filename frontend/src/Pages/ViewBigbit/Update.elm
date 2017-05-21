@@ -80,10 +80,10 @@ update (Common common) msg model shared =
                                 getBigbitIsCompleted userID =
                                     ( setIsCompleted Nothing model
                                     , shared
-                                    , common.api.post.checkCompletedWrapper
+                                    , common.api.post.checkCompleted
                                         (Completed.Completed currentTidbitPointer userID)
                                         OnGetCompletedFailure
-                                        OnGetCompletedSuccess
+                                        (OnGetCompletedSuccess << Completed.IsCompleted currentTidbitPointer)
                                     )
                             in
                                 case ( shared.user, model.isCompleted ) of
@@ -109,10 +109,10 @@ update (Common common) msg model shared =
                                 getOpinion =
                                     ( { model | possibleOpinion = Nothing }
                                     , shared
-                                    , common.api.get.opinionWrapper
+                                    , common.api.get.opinion
                                         contentPointer
                                         OnGetOpinionFailure
-                                        OnGetOpinionSuccess
+                                        (OnGetOpinionSuccess << (Opinion.PossibleOpinion contentPointer))
                                     )
                             in
                                 case ( shared.user, model.possibleOpinion ) of
@@ -176,10 +176,13 @@ update (Common common) msg model shared =
                                                 Completed.completedFromIsCompleted isCompleted user.id
                                         in
                                             if isCompleted.complete == False then
-                                                common.api.post.addCompletedWrapper
+                                                common.api.post.addCompleted
                                                     completed
                                                     OnMarkAsCompleteFailure
-                                                    OnMarkAsCompleteSuccess
+                                                    (always <|
+                                                        OnMarkAsCompleteSuccess <|
+                                                            Completed.IsCompleted completed.tidbitPointer True
+                                                    )
                                             else
                                                 Cmd.none
 
@@ -246,7 +249,7 @@ update (Common common) msg model shared =
 
         AddOpinion opinion ->
             common.justProduceCmd <|
-                common.api.post.addOpinionWrapper opinion OnAddOpinionFailure OnAddOpinionSuccess
+                common.api.post.addOpinion opinion OnAddOpinionFailure (always <| OnAddOpinionSuccess opinion)
 
         OnAddOpinionSuccess opinion ->
             common.justSetModel { model | possibleOpinion = Just (Opinion.toPossibleOpinion opinion) }
@@ -256,7 +259,7 @@ update (Common common) msg model shared =
 
         RemoveOpinion opinion ->
             common.justProduceCmd <|
-                common.api.post.removeOpinionWrapper opinion OnRemoveOpinionFailure OnRemoveOpinionSuccess
+                common.api.post.removeOpinion opinion OnRemoveOpinionFailure (always <| OnRemoveOpinionSuccess opinion)
 
         {- Currently it doesn't matter what opinion we removed because you can only have 1, but it may change in the
            future where we have multiple opinions, then use the `opinion` to figure out which to remove.

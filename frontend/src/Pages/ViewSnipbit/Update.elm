@@ -107,10 +107,10 @@ update (Common common) msg model shared =
                                 getSnipbitIsCompleted userID =
                                     ( setViewingSnipbitIsCompleted Nothing model
                                     , shared
-                                    , common.api.post.checkCompletedWrapper
+                                    , common.api.post.checkCompleted
                                         (Completed.Completed currentTidbitPointer userID)
                                         OnGetCompletedFailure
-                                        OnGetCompletedSuccess
+                                        (OnGetCompletedSuccess << Completed.IsCompleted currentTidbitPointer)
                                     )
                             in
                                 case ( shared.user, model.isCompleted ) of
@@ -136,10 +136,10 @@ update (Common common) msg model shared =
                                 getOpinion =
                                     ( { model | possibleOpinion = Nothing }
                                     , shared
-                                    , common.api.get.opinionWrapper
+                                    , common.api.get.opinion
                                         contentPointer
                                         OnGetOpinionFailure
-                                        OnGetOpinionSuccess
+                                        (OnGetOpinionSuccess << (Opinion.PossibleOpinion contentPointer))
                                     )
                             in
                                 case ( shared.user, model.possibleOpinion ) of
@@ -258,10 +258,13 @@ update (Common common) msg model shared =
                                                         user.id
                                             in
                                                 if isCompleted.complete == False then
-                                                    common.api.post.addCompletedWrapper
+                                                    common.api.post.addCompleted
                                                         completed
                                                         OnMarkAsCompleteFailure
-                                                        OnMarkAsCompleteSuccess
+                                                        (always <|
+                                                            OnMarkAsCompleteSuccess <|
+                                                                (Completed.IsCompleted completed.tidbitPointer True)
+                                                        )
                                                 else
                                                     Cmd.none
 
@@ -393,7 +396,7 @@ update (Common common) msg model shared =
 
         AddOpinion opinion ->
             common.justProduceCmd <|
-                common.api.post.addOpinionWrapper opinion OnAddOpinionFailure OnAddOpinionSuccess
+                common.api.post.addOpinion opinion OnAddOpinionFailure (always <| OnAddOpinionSuccess opinion)
 
         OnAddOpinionSuccess opinion ->
             common.justSetModel { model | possibleOpinion = Just (Opinion.toPossibleOpinion opinion) }
@@ -403,7 +406,7 @@ update (Common common) msg model shared =
 
         RemoveOpinion opinion ->
             common.justProduceCmd <|
-                common.api.post.removeOpinionWrapper opinion OnRemoveOpinionFailure OnRemoveOpinionSuccess
+                common.api.post.removeOpinion opinion OnRemoveOpinionFailure (always <| OnRemoveOpinionSuccess opinion)
 
         {- Currently it doesn't matter what opinion we removed because you can only have 1, but it may change in the
            future where we have multiple opinions, then use the `opinion` to figure out which to remove.
@@ -669,12 +672,12 @@ update (Common common) msg model shared =
 
         AskQuestion snipbitID codePointer questionText ->
             common.justProduceCmd <|
-                common.api.post.askQuestionOnSnipbitWrapper
+                common.api.post.askQuestionOnSnipbit
                     snipbitID
                     questionText
                     codePointer
                     OnAskQuestionFailure
-                    OnAskQuestionSuccess
+                    (OnAskQuestionSuccess snipbitID)
 
         OnAskQuestionSuccess snipbitID question ->
             case model.qa of
@@ -704,13 +707,13 @@ update (Common common) msg model shared =
 
         EditQuestion snipbitID questionID questionText range ->
             common.justProduceCmd <|
-                common.api.post.editQuestionOnSnipbitWrapper
+                common.api.post.editQuestionOnSnipbit
                     snipbitID
                     questionID
                     questionText
                     range
                     OnEditQuestionFailure
-                    OnEditQuestionSuccess
+                    (OnEditQuestionSuccess snipbitID questionID questionText range)
 
         OnEditQuestionSuccess snipbitID questionID questionText range date ->
             ( { model
@@ -742,12 +745,12 @@ update (Common common) msg model shared =
 
         AnswerQuestion snipbitID questionID answerText ->
             common.justProduceCmd <|
-                common.api.post.answerQuestionWrapper
+                common.api.post.answerQuestion
                     { tidbitType = TidbitPointer.Snipbit, targetID = snipbitID }
                     questionID
                     answerText
                     OnAnswerFailure
-                    OnAnswerQuestionSuccess
+                    (OnAnswerQuestionSuccess snipbitID questionID)
 
         OnAnswerQuestionSuccess snipbitID questionID answer ->
             ( { model
@@ -771,13 +774,12 @@ update (Common common) msg model shared =
 
         EditAnswer snipbitID questionID answerID answerText ->
             common.justProduceCmd <|
-                common.api.post.editAnswerWrapper
+                common.api.post.editAnswer
                     { tidbitType = TidbitPointer.Snipbit, targetID = snipbitID }
-                    questionID
                     answerID
                     answerText
                     OnEditAnswerFailure
-                    OnEditAnswerSuccess
+                    (OnEditAnswerSuccess snipbitID questionID answerID answerText)
 
         OnEditAnswerSuccess snipbitID questionID answerID answerText date ->
             ( { model
@@ -810,37 +812,37 @@ update (Common common) msg model shared =
 
         OnClickUpvoteQuestion snipbitID questionID ->
             common.justProduceCmd <|
-                common.api.post.rateQuestionWrapper
+                common.api.post.rateQuestion
                     { tidbitType = TidbitPointer.Snipbit, targetID = snipbitID }
                     questionID
                     Vote.Upvote
                     OnUpvoteQuestionFailure
-                    OnUpvoteQuestionSuccess
+                    (always <| OnUpvoteQuestionSuccess questionID)
 
         OnClickRemoveQuestionUpvote snipbitID questionID ->
             common.justProduceCmd <|
-                common.api.post.removeQuestionRatingWrapper
+                common.api.post.removeQuestionRating
                     { tidbitType = TidbitPointer.Snipbit, targetID = snipbitID }
                     questionID
                     OnRemoveQuestionUpvoteFailure
-                    OnRemoveQuestionUpvoteSuccess
+                    (always <| OnRemoveQuestionUpvoteSuccess questionID)
 
         OnClickDownvoteQuestion snipbitID questionID ->
             common.justProduceCmd <|
-                common.api.post.rateQuestionWrapper
+                common.api.post.rateQuestion
                     { tidbitType = TidbitPointer.Snipbit, targetID = snipbitID }
                     questionID
                     Vote.Downvote
                     OnDownvoteQuestionFailure
-                    OnDownvoteQuestionSuccess
+                    (always <| OnDownvoteQuestionSuccess questionID)
 
         OnClickRemoveQuestionDownvote snipbitID questionID ->
             common.justProduceCmd <|
-                common.api.post.removeQuestionRatingWrapper
+                common.api.post.removeQuestionRating
                     { tidbitType = TidbitPointer.Snipbit, targetID = snipbitID }
                     questionID
                     OnRemoveQuestionDownvoteFailure
-                    OnRemoveQuestionDownvoteSuccess
+                    (always <| OnRemoveQuestionDownvoteSuccess questionID)
 
         OnUpvoteQuestionSuccess questionID ->
             common.justSetModel { model | qa = Maybe.map (QA.rateQuestion questionID <| Just Vote.Upvote) model.qa }
@@ -868,37 +870,37 @@ update (Common common) msg model shared =
 
         OnClickUpvoteAnswer snipbitID answerID ->
             common.justProduceCmd <|
-                common.api.post.rateAnswerWrapper
+                common.api.post.rateAnswer
                     { tidbitType = TidbitPointer.Snipbit, targetID = snipbitID }
                     answerID
                     Vote.Upvote
                     OnUpvoteAnswerFailure
-                    OnUpvoteAnswerSuccess
+                    (always <| OnUpvoteAnswerSuccess answerID)
 
         OnClickRemoveAnswerUpvote snipbitID answerID ->
             common.justProduceCmd <|
-                common.api.post.removeAnswerRatingWrapper
+                common.api.post.removeAnswerRating
                     { tidbitType = TidbitPointer.Snipbit, targetID = snipbitID }
                     answerID
                     OnRemoveAnswerUpvoteFailure
-                    OnRemoveAnswerUpvoteSuccess
+                    (always <| OnRemoveAnswerUpvoteSuccess answerID)
 
         OnClickDownvoteAnswer snipbitID answerID ->
             common.justProduceCmd <|
-                common.api.post.rateAnswerWrapper
+                common.api.post.rateAnswer
                     { tidbitType = TidbitPointer.Snipbit, targetID = snipbitID }
                     answerID
                     Vote.Downvote
                     OnDownvoteAnswerFailure
-                    OnDownvoteAnswerSuccess
+                    (always <| OnDownvoteAnswerSuccess answerID)
 
         OnClickRemoveAnswerDownvote snipbitID answerID ->
             common.justProduceCmd <|
-                common.api.post.removeAnswerRatingWrapper
+                common.api.post.removeAnswerRating
                     { tidbitType = TidbitPointer.Snipbit, targetID = snipbitID }
                     answerID
                     OnRemoveAnswerDownvoteFailure
-                    OnRemoveAnswerDownvoteSuccess
+                    (always <| OnRemoveAnswerDownvoteSuccess answerID)
 
         OnUpvoteAnswerSuccess answerID ->
             common.justSetModel { model | qa = Maybe.map (QA.rateAnswer answerID <| Just Vote.Upvote) model.qa }
@@ -1011,12 +1013,12 @@ update (Common common) msg model shared =
 
         PinQuestion snipbitID questionID ->
             common.justProduceCmd <|
-                common.api.post.pinQuestionWrapper
+                common.api.post.pinQuestion
                     { targetID = snipbitID, tidbitType = TidbitPointer.Snipbit }
                     questionID
                     True
                     OnPinQuestionFailure
-                    OnPinQuestionSuccess
+                    (always <| OnPinQuestionSuccess snipbitID questionID)
 
         OnPinQuestionSuccess snipbitID questionID ->
             common.justSetModel <| { model | qa = model.qa ||> QA.pinQuestion questionID True }
@@ -1026,12 +1028,12 @@ update (Common common) msg model shared =
 
         UnpinQuestion snipbitID questionID ->
             common.justProduceCmd <|
-                common.api.post.pinQuestionWrapper
+                common.api.post.pinQuestion
                     { targetID = snipbitID, tidbitType = TidbitPointer.Snipbit }
                     questionID
                     False
                     OnUnpinQuestionFailure
-                    OnUnpinQuestionSuccess
+                    (always <| OnUnpinQuestionSuccess snipbitID questionID)
 
         OnUnpinQuestionSuccess snipbitID questionID ->
             common.justSetModel <| { model | qa = model.qa ||> QA.pinQuestion questionID False }
@@ -1041,12 +1043,12 @@ update (Common common) msg model shared =
 
         PinAnswer snipbitID answerID ->
             common.justProduceCmd <|
-                common.api.post.pinAnswerWrapper
+                common.api.post.pinAnswer
                     { targetID = snipbitID, tidbitType = TidbitPointer.Snipbit }
                     answerID
                     True
                     OnPinAnswerFailure
-                    OnPinAnswerSuccess
+                    (always <| OnPinAnswerSuccess snipbitID answerID)
 
         OnPinAnswerSuccess snipbitID answerID ->
             common.justSetModel { model | qa = model.qa ||> QA.pinAnswer answerID True }
@@ -1056,12 +1058,12 @@ update (Common common) msg model shared =
 
         UnpinAnswer snipbitID answerID ->
             common.justProduceCmd <|
-                common.api.post.pinAnswerWrapper
+                common.api.post.pinAnswer
                     { targetID = snipbitID, tidbitType = TidbitPointer.Snipbit }
                     answerID
                     False
                     OnUnpinAnswerFailure
-                    OnUnpinAnswerSuccess
+                    (always <| OnUnpinAnswerSuccess snipbitID answerID)
 
         OnUnpinAnswerSuccess snipbitID answerID ->
             common.justSetModel { model | qa = model.qa ||> QA.pinAnswer answerID False }

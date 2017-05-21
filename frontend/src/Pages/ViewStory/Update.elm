@@ -3,7 +3,7 @@ module Pages.ViewStory.Update exposing (..)
 import Api
 import DefaultServices.CommonSubPageUtil exposing (CommonSubPageUtil(..), commonSubPageUtil)
 import Models.ContentPointer as ContentPointer
-import Models.Opinion exposing (toPossibleOpinion)
+import Models.Opinion exposing (toPossibleOpinion, PossibleOpinion)
 import Models.Route as Route
 import Pages.Model exposing (Shared)
 import Pages.ViewStory.Messages exposing (..)
@@ -54,10 +54,10 @@ update (Common common) msg model shared =
                                 getOpinion =
                                     ( { model | possibleOpinion = Nothing }
                                     , shared
-                                    , common.api.get.opinionWrapper
+                                    , common.api.get.opinion
                                         contentPointer
                                         OnGetOpinionFailure
-                                        OnGetOpinionSuccess
+                                        (OnGetOpinionSuccess << PossibleOpinion contentPointer)
                                     )
                             in
                                 case ( shared.user, model.possibleOpinion ) of
@@ -95,7 +95,7 @@ update (Common common) msg model shared =
 
         AddOpinion opinion ->
             common.justProduceCmd <|
-                common.api.post.addOpinionWrapper opinion OnAddOpinionFailure OnAddOpinionSuccess
+                common.api.post.addOpinion opinion OnAddOpinionFailure (always <| OnAddOpinionSuccess opinion)
 
         OnAddOpinionSuccess opinion ->
             common.justSetModel { model | possibleOpinion = Just <| toPossibleOpinion opinion }
@@ -105,7 +105,7 @@ update (Common common) msg model shared =
 
         RemoveOpinion opinion ->
             common.justProduceCmd <|
-                common.api.post.removeOpinionWrapper opinion OnRemoveOpinionFailure OnRemoveOpinionSuccess
+                common.api.post.removeOpinion opinion OnRemoveOpinionFailure (always <| OnRemoveOpinionSuccess opinion)
 
         OnRemoveOpinionSuccess { contentPointer } ->
             common.justSetModel

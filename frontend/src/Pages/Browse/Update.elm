@@ -167,10 +167,10 @@ update ((Common common) as commonUtil) msg model shared =
                         common.doNothing
                     else
                         common.justProduceCmd <|
-                            common.api.get.userExistsWrapper
+                            common.api.get.userExists
                                 newAuthorInput
                                 OnGetUserExistsFailure
-                                OnGetUserExistsSuccess
+                                (OnGetUserExistsSuccess << ((,) newAuthorInput))
                   )
                 ]
 
