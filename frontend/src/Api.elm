@@ -46,151 +46,160 @@ import Pages.CreateSnipbit.Model as CreateSnipbitModel
 import ProjectTypeAliases exposing (..)
 
 
+{-| An endpoint is the gateway to communicating with the API.
+
+It will either error/succeed and requires handlers for both situations. The types parameters of the endpoint let you
+know what the endpoint returns.
+-}
+type alias Endpoint response msg =
+    (ApiError.ApiError -> msg) -> (response -> msg) -> Cmd msg
+
+
 {-| The API to access the backend.
 -}
-type alias API b =
+type alias API msg =
     { get :
         { -- Gets the ID of the user that exists with that email (if one exists, otherwise returns `Nothing`).
-          userExists : Email -> (ApiError.ApiError -> b) -> (Maybe UserID -> b) -> Cmd b
+          userExists : Email -> Endpoint (Maybe UserID) msg
 
         -- Gets the users account, or an error if unauthenticated.
-        , account : (ApiError.ApiError -> b) -> (User.User -> b) -> Cmd b
+        , account : Endpoint User.User msg
 
         -- Gets stories, you can use query params to customize the search. Refer to the backend to see the options.
-        , stories : QueryParams -> (ApiError.ApiError -> b) -> (List Story.Story -> b) -> Cmd b
+        , stories : QueryParams -> Endpoint (List Story.Story) msg
 
         -- Gets a single story.
-        , story : StoryID -> (ApiError.ApiError -> b) -> (Story.Story -> b) -> Cmd b
+        , story : StoryID -> Endpoint Story.Story msg
 
         -- Gets a single expanded story.
-        , expandedStory : StoryID -> (ApiError.ApiError -> b) -> (Story.ExpandedStory -> b) -> Cmd b
+        , expandedStory : StoryID -> Endpoint Story.ExpandedStory msg
 
         -- Gets a single expanded story with the completed list attached.
-        , expandedStoryWithCompleted : StoryID -> (ApiError.ApiError -> b) -> (Story.ExpandedStory -> b) -> Cmd b
+        , expandedStoryWithCompleted : StoryID -> Endpoint Story.ExpandedStory msg
 
         -- Queries the API to log the user out, which should send a response to delete the cookies.
-        , logOut : (ApiError.ApiError -> b) -> (BasicResponse.BasicResponse -> b) -> Cmd b
+        , logOut : Endpoint BasicResponse.BasicResponse msg
 
         -- Get's a snipbit.
-        , snipbit : SnipbitID -> (ApiError.ApiError -> b) -> (Snipbit.Snipbit -> b) -> Cmd b
+        , snipbit : SnipbitID -> Endpoint Snipbit.Snipbit msg
 
         -- Get's a bigbit.
-        , bigbit : BigbitID -> (ApiError.ApiError -> b) -> (Bigbit.Bigbit -> b) -> Cmd b
+        , bigbit : BigbitID -> Endpoint Bigbit.Bigbit msg
 
         -- Gets tidbits, you can use query params to customize the search. Refer to the backend to see the options.
-        , tidbits : QueryParams -> (ApiError.ApiError -> b) -> (List Tidbit.Tidbit -> b) -> Cmd b
+        , tidbits : QueryParams -> Endpoint (List Tidbit.Tidbit) msg
 
         -- Get's content, you can use query params to customize the search. Refer to the backend to see the options.
-        , content : QueryParams -> (ApiError.ApiError -> b) -> (List Content.Content -> b) -> Cmd b
+        , content : QueryParams -> Endpoint (List Content.Content) msg
 
         -- Get's a user's opinion.
-        , opinion : ContentPointer.ContentPointer -> (ApiError.ApiError -> b) -> (Maybe Rating.Rating -> b) -> Cmd b
+        , opinion : ContentPointer.ContentPointer -> Endpoint (Maybe Rating.Rating) msg
 
         -- Get's the QA object for a specific snipbit.
-        , snipbitQA : SnipbitID -> (ApiError.ApiError -> b) -> (QA.SnipbitQA -> b) -> Cmd b
+        , snipbitQA : SnipbitID -> Endpoint QA.SnipbitQA msg
 
         -- Get's the QA object for a specific bigbit.
-        , bigbitQA : BigbitID -> (ApiError.ApiError -> b) -> (QA.BigbitQA -> b) -> Cmd b
+        , bigbitQA : BigbitID -> Endpoint QA.BigbitQA msg
         }
     , post :
         { -- Logs user in and returns the user, unless invalid credentials.
-          login : User.UserForLogin -> (ApiError.ApiError -> b) -> (User.User -> b) -> Cmd b
+          login : User.UserForLogin -> Endpoint User.User msg
 
         -- Registers the user and returns the user, unless invalid new credentials.
-        , register : User.UserForRegistration -> (ApiError.ApiError -> b) -> (User.User -> b) -> Cmd b
+        , register : User.UserForRegistration -> Endpoint User.User msg
 
         -- Creates a new snipbit.
-        , createSnipbit : CreateSnipbitModel.SnipbitForPublication -> (ApiError.ApiError -> b) -> (IDResponse.IDResponse -> b) -> Cmd b
+        , createSnipbit : CreateSnipbitModel.SnipbitForPublication -> Endpoint IDResponse.IDResponse msg
 
         -- Creates a new bigbit.
-        , createBigbit : CreateBigbitModel.BigbitForPublication -> (ApiError.ApiError -> b) -> (IDResponse.IDResponse -> b) -> Cmd b
+        , createBigbit : CreateBigbitModel.BigbitForPublication -> Endpoint IDResponse.IDResponse msg
 
         -- Updates a user.
-        , updateUser : User.UserUpdateRecord -> (ApiError.ApiError -> b) -> (User.User -> b) -> Cmd b
+        , updateUser : User.UserUpdateRecord -> Endpoint User.User msg
 
         -- Creates a new story.
-        , createNewStory : Story.NewStory -> (ApiError.ApiError -> b) -> (IDResponse.IDResponse -> b) -> Cmd b
+        , createNewStory : Story.NewStory -> Endpoint IDResponse.IDResponse msg
 
         -- Updates the information for a story.
-        , updateStoryInformation : StoryID -> Story.NewStory -> (ApiError.ApiError -> b) -> (IDResponse.IDResponse -> b) -> Cmd b
+        , updateStoryInformation : StoryID -> Story.NewStory -> Endpoint IDResponse.IDResponse msg
 
         -- Updates a story with new tidbits.
-        , addTidbitsToStory : StoryID -> List TidbitPointer.TidbitPointer -> (ApiError.ApiError -> b) -> (Story.ExpandedStory -> b) -> Cmd b
+        , addTidbitsToStory : StoryID -> List TidbitPointer.TidbitPointer -> Endpoint Story.ExpandedStory msg
 
         -- Adds a new `Completed` to the list of things the user has completed.
-        , addCompleted : Completed.Completed -> (ApiError.ApiError -> b) -> (IDResponse.IDResponse -> b) -> Cmd b
+        , addCompleted : Completed.Completed -> Endpoint IDResponse.IDResponse msg
 
         -- Removes a `Completed` from the users list of completed tidbits.
-        , removeCompleted : Completed.Completed -> (ApiError.ApiError -> b) -> (Bool -> b) -> Cmd b
+        , removeCompleted : Completed.Completed -> Endpoint Bool msg
 
         -- Checks if something is completed, does not modify the db.
-        , checkCompleted : Completed.Completed -> (ApiError.ApiError -> b) -> (Bool -> b) -> Cmd b
+        , checkCompleted : Completed.Completed -> Endpoint Bool msg
 
         -- Adds an opinion for a logged-in user.
-        , addOpinion : Opinion.Opinion -> (ApiError.ApiError -> b) -> (Bool -> b) -> Cmd b
+        , addOpinion : Opinion.Opinion -> Endpoint Bool msg
 
         -- Removes an opinion for a logged-in user.
-        , removeOpinion : Opinion.Opinion -> (ApiError.ApiError -> b) -> (Bool -> b) -> Cmd b
+        , removeOpinion : Opinion.Opinion -> Endpoint Bool msg
 
         -- Ask a question on a snipbit.
-        , askQuestionOnSnipbit : SnipbitID -> QuestionText -> Range.Range -> (ApiError.ApiError -> b) -> (QA.Question Range.Range -> b) -> Cmd b
+        , askQuestionOnSnipbit : SnipbitID -> QuestionText -> Range.Range -> Endpoint (QA.Question Range.Range) msg
 
         -- Ask a question on a bigbit.
-        , askQuestionOnBigbit : BigbitID -> QuestionText -> QA.BigbitCodePointer -> (ApiError.ApiError -> b) -> (QA.Question QA.BigbitCodePointer -> b) -> Cmd b
+        , askQuestionOnBigbit : BigbitID -> QuestionText -> QA.BigbitCodePointer -> Endpoint (QA.Question QA.BigbitCodePointer) msg
 
         -- Edit a question on a snipbit.
-        , editQuestionOnSnipbit : SnipbitID -> QuestionID -> QuestionText -> Range.Range -> (ApiError.ApiError -> b) -> (Date.Date -> b) -> Cmd b
+        , editQuestionOnSnipbit : SnipbitID -> QuestionID -> QuestionText -> Range.Range -> Endpoint Date.Date msg
 
         -- Edit a question on a bigbit.
-        , editQuestionOnBigbit : BigbitID -> QuestionID -> QuestionText -> QA.BigbitCodePointer -> (ApiError.ApiError -> b) -> (Date.Date -> b) -> Cmd b
+        , editQuestionOnBigbit : BigbitID -> QuestionID -> QuestionText -> QA.BigbitCodePointer -> Endpoint Date.Date msg
 
         -- Deletes a question.
-        , deleteQuestion : TidbitPointer.TidbitPointer -> QuestionID -> (ApiError.ApiError -> b) -> (() -> b) -> Cmd b
+        , deleteQuestion : TidbitPointer.TidbitPointer -> QuestionID -> Endpoint () msg
 
         -- Place your vote (`Vote`) on a question.
-        , rateQuestion : TidbitPointer.TidbitPointer -> QuestionID -> Vote.Vote -> (ApiError.ApiError -> b) -> (() -> b) -> Cmd b
+        , rateQuestion : TidbitPointer.TidbitPointer -> QuestionID -> Vote.Vote -> Endpoint () msg
 
         -- Remove a rating from a question.
-        , removeQuestionRating : TidbitPointer.TidbitPointer -> QuestionID -> (ApiError.ApiError -> b) -> (() -> b) -> Cmd b
+        , removeQuestionRating : TidbitPointer.TidbitPointer -> QuestionID -> Endpoint () msg
 
         -- Sets the pin-state of a question.
-        , pinQuestion : TidbitPointer.TidbitPointer -> QuestionID -> Bool -> (ApiError.ApiError -> b) -> (() -> b) -> Cmd b
+        , pinQuestion : TidbitPointer.TidbitPointer -> QuestionID -> Bool -> Endpoint () msg
 
         -- Answer a question.
-        , answerQuestion : TidbitPointer.TidbitPointer -> QuestionID -> AnswerText -> (ApiError.ApiError -> b) -> (QA.Answer -> b) -> Cmd b
+        , answerQuestion : TidbitPointer.TidbitPointer -> QuestionID -> AnswerText -> Endpoint QA.Answer msg
 
         -- Edit an answer.
-        , editAnswer : TidbitPointer.TidbitPointer -> AnswerID -> AnswerText -> (ApiError.ApiError -> b) -> (Date.Date -> b) -> Cmd b
+        , editAnswer : TidbitPointer.TidbitPointer -> AnswerID -> AnswerText -> Endpoint Date.Date msg
 
         -- Deletes an answer.
-        , deleteAnswer : TidbitPointer.TidbitPointer -> AnswerID -> (ApiError.ApiError -> b) -> (() -> b) -> Cmd b
+        , deleteAnswer : TidbitPointer.TidbitPointer -> AnswerID -> Endpoint () msg
 
         -- Rates an answer.
-        , rateAnswer : TidbitPointer.TidbitPointer -> AnswerID -> Vote.Vote -> (ApiError.ApiError -> b) -> (() -> b) -> Cmd b
+        , rateAnswer : TidbitPointer.TidbitPointer -> AnswerID -> Vote.Vote -> Endpoint () msg
 
         -- Removes a rating from an answer.
-        , removeAnswerRating : TidbitPointer.TidbitPointer -> AnswerID -> (ApiError.ApiError -> b) -> (() -> b) -> Cmd b
+        , removeAnswerRating : TidbitPointer.TidbitPointer -> AnswerID -> Endpoint () msg
 
         -- Sets the pin-state of an answer.
-        , pinAnswer : TidbitPointer.TidbitPointer -> AnswerID -> Bool -> (ApiError.ApiError -> b) -> (() -> b) -> Cmd b
+        , pinAnswer : TidbitPointer.TidbitPointer -> AnswerID -> Bool -> Endpoint () msg
 
         -- Comment on a question (adds to the existing comment thread).
-        , commentOnQuestion : TidbitPointer.TidbitPointer -> QuestionID -> CommentText -> (ApiError.ApiError -> b) -> (QA.QuestionComment -> b) -> Cmd b
+        , commentOnQuestion : TidbitPointer.TidbitPointer -> QuestionID -> CommentText -> Endpoint QA.QuestionComment msg
 
         -- Edit a comment on a question.
-        , editQuestionComment : TidbitPointer.TidbitPointer -> CommentID -> CommentText -> (ApiError.ApiError -> b) -> (Date.Date -> b) -> Cmd b
+        , editQuestionComment : TidbitPointer.TidbitPointer -> CommentID -> CommentText -> Endpoint Date.Date msg
 
         -- Delete a comment on a question.
-        , deleteQuestionComment : TidbitPointer.TidbitPointer -> CommentID -> (ApiError.ApiError -> b) -> (() -> b) -> Cmd b
+        , deleteQuestionComment : TidbitPointer.TidbitPointer -> CommentID -> Endpoint () msg
 
         -- Comment on an answer.
-        , commentOnAnswer : TidbitPointer.TidbitPointer -> QuestionID -> AnswerID -> CommentText -> (ApiError.ApiError -> b) -> (QA.AnswerComment -> b) -> Cmd b
+        , commentOnAnswer : TidbitPointer.TidbitPointer -> QuestionID -> AnswerID -> CommentText -> Endpoint QA.AnswerComment msg
 
         -- Edit a comment on an answer.
-        , editAnswerComment : TidbitPointer.TidbitPointer -> CommentID -> CommentText -> (ApiError.ApiError -> b) -> (Date.Date -> b) -> Cmd b
+        , editAnswerComment : TidbitPointer.TidbitPointer -> CommentID -> CommentText -> Endpoint Date.Date msg
 
         -- Delete a comment on an answer.
-        , deleteAnswerComment : TidbitPointer.TidbitPointer -> CommentID -> (ApiError.ApiError -> b) -> (() -> b) -> Cmd b
+        , deleteAnswerComment : TidbitPointer.TidbitPointer -> CommentID -> Endpoint () msg
         }
     }
 
@@ -199,39 +208,39 @@ type alias API b =
 
 Currently takes the API base url as configuration (different in prod and dev).
 -}
-api : String -> API b
+api : String -> API msg
 api apiBaseUrl =
     let
         {- Helper for querying the API (GET), automatically adds the apiBaseUrl prefix. -}
-        apiGet : String -> Decode.Decoder a -> (ApiError.ApiError -> b) -> (a -> b) -> Cmd b
-        apiGet url =
+        makeGETEndpoint : String -> Decode.Decoder response -> Endpoint response msg
+        makeGETEndpoint url =
             HttpService.get (apiBaseUrl ++ url)
 
         {- Helper for qeurying the API (POST), automatically adds the apiBaseUrl prefix. -}
-        apiPost : String -> Decode.Decoder a -> Encode.Value -> (ApiError.ApiError -> b) -> (a -> b) -> Cmd b
-        apiPost url =
+        makePOSTEndpoint : String -> Decode.Decoder response -> Encode.Value -> Endpoint response msg
+        makePOSTEndpoint url =
             HttpService.post (apiBaseUrl ++ url)
     in
         { get =
             { userExists =
-                (\email -> apiGet ("userID" :/: email) (Decode.maybe Decode.string))
+                (\email -> makeGETEndpoint ("userID" :/: email) (Decode.maybe Decode.string))
             , account =
-                apiGet "account" JSON.User.decoder
+                makeGETEndpoint "account" JSON.User.decoder
             , stories =
                 (\queryParams ->
-                    apiGet ("stories" ++ Util.queryParamsToString queryParams) (Decode.list <| JSON.Story.decoder)
+                    makeGETEndpoint ("stories" ++ Util.queryParamsToString queryParams) (Decode.list <| JSON.Story.decoder)
                 )
             , story =
-                (\storyID -> apiGet ("stories" :/: storyID) JSON.Story.decoder)
+                (\storyID -> makeGETEndpoint ("stories" :/: storyID) JSON.Story.decoder)
             , expandedStory =
                 (\storyID ->
-                    apiGet
+                    makeGETEndpoint
                         ("stories" :/: storyID ++ Util.queryParamsToString [ ( "expandStory", Just "true" ) ])
                         JSON.Story.expandedStoryDecoder
                 )
             , expandedStoryWithCompleted =
                 (\storyID ->
-                    apiGet
+                    makeGETEndpoint
                         ("stories"
                             :/: storyID
                             ++ Util.queryParamsToString
@@ -242,26 +251,26 @@ api apiBaseUrl =
                         JSON.Story.expandedStoryDecoder
                 )
             , logOut =
-                apiGet "logOut" JSON.BasicResponse.decoder
+                makeGETEndpoint "logOut" JSON.BasicResponse.decoder
             , snipbit =
-                (\snipbitID -> apiGet ("snipbits" :/: snipbitID) JSON.Snipbit.decoder)
+                (\snipbitID -> makeGETEndpoint ("snipbits" :/: snipbitID) JSON.Snipbit.decoder)
             , bigbit =
-                (\bigbitID -> apiGet ("bigbits" :/: bigbitID) JSON.Bigbit.decoder)
+                (\bigbitID -> makeGETEndpoint ("bigbits" :/: bigbitID) JSON.Bigbit.decoder)
             , tidbits =
                 (\queryParams ->
-                    apiGet
+                    makeGETEndpoint
                         ("tidbits" ++ (Util.queryParamsToString queryParams))
                         (Decode.list JSON.Tidbit.decoder)
                 )
             , content =
                 (\queryParams ->
-                    apiGet
+                    makeGETEndpoint
                         ("content" ++ (Util.queryParamsToString queryParams))
                         (Decode.list JSON.Content.decoder)
                 )
             , opinion =
                 (\contentPointer ->
-                    apiGet
+                    makeGETEndpoint
                         ("account/getOpinion"
                             :/: (toString <| JSON.ContentPointer.contentTypeToInt contentPointer.contentType)
                             :/: (contentPointer.contentID)
@@ -269,95 +278,95 @@ api apiBaseUrl =
                         (Decode.maybe JSON.Rating.decoder)
                 )
             , snipbitQA =
-                (\snipbitID -> apiGet ("qa/1" :/: snipbitID) JSON.QA.snipbitQADecoder)
+                (\snipbitID -> makeGETEndpoint ("qa/1" :/: snipbitID) JSON.QA.snipbitQADecoder)
             , bigbitQA =
-                (\bigbitID -> apiGet ("qa/2" :/: bigbitID) JSON.QA.bigbitQADecoder)
+                (\bigbitID -> makeGETEndpoint ("qa/2" :/: bigbitID) JSON.QA.bigbitQADecoder)
             }
         , post =
             { login =
-                (\user -> apiPost "login" JSON.User.decoder (JSON.User.loginEncoder user))
+                (\user -> makePOSTEndpoint "login" JSON.User.decoder (JSON.User.loginEncoder user))
             , register =
-                (\user -> apiPost "register" JSON.User.decoder (JSON.User.registerEncoder user))
+                (\user -> makePOSTEndpoint "register" JSON.User.decoder (JSON.User.registerEncoder user))
             , createSnipbit =
                 (\snipbit ->
-                    apiPost
+                    makePOSTEndpoint
                         "snipbits"
                         JSON.IDResponse.decoder
                         (CreateSnipbitJSON.publicationEncoder snipbit)
                 )
             , createBigbit =
                 (\bigbit ->
-                    apiPost
+                    makePOSTEndpoint
                         "bigbits"
                         JSON.IDResponse.decoder
                         (CreateBigbitJSON.publicationEncoder bigbit)
                 )
             , updateUser =
                 (\updateRecord ->
-                    apiPost
+                    makePOSTEndpoint
                         "account"
                         JSON.User.decoder
                         (JSON.User.updateRecordEncoder updateRecord)
                 )
             , createNewStory =
                 (\newStory ->
-                    apiPost
+                    makePOSTEndpoint
                         "stories"
                         JSON.IDResponse.decoder
                         (JSON.Story.newStoryEncoder newStory)
                 )
             , updateStoryInformation =
                 (\storyID newStoryInformation ->
-                    apiPost
+                    makePOSTEndpoint
                         ("stories" :/: storyID :/: "information")
                         JSON.IDResponse.decoder
                         (JSON.Story.newStoryEncoder newStoryInformation)
                 )
             , addTidbitsToStory =
                 (\storyID newTidbitPointers ->
-                    apiPost
+                    makePOSTEndpoint
                         ("stories" :/: storyID :/: "addTidbits")
                         JSON.Story.expandedStoryDecoder
                         (Encode.list <| List.map JSON.TidbitPointer.encoder newTidbitPointers)
                 )
             , addCompleted =
                 (\completed ->
-                    apiPost
+                    makePOSTEndpoint
                         "account/addCompleted"
                         JSON.IDResponse.decoder
                         (JSON.Completed.encoder completed)
                 )
             , removeCompleted =
                 (\completed ->
-                    apiPost
+                    makePOSTEndpoint
                         "account/removeCompleted"
                         Decode.bool
                         (JSON.Completed.encoder completed)
                 )
             , checkCompleted =
                 (\completed ->
-                    apiPost
+                    makePOSTEndpoint
                         "account/checkCompleted"
                         Decode.bool
                         (JSON.Completed.encoder completed)
                 )
             , addOpinion =
                 (\opinion ->
-                    apiPost
+                    makePOSTEndpoint
                         "account/addOpinion"
                         Decode.bool
                         (JSON.Opinion.encoder opinion)
                 )
             , removeOpinion =
                 (\opinion ->
-                    apiPost
+                    makePOSTEndpoint
                         "account/removeOpinion"
                         Decode.bool
                         (JSON.Opinion.encoder opinion)
                 )
             , askQuestionOnSnipbit =
                 (\snipbitID questionText codePointer ->
-                    apiPost
+                    makePOSTEndpoint
                         ("qa/1" :/: snipbitID :/: "askQuestion")
                         (JSON.QA.questionDecoder JSON.Range.decoder)
                         (Encode.object
@@ -368,7 +377,7 @@ api apiBaseUrl =
                 )
             , askQuestionOnBigbit =
                 (\bigbitID questionText codePointer ->
-                    apiPost
+                    makePOSTEndpoint
                         ("qa/2" :/: bigbitID :/: "askQuestion")
                         (JSON.QA.questionDecoder JSON.QA.bigbitCodePointerDecoder)
                         (Encode.object
@@ -379,7 +388,7 @@ api apiBaseUrl =
                 )
             , editQuestionOnSnipbit =
                 (\snipbitID questionID questionText codePointer ->
-                    apiPost
+                    makePOSTEndpoint
                         ("qa/1" :/: snipbitID :/: "editQuestion")
                         Util.dateDecoder
                         (Encode.object
@@ -391,7 +400,7 @@ api apiBaseUrl =
                 )
             , editQuestionOnBigbit =
                 (\bigbitID questionID questionText codePointer ->
-                    apiPost
+                    makePOSTEndpoint
                         ("qa/2" :/: bigbitID :/: "editQuestion")
                         Util.dateDecoder
                         (Encode.object
@@ -403,14 +412,14 @@ api apiBaseUrl =
                 )
             , deleteQuestion =
                 (\tidbitPointer questionID ->
-                    apiPost
+                    makePOSTEndpoint
                         ("qa" :/: (tidbitPointerToUrl tidbitPointer) :/: "deleteQuestion")
                         (decode ())
                         (Encode.object [ ( "questionID", Encode.string questionID ) ])
                 )
             , rateQuestion =
                 (\tidbitPointer questionID vote ->
-                    apiPost
+                    makePOSTEndpoint
                         ("qa" :/: (tidbitPointerToUrl tidbitPointer) :/: "rateQuestion")
                         (decode ())
                         (Encode.object
@@ -421,14 +430,14 @@ api apiBaseUrl =
                 )
             , removeQuestionRating =
                 (\tidbitPointer questionID ->
-                    apiPost
+                    makePOSTEndpoint
                         ("qa" :/: (tidbitPointerToUrl tidbitPointer) :/: "removeQuestionRating")
                         (decode ())
                         (Encode.object [ ( "questionID", Encode.string questionID ) ])
                 )
             , pinQuestion =
                 (\tidbitPointer questionID pin ->
-                    apiPost
+                    makePOSTEndpoint
                         ("qa" :/: (tidbitPointerToUrl tidbitPointer) :/: "pinQuestion")
                         (decode ())
                         (Encode.object
@@ -439,7 +448,7 @@ api apiBaseUrl =
                 )
             , answerQuestion =
                 (\tidbitPointer questionID answerText ->
-                    apiPost
+                    makePOSTEndpoint
                         ("qa" :/: (tidbitPointerToUrl tidbitPointer) :/: "answerQuestion")
                         JSON.QA.answerDecoder
                         (Encode.object
@@ -450,7 +459,7 @@ api apiBaseUrl =
                 )
             , editAnswer =
                 (\tidbitPointer answerID answerText ->
-                    apiPost
+                    makePOSTEndpoint
                         ("qa" :/: (tidbitPointerToUrl tidbitPointer) :/: "editAnswer")
                         Util.dateDecoder
                         (Encode.object
@@ -461,14 +470,14 @@ api apiBaseUrl =
                 )
             , deleteAnswer =
                 (\tidbitPointer answerID ->
-                    apiPost
+                    makePOSTEndpoint
                         ("qa" :/: (tidbitPointerToUrl tidbitPointer) :/: "deleteAnswer")
                         (decode ())
                         (Encode.object [ ( "answerID", Encode.string answerID ) ])
                 )
             , rateAnswer =
                 (\tidbitPointer answerID vote ->
-                    apiPost
+                    makePOSTEndpoint
                         ("qa" :/: (tidbitPointerToUrl tidbitPointer) :/: "rateAnswer")
                         (decode ())
                         (Encode.object
@@ -479,14 +488,14 @@ api apiBaseUrl =
                 )
             , removeAnswerRating =
                 (\tidbitPointer answerID ->
-                    apiPost
+                    makePOSTEndpoint
                         ("qa" :/: (tidbitPointerToUrl tidbitPointer) :/: "removeAnswerRating")
                         (decode ())
                         (Encode.object [ ( "answerID", Encode.string answerID ) ])
                 )
             , pinAnswer =
                 (\tidbitPointer answerID pin ->
-                    apiPost
+                    makePOSTEndpoint
                         ("qa" :/: (tidbitPointerToUrl tidbitPointer) :/: "pinAnswer")
                         (decode ())
                         (Encode.object
@@ -497,7 +506,7 @@ api apiBaseUrl =
                 )
             , commentOnQuestion =
                 (\tidbitPointer questionID commentText ->
-                    apiPost
+                    makePOSTEndpoint
                         ("qa" :/: (tidbitPointerToUrl tidbitPointer) :/: "comment/question")
                         (JSON.QA.questionCommentDecoder)
                         (Encode.object
@@ -508,7 +517,7 @@ api apiBaseUrl =
                 )
             , editQuestionComment =
                 (\tidbitPointer commentID commentText ->
-                    apiPost
+                    makePOSTEndpoint
                         ("qa" :/: (tidbitPointerToUrl tidbitPointer) :/: "editComment/question")
                         Util.dateDecoder
                         (Encode.object
@@ -519,14 +528,14 @@ api apiBaseUrl =
                 )
             , deleteQuestionComment =
                 (\tidbitPointer commentID ->
-                    apiPost
+                    makePOSTEndpoint
                         ("qa" :/: (tidbitPointerToUrl tidbitPointer) :/: "deleteComment/question")
                         (decode ())
                         (Encode.object [ ( "commentID", Encode.string commentID ) ])
                 )
             , commentOnAnswer =
                 (\tidbitPointer questionID answerID commentText ->
-                    apiPost
+                    makePOSTEndpoint
                         ("qa" :/: (tidbitPointerToUrl tidbitPointer) :/: "comment/answer")
                         JSON.QA.answerCommentDecoder
                         (Encode.object
@@ -538,7 +547,7 @@ api apiBaseUrl =
                 )
             , editAnswerComment =
                 (\tidbitPointer commentID commentText ->
-                    apiPost
+                    makePOSTEndpoint
                         ("qa" :/: (tidbitPointerToUrl tidbitPointer) :/: "editComment/answer")
                         Util.dateDecoder
                         (Encode.object
@@ -549,7 +558,7 @@ api apiBaseUrl =
                 )
             , deleteAnswerComment =
                 (\tidbitPointer commentID ->
-                    apiPost
+                    makePOSTEndpoint
                         ("qa" :/: (tidbitPointerToUrl tidbitPointer) :/: "deleteComment/answer")
                         (decode ())
                         (Encode.object [ ( "commentID", Encode.string commentID ) ])
