@@ -6,9 +6,9 @@ import { Collection } from 'mongodb';
 import moment from "moment";
 
 import { opinionDBActions } from "./opinion.model";
-import { renameIDField, collection, toMongoObjectID, toMongoStringID, sameID, paginateResults } from '../db';
+import { renameIDField, collection, toMongoObjectID, sameID, paginateResults } from '../db';
 import { malformedFieldError, isNullOrUndefined, dropNullAndUndefinedProperties } from '../util';
-import { mongoStringIDSchema, nameSchema, descriptionSchema, optional, tagsSchema, nonEmptyArraySchema } from "./kleen-schemas";
+import { nameSchema, descriptionSchema, optional, tagsSchema, nonEmptyArraySchema } from "./kleen-schemas";
 import { MongoID, MongoObjectID, ErrorCode, TargetID } from '../types';
 import { completedDBActions } from './completed.model';
 import { ContentSearchFilter, ContentResultManipulation, ContentType, ContentPointer, getContent, getLanguages } from "./content.model";
@@ -157,7 +157,7 @@ export const storyDBActions = {
           return completedDBActions.isCompleted(
             {
               tidbitPointer: tidbitPointer,
-              user: toMongoStringID(withCompletedForUser)
+              user: withCompletedForUser
             },
             withCompletedForUser
           );

@@ -3,7 +3,6 @@
 import * as kleen from "kleen";
 import { Collection } from "mongodb";
 
-import { mongoStringIDSchema } from "./kleen-schemas";
 import { malformedFieldError, internalError } from "../util";
 import { collection, toMongoObjectID } from "../db";
 import { MongoID, MongoObjectID  } from "../types";

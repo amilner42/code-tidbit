@@ -4,7 +4,7 @@ import * as kleen from "kleen";
 
 import { TidbitPointer, tidbitPointerSchema } from "./tidbit.model";
 import { MongoID, MongoObjectID, ErrorCode, TargetID } from '../types';
-import { mongoStringIDSchema } from './kleen-schemas';
+import { mongoIDSchema } from './kleen-schemas';
 import { collection, toMongoObjectID, sameID } from '../db';
 import { malformedFieldError } from '../util';
 
@@ -38,7 +38,7 @@ const completedToDBSearchForm = (completed: Completed): Completed => {
 const completedSchema: kleen.objectSchema = {
   objectProperties: {
     tidbitPointer: tidbitPointerSchema,
-    user: mongoStringIDSchema(malformedFieldError("completed.user")),
+    user: mongoIDSchema(malformedFieldError("completed.user")),
   },
   typeFailureError: malformedFieldError("completed")
 }

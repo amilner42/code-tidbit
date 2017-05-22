@@ -26,12 +26,3 @@ export const validEmail = (email: string) => /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()
 export const validPassword = (password: string) => {
   return !(isNullOrUndefined(password)) && (password.length > 6);
 }
-
-/**
- * Checks if an id is a valid mongo ID.
- *
- * Currently only checking 24 hex chars.
- */
-export const validMongoID = (id: string = ""): boolean => {
-  return /^[0-9a-fA-F]{24}$/.test(id);
-}
