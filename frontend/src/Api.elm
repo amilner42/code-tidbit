@@ -2,6 +2,7 @@ module Api exposing (API, api)
 
 import Date
 import DefaultServices.Http as HttpService
+import DefaultServices.InfixFunctions exposing (..)
 import DefaultServices.Util as Util
 import JSON.BasicResponse
 import JSON.Bigbit
@@ -565,13 +566,6 @@ api apiBaseUrl =
                 )
             }
         }
-
-
-{-| For adding a slash in a URL.
--}
-(:/:) : String -> String -> String
-(:/:) str1 str2 =
-    str1 ++ "/" ++ str2
 
 
 {-| Converts tidbit pointers to the standard URL format: "<tidbitTypeToInt>/<tidbitID>"

@@ -9,7 +9,7 @@ import Elements.Complex.ViewQuestion as ViewQuestion
 import Models.ApiError exposing (ApiError)
 import Models.Completed exposing (Completed, IsCompleted)
 import Models.Opinion exposing (Opinion, PossibleOpinion)
-import Models.QA exposing (SnipbitQA, Question, Answer)
+import Models.QA exposing (SnipbitQA, Question, Answer, QuestionComment, AnswerComment)
 import Models.Range exposing (Range)
 import Models.Route exposing (Route)
 import Models.Snipbit exposing (Snipbit)
@@ -102,3 +102,9 @@ type Msg
     | OnUnpinAnswerSuccess SnipbitID AnswerID
     | OnUnpinAnswerFailure ApiError
     | ViewQuestionMsg SnipbitID QuestionID ViewQuestion.Msg
+    | SubmitCommentOnQuestion SnipbitID QuestionID CommentText
+    | OnSubmitCommentOnQuestionSuccess SnipbitID QuestionID QuestionComment
+    | OnSubmitCommentOnQuestionFailure ApiError
+    | SubmitCommentOnAnswer SnipbitID QuestionID AnswerID CommentText
+    | SubmitCommentOnAnswerSuccess SnipbitID QuestionID AnswerID AnswerComment
+    | SubmitCommentOnAnswerFailure ApiError

@@ -37,6 +37,19 @@ they often can take in `RenderConfig` which allows you to specify any generic pa
 Complex elements not only have a `view`, but also their own `Msg`, `Model`, and corresponding `Update`. With complex
 elements it's no good to _just_ drop it in the view, you also have to wire up the `update`.
 
+###### Nesting Elements
+
+There are a few rules to keep nesting elements nice and clean:
+1. Every complex element should have exactly 1 Msg that the parent is responsible for hooking up
+1. If multiple complex elements are put in another complex element, the parent complex element should still only expose
+   1 Msg type. The parent is responsible for handling all the complex elements inside of itself. The point of this is
+   that you never have to worry about handling multiple `Msg`s when you add a complex element, you don't want to have to
+   worry about all the nested elements...
+1. If a complex element goes in a simple element, the simple element is no longer simple. The point of simple elements
+   is that as a developer we know that we don't have to hook it up to the `Update` and we can just plop them into the
+   view. But if there is a complex element inside a simple element, then the `Msg` that it will expose _through_ the
+   simple element will need to be hooked up, so that simple element is no longer simple.
+
 ##### JSON
 
 There is 2 situations where we need to encode/decode to/from JSON.

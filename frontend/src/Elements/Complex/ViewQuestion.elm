@@ -57,6 +57,8 @@ type alias RenderConfig msg codePointer =
     , onClickAnswerQuestion : msg
     , onClickEditQuestion : msg
     , onClickEditAnswer : Answer -> msg
+    , submitCommentOnQuestion : CommentText -> msg
+    , submitCommentOnAnswer : AnswerID -> CommentText -> msg
     }
 
 
@@ -138,6 +140,8 @@ view config model =
                         { msgTagger = config.msgTagger << QuestionCommentListMsg
                         , comments = config.questionComments
                         , commentBoxRenderConfig = { onClickComment = config.onClickQuestionComment }
+                        , submitNewComment = config.submitCommentOnQuestion
+                        , small = False
                         }
                         { commentEdits = model.questionCommentEdits
                         , newCommentText = model.newQuestionComment
@@ -197,6 +201,8 @@ view config model =
                                     { msgTagger = config.msgTagger << (AnswerCommentListMsg answerID)
                                     , comments = config.answerComments
                                     , commentBoxRenderConfig = { onClickComment = config.onClickAnswerComment }
+                                    , submitNewComment = config.submitCommentOnAnswer answer.id
+                                    , small = True
                                     }
                                     { commentEdits = model.answerCommentEdits
                                     , newCommentText = "" <? Dict.get answerID model.newAnswerComments

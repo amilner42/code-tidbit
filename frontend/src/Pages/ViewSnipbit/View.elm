@@ -544,6 +544,8 @@ commentBox snipbit model shared =
                             (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
                             snipbit.id
                         << .id
+                , submitCommentOnQuestion = SubmitCommentOnQuestion snipbit.id question.id
+                , submitCommentOnAnswer = SubmitCommentOnAnswer snipbit.id question.id
                 }
                 { questionCommentEdits = QA.getQuestionCommentEdits snipbit.id qaState
                 , newQuestionComment = QA.getNewQuestionComment snipbit.id question.id qaState

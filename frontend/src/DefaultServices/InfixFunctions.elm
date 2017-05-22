@@ -67,3 +67,11 @@ Purposefully a similar ligature to `<|`, meant to be used in a `<|` chain.
 (<?) defaultA maybeA =
     Maybe.withDefault defaultA maybeA
 infixr 0 <?
+
+
+{-| For adding a slash between 2 strings.
+-}
+(:/:) : String -> String -> String
+(:/:) str1 str2 =
+    str1 ++ "/" ++ str2
+infixl 0 :/:

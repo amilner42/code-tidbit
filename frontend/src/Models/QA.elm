@@ -248,8 +248,8 @@ getAnswerByID answerID answers =
 
 {-| Get's a question for a given answer.
 -}
-getQuestionByAnswerID : SnipbitID -> AnswerID -> QA codePointer -> Maybe (Question codePointer)
-getQuestionByAnswerID snipbitID answerID qa =
+getQuestionByAnswerID : TidbitID -> AnswerID -> QA codePointer -> Maybe (Question codePointer)
+getQuestionByAnswerID tidbitID answerID qa =
     getAnswerByID answerID qa.answers
         |> Maybe.map .questionID
         |> Maybe.andThen (\questionID -> getQuestionByID questionID qa.questions)
@@ -257,33 +257,33 @@ getQuestionByAnswerID snipbitID answerID qa =
 
 {-| Get's a questionEdit by the ID.
 -}
-getQuestionEditByID : SnipbitID -> QuestionID -> QAState codePointer -> Maybe (QuestionEdit codePointer)
-getQuestionEditByID snipbitID questionID qaState =
-    Dict.get snipbitID qaState
+getQuestionEditByID : TidbitID -> QuestionID -> QAState codePointer -> Maybe (QuestionEdit codePointer)
+getQuestionEditByID tidbitID questionID qaState =
+    Dict.get tidbitID qaState
         |> Maybe.andThen (.questionEdits >> Dict.get questionID)
 
 
-{-| Get's the `newQuestion` for the given snipbitID.
+{-| Get's the `newQuestion` for the given tidbitID.
 -}
-getNewQuestion : SnipbitID -> QAState codePointer -> Maybe (NewQuestion codePointer)
-getNewQuestion snipbitID qaState =
-    Dict.get snipbitID qaState
+getNewQuestion : TidbitID -> QAState codePointer -> Maybe (NewQuestion codePointer)
+getNewQuestion tidbitID qaState =
+    Dict.get tidbitID qaState
         |> Maybe.map .newQuestion
 
 
 {-| Get's the newAnswer for the given snipbit/question if it exists.
 -}
-getNewAnswer : SnipbitID -> QuestionID -> QAState codePointer -> Maybe NewAnswer
-getNewAnswer snipbitID questionID qaState =
-    Dict.get snipbitID qaState
+getNewAnswer : TidbitID -> QuestionID -> QAState codePointer -> Maybe NewAnswer
+getNewAnswer tidbitID questionID qaState =
+    Dict.get tidbitID qaState
         |> Maybe.andThen (.newAnswers >> Dict.get questionID)
 
 
 {-| Get's the answerEdit for the given snipbit/answerID if it exsits.
 -}
-getAnswerEdit : SnipbitID -> AnswerID -> QAState codePointer -> Maybe AnswerEdit
-getAnswerEdit snipbitID answerID qaState =
-    Dict.get snipbitID qaState
+getAnswerEdit : TidbitID -> AnswerID -> QAState codePointer -> Maybe AnswerEdit
+getAnswerEdit tidbitID answerID qaState =
+    Dict.get tidbitID qaState
         |> Maybe.andThen (.answerEdits >> Dict.get answerID)
 
 
@@ -334,9 +334,9 @@ getNewAnswerComments tidbitID qaState =
 
 {-| BrowseCodePointer setter, handles setting default tidbitQAState if needed.
 -}
-setBrowsingCodePointer : SnipbitID -> Maybe codePointer -> QAState codePointer -> QAState codePointer
-setBrowsingCodePointer snipbitID codePointer =
-    setTidbitQAState snipbitID (\tidbitQAState -> { tidbitQAState | browsingCodePointer = codePointer })
+setBrowsingCodePointer : TidbitID -> Maybe codePointer -> QAState codePointer -> QAState codePointer
+setBrowsingCodePointer tidbitID codePointer =
+    setTidbitQAState tidbitID (\tidbitQAState -> { tidbitQAState | browsingCodePointer = codePointer })
 
 
 {-| Updates a [published] question in the QA.
@@ -373,6 +373,13 @@ rateQuestion questionID vote =
         updateQuestionUpvotesAndDownvotesForQA >> sortQuestions
 
 
+{-| Adds a `QuestionComment` to the [published] list of question comments.
+-}
+addQuestionComment : QuestionComment -> QA codePointer -> QA codePointer
+addQuestionComment questionComment qa =
+    { qa | questionComments = qa.questionComments ++ [ questionComment ] }
+
+
 {-| Sorts the questions on a QA.
 -}
 sortQuestions : QA codePointer -> QA codePointer
@@ -395,6 +402,13 @@ rateAnswer answerID vote =
             updateAnswer answerID (updateVotes vote) qa
     in
         updateAnswerUpvotesAndDownvotesForQA >> sortAnswers
+
+
+{-| Adds a `AnswerComment` to the [published] list of answer comments.
+-}
+addAnswerComment : AnswerComment -> QA codePointer -> QA codePointer
+addAnswerComment answerComment qa =
+    { qa | answerComments = qa.answerComments ++ [ answerComment ] }
 
 
 {-| Sorts the answers on a QA.
@@ -450,12 +464,12 @@ updateAnswer answerID answerUpdater qa =
 {-| NewQuestion updater, handles setting default tidbitQAState if needed.
 -}
 updateNewQuestion :
-    SnipbitID
+    TidbitID
     -> (NewQuestion codePointer -> NewQuestion codePointer)
     -> QAState codePointer
     -> QAState codePointer
-updateNewQuestion snipbitID newQuestionUpdater =
-    setTidbitQAState snipbitID
+updateNewQuestion tidbitID newQuestionUpdater =
+    setTidbitQAState tidbitID
         (\tidbitQAState -> { tidbitQAState | newQuestion = newQuestionUpdater tidbitQAState.newQuestion })
 
 
@@ -464,13 +478,13 @@ updateNewQuestion snipbitID newQuestionUpdater =
 Updater has to handle case where no edit exits yet (hence `Maybe QuestionEdit...`).
 -}
 updateQuestionEdit :
-    SnipbitID
+    TidbitID
     -> QuestionID
     -> (Maybe (QuestionEdit codePointer) -> Maybe (QuestionEdit codePointer))
     -> QAState codePointer
     -> QAState codePointer
-updateQuestionEdit snipbitID questionID questionEditUpdater =
-    setTidbitQAState snipbitID
+updateQuestionEdit tidbitID questionID questionEditUpdater =
+    setTidbitQAState tidbitID
         (\tidbitQAState ->
             { tidbitQAState
                 | questionEdits =
@@ -487,14 +501,14 @@ updateQuestionEdit snipbitID questionID questionEditUpdater =
 Updater has to handle case where no new answer exists yet for that question (hence `Maybe NewAnswer...`).
 -}
 updateNewAnswer :
-    SnipbitID
+    TidbitID
     -> QuestionID
     -> (Maybe NewAnswer -> Maybe NewAnswer)
     -> QAState codePointer
     -> QAState codePointer
-updateNewAnswer snipbitID questionID newAnswerUpdater =
+updateNewAnswer tidbitID questionID newAnswerUpdater =
     setTidbitQAState
-        snipbitID
+        tidbitID
         (\tidbitQAState ->
             { tidbitQAState
                 | newAnswers =
@@ -527,14 +541,14 @@ sortRateableContent =
 Updater has to handle case where no new answer edit exists (hence `Maybe AnswerEdit...`).
 -}
 updateAnswerEdit :
-    SnipbitID
+    TidbitID
     -> AnswerID
     -> (Maybe AnswerEdit -> Maybe AnswerEdit)
     -> QAState codePointer
     -> QAState codePointer
-updateAnswerEdit snipbitID answerID answerEditUpdater =
+updateAnswerEdit tidbitID answerID answerEditUpdater =
     setTidbitQAState
-        snipbitID
+        tidbitID
         (\tidbitQAState ->
             { tidbitQAState
                 | answerEdits =
@@ -572,24 +586,32 @@ setAnswerCommentEdits tidbitID answerCommentEdits =
         (\tidbitQAState -> { tidbitQAState | answerCommentEdits = answerCommentEdits })
 
 
-{-| Sets the `newAnswerComments` on a `qaState`, handles setting default if not `tidbitQAState` exists.
+{-| Updates the `newAnswerComments` on a `qaState`, handles setting default if not `tidbitQAState` exists.
 -}
-setNewAnswerComments : TidbitID -> Dict.Dict CommentID CommentText -> QAState codePointer -> QAState codePointer
-setNewAnswerComments tidbitID newAnswerComments =
+updateNewAnswerComments :
+    TidbitID
+    -> (Dict.Dict AnswerID CommentText -> Dict.Dict AnswerID CommentText)
+    -> QAState codePointer
+    -> QAState codePointer
+updateNewAnswerComments tidbitID newAnswerCommentsUpdater =
     setTidbitQAState
         tidbitID
-        (\tidbitQAState -> { tidbitQAState | newAnswerComments = newAnswerComments })
+        (\tidbitQAState ->
+            { tidbitQAState | newAnswerComments = newAnswerCommentsUpdater tidbitQAState.newAnswerComments }
+        )
 
 
 {-| Set's a single `newQuestionComment`, handles setting default if no `tidbitQAState` exists.
+
+If you'd like to delete the new question comment, pass in `Nothing` for the `commentText`.
 -}
-setNewQuestionComment : TidbitID -> QuestionID -> CommentText -> QAState codePointer -> QAState codePointer
+setNewQuestionComment : TidbitID -> QuestionID -> Maybe CommentText -> QAState codePointer -> QAState codePointer
 setNewQuestionComment tidbitID questionID commentText =
     setTidbitQAState
         tidbitID
         (\tidbitQAState ->
             { tidbitQAState
-                | newQuestionComments = Dict.insert questionID commentText tidbitQAState.newQuestionComments
+                | newQuestionComments = Dict.update questionID (always commentText) tidbitQAState.newQuestionComments
             }
         )
 
@@ -601,9 +623,9 @@ setTidbitQAState :
     -> (TidbitQAState codePointer -> TidbitQAState codePointer)
     -> QAState codePointer
     -> QAState codePointer
-setTidbitQAState snipbitID tidbitQAStateUpdater qaState =
+setTidbitQAState tidbitID tidbitQAStateUpdater qaState =
     Dict.update
-        snipbitID
+        tidbitID
         (\maybeTidbitQAState ->
             Just <|
                 case maybeTidbitQAState of

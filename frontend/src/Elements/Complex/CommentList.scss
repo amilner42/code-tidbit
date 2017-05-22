@@ -1,12 +1,109 @@
 @import '../../Styles/variables';
+@import '../../Styles/mixins';
 
 
 .comment-list {
+    overflow: hidden;
+
+    .comments-wrapper {
+        box-sizing: border-box;
+        margin-top: 30px;
+        border: 1px solid $color13;
+        height: 440px;
+        width: 360px;
+        overflow: hidden;
+
+        &.small {
+            margin-top: 60px;
+            height: 410px;
+
+            .no-comments-text {
+                top: 170px !important;
+            }
+        }
+
+        .comments {
+            box-sizing: border-box;
+            position: relative;
+            overflow-y: scroll !important;
+            padding-right: 500px;
+            height: 100%;
+            padding-top: 10px;
+
+            .no-comments-text {
+                box-sizing: border-box;
+                position: absolute;
+                color: $color5;
+                top: 200px;
+                text-align: center;
+                font-size: 26px;
+                width: 360px;
+            }
+        }
+    }
+
     .new-comment-textarea {
         position: absolute;
         box-sizing: border-box;
-        bottom: 0;
+        bottom: 28px;
         height: 100px !important;
         width: 360px !important;
+    }
+
+    .submit-comment {
+        position: absolute;
+        bottom: 0;
+        width: 360px !important;
+        background-color: $color7;
+        color: white;
+        font-size: 16px;
+        line-height: 25px;
+        height: 25px;
+        text-align: center;
+        cursor: pointer;
+
+        &.disabled {
+            cursor: not-allowed;
+        }
+    }
+}
+
+.comment-box {
+    @include light-box-shadow();
+    box-sizing: border-box;
+    position: relative;
+    width: 340px;
+    min-height: 50px;
+    margin: 0 0 10px 9px; // box-shadow has the 1px offset, that's why 9px and not 10px.
+    cursor: default;
+
+    .comment-box-text {
+        position: relative;
+        box-sizing: border-box;
+        display: block;
+        padding: 10px !important;
+        word-wrap: break-word;
+        hyphens: auto;
+    }
+
+    .comment-box-bottom {
+        height: 20px;
+        width: 340px;
+        position: relative;
+        display: block;
+
+        .email, .date {
+            float: left;
+            font-size: 10px;
+            color: $color8;
+            line-height: 20px;
+            height: 20px;
+            margin-left: 5px;
+        }
+
+        .date {
+            float: right;
+            margin-right: 5px;
+        }
     }
 }

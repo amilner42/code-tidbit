@@ -1087,13 +1087,52 @@ update (Common common) msg model shared =
                     | qaState =
                         model.qaState
                             |> QA.setQuestionCommentEdits snipbitID newViewQuestionModel.questionCommentEdits
-                            |> QA.setNewQuestionComment snipbitID questionID newViewQuestionModel.newQuestionComment
+                            |> QA.setNewQuestionComment snipbitID questionID (Just newViewQuestionModel.newQuestionComment)
                             |> QA.setAnswerCommentEdits snipbitID newViewQuestionModel.answerCommentEdits
-                            |> QA.setNewAnswerComments snipbitID newViewQuestionModel.newAnswerComments
+                            |> QA.updateNewAnswerComments snipbitID (always newViewQuestionModel.newAnswerComments)
                   }
                 , shared
                 , Cmd.map (ViewQuestionMsg snipbitID questionID) newViewQuestionMsg
                 )
+
+        SubmitCommentOnQuestion snipbitID questionID commentText ->
+            common.justProduceCmd <|
+                common.api.post.commentOnQuestion
+                    { tidbitType = TidbitPointer.Snipbit, targetID = snipbitID }
+                    questionID
+                    commentText
+                    OnSubmitCommentOnQuestionFailure
+                    (OnSubmitCommentOnQuestionSuccess snipbitID questionID)
+
+        OnSubmitCommentOnQuestionSuccess snipbitID questionID questionComment ->
+            common.justSetModel
+                { model
+                    | qa = QA.addQuestionComment questionComment <|| model.qa
+                    , qaState = QA.setNewQuestionComment snipbitID questionID Nothing model.qaState
+                }
+
+        OnSubmitCommentOnQuestionFailure apiError ->
+            common.justSetModalError apiError
+
+        SubmitCommentOnAnswer snipbitID questionID answerID commentText ->
+            common.justProduceCmd <|
+                common.api.post.commentOnAnswer
+                    { tidbitType = TidbitPointer.Snipbit, targetID = snipbitID }
+                    questionID
+                    answerID
+                    commentText
+                    SubmitCommentOnAnswerFailure
+                    (SubmitCommentOnAnswerSuccess snipbitID questionID answerID)
+
+        SubmitCommentOnAnswerSuccess snipbitID questionID answerID answerComment ->
+            common.justSetModel
+                { model
+                    | qa = QA.addAnswerComment answerComment <|| model.qa
+                    , qaState = QA.updateNewAnswerComments snipbitID (Dict.remove answerID) model.qaState
+                }
+
+        SubmitCommentOnAnswerFailure apiError ->
+            common.justSetModalError apiError
 
 
 {-| Creates the editor for the snipbit.
