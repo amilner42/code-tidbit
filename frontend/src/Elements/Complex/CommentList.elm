@@ -17,6 +17,9 @@ import Set
 type Msg
     = OnNewCommentTextInput CommentText
     | AddToDeletingComments CommentID
+    | StartEditing CommentID CommentText
+    | CancelEditing CommentID
+    | OnEditCommentInput CommentID CommentText
 
 
 type alias Model =
@@ -32,6 +35,7 @@ type alias RenderConfig msg comment =
     , small : Bool
     , comments : List (Comment comment)
     , submitNewComment : CommentText -> msg
+    , editComment : CommentID -> CommentText -> msg
     , onClickComment : Comment comment -> msg
     , deleteComment : CommentID -> msg
     }
@@ -52,7 +56,7 @@ view config model =
                     ]
                  else
                     List.map
-                        (\comment -> ( comment.id, commentBoxView config model.deletingComments comment ))
+                        (\comment -> ( comment.id, commentBoxView config model comment ))
                         config.comments
                 )
             ]
@@ -77,42 +81,89 @@ view config model =
         ]
 
 
-commentBoxView : RenderConfig msg comment -> Set.Set CommentID -> Comment comment -> Html msg
-commentBoxView config deletingComments comment =
+commentBoxView : RenderConfig msg comment -> Model -> Comment comment -> Html msg
+commentBoxView config { deletingComments, commentEdits } comment =
     let
         isBeingDeleted =
             Set.member comment.id deletingComments
+
+        maybeCommentEdit =
+            Dict.get comment.id commentEdits
 
         isCommentAuthor =
             config.userID == (Just comment.authorID)
     in
         div
             [ class "comment-box" ]
-            [ span [ class "comment-box-text" ] [ text <| comment.commentText ]
+            [ case maybeCommentEdit of
+                Just commentEdit ->
+                    textarea
+                        [ class "comment-box-text-edit-mode"
+                        , placeholder "Edit comment..."
+                        , value <| Editable.getBuffer commentEdit
+                        , onInput <| config.msgTagger << OnEditCommentInput comment.id
+                        ]
+                        []
+
+                Nothing ->
+                    span [ class "comment-box-text" ] [ text <| comment.commentText ]
             , div
                 [ class "comment-box-bottom" ]
                 [ if isCommentAuthor then
                     div
                         [ class "author-icons" ]
-                        [ i
-                            [ classList
-                                [ ( "material-icons delete-comment", True )
-                                , ( "delete-warning", isBeingDeleted )
+                        (case maybeCommentEdit of
+                            Just commentEdit ->
+                                [ i
+                                    [ class "material-icons cancel-edit"
+                                    , onClick <| config.msgTagger <| CancelEditing comment.id
+                                    ]
+                                    [ text "cancel" ]
+                                , i
+                                    (Util.maybeAttributes
+                                        [ Just <|
+                                            classList
+                                                [ ( "material-icons submit-edit", True )
+                                                , ( "not-allowed"
+                                                  , Util.isNothing <|
+                                                        Util.justNonBlankString <|
+                                                            Editable.getBuffer commentEdit
+                                                  )
+                                                ]
+                                        , Editable.getBuffer commentEdit
+                                            |> Util.justNonBlankString
+                                            ||> config.editComment comment.id
+                                            ||> onClick
+                                        ]
+                                    )
+                                    [ text "check_circle" ]
                                 ]
-                            , onClick <|
-                                if isBeingDeleted then
-                                    config.deleteComment comment.id
-                                else
-                                    config.msgTagger <| AddToDeletingComments comment.id
-                            ]
-                            [ text <|
-                                if isBeingDeleted then
-                                    "delete_forever"
-                                else
-                                    "delete"
-                            ]
-                        , i [ class "material-icons edit-comment" ] [ text "edit_mode" ]
-                        ]
+
+                            Nothing ->
+                                [ i
+                                    [ classList
+                                        [ ( "material-icons delete-comment", True )
+                                        , ( "delete-warning", isBeingDeleted )
+                                        ]
+                                    , onClick <|
+                                        if isBeingDeleted then
+                                            config.deleteComment comment.id
+                                        else
+                                            config.msgTagger <| AddToDeletingComments comment.id
+                                    ]
+                                    [ text <|
+                                        if isBeingDeleted then
+                                            "delete_forever"
+                                        else
+                                            "delete"
+                                    ]
+                                , i
+                                    [ class "material-icons edit-comment"
+                                    , onClick <| config.msgTagger <| StartEditing comment.id comment.commentText
+                                    ]
+                                    [ text "edit_mode" ]
+                                ]
+                        )
                   else
                     span
                         [ class "email" ]
@@ -132,3 +183,31 @@ update msg model =
 
         AddToDeletingComments commentID ->
             ( { model | deletingComments = Set.insert commentID model.deletingComments }, Cmd.none )
+
+        StartEditing commentID commentText ->
+            -- If already editing then do nothing.
+            if Dict.member commentID model.commentEdits then
+                ( model, Cmd.none )
+            else
+                ( { model | commentEdits = Dict.insert commentID (Editable.newEditing commentText) model.commentEdits }
+                , Cmd.none
+                )
+
+        CancelEditing commentID ->
+            ( { model
+                | commentEdits = Dict.remove commentID model.commentEdits
+                , deletingComments = Set.remove commentID model.deletingComments
+              }
+            , Cmd.none
+            )
+
+        OnEditCommentInput commentID commentText ->
+            ( { model
+                | commentEdits =
+                    Dict.update
+                        commentID
+                        (Maybe.map (\commentEdit -> Editable.setBuffer commentEdit commentText))
+                        model.commentEdits
+              }
+            , Cmd.none
+            )

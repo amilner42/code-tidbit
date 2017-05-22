@@ -63,6 +63,8 @@ type alias RenderConfig msg codePointer =
     , submitCommentOnAnswer : AnswerID -> CommentText -> msg
     , deleteCommentOnQuestion : CommentID -> msg
     , deleteCommentOnAnswer : CommentID -> msg
+    , editCommentOnQuestion : CommentID -> CommentText -> msg
+    , editCommentOnAnswer : CommentID -> CommentText -> msg
     }
 
 
@@ -148,6 +150,7 @@ view config model =
                         , submitNewComment = config.submitCommentOnQuestion
                         , onClickComment = config.onClickQuestionComment
                         , deleteComment = config.deleteCommentOnQuestion
+                        , editComment = config.editCommentOnQuestion
                         }
                         { commentEdits = model.questionCommentEdits
                         , newCommentText = model.newQuestionComment
@@ -212,6 +215,7 @@ view config model =
                                     , submitNewComment = config.submitCommentOnAnswer answer.id
                                     , onClickComment = config.onClickAnswerComment
                                     , deleteComment = config.deleteCommentOnAnswer
+                                    , editComment = config.editCommentOnAnswer
                                     }
                                     { commentEdits = model.answerCommentEdits
                                     , newCommentText = "" <? Dict.get answerID model.newAnswerComments

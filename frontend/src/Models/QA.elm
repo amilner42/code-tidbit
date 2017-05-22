@@ -343,11 +343,19 @@ getDeletingComments tidbitID qaState =
         ?> Set.empty
 
 
-{-| Set the `deletingComments`, handles setting default tidbitQAState if needed.
+{-| Update the `deletingComments`, handles setting default tidbitQAState if needed.
 -}
-setDeletingComments : TidbitID -> Set.Set CommentID -> QAState codePointer -> QAState codePointer
-setDeletingComments tidbitID deletingComments =
-    setTidbitQAState tidbitID (\tidbitQAState -> { tidbitQAState | deletingComments = deletingComments })
+updateDeletingComments :
+    TidbitID
+    -> (Set.Set CommentID -> Set.Set CommentID)
+    -> QAState codePointer
+    -> QAState codePointer
+updateDeletingComments tidbitID deletingCommentsUpdater =
+    setTidbitQAState
+        tidbitID
+        (\tidbitQAState ->
+            { tidbitQAState | deletingComments = deletingCommentsUpdater tidbitQAState.deletingComments }
+        )
 
 
 {-| BrowseCodePointer setter, handles setting default tidbitQAState if needed.
@@ -398,6 +406,19 @@ addQuestionComment questionComment qa =
     { qa | questionComments = qa.questionComments ++ [ questionComment ] }
 
 
+{-| Edits a [published] question comment.
+-}
+editQuestionComment : CommentID -> CommentText -> Date.Date -> QA codePointer -> QA codePointer
+editQuestionComment commentID commentText lastModified qa =
+    { qa
+        | questionComments =
+            List.Extra.updateIf
+                (.id >> (==) commentID)
+                (\comment -> { comment | commentText = commentText, lastModified = lastModified })
+                qa.questionComments
+    }
+
+
 {-| Deletes a `QuestionComment` from the [published] list of question comments.
 -}
 deleteQuestionComment : CommentID -> QA codePointer -> QA codePointer
@@ -434,6 +455,19 @@ rateAnswer answerID vote =
 addAnswerComment : AnswerComment -> QA codePointer -> QA codePointer
 addAnswerComment answerComment qa =
     { qa | answerComments = qa.answerComments ++ [ answerComment ] }
+
+
+{-| Edits a [published] answer comment.
+-}
+editAnswerComment : CommentID -> CommentText -> Date.Date -> QA codePointer -> QA codePointer
+editAnswerComment commentID commentText lastModified qa =
+    { qa
+        | answerComments =
+            List.Extra.updateIf
+                (.id >> (==) commentID)
+                (\comment -> { comment | commentText = commentText, lastModified = lastModified })
+                qa.answerComments
+    }
 
 
 {-| Deletes an `AnswerComment` from the [published] list of answer comments.
@@ -592,30 +626,38 @@ updateAnswerEdit tidbitID answerID answerEditUpdater =
         )
 
 
-{-| Sets the `questionCommentEdits` on a `qaState`, handles setting default if no `tidbitQAState` exists.
+{-| Updates the `questionCommentEdits` on a `qaState`, handles setting default if no `tidbitQAState` exists.
 -}
-setQuestionCommentEdits :
+updateQuestionCommentEdits :
     TidbitID
-    -> Dict.Dict CommentID (Editable.Editable CommentText)
+    -> (Dict.Dict CommentID (Editable.Editable CommentText) -> Dict.Dict CommentID (Editable.Editable CommentText))
     -> QAState codePointer
     -> QAState codePointer
-setQuestionCommentEdits tidbitID questionCommentEdits =
+updateQuestionCommentEdits tidbitID questionCommentEditsUpdater =
     setTidbitQAState
         tidbitID
-        (\tidbitQAState -> { tidbitQAState | questionCommentEdits = questionCommentEdits })
+        (\tidbitQAState ->
+            { tidbitQAState
+                | questionCommentEdits = questionCommentEditsUpdater tidbitQAState.questionCommentEdits
+            }
+        )
 
 
-{-| Sets the `answerCommentEdits` on a `qaState`, handles setting default if no `tidbitQAState` exists.
+{-| Updates the `answerCommentEdits` on a `qaState`, handles setting default if no `tidbitQAState` exists.
 -}
-setAnswerCommentEdits :
+updateAnswerCommentEdits :
     TidbitID
-    -> Dict.Dict CommentID (Editable.Editable CommentText)
+    -> (Dict.Dict CommentID (Editable.Editable CommentText) -> Dict.Dict CommentID (Editable.Editable CommentText))
     -> QAState codePointer
     -> QAState codePointer
-setAnswerCommentEdits tidbitID answerCommentEdits =
+updateAnswerCommentEdits tidbitID answerCommentEditsUpdater =
     setTidbitQAState
         tidbitID
-        (\tidbitQAState -> { tidbitQAState | answerCommentEdits = answerCommentEdits })
+        (\tidbitQAState ->
+            { tidbitQAState
+                | answerCommentEdits = answerCommentEditsUpdater tidbitQAState.answerCommentEdits
+            }
+        )
 
 
 {-| Updates the `newAnswerComments` on a `qaState`, handles setting default if not `tidbitQAState` exists.

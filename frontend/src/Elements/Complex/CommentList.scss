@@ -86,6 +86,22 @@
         hyphens: auto;
     }
 
+    .comment-box-text-edit-mode {
+        position: relative;
+        box-sizing: content-box;
+        display: block;
+        padding: 10px;
+        border: none !important;
+        border-bottom: 1px solid $color9 !important;
+
+        &:focus {
+            outline: none !important;
+            border: none !important;
+            border-bottom: 1px solid $color9 !important;
+            box-shadow: none !important;
+        }
+    }
+
     .comment-box-bottom {
         @include no-select();
 
@@ -112,13 +128,13 @@
 
             i {
                 cursor: pointer;
-                &.delete-comment, &.edit-comment {
+                &.delete-comment, &.edit-comment, &.cancel-edit, &.submit-edit {
                     position: absolute;
                     top: 2px;
                     font-size: 16px;
                 }
 
-                &.delete-comment {
+                &.delete-comment, &.cancel-edit {
                     left: 5px;
 
                     &.delete-warning {
@@ -126,8 +142,15 @@
                     }
                 }
 
-                &.edit-comment {
+                &.edit-comment, &.submit-edit {
                     left: 20px;
+                }
+
+                &.submit-edit {
+                    &.not-allowed {
+                        cursor: not-allowed;
+                        color: $color13;
+                    }
                 }
             }
         }

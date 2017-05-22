@@ -548,6 +548,8 @@ commentBox snipbit model shared =
                 , submitCommentOnAnswer = SubmitCommentOnAnswer snipbit.id question.id
                 , deleteCommentOnQuestion = DeleteCommentOnQuestion snipbit.id
                 , deleteCommentOnAnswer = DeleteCommentOnAnswer snipbit.id
+                , editCommentOnQuestion = EditCommentOnQuestion snipbit.id
+                , editCommentOnAnswer = EditCommentOnAnswer snipbit.id
                 }
                 { questionCommentEdits = QA.getQuestionCommentEdits snipbit.id qaState
                 , newQuestionComment = QA.getNewQuestionComment snipbit.id question.id qaState

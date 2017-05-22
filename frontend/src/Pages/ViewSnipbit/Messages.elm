@@ -114,3 +114,9 @@ type Msg
     | DeleteCommentOnAnswer SnipbitID CommentID
     | OnDeleteCommentOnAnswerSuccess SnipbitID CommentID
     | OnDeleteCommentOnAnswerFailure ApiError
+    | EditCommentOnQuestion SnipbitID CommentID CommentText
+    | OnEditCommentOnQuestionSuccess SnipbitID CommentID CommentText Date.Date
+    | OnEditCommentOnQuestionFailure ApiError
+    | EditCommentOnAnswer SnipbitID CommentID CommentText
+    | OnEditCommentOnAnswerSuccess SnipbitID CommentID CommentText Date.Date
+    | OnEditCommentOnAnswerFailure ApiError
