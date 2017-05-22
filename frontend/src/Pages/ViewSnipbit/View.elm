@@ -546,11 +546,14 @@ commentBox snipbit model shared =
                         << .id
                 , submitCommentOnQuestion = SubmitCommentOnQuestion snipbit.id question.id
                 , submitCommentOnAnswer = SubmitCommentOnAnswer snipbit.id question.id
+                , deleteCommentOnQuestion = DeleteCommentOnQuestion snipbit.id
+                , deleteCommentOnAnswer = DeleteCommentOnAnswer snipbit.id
                 }
                 { questionCommentEdits = QA.getQuestionCommentEdits snipbit.id qaState
                 , newQuestionComment = QA.getNewQuestionComment snipbit.id question.id qaState
                 , answerCommentEdits = QA.getAnswerCommentEdits snipbit.id qaState
                 , newAnswerComments = QA.getNewAnswerComments snipbit.id qaState
+                , deletingComments = QA.getDeletingComments snipbit.id qaState
                 }
     in
         case shared.route of

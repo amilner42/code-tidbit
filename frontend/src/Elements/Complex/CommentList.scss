@@ -87,6 +87,8 @@
     }
 
     .comment-box-bottom {
+        @include no-select();
+
         height: 20px;
         width: 340px;
         position: relative;
@@ -99,6 +101,35 @@
             line-height: 20px;
             height: 20px;
             margin-left: 5px;
+        }
+
+        .author-icons {
+            float: left;
+            font-size: 12px;
+            line-height: 20px;
+            margin-left: 5px;
+            color: $color8;
+
+            i {
+                cursor: pointer;
+                &.delete-comment, &.edit-comment {
+                    position: absolute;
+                    top: 2px;
+                    font-size: 16px;
+                }
+
+                &.delete-comment {
+                    left: 5px;
+
+                    &.delete-warning {
+                        color: $error-color1;
+                    }
+                }
+
+                &.edit-comment {
+                    left: 20px;
+                }
+            }
         }
 
         .date {

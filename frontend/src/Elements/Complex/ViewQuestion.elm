@@ -11,6 +11,7 @@ import Html.Attributes exposing (class, classList)
 import Html.Events exposing (onClick)
 import Models.QA exposing (..)
 import ProjectTypeAliases exposing (..)
+import Set
 
 
 type Msg
@@ -23,6 +24,7 @@ type alias Model =
     , newQuestionComment : CommentText
     , answerCommentEdits : Dict.Dict CommentID (Editable.Editable CommentText)
     , newAnswerComments : Dict.Dict AnswerID CommentText
+    , deletingComments : Set.Set CommentID
     }
 
 
@@ -59,6 +61,8 @@ type alias RenderConfig msg codePointer =
     , onClickEditAnswer : Answer -> msg
     , submitCommentOnQuestion : CommentText -> msg
     , submitCommentOnAnswer : AnswerID -> CommentText -> msg
+    , deleteCommentOnQuestion : CommentID -> msg
+    , deleteCommentOnAnswer : CommentID -> msg
     }
 
 
@@ -138,13 +142,16 @@ view config model =
                 QuestionCommentsTab maybeCommentID ->
                     CommentList.view
                         { msgTagger = config.msgTagger << QuestionCommentListMsg
-                        , comments = config.questionComments
-                        , commentBoxRenderConfig = { onClickComment = config.onClickQuestionComment }
-                        , submitNewComment = config.submitCommentOnQuestion
+                        , userID = config.userID
                         , small = False
+                        , comments = config.questionComments
+                        , submitNewComment = config.submitCommentOnQuestion
+                        , onClickComment = config.onClickQuestionComment
+                        , deleteComment = config.deleteCommentOnQuestion
                         }
                         { commentEdits = model.questionCommentEdits
                         , newCommentText = model.newQuestionComment
+                        , deletingComments = model.deletingComments
                         }
 
                 AnswersTab ->
@@ -199,13 +206,16 @@ view config model =
                                 [ extendedTopBar False answer
                                 , CommentList.view
                                     { msgTagger = config.msgTagger << (AnswerCommentListMsg answerID)
-                                    , comments = config.answerComments
-                                    , commentBoxRenderConfig = { onClickComment = config.onClickAnswerComment }
-                                    , submitNewComment = config.submitCommentOnAnswer answer.id
+                                    , userID = config.userID
                                     , small = True
+                                    , comments = config.answerComments
+                                    , submitNewComment = config.submitCommentOnAnswer answer.id
+                                    , onClickComment = config.onClickAnswerComment
+                                    , deleteComment = config.deleteCommentOnAnswer
                                     }
                                     { commentEdits = model.answerCommentEdits
                                     , newCommentText = "" <? Dict.get answerID model.newAnswerComments
+                                    , deletingComments = model.deletingComments
                                     }
                                 ]
 
@@ -222,6 +232,7 @@ update msg model =
                 commentListModel =
                     { commentEdits = model.questionCommentEdits
                     , newCommentText = model.newQuestionComment
+                    , deletingComments = model.deletingComments
                     }
 
                 ( newCommentListModel, newCommentListMsg ) =
@@ -230,6 +241,7 @@ update msg model =
                 ( { model
                     | questionCommentEdits = newCommentListModel.commentEdits
                     , newQuestionComment = newCommentListModel.newCommentText
+                    , deletingComments = newCommentListModel.deletingComments
                   }
                 , Cmd.map QuestionCommentListMsg newCommentListMsg
                 )
@@ -239,6 +251,7 @@ update msg model =
                 commentListModel =
                     { commentEdits = model.answerCommentEdits
                     , newCommentText = "" <? Dict.get answerID model.newAnswerComments
+                    , deletingComments = model.deletingComments
                     }
 
                 ( newCommentListModel, newCommentListMsg ) =
@@ -248,6 +261,7 @@ update msg model =
                     | answerCommentEdits = newCommentListModel.commentEdits
                     , newAnswerComments =
                         Dict.insert answerID newCommentListModel.newCommentText model.newAnswerComments
+                    , deletingComments = newCommentListModel.deletingComments
                   }
                 , Cmd.map (AnswerCommentListMsg answerID) newCommentListMsg
                 )

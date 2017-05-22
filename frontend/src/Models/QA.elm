@@ -11,6 +11,7 @@ import List.Extra
 import Models.Range as Range
 import Models.Vote as Vote
 import ProjectTypeAliases exposing (..)
+import Set
 
 
 {-| The QA for snipbits.
@@ -171,6 +172,7 @@ type alias TidbitQAState codePointer =
     , newAnswerComments : Dict.Dict AnswerID CommentText
     , questionCommentEdits : Dict.Dict CommentID (Editable.Editable CommentText)
     , answerCommentEdits : Dict.Dict CommentID (Editable.Editable CommentText)
+    , deletingComments : Set.Set CommentID
     }
 
 
@@ -332,6 +334,22 @@ getNewAnswerComments tidbitID qaState =
         ?> Dict.empty
 
 
+{-| Gets the `deletingComments` for a specific tidbit, defaults to an empty set if no tidbitQAState.
+-}
+getDeletingComments : TidbitID -> QAState codePointer -> Set.Set CommentID
+getDeletingComments tidbitID qaState =
+    Dict.get tidbitID qaState
+        ||> .deletingComments
+        ?> Set.empty
+
+
+{-| Set the `deletingComments`, handles setting default tidbitQAState if needed.
+-}
+setDeletingComments : TidbitID -> Set.Set CommentID -> QAState codePointer -> QAState codePointer
+setDeletingComments tidbitID deletingComments =
+    setTidbitQAState tidbitID (\tidbitQAState -> { tidbitQAState | deletingComments = deletingComments })
+
+
 {-| BrowseCodePointer setter, handles setting default tidbitQAState if needed.
 -}
 setBrowsingCodePointer : TidbitID -> Maybe codePointer -> QAState codePointer -> QAState codePointer
@@ -380,6 +398,13 @@ addQuestionComment questionComment qa =
     { qa | questionComments = qa.questionComments ++ [ questionComment ] }
 
 
+{-| Deletes a `QuestionComment` from the [published] list of question comments.
+-}
+deleteQuestionComment : CommentID -> QA codePointer -> QA codePointer
+deleteQuestionComment commentID qa =
+    { qa | questionComments = List.filter (.id >> (/=) commentID) qa.questionComments }
+
+
 {-| Sorts the questions on a QA.
 -}
 sortQuestions : QA codePointer -> QA codePointer
@@ -409,6 +434,13 @@ rateAnswer answerID vote =
 addAnswerComment : AnswerComment -> QA codePointer -> QA codePointer
 addAnswerComment answerComment qa =
     { qa | answerComments = qa.answerComments ++ [ answerComment ] }
+
+
+{-| Deletes an `AnswerComment` from the [published] list of answer comments.
+-}
+deleteAnswerComment : CommentID -> QA codePointer -> QA codePointer
+deleteAnswerComment commentID qa =
+    { qa | answerComments = List.filter (.id >> (/=) commentID) qa.answerComments }
 
 
 {-| Sorts the answers on a QA.
@@ -687,6 +719,7 @@ defaultTidbitQAState =
     , newAnswerComments = Dict.empty
     , questionCommentEdits = Dict.empty
     , answerCommentEdits = Dict.empty
+    , deletingComments = Set.empty
     }
 
 

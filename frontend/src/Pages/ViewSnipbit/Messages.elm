@@ -108,3 +108,9 @@ type Msg
     | SubmitCommentOnAnswer SnipbitID QuestionID AnswerID CommentText
     | SubmitCommentOnAnswerSuccess SnipbitID QuestionID AnswerID AnswerComment
     | SubmitCommentOnAnswerFailure ApiError
+    | DeleteCommentOnQuestion SnipbitID CommentID
+    | OnDeleteCommentOnQuestionSuccess SnipbitID CommentID
+    | OnDeleteCommentOnQuestionFailure ApiError
+    | DeleteCommentOnAnswer SnipbitID CommentID
+    | OnDeleteCommentOnAnswerSuccess SnipbitID CommentID
+    | OnDeleteCommentOnAnswerFailure ApiError

@@ -6,29 +6,34 @@ import DefaultServices.Editable as Editable
 import DefaultServices.InfixFunctions exposing (..)
 import DefaultServices.Util as Util
 import Dict
-import Html exposing (Html, div, span, text, textarea)
+import Html exposing (Html, div, span, i, text, textarea)
 import Html.Attributes exposing (class, classList, placeholder, value)
 import Html.Events exposing (onInput, onClick)
 import Models.QA exposing (..)
 import ProjectTypeAliases exposing (..)
+import Set
 
 
 type Msg
     = OnNewCommentTextInput CommentText
+    | AddToDeletingComments CommentID
 
 
 type alias Model =
     { commentEdits : Dict.Dict CommentID (Editable.Editable CommentText)
     , newCommentText : CommentText
+    , deletingComments : Set.Set CommentID
     }
 
 
 type alias RenderConfig msg comment =
     { msgTagger : Msg -> msg
-    , commentBoxRenderConfig : CommentBoxRenderConfig msg (Comment comment)
+    , userID : Maybe UserID
+    , small : Bool
     , comments : List (Comment comment)
     , submitNewComment : CommentText -> msg
-    , small : Bool
+    , onClickComment : Comment comment -> msg
+    , deleteComment : CommentID -> msg
     }
 
 
@@ -47,7 +52,7 @@ view config model =
                     ]
                  else
                     List.map
-                        (\comment -> ( comment.id, commentBoxView config.commentBoxRenderConfig comment ))
+                        (\comment -> ( comment.id, commentBoxView config model.deletingComments comment ))
                         config.comments
                 )
             ]
@@ -72,25 +77,51 @@ view config model =
         ]
 
 
-type alias CommentBoxRenderConfig msg comment =
-    { onClickComment : Comment comment -> msg }
+commentBoxView : RenderConfig msg comment -> Set.Set CommentID -> Comment comment -> Html msg
+commentBoxView config deletingComments comment =
+    let
+        isBeingDeleted =
+            Set.member comment.id deletingComments
 
-
-commentBoxView : CommentBoxRenderConfig msg (Comment comment) -> Comment comment -> Html msg
-commentBoxView config comment =
-    div
-        [ class "comment-box" ]
-        [ span [ class "comment-box-text" ] [ text <| comment.commentText ]
-        , div
-            [ class "comment-box-bottom" ]
-            [ span
-                [ class "email" ]
-                [ text <| comment.authorEmail ]
-            , span
-                [ class "date" ]
-                [ text <| Date.Format.format "%m/%d/%Y" comment.createdAt ]
+        isCommentAuthor =
+            config.userID == (Just comment.authorID)
+    in
+        div
+            [ class "comment-box" ]
+            [ span [ class "comment-box-text" ] [ text <| comment.commentText ]
+            , div
+                [ class "comment-box-bottom" ]
+                [ if isCommentAuthor then
+                    div
+                        [ class "author-icons" ]
+                        [ i
+                            [ classList
+                                [ ( "material-icons delete-comment", True )
+                                , ( "delete-warning", isBeingDeleted )
+                                ]
+                            , onClick <|
+                                if isBeingDeleted then
+                                    config.deleteComment comment.id
+                                else
+                                    config.msgTagger <| AddToDeletingComments comment.id
+                            ]
+                            [ text <|
+                                if isBeingDeleted then
+                                    "delete_forever"
+                                else
+                                    "delete"
+                            ]
+                        , i [ class "material-icons edit-comment" ] [ text "edit_mode" ]
+                        ]
+                  else
+                    span
+                        [ class "email" ]
+                        [ text <| comment.authorEmail ]
+                , span
+                    [ class "date" ]
+                    [ text <| Date.Format.format "%m/%d/%Y" comment.createdAt ]
+                ]
             ]
-        ]
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -98,3 +129,6 @@ update msg model =
     case msg of
         OnNewCommentTextInput newCommentText ->
             ( { model | newCommentText = newCommentText }, Cmd.none )
+
+        AddToDeletingComments commentID ->
+            ( { model | deletingComments = Set.insert commentID model.deletingComments }, Cmd.none )

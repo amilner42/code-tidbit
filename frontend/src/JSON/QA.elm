@@ -7,6 +7,7 @@ import Json.Decode as Decode
 import Json.Decode.Pipeline exposing (decode, required, optional, hardcoded)
 import Json.Encode as Encode
 import Models.QA exposing (..)
+import Set
 
 
 {-| `SnipbitQA` decoder.
@@ -185,6 +186,7 @@ tidbitQAStateEncoder codePointerEncoder qaState =
             , ( "newAnswerComments", stringToStringDictEncoder qaState.newAnswerComments )
             , ( "questionCommentEdits", stringToEditableStringDictEncoder qaState.questionCommentEdits )
             , ( "answerCommentEdits", stringToEditableStringDictEncoder qaState.answerCommentEdits )
+            , ( "deletingComments", Encode.null )
             ]
 
 
@@ -243,3 +245,4 @@ tidbitQAStateDecoder codePointerDecoder =
             |> required "newAnswerComments" stringToStringDictDecoder
             |> required "questionCommentEdits" stringToEditableStringDictDecoder
             |> required "answerCommentEdits" stringToEditableStringDictDecoder
+            |> hardcoded Set.empty

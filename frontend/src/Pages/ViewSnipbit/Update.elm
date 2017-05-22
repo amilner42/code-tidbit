@@ -28,6 +28,8 @@ import Pages.Model exposing (Shared)
 import Pages.ViewSnipbit.Messages exposing (Msg(..))
 import Pages.ViewSnipbit.Model exposing (..)
 import Ports
+import ProjectTypeAliases exposing (..)
+import Set
 
 
 {-| `ViewSnipbit` update.
@@ -51,6 +53,9 @@ update (Common common) msg model shared =
                             , relevantQuestions = Nothing
                             , tutorialCodePointer = Nothing
                         }
+
+                clearDeletingComments snipbitID (Common common) ( model, shared ) =
+                    common.justSetModel { model | qaState = QA.setDeletingComments snipbitID Set.empty model.qaState }
 
                 {- Get's data for viewing snipbit as required:
                     - May need to fetch tidbit itself                             [Cache level: localStorage]
@@ -301,12 +306,14 @@ update (Common common) msg model shared =
                         common.handleAll
                             [ clearStateOnRouteHit
                             , fetchOrRenderViewSnipbitData snipbitID True
+                            , clearDeletingComments snipbitID
                             ]
 
                     Route.ViewSnipbitAnswerCommentsPage _ _ snipbitID _ _ ->
                         common.handleAll
                             [ clearStateOnRouteHit
                             , fetchOrRenderViewSnipbitData snipbitID True
+                            , clearDeletingComments snipbitID
                             ]
 
                     Route.ViewSnipbitAskQuestion _ snipbitID ->
@@ -1078,6 +1085,7 @@ update (Common common) msg model shared =
                     , newQuestionComment = QA.getNewQuestionComment snipbitID questionID model.qaState
                     , answerCommentEdits = QA.getAnswerCommentEdits snipbitID model.qaState
                     , newAnswerComments = QA.getNewAnswerComments snipbitID model.qaState
+                    , deletingComments = QA.getDeletingComments snipbitID model.qaState
                     }
 
                 ( newViewQuestionModel, newViewQuestionMsg ) =
@@ -1090,6 +1098,7 @@ update (Common common) msg model shared =
                             |> QA.setNewQuestionComment snipbitID questionID (Just newViewQuestionModel.newQuestionComment)
                             |> QA.setAnswerCommentEdits snipbitID newViewQuestionModel.answerCommentEdits
                             |> QA.updateNewAnswerComments snipbitID (always newViewQuestionModel.newAnswerComments)
+                            |> QA.setDeletingComments snipbitID newViewQuestionModel.deletingComments
                   }
                 , shared
                 , Cmd.map (ViewQuestionMsg snipbitID questionID) newViewQuestionMsg
@@ -1132,6 +1141,38 @@ update (Common common) msg model shared =
                 }
 
         SubmitCommentOnAnswerFailure apiError ->
+            common.justSetModalError apiError
+
+        DeleteCommentOnQuestion snipbitID commentID ->
+            common.justProduceCmd <|
+                common.api.post.deleteQuestionComment
+                    { tidbitType = TidbitPointer.Snipbit, targetID = snipbitID }
+                    commentID
+                    OnDeleteCommentOnQuestionFailure
+                    (always <| OnDeleteCommentOnQuestionSuccess snipbitID commentID)
+
+        -- TODO perhaps we should check `snipbitID` is for QA.
+        -- TODO Delete possible edit metadata connected to comment.
+        OnDeleteCommentOnQuestionSuccess snipbitID commentID ->
+            common.justSetModel { model | qa = model.qa ||> QA.deleteQuestionComment commentID }
+
+        OnDeleteCommentOnQuestionFailure apiError ->
+            common.justSetModalError apiError
+
+        DeleteCommentOnAnswer snipbitID commentID ->
+            common.justProduceCmd <|
+                common.api.post.deleteAnswerComment
+                    { tidbitType = TidbitPointer.Snipbit, targetID = snipbitID }
+                    commentID
+                    OnDeleteCommentOnAnswerFailure
+                    (always <| OnDeleteCommentOnAnswerSuccess snipbitID commentID)
+
+        -- TODO perhaps we should check `snipbitID` is for QA.
+        -- TODO Delete possible edit metadata connected to comment.
+        OnDeleteCommentOnAnswerSuccess snipbitID commentID ->
+            common.justSetModel { model | qa = model.qa ||> QA.deleteAnswerComment commentID }
+
+        OnDeleteCommentOnAnswerFailure apiError ->
             common.justSetModalError apiError
 
 
