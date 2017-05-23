@@ -39,7 +39,7 @@
 
         .scroll-box {
             margin-top: 5px;
-            height: 490px;
+            height: 510px;
             overflow-y: auto;
             overflow-x: hidden;
             padding: 1px;
@@ -50,16 +50,17 @@
 
     .ask-question {
         position: absolute;
-        top: 550px !important;
-        height: 30px !important;
-        width: 340px !important;
+        box-sizing: border-box;
+        top: 566px !important;
+        height: 25px !important;
+        width: 360px !important;
         background-color: $color7;
         color: white;
         text-align: center;
-        line-height: 30px;
+        line-height: 25px;
         font-size: 16px;
         cursor: pointer;
-        left: 0;
+        left: -9px;
     }
 }
 

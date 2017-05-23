@@ -21,7 +21,8 @@ type alias QuestionBoxRenderConfig codePointer msg =
 view : RenderConfig codePointer msg -> List (QA.Question codePointer) -> Html msg
 view { questionBoxRenderConfig, onClickAskQuestion, isHighlighting } questions =
     div [ class "questions" ] <|
-        [ div [ class "questions-title" ]
+        [ div
+            [ class "questions-title" ]
             [ text <|
                 if isHighlighting then
                     "Related Questions"
@@ -46,7 +47,7 @@ view { questionBoxRenderConfig, onClickAskQuestion, isHighlighting } questions =
             [ class "ask-question"
             , onClick onClickAskQuestion
             ]
-            [ text "Ask question" ]
+            [ text "Ask Question" ]
         ]
 
 
