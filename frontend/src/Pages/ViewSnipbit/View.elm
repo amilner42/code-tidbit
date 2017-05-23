@@ -466,6 +466,11 @@ commentBox snipbit model shared =
                 , answers = List.filter (.questionID >> (==) question.id) qa.answers
                 , questionComments = List.filter (.questionID >> (==) question.id) qa.questionComments
                 , answerComments = List.filter (.questionID >> (==) question.id) qa.answerComments
+                , onClickBrowseAllQuestions =
+                    GoTo <|
+                        Route.ViewSnipbitQuestionsPage
+                            (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
+                            snipbit.id
                 , onClickQuestionTab =
                     GoTo <|
                         Route.ViewSnipbitQuestionPage

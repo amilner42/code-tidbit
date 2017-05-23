@@ -37,6 +37,7 @@ type alias RenderConfig msg codePointer =
     , answers : List Answer
     , questionComments : List QuestionComment
     , answerComments : List AnswerComment
+    , onClickBrowseAllQuestions : msg
     , onClickQuestionTab : msg
     , onClickAnswersTab : msg
     , onClickQuestionCommentsTab : msg
@@ -94,6 +95,11 @@ view config model =
     in
         div [ class "view-question" ] <|
             [ div
+                [ class "back-to-questions-link"
+                , onClick config.onClickBrowseAllQuestions
+                ]
+                [ text "see all questions" ]
+            , div
                 [ class "top-bar" ]
                 [ div
                     [ classList
