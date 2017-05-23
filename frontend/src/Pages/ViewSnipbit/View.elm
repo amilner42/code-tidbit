@@ -108,6 +108,36 @@ view model shared =
 
                 _ ->
                     Util.hiddenDiv
+            , case
+                ( Route.getViewingContentID shared.route
+                , Route.isOnViewSnipbitTutorialRoute shared.route
+                , isViewSnipbitRHCTabOpen model
+                , model.relevantQuestions
+                )
+              of
+                ( Just snipbitID, True, False, Just [] ) ->
+                    button
+                        [ class "sub-bar-button ask-question"
+                        , onClick <| GoToAskQuestion
+                        ]
+                        [ text "Ask Question" ]
+
+                ( Just snipbitID, True, False, Just _ ) ->
+                    button
+                        [ class "sub-bar-button view-relevant-questions"
+                        , onClick <| GoToBrowseQuestions
+                        ]
+                        [ text "Browse Related Questions" ]
+
+                ( Just snipbitID, True, False, Nothing ) ->
+                    button
+                        [ class "sub-bar-button view-all-questions"
+                        , onClick <| GoToBrowseQuestions
+                        ]
+                        [ text "Browse All Questions" ]
+
+                _ ->
+                    Util.hiddenDiv
             , button
                 [ classList
                     [ ( "sub-bar-button view-relevant-ranges", True )
@@ -122,23 +152,6 @@ view model shared =
                 , onClick <| BrowseRelevantHC
                 ]
                 [ text "Browse Related Frames" ]
-            , case ( Route.getViewingContentID shared.route, isViewSnipbitRHCTabOpen model, model.relevantQuestions ) of
-                ( Just snipbitID, False, Just [] ) ->
-                    button
-                        [ class "sub-bar-button ask-question"
-                        , onClick <| GoToAskQuestion
-                        ]
-                        [ text "Ask Question" ]
-
-                ( Just snipbitID, False, Just _ ) ->
-                    button
-                        [ class "sub-bar-button view-relevant-questions"
-                        , onClick <| GoToBrowseQuestions
-                        ]
-                        [ text "Browse Related Questions" ]
-
-                _ ->
-                    Util.hiddenDiv
             , button
                 [ classList
                     [ ( "sub-bar-button view-relevant-ranges", True )

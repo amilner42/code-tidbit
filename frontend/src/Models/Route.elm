@@ -872,3 +872,21 @@ isOnViewSnipbitQARoute route =
 
         _ ->
             False
+
+
+{-| Returns true if on one of the tutorial routes.
+-}
+isOnViewSnipbitTutorialRoute : Route -> Bool
+isOnViewSnipbitTutorialRoute route =
+    case route of
+        ViewSnipbitIntroductionPage _ _ ->
+            True
+
+        ViewSnipbitFramePage _ _ _ ->
+            True
+
+        ViewSnipbitConclusionPage _ _ ->
+            True
+
+        _ ->
+            False
