@@ -76,13 +76,12 @@
             }
 
             .answers {
-                width: 350px;
-                height: 540px;
+                width: 360px;
+                height: 530px;
                 overflow-x: hidden;
                 overflow-y: scroll; // Scroll is hidden anyway, just keeps widths consistent.
-                margin: 10px;
-                padding: 1px;
                 padding-right: 200px;
+                padding-top: 10px;
             }
         }
 
@@ -155,8 +154,9 @@
     box-sizing: border-box;
     position: relative;
     display: block;
-    width: 100%;
+    width: 340px;
     margin-bottom: 10px;
+    margin-left: 9px;
     min-height: 50px;
     cursor: pointer;
 
