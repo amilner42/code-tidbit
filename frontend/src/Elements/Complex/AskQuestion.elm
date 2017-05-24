@@ -22,6 +22,7 @@ type alias RenderConfig msg codePointer =
     { msgTagger : Msg -> msg
     , askQuestion : codePointer -> QuestionText -> msg
     , isReadyCodePointer : codePointer -> Bool
+    , goToAllQuestions : msg
     }
 
 
@@ -45,6 +46,11 @@ view config model =
         div
             [ class "ask-question" ]
             [ div
+                [ class "link qa-top-right-link"
+                , onClick config.goToAllQuestions
+                ]
+                [ text "see all questions" ]
+            , div
                 [ class "preview-markdown"
                 , onClick <| config.msgTagger TogglePreviewMarkdown
                 ]

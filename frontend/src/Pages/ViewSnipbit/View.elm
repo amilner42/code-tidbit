@@ -730,6 +730,11 @@ commentBox snipbit model shared =
                         { msgTagger = AskQuestionMsg snipbitID
                         , askQuestion = AskQuestion snipbitID
                         , isReadyCodePointer = not << Range.isEmptyRange
+                        , goToAllQuestions =
+                            GoTo <|
+                                Route.ViewSnipbitQuestionsPage
+                                    (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
+                                    snipbitID
                         }
                         newQuestion
 
@@ -739,6 +744,13 @@ commentBox snipbit model shared =
                         AnswerQuestion.view
                             { msgTagger = AnswerQuestionMsg snipbitID question
                             , answerQuestion = AnswerQuestion snipbitID questionID
+                            , goToAllAnswers =
+                                GoTo <|
+                                    Route.ViewSnipbitAnswersPage
+                                        (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
+                                        (Route.getTouringQuestionsQueryParamOnViewSnipbitQARoute shared.route)
+                                        snipbitID
+                                        questionID
                             }
                             { newAnswer =
                                 QA.getNewAnswer snipbitID questionID model.qaState

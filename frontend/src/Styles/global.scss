@@ -558,3 +558,18 @@ textarea {
         }
     }
 }
+
+.link {
+    font-size: 12px;
+    color: $color1;
+    font-style: italic;
+    cursor: pointer;
+    opacity: 0.75;
+    text-decoration: underline;
+
+    &.qa-top-right-link {
+        position: absolute !important;
+        top: -16px !important;
+        right: 0 !important;
+    }
+}

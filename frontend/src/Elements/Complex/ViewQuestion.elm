@@ -99,7 +99,7 @@ view config model =
     in
         div [ class "view-question" ] <|
             [ div
-                [ class "back-to-questions-link"
+                [ class "link qa-top-right-link"
                 , onClick config.onClickBrowseAllQuestions
                 ]
                 [ text "see all questions" ]

@@ -24,6 +24,7 @@ type Msg
 type alias RenderConfig msg =
     { msgTagger : Msg -> msg
     , answerQuestion : AnswerText -> msg
+    , goToAllAnswers : msg
     }
 
 
@@ -42,6 +43,11 @@ view config model =
         div
             [ class "answer-question" ]
             [ div
+                [ class "link qa-top-right-link"
+                , onClick config.goToAllAnswers
+                ]
+                [ text "see all answers" ]
+            , div
                 [ classList
                     [ ( "display-question", True )
                     , ( "hidden", previewMarkdown )
