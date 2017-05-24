@@ -173,6 +173,7 @@ type alias TidbitQAState codePointer =
     , questionCommentEdits : Dict.Dict CommentID (Editable.Editable CommentText)
     , answerCommentEdits : Dict.Dict CommentID (Editable.Editable CommentText)
     , deletingComments : Set.Set CommentID
+    , deletingAnswers : Set.Set AnswerID
     }
 
 
@@ -358,6 +359,26 @@ updateDeletingComments tidbitID deletingCommentsUpdater =
         )
 
 
+{-| Gets the `deletingAnswers` for a specific tidbit, defaults to an empty set if no tidbitQAState.
+-}
+getDeletingAnswers : TidbitID -> QAState codePointer -> Set.Set AnswerID
+getDeletingAnswers tidbitID qaState =
+    Dict.get tidbitID qaState
+        ||> .deletingAnswers
+        ?> Set.empty
+
+
+{-| Updates the `deletingAnswers` for a specific tidbit, handles setting default tidbitQAState if needed.
+-}
+updateDeletingAnswers : TidbitID -> (Set.Set AnswerID -> Set.Set AnswerID) -> QAState codePointer -> QAState codePointer
+updateDeletingAnswers tidbitID deletingAnswersUpdater =
+    setTidbitQAState
+        tidbitID
+        (\tidbitQAState ->
+            { tidbitQAState | deletingAnswers = deletingAnswersUpdater tidbitQAState.deletingAnswers }
+        )
+
+
 {-| BrowseCodePointer setter, handles setting default tidbitQAState if needed.
 -}
 setBrowsingCodePointer : TidbitID -> Maybe codePointer -> QAState codePointer -> QAState codePointer
@@ -445,7 +466,7 @@ rateAnswer : AnswerID -> Maybe Vote.Vote -> QA codePointer -> QA codePointer
 rateAnswer answerID vote =
     let
         updateAnswerUpvotesAndDownvotesForQA qa =
-            updateAnswer answerID (updateVotes vote) qa
+            updateAnswer answerID (Just << updateVotes vote) qa
     in
         updateAnswerUpvotesAndDownvotesForQA >> sortAnswers
 
@@ -477,6 +498,13 @@ deleteAnswerComment commentID qa =
     { qa | answerComments = List.filter (.id >> (/=) commentID) qa.answerComments }
 
 
+{-| Deletes all `AnswerComment`s from the [published] list of answer comments that are for a specific answer.
+-}
+deleteAnswerComments : AnswerID -> QA codePointer -> QA codePointer
+deleteAnswerComments answerID qa =
+    { qa | answerComments = List.filter (.answerID >> (/=) answerID) qa.answerComments }
+
+
 {-| Sorts the answers on a QA.
 -}
 sortAnswers : QA codePointer -> QA codePointer
@@ -505,23 +533,23 @@ pinAnswer : AnswerID -> Bool -> QA codePointer -> QA codePointer
 pinAnswer answerID isPinned =
     let
         updatePin =
-            updateAnswer answerID (\answer -> { answer | pinned = isPinned })
+            updateAnswer answerID (\answer -> Just { answer | pinned = isPinned })
     in
         updatePin >> sortAnswers
 
 
 {-| Updates a [published] answer in the QA.
 -}
-updateAnswer : AnswerID -> (Answer -> Answer) -> QA codePointer -> QA codePointer
+updateAnswer : AnswerID -> (Answer -> Maybe Answer) -> QA codePointer -> QA codePointer
 updateAnswer answerID answerUpdater qa =
     { qa
         | answers =
-            List.map
+            List.filterMap
                 (\answer ->
                     if answer.id == answerID then
                         answerUpdater answer
                     else
-                        answer
+                        Just answer
                 )
                 qa.answers
     }
@@ -660,6 +688,29 @@ updateAnswerCommentEdits tidbitID answerCommentEditsUpdater =
         )
 
 
+{-| Delete all `answerCommentEdits` on a `qaState` pointing to non-existant comments.
+
+Handles setting default if no `tidbitQAState` exists.
+-}
+deleteOldAnswerCommentEdits : TidbitID -> List AnswerComment -> QAState codePointer -> QAState codePointer
+deleteOldAnswerCommentEdits tidbitID answerComments =
+    setTidbitQAState
+        tidbitID
+        (\tidbitQAState ->
+            { tidbitQAState
+                | answerCommentEdits =
+                    Dict.filter
+                        (\commentID _ ->
+                            answerComments
+                                |> List.Extra.find (.id >> (==) commentID)
+                                ||> always True
+                                ?> False
+                        )
+                        tidbitQAState.answerCommentEdits
+            }
+        )
+
+
 {-| Updates the `newAnswerComments` on a `qaState`, handles setting default if not `tidbitQAState` exists.
 -}
 updateNewAnswerComments :
@@ -762,6 +813,7 @@ defaultTidbitQAState =
     , questionCommentEdits = Dict.empty
     , answerCommentEdits = Dict.empty
     , deletingComments = Set.empty
+    , deletingAnswers = Set.empty
     }
 
 

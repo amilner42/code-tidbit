@@ -187,6 +187,7 @@ tidbitQAStateEncoder codePointerEncoder qaState =
             , ( "questionCommentEdits", stringToEditableStringDictEncoder qaState.questionCommentEdits )
             , ( "answerCommentEdits", stringToEditableStringDictEncoder qaState.answerCommentEdits )
             , ( "deletingComments", Encode.null )
+            , ( "deletingAnswers", Encode.null )
             ]
 
 
@@ -245,4 +246,5 @@ tidbitQAStateDecoder codePointerDecoder =
             |> required "newAnswerComments" stringToStringDictDecoder
             |> required "questionCommentEdits" stringToEditableStringDictDecoder
             |> required "answerCommentEdits" stringToEditableStringDictDecoder
+            |> hardcoded Set.empty
             |> hardcoded Set.empty

@@ -58,6 +58,10 @@ update (Common common) msg model shared =
                     common.justSetModel
                         { model | qaState = QA.updateDeletingComments snipbitID (always Set.empty) model.qaState }
 
+                clearDeletingAnswers snipbitID (Common common) ( model, shared ) =
+                    common.justSetModel
+                        { model | qaState = QA.updateDeletingAnswers snipbitID (always Set.empty) model.qaState }
+
                 {- Get's data for viewing snipbit as required:
                     - May need to fetch tidbit itself                             [Cache level: localStorage]
                     - May need to fetch story                                     [Cache level: browserModel]
@@ -301,6 +305,7 @@ update (Common common) msg model shared =
                         common.handleAll
                             [ clearStateOnRouteHit
                             , fetchOrRenderViewSnipbitData snipbitID True
+                            , clearDeletingAnswers snipbitID
                             ]
 
                     Route.ViewSnipbitQuestionCommentsPage _ _ snipbitID _ _ ->
@@ -801,7 +806,7 @@ update (Common common) msg model shared =
                         (QA.updateAnswer
                             answerID
                             (\answer ->
-                                { answer | answerText = answerText, lastModified = date }
+                                Just { answer | answerText = answerText, lastModified = date }
                             )
                         )
                         model.qa
@@ -816,6 +821,49 @@ update (Common common) msg model shared =
             )
 
         OnEditAnswerFailure apiError ->
+            common.justSetModalError apiError
+
+        DeleteAnswer snipbitID questionID answerID ->
+            common.justProduceCmd <|
+                common.api.post.deleteAnswer
+                    { tidbitType = TidbitPointer.Snipbit, targetID = snipbitID }
+                    answerID
+                    OnDeleteAnswerFailure
+                    (always <| OnDeleteAnswerSuccess snipbitID questionID answerID)
+
+        OnDeleteAnswerSuccess snipbitID questionID answerID ->
+            case model.qa of
+                Nothing ->
+                    common.doNothing
+
+                Just qa ->
+                    let
+                        -- Delete answer and answer comments.
+                        updatedQA =
+                            qa
+                                |> QA.updateAnswer answerID (always Nothing)
+                                |> QA.deleteAnswerComments answerID
+
+                        -- Delete possible answer edit and answer-comment edits.
+                        updatedQAState =
+                            model.qaState
+                                |> QA.updateAnswerEdit snipbitID answerID (always Nothing)
+                                |> QA.deleteOldAnswerCommentEdits snipbitID updatedQA.answerComments
+                    in
+                        ( { model
+                            | qa = Just updatedQA
+                            , qaState = updatedQAState
+                          }
+                        , shared
+                        , Route.navigateTo <|
+                            Route.ViewSnipbitAnswersPage
+                                (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
+                                (Route.getTouringQuestionsQueryParamOnViewSnipbitQARoute shared.route)
+                                snipbitID
+                                questionID
+                        )
+
+        OnDeleteAnswerFailure apiError ->
             common.justSetModalError apiError
 
         OnClickUpvoteQuestion snipbitID questionID ->
@@ -1087,6 +1135,7 @@ update (Common common) msg model shared =
                     , answerCommentEdits = QA.getAnswerCommentEdits snipbitID model.qaState
                     , newAnswerComments = QA.getNewAnswerComments snipbitID model.qaState
                     , deletingComments = QA.getDeletingComments snipbitID model.qaState
+                    , deletingAnswers = QA.getDeletingAnswers snipbitID model.qaState
                     }
 
                 ( newViewQuestionModel, newViewQuestionMsg ) =
@@ -1100,6 +1149,7 @@ update (Common common) msg model shared =
                             |> QA.updateAnswerCommentEdits snipbitID (always newViewQuestionModel.answerCommentEdits)
                             |> QA.updateNewAnswerComments snipbitID (always newViewQuestionModel.newAnswerComments)
                             |> QA.updateDeletingComments snipbitID (always newViewQuestionModel.deletingComments)
+                            |> QA.updateDeletingAnswers snipbitID (always newViewQuestionModel.deletingAnswers)
                   }
                 , shared
                 , Cmd.map (ViewQuestionMsg snipbitID questionID) newViewQuestionMsg

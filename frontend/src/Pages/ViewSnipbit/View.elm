@@ -579,6 +579,7 @@ commentBox snipbit model shared =
                             (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
                             snipbit.id
                         << .id
+                , onClickDeleteAnswer = .id >> DeleteAnswer snipbit.id question.id
                 , submitCommentOnQuestion = SubmitCommentOnQuestion snipbit.id question.id
                 , submitCommentOnAnswer = SubmitCommentOnAnswer snipbit.id question.id
                 , deleteCommentOnQuestion = DeleteCommentOnQuestion snipbit.id
@@ -592,6 +593,7 @@ commentBox snipbit model shared =
                 , answerCommentEdits = QA.getAnswerCommentEdits snipbit.id qaState
                 , newAnswerComments = QA.getNewAnswerComments snipbit.id qaState
                 , deletingComments = QA.getDeletingComments snipbit.id qaState
+                , deletingAnswers = QA.getDeletingAnswers snipbit.id qaState
                 }
     in
         case shared.route of

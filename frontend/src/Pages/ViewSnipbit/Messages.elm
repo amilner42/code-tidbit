@@ -61,6 +61,9 @@ type Msg
     | EditAnswer SnipbitID QuestionID AnswerID AnswerText
     | OnEditAnswerSuccess SnipbitID QuestionID AnswerID AnswerText Date
     | OnEditAnswerFailure ApiError
+    | DeleteAnswer SnipbitID QuestionID AnswerID
+    | OnDeleteAnswerSuccess SnipbitID QuestionID AnswerID
+    | OnDeleteAnswerFailure ApiError
     | OnClickUpvoteQuestion SnipbitID QuestionID
     | OnClickRemoveQuestionUpvote SnipbitID QuestionID
     | OnClickDownvoteQuestion SnipbitID QuestionID

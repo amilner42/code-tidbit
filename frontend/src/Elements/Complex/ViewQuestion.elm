@@ -17,6 +17,7 @@ import Set
 type Msg
     = QuestionCommentListMsg CommentList.Msg
     | AnswerCommentListMsg AnswerID CommentList.Msg
+    | AddToDeletingAnswers AnswerID
 
 
 type alias Model =
@@ -25,6 +26,7 @@ type alias Model =
     , answerCommentEdits : Dict.Dict CommentID (Editable.Editable CommentText)
     , newAnswerComments : Dict.Dict AnswerID CommentText
     , deletingComments : Set.Set CommentID
+    , deletingAnswers : Set.Set AnswerID
     }
 
 
@@ -60,6 +62,7 @@ type alias RenderConfig msg codePointer =
     , onClickAnswerQuestion : msg
     , onClickEditQuestion : msg
     , onClickEditAnswer : Answer -> msg
+    , onClickDeleteAnswer : Answer -> msg
     , submitCommentOnQuestion : CommentText -> msg
     , submitCommentOnAnswer : AnswerID -> CommentText -> msg
     , deleteCommentOnQuestion : CommentID -> msg
@@ -160,6 +163,10 @@ view config model =
                             , isAuthor = config.userID == (Just config.question.authorID)
                             , isTidbitAuthor = config.userID == (Just config.tidbitAuthorID)
                             , onClickEdit = config.onClickEditQuestion
+
+                            -- Not sure we should allow deleting questions yet.
+                            , onClickDelete = Nothing
+                            , deleteAlreadyClicked = False
                             }
                         ]
 
@@ -229,6 +236,12 @@ view config model =
                                     , isAuthor = config.userID == (Just answer.authorID)
                                     , isTidbitAuthor = config.userID == (Just config.tidbitAuthorID)
                                     , onClickEdit = config.onClickEditAnswer answer
+                                    , onClickDelete =
+                                        if Set.member answer.id model.deletingAnswers then
+                                            Just <| config.onClickDeleteAnswer answer
+                                        else
+                                            Just <| config.msgTagger <| AddToDeletingAnswers answer.id
+                                    , deleteAlreadyClicked = Set.member answer.id model.deletingAnswers
                                     }
                                 ]
 
@@ -245,7 +258,7 @@ view config model =
                                     { msgTagger = config.msgTagger << (AnswerCommentListMsg answerID)
                                     , userID = config.userID
                                     , small = True
-                                    , comments = config.answerComments
+                                    , comments = List.filter (.answerID >> (==) answerID) config.answerComments
                                     , submitNewComment = config.submitCommentOnAnswer answer.id
                                     , onClickComment = config.onClickAnswerComment
                                     , deleteComment = config.deleteCommentOnAnswer
@@ -304,6 +317,9 @@ update msg model =
                 , Cmd.map (AnswerCommentListMsg answerID) newCommentListMsg
                 )
 
+        AddToDeletingAnswers answerID ->
+            ( { model | deletingAnswers = Set.insert answerID model.deletingAnswers }, Cmd.none )
+
 
 answerBoxView : (Answer -> msg) -> Answer -> Html msg
 answerBoxView onClickAnswer answer =
@@ -343,6 +359,8 @@ type alias ReactiveRatingsBottomBarRenderConfig msg =
     , isAuthor : Bool
     , isTidbitAuthor : Bool
     , onClickEdit : msg
+    , onClickDelete : Maybe msg
+    , deleteAlreadyClicked : Bool
     }
 
 
@@ -435,6 +453,24 @@ reactiveRatingsBottomBarView config =
                     [ text "mode_edit" ]
               else
                 Util.hiddenDiv
+            , case ( config.isAuthor, config.onClickDelete ) of
+                ( True, Just deleteMsg ) ->
+                    i
+                        [ classList
+                            [ ( "material-icons delete-icon", True )
+                            , ( "warning-mode", config.deleteAlreadyClicked )
+                            ]
+                        , onClick deleteMsg
+                        ]
+                        [ text <|
+                            if config.deleteAlreadyClicked then
+                                "delete_forever"
+                            else
+                                "delete"
+                        ]
+
+                _ ->
+                    Util.hiddenDiv
             ]
 
 
