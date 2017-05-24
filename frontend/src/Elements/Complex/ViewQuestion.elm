@@ -66,6 +66,7 @@ type alias RenderConfig msg codePointer =
     , deleteCommentOnAnswer : CommentID -> msg
     , editCommentOnQuestion : CommentID -> CommentText -> msg
     , editCommentOnAnswer : CommentID -> CommentText -> msg
+    , handleUnauthAction : String -> msg
     }
 
 
@@ -92,6 +93,9 @@ view config model =
                     ]
                     [ text "COMMENTS" ]
                 ]
+
+        unauthMessageForUpvoteAndDownvote =
+            "We want your feedback, sign up for free and get access to all of CodeTidbit in seconds!"
     in
         div [ class "view-question" ] <|
             [ div
@@ -134,9 +138,21 @@ view config model =
                         , reactiveRatingsBottomBarView
                             { upvotes = config.question.upvotes
                             , downvotes = config.question.downvotes
-                            , onClickUpvote = config.onClickUpvoteQuestion
+                            , onClickUpvote =
+                                case config.userID of
+                                    Just _ ->
+                                        config.onClickUpvoteQuestion
+
+                                    Nothing ->
+                                        config.handleUnauthAction unauthMessageForUpvoteAndDownvote
                             , onClickRemoveUpvote = config.onClickRemoveUpvoteQuestion
-                            , onClickDownvote = config.onClickDownvoteQuestion
+                            , onClickDownvote =
+                                case config.userID of
+                                    Just _ ->
+                                        config.onClickDownvoteQuestion
+
+                                    Nothing ->
+                                        config.handleUnauthAction unauthMessageForUpvoteAndDownvote
                             , onClickRemoveDownvote = config.onClickRemoveDownvoteQuestion
                             , onClickPin = config.onClickPinQuestion
                             , onClickUnpin = config.onClickUnpinQuestion
@@ -191,9 +207,21 @@ view config model =
                                 , reactiveRatingsBottomBarView
                                     { upvotes = answer.upvotes
                                     , downvotes = answer.downvotes
-                                    , onClickUpvote = config.onClickUpvoteAnswer answer
+                                    , onClickUpvote =
+                                        case config.userID of
+                                            Just _ ->
+                                                config.onClickUpvoteAnswer answer
+
+                                            Nothing ->
+                                                config.handleUnauthAction unauthMessageForUpvoteAndDownvote
                                     , onClickRemoveUpvote = config.onClickRemoveUpvoteAnswer answer
-                                    , onClickDownvote = config.onClickDownvoteAnswer answer
+                                    , onClickDownvote =
+                                        case config.userID of
+                                            Just _ ->
+                                                config.onClickDownvoteAnswer answer
+
+                                            Nothing ->
+                                                config.handleUnauthAction unauthMessageForUpvoteAndDownvote
                                     , onClickRemoveDownvote = config.onClickRemoveDownvoteAnswer answer
                                     , onClickPin = config.onClickPinAnswer answer
                                     , onClickUnpin = config.onClickUnpinAnswer answer

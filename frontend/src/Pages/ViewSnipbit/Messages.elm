@@ -120,3 +120,4 @@ type Msg
     | EditCommentOnAnswer SnipbitID CommentID CommentText
     | OnEditCommentOnAnswerSuccess SnipbitID CommentID CommentText Date.Date
     | OnEditCommentOnAnswerFailure ApiError
+    | SetUserNeedsAuthModal String

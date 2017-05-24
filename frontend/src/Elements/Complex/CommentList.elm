@@ -7,7 +7,7 @@ import DefaultServices.InfixFunctions exposing (..)
 import DefaultServices.Util as Util
 import Dict
 import Html exposing (Html, div, span, i, text, textarea)
-import Html.Attributes exposing (class, classList, placeholder, value)
+import Html.Attributes exposing (class, classList, placeholder, value, disabled)
 import Html.Events exposing (onInput, onClick)
 import Models.QA exposing (..)
 import ProjectTypeAliases exposing (..)
@@ -43,42 +43,63 @@ type alias RenderConfig msg comment =
 
 view : RenderConfig msg comment -> Model -> Html msg
 view config model =
-    div
-        [ class "comment-list" ]
-        [ div
-            [ classList [ ( "comments-wrapper", True ), ( "small", config.small ) ] ]
-            [ Util.keyedDiv
-                [ class "comments" ]
-                (if List.isEmpty config.comments then
-                    [ ( "no-comments-text"
-                      , span [ class "no-comments-text" ] [ text "No Comments" ]
-                      )
-                    ]
-                 else
-                    List.map
-                        (\comment -> ( comment.id, commentBoxView config model comment ))
-                        config.comments
-                )
-            ]
-        , textarea
-            [ class "new-comment-textarea"
-            , onInput <| config.msgTagger << OnNewCommentTextInput
-            , placeholder "Add Comment..."
-            , value model.newCommentText
-            ]
-            []
-        , div
-            (Util.maybeAttributes
-                [ Just <|
-                    classList
-                        [ ( "submit-comment", True )
-                        , ( "disabled", Util.isNothing <| Util.justNonBlankString model.newCommentText )
+    let
+        isLoggedIn =
+            Util.isNotNothing config.userID
+
+        isBlankComment =
+            Util.isNothing justNonBlankComment
+
+        justNonBlankComment =
+            Util.justNonBlankString model.newCommentText
+    in
+        div
+            [ class "comment-list" ]
+            [ div
+                [ classList [ ( "comments-wrapper", True ), ( "small", config.small ) ] ]
+                [ Util.keyedDiv
+                    [ class "comments" ]
+                    (if List.isEmpty config.comments then
+                        [ ( "no-comments-text"
+                          , span [ class "no-comments-text" ] [ text "No Comments" ]
+                          )
                         ]
-                , Util.justNonBlankString model.newCommentText ||> onClick << config.submitNewComment
+                     else
+                        List.map
+                            (\comment -> ( comment.id, commentBoxView config model comment ))
+                            config.comments
+                    )
                 ]
-            )
-            [ text "Submit Comment" ]
-        ]
+            , textarea
+                [ class "new-comment-textarea"
+                , onInput <| config.msgTagger << OnNewCommentTextInput
+                , placeholder <|
+                    if isLoggedIn then
+                        "Add Comment..."
+                    else
+                        "Sign up or login to comment..."
+                , value model.newCommentText
+                , disabled <| not isLoggedIn
+                ]
+                []
+            , div
+                (Util.maybeAttributes
+                    [ Just <|
+                        classList
+                            [ ( "submit-comment", True )
+                            , ( "disabled", isBlankComment || not isLoggedIn )
+                            , ( "blurred-out", not isLoggedIn )
+                            ]
+                    , case ( isLoggedIn, justNonBlankComment ) of
+                        ( True, Just comment ) ->
+                            Just <| onClick <| config.submitNewComment comment
+
+                        _ ->
+                            Nothing
+                    ]
+                )
+                [ text "Submit Comment" ]
+            ]
 
 
 commentBoxView : RenderConfig msg comment -> Model -> Comment comment -> Html msg

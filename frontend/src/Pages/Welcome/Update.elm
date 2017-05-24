@@ -18,6 +18,9 @@ update (Common common) msg model shared =
         GoTo route ->
             ( wipeError model, shared, Route.navigateTo route )
 
+        OnRouteHit route ->
+            common.justSetShared { shared | userNeedsAuthModal = Nothing }
+
         OnPasswordInput newPassword ->
             common.justSetModel <| wipeError { model | password = newPassword }
 

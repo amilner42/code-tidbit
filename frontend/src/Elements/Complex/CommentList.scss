@@ -65,6 +65,10 @@
         &.disabled {
             cursor: not-allowed;
         }
+
+        &.blurred-out {
+            opacity: 0.5;
+        }
     }
 }
 

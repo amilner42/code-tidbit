@@ -1228,6 +1228,9 @@ update (Common common) msg model shared =
         OnEditCommentOnAnswerFailure apiError ->
             common.justSetModalError apiError
 
+        SetUserNeedsAuthModal message ->
+            common.justSetUserNeedsAuthModal message
+
 
 {-| Creates the editor for the snipbit.
 

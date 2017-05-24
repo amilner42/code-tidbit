@@ -36,6 +36,7 @@ import Pages.ViewSnipbit.Update as ViewSnipbitUpdate
 import Pages.ViewStory.Messages as ViewStoryMessages
 import Pages.ViewStory.Model as ViewStoryModel
 import Pages.ViewStory.Update as ViewStoryUpdate
+import Pages.Welcome.Messages as WelcomeMessages
 import Pages.Welcome.Update as WelcomeUpdate
 import Ports
 import Task
@@ -391,8 +392,13 @@ updateCacheIf msg model shouldCache =
                                 KK.Up keyCode ->
                                     handleKeyRelease (KK.fromCode keyCode) modelWithNewKeys
 
-                CloseModal ->
+                CloseErrorModal ->
                     ( { model | shared = { shared | apiModalError = Nothing } }
+                    , Cmd.none
+                    )
+
+                CloseSignUpModal ->
+                    ( { model | shared = { shared | userNeedsAuthModal = Nothing } }
                     , Cmd.none
                     )
     in
@@ -654,6 +660,9 @@ handleLocationChange maybeRoute model =
                         ]
                     )
 
+                triggerRouteHookOnWelcomePage =
+                    triggerRouteHook <| WelcomeMessage <| WelcomeMessages.OnRouteHit route
+
                 triggerRouteHookOnViewSnipbitPage =
                     triggerRouteHook <| ViewSnipbitMessage <| ViewSnipbitMessages.OnRouteHit route
 
@@ -684,6 +693,12 @@ handleLocationChange maybeRoute model =
                 -- Handle general route-logic here, routes are a great way to be
                 -- able to trigger certain things (hooks).
                 case route of
+                    Route.LoginPage ->
+                        triggerRouteHookOnWelcomePage
+
+                    Route.RegisterPage ->
+                        triggerRouteHookOnWelcomePage
+
                     Route.BrowsePage ->
                         triggerRouteHookOnBrowsePage
 

@@ -52,6 +52,9 @@ view model =
         -- The modal for displaying errors.
         , Util.maybeMapWithDefault errorModal Util.hiddenDiv model.shared.apiModalError
 
+        -- The modal for telling the user they need to sign up (likely because they clicked something requiring auth).
+        , Util.maybeMapWithDefault signUpModal Util.hiddenDiv model.shared.userNeedsAuthModal
+
         -- Used for smooth scrolling to the bottom.
         , div [ class "invisible-bottom" ] []
         ]
@@ -66,7 +69,7 @@ errorModal apiError =
         [ -- The modal background.
           div
             [ class "modal-bg"
-            , onClick CloseModal
+            , onClick CloseErrorModal
             ]
             []
 
@@ -79,6 +82,45 @@ errorModal apiError =
             , div
                 [ class "modal-message" ]
                 [ text <| ApiError.humanReadable apiError ]
+            ]
+        ]
+
+
+{-| A basic modal for telling the user that they need to log in or sign up.
+-}
+signUpModal : String -> Html Msg
+signUpModal modalMessage =
+    div
+        [ class "sign-up-modal" ]
+        [ -- The modal background.
+          div
+            [ class "modal-bg"
+            , onClick CloseSignUpModal
+            ]
+            []
+
+        -- The actual modal.
+        , div
+            [ class "modal-box" ]
+            [ div
+                [ class "modal-title" ]
+                [ text "Join the Community" ]
+            , div
+                [ class "modal-message" ]
+                [ text modalMessage ]
+            , div
+                [ class "centered-buttons" ]
+                [ div
+                    [ class "login"
+                    , onClick <| GoTo <| Route.LoginPage
+                    ]
+                    [ text "LOGIN" ]
+                , div
+                    [ class "sign-up"
+                    , onClick <| GoTo <| Route.RegisterPage
+                    ]
+                    [ text "SIGN UP" ]
+                ]
             ]
         ]
 

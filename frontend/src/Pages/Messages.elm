@@ -45,4 +45,5 @@ type Msg
     | CodeEditorUpdate { id : String, value : String, deltaRange : Range.Range, action : String }
     | CodeEditorSelectionUpdate { id : String, range : Range.Range }
     | KeyboardExtraMessage Keyboard.Extra.Msg
-    | CloseModal
+    | CloseErrorModal
+    | CloseSignUpModal

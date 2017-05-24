@@ -118,7 +118,16 @@ view model shared =
                 ( Just snipbitID, True, False, Just [] ) ->
                     button
                         [ class "sub-bar-button ask-question"
-                        , onClick <| GoToAskQuestion
+                        , onClick <|
+                            case shared.user of
+                                Just _ ->
+                                    GoToAskQuestion
+
+                                Nothing ->
+                                    SetUserNeedsAuthModal
+                                        ("We want to answer your question, sign up for free and get access to all of"
+                                            ++ " CodeTidbit in seconds!"
+                                        )
                         ]
                         [ text "Ask Question" ]
 
@@ -545,11 +554,19 @@ commentBox snipbit model shared =
                 , onClickPinAnswer = (\answer -> PinAnswer snipbit.id answer.id)
                 , onClickUnpinAnswer = (\answer -> UnpinAnswer snipbit.id answer.id)
                 , onClickAnswerQuestion =
-                    GoTo <|
-                        Route.ViewSnipbitAnswerQuestion
-                            (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
-                            snipbit.id
-                            question.id
+                    case shared.user of
+                        Just _ ->
+                            GoTo <|
+                                Route.ViewSnipbitAnswerQuestion
+                                    (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
+                                    snipbit.id
+                                    question.id
+
+                        Nothing ->
+                            SetUserNeedsAuthModal
+                                ("Want to share your knowledge? Sign up for free and get access to all of CodeTidbit"
+                                    ++ " in seconds!"
+                                )
                 , onClickEditQuestion =
                     GoTo <|
                         Route.ViewSnipbitEditQuestion
@@ -568,6 +585,7 @@ commentBox snipbit model shared =
                 , deleteCommentOnAnswer = DeleteCommentOnAnswer snipbit.id
                 , editCommentOnQuestion = EditCommentOnQuestion snipbit.id
                 , editCommentOnAnswer = EditCommentOnAnswer snipbit.id
+                , handleUnauthAction = SetUserNeedsAuthModal
                 }
                 { questionCommentEdits = QA.getQuestionCommentEdits snipbit.id qaState
                 , newQuestionComment = QA.getNewQuestionComment snipbit.id question.id qaState
@@ -619,7 +637,16 @@ commentBox snipbit model shared =
                                                         question.id
                                             )
                                         }
-                                    , onClickAskQuestion = GoToAskQuestion
+                                    , onClickAskQuestion =
+                                        case shared.user of
+                                            Just _ ->
+                                                GoToAskQuestion
+
+                                            Nothing ->
+                                                SetUserNeedsAuthModal
+                                                    ("We want to answer your question, sign up for free and get access"
+                                                        ++ " to all of CodeTidbit in seconds!"
+                                                    )
                                     , isHighlighting = isHighlighting
                                     }
                                     remainingQuestions

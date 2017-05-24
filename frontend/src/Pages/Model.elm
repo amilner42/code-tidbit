@@ -56,6 +56,7 @@ type alias Shared =
     , viewingStory : Maybe Story.ExpandedStory
     , flags : Flags
     , apiModalError : Maybe ApiError.ApiError
+    , userNeedsAuthModal : Maybe String
     }
 
 

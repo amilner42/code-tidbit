@@ -53,4 +53,5 @@ defaultShared route flags =
     , viewingStory = Nothing
     , flags = flags
     , apiModalError = Nothing
+    , userNeedsAuthModal = Nothing
     }

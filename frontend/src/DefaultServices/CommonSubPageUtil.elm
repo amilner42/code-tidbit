@@ -25,6 +25,7 @@ type CommonSubPageUtil model shared msg
             -> ( model, shared, Cmd msg )
         , api : Api.API msg
         , justSetModalError : ApiError.ApiError -> ( model, shared, Cmd.Cmd msg )
+        , justSetUserNeedsAuthModal : String -> ( model, shared, Cmd.Cmd msg )
         }
 
 
@@ -66,4 +67,6 @@ commonSubPageUtil model shared =
             , handleAll = handleAll
             , api = Api.api shared.flags.apiBaseUrl
             , justSetModalError = (\apiError -> ( model, { shared | apiModalError = Just apiError }, Cmd.none ))
+            , justSetUserNeedsAuthModal =
+                (\message -> ( model, { shared | userNeedsAuthModal = Just message }, Cmd.none ))
             }
