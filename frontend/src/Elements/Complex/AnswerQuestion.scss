@@ -73,11 +73,19 @@
     textarea {
         position: absolute;
         top: 235px !important;
-        height: 305px !important;
+        height: 285px !important;
 
         &.hiding-question {
             top: 30px !important;
-            height: 510px !important;
+            height: 490px !important;
         }
+    }
+
+    .char-count {
+        position: absolute;
+        top: 550px !important;
+        right: 0 !important;
+        color: $color8;
+        top: 300px;
     }
 }

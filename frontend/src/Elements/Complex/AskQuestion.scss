@@ -44,7 +44,12 @@
 
     textarea {
         margin-top: 30px;
-        height: 540px !important;
+        height: 520px !important;
+    }
+
+    .char-count {
+        text-align: right;
+        color: $color8;
     }
 
     .markdown-box {

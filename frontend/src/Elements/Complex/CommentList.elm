@@ -47,11 +47,11 @@ view config model =
         isLoggedIn =
             Util.isNotNothing config.userID
 
-        isBlankComment =
-            Util.isNothing justNonBlankComment
+        isReadyComment =
+            Util.isNotNothing justReadyComment
 
-        justNonBlankComment =
-            Util.justNonBlankString model.newCommentText
+        justReadyComment =
+            Util.justNonblankStringInRange 1 300 model.newCommentText
     in
         div
             [ class "comment-list" ]
@@ -82,15 +82,15 @@ view config model =
                 , disabled <| not isLoggedIn
                 ]
                 []
+            , Util.limitCharsText 300 model.newCommentText
             , div
                 (Util.maybeAttributes
                     [ Just <|
                         classList
                             [ ( "submit-comment", True )
-                            , ( "disabled", isBlankComment || not isLoggedIn )
-                            , ( "blurred-out", not isLoggedIn )
+                            , ( "disabled", not isReadyComment || not isLoggedIn )
                             ]
-                    , case ( isLoggedIn, justNonBlankComment ) of
+                    , case ( isLoggedIn, justReadyComment ) of
                         ( True, Just comment ) ->
                             Just <| onClick <| config.submitNewComment comment
 

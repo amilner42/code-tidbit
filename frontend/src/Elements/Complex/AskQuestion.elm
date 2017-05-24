@@ -29,7 +29,7 @@ view : RenderConfig msg codePointer -> Model codePointer -> Html msg
 view config model =
     let
         maybeReadyQuestion =
-            case ( model.codePointer, Util.justNonBlankString model.questionText ) of
+            case ( model.codePointer, Util.justNonblankStringInRange 1 300 model.questionText ) of
                 ( Just codePointer, Just questionText ) ->
                     if config.isReadyCodePointer codePointer then
                         Just { codePointer = codePointer, questionText = questionText }
@@ -57,12 +57,16 @@ view config model =
             , if model.previewMarkdown then
                 Markdown.view [] model.questionText
               else
-                textarea
-                    [ placeholder "Highlight code and ask your question"
-                    , onInput (OnQuestionTextInput >> config.msgTagger)
-                    , value model.questionText
-                    ]
+                div
                     []
+                    [ textarea
+                        [ placeholder "Highlight code and ask your question..."
+                        , onInput (OnQuestionTextInput >> config.msgTagger)
+                        , value model.questionText
+                        ]
+                        []
+                    , Util.limitCharsText 300 model.questionText
+                    ]
             , div
                 (Util.maybeAttributes
                     [ Just <|

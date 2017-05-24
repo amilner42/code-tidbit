@@ -9,13 +9,13 @@
         box-sizing: border-box;
         margin-top: 30px;
         border: 1px solid $color13;
-        height: 440px;
+        height: 420px;
         width: 360px;
         overflow: hidden;
 
         &.small {
             margin-top: 60px;
-            height: 410px;
+            height: 390px;
 
             .no-comments-text {
                 top: 170px !important;
@@ -45,9 +45,16 @@
     .new-comment-textarea {
         position: absolute;
         box-sizing: border-box;
-        bottom: 28px;
+        bottom: 48px;
         height: 100px !important;
         width: 360px !important;
+    }
+
+    .char-count {
+        position: absolute;
+        top: 550px;
+        right: 0;
+        color: $color8;
     }
 
     .submit-comment {
@@ -64,9 +71,6 @@
 
         &.disabled {
             cursor: not-allowed;
-        }
-
-        &.blurred-out {
             opacity: 0.5;
         }
     }

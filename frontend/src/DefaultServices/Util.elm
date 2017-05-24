@@ -1,6 +1,7 @@
 module DefaultServices.Util exposing (..)
 
 import Date
+import DefaultServices.InfixFunctions exposing (..)
 import Dict
 import Dom
 import Elements.Simple.Markdown as Markdown
@@ -222,14 +223,16 @@ justNonEmptyString string =
         Just string
 
 
-{-| Returns true if a string is empty or just spaces.
+{-| Returns true if a string is empty or just spaces and newlines.
 -}
 isBlankString : String -> Bool
 isBlankString =
-    String.isEmpty << String.filter ((/=) ' ')
+    String.isEmpty << String.filter (\char -> char /= ' ' && char /= '\n')
 
 
-{-| If the string is blank (empty || just spaces) returns `Nothing`, otherwise `Just` the string.
+{-| If the string is blank returns `Nothing`, otherwise `Just` the string.
+
+@refer `isBlankString`
 -}
 justNonBlankString : String -> Maybe String
 justNonBlankString string =
@@ -251,6 +254,16 @@ justStringInRange lower upper string =
             Just string
         else
             Nothing
+
+
+{-| Checks that a string isn't blank and is within a specific range.
+
+@refer `justStringInRange`
+@refer `justNonBlankString`
+-}
+justNonblankStringInRange : Int -> Int -> String -> Maybe String
+justNonblankStringInRange lower upper string =
+    justStringInRange lower upper string |||> justNonBlankString
 
 
 {-| If the list is empty, returns `Nothing`, otherwise `Just` the list.

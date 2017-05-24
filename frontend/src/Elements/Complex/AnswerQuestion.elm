@@ -34,7 +34,7 @@ view config model =
             model.newAnswer
 
         maybeReadyAnswer =
-            Util.justNonBlankString answerText
+            Util.justNonblankStringInRange 1 1000 answerText
 
         isAnswerReady =
             Util.isNotNothing maybeReadyAnswer
@@ -78,13 +78,17 @@ view config model =
             , Util.markdownOr
                 previewMarkdown
                 answerText
-                (textarea
-                    [ classList [ ( "hiding-question", not showQuestion ) ]
-                    , placeholder "Answer Question"
-                    , onInput (config.msgTagger << OnAnswerTextInput)
-                    , value answerText
-                    ]
+                (div
                     []
+                    [ textarea
+                        [ classList [ ( "hiding-question", not showQuestion ) ]
+                        , placeholder "Answer Question"
+                        , onInput (config.msgTagger << OnAnswerTextInput)
+                        , value answerText
+                        ]
+                        []
+                    , Util.limitCharsText 1000 answerText
+                    ]
                 )
             , div
                 (Util.maybeAttributes
