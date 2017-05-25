@@ -31,6 +31,16 @@ type Route
     | ViewBigbitIntroductionPage (Maybe StoryID) BigbitID (Maybe FS.Path)
     | ViewBigbitFramePage (Maybe StoryID) BigbitID FrameNumber (Maybe FS.Path)
     | ViewBigbitConclusionPage (Maybe StoryID) BigbitID (Maybe FS.Path)
+    | ViewBigbitQuestionsPage (Maybe StoryID) BigbitID (Maybe FS.Path)
+    | ViewBigbitQuestionPage (Maybe StoryID) (Maybe MeaninglessString) BigbitID QuestionID
+    | ViewBigbitAnswersPage (Maybe StoryID) (Maybe MeaninglessString) BigbitID QuestionID
+    | ViewBigbitAnswerPage (Maybe StoryID) (Maybe MeaninglessString) BigbitID AnswerID
+    | ViewBigbitQuestionCommentsPage (Maybe StoryID) (Maybe MeaninglessString) BigbitID QuestionID (Maybe CommentID)
+    | ViewBigbitAnswerCommentsPage (Maybe StoryID) (Maybe MeaninglessString) BigbitID AnswerID (Maybe CommentID)
+    | ViewBigbitAskQuestion (Maybe StoryID) BigbitID (Maybe FS.Path)
+    | ViewBigbitEditQuestion (Maybe StoryID) BigbitID QuestionID (Maybe FS.Path)
+    | ViewBigbitAnswerQuestion (Maybe StoryID) BigbitID QuestionID
+    | ViewBigbitEditAnswer (Maybe StoryID) BigbitID AnswerID
     | ViewStoryPage StoryID
     | CreatePage
     | CreateSnipbitNamePage
@@ -114,8 +124,13 @@ matchers =
         viewSnipbitEditAnswer =
             viewSnipbit </> s "editAnswer" </> string
 
+        -- Abstract.
         viewBigbit =
             view </> s "bigbit" <?> qpFromStory </> string
+
+        -- Abstract.
+        viewBigbitTouringQuestions =
+            view </> s "bigbit" <?> qpFromStory <?> qpTouringQuestions </> string
 
         viewBigbitIntroduction =
             viewBigbit </> s "introduction" <?> qpFile
@@ -125,6 +140,36 @@ matchers =
 
         viewBigbitConclusion =
             viewBigbit </> s "conclusion" <?> qpFile
+
+        viewBigbitQuestionsPage =
+            viewBigbit </> s "questions" <?> qpFile
+
+        viewBigbitQuestionPage =
+            viewBigbitTouringQuestions </> s "question" </> string
+
+        viewBigbitAnswersPage =
+            viewBigbitQuestionPage </> s "answers"
+
+        viewBigbitAnswerPage =
+            viewBigbitTouringQuestions </> s "answer" </> string
+
+        viewBigbitQuestionCommentsPage =
+            viewBigbitQuestionPage </> s "comments" <?> qpCommentID
+
+        viewBigbitAnswerCommentsPage =
+            viewBigbitAnswerPage </> s "comments" <?> qpCommentID
+
+        viewBigbitAskQuestion =
+            viewBigbit </> s "askQuestion" <?> qpFile
+
+        viewBigbitEditQuestion =
+            viewBigbit </> s "editQuestion" </> string <?> qpFile
+
+        viewBigbitAnswerQuestion =
+            viewBigbit </> s "answerQuestion" </> string
+
+        viewBigbitEditAnswer =
+            viewBigbit </> s "editAnswer" </> string
 
         viewStory =
             view </> s "story" </> string
@@ -241,6 +286,16 @@ matchers =
             , map ViewBigbitIntroductionPage viewBigbitIntroduction
             , map ViewBigbitFramePage viewBigbitFrame
             , map ViewBigbitConclusionPage viewBigbitConclusion
+            , map ViewBigbitQuestionsPage viewBigbitQuestionsPage
+            , map ViewBigbitQuestionPage viewBigbitQuestionPage
+            , map ViewBigbitAnswersPage viewBigbitAnswersPage
+            , map ViewBigbitAnswerPage viewBigbitAnswerPage
+            , map ViewBigbitQuestionCommentsPage viewBigbitQuestionCommentsPage
+            , map ViewBigbitAnswerCommentsPage viewBigbitAnswerCommentsPage
+            , map ViewBigbitAskQuestion viewBigbitAskQuestion
+            , map ViewBigbitEditQuestion viewBigbitEditQuestion
+            , map ViewBigbitAnswerQuestion viewBigbitAnswerQuestion
+            , map ViewBigbitEditAnswer viewBigbitEditAnswer
             , map ViewStoryPage viewStory
             , map CreatePage create
             , map CreateSnipbitNamePage createSnipbitName
@@ -311,6 +366,24 @@ routeRequiresAuth route =
             False
 
         ViewBigbitConclusionPage _ _ _ ->
+            False
+
+        ViewBigbitQuestionsPage _ _ _ ->
+            False
+
+        ViewBigbitQuestionPage _ _ _ _ ->
+            False
+
+        ViewBigbitAnswersPage _ _ _ _ ->
+            False
+
+        ViewBigbitAnswerPage _ _ _ _ ->
+            False
+
+        ViewBigbitQuestionCommentsPage _ _ _ _ _ ->
+            False
+
+        ViewBigbitAnswerCommentsPage _ _ _ _ _ ->
             False
 
         ViewStoryPage _ ->
@@ -447,11 +520,11 @@ toHashUrl route =
                     ++ "/askQuestion"
                     ++ Util.queryParamsToString [ ( "fromStory", qpStoryID ) ]
 
-            ViewSnipbitAnswerQuestion qpStoryID snipbitID answerID ->
+            ViewSnipbitAnswerQuestion qpStoryID snipbitID questionID ->
                 "view/snipbit/"
                     ++ snipbitID
                     ++ "/answerQuestion/"
-                    ++ answerID
+                    ++ questionID
                     ++ Util.queryParamsToString [ ( "fromStory", qpStoryID ) ]
 
             ViewSnipbitEditQuestion qpStoryID snipbitID questionID ->
@@ -487,6 +560,88 @@ toHashUrl route =
                     ++ (toString frameNumber)
                     ++ "/"
                     ++ Util.queryParamsToString [ ( "file", qpFile ), ( "fromStory", qpStoryID ) ]
+
+            ViewBigbitQuestionsPage qpStoryID bigbitID qpFile ->
+                "view/bigbit/"
+                    ++ bigbitID
+                    ++ "/questions"
+                    ++ Util.queryParamsToString [ ( "file", qpFile ), ( "fromStory", qpStoryID ) ]
+
+            ViewBigbitQuestionPage qpStoryID qpTouringQuestions bigbitID questionID ->
+                "view/bigbit/"
+                    ++ bigbitID
+                    ++ "/question/"
+                    ++ questionID
+                    ++ Util.queryParamsToString
+                        [ ( "fromStory", qpStoryID ), ( "touringQuestions", qpTouringQuestions ) ]
+
+            ViewBigbitAnswersPage qpStoryID qpTouringQuestions bigbitID questionID ->
+                "view/bigbit/"
+                    ++ bigbitID
+                    ++ "/question/"
+                    ++ questionID
+                    ++ "/answers"
+                    ++ Util.queryParamsToString
+                        [ ( "fromStory", qpStoryID ), ( "touringQuestions", qpTouringQuestions ) ]
+
+            ViewBigbitAnswerPage qpStoryID qpTouringQuestions bigbitID answerID ->
+                "view/bigbit/"
+                    ++ bigbitID
+                    ++ "/answer/"
+                    ++ answerID
+                    ++ Util.queryParamsToString
+                        [ ( "fromStory", qpStoryID ), ( "touringQuestions", qpTouringQuestions ) ]
+
+            ViewBigbitQuestionCommentsPage qpStoryID qpTouringQuestions bigbitID questionID qpCommentID ->
+                "view/bigbit/"
+                    ++ bigbitID
+                    ++ "/question/"
+                    ++ questionID
+                    ++ "/comments"
+                    ++ Util.queryParamsToString
+                        [ ( "fromStory", qpStoryID )
+                        , ( "touringQuestions", qpTouringQuestions )
+                        , ( "commentID", qpCommentID )
+                        ]
+
+            ViewBigbitAnswerCommentsPage qpStoryID qpTouringQuestions bigbitID answerID qpCommentID ->
+                "view/bigbit/"
+                    ++ bigbitID
+                    ++ "/answer/"
+                    ++ answerID
+                    ++ "/comments"
+                    ++ Util.queryParamsToString
+                        [ ( "fromStory", qpStoryID )
+                        , ( "touringQuestions", qpTouringQuestions )
+                        , ( "commentID", qpCommentID )
+                        ]
+
+            ViewBigbitAskQuestion qpStoryID bigbitID qpFile ->
+                "view/bigbit/"
+                    ++ bigbitID
+                    ++ "/askQuestion"
+                    ++ Util.queryParamsToString [ ( "fromStory", qpStoryID ), ( "file", qpFile ) ]
+
+            ViewBigbitEditQuestion qpStoryID bigbitID questionID qpFile ->
+                "view/bigbit/"
+                    ++ bigbitID
+                    ++ "/editQuestion/"
+                    ++ questionID
+                    ++ Util.queryParamsToString [ ( "fromStory", qpStoryID ), ( "file", qpFile ) ]
+
+            ViewBigbitAnswerQuestion qpStoryID bigbitID questionID ->
+                "view/bigbit/"
+                    ++ bigbitID
+                    ++ "/answerQuestion/"
+                    ++ questionID
+                    ++ Util.queryParamsToString [ ( "fromStory", qpStoryID ) ]
+
+            ViewBigbitEditAnswer qpStoryID bigbitID answerID ->
+                "view/bigbit/"
+                    ++ bigbitID
+                    ++ "/editAnswer/"
+                    ++ answerID
+                    ++ Util.queryParamsToString [ ( "fromStory", qpStoryID ) ]
 
             ViewStoryPage mongoID ->
                 "view/story/" ++ mongoID
@@ -614,6 +769,15 @@ navigateToSameUrlWithFilePath maybePath route =
         ViewBigbitConclusionPage fromStoryID mongoID _ ->
             navigateTo <| ViewBigbitConclusionPage fromStoryID mongoID maybePath
 
+        ViewBigbitQuestionsPage fromStoryID bigbitID _ ->
+            navigateTo <| ViewBigbitQuestionsPage fromStoryID bigbitID maybePath
+
+        ViewBigbitAskQuestion fromStoryID bigbitID _ ->
+            navigateTo <| ViewBigbitAskQuestion fromStoryID bigbitID maybePath
+
+        ViewBigbitEditQuestion fromStoryID bigbitID questionID _ ->
+            navigateTo <| ViewBigbitEditQuestion fromStoryID bigbitID questionID maybePath
+
         CreateBigbitCodeIntroductionPage _ ->
             navigateTo <| CreateBigbitCodeIntroductionPage maybePath
 
@@ -695,7 +859,7 @@ getFromStoryQueryParamOnViewSnipbitRoute route =
 
 {-| Returns query param `touringQuestions` if viewing snipbit and on QA route which has that qp.
 -}
-getTouringQuestionsQueryParamOnViewSnipbitQARoute : Route -> Maybe String
+getTouringQuestionsQueryParamOnViewSnipbitQARoute : Route -> Maybe MeaninglessString
 getTouringQuestionsQueryParamOnViewSnipbitQARoute route =
     case route of
         ViewSnipbitQuestionPage _ touringQuestions _ _ ->
@@ -731,6 +895,60 @@ getFromStoryQueryParamOnViewBigbitRoute route =
         ViewBigbitConclusionPage fromStoryID _ _ ->
             fromStoryID
 
+        ViewBigbitQuestionsPage fromStoryID _ _ ->
+            fromStoryID
+
+        ViewBigbitQuestionPage fromStoryID _ _ _ ->
+            fromStoryID
+
+        ViewBigbitAnswersPage fromStoryID _ _ _ ->
+            fromStoryID
+
+        ViewBigbitAnswerPage fromStoryID _ _ _ ->
+            fromStoryID
+
+        ViewBigbitQuestionCommentsPage fromStoryID _ _ _ _ ->
+            fromStoryID
+
+        ViewBigbitAnswerCommentsPage fromStoryID _ _ _ _ ->
+            fromStoryID
+
+        ViewBigbitAskQuestion fromStoryID _ _ ->
+            fromStoryID
+
+        ViewBigbitEditQuestion fromStoryID _ _ _ ->
+            fromStoryID
+
+        ViewBigbitAnswerQuestion fromStoryID _ _ ->
+            fromStoryID
+
+        ViewBigbitEditAnswer fromStoryID _ _ ->
+            fromStoryID
+
+        _ ->
+            Nothing
+
+
+{-| Returns query param `touringQuestions` if viewing bigbit and on QA route that has that qp.
+-}
+getTouringQuestionsQueryParamOnViewBigbitQARoute : Route -> Maybe MeaninglessString
+getTouringQuestionsQueryParamOnViewBigbitQARoute route =
+    case route of
+        ViewBigbitQuestionPage _ touringQuestions _ _ ->
+            touringQuestions
+
+        ViewBigbitAnswersPage _ touringQuestions _ _ ->
+            touringQuestions
+
+        ViewBigbitAnswerPage _ touringQuestions _ _ ->
+            touringQuestions
+
+        ViewBigbitQuestionCommentsPage _ touringQuestions _ _ _ ->
+            touringQuestions
+
+        ViewBigbitAnswerCommentsPage _ touringQuestions _ _ _ ->
+            touringQuestions
+
         _ ->
             Nothing
 
@@ -754,6 +972,8 @@ createBigbitPageCurrentActiveFile route =
 
 
 {-| The current active path determined from the route and the current comment frame.
+
+TODO Update or add parralel function `viewBigbitQAPageCurrentActiveFile` and rename this function (..tutorialPage..).
 -}
 viewBigbitPageCurrentActiveFile : Route -> Bigbit.Bigbit -> Maybe FS.Path
 viewBigbitPageCurrentActiveFile route bigbit =
@@ -826,6 +1046,36 @@ getViewingContentID route =
             Just bigbitID
 
         ViewBigbitConclusionPage _ bigbitID _ ->
+            Just bigbitID
+
+        ViewBigbitQuestionsPage _ bigbitID _ ->
+            Just bigbitID
+
+        ViewBigbitQuestionPage _ _ bigbitID _ ->
+            Just bigbitID
+
+        ViewBigbitAnswersPage _ _ bigbitID _ ->
+            Just bigbitID
+
+        ViewBigbitAnswerPage _ _ bigbitID _ ->
+            Just bigbitID
+
+        ViewBigbitQuestionCommentsPage _ _ bigbitID _ _ ->
+            Just bigbitID
+
+        ViewBigbitAnswerCommentsPage _ _ bigbitID _ _ ->
+            Just bigbitID
+
+        ViewBigbitAskQuestion _ bigbitID _ ->
+            Just bigbitID
+
+        ViewBigbitEditQuestion _ bigbitID _ _ ->
+            Just bigbitID
+
+        ViewBigbitAnswerQuestion _ bigbitID _ ->
+            Just bigbitID
+
+        ViewBigbitEditAnswer _ bigbitID _ ->
             Just bigbitID
 
         ViewStoryPage storyID ->

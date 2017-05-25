@@ -226,6 +226,36 @@ viewForRoute model =
             Route.ViewBigbitConclusionPage _ _ _ ->
                 viewBigbitPage
 
+            Route.ViewBigbitQuestionsPage _ _ _ ->
+                viewBigbitPage
+
+            Route.ViewBigbitQuestionPage _ _ _ _ ->
+                viewBigbitPage
+
+            Route.ViewBigbitAnswersPage _ _ _ _ ->
+                viewBigbitPage
+
+            Route.ViewBigbitAnswerPage _ _ _ _ ->
+                viewBigbitPage
+
+            Route.ViewBigbitQuestionCommentsPage _ _ _ _ _ ->
+                viewBigbitPage
+
+            Route.ViewBigbitAnswerCommentsPage _ _ _ _ _ ->
+                viewBigbitPage
+
+            Route.ViewBigbitAskQuestion _ _ _ ->
+                viewBigbitPage
+
+            Route.ViewBigbitEditQuestion _ _ _ _ ->
+                viewBigbitPage
+
+            Route.ViewBigbitAnswerQuestion _ _ _ ->
+                viewBigbitPage
+
+            Route.ViewBigbitEditAnswer _ _ _ ->
+                viewBigbitPage
+
             Route.ViewStoryPage _ ->
                 viewStoryPage
 
@@ -438,6 +468,36 @@ navbar model =
                     True
 
                 Route.ViewBigbitConclusionPage _ _ _ ->
+                    True
+
+                Route.ViewBigbitQuestionsPage _ _ _ ->
+                    True
+
+                Route.ViewBigbitQuestionPage _ _ _ _ ->
+                    True
+
+                Route.ViewBigbitAnswersPage _ _ _ _ ->
+                    True
+
+                Route.ViewBigbitAnswerPage _ _ _ _ ->
+                    True
+
+                Route.ViewBigbitQuestionCommentsPage _ _ _ _ _ ->
+                    True
+
+                Route.ViewBigbitAnswerCommentsPage _ _ _ _ _ ->
+                    True
+
+                Route.ViewBigbitAskQuestion _ _ _ ->
+                    True
+
+                Route.ViewBigbitEditQuestion _ _ _ _ ->
+                    True
+
+                Route.ViewBigbitAnswerQuestion _ _ _ ->
+                    True
+
+                Route.ViewBigbitEditAnswer _ _ _ ->
                     True
 
                 Route.ViewStoryPage _ ->
