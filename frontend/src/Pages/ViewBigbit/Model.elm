@@ -4,6 +4,8 @@ import DefaultServices.Util as Util exposing (maybeMapWithDefault)
 import Models.Bigbit exposing (Bigbit, HighlightedComment, isFSOpen)
 import Models.Completed exposing (IsCompleted)
 import Models.Opinion exposing (Opinion, PossibleOpinion)
+import Models.QA exposing (BigbitQA, BigbitQAState, BigbitQuestion, BigbitCodePointer)
+import Models.TutorialBookmark as TB
 import Models.ViewerRelevantHC exposing (ViewerRelevantHC, browsingFrames)
 
 
@@ -14,6 +16,11 @@ type alias Model =
     , isCompleted : Maybe IsCompleted
     , possibleOpinion : Maybe PossibleOpinion
     , relevantHC : Maybe ViewingBigbitRelevantHC
+    , qa : Maybe BigbitQA
+    , relevantQuestions : Maybe (List BigbitQuestion)
+    , bookmark : TB.TutorialBookmark
+    , qaState : BigbitQAState
+    , tutorialCodePointer : Maybe BigbitCodePointer
     }
 
 

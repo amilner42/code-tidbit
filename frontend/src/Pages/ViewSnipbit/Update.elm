@@ -1365,7 +1365,7 @@ createViewSnipbitQACodeEditor ( snipbit, qa, qaState ) bookmark { route, user } 
                             editorWithRange { selectAllowed = False, useMarker = True } <| Just codePointer
 
                 Route.ViewSnipbitAnswerPage maybeStoryID _ snipbitID answerID ->
-                    case QA.getQuestionByAnswerID snipbitID answerID qa of
+                    case QA.getQuestionByAnswerID answerID qa of
                         Nothing ->
                             redirectToTutorial maybeStoryID snipbitID
 
@@ -1381,7 +1381,7 @@ createViewSnipbitQACodeEditor ( snipbit, qa, qaState ) bookmark { route, user } 
                             editorWithRange { selectAllowed = False, useMarker = True } <| Just codePointer
 
                 Route.ViewSnipbitAnswerCommentsPage maybeStoryID _ snipbitID answerID maybeCommentID ->
-                    case QA.getQuestionByAnswerID snipbitID answerID qa of
+                    case QA.getQuestionByAnswerID answerID qa of
                         Nothing ->
                             redirectToTutorial maybeStoryID snipbitID
 
@@ -1430,7 +1430,7 @@ createViewSnipbitQACodeEditor ( snipbit, qa, qaState ) bookmark { route, user } 
 
                 -- Highlight question codePointer.
                 Route.ViewSnipbitEditAnswer maybeStoryID snipbitID answerID ->
-                    case QA.getQuestionByAnswerID snipbitID answerID qa of
+                    case QA.getQuestionByAnswerID answerID qa of
                         Nothing ->
                             redirectToTutorial maybeStoryID snipbitID
 

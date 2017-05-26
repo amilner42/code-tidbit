@@ -2,6 +2,8 @@ module Pages.ViewBigbit.Update exposing (..)
 
 import Array
 import DefaultServices.CommonSubPageUtil exposing (CommonSubPageUtil(..), commonSubPageUtil)
+import DefaultServices.Editable as Editable
+import DefaultServices.InfixFunctions exposing (..)
 import DefaultServices.Util as Util exposing (maybeMapWithDefault)
 import Elements.Simple.Editor as Editor
 import Elements.Simple.FileStructure as FS
@@ -9,9 +11,11 @@ import Models.Bigbit as Bigbit
 import Models.Completed as Completed
 import Models.ContentPointer as ContentPointer
 import Models.Opinion as Opinion
+import Models.QA as QA
 import Models.Range as Range
 import Models.Route as Route
 import Models.TidbitPointer as TidbitPointer
+import Models.TutorialBookmark as TB
 import Models.User as User
 import Models.ViewerRelevantHC as ViewerRelevantHC
 import Pages.Model exposing (Shared)
@@ -33,20 +37,29 @@ update (Common common) msg model shared =
 
         OnRouteHit route ->
             let
-                {- Get's data for viewing bigbit as required:
-                   - May need to fetch tidbit itself
-                   - May need to fetch story
-                   - May need to fetch if the tidbit is completed by the user.
-                   - may need to fetch the users opinion on the tidbit.
+                clearStateOnRouteHit (Common common) ( model, shared ) =
+                    common.justSetModel
+                        { model
+                            | relevantHC = Nothing
+                            , relevantQuestions = Nothing
+                            , tutorialCodePointer = Nothing
+                        }
 
-                   If any of the 4 datums above are already cached, assumes that they are up-to-date. The bigbit itself
-                   basically never changes, the `isCompleted` will change a lot but it's unlikely the user completes
-                   that exact tidbit in another browser at the same time. The story itself changes frequently but it
-                   doesn't make sense to constantly update it, so we only update the story when we are on the
-                   `viewStory` page. The same reasoning for `isComplete` applies to `possibleOpinion`, it's unlikely to be
-                   done in another browser at the same time, so we cache it in the browser, but not in localStorage.
+                setBookmark tb (Common common) ( model, shared ) =
+                    common.justSetModel
+                        { model | bookmark = tb }
+
+                {- Get's data for viewing bigbit as required:
+                   - May need to fetch tidbit itself                                    [Cache level: localStorage]
+                   - May need to fetch story                                            [Cache level: browserModel]
+                   - May need to fetch if the tidbit is completed by the user.          [Cache level: browserModel]
+                   - May need to fetch the users opinion on the tidbit.                 [Cache level: browserModel]
+                   - May need to fetch QA                                               [Cache level: browserModel]
+
+                    Depending on `requireLoadingQAPreRender`, it will either wait for both the bigbit and the QA to load
+                    and then render the editor or it will render the editor just after the bigbit is loaded.
                 -}
-                fetchOrRenderViewBigbitData mongoID =
+                fetchOrRenderViewBigbitData requireLoadingQAPreRender mongoID (Common common) ( model, shared ) =
                     let
                         currentTidbitPointer =
                             TidbitPointer.TidbitPointer TidbitPointer.Bigbit mongoID
@@ -57,7 +70,9 @@ update (Common common) msg model shared =
                                 getBigbit mongoID =
                                     ( setBigbit Nothing model
                                     , shared
-                                    , common.api.get.bigbit mongoID OnGetBigbitFailure OnGetBigbitSuccess
+                                    , common.api.get.bigbit mongoID
+                                        OnGetBigbitFailure
+                                        (OnGetBigbitSuccess requireLoadingQAPreRender)
                                     )
                             in
                                 case model.bigbit of
@@ -66,10 +81,18 @@ update (Common common) msg model shared =
 
                                     Just bigbit ->
                                         if bigbit.id == mongoID then
-                                            ( setRelevantHC Nothing model
-                                            , shared
-                                            , createViewBigbitCodeEditor bigbit shared
-                                            )
+                                            common.justProduceCmd <|
+                                                if not requireLoadingQAPreRender then
+                                                    createViewBigbitCodeEditor bigbit shared
+                                                else
+                                                    case model.qa of
+                                                        Nothing ->
+                                                            Cmd.none
+
+                                                        Just qa ->
+                                                            createViewBigbitQACodeEditor
+                                                                ( bigbit, qa, model.qaState )
+                                                                shared
                                         else
                                             getBigbit mongoID
 
@@ -151,85 +174,345 @@ update (Common common) msg model shared =
 
                                     _ ->
                                         common.justSetShared { shared | viewingStory = Nothing }
+
+                        handleGetQA (Common common) ( model, shared ) =
+                            let
+                                getQA =
+                                    ( { model | qa = Nothing }
+                                    , shared
+                                    , common.api.get.bigbitQA
+                                        mongoID
+                                        OnGetQAFailure
+                                        (OnGetQASuccess requireLoadingQAPreRender)
+                                    )
+                            in
+                                case model.qa of
+                                    Nothing ->
+                                        getQA
+
+                                    Just qa ->
+                                        if qa.tidbitID == mongoID then
+                                            common.justProduceCmd <|
+                                                if not requireLoadingQAPreRender then
+                                                    Cmd.none
+                                                else
+                                                    case model.bigbit of
+                                                        Nothing ->
+                                                            Cmd.none
+
+                                                        Just bigbit ->
+                                                            createViewBigbitQACodeEditor
+                                                                ( bigbit, qa, model.qaState )
+                                                                shared
+                                        else
+                                            getQA
                     in
                         common.handleAll
                             [ handleGetBigbit
                             , handleGetBigbitIsCompleted
                             , handleGetBigbitOpinion
                             , handleGetStoryForBigbit
+                            , handleGetQA
                             ]
             in
                 case route of
                     Route.ViewBigbitIntroductionPage _ mongoID _ ->
-                        fetchOrRenderViewBigbitData mongoID
+                        common.handleAll
+                            [ clearStateOnRouteHit
+                            , setBookmark TB.Introduction
+                            , fetchOrRenderViewBigbitData False mongoID
+                            ]
 
-                    Route.ViewBigbitFramePage _ mongoID _ _ ->
-                        fetchOrRenderViewBigbitData mongoID
+                    Route.ViewBigbitFramePage _ mongoID frameNumber _ ->
+                        common.handleAll
+                            [ clearStateOnRouteHit
+                            , setBookmark <| TB.FrameNumber frameNumber
+                            , fetchOrRenderViewBigbitData False mongoID
+                            ]
 
                     Route.ViewBigbitConclusionPage _ mongoID _ ->
-                        fetchOrRenderViewBigbitData mongoID
-                            |> common.withCmd
-                                (case ( shared.user, model.isCompleted ) of
-                                    ( Just user, Just isCompleted ) ->
-                                        let
-                                            completed =
-                                                Completed.completedFromIsCompleted isCompleted user.id
-                                        in
-                                            if isCompleted.complete == False then
-                                                common.api.post.addCompleted
-                                                    completed
-                                                    OnMarkAsCompleteFailure
-                                                    (always <|
-                                                        OnMarkAsCompleteSuccess <|
-                                                            Completed.IsCompleted completed.tidbitPointer True
-                                                    )
-                                            else
-                                                Cmd.none
+                        common.handleAll
+                            [ clearStateOnRouteHit
+                            , setBookmark TB.Conclusion
+                            , fetchOrRenderViewBigbitData False mongoID
 
-                                    _ ->
-                                        Cmd.none
-                                )
+                            -- Setting completed if not already complete.
+                            , (\(Common common) ( model, shared ) ->
+                                common.justProduceCmd <|
+                                    case ( shared.user, model.isCompleted ) of
+                                        ( Just user, Just isCompleted ) ->
+                                            let
+                                                completed =
+                                                    Completed.completedFromIsCompleted isCompleted user.id
+                                            in
+                                                if isCompleted.complete == False then
+                                                    common.api.post.addCompleted
+                                                        completed
+                                                        OnMarkAsCompleteFailure
+                                                        (always <|
+                                                            OnMarkAsCompleteSuccess <|
+                                                                Completed.IsCompleted completed.tidbitPointer True
+                                                        )
+                                                else
+                                                    Cmd.none
+
+                                        _ ->
+                                            Cmd.none
+                              )
+                            ]
+
+                    Route.ViewBigbitQuestionsPage _ bigbitID _ ->
+                        common.handleAll
+                            [ clearStateOnRouteHit
+                            , fetchOrRenderViewBigbitData True bigbitID
+                            ]
+
+                    Route.ViewBigbitQuestionPage _ _ bigbitID _ ->
+                        common.handleAll
+                            [ clearStateOnRouteHit
+                            , fetchOrRenderViewBigbitData True bigbitID
+                            ]
+
+                    Route.ViewBigbitAnswersPage _ _ bigbitID _ ->
+                        common.handleAll
+                            [ clearStateOnRouteHit
+                            , fetchOrRenderViewBigbitData True bigbitID
+                            ]
+
+                    Route.ViewBigbitAnswerPage _ _ bigbitID _ ->
+                        common.handleAll
+                            [ clearStateOnRouteHit
+                            , fetchOrRenderViewBigbitData True bigbitID
+                            ]
+
+                    Route.ViewBigbitQuestionCommentsPage _ _ bigbitID _ _ ->
+                        common.handleAll
+                            [ clearStateOnRouteHit
+                            , fetchOrRenderViewBigbitData True bigbitID
+                            ]
+
+                    Route.ViewBigbitAnswerCommentsPage _ _ bigbitID _ _ ->
+                        common.handleAll
+                            [ clearStateOnRouteHit
+                            , fetchOrRenderViewBigbitData True bigbitID
+                            ]
+
+                    Route.ViewBigbitAskQuestion _ bigbitID _ ->
+                        common.handleAll
+                            [ clearStateOnRouteHit
+                            , fetchOrRenderViewBigbitData True bigbitID
+                            ]
+
+                    Route.ViewBigbitEditQuestion _ bigbitID _ _ ->
+                        common.handleAll
+                            [ clearStateOnRouteHit
+                            , fetchOrRenderViewBigbitData True bigbitID
+                            ]
+
+                    Route.ViewBigbitAnswerQuestion _ bigbitID _ ->
+                        common.handleAll
+                            [ clearStateOnRouteHit
+                            , fetchOrRenderViewBigbitData True bigbitID
+                            ]
+
+                    Route.ViewBigbitEditAnswer _ bigbitID _ ->
+                        common.handleAll
+                            [ clearStateOnRouteHit
+                            , fetchOrRenderViewBigbitData True bigbitID
+                            ]
 
                     _ ->
                         common.doNothing
 
         OnRangeSelected selectedRange ->
-            case model.bigbit of
-                Nothing ->
-                    common.doNothing
+            let
+                currentActiveFile =
+                    model.bigbit
+                        |||> (\bigbit -> Route.viewBigbitPageCurrentActiveFile shared.route bigbit model.qa)
 
-                Just aBigbit ->
-                    if Range.isEmptyRange selectedRange then
-                        common.justUpdateModel <| setRelevantHC Nothing
-                    else
-                        aBigbit.highlightedComments
-                            |> Array.indexedMap (,)
-                            |> Array.filter
-                                (\hc ->
-                                    (Tuple.second hc |> .range |> Range.overlappingRanges selectedRange)
-                                        && (Tuple.second hc
-                                                |> .file
-                                                |> Just
-                                                |> (==) (Route.viewBigbitPageCurrentActiveFile shared.route aBigbit)
-                                           )
-                                )
-                            |> (\relevantHC ->
-                                    common.justUpdateModel <|
-                                        setRelevantHC <|
-                                            Just
-                                                { currentHC = Nothing
-                                                , relevantHC = relevantHC
+                handleSetTutorialCodePointer (Common common) ( model, shared ) =
+                    case currentActiveFile of
+                        Nothing ->
+                            common.doNothing
+
+                        Just file ->
+                            common.justSetModel
+                                { model | tutorialCodePointer = Just { file = file, range = selectedRange } }
+
+                handleFindRelevantFrames (Common common) ( model, shared ) =
+                    case model.bigbit of
+                        Nothing ->
+                            common.doNothing
+
+                        Just aBigbit ->
+                            if Range.isEmptyRange selectedRange then
+                                common.justUpdateModel <| setRelevantHC Nothing
+                            else
+                                aBigbit.highlightedComments
+                                    |> Array.indexedMap (,)
+                                    |> Array.filter
+                                        (\hc ->
+                                            (Tuple.second hc |> .range |> Range.overlappingRanges selectedRange)
+                                                && (Tuple.second hc
+                                                        |> .file
+                                                        |> Just
+                                                        |> (==) currentActiveFile
+                                                   )
+                                        )
+                                    |> (\relevantHC ->
+                                            common.justUpdateModel <|
+                                                setRelevantHC <|
+                                                    Just
+                                                        { currentHC = Nothing
+                                                        , relevantHC = relevantHC
+                                                        }
+                                       )
+
+                handleFindRelevantQuestions (Common common) ( model, shared ) =
+                    case model.qa of
+                        Nothing ->
+                            common.doNothing
+
+                        Just { questions } ->
+                            if Range.isEmptyRange selectedRange then
+                                common.justSetModel { model | relevantQuestions = Nothing }
+                            else
+                                questions
+                                    |> List.filter
+                                        (\{ codePointer } ->
+                                            (Range.overlappingRanges codePointer.range selectedRange)
+                                                && (Util.maybeMapWithDefault
+                                                        (FS.isSameFilePath codePointer.file)
+                                                        False
+                                                        currentActiveFile
+                                                   )
+                                        )
+                                    |> (\relevantQuestions ->
+                                            common.justSetModel
+                                                { model
+                                                    | relevantQuestions = Just relevantQuestions
                                                 }
-                               )
+                                       )
+            in
+                case shared.route of
+                    Route.ViewBigbitIntroductionPage _ _ _ ->
+                        common.handleAll
+                            [ handleSetTutorialCodePointer
+                            , handleFindRelevantFrames
+                            , handleFindRelevantQuestions
+                            ]
 
-        OnGetBigbitSuccess bigbit ->
+                    Route.ViewBigbitFramePage _ _ _ _ ->
+                        common.handleAll
+                            [ handleSetTutorialCodePointer
+                            , handleFindRelevantFrames
+                            , handleFindRelevantQuestions
+                            ]
+
+                    Route.ViewBigbitConclusionPage _ _ _ ->
+                        common.handleAll
+                            [ handleSetTutorialCodePointer
+                            , handleFindRelevantFrames
+                            , handleFindRelevantQuestions
+                            ]
+
+                    Route.ViewBigbitQuestionsPage _ bigbitID maybePath ->
+                        case maybePath of
+                            Nothing ->
+                                common.doNothing
+
+                            Just filePath ->
+                                common.justSetModel
+                                    { model
+                                        | qaState =
+                                            QA.setBrowsingCodePointer
+                                                bigbitID
+                                                (Just { file = filePath, range = selectedRange })
+                                                model.qaState
+                                    }
+
+                    Route.ViewBigbitAskQuestion _ bigbitID maybePath ->
+                        case maybePath of
+                            Nothing ->
+                                common.doNothing
+
+                            Just filePath ->
+                                common.justSetModel
+                                    { model
+                                        | qaState =
+                                            QA.updateNewQuestion
+                                                bigbitID
+                                                (\newQuestion ->
+                                                    { newQuestion
+                                                        | codePointer =
+                                                            Just
+                                                                { file = filePath
+                                                                , range = selectedRange
+                                                                }
+                                                    }
+                                                )
+                                                model.qaState
+                                    }
+
+                    Route.ViewBigbitEditQuestion _ bigbitID questionID maybePath ->
+                        case ( model.qa |||> .questions >> QA.getQuestionByID questionID, maybePath ) of
+                            ( Just question, Just filePath ) ->
+                                common.justSetModel
+                                    { model
+                                        | qaState =
+                                            QA.updateQuestionEdit
+                                                bigbitID
+                                                questionID
+                                                (\maybeQuestionEdit ->
+                                                    Just <|
+                                                        case maybeQuestionEdit of
+                                                            Nothing ->
+                                                                { questionText =
+                                                                    Editable.newEditing
+                                                                        question.questionText
+                                                                , codePointer =
+                                                                    Editable.newEditing
+                                                                        { file = filePath
+                                                                        , range = selectedRange
+                                                                        }
+                                                                , previewMarkdown = False
+                                                                }
+
+                                                            Just questionEdit ->
+                                                                { questionEdit
+                                                                    | codePointer =
+                                                                        Editable.setBuffer
+                                                                            questionEdit.codePointer
+                                                                            { file = filePath
+                                                                            , range = selectedRange
+                                                                            }
+                                                                }
+                                                )
+                                                model.qaState
+                                    }
+
+                            _ ->
+                                common.doNothing
+
+                    _ ->
+                        common.doNothing
+
+        OnGetBigbitSuccess requireLoadingQAPreRender bigbit ->
             ( Util.multipleUpdates
                 [ setBigbit <| Just bigbit
                 , setRelevantHC Nothing
                 ]
                 model
             , shared
-            , createViewBigbitCodeEditor bigbit shared
+            , if not requireLoadingQAPreRender then
+                createViewBigbitCodeEditor bigbit shared
+              else
+                case model.qa of
+                    Nothing ->
+                        Cmd.none
+
+                    Just qa ->
+                        createViewBigbitQACodeEditor ( bigbit, qa, model.qaState ) shared
             )
 
         OnGetBigbitFailure apiError ->
@@ -386,6 +669,30 @@ update (Common common) msg model shared =
                 _ ->
                     common.doNothing
 
+        OnGetQASuccess requireLoadingQAPreRender qa ->
+            ( { model
+                | qa =
+                    Just
+                        { qa
+                            | questions = QA.sortRateableContent qa.questions
+                            , answers = QA.sortRateableContent qa.answers
+                        }
+              }
+            , shared
+            , if not requireLoadingQAPreRender then
+                Cmd.none
+              else
+                case model.bigbit of
+                    Nothing ->
+                        Cmd.none
+
+                    Just bigbit ->
+                        createViewBigbitQACodeEditor ( bigbit, qa, model.qaState ) shared
+            )
+
+        OnGetQAFailure apiError ->
+            common.justSetModalError apiError
+
 
 {-| Creates the code editor for the bigbit when browsing relevant HC.
 
@@ -522,3 +829,15 @@ createViewBigbitCodeEditor bigbit { route, user } =
                     Cmd.none
             , Ports.smoothScrollToBottom
             ]
+
+
+{-| Creates the code editor for routes which require both the bigbit and the QA.
+
+Will handle redirects if required (for example the content doesn't exist or if the user tries editing content that isn't
+theirs). Will redirect to the appropriate route based on the bookmark (same as resuming the tutorial).
+
+TODO Implement
+-}
+createViewBigbitQACodeEditor : ( Bigbit.Bigbit, QA.BigbitQA, QA.BigbitQAState ) -> Shared -> Cmd msg
+createViewBigbitQACodeEditor ( bigbit, qa, qaState ) shared =
+    Cmd.none

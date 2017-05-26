@@ -1,9 +1,11 @@
 module Models.Route exposing (..)
 
 import Array
+import DefaultServices.InfixFunctions exposing (..)
 import DefaultServices.Util as Util
 import Elements.Simple.FileStructure as FS
 import Models.Bigbit as Bigbit
+import Models.QA as QA
 import Navigation
 import ProjectTypeAliases exposing (..)
 import UrlParser exposing (Parser, s, (</>), (<?>), oneOf, map, top, int, string, stringParam)
@@ -972,27 +974,69 @@ createBigbitPageCurrentActiveFile route =
 
 
 {-| The current active path determined from the route and the current comment frame.
-
-TODO Update or add parralel function `viewBigbitQAPageCurrentActiveFile` and rename this function (..tutorialPage..).
 -}
-viewBigbitPageCurrentActiveFile : Route -> Bigbit.Bigbit -> Maybe FS.Path
-viewBigbitPageCurrentActiveFile route bigbit =
-    case route of
-        ViewBigbitIntroductionPage _ _ maybePath ->
-            maybePath
+viewBigbitPageCurrentActiveFile : Route -> Bigbit.Bigbit -> Maybe QA.BigbitQA -> Maybe FS.Path
+viewBigbitPageCurrentActiveFile route bigbit maybeQA =
+    let
+        getActiveFileBasedOnQuestionID questionID =
+            maybeQA
+                ||> .questions
+                |||> QA.getQuestionByID questionID
+                ||> .codePointer
+                ||> .file
 
-        ViewBigbitFramePage _ _ frameNumber maybePath ->
-            if Util.isNotNothing maybePath then
+        getActiveFileBasedOnAnswerID answerID =
+            maybeQA
+                |||> QA.getQuestionByAnswerID answerID
+                ||> .codePointer
+                ||> .file
+    in
+        case route of
+            ViewBigbitIntroductionPage _ _ maybePath ->
                 maybePath
-            else
-                Array.get (frameNumber - 1) bigbit.highlightedComments
-                    |> Maybe.map .file
 
-        ViewBigbitConclusionPage _ _ maybePath ->
-            maybePath
+            ViewBigbitFramePage _ _ frameNumber maybePath ->
+                if Util.isNotNothing maybePath then
+                    maybePath
+                else
+                    Array.get (frameNumber - 1) bigbit.highlightedComments
+                        |> Maybe.map .file
 
-        _ ->
-            Nothing
+            ViewBigbitConclusionPage _ _ maybePath ->
+                maybePath
+
+            ViewBigbitQuestionsPage _ _ maybePath ->
+                maybePath
+
+            ViewBigbitQuestionPage _ _ _ questionID ->
+                getActiveFileBasedOnQuestionID questionID
+
+            ViewBigbitAnswersPage _ _ _ questionID ->
+                getActiveFileBasedOnQuestionID questionID
+
+            ViewBigbitAnswerPage _ _ _ answerID ->
+                getActiveFileBasedOnAnswerID answerID
+
+            ViewBigbitQuestionCommentsPage _ _ _ questionID _ ->
+                getActiveFileBasedOnQuestionID questionID
+
+            ViewBigbitAnswerCommentsPage _ _ _ answerID _ ->
+                getActiveFileBasedOnAnswerID answerID
+
+            ViewBigbitAskQuestion _ _ maybePath ->
+                maybePath
+
+            ViewBigbitEditQuestion _ _ _ maybePath ->
+                maybePath
+
+            ViewBigbitAnswerQuestion _ _ questionID ->
+                getActiveFileBasedOnQuestionID questionID
+
+            ViewBigbitEditAnswer _ _ answerID ->
+                getActiveFileBasedOnAnswerID answerID
+
+            _ ->
+                Nothing
 
 
 {-| Get's the ID of the content that we are viewing.

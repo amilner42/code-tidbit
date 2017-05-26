@@ -686,7 +686,7 @@ commentBox snipbit model shared =
             Route.ViewSnipbitAnswerPage maybeStoryID maybeTouringQuestions snipbitID answerID ->
                 case model.qa of
                     Just qa ->
-                        case QA.getQuestionByAnswerID snipbitID answerID qa of
+                        case QA.getQuestionByAnswerID answerID qa of
                             Just question ->
                                 viewQuestionView qa model.qaState (ViewQuestion.AnswerTab answerID) question
 
@@ -712,7 +712,7 @@ commentBox snipbit model shared =
             Route.ViewSnipbitAnswerCommentsPage maybeStoryID maybeTouringQuestions snipbitID answerID maybeCommentID ->
                 case model.qa of
                     Just qa ->
-                        case QA.getQuestionByAnswerID snipbitID answerID qa of
+                        case QA.getQuestionByAnswerID answerID qa of
                             Just question ->
                                 viewQuestionView qa model.qaState (ViewQuestion.AnswerCommentsTab answerID maybeCommentID) question
 
@@ -786,7 +786,7 @@ commentBox snipbit model shared =
             Route.ViewSnipbitEditAnswer maybeStoryID snipbitID answerID ->
                 case
                     ( Maybe.andThen (QA.getAnswerByID answerID) (Maybe.map .answers model.qa)
-                    , Maybe.andThen (QA.getQuestionByAnswerID snipbitID answerID) model.qa
+                    , Maybe.andThen (QA.getQuestionByAnswerID answerID) model.qa
                     )
                 of
                     ( Just answer, Just question ) ->

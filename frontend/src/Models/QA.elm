@@ -158,6 +158,12 @@ type alias SnipbitQAState =
     QAState Range.Range
 
 
+{-| The QAState for bigbits.
+-}
+type alias BigbitQAState =
+    QAState BigbitCodePointer
+
+
 {-| The QA state for a single tidbit.
 
 State includes creating new and editing: question / answers on questions / comment on answers / comment on questions.
@@ -251,8 +257,8 @@ getAnswerByID answerID answers =
 
 {-| Get's a question for a given answer.
 -}
-getQuestionByAnswerID : TidbitID -> AnswerID -> QA codePointer -> Maybe (Question codePointer)
-getQuestionByAnswerID tidbitID answerID qa =
+getQuestionByAnswerID : AnswerID -> QA codePointer -> Maybe (Question codePointer)
+getQuestionByAnswerID answerID qa =
     getAnswerByID answerID qa.answers
         |> Maybe.map .questionID
         |> Maybe.andThen (\questionID -> getQuestionByID questionID qa.questions)

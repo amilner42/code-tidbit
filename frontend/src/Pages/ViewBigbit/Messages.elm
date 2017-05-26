@@ -5,6 +5,7 @@ import Models.ApiError exposing (ApiError)
 import Models.Bigbit exposing (Bigbit)
 import Models.Completed exposing (Completed, IsCompleted)
 import Models.Opinion exposing (Opinion, PossibleOpinion)
+import Models.QA exposing (BigbitQA)
 import Models.Range exposing (Range)
 import Models.Route exposing (Route)
 import Models.Story exposing (ExpandedStory)
@@ -17,7 +18,7 @@ type Msg
     | GoTo Route
     | OnRouteHit Route
     | OnRangeSelected Range
-    | OnGetBigbitSuccess Bigbit
+    | OnGetBigbitSuccess Bool Bigbit
     | OnGetBigbitFailure ApiError
     | OnGetCompletedSuccess IsCompleted
     | OnGetCompletedFailure ApiError
@@ -42,3 +43,5 @@ type Msg
     | OnMarkAsCompleteSuccess IsCompleted
     | OnMarkAsCompleteFailure ApiError
     | BackToTutorialSpot
+    | OnGetQASuccess Bool BigbitQA
+    | OnGetQAFailure ApiError
