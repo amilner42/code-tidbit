@@ -5,6 +5,7 @@ import Models.Bigbit exposing (Bigbit, HighlightedComment, isFSOpen)
 import Models.Completed exposing (IsCompleted)
 import Models.Opinion exposing (Opinion, PossibleOpinion)
 import Models.QA exposing (BigbitQA, BigbitQAState, BigbitQuestion, BigbitCodePointer)
+import Models.Route as Route
 import Models.TutorialBookmark as TB
 import Models.ViewerRelevantHC exposing (ViewerRelevantHC, browsingFrames)
 
@@ -84,3 +85,20 @@ isBigbitRHCTabOpen =
 isBigbitFSOpen : Maybe Bigbit -> Bool
 isBigbitFSOpen =
     Maybe.map .fs >> maybeMapWithDefault isFSOpen False
+
+
+{-| Get's the route from the bookmark.
+
+Resumes to the tutorial itself, not the browsing-file state, so the current file is set to `Nothing`.
+-}
+routeForBookmark : Maybe String -> String -> TB.TutorialBookmark -> Route.Route
+routeForBookmark maybeStoryID bigbitID bookmark =
+    case bookmark of
+        TB.Introduction ->
+            Route.ViewBigbitIntroductionPage maybeStoryID bigbitID Nothing
+
+        TB.FrameNumber frameNumber ->
+            Route.ViewBigbitFramePage maybeStoryID bigbitID frameNumber Nothing
+
+        TB.Conclusion ->
+            Route.ViewBigbitConclusionPage maybeStoryID bigbitID Nothing

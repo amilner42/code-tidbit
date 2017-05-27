@@ -753,6 +753,36 @@ handleLocationChange maybeRoute model =
                     Route.ViewBigbitConclusionPage _ _ _ ->
                         triggerRouteHookOnViewBigbitPage
 
+                    Route.ViewBigbitQuestionsPage _ _ ->
+                        triggerRouteHookOnViewBigbitPage
+
+                    Route.ViewBigbitQuestionPage _ _ _ _ ->
+                        triggerRouteHookOnViewBigbitPage
+
+                    Route.ViewBigbitAnswersPage _ _ _ _ ->
+                        triggerRouteHookOnViewBigbitPage
+
+                    Route.ViewBigbitAnswerPage _ _ _ _ ->
+                        triggerRouteHookOnViewBigbitPage
+
+                    Route.ViewBigbitQuestionCommentsPage _ _ _ _ _ ->
+                        triggerRouteHookOnViewBigbitPage
+
+                    Route.ViewBigbitAnswerCommentsPage _ _ _ _ _ ->
+                        triggerRouteHookOnViewBigbitPage
+
+                    Route.ViewBigbitAskQuestion _ _ ->
+                        triggerRouteHookOnViewBigbitPage
+
+                    Route.ViewBigbitEditQuestion _ _ _ ->
+                        triggerRouteHookOnViewBigbitPage
+
+                    Route.ViewBigbitAnswerQuestion _ _ _ ->
+                        triggerRouteHookOnViewBigbitPage
+
+                    Route.ViewBigbitEditAnswer _ _ _ ->
+                        triggerRouteHookOnViewBigbitPage
+
                     Route.ViewStoryPage _ ->
                         triggerRouteHookOnViewStoryPage
 

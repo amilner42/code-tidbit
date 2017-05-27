@@ -1,6 +1,7 @@
 module Models.Route exposing (..)
 
 import Array
+import DefaultServices.Editable as Editable
 import DefaultServices.InfixFunctions exposing (..)
 import DefaultServices.Util as Util
 import Elements.Simple.FileStructure as FS
@@ -33,14 +34,14 @@ type Route
     | ViewBigbitIntroductionPage (Maybe StoryID) BigbitID (Maybe FS.Path)
     | ViewBigbitFramePage (Maybe StoryID) BigbitID FrameNumber (Maybe FS.Path)
     | ViewBigbitConclusionPage (Maybe StoryID) BigbitID (Maybe FS.Path)
-    | ViewBigbitQuestionsPage (Maybe StoryID) BigbitID (Maybe FS.Path)
+    | ViewBigbitQuestionsPage (Maybe StoryID) BigbitID
     | ViewBigbitQuestionPage (Maybe StoryID) (Maybe MeaninglessString) BigbitID QuestionID
     | ViewBigbitAnswersPage (Maybe StoryID) (Maybe MeaninglessString) BigbitID QuestionID
     | ViewBigbitAnswerPage (Maybe StoryID) (Maybe MeaninglessString) BigbitID AnswerID
     | ViewBigbitQuestionCommentsPage (Maybe StoryID) (Maybe MeaninglessString) BigbitID QuestionID (Maybe CommentID)
     | ViewBigbitAnswerCommentsPage (Maybe StoryID) (Maybe MeaninglessString) BigbitID AnswerID (Maybe CommentID)
-    | ViewBigbitAskQuestion (Maybe StoryID) BigbitID (Maybe FS.Path)
-    | ViewBigbitEditQuestion (Maybe StoryID) BigbitID QuestionID (Maybe FS.Path)
+    | ViewBigbitAskQuestion (Maybe StoryID) BigbitID
+    | ViewBigbitEditQuestion (Maybe StoryID) BigbitID QuestionID
     | ViewBigbitAnswerQuestion (Maybe StoryID) BigbitID QuestionID
     | ViewBigbitEditAnswer (Maybe StoryID) BigbitID AnswerID
     | ViewStoryPage StoryID
@@ -144,7 +145,7 @@ matchers =
             viewBigbit </> s "conclusion" <?> qpFile
 
         viewBigbitQuestionsPage =
-            viewBigbit </> s "questions" <?> qpFile
+            viewBigbit </> s "questions"
 
         viewBigbitQuestionPage =
             viewBigbitTouringQuestions </> s "question" </> string
@@ -162,10 +163,10 @@ matchers =
             viewBigbitAnswerPage </> s "comments" <?> qpCommentID
 
         viewBigbitAskQuestion =
-            viewBigbit </> s "askQuestion" <?> qpFile
+            viewBigbit </> s "askQuestion"
 
         viewBigbitEditQuestion =
-            viewBigbit </> s "editQuestion" </> string <?> qpFile
+            viewBigbit </> s "editQuestion" </> string
 
         viewBigbitAnswerQuestion =
             viewBigbit </> s "answerQuestion" </> string
@@ -370,7 +371,7 @@ routeRequiresAuth route =
         ViewBigbitConclusionPage _ _ _ ->
             False
 
-        ViewBigbitQuestionsPage _ _ _ ->
+        ViewBigbitQuestionsPage _ _ ->
             False
 
         ViewBigbitQuestionPage _ _ _ _ ->
@@ -563,11 +564,11 @@ toHashUrl route =
                     ++ "/"
                     ++ Util.queryParamsToString [ ( "file", qpFile ), ( "fromStory", qpStoryID ) ]
 
-            ViewBigbitQuestionsPage qpStoryID bigbitID qpFile ->
+            ViewBigbitQuestionsPage qpStoryID bigbitID ->
                 "view/bigbit/"
                     ++ bigbitID
                     ++ "/questions"
-                    ++ Util.queryParamsToString [ ( "file", qpFile ), ( "fromStory", qpStoryID ) ]
+                    ++ Util.queryParamsToString [ ( "fromStory", qpStoryID ) ]
 
             ViewBigbitQuestionPage qpStoryID qpTouringQuestions bigbitID questionID ->
                 "view/bigbit/"
@@ -618,18 +619,18 @@ toHashUrl route =
                         , ( "commentID", qpCommentID )
                         ]
 
-            ViewBigbitAskQuestion qpStoryID bigbitID qpFile ->
+            ViewBigbitAskQuestion qpStoryID bigbitID ->
                 "view/bigbit/"
                     ++ bigbitID
                     ++ "/askQuestion"
-                    ++ Util.queryParamsToString [ ( "fromStory", qpStoryID ), ( "file", qpFile ) ]
+                    ++ Util.queryParamsToString [ ( "fromStory", qpStoryID ) ]
 
-            ViewBigbitEditQuestion qpStoryID bigbitID questionID qpFile ->
+            ViewBigbitEditQuestion qpStoryID bigbitID questionID ->
                 "view/bigbit/"
                     ++ bigbitID
                     ++ "/editQuestion/"
                     ++ questionID
-                    ++ Util.queryParamsToString [ ( "fromStory", qpStoryID ), ( "file", qpFile ) ]
+                    ++ Util.queryParamsToString [ ( "fromStory", qpStoryID ) ]
 
             ViewBigbitAnswerQuestion qpStoryID bigbitID questionID ->
                 "view/bigbit/"
@@ -771,15 +772,6 @@ navigateToSameUrlWithFilePath maybePath route =
         ViewBigbitConclusionPage fromStoryID mongoID _ ->
             navigateTo <| ViewBigbitConclusionPage fromStoryID mongoID maybePath
 
-        ViewBigbitQuestionsPage fromStoryID bigbitID _ ->
-            navigateTo <| ViewBigbitQuestionsPage fromStoryID bigbitID maybePath
-
-        ViewBigbitAskQuestion fromStoryID bigbitID _ ->
-            navigateTo <| ViewBigbitAskQuestion fromStoryID bigbitID maybePath
-
-        ViewBigbitEditQuestion fromStoryID bigbitID questionID _ ->
-            navigateTo <| ViewBigbitEditQuestion fromStoryID bigbitID questionID maybePath
-
         CreateBigbitCodeIntroductionPage _ ->
             navigateTo <| CreateBigbitCodeIntroductionPage maybePath
 
@@ -897,7 +889,7 @@ getFromStoryQueryParamOnViewBigbitRoute route =
         ViewBigbitConclusionPage fromStoryID _ _ ->
             fromStoryID
 
-        ViewBigbitQuestionsPage fromStoryID _ _ ->
+        ViewBigbitQuestionsPage fromStoryID _ ->
             fromStoryID
 
         ViewBigbitQuestionPage fromStoryID _ _ _ ->
@@ -915,10 +907,10 @@ getFromStoryQueryParamOnViewBigbitRoute route =
         ViewBigbitAnswerCommentsPage fromStoryID _ _ _ _ ->
             fromStoryID
 
-        ViewBigbitAskQuestion fromStoryID _ _ ->
+        ViewBigbitAskQuestion fromStoryID _ ->
             fromStoryID
 
-        ViewBigbitEditQuestion fromStoryID _ _ _ ->
+        ViewBigbitEditQuestion fromStoryID _ _ ->
             fromStoryID
 
         ViewBigbitAnswerQuestion fromStoryID _ _ ->
@@ -975,8 +967,8 @@ createBigbitPageCurrentActiveFile route =
 
 {-| The current active path determined from the route and the current comment frame.
 -}
-viewBigbitPageCurrentActiveFile : Route -> Bigbit.Bigbit -> Maybe QA.BigbitQA -> Maybe FS.Path
-viewBigbitPageCurrentActiveFile route bigbit maybeQA =
+viewBigbitPageCurrentActiveFile : Route -> Bigbit.Bigbit -> Maybe QA.BigbitQA -> QA.BigbitQAState -> Maybe FS.Path
+viewBigbitPageCurrentActiveFile route bigbit maybeQA qaState =
     let
         getActiveFileBasedOnQuestionID questionID =
             maybeQA
@@ -1005,8 +997,10 @@ viewBigbitPageCurrentActiveFile route bigbit maybeQA =
             ViewBigbitConclusionPage _ _ maybePath ->
                 maybePath
 
-            ViewBigbitQuestionsPage _ _ maybePath ->
-                maybePath
+            ViewBigbitQuestionsPage _ bigbitID ->
+                qaState
+                    |> QA.getBrowseCodePointer bigbitID
+                    ||> .file
 
             ViewBigbitQuestionPage _ _ _ questionID ->
                 getActiveFileBasedOnQuestionID questionID
@@ -1023,11 +1017,26 @@ viewBigbitPageCurrentActiveFile route bigbit maybeQA =
             ViewBigbitAnswerCommentsPage _ _ _ answerID _ ->
                 getActiveFileBasedOnAnswerID answerID
 
-            ViewBigbitAskQuestion _ _ maybePath ->
-                maybePath
+            ViewBigbitAskQuestion _ bigbitID ->
+                qaState
+                    |> QA.getNewQuestion bigbitID
+                    |||> .codePointer
+                    ||> .file
 
-            ViewBigbitEditQuestion _ _ _ maybePath ->
-                maybePath
+            ViewBigbitEditQuestion _ bigbitID questionID ->
+                qaState
+                    |> QA.getQuestionEditByID bigbitID questionID
+                    ||> .codePointer
+                    ||> Editable.getBuffer
+                    ||> .file
+                    |> (\maybeFileFromEdit ->
+                            case maybeFileFromEdit of
+                                Nothing ->
+                                    getActiveFileBasedOnQuestionID questionID
+
+                                Just fileFromEdit ->
+                                    Just fileFromEdit
+                       )
 
             ViewBigbitAnswerQuestion _ _ questionID ->
                 getActiveFileBasedOnQuestionID questionID
@@ -1092,7 +1101,7 @@ getViewingContentID route =
         ViewBigbitConclusionPage _ bigbitID _ ->
             Just bigbitID
 
-        ViewBigbitQuestionsPage _ bigbitID _ ->
+        ViewBigbitQuestionsPage _ bigbitID ->
             Just bigbitID
 
         ViewBigbitQuestionPage _ _ bigbitID _ ->
@@ -1110,10 +1119,10 @@ getViewingContentID route =
         ViewBigbitAnswerCommentsPage _ _ bigbitID _ _ ->
             Just bigbitID
 
-        ViewBigbitAskQuestion _ bigbitID _ ->
+        ViewBigbitAskQuestion _ bigbitID ->
             Just bigbitID
 
-        ViewBigbitEditQuestion _ bigbitID _ _ ->
+        ViewBigbitEditQuestion _ bigbitID _ ->
             Just bigbitID
 
         ViewBigbitAnswerQuestion _ bigbitID _ ->

@@ -226,7 +226,7 @@ viewForRoute model =
             Route.ViewBigbitConclusionPage _ _ _ ->
                 viewBigbitPage
 
-            Route.ViewBigbitQuestionsPage _ _ _ ->
+            Route.ViewBigbitQuestionsPage _ _ ->
                 viewBigbitPage
 
             Route.ViewBigbitQuestionPage _ _ _ _ ->
@@ -244,10 +244,10 @@ viewForRoute model =
             Route.ViewBigbitAnswerCommentsPage _ _ _ _ _ ->
                 viewBigbitPage
 
-            Route.ViewBigbitAskQuestion _ _ _ ->
+            Route.ViewBigbitAskQuestion _ _ ->
                 viewBigbitPage
 
-            Route.ViewBigbitEditQuestion _ _ _ _ ->
+            Route.ViewBigbitEditQuestion _ _ _ ->
                 viewBigbitPage
 
             Route.ViewBigbitAnswerQuestion _ _ _ ->
@@ -470,7 +470,7 @@ navbar model =
                 Route.ViewBigbitConclusionPage _ _ _ ->
                     True
 
-                Route.ViewBigbitQuestionsPage _ _ _ ->
+                Route.ViewBigbitQuestionsPage _ _ ->
                     True
 
                 Route.ViewBigbitQuestionPage _ _ _ _ ->
@@ -488,10 +488,10 @@ navbar model =
                 Route.ViewBigbitAnswerCommentsPage _ _ _ _ _ ->
                     True
 
-                Route.ViewBigbitAskQuestion _ _ _ ->
+                Route.ViewBigbitAskQuestion _ _ ->
                     True
 
-                Route.ViewBigbitEditQuestion _ _ _ _ ->
+                Route.ViewBigbitEditQuestion _ _ _ ->
                     True
 
                 Route.ViewBigbitAnswerQuestion _ _ _ ->

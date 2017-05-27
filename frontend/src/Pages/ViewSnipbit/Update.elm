@@ -1428,6 +1428,7 @@ createViewSnipbitQACodeEditor ( snipbit, qa, qaState ) bookmark { route, user } 
                             else
                                 redirectToTutorial maybeStoryID snipbitID
 
+                --- TODO Check author is correct
                 -- Highlight question codePointer.
                 Route.ViewSnipbitEditAnswer maybeStoryID snipbitID answerID ->
                     case QA.getQuestionByAnswerID answerID qa of

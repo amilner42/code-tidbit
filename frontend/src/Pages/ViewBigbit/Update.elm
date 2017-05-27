@@ -92,6 +92,7 @@ update (Common common) msg model shared =
                                                         Just qa ->
                                                             createViewBigbitQACodeEditor
                                                                 ( bigbit, qa, model.qaState )
+                                                                model.bookmark
                                                                 shared
                                         else
                                             getBigbit mongoID
@@ -203,6 +204,7 @@ update (Common common) msg model shared =
                                                         Just bigbit ->
                                                             createViewBigbitQACodeEditor
                                                                 ( bigbit, qa, model.qaState )
+                                                                model.bookmark
                                                                 shared
                                         else
                                             getQA
@@ -261,7 +263,7 @@ update (Common common) msg model shared =
                               )
                             ]
 
-                    Route.ViewBigbitQuestionsPage _ bigbitID _ ->
+                    Route.ViewBigbitQuestionsPage _ bigbitID ->
                         common.handleAll
                             [ clearStateOnRouteHit
                             , fetchOrRenderViewBigbitData True bigbitID
@@ -297,13 +299,13 @@ update (Common common) msg model shared =
                             , fetchOrRenderViewBigbitData True bigbitID
                             ]
 
-                    Route.ViewBigbitAskQuestion _ bigbitID _ ->
+                    Route.ViewBigbitAskQuestion _ bigbitID ->
                         common.handleAll
                             [ clearStateOnRouteHit
                             , fetchOrRenderViewBigbitData True bigbitID
                             ]
 
-                    Route.ViewBigbitEditQuestion _ bigbitID _ _ ->
+                    Route.ViewBigbitEditQuestion _ bigbitID _ ->
                         common.handleAll
                             [ clearStateOnRouteHit
                             , fetchOrRenderViewBigbitData True bigbitID
@@ -328,7 +330,10 @@ update (Common common) msg model shared =
             let
                 currentActiveFile =
                     model.bigbit
-                        |||> (\bigbit -> Route.viewBigbitPageCurrentActiveFile shared.route bigbit model.qa)
+                        |||>
+                            (\bigbit ->
+                                Route.viewBigbitPageCurrentActiveFile shared.route bigbit model.qa model.qaState
+                            )
 
                 handleSetTutorialCodePointer (Common common) ( model, shared ) =
                     case currentActiveFile of
@@ -416,27 +421,29 @@ update (Common common) msg model shared =
                             , handleFindRelevantQuestions
                             ]
 
-                    Route.ViewBigbitQuestionsPage _ bigbitID maybePath ->
-                        case maybePath of
+                    Route.ViewBigbitQuestionsPage _ bigbitID ->
+                        case QA.getBrowseCodePointer bigbitID model.qaState of
+                            -- No active file.
                             Nothing ->
                                 common.doNothing
 
-                            Just filePath ->
+                            Just codePointer ->
                                 common.justSetModel
                                     { model
                                         | qaState =
                                             QA.setBrowsingCodePointer
                                                 bigbitID
-                                                (Just { file = filePath, range = selectedRange })
+                                                (Just { codePointer | range = selectedRange })
                                                 model.qaState
                                     }
 
-                    Route.ViewBigbitAskQuestion _ bigbitID maybePath ->
-                        case maybePath of
+                    Route.ViewBigbitAskQuestion _ bigbitID ->
+                        case QA.getNewQuestion bigbitID model.qaState |||> .codePointer of
+                            -- No active file.
                             Nothing ->
                                 common.doNothing
 
-                            Just filePath ->
+                            Just codePointer ->
                                 common.justSetModel
                                     { model
                                         | qaState =
@@ -444,19 +451,15 @@ update (Common common) msg model shared =
                                                 bigbitID
                                                 (\newQuestion ->
                                                     { newQuestion
-                                                        | codePointer =
-                                                            Just
-                                                                { file = filePath
-                                                                , range = selectedRange
-                                                                }
+                                                        | codePointer = Just { codePointer | range = selectedRange }
                                                     }
                                                 )
                                                 model.qaState
                                     }
 
-                    Route.ViewBigbitEditQuestion _ bigbitID questionID maybePath ->
-                        case ( model.qa |||> .questions >> QA.getQuestionByID questionID, maybePath ) of
-                            ( Just question, Just filePath ) ->
+                    Route.ViewBigbitEditQuestion _ bigbitID questionID ->
+                        case model.qa ||> .questions |||> QA.getQuestionByID questionID of
+                            Just { questionText, codePointer } ->
                                 common.justSetModel
                                     { model
                                         | qaState =
@@ -467,30 +470,27 @@ update (Common common) msg model shared =
                                                     Just <|
                                                         case maybeQuestionEdit of
                                                             Nothing ->
-                                                                { questionText =
-                                                                    Editable.newEditing
-                                                                        question.questionText
+                                                                { questionText = Editable.newEditing questionText
                                                                 , codePointer =
                                                                     Editable.newEditing
-                                                                        { file = filePath
-                                                                        , range = selectedRange
-                                                                        }
+                                                                        { codePointer | range = selectedRange }
                                                                 , previewMarkdown = False
                                                                 }
 
                                                             Just questionEdit ->
                                                                 { questionEdit
                                                                     | codePointer =
-                                                                        Editable.setBuffer
+                                                                        Editable.updateBuffer
                                                                             questionEdit.codePointer
-                                                                            { file = filePath
-                                                                            , range = selectedRange
-                                                                            }
+                                                                            (\codePointer ->
+                                                                                { codePointer | range = selectedRange }
+                                                                            )
                                                                 }
                                                 )
                                                 model.qaState
                                     }
 
+                            -- Means that editing a non-existant question, should never happen (will have redirected).
                             _ ->
                                 common.doNothing
 
@@ -512,7 +512,7 @@ update (Common common) msg model shared =
                         Cmd.none
 
                     Just qa ->
-                        createViewBigbitQACodeEditor ( bigbit, qa, model.qaState ) shared
+                        createViewBigbitQACodeEditor ( bigbit, qa, model.qaState ) model.bookmark shared
             )
 
         OnGetBigbitFailure apiError ->
@@ -687,7 +687,7 @@ update (Common common) msg model shared =
                         Cmd.none
 
                     Just bigbit ->
-                        createViewBigbitQACodeEditor ( bigbit, qa, model.qaState ) shared
+                        createViewBigbitQACodeEditor ( bigbit, qa, model.qaState ) model.bookmark shared
             )
 
         OnGetQAFailure apiError ->
@@ -704,17 +704,7 @@ createViewBigbitHCCodeEditor maybeBigbit maybeRHC user =
         ( Just bigbit, Just { currentHC, relevantHC } ) ->
             let
                 editorWithRange range language code =
-                    Ports.createCodeEditor
-                        { id = "view-bigbit-code-editor"
-                        , fileID = ""
-                        , lang = Editor.aceLanguageLocation language
-                        , theme = User.getTheme user
-                        , value = code
-                        , range = Just range
-                        , useMarker = True
-                        , readOnly = True
-                        , selectAllowed = False
-                        }
+                    bigbitEditor "" (Just language) user code (Just range) { useMarker = True, selectAllowed = False }
             in
                 case currentHC of
                     Nothing ->
@@ -749,23 +739,10 @@ Will handle redirects if file path is invalid or frameNumber is invalid.
 createViewBigbitCodeEditor : Bigbit.Bigbit -> Shared -> Cmd msg
 createViewBigbitCodeEditor bigbit { route, user } =
     let
-        blankEditor =
-            Ports.createCodeEditor
-                { id = "view-bigbit-code-editor"
-                , fileID = ""
-                , lang = ""
-                , theme = User.getTheme user
-                , value = ""
-                , range = Nothing
-                , useMarker = True
-                , readOnly = True
-                , selectAllowed = True
-                }
-
         loadFileWithNoHighlight fromStoryID maybePath =
             case maybePath of
                 Nothing ->
-                    blankEditor
+                    blankEditor user
 
                 Just somePath ->
                     case FS.getFile bigbit.fs somePath of
@@ -773,17 +750,13 @@ createViewBigbitCodeEditor bigbit { route, user } =
                             Route.modifyTo <| Route.ViewBigbitIntroductionPage fromStoryID bigbit.id Nothing
 
                         Just (FS.File content { language }) ->
-                            Ports.createCodeEditor
-                                { id = "view-bigbit-code-editor"
-                                , fileID = FS.uniqueFilePath somePath
-                                , lang = Editor.aceLanguageLocation language
-                                , theme = User.getTheme user
-                                , value = content
-                                , range = Nothing
-                                , useMarker = True
-                                , readOnly = True
-                                , selectAllowed = True
-                                }
+                            bigbitEditor
+                                somePath
+                                (Just language)
+                                user
+                                content
+                                Nothing
+                                { useMarker = True, selectAllowed = True }
     in
         Cmd.batch
             [ case route of
@@ -807,17 +780,13 @@ createViewBigbitCodeEditor bigbit { route, user } =
                                             Cmd.none
 
                                         Just (FS.File content { language }) ->
-                                            Ports.createCodeEditor
-                                                { id = "view-bigbit-code-editor"
-                                                , fileID = FS.uniqueFilePath hc.file
-                                                , lang = Editor.aceLanguageLocation language
-                                                , theme = User.getTheme user
-                                                , value = content
-                                                , range = Just hc.range
-                                                , useMarker = True
-                                                , readOnly = True
-                                                , selectAllowed = True
-                                                }
+                                            bigbitEditor
+                                                hc.file
+                                                (Just language)
+                                                user
+                                                content
+                                                (Just hc.range)
+                                                { useMarker = True, selectAllowed = True }
 
                                 Just absolutePath ->
                                     loadFileWithNoHighlight fromStoryID maybePath
@@ -835,9 +804,168 @@ createViewBigbitCodeEditor bigbit { route, user } =
 
 Will handle redirects if required (for example the content doesn't exist or if the user tries editing content that isn't
 theirs). Will redirect to the appropriate route based on the bookmark (same as resuming the tutorial).
-
-TODO Implement
 -}
-createViewBigbitQACodeEditor : ( Bigbit.Bigbit, QA.BigbitQA, QA.BigbitQAState ) -> Shared -> Cmd msg
-createViewBigbitQACodeEditor ( bigbit, qa, qaState ) shared =
-    Cmd.none
+createViewBigbitQACodeEditor :
+    ( Bigbit.Bigbit, QA.BigbitQA, QA.BigbitQAState )
+    -> TB.TutorialBookmark
+    -> Shared
+    -> Cmd msg
+createViewBigbitQACodeEditor ( bigbit, qa, qaState ) bookmark { user, route } =
+    let
+        redirectToTutorial maybeStoryID =
+            Route.modifyTo <| routeForBookmark maybeStoryID bigbit.id bookmark
+
+        -- Will attempt to get the question based on the questionID (redirecting if the questionID doesn't point to a
+        -- a question) and then will `createEditorForQuestion`.
+        createEditorForQuestionID maybeStoryID questionID { useMarker, selectAllowed } =
+            qa.questions
+                |> QA.getQuestionByID questionID
+                ||> createEditorForQuestion maybeStoryID { useMarker = useMarker, selectAllowed = selectAllowed }
+                ?> redirectToTutorial maybeStoryID
+
+        -- Will attempt to get the question based on the answerID (redirecting if the answerID isn't valid or if the
+        -- answer doesn't point to a valid question) and then will `createEditorForQuestion`.
+        createEditorForAnswerID maybeStoryID answerID { useMarker, selectAllowed } =
+            qa
+                |> QA.getQuestionByAnswerID answerID
+                ||> createEditorForQuestion maybeStoryID { useMarker = useMarker, selectAllowed = selectAllowed }
+                ?> redirectToTutorial maybeStoryID
+
+        -- Will get the filePath/fileContent/range/language for the given question and create the editor, if unable
+        -- to then it will `redirectToTutorial` (eg. if question points to a non-existant file, shouldn't happen).
+        createEditorForQuestion maybeStoryID { useMarker, selectAllowed } question =
+            question.codePointer
+                |> (\{ file, range } ->
+                        FS.getFile bigbit.fs file
+                            ||> (\(FS.File content { language }) ->
+                                    bigbitEditor
+                                        file
+                                        (Just language)
+                                        user
+                                        content
+                                        (Just range)
+                                        { useMarker = useMarker, selectAllowed = selectAllowed }
+                                )
+                            ?> redirectToTutorial maybeStoryID
+                   )
+
+        -- Handles creating the correct editor based on the current route.
+        createEditorForRoute =
+            case route of
+                Route.ViewBigbitQuestionsPage maybeStoryID bigbitID ->
+                    qaState
+                        |> QA.getBrowseCodePointer bigbitID
+                        ||> (\{ file, range } ->
+                                FS.getFile bigbit.fs file
+                                    ||> (\(FS.File content { language }) ->
+                                            bigbitEditor
+                                                file
+                                                (Just language)
+                                                user
+                                                content
+                                                (Just range)
+                                                { useMarker = False, selectAllowed = True }
+                                        )
+                                    ?> redirectToTutorial maybeStoryID
+                            )
+                        ?> blankEditor user
+
+                Route.ViewBigbitQuestionPage maybeStoryID _ _ questionID ->
+                    createEditorForQuestionID maybeStoryID questionID { useMarker = True, selectAllowed = False }
+
+                Route.ViewBigbitAnswersPage maybeStoryID _ _ questionID ->
+                    createEditorForQuestionID maybeStoryID questionID { useMarker = True, selectAllowed = False }
+
+                Route.ViewBigbitAnswerPage maybeStoryID _ _ answerID ->
+                    createEditorForAnswerID maybeStoryID answerID { useMarker = True, selectAllowed = False }
+
+                Route.ViewBigbitQuestionCommentsPage maybeStoryID _ _ questionID _ ->
+                    createEditorForQuestionID maybeStoryID questionID { useMarker = True, selectAllowed = False }
+
+                Route.ViewBigbitAnswerCommentsPage maybeStoryID _ _ answerID _ ->
+                    createEditorForAnswerID maybeStoryID answerID { useMarker = True, selectAllowed = False }
+
+                Route.ViewBigbitAskQuestion maybeStoryID bigbitID ->
+                    qaState
+                        |> QA.getNewQuestion bigbitID
+                        |||> .codePointer
+                        ||> (\{ file, range } ->
+                                FS.getFile bigbit.fs file
+                                    ||> (\(FS.File content { language }) ->
+                                            bigbitEditor
+                                                file
+                                                (Just language)
+                                                user
+                                                content
+                                                (Just range)
+                                                { useMarker = False, selectAllowed = True }
+                                        )
+                                    ?> redirectToTutorial maybeStoryID
+                            )
+                        ?> blankEditor user
+
+                -- TODO check author is correct
+                Route.ViewBigbitEditQuestion maybeStoryID bigbitID questionID ->
+                    qaState
+                        |> QA.getQuestionEditByID bigbitID questionID
+                        ||> (.codePointer >> Editable.getBuffer)
+                        ||> (\{ file, range } ->
+                                FS.getFile bigbit.fs file
+                                    ||> (\(FS.File content { language }) ->
+                                            bigbitEditor
+                                                file
+                                                (Just language)
+                                                user
+                                                content
+                                                (Just range)
+                                                { useMarker = False, selectAllowed = True }
+                                        )
+                                    ?> redirectToTutorial maybeStoryID
+                            )
+                        ?> createEditorForQuestionID maybeStoryID questionID { useMarker = False, selectAllowed = True }
+
+                Route.ViewBigbitAnswerQuestion maybeStoryID _ questionID ->
+                    createEditorForQuestionID maybeStoryID questionID { useMarker = True, selectAllowed = False }
+
+                -- TODO check author is correct
+                Route.ViewBigbitEditAnswer maybeStoryID _ answerID ->
+                    createEditorForAnswerID maybeStoryID answerID { useMarker = True, selectAllowed = False }
+
+                _ ->
+                    Cmd.none
+    in
+        Cmd.batch
+            [ createEditorForRoute
+            , Ports.smoothScrollToBottom
+            ]
+
+
+{-| Wrapper for creating a blank editor.
+-}
+blankEditor : Maybe User.User -> Cmd msg
+blankEditor user =
+    bigbitEditor "" Nothing user "" Nothing { useMarker = False, selectAllowed = False }
+
+
+{-| Wrapper around the port for creating an editor with the view-bigbit-settings pre-filled.
+-}
+bigbitEditor :
+    FS.Path
+    -> Maybe Editor.Language
+    -> Maybe User.User
+    -> FS.Content
+    -> Maybe Range.Range
+    -> { useMarker : Bool, selectAllowed : Bool }
+    -> Cmd msg
+bigbitEditor filePath maybeLanguage maybeUser content maybeRange { useMarker, selectAllowed } =
+    Ports.createCodeEditor
+        { id = "view-bigbit-code-editor"
+        , fileID = FS.uniqueFilePath filePath
+        , lang = Util.maybeMapWithDefault Editor.aceLanguageLocation "" maybeLanguage
+        , theme = User.getTheme maybeUser
+        , value = content
+        , range = maybeRange
+        , useMarker = useMarker
+        , readOnly = True
+        , selectAllowed = selectAllowed
+        }

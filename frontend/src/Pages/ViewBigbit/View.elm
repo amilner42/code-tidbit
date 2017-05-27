@@ -319,7 +319,7 @@ view model shared =
                             [ FS.view
                                 { isFileSelected =
                                     (\absolutePath ->
-                                        Route.viewBigbitPageCurrentActiveFile currentRoute bigbit model.qa
+                                        Route.viewBigbitPageCurrentActiveFile currentRoute bigbit model.qa model.qaState
                                             |> Maybe.map (FS.isSameFilePath absolutePath)
                                             |> Maybe.withDefault False
                                     )
@@ -341,7 +341,9 @@ view model shared =
                                         ToggleFS
                                 ]
                                 [ text <|
-                                    case Route.viewBigbitPageCurrentActiveFile currentRoute bigbit model.qa of
+                                    case
+                                        Route.viewBigbitPageCurrentActiveFile currentRoute bigbit model.qa model.qaState
+                                    of
                                         Nothing ->
                                             "No File Selected"
 
