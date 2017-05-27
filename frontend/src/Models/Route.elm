@@ -1193,3 +1193,60 @@ isOnViewSnipbitTutorialRoute route =
 
         _ ->
             False
+
+
+{-| Returns true if on one of the viewing bigbit QA routes.
+-}
+isOnViewBigbitQARoute : Route -> Bool
+isOnViewBigbitQARoute route =
+    case route of
+        ViewBigbitQuestionsPage _ _ ->
+            True
+
+        ViewBigbitQuestionPage _ _ _ _ ->
+            True
+
+        ViewBigbitAnswersPage _ _ _ _ ->
+            True
+
+        ViewBigbitAnswerPage _ _ _ _ ->
+            True
+
+        ViewBigbitQuestionCommentsPage _ _ _ _ _ ->
+            True
+
+        ViewBigbitAnswerCommentsPage _ _ _ _ _ ->
+            True
+
+        ViewBigbitAskQuestion _ _ ->
+            True
+
+        ViewBigbitEditQuestion _ _ _ ->
+            True
+
+        ViewBigbitAnswerQuestion _ _ _ ->
+            True
+
+        ViewBigbitEditAnswer _ _ _ ->
+            True
+
+        _ ->
+            False
+
+
+{-| Returns true if on one of the viewing bigbit tutorial routes.
+-}
+isOnViewBigbitTutorialRoute : Route -> Bool
+isOnViewBigbitTutorialRoute route =
+    case route of
+        ViewBigbitIntroductionPage _ _ _ ->
+            True
+
+        ViewBigbitFramePage _ _ _ _ ->
+            True
+
+        ViewBigbitConclusionPage _ _ _ ->
+            True
+
+        _ ->
+            False

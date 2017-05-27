@@ -14,6 +14,7 @@ import Models.Completed as Completed
 import Models.Rating as Rating
 import Models.Route as Route
 import Models.Story as Story
+import Models.TutorialBookmark as TB
 import Models.ViewerRelevantHC as ViewerRelevantHC
 import Pages.Model exposing (Shared)
 import Pages.ViewBigbit.Messages exposing (..)
@@ -26,7 +27,7 @@ view : Model -> Shared -> Html Msg
 view model shared =
     let
         notGoingThroughTutorial =
-            isBigbitRHCTabOpen model.relevantHC
+            (isBigbitRHCTabOpen model.relevantHC) || (not <| Route.isOnViewBigbitTutorialRoute shared.route)
 
         fsOpen =
             maybeMapWithDefault Bigbit.isFSOpen False (Maybe.map .fs model.bigbit)
@@ -223,15 +224,15 @@ view model shared =
                                 [ text "Introduction" ]
                             , ProgressBar.view
                                 { state =
-                                    case currentRoute of
-                                        Route.ViewBigbitFramePage _ _ frameNumber _ ->
+                                    case model.bookmark of
+                                        TB.Introduction ->
+                                            NotStarted
+
+                                        TB.FrameNumber frameNumber ->
                                             Started frameNumber
 
-                                        Route.ViewBigbitConclusionPage _ _ _ ->
+                                        TB.Conclusion ->
                                             Completed
-
-                                        _ ->
-                                            NotStarted
                                 , maxPosition = Array.length bigbit.highlightedComments
                                 , disabledStyling = notGoingThroughTutorial
                                 , onClickMsg = BackToTutorialSpot
