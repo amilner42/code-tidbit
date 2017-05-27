@@ -904,32 +904,52 @@ createViewBigbitQACodeEditor ( bigbit, qa, qaState ) bookmark { user, route } =
                             )
                         ?> blankEditor user
 
-                -- TODO check author is correct
                 Route.ViewBigbitEditQuestion maybeStoryID bigbitID questionID ->
                     qaState
                         |> QA.getQuestionEditByID bigbitID questionID
                         ||> (.codePointer >> Editable.getBuffer)
                         ||> (\{ file, range } ->
-                                FS.getFile bigbit.fs file
-                                    ||> (\(FS.File content { language }) ->
-                                            bigbitEditor
-                                                file
-                                                (Just language)
-                                                user
-                                                content
-                                                (Just range)
-                                                { useMarker = False, selectAllowed = True }
-                                        )
-                                    ?> redirectToTutorial maybeStoryID
+                                let
+                                    isAuthor =
+                                        user
+                                            ||> .id
+                                            ||> (\userID ->
+                                                    QA.getQuestionByID questionID qa.questions
+                                                        ||> .authorID
+                                                        ||> (==) userID
+                                                        ?> False
+                                                )
+                                            ?> False
+                                in
+                                    if isAuthor then
+                                        FS.getFile bigbit.fs file
+                                            ||> (\(FS.File content { language }) ->
+                                                    bigbitEditor
+                                                        file
+                                                        (Just language)
+                                                        user
+                                                        content
+                                                        (Just range)
+                                                        { useMarker = False, selectAllowed = True }
+                                                )
+                                            ?> redirectToTutorial maybeStoryID
+                                    else
+                                        redirectToTutorial maybeStoryID
                             )
                         ?> createEditorForQuestionID maybeStoryID questionID { useMarker = False, selectAllowed = True }
 
                 Route.ViewBigbitAnswerQuestion maybeStoryID _ questionID ->
                     createEditorForQuestionID maybeStoryID questionID { useMarker = True, selectAllowed = False }
 
-                -- TODO check author is correct
                 Route.ViewBigbitEditAnswer maybeStoryID _ answerID ->
-                    createEditorForAnswerID maybeStoryID answerID { useMarker = True, selectAllowed = False }
+                    if
+                        QA.getAnswerByID answerID qa.answers
+                            |||> (\{ authorID } -> user ||> .id ||> (==) authorID)
+                            ?> False
+                    then
+                        createEditorForAnswerID maybeStoryID answerID { useMarker = True, selectAllowed = False }
+                    else
+                        redirectToTutorial maybeStoryID
 
                 _ ->
                     Cmd.none
