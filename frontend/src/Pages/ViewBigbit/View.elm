@@ -32,6 +32,9 @@ view model shared =
         fsOpen =
             maybeMapWithDefault Bigbit.isFSOpen False (Maybe.map .fs model.bigbit)
 
+        onRouteWithFS =
+            Route.isOnViewBigbitRouteWithFS shared.route
+
         currentRoute =
             shared.route
 
@@ -46,7 +49,7 @@ view model shared =
         div
             [ classList
                 [ ( "view-bigbit-page", True )
-                , ( "fs-closed", not <| fsOpen )
+                , ( "fs-closed", not <| fsOpen && onRouteWithFS )
                 ]
             ]
             [ div
@@ -336,7 +339,7 @@ view model shared =
                             , div
                                 [ class "above-editor-text"
                                 , onClick <|
-                                    if fsOpen then
+                                    if fsOpen || (not onRouteWithFS) then
                                         NoOp
                                     else
                                         ToggleFS

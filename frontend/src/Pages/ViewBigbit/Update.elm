@@ -573,19 +573,109 @@ update (Common common) msg model shared =
 
         SelectFile absolutePath ->
             let
-                tutorialFile =
-                    case shared.route of
-                        Route.ViewBigbitFramePage _ _ frameNumber _ ->
-                            Maybe.andThen (Bigbit.getHighlightedComment frameNumber) model.bigbit
-                                |> Maybe.map .file
+                handleFileSelectOnTutorialRoute =
+                    let
+                        tutorialFile =
+                            case shared.route of
+                                Route.ViewBigbitFramePage _ _ frameNumber _ ->
+                                    Maybe.andThen (Bigbit.getHighlightedComment frameNumber) model.bigbit
+                                        |> Maybe.map .file
 
-                        _ ->
-                            Nothing
+                                _ ->
+                                    Nothing
+                    in
+                        if Just absolutePath == tutorialFile then
+                            common.justProduceCmd <|
+                                Route.navigateToSameUrlWithFilePath Nothing shared.route
+                        else
+                            common.justProduceCmd <|
+                                Route.navigateToSameUrlWithFilePath (Just absolutePath) shared.route
+
+                refreshCmd =
+                    Route.modifyTo shared.route
             in
-                if Just absolutePath == tutorialFile then
-                    common.justProduceCmd <| Route.navigateToSameUrlWithFilePath Nothing shared.route
-                else
-                    common.justProduceCmd <| Route.navigateToSameUrlWithFilePath (Just absolutePath) shared.route
+                case shared.route of
+                    Route.ViewBigbitIntroductionPage _ _ _ ->
+                        handleFileSelectOnTutorialRoute
+
+                    Route.ViewBigbitFramePage _ _ _ _ ->
+                        handleFileSelectOnTutorialRoute
+
+                    Route.ViewBigbitConclusionPage _ _ _ ->
+                        handleFileSelectOnTutorialRoute
+
+                    Route.ViewBigbitQuestionsPage _ bigbitID ->
+                        ( { model
+                            | qaState =
+                                QA.setBrowsingCodePointer
+                                    bigbitID
+                                    (Just { file = absolutePath, range = Range.zeroRange })
+                                    model.qaState
+                          }
+                        , shared
+                        , refreshCmd
+                        )
+
+                    Route.ViewBigbitAskQuestion _ bigbitID ->
+                        ( { model
+                            | qaState =
+                                QA.updateNewQuestion
+                                    bigbitID
+                                    (\newQuestion ->
+                                        { newQuestion
+                                            | codePointer = Just { file = absolutePath, range = Range.zeroRange }
+                                        }
+                                    )
+                                    model.qaState
+                          }
+                        , shared
+                        , refreshCmd
+                        )
+
+                    Route.ViewBigbitEditQuestion _ bigbitID questionID ->
+                        case model.qa ||> .questions |||> QA.getQuestionByID questionID of
+                            Just { questionText } ->
+                                ( { model
+                                    | qaState =
+                                        QA.updateQuestionEdit
+                                            bigbitID
+                                            questionID
+                                            (\maybeQuestionEdit ->
+                                                case maybeQuestionEdit of
+                                                    Nothing ->
+                                                        Just
+                                                            { questionText = Editable.newEditing questionText
+                                                            , codePointer =
+                                                                Editable.newEditing
+                                                                    { file = absolutePath
+                                                                    , range = Range.zeroRange
+                                                                    }
+                                                            , previewMarkdown = False
+                                                            }
+
+                                                    Just questionEdit ->
+                                                        Just
+                                                            { questionEdit
+                                                                | codePointer =
+                                                                    Editable.setBuffer
+                                                                        questionEdit.codePointer
+                                                                        { file = absolutePath
+                                                                        , range = Range.zeroRange
+                                                                        }
+                                                            }
+                                            )
+                                            model.qaState
+                                  }
+                                , shared
+                                , refreshCmd
+                                )
+
+                            -- Should never happen (will have redirected).
+                            Nothing ->
+                                common.doNothing
+
+                    _ ->
+                        common.doNothing
 
         ToggleFolder absolutePath ->
             common.justUpdateModel <|
