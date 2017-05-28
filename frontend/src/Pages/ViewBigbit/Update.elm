@@ -5,6 +5,7 @@ import DefaultServices.CommonSubPageUtil exposing (CommonSubPageUtil(..), common
 import DefaultServices.Editable as Editable
 import DefaultServices.InfixFunctions exposing (..)
 import DefaultServices.Util as Util exposing (maybeMapWithDefault)
+import Elements.Complex.AskQuestion as AskQuestion
 import Elements.Simple.Editor as Editor
 import Elements.Simple.FileStructure as FS
 import Models.Bigbit as Bigbit
@@ -801,6 +802,54 @@ update (Common common) msg model shared =
             )
 
         OnGetQAFailure apiError ->
+            common.justSetModalError apiError
+
+        AskQuestionMsg bigbitID askQuestionMsg ->
+            let
+                askQuestionModel =
+                    QA.getNewQuestion bigbitID model.qaState ?> QA.defaultNewQuestion
+
+                ( newAskQuestionModel, newAskQuestionMsg ) =
+                    AskQuestion.update askQuestionMsg askQuestionModel
+            in
+                ( { model | qaState = model.qaState |> QA.updateNewQuestion bigbitID (always newAskQuestionModel) }
+                , shared
+                , Cmd.map (AskQuestionMsg bigbitID) newAskQuestionMsg
+                )
+
+        AskQuestion bigbitID codePointer questionText ->
+            common.justProduceCmd <|
+                common.api.post.askQuestionOnBigbit
+                    bigbitID
+                    questionText
+                    codePointer
+                    OnAskQuestionFailure
+                    (OnAskQuestionSuccess bigbitID)
+
+        OnAskQuestionSuccess bigbitID question ->
+            case model.qa of
+                Just qa ->
+                    ( { model
+                        | qa = Just { qa | questions = QA.sortRateableContent <| question :: qa.questions }
+                        , qaState =
+                            QA.updateNewQuestion
+                                bigbitID
+                                (always QA.defaultNewQuestion)
+                                model.qaState
+                      }
+                    , shared
+                    , Route.navigateTo <|
+                        Route.ViewBigbitQuestionPage
+                            (Route.getFromStoryQueryParamOnViewBigbitRoute shared.route)
+                            (Route.getTouringQuestionsQueryParamOnViewBigbitQARoute shared.route)
+                            bigbitID
+                            question.id
+                    )
+
+                Nothing ->
+                    common.doNothing
+
+        OnAskQuestionFailure apiError ->
             common.justSetModalError apiError
 
 

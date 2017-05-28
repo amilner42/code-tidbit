@@ -1,11 +1,12 @@
 module Pages.ViewBigbit.Messages exposing (..)
 
 import Elements.Simple.FileStructure as FS
+import Elements.Complex.AskQuestion as AskQuestion
 import Models.ApiError exposing (ApiError)
 import Models.Bigbit exposing (Bigbit)
 import Models.Completed exposing (Completed, IsCompleted)
 import Models.Opinion exposing (Opinion, PossibleOpinion)
-import Models.QA exposing (BigbitQA, BigbitCodePointer)
+import Models.QA exposing (BigbitQA, BigbitCodePointer, BigbitQuestion)
 import Models.Range exposing (Range)
 import Models.Route exposing (Route)
 import Models.Story exposing (ExpandedStory)
@@ -47,3 +48,7 @@ type Msg
     | BackToTutorialSpot
     | OnGetQASuccess Bool BigbitQA
     | OnGetQAFailure ApiError
+    | AskQuestionMsg BigbitID AskQuestion.Msg
+    | AskQuestion BigbitID BigbitCodePointer QuestionText
+    | OnAskQuestionSuccess BigbitID BigbitQuestion
+    | OnAskQuestionFailure ApiError

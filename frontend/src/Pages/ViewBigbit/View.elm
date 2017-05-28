@@ -1,7 +1,9 @@
 module Pages.ViewBigbit.View exposing (..)
 
 import Array
+import DefaultServices.InfixFunctions exposing (..)
 import DefaultServices.Util as Util exposing (maybeMapWithDefault)
+import Elements.Complex.AskQuestion as AskQuestion
 import Elements.Simple.Editor as Editor
 import Elements.Simple.FileStructure as FS
 import Elements.Simple.Markdown as Markdown
@@ -526,6 +528,15 @@ viewBigbitCommentBox bigbit maybeRHC route maybeQA qaState =
 
                     Nothing ->
                         Util.hiddenDiv
+
+            Route.ViewBigbitAskQuestion maybeStoryID bigbitID ->
+                AskQuestion.view
+                    { msgTagger = AskQuestionMsg bigbitID
+                    , askQuestion = AskQuestion bigbitID
+                    , isReadyCodePointer = (.range >> Range.isEmptyRange >> not)
+                    , goToAllQuestions = GoTo <| Route.ViewBigbitQuestionsPage maybeStoryID bigbitID
+                    }
+                    (QA.getNewQuestion bigbitID qaState ?> QA.defaultNewQuestion)
 
             _ ->
                 Util.hiddenDiv
