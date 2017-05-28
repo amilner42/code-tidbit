@@ -5,10 +5,11 @@ import Models.ApiError exposing (ApiError)
 import Models.Bigbit exposing (Bigbit)
 import Models.Completed exposing (Completed, IsCompleted)
 import Models.Opinion exposing (Opinion, PossibleOpinion)
-import Models.QA exposing (BigbitQA)
+import Models.QA exposing (BigbitQA, BigbitCodePointer)
 import Models.Range exposing (Range)
 import Models.Route exposing (Route)
 import Models.Story exposing (ExpandedStory)
+import ProjectTypeAliases exposing (..)
 
 
 {-| `ViewBigbit` msg.
@@ -16,6 +17,7 @@ import Models.Story exposing (ExpandedStory)
 type Msg
     = NoOp
     | GoTo Route
+    | GoToAskQuestionWithCodePointer BigbitID (Maybe BigbitCodePointer)
     | OnRouteHit Route
     | OnRangeSelected Range
     | OnGetBigbitSuccess Bool Bigbit

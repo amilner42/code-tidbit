@@ -6,11 +6,14 @@ import Elements.Simple.Editor as Editor
 import Elements.Simple.FileStructure as FS
 import Elements.Simple.Markdown as Markdown
 import Elements.Simple.ProgressBar as ProgressBar exposing (TextFormat(Custom), State(..))
+import Elements.Simple.QuestionList as QuestionList
 import Html exposing (Html, div, button, text, i)
 import Html.Attributes exposing (class, classList, hidden)
 import Html.Events exposing (onClick)
 import Models.Bigbit as Bigbit
 import Models.Completed as Completed
+import Models.QA as QA
+import Models.Range as Range
 import Models.Rating as Rating
 import Models.Route as Route
 import Models.Story as Story
@@ -356,7 +359,9 @@ view model shared =
                                 ]
                             ]
                         , Editor.view "view-bigbit-code-editor"
-                        , viewBigbitCommentBox bigbit model.relevantHC currentRoute
+                        , div
+                            [ class "comment-block" ]
+                            [ viewBigbitCommentBox bigbit model.relevantHC currentRoute model.qa model.qaState ]
                         ]
             ]
 
@@ -364,97 +369,163 @@ view model shared =
 {-| Gets the comment box for the view bigbit page, can be the markdown for the intro/conclusion/frame, the FS, or the
 markdown with a few extra buttons for a selected range.
 -}
-viewBigbitCommentBox : Bigbit.Bigbit -> Maybe ViewingBigbitRelevantHC -> Route.Route -> Html Msg
-viewBigbitCommentBox bigbit maybeRHC route =
+viewBigbitCommentBox :
+    Bigbit.Bigbit
+    -> Maybe ViewingBigbitRelevantHC
+    -> Route.Route
+    -> Maybe QA.BigbitQA
+    -> QA.BigbitQAState
+    -> Html Msg
+viewBigbitCommentBox bigbit maybeRHC route maybeQA qaState =
     let
-        rhcTabOpen =
-            isBigbitRHCTabOpen maybeRHC
+        tutorialRoute =
+            let
+                rhcTabOpen =
+                    isBigbitRHCTabOpen maybeRHC
 
-        tutorialOpen =
-            not <| rhcTabOpen
-    in
-        div
-            [ class "comment-block" ]
-            [ Markdown.view [ hidden <| not <| tutorialOpen ] <|
-                case route of
-                    Route.ViewBigbitIntroductionPage _ _ _ ->
-                        bigbit.introduction
+                tutorialOpen =
+                    not <| rhcTabOpen
+            in
+                div
+                    []
+                    [ Markdown.view [ hidden <| not <| tutorialOpen ] <|
+                        case route of
+                            Route.ViewBigbitIntroductionPage _ _ _ ->
+                                bigbit.introduction
 
-                    Route.ViewBigbitConclusionPage _ _ _ ->
-                        bigbit.conclusion
+                            Route.ViewBigbitConclusionPage _ _ _ ->
+                                bigbit.conclusion
 
-                    Route.ViewBigbitFramePage _ _ frameNumber _ ->
-                        (Array.get
-                            (frameNumber - 1)
-                            bigbit.highlightedComments
-                        )
-                            |> Maybe.map .comment
-                            |> Maybe.withDefault ""
+                            Route.ViewBigbitFramePage _ _ frameNumber _ ->
+                                (Array.get
+                                    (frameNumber - 1)
+                                    bigbit.highlightedComments
+                                )
+                                    |> Maybe.map .comment
+                                    |> Maybe.withDefault ""
 
-                    _ ->
-                        ""
-            , div
-                [ class "view-relevant-hc"
-                , hidden <| not <| rhcTabOpen
-                ]
-                (case maybeRHC of
-                    Nothing ->
-                        [ Util.hiddenDiv ]
-
-                    Just rhc ->
-                        case rhc.currentHC of
+                            _ ->
+                                ""
+                    , div
+                        [ class "view-relevant-hc"
+                        , hidden <| not <| rhcTabOpen
+                        ]
+                        (case maybeRHC of
                             Nothing ->
                                 [ Util.hiddenDiv ]
 
-                            Just index ->
-                                [ case ViewerRelevantHC.currentFramePair rhc of
+                            Just rhc ->
+                                case rhc.currentHC of
                                     Nothing ->
-                                        Util.hiddenDiv
+                                        [ Util.hiddenDiv ]
 
-                                    Just currentFramePair ->
-                                        ViewerRelevantHC.relevantHCTextAboveFrameSpecifyingPosition currentFramePair
-                                , Markdown.view
-                                    []
-                                    (Array.get index rhc.relevantHC
-                                        |> maybeMapWithDefault (Tuple.second >> .comment) ""
-                                    )
-                                , div
-                                    [ classList
-                                        [ ( "above-comment-block-button", True )
-                                        , ( "disabled", ViewerRelevantHC.onFirstFrame rhc )
-                                        ]
-                                    , onClick PreviousRelevantHC
-                                    ]
-                                    [ text "Previous" ]
-                                , div
-                                    [ classList
-                                        [ ( "above-comment-block-button go-to-frame-button", True ) ]
-                                    , onClick
-                                        (Array.get index rhc.relevantHC
-                                            |> maybeMapWithDefault
-                                                (JumpToFrame
-                                                    << (\frameNumber ->
-                                                            Route.ViewBigbitFramePage
-                                                                (Route.getFromStoryQueryParamOnViewBigbitRoute route)
-                                                                bigbit.id
-                                                                frameNumber
-                                                                Nothing
-                                                       )
-                                                    << ((+) 1)
-                                                    << Tuple.first
+                                    Just index ->
+                                        [ case ViewerRelevantHC.currentFramePair rhc of
+                                            Nothing ->
+                                                Util.hiddenDiv
+
+                                            Just currentFramePair ->
+                                                ViewerRelevantHC.relevantHCTextAboveFrameSpecifyingPosition currentFramePair
+                                        , Markdown.view
+                                            []
+                                            (Array.get index rhc.relevantHC
+                                                |> maybeMapWithDefault (Tuple.second >> .comment) ""
+                                            )
+                                        , div
+                                            [ classList
+                                                [ ( "above-comment-block-button", True )
+                                                , ( "disabled", ViewerRelevantHC.onFirstFrame rhc )
+                                                ]
+                                            , onClick PreviousRelevantHC
+                                            ]
+                                            [ text "Previous" ]
+                                        , div
+                                            [ classList
+                                                [ ( "above-comment-block-button go-to-frame-button", True ) ]
+                                            , onClick
+                                                (Array.get index rhc.relevantHC
+                                                    |> maybeMapWithDefault
+                                                        (JumpToFrame
+                                                            << (\frameNumber ->
+                                                                    Route.ViewBigbitFramePage
+                                                                        (Route.getFromStoryQueryParamOnViewBigbitRoute route)
+                                                                        bigbit.id
+                                                                        frameNumber
+                                                                        Nothing
+                                                               )
+                                                            << ((+) 1)
+                                                            << Tuple.first
+                                                        )
+                                                        NoOp
                                                 )
-                                                NoOp
-                                        )
-                                    ]
-                                    [ text "Jump To Frame" ]
-                                , div
-                                    [ classList
-                                        [ ( "above-comment-block-button next-button", True )
-                                        , ( "disabled", ViewerRelevantHC.onLastFrame rhc )
+                                            ]
+                                            [ text "Jump To Frame" ]
+                                        , div
+                                            [ classList
+                                                [ ( "above-comment-block-button next-button", True )
+                                                , ( "disabled", ViewerRelevantHC.onLastFrame rhc )
+                                                ]
+                                            , onClick NextRelevantHC
+                                            ]
+                                            [ text "Next" ]
                                         ]
-                                    , onClick NextRelevantHC
-                                    ]
-                                    [ text "Next" ]
+                        )
+                    ]
+    in
+        case route of
+            Route.ViewBigbitIntroductionPage _ _ _ ->
+                tutorialRoute
+
+            Route.ViewBigbitFramePage _ _ _ _ ->
+                tutorialRoute
+
+            Route.ViewBigbitConclusionPage _ _ _ ->
+                tutorialRoute
+
+            Route.ViewBigbitQuestionsPage _ bigbitID ->
+                case maybeQA of
+                    Just qa ->
+                        let
+                            browseCodePointer =
+                                qaState |> QA.getBrowseCodePointer bigbitID
+
+                            ( isHighlighting, remainingQuestions ) =
+                                case browseCodePointer of
+                                    Nothing ->
+                                        ( False, qa.questions )
+
+                                    Just ({ file, range } as codePointer) ->
+                                        if Range.isEmptyRange range then
+                                            ( False, qa.questions )
+                                        else
+                                            ( True
+                                            , qa.questions
+                                                |> List.filter
+                                                    (.codePointer >> QA.isBigbitCodePointerOverlap codePointer)
+                                            )
+                        in
+                            div
+                                [ class "view-questions" ]
+                                [ QuestionList.view
+                                    { questionBoxRenderConfig =
+                                        { onClickQuestionBox =
+                                            (\question ->
+                                                GoTo <|
+                                                    Route.ViewBigbitQuestionPage
+                                                        (Route.getFromStoryQueryParamOnViewBigbitRoute route)
+                                                        (Route.getTouringQuestionsQueryParamOnViewBigbitQARoute route)
+                                                        bigbitID
+                                                        question.id
+                                            )
+                                        }
+                                    , onClickAskQuestion = GoToAskQuestionWithCodePointer bigbitID browseCodePointer
+                                    , isHighlighting = isHighlighting
+                                    }
+                                    remainingQuestions
                                 ]
-                )
-            ]
+
+                    Nothing ->
+                        Util.hiddenDiv
+
+            _ ->
+                Util.hiddenDiv

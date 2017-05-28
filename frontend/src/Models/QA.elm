@@ -805,6 +805,14 @@ updateVotes vote contentWithVotes =
     }
 
 
+{-| Returns true if the 2 codePointers have overlapping ranges (requires the files be the same as well).
+-}
+isBigbitCodePointerOverlap : BigbitCodePointer -> BigbitCodePointer -> Bool
+isBigbitCodePointerOverlap codePointer1 codePointer2 =
+    (FS.isSameFilePath codePointer1.file codePointer2.file)
+        && (Range.overlappingRanges codePointer1.range codePointer2.range)
+
+
 {-| The default state for `TidbitQAState`.
 -}
 defaultTidbitQAState : TidbitQAState codePointer
