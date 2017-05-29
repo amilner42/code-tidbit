@@ -4,6 +4,7 @@ import Array
 import DefaultServices.InfixFunctions exposing (..)
 import DefaultServices.Util as Util exposing (maybeMapWithDefault)
 import Elements.Complex.AskQuestion as AskQuestion
+import Elements.Complex.EditQuestion as EditQuestion
 import Elements.Simple.Editor as Editor
 import Elements.Simple.FileStructure as FS
 import Elements.Simple.Markdown as Markdown
@@ -533,10 +534,28 @@ viewBigbitCommentBox bigbit maybeRHC route maybeQA qaState =
                 AskQuestion.view
                     { msgTagger = AskQuestionMsg bigbitID
                     , askQuestion = AskQuestion bigbitID
-                    , isReadyCodePointer = (.range >> Range.isEmptyRange >> not)
+                    , isReadyCodePointer = .range >> Range.isEmptyRange >> not
                     , goToAllQuestions = GoTo <| Route.ViewBigbitQuestionsPage maybeStoryID bigbitID
                     }
                     (QA.getNewQuestion bigbitID qaState ?> QA.defaultNewQuestion)
+
+            Route.ViewBigbitEditQuestion maybeStoryID bigbitID questionID ->
+                case maybeQA ||> .questions |||> QA.getQuestionByID questionID of
+                    Just question ->
+                        let
+                            questionEdit =
+                                QA.getQuestionEditByID bigbitID questionID qaState
+                                    ?> QA.questionEditFromQuestion question
+                        in
+                            EditQuestion.view
+                                { msgTagger = EditQuestionMsg bigbitID question
+                                , isReadyCodePointer = .range >> Range.isEmptyRange >> not
+                                , editQuestion = EditQuestion bigbitID questionID
+                                }
+                                questionEdit
+
+                    Nothing ->
+                        Util.hiddenDiv
 
             _ ->
                 Util.hiddenDiv

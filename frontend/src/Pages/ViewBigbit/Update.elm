@@ -6,6 +6,7 @@ import DefaultServices.Editable as Editable
 import DefaultServices.InfixFunctions exposing (..)
 import DefaultServices.Util as Util exposing (maybeMapWithDefault)
 import Elements.Complex.AskQuestion as AskQuestion
+import Elements.Complex.EditQuestion as EditQuestion
 import Elements.Simple.Editor as Editor
 import Elements.Simple.FileStructure as FS
 import Models.Bigbit as Bigbit
@@ -850,6 +851,75 @@ update (Common common) msg model shared =
                     common.doNothing
 
         OnAskQuestionFailure apiError ->
+            common.justSetModalError apiError
+
+        EditQuestionMsg bigbitID question editQuestionMsg ->
+            let
+                editQuestionModel =
+                    QA.getQuestionEditByID bigbitID question.id model.qaState
+                        ?> QA.questionEditFromQuestion question
+
+                ( newEditQuestionModel, newQuestionEditMsg ) =
+                    EditQuestion.update editQuestionMsg editQuestionModel
+            in
+                ( { model
+                    | qaState =
+                        QA.updateQuestionEdit
+                            bigbitID
+                            question.id
+                            (always <| Just newEditQuestionModel)
+                            model.qaState
+                  }
+                , shared
+                , Cmd.map (EditQuestionMsg bigbitID question) newQuestionEditMsg
+                )
+
+        EditQuestion bigbitID questionID questionText codePointer ->
+            common.justProduceCmd <|
+                common.api.post.editQuestionOnBigbit
+                    bigbitID
+                    questionID
+                    questionText
+                    codePointer
+                    OnEditQuestionFailure
+                    (OnEditQuestionSuccess bigbitID questionID questionText codePointer)
+
+        OnEditQuestionSuccess bigbitID questionID questionText codePointer date ->
+            case model.qa of
+                Just qa ->
+                    ( { model
+                        | qa =
+                            qa
+                                |> QA.updateQuestion
+                                    questionID
+                                    (\question ->
+                                        { question
+                                            | codePointer = codePointer
+                                            , questionText = questionText
+                                            , lastModified = date
+                                        }
+                                    )
+                                |> Just
+                        , qaState =
+                            model.qaState
+                                |> QA.updateQuestionEdit
+                                    bigbitID
+                                    questionID
+                                    (always Nothing)
+                      }
+                    , shared
+                    , Route.navigateTo <|
+                        Route.ViewBigbitQuestionPage
+                            (Route.getFromStoryQueryParamOnViewBigbitRoute shared.route)
+                            (Route.getTouringQuestionsQueryParamOnViewBigbitQARoute shared.route)
+                            bigbitID
+                            questionID
+                    )
+
+                Nothing ->
+                    common.doNothing
+
+        OnEditQuestionFailure apiError ->
             common.justSetModalError apiError
 
 

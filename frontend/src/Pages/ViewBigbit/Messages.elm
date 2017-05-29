@@ -1,7 +1,9 @@
 module Pages.ViewBigbit.Messages exposing (..)
 
-import Elements.Simple.FileStructure as FS
+import Date exposing (Date)
 import Elements.Complex.AskQuestion as AskQuestion
+import Elements.Complex.EditQuestion as EditQuestion
+import Elements.Simple.FileStructure as FS
 import Models.ApiError exposing (ApiError)
 import Models.Bigbit exposing (Bigbit)
 import Models.Completed exposing (Completed, IsCompleted)
@@ -52,3 +54,7 @@ type Msg
     | AskQuestion BigbitID BigbitCodePointer QuestionText
     | OnAskQuestionSuccess BigbitID BigbitQuestion
     | OnAskQuestionFailure ApiError
+    | EditQuestionMsg BigbitID BigbitQuestion EditQuestion.Msg
+    | EditQuestion BigbitID QuestionID QuestionText BigbitCodePointer
+    | OnEditQuestionSuccess BigbitID QuestionID QuestionText BigbitCodePointer Date
+    | OnEditQuestionFailure ApiError
