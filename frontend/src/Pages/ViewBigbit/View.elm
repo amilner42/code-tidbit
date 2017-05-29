@@ -5,6 +5,7 @@ import DefaultServices.InfixFunctions exposing (..)
 import DefaultServices.Util as Util exposing (maybeMapWithDefault)
 import Elements.Complex.AnswerQuestion as AnswerQuestion
 import Elements.Complex.AskQuestion as AskQuestion
+import Elements.Complex.EditAnswer as EditAnswer
 import Elements.Complex.EditQuestion as EditQuestion
 import Elements.Simple.Editor as Editor
 import Elements.Simple.FileStructure as FS
@@ -582,6 +583,30 @@ viewBigbitCommentBox bigbit maybeRHC route maybeQA qaState =
                                 }
 
                     Nothing ->
+                        Util.hiddenDiv
+
+            Route.ViewBigbitEditAnswer _ bigbitID answerID ->
+                case
+                    ( maybeQA ||> .answers |||> QA.getAnswerByID answerID
+                    , maybeQA |||> QA.getQuestionByAnswerID answerID
+                    )
+                of
+                    ( Just answer, Just question ) ->
+                        let
+                            answerEdit =
+                                qaState
+                                    |> QA.getAnswerEdit bigbitID answerID
+                                    ?> QA.answerEditFromAnswer answer
+                        in
+                            EditAnswer.view
+                                { msgTagger = EditAnswerMsg bigbitID question answer
+                                , editAnswer = EditAnswer bigbitID answerID
+                                }
+                                { answerEdit = answerEdit
+                                , forQuestion = question
+                                }
+
+                    _ ->
                         Util.hiddenDiv
 
             _ ->

@@ -12,6 +12,8 @@ import ProjectTypeAliases exposing (..)
 
 type alias Model codePointer =
     { answerEdit : AnswerEdit
+
+    -- TODO Should `forQuestion` go in the config? If we're not updating it, it should.
     , forQuestion : Question codePointer
     }
 

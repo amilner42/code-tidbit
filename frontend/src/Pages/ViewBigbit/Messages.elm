@@ -3,6 +3,7 @@ module Pages.ViewBigbit.Messages exposing (..)
 import Date exposing (Date)
 import Elements.Complex.AnswerQuestion as AnswerQuestion
 import Elements.Complex.AskQuestion as AskQuestion
+import Elements.Complex.EditAnswer as EditAnswer
 import Elements.Complex.EditQuestion as EditQuestion
 import Elements.Simple.FileStructure as FS
 import Models.ApiError exposing (ApiError)
@@ -63,3 +64,7 @@ type Msg
     | AnswerQuestion BigbitID QuestionID AnswerText
     | OnAnswerQuestionSuccess BigbitID QuestionID Answer
     | OnAnswerQuestionFailure ApiError
+    | EditAnswerMsg BigbitID BigbitQuestion Answer EditAnswer.Msg
+    | EditAnswer BigbitID AnswerID AnswerText
+    | OnEditAnswerSuccess BigbitID AnswerID AnswerText Date
+    | OnEditAnswerFailure ApiError
