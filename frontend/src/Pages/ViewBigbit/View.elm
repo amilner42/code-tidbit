@@ -3,6 +3,7 @@ module Pages.ViewBigbit.View exposing (..)
 import Array
 import DefaultServices.InfixFunctions exposing (..)
 import DefaultServices.Util as Util exposing (maybeMapWithDefault)
+import Elements.Complex.AnswerQuestion as AnswerQuestion
 import Elements.Complex.AskQuestion as AskQuestion
 import Elements.Complex.EditQuestion as EditQuestion
 import Elements.Simple.Editor as Editor
@@ -539,7 +540,7 @@ viewBigbitCommentBox bigbit maybeRHC route maybeQA qaState =
                     }
                     (QA.getNewQuestion bigbitID qaState ?> QA.defaultNewQuestion)
 
-            Route.ViewBigbitEditQuestion maybeStoryID bigbitID questionID ->
+            Route.ViewBigbitEditQuestion _ bigbitID questionID ->
                 case maybeQA ||> .questions |||> QA.getQuestionByID questionID of
                     Just question ->
                         let
@@ -553,6 +554,32 @@ viewBigbitCommentBox bigbit maybeRHC route maybeQA qaState =
                                 , editQuestion = EditQuestion bigbitID questionID
                                 }
                                 questionEdit
+
+                    Nothing ->
+                        Util.hiddenDiv
+
+            Route.ViewBigbitAnswerQuestion maybeStoryID bigbitID questionID ->
+                case maybeQA ||> .questions |||> QA.getQuestionByID questionID of
+                    Just question ->
+                        let
+                            newAnswer =
+                                QA.getNewAnswer bigbitID questionID qaState
+                                    ?> QA.defaultNewAnswer
+                        in
+                            AnswerQuestion.view
+                                { msgTagger = AnswerQuestionMsg bigbitID question
+                                , goToAllAnswers =
+                                    GoTo <|
+                                        Route.ViewBigbitAnswersPage
+                                            maybeStoryID
+                                            Nothing
+                                            bigbitID
+                                            questionID
+                                , answerQuestion = AnswerQuestion bigbitID questionID
+                                }
+                                { newAnswer = newAnswer
+                                , forQuestion = question
+                                }
 
                     Nothing ->
                         Util.hiddenDiv

@@ -1,6 +1,7 @@
 module Pages.ViewBigbit.Messages exposing (..)
 
 import Date exposing (Date)
+import Elements.Complex.AnswerQuestion as AnswerQuestion
 import Elements.Complex.AskQuestion as AskQuestion
 import Elements.Complex.EditQuestion as EditQuestion
 import Elements.Simple.FileStructure as FS
@@ -8,7 +9,7 @@ import Models.ApiError exposing (ApiError)
 import Models.Bigbit exposing (Bigbit)
 import Models.Completed exposing (Completed, IsCompleted)
 import Models.Opinion exposing (Opinion, PossibleOpinion)
-import Models.QA exposing (BigbitQA, BigbitCodePointer, BigbitQuestion)
+import Models.QA exposing (BigbitQA, BigbitCodePointer, BigbitQuestion, Answer)
 import Models.Range exposing (Range)
 import Models.Route exposing (Route)
 import Models.Story exposing (ExpandedStory)
@@ -58,3 +59,7 @@ type Msg
     | EditQuestion BigbitID QuestionID QuestionText BigbitCodePointer
     | OnEditQuestionSuccess BigbitID QuestionID QuestionText BigbitCodePointer Date
     | OnEditQuestionFailure ApiError
+    | AnswerQuestionMsg BigbitID BigbitQuestion AnswerQuestion.Msg
+    | AnswerQuestion BigbitID QuestionID AnswerText
+    | OnAnswerQuestionSuccess BigbitID QuestionID Answer
+    | OnAnswerQuestionFailure ApiError
