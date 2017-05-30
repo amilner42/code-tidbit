@@ -219,7 +219,25 @@ view model shared =
                         ]
                     , onClick CancelBrowseRelevantHC
                     ]
-                    [ text "Close Related Frames" ]
+                    [ text "Resume Tutorial" ]
+                , case Route.getViewingContentID shared.route of
+                    Just bigbitID ->
+                        button
+                            [ classList
+                                [ ( "sub-bar-button view-relevant-questions", True )
+                                , ( "hidden", not <| Route.isOnViewBigbitQARoute shared.route )
+                                ]
+                            , onClick <|
+                                GoTo <|
+                                    routeForBookmark
+                                        (Route.getFromStoryQueryParamOnViewBigbitRoute shared.route)
+                                        bigbitID
+                                        model.bookmark
+                            ]
+                            [ text "Resume Tutorial" ]
+
+                    Nothing ->
+                        Util.hiddenDiv
                 ]
             , case model.bigbit of
                 Nothing ->
