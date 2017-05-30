@@ -564,26 +564,26 @@ viewBigbitCommentBox bigbit model shared =
                 , answers = List.filter (.questionID >> (==) question.id) qa.answers
                 , questionComments = List.filter (.questionID >> (==) question.id) qa.questionComments
                 , answerComments = List.filter (.questionID >> (==) question.id) qa.answerComments
-                , onClickBrowseAllQuestions =
+                , goToBrowseAllQuestions =
                     GoTo <|
                         Route.ViewBigbitQuestionsPage
                             (Route.getFromStoryQueryParamOnViewBigbitRoute shared.route)
                             bigbit.id
-                , onClickQuestionTab =
+                , goToQuestionTab =
                     GoTo <|
                         Route.ViewBigbitQuestionPage
                             (Route.getFromStoryQueryParamOnViewBigbitRoute shared.route)
                             (Route.getTouringQuestionsQueryParamOnViewBigbitQARoute shared.route)
                             bigbit.id
                             question.id
-                , onClickAnswersTab =
+                , goToAnswersTab =
                     GoTo <|
                         Route.ViewBigbitAnswersPage
                             (Route.getFromStoryQueryParamOnViewBigbitRoute shared.route)
                             (Route.getTouringQuestionsQueryParamOnViewBigbitQARoute shared.route)
                             bigbit.id
                             question.id
-                , onClickQuestionCommentsTab =
+                , goToQuestionCommentsTab =
                     GoTo <|
                         Route.ViewBigbitQuestionCommentsPage
                             (Route.getFromStoryQueryParamOnViewBigbitRoute shared.route)
@@ -591,7 +591,7 @@ viewBigbitCommentBox bigbit model shared =
                             bigbit.id
                             question.id
                             Nothing
-                , onClickAnswerTab =
+                , goToAnswerTab =
                     (\answer ->
                         GoTo <|
                             Route.ViewBigbitAnswerPage
@@ -600,7 +600,7 @@ viewBigbitCommentBox bigbit model shared =
                                 bigbit.id
                                 answer.id
                     )
-                , onClickAnswerCommentsTab =
+                , goToAnswerCommentsTab =
                     (\answer ->
                         GoTo <|
                             Route.ViewBigbitAnswerCommentsPage
@@ -610,7 +610,7 @@ viewBigbitCommentBox bigbit model shared =
                                 answer.id
                                 Nothing
                     )
-                , onClickQuestionComment =
+                , goToQuestionComment =
                     (\questionComment ->
                         GoTo <|
                             Route.ViewBigbitQuestionCommentsPage
@@ -620,7 +620,7 @@ viewBigbitCommentBox bigbit model shared =
                                 question.id
                                 (Just questionComment.id)
                     )
-                , onClickAnswerComment =
+                , goToAnswerComment =
                     (\answerComment ->
                         GoTo <|
                             Route.ViewBigbitAnswerCommentsPage
@@ -630,19 +630,7 @@ viewBigbitCommentBox bigbit model shared =
                                 answerComment.answerID
                                 (Just answerComment.id)
                     )
-                , onClickUpvoteQuestion = ClickUpvoteQuestion bigbit.id question.id
-                , onClickRemoveUpvoteQuestion = ClickRemoveUpvoteQuestion bigbit.id question.id
-                , onClickDownvoteQuestion = ClickDownvoteQuestion bigbit.id question.id
-                , onClickRemoveDownvoteQuestion = ClickRemoveDownvoteQuestion bigbit.id question.id
-                , onClickUpvoteAnswer = (\answer -> ClickUpvoteAnswer bigbit.id answer.id)
-                , onClickRemoveUpvoteAnswer = (\answer -> ClickRemoveUpvoteAnswer bigbit.id answer.id)
-                , onClickDownvoteAnswer = (\answer -> ClickDownvoteAnswer bigbit.id answer.id)
-                , onClickRemoveDownvoteAnswer = (\answer -> ClickRemoveDownvoteAnswer bigbit.id answer.id)
-                , onClickPinQuestion = ClickPinQuestion bigbit.id question.id
-                , onClickUnpinQuestion = ClickUnpinQuestion bigbit.id question.id
-                , onClickPinAnswer = (\answer -> ClickPinAnswer bigbit.id answer.id)
-                , onClickUnpinAnswer = (\answer -> ClickUnpinAnswer bigbit.id answer.id)
-                , onClickAnswerQuestion =
+                , goToAnswerQuestion =
                     case shared.user of
                         Just _ ->
                             GoTo <|
@@ -656,13 +644,13 @@ viewBigbitCommentBox bigbit model shared =
                                 ("Want to share your knowledge? Sign up for free and get access to all of CodeTidbit"
                                     ++ " in seconds!"
                                 )
-                , onClickEditQuestion =
+                , goToEditQuestion =
                     GoTo <|
                         Route.ViewBigbitEditQuestion
                             (Route.getFromStoryQueryParamOnViewBigbitRoute shared.route)
                             bigbit.id
                             question.id
-                , onClickEditAnswer =
+                , goToEditAnswer =
                     (\answer ->
                         GoTo <|
                             Route.ViewBigbitEditAnswer
@@ -670,13 +658,25 @@ viewBigbitCommentBox bigbit model shared =
                                 bigbit.id
                                 answer.id
                     )
-                , onClickDeleteAnswer = .id >> DeleteAnswer bigbit.id question.id
-                , submitCommentOnQuestion = SubmitCommentOnQuestion bigbit.id question.id
-                , submitCommentOnAnswer = SubmitCommentOnAnswer bigbit.id question.id
-                , deleteCommentOnQuestion = DeleteCommentOnQuestion bigbit.id
-                , deleteCommentOnAnswer = DeleteCommentOnAnswer bigbit.id
-                , editCommentOnQuestion = EditCommentOnQuestion bigbit.id
-                , editCommentOnAnswer = EditCommentOnAnswer bigbit.id
+                , upvoteQuestion = ClickUpvoteQuestion bigbit.id question.id
+                , removeUpvoteQuestion = ClickRemoveUpvoteQuestion bigbit.id question.id
+                , downvoteQuestion = ClickDownvoteQuestion bigbit.id question.id
+                , removeDownvoteQuestion = ClickRemoveDownvoteQuestion bigbit.id question.id
+                , upvoteAnswer = (\answer -> ClickUpvoteAnswer bigbit.id answer.id)
+                , removeUpvoteAnswer = (\answer -> ClickRemoveUpvoteAnswer bigbit.id answer.id)
+                , downvoteAnswer = (\answer -> ClickDownvoteAnswer bigbit.id answer.id)
+                , removeDownvoteAnswer = (\answer -> ClickRemoveDownvoteAnswer bigbit.id answer.id)
+                , pinQuestion = ClickPinQuestion bigbit.id question.id
+                , unpinQuestion = ClickUnpinQuestion bigbit.id question.id
+                , pinAnswer = (\answer -> ClickPinAnswer bigbit.id answer.id)
+                , unpinAnswer = (\answer -> ClickUnpinAnswer bigbit.id answer.id)
+                , deleteAnswer = .id >> DeleteAnswer bigbit.id question.id
+                , commentOnQuestion = SubmitCommentOnQuestion bigbit.id question.id
+                , commentOnAnswer = SubmitCommentOnAnswer bigbit.id question.id
+                , deleteQuestionComment = DeleteCommentOnQuestion bigbit.id
+                , deleteAnswerComment = DeleteCommentOnAnswer bigbit.id
+                , editQuestionComment = EditCommentOnQuestion bigbit.id
+                , editAnswerComment = EditCommentOnAnswer bigbit.id
                 , handleUnauthAction = SetUserNeedsAuthModal
                 }
                 { questionCommentEdits = QA.getQuestionCommentEdits bigbit.id qaState

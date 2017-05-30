@@ -475,26 +475,26 @@ commentBox snipbit model shared =
                 , answers = List.filter (.questionID >> (==) question.id) qa.answers
                 , questionComments = List.filter (.questionID >> (==) question.id) qa.questionComments
                 , answerComments = List.filter (.questionID >> (==) question.id) qa.answerComments
-                , onClickBrowseAllQuestions =
+                , goToBrowseAllQuestions =
                     GoTo <|
                         Route.ViewSnipbitQuestionsPage
                             (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
                             snipbit.id
-                , onClickQuestionTab =
+                , goToQuestionTab =
                     GoTo <|
                         Route.ViewSnipbitQuestionPage
                             (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
                             (Route.getTouringQuestionsQueryParamOnViewSnipbitQARoute shared.route)
                             snipbit.id
                             question.id
-                , onClickAnswersTab =
+                , goToAnswersTab =
                     GoTo <|
                         Route.ViewSnipbitAnswersPage
                             (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
                             (Route.getTouringQuestionsQueryParamOnViewSnipbitQARoute shared.route)
                             snipbit.id
                             question.id
-                , onClickQuestionCommentsTab =
+                , goToQuestionCommentsTab =
                     GoTo <|
                         Route.ViewSnipbitQuestionCommentsPage
                             (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
@@ -502,7 +502,7 @@ commentBox snipbit model shared =
                             snipbit.id
                             question.id
                             Nothing
-                , onClickAnswerTab =
+                , goToAnswerTab =
                     (\answer ->
                         GoTo <|
                             Route.ViewSnipbitAnswerPage
@@ -511,7 +511,7 @@ commentBox snipbit model shared =
                                 snipbit.id
                                 answer.id
                     )
-                , onClickAnswerCommentsTab =
+                , goToAnswerCommentsTab =
                     (\answer ->
                         GoTo <|
                             Route.ViewSnipbitAnswerCommentsPage
@@ -521,7 +521,7 @@ commentBox snipbit model shared =
                                 answer.id
                                 Nothing
                     )
-                , onClickQuestionComment =
+                , goToQuestionComment =
                     (\questionComment ->
                         GoTo <|
                             Route.ViewSnipbitQuestionCommentsPage
@@ -531,7 +531,7 @@ commentBox snipbit model shared =
                                 questionComment.questionID
                                 (Just questionComment.id)
                     )
-                , onClickAnswerComment =
+                , goToAnswerComment =
                     (\answerComment ->
                         GoTo <|
                             Route.ViewSnipbitAnswerCommentsPage
@@ -541,19 +541,7 @@ commentBox snipbit model shared =
                                 answerComment.answerID
                                 (Just answerComment.id)
                     )
-                , onClickUpvoteQuestion = OnClickUpvoteQuestion snipbit.id question.id
-                , onClickRemoveUpvoteQuestion = OnClickRemoveQuestionUpvote snipbit.id question.id
-                , onClickDownvoteQuestion = OnClickDownvoteQuestion snipbit.id question.id
-                , onClickRemoveDownvoteQuestion = OnClickRemoveQuestionDownvote snipbit.id question.id
-                , onClickUpvoteAnswer = (\answer -> OnClickUpvoteAnswer snipbit.id answer.id)
-                , onClickRemoveUpvoteAnswer = (\answer -> OnClickRemoveAnswerUpvote snipbit.id answer.id)
-                , onClickDownvoteAnswer = (\answer -> OnClickDownvoteAnswer snipbit.id answer.id)
-                , onClickRemoveDownvoteAnswer = (\answer -> OnClickRemoveAnswerDownvote snipbit.id answer.id)
-                , onClickPinQuestion = PinQuestion snipbit.id question.id
-                , onClickUnpinQuestion = UnpinQuestion snipbit.id question.id
-                , onClickPinAnswer = (\answer -> PinAnswer snipbit.id answer.id)
-                , onClickUnpinAnswer = (\answer -> UnpinAnswer snipbit.id answer.id)
-                , onClickAnswerQuestion =
+                , goToAnswerQuestion =
                     case shared.user of
                         Just _ ->
                             GoTo <|
@@ -567,25 +555,37 @@ commentBox snipbit model shared =
                                 ("Want to share your knowledge? Sign up for free and get access to all of CodeTidbit"
                                     ++ " in seconds!"
                                 )
-                , onClickEditQuestion =
+                , goToEditQuestion =
                     GoTo <|
                         Route.ViewSnipbitEditQuestion
                             (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
                             snipbit.id
                             question.id
-                , onClickEditAnswer =
+                , goToEditAnswer =
                     GoTo
                         << Route.ViewSnipbitEditAnswer
                             (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
                             snipbit.id
                         << .id
-                , onClickDeleteAnswer = .id >> DeleteAnswer snipbit.id question.id
-                , submitCommentOnQuestion = SubmitCommentOnQuestion snipbit.id question.id
-                , submitCommentOnAnswer = SubmitCommentOnAnswer snipbit.id question.id
-                , deleteCommentOnQuestion = DeleteCommentOnQuestion snipbit.id
-                , deleteCommentOnAnswer = DeleteCommentOnAnswer snipbit.id
-                , editCommentOnQuestion = EditCommentOnQuestion snipbit.id
-                , editCommentOnAnswer = EditCommentOnAnswer snipbit.id
+                , upvoteQuestion = OnClickUpvoteQuestion snipbit.id question.id
+                , removeUpvoteQuestion = OnClickRemoveQuestionUpvote snipbit.id question.id
+                , downvoteQuestion = OnClickDownvoteQuestion snipbit.id question.id
+                , removeDownvoteQuestion = OnClickRemoveQuestionDownvote snipbit.id question.id
+                , upvoteAnswer = (\answer -> OnClickUpvoteAnswer snipbit.id answer.id)
+                , removeUpvoteAnswer = (\answer -> OnClickRemoveAnswerUpvote snipbit.id answer.id)
+                , downvoteAnswer = (\answer -> OnClickDownvoteAnswer snipbit.id answer.id)
+                , removeDownvoteAnswer = (\answer -> OnClickRemoveAnswerDownvote snipbit.id answer.id)
+                , pinQuestion = PinQuestion snipbit.id question.id
+                , unpinQuestion = UnpinQuestion snipbit.id question.id
+                , pinAnswer = (\answer -> PinAnswer snipbit.id answer.id)
+                , unpinAnswer = (\answer -> UnpinAnswer snipbit.id answer.id)
+                , deleteAnswer = .id >> DeleteAnswer snipbit.id question.id
+                , commentOnQuestion = SubmitCommentOnQuestion snipbit.id question.id
+                , commentOnAnswer = SubmitCommentOnAnswer snipbit.id question.id
+                , deleteQuestionComment = DeleteCommentOnQuestion snipbit.id
+                , deleteAnswerComment = DeleteCommentOnAnswer snipbit.id
+                , editQuestionComment = EditCommentOnQuestion snipbit.id
+                , editAnswerComment = EditCommentOnAnswer snipbit.id
                 , handleUnauthAction = SetUserNeedsAuthModal
                 }
                 { questionCommentEdits = QA.getQuestionCommentEdits snipbit.id qaState

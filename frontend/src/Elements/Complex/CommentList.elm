@@ -32,11 +32,11 @@ type alias Model =
 type alias RenderConfig msg comment =
     { msgTagger : Msg -> msg
     , userID : Maybe UserID
-    , small : Bool
     , comments : List (Comment comment)
-    , submitNewComment : CommentText -> msg
+    , isSmall : Bool
+    , goToComment : Comment comment -> msg
+    , newComment : CommentText -> msg
     , editComment : CommentID -> CommentText -> msg
-    , onClickComment : Comment comment -> msg
     , deleteComment : CommentID -> msg
     }
 
@@ -56,7 +56,7 @@ view config model =
         div
             [ class "comment-list" ]
             [ div
-                [ classList [ ( "comments-wrapper", True ), ( "small", config.small ) ] ]
+                [ classList [ ( "comments-wrapper", True ), ( "small", config.isSmall ) ] ]
                 [ Util.keyedDiv
                     [ class "comments" ]
                     (if List.isEmpty config.comments then
@@ -92,7 +92,7 @@ view config model =
                             ]
                     , case ( isLoggedIn, justReadyComment ) of
                         ( True, Just comment ) ->
-                            Just <| onClick <| config.submitNewComment comment
+                            Just <| onClick <| config.newComment comment
 
                         _ ->
                             Nothing

@@ -39,38 +39,36 @@ type alias RenderConfig msg codePointer =
     , answers : List Answer
     , questionComments : List QuestionComment
     , answerComments : List AnswerComment
-
-    -- TODO Rename a lot of the `onX...` to just `x...`
-    , onClickBrowseAllQuestions : msg
-    , onClickQuestionTab : msg
-    , onClickAnswersTab : msg
-    , onClickQuestionCommentsTab : msg
-    , onClickAnswerTab : Answer -> msg
-    , onClickAnswerCommentsTab : Answer -> msg
-    , onClickQuestionComment : QuestionComment -> msg
-    , onClickAnswerComment : AnswerComment -> msg
-    , onClickUpvoteQuestion : msg
-    , onClickRemoveUpvoteQuestion : msg
-    , onClickDownvoteQuestion : msg
-    , onClickRemoveDownvoteQuestion : msg
-    , onClickUpvoteAnswer : Answer -> msg
-    , onClickRemoveUpvoteAnswer : Answer -> msg
-    , onClickDownvoteAnswer : Answer -> msg
-    , onClickRemoveDownvoteAnswer : Answer -> msg
-    , onClickPinQuestion : msg
-    , onClickUnpinQuestion : msg
-    , onClickPinAnswer : Answer -> msg
-    , onClickUnpinAnswer : Answer -> msg
-    , onClickAnswerQuestion : msg
-    , onClickEditQuestion : msg
-    , onClickEditAnswer : Answer -> msg
-    , onClickDeleteAnswer : Answer -> msg
-    , submitCommentOnQuestion : CommentText -> msg
-    , submitCommentOnAnswer : AnswerID -> CommentText -> msg
-    , deleteCommentOnQuestion : CommentID -> msg
-    , deleteCommentOnAnswer : CommentID -> msg
-    , editCommentOnQuestion : CommentID -> CommentText -> msg
-    , editCommentOnAnswer : CommentID -> CommentText -> msg
+    , goToBrowseAllQuestions : msg
+    , goToQuestionTab : msg
+    , goToAnswersTab : msg
+    , goToQuestionCommentsTab : msg
+    , goToAnswerTab : Answer -> msg
+    , goToAnswerCommentsTab : Answer -> msg
+    , goToQuestionComment : QuestionComment -> msg
+    , goToAnswerComment : AnswerComment -> msg
+    , goToAnswerQuestion : msg
+    , goToEditQuestion : msg
+    , goToEditAnswer : Answer -> msg
+    , deleteAnswer : Answer -> msg
+    , upvoteQuestion : msg
+    , removeUpvoteQuestion : msg
+    , downvoteQuestion : msg
+    , removeDownvoteQuestion : msg
+    , upvoteAnswer : Answer -> msg
+    , removeUpvoteAnswer : Answer -> msg
+    , downvoteAnswer : Answer -> msg
+    , removeDownvoteAnswer : Answer -> msg
+    , pinQuestion : msg
+    , unpinQuestion : msg
+    , pinAnswer : Answer -> msg
+    , unpinAnswer : Answer -> msg
+    , commentOnQuestion : CommentText -> msg
+    , commentOnAnswer : AnswerID -> CommentText -> msg
+    , deleteQuestionComment : CommentID -> msg
+    , deleteAnswerComment : CommentID -> msg
+    , editQuestionComment : CommentID -> CommentText -> msg
+    , editAnswerComment : CommentID -> CommentText -> msg
     , handleUnauthAction : String -> msg
     }
 
@@ -86,7 +84,7 @@ view config model =
                         [ ( "tab left-tab", True )
                         , ( "selected", isAnswerTab )
                         ]
-                    , onClick (config.onClickAnswerTab answer)
+                    , onClick (config.goToAnswerTab answer)
                     ]
                     [ text "ANSWER" ]
                 , div
@@ -94,7 +92,7 @@ view config model =
                         [ ( "tab right-tab", True )
                         , ( "selected", not isAnswerTab )
                         ]
-                    , onClick (config.onClickAnswerCommentsTab answer)
+                    , onClick (config.goToAnswerCommentsTab answer)
                     ]
                     [ text "COMMENTS" ]
                 ]
@@ -105,7 +103,7 @@ view config model =
         div [ class "view-question" ] <|
             [ div
                 [ class "link qa-top-right-link"
-                , onClick config.onClickBrowseAllQuestions
+                , onClick config.goToBrowseAllQuestions
                 ]
                 [ text "see all questions" ]
             , div
@@ -115,7 +113,7 @@ view config model =
                         [ ( "tab", True )
                         , ( "selected", config.tab == QuestionTab )
                         ]
-                    , onClick config.onClickQuestionTab
+                    , onClick config.goToQuestionTab
                     ]
                     [ text "QUESTION" ]
                 , div
@@ -123,7 +121,7 @@ view config model =
                         [ ( "tab center-tab", True )
                         , ( "selected", isQuestionCommentsTab config.tab )
                         ]
-                    , onClick config.onClickQuestionCommentsTab
+                    , onClick config.goToQuestionCommentsTab
                     ]
                     [ text "COMMENTS" ]
                 , div
@@ -131,7 +129,7 @@ view config model =
                         [ ( "tab", True )
                         , ( "selected", (==) AnswersTab config.tab )
                         ]
-                    , onClick config.onClickAnswersTab
+                    , onClick config.goToAnswersTab
                     ]
                     [ text "ANSWERS" ]
                 ]
@@ -143,32 +141,30 @@ view config model =
                         , reactiveRatingsBottomBarView
                             { upvotes = config.question.upvotes
                             , downvotes = config.question.downvotes
-                            , onClickUpvote =
-                                case config.userID of
-                                    Just _ ->
-                                        config.onClickUpvoteQuestion
-
-                                    Nothing ->
-                                        config.handleUnauthAction unauthMessageForUpvoteAndDownvote
-                            , onClickRemoveUpvote = config.onClickRemoveUpvoteQuestion
-                            , onClickDownvote =
-                                case config.userID of
-                                    Just _ ->
-                                        config.onClickDownvoteQuestion
-
-                                    Nothing ->
-                                        config.handleUnauthAction unauthMessageForUpvoteAndDownvote
-                            , onClickRemoveDownvote = config.onClickRemoveDownvoteQuestion
-                            , onClickPin = config.onClickPinQuestion
-                            , onClickUnpin = config.onClickUnpinQuestion
-                            , pinned = config.question.pinned
+                            , isPinned = config.question.pinned
                             , isAuthor = config.userID == (Just config.question.authorID)
                             , isTidbitAuthor = config.userID == (Just config.tidbitAuthorID)
-                            , onClickEdit = config.onClickEditQuestion
+                            , isDeleteAlreadyClicked = False
+                            , upvote =
+                                case config.userID of
+                                    Just _ ->
+                                        config.upvoteQuestion
 
-                            -- Not sure we should allow deleting questions yet.
-                            , onClickDelete = Nothing
-                            , deleteAlreadyClicked = False
+                                    Nothing ->
+                                        config.handleUnauthAction unauthMessageForUpvoteAndDownvote
+                            , removeUpvote = config.removeUpvoteQuestion
+                            , downvote =
+                                case config.userID of
+                                    Just _ ->
+                                        config.downvoteQuestion
+
+                                    Nothing ->
+                                        config.handleUnauthAction unauthMessageForUpvoteAndDownvote
+                            , removeDownvote = config.removeDownvoteQuestion
+                            , pin = config.pinQuestion
+                            , unpin = config.unpinQuestion
+                            , edit = config.goToEditQuestion
+                            , delete = Nothing
                             }
                         ]
 
@@ -176,12 +172,12 @@ view config model =
                     CommentList.view
                         { msgTagger = config.msgTagger << QuestionCommentListMsg
                         , userID = config.userID
-                        , small = False
                         , comments = config.questionComments
-                        , submitNewComment = config.submitCommentOnQuestion
-                        , onClickComment = config.onClickQuestionComment
-                        , deleteComment = config.deleteCommentOnQuestion
-                        , editComment = config.editCommentOnQuestion
+                        , isSmall = False
+                        , goToComment = config.goToQuestionComment
+                        , newComment = config.commentOnQuestion
+                        , editComment = config.editQuestionComment
+                        , deleteComment = config.deleteQuestionComment
                         }
                         { commentEdits = model.questionCommentEdits
                         , newCommentText = model.newQuestionComment
@@ -197,11 +193,11 @@ view config model =
                                 div [ class "no-answers-text" ] [ text "Be the first to answer the question" ]
                               else
                                 div [ class "answers" ] <|
-                                    List.map (answerBoxView config.onClickAnswerTab) config.answers
+                                    List.map (answerBoxView config.goToAnswerTab) config.answers
                             ]
                         , div
                             [ class "answer-question"
-                            , onClick config.onClickAnswerQuestion
+                            , onClick config.goToAnswerQuestion
                             ]
                             [ text "Answer Question" ]
                         ]
@@ -216,34 +212,34 @@ view config model =
                                 , reactiveRatingsBottomBarView
                                     { upvotes = answer.upvotes
                                     , downvotes = answer.downvotes
-                                    , onClickUpvote =
-                                        case config.userID of
-                                            Just _ ->
-                                                config.onClickUpvoteAnswer answer
-
-                                            Nothing ->
-                                                config.handleUnauthAction unauthMessageForUpvoteAndDownvote
-                                    , onClickRemoveUpvote = config.onClickRemoveUpvoteAnswer answer
-                                    , onClickDownvote =
-                                        case config.userID of
-                                            Just _ ->
-                                                config.onClickDownvoteAnswer answer
-
-                                            Nothing ->
-                                                config.handleUnauthAction unauthMessageForUpvoteAndDownvote
-                                    , onClickRemoveDownvote = config.onClickRemoveDownvoteAnswer answer
-                                    , onClickPin = config.onClickPinAnswer answer
-                                    , onClickUnpin = config.onClickUnpinAnswer answer
-                                    , pinned = answer.pinned
+                                    , isPinned = answer.pinned
                                     , isAuthor = config.userID == (Just answer.authorID)
                                     , isTidbitAuthor = config.userID == (Just config.tidbitAuthorID)
-                                    , onClickEdit = config.onClickEditAnswer answer
-                                    , onClickDelete =
+                                    , isDeleteAlreadyClicked = Set.member answer.id model.deletingAnswers
+                                    , upvote =
+                                        case config.userID of
+                                            Just _ ->
+                                                config.upvoteAnswer answer
+
+                                            Nothing ->
+                                                config.handleUnauthAction unauthMessageForUpvoteAndDownvote
+                                    , removeUpvote = config.removeUpvoteAnswer answer
+                                    , downvote =
+                                        case config.userID of
+                                            Just _ ->
+                                                config.downvoteAnswer answer
+
+                                            Nothing ->
+                                                config.handleUnauthAction unauthMessageForUpvoteAndDownvote
+                                    , removeDownvote = config.removeDownvoteAnswer answer
+                                    , pin = config.pinAnswer answer
+                                    , unpin = config.unpinAnswer answer
+                                    , edit = config.goToEditAnswer answer
+                                    , delete =
                                         if Set.member answer.id model.deletingAnswers then
-                                            Just <| config.onClickDeleteAnswer answer
+                                            Just <| config.deleteAnswer answer
                                         else
                                             Just <| config.msgTagger <| AddToDeletingAnswers answer.id
-                                    , deleteAlreadyClicked = Set.member answer.id model.deletingAnswers
                                     }
                                 ]
 
@@ -259,12 +255,12 @@ view config model =
                                 , CommentList.view
                                     { msgTagger = config.msgTagger << (AnswerCommentListMsg answerID)
                                     , userID = config.userID
-                                    , small = True
                                     , comments = List.filter (.answerID >> (==) answerID) config.answerComments
-                                    , submitNewComment = config.submitCommentOnAnswer answer.id
-                                    , onClickComment = config.onClickAnswerComment
-                                    , deleteComment = config.deleteCommentOnAnswer
-                                    , editComment = config.editCommentOnAnswer
+                                    , isSmall = True
+                                    , goToComment = config.goToAnswerComment
+                                    , newComment = config.commentOnAnswer answer.id
+                                    , editComment = config.editAnswerComment
+                                    , deleteComment = config.deleteAnswerComment
                                     }
                                     { commentEdits = model.answerCommentEdits
                                     , newCommentText = "" <? Dict.get answerID model.newAnswerComments
@@ -324,10 +320,10 @@ update msg model =
 
 
 answerBoxView : (Answer -> msg) -> Answer -> Html msg
-answerBoxView onClickAnswer answer =
+answerBoxView goToAnswer answer =
     div
         [ class "answer-box"
-        , onClick <| onClickAnswer answer
+        , onClick <| goToAnswer answer
         ]
         [ div [ class "answer-text" ] [ text <| answer.answerText ]
         , div
@@ -351,18 +347,18 @@ answerBoxView onClickAnswer answer =
 type alias ReactiveRatingsBottomBarRenderConfig msg =
     { upvotes : ( Bool, Int )
     , downvotes : ( Bool, Int )
-    , onClickUpvote : msg
-    , onClickRemoveUpvote : msg
-    , onClickDownvote : msg
-    , onClickRemoveDownvote : msg
-    , onClickPin : msg
-    , onClickUnpin : msg
-    , pinned : Bool
+    , isPinned : Bool
     , isAuthor : Bool
     , isTidbitAuthor : Bool
-    , onClickEdit : msg
-    , onClickDelete : Maybe msg
-    , deleteAlreadyClicked : Bool
+    , isDeleteAlreadyClicked : Bool
+    , upvote : msg
+    , removeUpvote : msg
+    , downvote : msg
+    , removeDownvote : msg
+    , pin : msg
+    , unpin : msg
+    , edit : msg
+    , delete : Maybe msg
     }
 
 
@@ -379,15 +375,15 @@ reactiveRatingsBottomBarView config =
 
         onClickUpvote =
             if upvotedQuestion then
-                config.onClickRemoveUpvote
+                config.removeUpvote
             else
-                config.onClickUpvote
+                config.upvote
 
         onClickDownvote =
             if downvotedQuestion then
-                config.onClickRemoveDownvote
+                config.removeDownvote
             else
-                config.onClickDownvote
+                config.downvote
     in
         div
             [ class "reactive-bottom-bar" ]
@@ -423,12 +419,12 @@ reactiveRatingsBottomBarView config =
                 , onClick onClickUpvote
                 ]
                 [ text "thumb_up" ]
-            , case ( config.isTidbitAuthor, config.pinned ) of
+            , case ( config.isTidbitAuthor, config.isPinned ) of
                 -- Is author, pinned
                 ( True, True ) ->
                     i
                         [ class "material-icons pin-icon"
-                        , onClick <| config.onClickUnpin
+                        , onClick <| config.unpin
                         ]
                         [ text "star" ]
 
@@ -436,7 +432,7 @@ reactiveRatingsBottomBarView config =
                 ( True, False ) ->
                     i
                         [ class "material-icons pin-icon"
-                        , onClick <| config.onClickPin
+                        , onClick <| config.pin
                         ]
                         [ text "star_border" ]
 
@@ -450,22 +446,22 @@ reactiveRatingsBottomBarView config =
             , if config.isAuthor then
                 i
                     [ class "material-icons edit-icon"
-                    , onClick config.onClickEdit
+                    , onClick config.edit
                     ]
                     [ text "mode_edit" ]
               else
                 Util.hiddenDiv
-            , case ( config.isAuthor, config.onClickDelete ) of
+            , case ( config.isAuthor, config.delete ) of
                 ( True, Just deleteMsg ) ->
                     i
                         [ classList
                             [ ( "material-icons delete-icon", True )
-                            , ( "warning-mode", config.deleteAlreadyClicked )
+                            , ( "warning-mode", config.isDeleteAlreadyClicked )
                             ]
                         , onClick deleteMsg
                         ]
                         [ text <|
-                            if config.deleteAlreadyClicked then
+                            if config.isDeleteAlreadyClicked then
                                 "delete_forever"
                             else
                                 "delete"
