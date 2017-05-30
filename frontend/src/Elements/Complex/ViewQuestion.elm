@@ -39,6 +39,8 @@ type alias RenderConfig msg codePointer =
     , answers : List Answer
     , questionComments : List QuestionComment
     , answerComments : List AnswerComment
+
+    -- TODO Rename a lot of the `onX...` to just `x...`
     , onClickBrowseAllQuestions : msg
     , onClickQuestionTab : msg
     , onClickAnswersTab : msg

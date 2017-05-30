@@ -5,10 +5,12 @@ import DefaultServices.CommonSubPageUtil exposing (CommonSubPageUtil(..), common
 import DefaultServices.Editable as Editable
 import DefaultServices.InfixFunctions exposing (..)
 import DefaultServices.Util as Util exposing (maybeMapWithDefault)
+import Dict
 import Elements.Complex.AnswerQuestion as AnswerQuestion
 import Elements.Complex.AskQuestion as AskQuestion
 import Elements.Complex.EditAnswer as EditAnswer
 import Elements.Complex.EditQuestion as EditQuestion
+import Elements.Complex.ViewQuestion as ViewQuestion
 import Elements.Simple.Editor as Editor
 import Elements.Simple.FileStructure as FS
 import Models.Bigbit as Bigbit
@@ -22,10 +24,12 @@ import Models.TidbitPointer as TidbitPointer
 import Models.TutorialBookmark as TB
 import Models.User as User
 import Models.ViewerRelevantHC as ViewerRelevantHC
+import Models.Vote as Vote
 import Pages.Model exposing (Shared)
 import Pages.ViewBigbit.Messages exposing (..)
 import Pages.ViewBigbit.Model exposing (..)
 import Ports
+import Set
 
 
 {-| `ViewBigbit` update.
@@ -35,6 +39,9 @@ update (Common common) msg model shared =
     case msg of
         NoOp ->
             common.doNothing
+
+        SetUserNeedsAuthModal message ->
+            common.justSetUserNeedsAuthModal message
 
         GoTo route ->
             ( model, shared, Route.navigateTo route )
@@ -1035,6 +1042,372 @@ update (Common common) msg model shared =
                     common.doNothing
 
         OnEditAnswerFailure apiError ->
+            common.justSetModalError apiError
+
+        ViewQuestionMsg bigbitID questionID viewQuestionMsg ->
+            let
+                viewQuestionModel =
+                    { questionCommentEdits = QA.getQuestionCommentEdits bigbitID model.qaState
+                    , newQuestionComment = QA.getNewQuestionComment bigbitID questionID model.qaState
+                    , answerCommentEdits = QA.getAnswerCommentEdits bigbitID model.qaState
+                    , newAnswerComments = QA.getNewAnswerComments bigbitID model.qaState
+                    , deletingComments = QA.getDeletingComments bigbitID model.qaState
+                    , deletingAnswers = QA.getDeletingAnswers bigbitID model.qaState
+                    }
+
+                ( newViewQuestionModel, newViewQuestionMsg ) =
+                    ViewQuestion.update viewQuestionMsg viewQuestionModel
+            in
+                ( { model
+                    | qaState =
+                        model.qaState
+                            |> QA.updateQuestionCommentEdits bigbitID (always newViewQuestionModel.questionCommentEdits)
+                            |> QA.setNewQuestionComment bigbitID questionID (Just newViewQuestionModel.newQuestionComment)
+                            |> QA.updateAnswerCommentEdits bigbitID (always newViewQuestionModel.answerCommentEdits)
+                            |> QA.updateNewAnswerComments bigbitID (always newViewQuestionModel.newAnswerComments)
+                            |> QA.updateDeletingComments bigbitID (always newViewQuestionModel.deletingComments)
+                            |> QA.updateDeletingAnswers bigbitID (always newViewQuestionModel.deletingAnswers)
+                  }
+                , shared
+                , Cmd.map (ViewQuestionMsg bigbitID questionID) newViewQuestionMsg
+                )
+
+        ClickUpvoteQuestion bigbitID questionID ->
+            common.justProduceCmd <|
+                common.api.post.rateQuestion
+                    { tidbitType = TidbitPointer.Bigbit, targetID = bigbitID }
+                    questionID
+                    Vote.Upvote
+                    OnClickUpvoteQuestionFailure
+                    (always <| OnClickUpvoteQuestionSuccess questionID)
+
+        OnClickUpvoteQuestionSuccess questionID ->
+            common.justSetModel { model | qa = model.qa ||> QA.rateQuestion questionID (Just Vote.Upvote) }
+
+        OnClickUpvoteQuestionFailure apiError ->
+            common.justSetModalError apiError
+
+        ClickRemoveUpvoteQuestion bigbitID questionID ->
+            common.justProduceCmd <|
+                common.api.post.removeQuestionRating
+                    { tidbitType = TidbitPointer.Bigbit, targetID = bigbitID }
+                    questionID
+                    OnClickRemoveUpvoteQuestionFailure
+                    (always <| OnClickRemoveUpvoteQuestionSuccess questionID)
+
+        OnClickRemoveUpvoteQuestionSuccess questionID ->
+            common.justSetModel { model | qa = model.qa ||> QA.rateQuestion questionID Nothing }
+
+        OnClickRemoveUpvoteQuestionFailure apiError ->
+            common.justSetModalError apiError
+
+        ClickDownvoteQuestion bigbitID questionID ->
+            common.justProduceCmd <|
+                common.api.post.rateQuestion
+                    { tidbitType = TidbitPointer.Bigbit, targetID = bigbitID }
+                    questionID
+                    Vote.Downvote
+                    OnClickDownvoteQuestionFailure
+                    (always <| OnClickDownvoteQuestionSuccess questionID)
+
+        OnClickDownvoteQuestionSuccess questionID ->
+            common.justSetModel { model | qa = model.qa ||> QA.rateQuestion questionID (Just Vote.Downvote) }
+
+        OnClickDownvoteQuestionFailure apiError ->
+            common.justSetModalError apiError
+
+        ClickRemoveDownvoteQuestion bigbitID questionID ->
+            common.justProduceCmd <|
+                common.api.post.removeQuestionRating
+                    { tidbitType = TidbitPointer.Bigbit, targetID = bigbitID }
+                    questionID
+                    OnClickRemoveDownvoteQuestionFailure
+                    (always <| OnClickRemoveDownvoteQuestionSuccess questionID)
+
+        OnClickRemoveDownvoteQuestionSuccess questionID ->
+            common.justSetModel { model | qa = model.qa ||> QA.rateQuestion questionID Nothing }
+
+        OnClickRemoveDownvoteQuestionFailure apiError ->
+            common.justSetModalError apiError
+
+        ClickUpvoteAnswer bigbitID answerID ->
+            common.justProduceCmd <|
+                common.api.post.rateAnswer
+                    { tidbitType = TidbitPointer.Bigbit, targetID = bigbitID }
+                    answerID
+                    Vote.Upvote
+                    OnClickUpvoteAnswerFailure
+                    (always <| OnClickUpvoteAnswerSuccess answerID)
+
+        OnClickUpvoteAnswerSuccess answerID ->
+            common.justSetModel { model | qa = model.qa ||> QA.rateAnswer answerID (Just Vote.Upvote) }
+
+        OnClickUpvoteAnswerFailure apiError ->
+            common.justSetModalError apiError
+
+        ClickRemoveUpvoteAnswer bigbitID answerID ->
+            common.justProduceCmd <|
+                common.api.post.removeAnswerRating
+                    { tidbitType = TidbitPointer.Bigbit, targetID = bigbitID }
+                    answerID
+                    OnClickRemoveUpvoteAnswerFailure
+                    (always <| OnClickRemoveUpvoteAnswerSuccess answerID)
+
+        OnClickRemoveUpvoteAnswerSuccess answerID ->
+            common.justSetModel { model | qa = model.qa ||> QA.rateAnswer answerID Nothing }
+
+        OnClickRemoveUpvoteAnswerFailure apiError ->
+            common.justSetModalError apiError
+
+        ClickDownvoteAnswer bigbitID answerID ->
+            common.justProduceCmd <|
+                common.api.post.rateAnswer
+                    { tidbitType = TidbitPointer.Bigbit, targetID = bigbitID }
+                    answerID
+                    Vote.Downvote
+                    OnClickDownvoteAnswerFailure
+                    (always <| OnClickDownvoteAnswerSuccess answerID)
+
+        OnClickDownvoteAnswerSuccess answerID ->
+            common.justSetModel { model | qa = model.qa ||> QA.rateAnswer answerID (Just Vote.Downvote) }
+
+        OnClickDownvoteAnswerFailure apiError ->
+            common.justSetModalError apiError
+
+        ClickRemoveDownvoteAnswer bigbitID answerID ->
+            common.justProduceCmd <|
+                common.api.post.removeAnswerRating
+                    { tidbitType = TidbitPointer.Bigbit, targetID = bigbitID }
+                    answerID
+                    OnClickRemoveDownvoteAnswerFailure
+                    (always <| OnClickRemoveDownvoteAnswerSuccess answerID)
+
+        OnClickRemoveDownvoteAnswerSuccess answerID ->
+            common.justSetModel { model | qa = model.qa ||> QA.rateAnswer answerID Nothing }
+
+        OnClickRemoveDownvoteAnswerFailure apiError ->
+            common.justSetModalError apiError
+
+        ClickPinQuestion bigbitID questionID ->
+            common.justProduceCmd <|
+                common.api.post.pinQuestion
+                    { tidbitType = TidbitPointer.Bigbit, targetID = bigbitID }
+                    questionID
+                    True
+                    OnClickPinQuestionFailure
+                    (always <| OnClickPinQuestionSuccess questionID)
+
+        OnClickPinQuestionSuccess questionID ->
+            common.justSetModel { model | qa = model.qa ||> QA.pinQuestion questionID True }
+
+        OnClickPinQuestionFailure apiError ->
+            common.justSetModalError apiError
+
+        ClickUnpinQuestion bigbitID questionID ->
+            common.justProduceCmd <|
+                common.api.post.pinQuestion
+                    { tidbitType = TidbitPointer.Bigbit, targetID = bigbitID }
+                    questionID
+                    False
+                    OnClickUnpinQuestionFailure
+                    (always <| OnClickUnpinQuestionSuccess questionID)
+
+        OnClickUnpinQuestionSuccess questionID ->
+            common.justSetModel { model | qa = model.qa ||> QA.pinQuestion questionID False }
+
+        OnClickUnpinQuestionFailure apiError ->
+            common.justSetModalError apiError
+
+        ClickPinAnswer bigbitID answerID ->
+            common.justProduceCmd <|
+                common.api.post.pinAnswer
+                    { tidbitType = TidbitPointer.Bigbit, targetID = bigbitID }
+                    answerID
+                    True
+                    OnClickPinAnswerFailure
+                    (always <| OnClickPinAnswerSuccess answerID)
+
+        OnClickPinAnswerSuccess answerID ->
+            common.justSetModel { model | qa = model.qa ||> QA.pinAnswer answerID True }
+
+        OnClickPinAnswerFailure apiError ->
+            common.justSetModalError apiError
+
+        ClickUnpinAnswer bigbitID answerID ->
+            common.justProduceCmd <|
+                common.api.post.pinAnswer
+                    { tidbitType = TidbitPointer.Bigbit, targetID = bigbitID }
+                    answerID
+                    False
+                    OnClickUnpinAnswerFailure
+                    (always <| OnClickUnpinAnswerSuccess answerID)
+
+        OnClickUnpinAnswerSuccess answerID ->
+            common.justSetModel { model | qa = model.qa ||> QA.pinAnswer answerID False }
+
+        OnClickUnpinAnswerFailure apiError ->
+            common.justSetModalError apiError
+
+        DeleteAnswer bigbitID questionID answerID ->
+            common.justProduceCmd <|
+                common.api.post.deleteAnswer
+                    { tidbitType = TidbitPointer.Bigbit, targetID = bigbitID }
+                    answerID
+                    OnDeleteAnswerFailure
+                    (always <| OnDeleteAnswerSuccess bigbitID questionID answerID)
+
+        OnDeleteAnswerSuccess bigbitID questionID answerID ->
+            case model.qa of
+                Just qa ->
+                    let
+                        -- Delete answer and answer comments.
+                        updatedQA =
+                            qa
+                                |> QA.updateAnswer answerID (always Nothing)
+                                |> QA.deleteAnswerComments answerID
+
+                        -- Delete possible answer edit and answer-comment edits.
+                        updatedQAState =
+                            model.qaState
+                                |> QA.updateAnswerEdit bigbitID answerID (always Nothing)
+                                |> QA.deleteOldAnswerCommentEdits bigbitID updatedQA.answerComments
+                    in
+                        ( { model
+                            | qa = Just updatedQA
+                            , qaState = updatedQAState
+                          }
+                        , shared
+                        , Route.navigateTo <|
+                            Route.ViewBigbitAnswersPage
+                                (Route.getFromStoryQueryParamOnViewBigbitRoute shared.route)
+                                (Route.getTouringQuestionsQueryParamOnViewBigbitQARoute shared.route)
+                                bigbitID
+                                questionID
+                        )
+
+                Nothing ->
+                    common.doNothing
+
+        OnDeleteAnswerFailure apiError ->
+            common.justSetModalError apiError
+
+        SubmitCommentOnQuestion bigbitID questionID commentText ->
+            common.justProduceCmd <|
+                common.api.post.commentOnQuestion
+                    { tidbitType = TidbitPointer.Bigbit, targetID = bigbitID }
+                    questionID
+                    commentText
+                    OnSubmitCommentOnQuestionFailure
+                    (OnSubmitCommentOnQuestionSuccess bigbitID questionID)
+
+        OnSubmitCommentOnQuestionSuccess bigbitID questionID questionComment ->
+            common.justSetModel
+                { model
+                    | qa = model.qa ||> QA.addQuestionComment questionComment
+                    , qaState = model.qaState |> QA.setNewQuestionComment bigbitID questionID Nothing
+                }
+
+        OnSubmitCommentOnQuestionFailure apiError ->
+            common.justSetModalError apiError
+
+        SubmitCommentOnAnswer bigbitID questionID answerID commentText ->
+            common.justProduceCmd <|
+                common.api.post.commentOnAnswer
+                    { tidbitType = TidbitPointer.Bigbit, targetID = bigbitID }
+                    questionID
+                    answerID
+                    commentText
+                    OnSubmitCommentOnAnswerFailure
+                    (OnSubmitCommentOnAnswerSuccess bigbitID questionID answerID)
+
+        OnSubmitCommentOnAnswerSuccess bigbitID questionID answerID answerComment ->
+            common.justSetModel
+                { model
+                    | qa = model.qa ||> QA.addAnswerComment answerComment
+                    , qaState = model.qaState |> QA.updateNewAnswerComments bigbitID (Dict.remove answerID)
+                }
+
+        OnSubmitCommentOnAnswerFailure apiError ->
+            common.justSetModalError apiError
+
+        DeleteCommentOnQuestion bigbitID commentID ->
+            common.justProduceCmd <|
+                common.api.post.deleteQuestionComment
+                    { tidbitType = TidbitPointer.Bigbit, targetID = bigbitID }
+                    commentID
+                    OnDeleteCommentOnQuestionFailure
+                    (always <| OnDeleteCommentOnQuestionSuccess bigbitID commentID)
+
+        OnDeleteCommentOnQuestionSuccess bigbitID commentID ->
+            common.justSetModel
+                { model
+                    | qa = model.qa ||> QA.deleteQuestionComment commentID
+                    , qaState = model.qaState |> QA.updateQuestionCommentEdits bigbitID (Dict.remove commentID)
+                }
+
+        OnDeleteCommentOnQuestionFailure apiError ->
+            common.justSetModalError apiError
+
+        DeleteCommentOnAnswer bigbitID commentID ->
+            common.justProduceCmd <|
+                common.api.post.deleteAnswerComment
+                    { tidbitType = TidbitPointer.Bigbit, targetID = bigbitID }
+                    commentID
+                    OnDeleteCommentOnAnswerFailure
+                    (always <| OnDeleteCommentOnAnswerSuccess bigbitID commentID)
+
+        OnDeleteCommentOnAnswerSuccess bigbitID commentID ->
+            common.justSetModel
+                { model
+                    | qa = model.qa ||> QA.deleteAnswerComment commentID
+                    , qaState = model.qaState |> QA.updateAnswerCommentEdits bigbitID (Dict.remove commentID)
+                }
+
+        OnDeleteCommentOnAnswerFailure apiError ->
+            common.justSetModalError apiError
+
+        EditCommentOnQuestion bigbitID commentID commentText ->
+            common.justProduceCmd <|
+                common.api.post.editQuestionComment
+                    { tidbitType = TidbitPointer.Bigbit, targetID = bigbitID }
+                    commentID
+                    commentText
+                    OnEditCommentOnQuestionFailure
+                    (OnEditCommentOnQuestionSuccess bigbitID commentID commentText)
+
+        OnEditCommentOnQuestionSuccess bigbitID commentID commentText lastModified ->
+            common.justSetModel
+                { model
+                    | qa = model.qa ||> QA.editQuestionComment commentID commentText lastModified
+                    , qaState =
+                        model.qaState
+                            |> QA.updateQuestionCommentEdits bigbitID (Dict.remove commentID)
+                            |> QA.updateDeletingComments bigbitID (Set.remove commentID)
+                }
+
+        OnEditCommentOnQuestionFailure apiError ->
+            common.justSetModalError apiError
+
+        EditCommentOnAnswer bigbitID commentID commentText ->
+            common.justProduceCmd <|
+                common.api.post.editAnswerComment
+                    { tidbitType = TidbitPointer.Bigbit, targetID = bigbitID }
+                    commentID
+                    commentText
+                    OnEditCommentOnAnswerFailure
+                    (OnEditCommentOnAnswerSuccess bigbitID commentID commentText)
+
+        OnEditCommentOnAnswerSuccess bigbitID commentID commentText lastModified ->
+            common.justSetModel
+                { model
+                    | qa = model.qa ||> QA.editAnswerComment commentID commentText lastModified
+                    , qaState =
+                        model.qaState
+                            |> QA.updateAnswerCommentEdits bigbitID (Dict.remove commentID)
+                            |> QA.updateDeletingComments bigbitID (Set.remove commentID)
+                }
+
+        OnEditCommentOnAnswerFailure apiError ->
             common.justSetModalError apiError
 
 

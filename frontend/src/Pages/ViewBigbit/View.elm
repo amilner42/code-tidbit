@@ -7,6 +7,7 @@ import Elements.Complex.AnswerQuestion as AnswerQuestion
 import Elements.Complex.AskQuestion as AskQuestion
 import Elements.Complex.EditAnswer as EditAnswer
 import Elements.Complex.EditQuestion as EditQuestion
+import Elements.Complex.ViewQuestion as ViewQuestion
 import Elements.Simple.Editor as Editor
 import Elements.Simple.FileStructure as FS
 import Elements.Simple.Markdown as Markdown
@@ -366,7 +367,7 @@ view model shared =
                         , Editor.view "view-bigbit-code-editor"
                         , div
                             [ class "comment-block" ]
-                            [ viewBigbitCommentBox bigbit model.relevantHC currentRoute model.qa model.qaState ]
+                            [ viewBigbitCommentBox bigbit model shared ]
                         ]
             ]
 
@@ -374,19 +375,13 @@ view model shared =
 {-| Gets the comment box for the view bigbit page, can be the markdown for the intro/conclusion/frame, the FS, or the
 markdown with a few extra buttons for a selected range.
 -}
-viewBigbitCommentBox :
-    Bigbit.Bigbit
-    -> Maybe ViewingBigbitRelevantHC
-    -> Route.Route
-    -> Maybe QA.BigbitQA
-    -> QA.BigbitQAState
-    -> Html Msg
-viewBigbitCommentBox bigbit maybeRHC route maybeQA qaState =
+viewBigbitCommentBox : Bigbit.Bigbit -> Model -> Shared -> Html Msg
+viewBigbitCommentBox bigbit model shared =
     let
         tutorialRoute =
             let
                 rhcTabOpen =
-                    isBigbitRHCTabOpen maybeRHC
+                    isBigbitRHCTabOpen model.relevantHC
 
                 tutorialOpen =
                     not <| rhcTabOpen
@@ -394,7 +389,7 @@ viewBigbitCommentBox bigbit maybeRHC route maybeQA qaState =
                 div
                     []
                     [ Markdown.view [ hidden <| not <| tutorialOpen ] <|
-                        case route of
+                        case shared.route of
                             Route.ViewBigbitIntroductionPage _ _ _ ->
                                 bigbit.introduction
 
@@ -415,7 +410,7 @@ viewBigbitCommentBox bigbit maybeRHC route maybeQA qaState =
                         [ class "view-relevant-hc"
                         , hidden <| not <| rhcTabOpen
                         ]
-                        (case maybeRHC of
+                        (case model.relevantHC of
                             Nothing ->
                                 [ Util.hiddenDiv ]
 
@@ -453,7 +448,7 @@ viewBigbitCommentBox bigbit maybeRHC route maybeQA qaState =
                                                         (JumpToFrame
                                                             << (\frameNumber ->
                                                                     Route.ViewBigbitFramePage
-                                                                        (Route.getFromStoryQueryParamOnViewBigbitRoute route)
+                                                                        (Route.getFromStoryQueryParamOnViewBigbitRoute shared.route)
                                                                         bigbit.id
                                                                         frameNumber
                                                                         Nothing
@@ -476,8 +471,141 @@ viewBigbitCommentBox bigbit maybeRHC route maybeQA qaState =
                                         ]
                         )
                     ]
+
+        viewQuestionView qa qaState tab question =
+            ViewQuestion.view
+                { msgTagger = ViewQuestionMsg bigbit.id question.id
+                , userID = shared.user ||> .id
+                , tidbitAuthorID = bigbit.author
+                , tab = tab
+                , question = question
+                , answers = List.filter (.questionID >> (==) question.id) qa.answers
+                , questionComments = List.filter (.questionID >> (==) question.id) qa.questionComments
+                , answerComments = List.filter (.questionID >> (==) question.id) qa.answerComments
+                , onClickBrowseAllQuestions =
+                    GoTo <|
+                        Route.ViewBigbitQuestionsPage
+                            (Route.getFromStoryQueryParamOnViewBigbitRoute shared.route)
+                            bigbit.id
+                , onClickQuestionTab =
+                    GoTo <|
+                        Route.ViewBigbitQuestionPage
+                            (Route.getFromStoryQueryParamOnViewBigbitRoute shared.route)
+                            (Route.getTouringQuestionsQueryParamOnViewBigbitQARoute shared.route)
+                            bigbit.id
+                            question.id
+                , onClickAnswersTab =
+                    GoTo <|
+                        Route.ViewBigbitAnswersPage
+                            (Route.getFromStoryQueryParamOnViewBigbitRoute shared.route)
+                            (Route.getTouringQuestionsQueryParamOnViewBigbitQARoute shared.route)
+                            bigbit.id
+                            question.id
+                , onClickQuestionCommentsTab =
+                    GoTo <|
+                        Route.ViewBigbitQuestionCommentsPage
+                            (Route.getFromStoryQueryParamOnViewBigbitRoute shared.route)
+                            (Route.getTouringQuestionsQueryParamOnViewBigbitQARoute shared.route)
+                            bigbit.id
+                            question.id
+                            Nothing
+                , onClickAnswerTab =
+                    (\answer ->
+                        GoTo <|
+                            Route.ViewBigbitAnswerPage
+                                (Route.getFromStoryQueryParamOnViewBigbitRoute shared.route)
+                                (Route.getTouringQuestionsQueryParamOnViewBigbitQARoute shared.route)
+                                bigbit.id
+                                answer.id
+                    )
+                , onClickAnswerCommentsTab =
+                    (\answer ->
+                        GoTo <|
+                            Route.ViewBigbitAnswerCommentsPage
+                                (Route.getFromStoryQueryParamOnViewBigbitRoute shared.route)
+                                (Route.getTouringQuestionsQueryParamOnViewBigbitQARoute shared.route)
+                                bigbit.id
+                                answer.id
+                                Nothing
+                    )
+                , onClickQuestionComment =
+                    (\questionComment ->
+                        GoTo <|
+                            Route.ViewBigbitQuestionCommentsPage
+                                (Route.getFromStoryQueryParamOnViewBigbitRoute shared.route)
+                                (Route.getTouringQuestionsQueryParamOnViewBigbitQARoute shared.route)
+                                bigbit.id
+                                question.id
+                                (Just questionComment.id)
+                    )
+                , onClickAnswerComment =
+                    (\answerComment ->
+                        GoTo <|
+                            Route.ViewBigbitAnswerCommentsPage
+                                (Route.getFromStoryQueryParamOnViewBigbitRoute shared.route)
+                                (Route.getTouringQuestionsQueryParamOnViewBigbitQARoute shared.route)
+                                bigbit.id
+                                answerComment.answerID
+                                (Just answerComment.id)
+                    )
+                , onClickUpvoteQuestion = ClickUpvoteQuestion bigbit.id question.id
+                , onClickRemoveUpvoteQuestion = ClickRemoveUpvoteQuestion bigbit.id question.id
+                , onClickDownvoteQuestion = ClickDownvoteQuestion bigbit.id question.id
+                , onClickRemoveDownvoteQuestion = ClickRemoveDownvoteQuestion bigbit.id question.id
+                , onClickUpvoteAnswer = (\answer -> ClickUpvoteAnswer bigbit.id answer.id)
+                , onClickRemoveUpvoteAnswer = (\answer -> ClickRemoveUpvoteAnswer bigbit.id answer.id)
+                , onClickDownvoteAnswer = (\answer -> ClickDownvoteAnswer bigbit.id answer.id)
+                , onClickRemoveDownvoteAnswer = (\answer -> ClickRemoveDownvoteAnswer bigbit.id answer.id)
+                , onClickPinQuestion = ClickPinQuestion bigbit.id question.id
+                , onClickUnpinQuestion = ClickUnpinQuestion bigbit.id question.id
+                , onClickPinAnswer = (\answer -> ClickPinAnswer bigbit.id answer.id)
+                , onClickUnpinAnswer = (\answer -> ClickUnpinAnswer bigbit.id answer.id)
+                , onClickAnswerQuestion =
+                    case shared.user of
+                        Just _ ->
+                            GoTo <|
+                                Route.ViewBigbitAnswerQuestion
+                                    (Route.getFromStoryQueryParamOnViewBigbitRoute shared.route)
+                                    bigbit.id
+                                    question.id
+
+                        Nothing ->
+                            SetUserNeedsAuthModal
+                                ("Want to share your knowledge? Sign up for free and get access to all of CodeTidbit"
+                                    ++ " in seconds!"
+                                )
+                , onClickEditQuestion =
+                    GoTo <|
+                        Route.ViewBigbitEditQuestion
+                            (Route.getFromStoryQueryParamOnViewBigbitRoute shared.route)
+                            bigbit.id
+                            question.id
+                , onClickEditAnswer =
+                    (\answer ->
+                        GoTo <|
+                            Route.ViewBigbitEditAnswer
+                                (Route.getFromStoryQueryParamOnViewBigbitRoute shared.route)
+                                bigbit.id
+                                answer.id
+                    )
+                , onClickDeleteAnswer = .id >> DeleteAnswer bigbit.id question.id
+                , submitCommentOnQuestion = SubmitCommentOnQuestion bigbit.id question.id
+                , submitCommentOnAnswer = SubmitCommentOnAnswer bigbit.id question.id
+                , deleteCommentOnQuestion = DeleteCommentOnQuestion bigbit.id
+                , deleteCommentOnAnswer = DeleteCommentOnAnswer bigbit.id
+                , editCommentOnQuestion = EditCommentOnQuestion bigbit.id
+                , editCommentOnAnswer = EditCommentOnAnswer bigbit.id
+                , handleUnauthAction = SetUserNeedsAuthModal
+                }
+                { questionCommentEdits = QA.getQuestionCommentEdits bigbit.id qaState
+                , newQuestionComment = QA.getNewQuestionComment bigbit.id question.id qaState
+                , answerCommentEdits = QA.getAnswerCommentEdits bigbit.id qaState
+                , newAnswerComments = QA.getNewAnswerComments bigbit.id qaState
+                , deletingComments = QA.getDeletingComments bigbit.id qaState
+                , deletingAnswers = QA.getDeletingAnswers bigbit.id qaState
+                }
     in
-        case route of
+        case shared.route of
             Route.ViewBigbitIntroductionPage _ _ _ ->
                 tutorialRoute
 
@@ -488,11 +616,11 @@ viewBigbitCommentBox bigbit maybeRHC route maybeQA qaState =
                 tutorialRoute
 
             Route.ViewBigbitQuestionsPage _ bigbitID ->
-                case maybeQA of
+                case model.qa of
                     Just qa ->
                         let
                             browseCodePointer =
-                                qaState |> QA.getBrowseCodePointer bigbitID
+                                model.qaState |> QA.getBrowseCodePointer bigbitID
 
                             ( isHighlighting, remainingQuestions ) =
                                 case browseCodePointer of
@@ -517,8 +645,8 @@ viewBigbitCommentBox bigbit maybeRHC route maybeQA qaState =
                                             (\question ->
                                                 GoTo <|
                                                     Route.ViewBigbitQuestionPage
-                                                        (Route.getFromStoryQueryParamOnViewBigbitRoute route)
-                                                        (Route.getTouringQuestionsQueryParamOnViewBigbitQARoute route)
+                                                        (Route.getFromStoryQueryParamOnViewBigbitRoute shared.route)
+                                                        (Route.getTouringQuestionsQueryParamOnViewBigbitQARoute shared.route)
                                                         bigbitID
                                                         question.id
                                             )
@@ -539,14 +667,14 @@ viewBigbitCommentBox bigbit maybeRHC route maybeQA qaState =
                     , isReadyCodePointer = .range >> Range.isEmptyRange >> not
                     , goToAllQuestions = GoTo <| Route.ViewBigbitQuestionsPage maybeStoryID bigbitID
                     }
-                    (QA.getNewQuestion bigbitID qaState ?> QA.defaultNewQuestion)
+                    (QA.getNewQuestion bigbitID model.qaState ?> QA.defaultNewQuestion)
 
             Route.ViewBigbitEditQuestion _ bigbitID questionID ->
-                case maybeQA ||> .questions |||> QA.getQuestionByID questionID of
+                case model.qa ||> .questions |||> QA.getQuestionByID questionID of
                     Just question ->
                         let
                             questionEdit =
-                                QA.getQuestionEditByID bigbitID questionID qaState
+                                QA.getQuestionEditByID bigbitID questionID model.qaState
                                     ?> QA.questionEditFromQuestion question
                         in
                             EditQuestion.view
@@ -560,11 +688,11 @@ viewBigbitCommentBox bigbit maybeRHC route maybeQA qaState =
                         Util.hiddenDiv
 
             Route.ViewBigbitAnswerQuestion maybeStoryID bigbitID questionID ->
-                case maybeQA ||> .questions |||> QA.getQuestionByID questionID of
+                case model.qa ||> .questions |||> QA.getQuestionByID questionID of
                     Just question ->
                         let
                             newAnswer =
-                                QA.getNewAnswer bigbitID questionID qaState
+                                QA.getNewAnswer bigbitID questionID model.qaState
                                     ?> QA.defaultNewAnswer
                         in
                             AnswerQuestion.view
@@ -587,14 +715,14 @@ viewBigbitCommentBox bigbit maybeRHC route maybeQA qaState =
 
             Route.ViewBigbitEditAnswer _ bigbitID answerID ->
                 case
-                    ( maybeQA ||> .answers |||> QA.getAnswerByID answerID
-                    , maybeQA |||> QA.getQuestionByAnswerID answerID
+                    ( model.qa ||> .answers |||> QA.getAnswerByID answerID
+                    , model.qa |||> QA.getQuestionByAnswerID answerID
                     )
                 of
                     ( Just answer, Just question ) ->
                         let
                             answerEdit =
-                                qaState
+                                model.qaState
                                     |> QA.getAnswerEdit bigbitID answerID
                                     ?> QA.answerEditFromAnswer answer
                         in
@@ -607,6 +735,87 @@ viewBigbitCommentBox bigbit maybeRHC route maybeQA qaState =
                                 }
 
                     _ ->
+                        Util.hiddenDiv
+
+            Route.ViewBigbitQuestionPage _ _ _ questionID ->
+                case model.qa of
+                    Just qa ->
+                        case QA.getQuestionByID questionID qa.questions of
+                            Just question ->
+                                viewQuestionView qa model.qaState ViewQuestion.QuestionTab question
+
+                            Nothing ->
+                                Util.hiddenDiv
+
+                    Nothing ->
+                        Util.hiddenDiv
+
+            Route.ViewBigbitQuestionCommentsPage _ _ _ questionID maybeCommentID ->
+                case model.qa of
+                    Just qa ->
+                        case QA.getQuestionByID questionID qa.questions of
+                            Just question ->
+                                viewQuestionView
+                                    qa
+                                    model.qaState
+                                    (ViewQuestion.QuestionCommentsTab maybeCommentID)
+                                    question
+
+                            Nothing ->
+                                Util.hiddenDiv
+
+                    Nothing ->
+                        Util.hiddenDiv
+
+            Route.ViewBigbitAnswersPage _ _ _ questionID ->
+                case model.qa of
+                    Just qa ->
+                        case QA.getQuestionByID questionID qa.questions of
+                            Just question ->
+                                viewQuestionView
+                                    qa
+                                    model.qaState
+                                    ViewQuestion.AnswersTab
+                                    question
+
+                            Nothing ->
+                                Util.hiddenDiv
+
+                    Nothing ->
+                        Util.hiddenDiv
+
+            Route.ViewBigbitAnswerPage _ _ _ answerID ->
+                case model.qa of
+                    Just qa ->
+                        case QA.getQuestionByAnswerID answerID qa of
+                            Just question ->
+                                viewQuestionView
+                                    qa
+                                    model.qaState
+                                    (ViewQuestion.AnswerTab answerID)
+                                    question
+
+                            Nothing ->
+                                Util.hiddenDiv
+
+                    Nothing ->
+                        Util.hiddenDiv
+
+            Route.ViewBigbitAnswerCommentsPage _ _ _ answerID maybeCommentID ->
+                case model.qa of
+                    Just qa ->
+                        case QA.getQuestionByAnswerID answerID qa of
+                            Just question ->
+                                viewQuestionView
+                                    qa
+                                    model.qaState
+                                    (ViewQuestion.AnswerCommentsTab answerID maybeCommentID)
+                                    question
+
+                            Nothing ->
+                                Util.hiddenDiv
+
+                    Nothing ->
                         Util.hiddenDiv
 
             _ ->
