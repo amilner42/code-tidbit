@@ -947,11 +947,8 @@ update (Common common) msg model shared =
         AnswerQuestionMsg bigbitID question answerQuestionMsg ->
             let
                 answerQuestionModel =
-                    { forQuestion = question
-                    , newAnswer =
-                        QA.getNewAnswer bigbitID question.id model.qaState
-                            ?> QA.defaultNewAnswer
-                    }
+                    QA.getNewAnswer bigbitID question.id model.qaState
+                        ?> QA.defaultNewAnswer
 
                 ( newAnswerQuestionModel, newAnswerQuestionMsg ) =
                     AnswerQuestion.update answerQuestionMsg answerQuestionModel
@@ -962,7 +959,7 @@ update (Common common) msg model shared =
                             |> QA.updateNewAnswer
                                 bigbitID
                                 question.id
-                                (always <| Just <| newAnswerQuestionModel.newAnswer)
+                                (always <| Just <| newAnswerQuestionModel)
                   }
                 , shared
                 , Cmd.map (AnswerQuestionMsg bigbitID question) newAnswerQuestionMsg
@@ -999,15 +996,12 @@ update (Common common) msg model shared =
         OnAnswerQuestionFailure apiError ->
             common.justSetModalError apiError
 
-        EditAnswerMsg bigbitID question answer editAnswerMsg ->
+        EditAnswerMsg bigbitID answer editAnswerMsg ->
             let
                 editAnswerModel =
-                    { forQuestion = question
-                    , answerEdit =
-                        model.qaState
-                            |> QA.getAnswerEdit bigbitID answer.id
-                            ?> QA.answerEditFromAnswer answer
-                    }
+                    model.qaState
+                        |> QA.getAnswerEdit bigbitID answer.id
+                        ?> QA.answerEditFromAnswer answer
 
                 ( newEditAnswerModel, newEditAnswerMsg ) =
                     EditAnswer.update editAnswerMsg editAnswerModel
@@ -1015,10 +1009,10 @@ update (Common common) msg model shared =
                 ( { model
                     | qaState =
                         model.qaState
-                            |> QA.updateAnswerEdit bigbitID answer.id (always <| Just <| newEditAnswerModel.answerEdit)
+                            |> QA.updateAnswerEdit bigbitID answer.id (always <| Just <| newEditAnswerModel)
                   }
                 , shared
-                , Cmd.map (EditAnswerMsg bigbitID question answer) newEditAnswerMsg
+                , Cmd.map (EditAnswerMsg bigbitID answer) newEditAnswerMsg
                 )
 
         EditAnswer bigbitID answerID answerText ->

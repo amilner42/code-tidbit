@@ -9,12 +9,8 @@ import Models.QA exposing (..)
 import ProjectTypeAliases exposing (..)
 
 
-type alias Model codePointer =
-    { newAnswer : NewAnswer
-
-    -- TODO Should `forQuestion` go in the config? If we're not updating it, it should.
-    , forQuestion : Question codePointer
-    }
+type alias Model =
+    NewAnswer
 
 
 type Msg
@@ -23,19 +19,17 @@ type Msg
     | OnAnswerTextInput AnswerText
 
 
-type alias RenderConfig msg =
+type alias RenderConfig codePointer msg =
     { msgTagger : Msg -> msg
     , answerQuestion : AnswerText -> msg
     , goToAllAnswers : msg
+    , forQuestion : Question codePointer
     }
 
 
-view : RenderConfig msg -> Model codePointer -> Html msg
-view config model =
+view : RenderConfig codePointer msg -> Model -> Html msg
+view config { previewMarkdown, showQuestion, answerText } =
     let
-        { previewMarkdown, showQuestion, answerText } =
-            model.newAnswer
-
         maybeReadyAnswer =
             Util.justNonblankStringInRange 1 1000 answerText
 
@@ -68,7 +62,7 @@ view config model =
                     , ( "hidden", previewMarkdown || not showQuestion )
                     ]
                 ]
-                model.forQuestion.questionText
+                config.forQuestion.questionText
             , div
                 [ classList
                     [ ( "preview-markdown", True )
@@ -113,33 +107,14 @@ view config model =
             ]
 
 
-update : Msg -> Model codePointer -> ( Model codePointer, Cmd Msg )
+update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         ToggleShowQuestion ->
-            ( updateNewAnswer
-                (\newAnswer -> { newAnswer | showQuestion = not newAnswer.showQuestion })
-                model
-            , Cmd.none
-            )
+            ( { model | showQuestion = not model.showQuestion }, Cmd.none )
 
         TogglePreviewMarkdown ->
-            ( updateNewAnswer
-                (\newAnswer -> { newAnswer | previewMarkdown = not newAnswer.previewMarkdown })
-                model
-            , Cmd.none
-            )
+            ( { model | previewMarkdown = not model.previewMarkdown }, Cmd.none )
 
         OnAnswerTextInput answerText ->
-            ( updateNewAnswer
-                (\newAnswer -> { newAnswer | answerText = answerText })
-                model
-            , Cmd.none
-            )
-
-
-{-| Helper for updating the nested field `newAnswer`.
--}
-updateNewAnswer : (NewAnswer -> NewAnswer) -> Model codePointer -> Model codePointer
-updateNewAnswer updater model =
-    { model | newAnswer = updater model.newAnswer }
+            ( { model | answerText = answerText }, Cmd.none )

@@ -1020,12 +1020,8 @@ update (Common common) msg model shared =
         AnswerQuestionMsg snipbitID question answerQuestionMsg ->
             let
                 answerQuestionModel =
-                    { newAnswer =
-                        QA.getNewAnswer snipbitID question.id model.qaState
-                            |> Maybe.withDefault QA.defaultNewAnswer
-                    , forQuestion =
-                        question
-                    }
+                    QA.getNewAnswer snipbitID question.id model.qaState
+                        |> Maybe.withDefault QA.defaultNewAnswer
 
                 ( newAnswerQuestionModel, newAnswerQuestionMsg ) =
                     AnswerQuestion.update answerQuestionMsg answerQuestionModel
@@ -1035,22 +1031,18 @@ update (Common common) msg model shared =
                         QA.updateNewAnswer
                             snipbitID
                             question.id
-                            (always <| Just newAnswerQuestionModel.newAnswer)
+                            (always <| Just newAnswerQuestionModel)
                             model.qaState
                   }
                 , shared
                 , Cmd.map (AnswerQuestionMsg snipbitID question) newAnswerQuestionMsg
                 )
 
-        EditAnswerMsg snipbitID answerID question answer editAnswerMsg ->
+        EditAnswerMsg snipbitID answerID answer editAnswerMsg ->
             let
                 editAnswerModel =
-                    { answerEdit =
-                        QA.getAnswerEdit snipbitID answerID model.qaState
-                            |> Maybe.withDefault (QA.answerEditFromAnswer answer)
-                    , forQuestion =
-                        question
-                    }
+                    QA.getAnswerEdit snipbitID answerID model.qaState
+                        |> Maybe.withDefault (QA.answerEditFromAnswer answer)
 
                 ( newEditAnswerModel, newEditAnswerMsg ) =
                     EditAnswer.update editAnswerMsg editAnswerModel
@@ -1060,11 +1052,11 @@ update (Common common) msg model shared =
                         QA.updateAnswerEdit
                             snipbitID
                             answerID
-                            (always <| Just newEditAnswerModel.answerEdit)
+                            (always <| Just newEditAnswerModel)
                             model.qaState
                   }
                 , shared
-                , Cmd.map (EditAnswerMsg snipbitID answerID question answer) newEditAnswerMsg
+                , Cmd.map (EditAnswerMsg snipbitID answerID answer) newEditAnswerMsg
                 )
 
         PinQuestion snipbitID questionID ->

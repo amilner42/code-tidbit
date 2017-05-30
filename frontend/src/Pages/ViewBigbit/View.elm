@@ -783,10 +783,9 @@ viewBigbitCommentBox bigbit model shared =
                                             bigbitID
                                             questionID
                                 , answerQuestion = AnswerQuestion bigbitID questionID
-                                }
-                                { newAnswer = newAnswer
                                 , forQuestion = question
                                 }
+                                newAnswer
 
                     Nothing ->
                         Util.hiddenDiv
@@ -805,12 +804,11 @@ viewBigbitCommentBox bigbit model shared =
                                     ?> QA.answerEditFromAnswer answer
                         in
                             EditAnswer.view
-                                { msgTagger = EditAnswerMsg bigbitID question answer
+                                { msgTagger = EditAnswerMsg bigbitID answer
                                 , editAnswer = EditAnswer bigbitID answerID
-                                }
-                                { answerEdit = answerEdit
                                 , forQuestion = question
                                 }
+                                answerEdit
 
                     _ ->
                         Util.hiddenDiv

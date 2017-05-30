@@ -753,12 +753,11 @@ commentBox snipbit model shared =
                                         (Route.getTouringQuestionsQueryParamOnViewSnipbitQARoute shared.route)
                                         snipbitID
                                         questionID
-                            }
-                            { newAnswer =
-                                QA.getNewAnswer snipbitID questionID model.qaState
-                                    |> Maybe.withDefault QA.defaultNewAnswer
                             , forQuestion = question
                             }
+                            (QA.getNewAnswer snipbitID questionID model.qaState
+                                |> Maybe.withDefault QA.defaultNewAnswer
+                            )
 
                     -- Will never happen, if the question doesn't exist we will redirect.
                     Nothing ->
@@ -791,14 +790,13 @@ commentBox snipbit model shared =
                 of
                     ( Just answer, Just question ) ->
                         EditAnswer.view
-                            { msgTagger = EditAnswerMsg snipbitID answerID question answer
+                            { msgTagger = EditAnswerMsg snipbitID answerID answer
                             , editAnswer = EditAnswer snipbitID question.id answerID
-                            }
-                            { answerEdit =
-                                QA.getAnswerEdit snipbitID answerID model.qaState
-                                    |> Maybe.withDefault (QA.answerEditFromAnswer answer)
                             , forQuestion = question
                             }
+                            (QA.getAnswerEdit snipbitID answerID model.qaState
+                                |> Maybe.withDefault (QA.answerEditFromAnswer answer)
+                            )
 
                     -- Will never happen, if answer/question don't exist we will redirect.
                     _ ->

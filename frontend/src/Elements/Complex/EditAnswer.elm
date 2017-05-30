@@ -10,12 +10,8 @@ import Models.QA exposing (..)
 import ProjectTypeAliases exposing (..)
 
 
-type alias Model codePointer =
-    { answerEdit : AnswerEdit
-
-    -- TODO Should `forQuestion` go in the config? If we're not updating it, it should.
-    , forQuestion : Question codePointer
-    }
+type alias Model =
+    AnswerEdit
 
 
 type Msg
@@ -24,20 +20,18 @@ type Msg
     | OnAnswerTextInput AnswerText
 
 
-type alias RenderConfig msg =
+type alias RenderConfig codePointer msg =
     { msgTagger : Msg -> msg
     , editAnswer : AnswerText -> msg
+    , forQuestion : Question codePointer
     }
 
 
-view : RenderConfig msg -> Model codePointer -> Html msg
-view config model =
+view : RenderConfig codePointer msg -> Model -> Html msg
+view config ({ previewMarkdown, showQuestion } as model) =
     let
-        { previewMarkdown, showQuestion } =
-            model.answerEdit
-
         answerText =
-            Editable.getBuffer model.answerEdit.answerText
+            Editable.getBuffer model.answerText
 
         maybeReadyAnswer =
             Util.justNonBlankString answerText
@@ -66,7 +60,7 @@ view config model =
                     , ( "hidden", previewMarkdown || not showQuestion )
                     ]
                 ]
-                model.forQuestion.questionText
+                config.forQuestion.questionText
             , div
                 [ classList
                     [ ( "preview-markdown", True )
@@ -109,33 +103,14 @@ view config model =
             ]
 
 
-update : Msg -> Model codePointer -> ( Model codePointer, Cmd Msg )
+update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         ToggleShowQuestion ->
-            ( updateAnswerEdit
-                (\answerEdit -> { answerEdit | showQuestion = not answerEdit.showQuestion })
-                model
-            , Cmd.none
-            )
+            ( { model | showQuestion = not model.showQuestion }, Cmd.none )
 
         TogglePreviewMarkdown ->
-            ( updateAnswerEdit
-                (\answerEdit -> { answerEdit | previewMarkdown = not answerEdit.previewMarkdown })
-                model
-            , Cmd.none
-            )
+            ( { model | previewMarkdown = not model.previewMarkdown }, Cmd.none )
 
         OnAnswerTextInput answerText ->
-            ( updateAnswerEdit
-                (\answerEdit -> { answerEdit | answerText = Editable.setBuffer answerEdit.answerText answerText })
-                model
-            , Cmd.none
-            )
-
-
-{-| Helper for updating the nested field `answerEdit`.
--}
-updateAnswerEdit : (AnswerEdit -> AnswerEdit) -> Model codePointer -> Model codePointer
-updateAnswerEdit updater model =
-    { model | answerEdit = updater model.answerEdit }
+            ( { model | answerText = Editable.setBuffer model.answerText answerText }, Cmd.none )

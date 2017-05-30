@@ -91,7 +91,7 @@ type Msg
     | AskQuestionMsg SnipbitID AskQuestion.Msg
     | EditQuestionMsg SnipbitID (Question Range) EditQuestion.Msg
     | AnswerQuestionMsg SnipbitID (Question Range) AnswerQuestion.Msg
-    | EditAnswerMsg SnipbitID AnswerID (Question Range) Answer EditAnswer.Msg
+    | EditAnswerMsg SnipbitID AnswerID Answer EditAnswer.Msg
     | PinQuestion SnipbitID QuestionID
     | OnPinQuestionSuccess SnipbitID QuestionID
     | OnPinQuestionFailure ApiError

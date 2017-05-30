@@ -67,7 +67,7 @@ type Msg
     | AnswerQuestion BigbitID QuestionID AnswerText
     | OnAnswerQuestionSuccess BigbitID QuestionID Answer
     | OnAnswerQuestionFailure ApiError
-    | EditAnswerMsg BigbitID BigbitQuestion Answer EditAnswer.Msg
+    | EditAnswerMsg BigbitID Answer EditAnswer.Msg
     | EditAnswer BigbitID AnswerID AnswerText
     | OnEditAnswerSuccess BigbitID AnswerID AnswerText Date
     | OnEditAnswerFailure ApiError
