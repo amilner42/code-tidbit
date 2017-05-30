@@ -424,7 +424,11 @@ view model shared =
                                 ]
                                 [ text "close" ]
                             , div
-                                [ class "above-editor-text"
+                                [ classList
+                                    [ ( "above-editor-text", True )
+                                    , ( "cursor-not-allowed", not onRouteWithFS )
+                                    , ( "cursor-default", onRouteWithFS && fsOpen )
+                                    ]
                                 , onClick <|
                                     if fsOpen || (not onRouteWithFS) then
                                         NoOp

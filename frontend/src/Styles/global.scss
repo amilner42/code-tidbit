@@ -77,6 +77,18 @@ textarea:focus {
     display: inline-block;
 }
 
+.cursor-not-allowed {
+    cursor: not-allowed !important;
+}
+
+.cursor-progress {
+    cursor: progress !important;
+}
+
+.cursor-default {
+    cursor: default !important;
+}
+
 .flex-box {
     display: flex;
     flex-wrap: wrap;
