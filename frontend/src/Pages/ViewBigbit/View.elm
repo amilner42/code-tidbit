@@ -132,6 +132,66 @@ view model shared =
 
                     _ ->
                         Util.hiddenDiv
+                , case
+                    ( model.bigbit
+                    , Route.isOnViewBigbitTutorialRoute shared.route
+                    , isBigbitRHCTabOpen model.relevantHC
+                    , model.relevantQuestions
+                    )
+                  of
+                    ( Just bigbit, True, False, Just [] ) ->
+                        button
+                            [ class "sub-bar-button ask-question"
+                            , onClick <|
+                                case shared.user of
+                                    Just _ ->
+                                        GoToAskQuestionWithCodePointer bigbit.id model.tutorialCodePointer
+
+                                    Nothing ->
+                                        SetUserNeedsAuthModal <|
+                                            "We want to answer your question, sign up for free and get access to all of"
+                                                ++ " CodeTidbit in seconds!"
+                            ]
+                            [ text "Ask Question" ]
+
+                    ( Just bigbit, True, False, Just _ ) ->
+                        button
+                            [ class "sub-bar-button view-relevant-questions"
+                            , onClick <| GoToBrowseQuestionsWithCodePointer bigbit.id model.tutorialCodePointer
+                            ]
+                            [ text "Browse Related Questions" ]
+
+                    ( Just bigbit, True, False, Nothing ) ->
+                        button
+                            [ class "sub-bar-button view-all-questions"
+                            , onClick <|
+                                -- We keep the codePointer the same, and if their is no codePointer, we make sure to
+                                -- load the same file if they are looking at a file.
+                                GoToBrowseQuestionsWithCodePointer
+                                    bigbit.id
+                                    (case model.tutorialCodePointer of
+                                        Just _ ->
+                                            model.tutorialCodePointer
+
+                                        Nothing ->
+                                            case
+                                                Route.viewBigbitPageCurrentActiveFile
+                                                    shared.route
+                                                    bigbit
+                                                    model.qa
+                                                    model.qaState
+                                            of
+                                                Just file ->
+                                                    Just { file = file, range = Range.zeroRange }
+
+                                                Nothing ->
+                                                    Nothing
+                                    )
+                            ]
+                            [ text "Browse All Questions" ]
+
+                    _ ->
+                        Util.hiddenDiv
                 , button
                     [ classList
                         [ ( "sub-bar-button view-relevant-ranges", True )

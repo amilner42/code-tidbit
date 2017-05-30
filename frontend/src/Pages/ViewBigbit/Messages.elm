@@ -25,6 +25,7 @@ type Msg
     | SetUserNeedsAuthModal String
     | GoTo Route
     | GoToAskQuestionWithCodePointer BigbitID (Maybe BigbitCodePointer)
+    | GoToBrowseQuestionsWithCodePointer BigbitID (Maybe BigbitCodePointer)
     | OnRouteHit Route
     | OnRangeSelected Range
     | OnGetBigbitSuccess Bool Bigbit

@@ -66,6 +66,19 @@ update (Common common) msg model shared =
                     bigbitID
             )
 
+        GoToBrowseQuestionsWithCodePointer bigbitID maybeCodePointer ->
+            ( { model
+                | qaState =
+                    model.qaState
+                        |> QA.setBrowsingCodePointer bigbitID maybeCodePointer
+              }
+            , shared
+            , Route.navigateTo <|
+                Route.ViewBigbitQuestionsPage
+                    (Route.getFromStoryQueryParamOnViewBigbitRoute shared.route)
+                    bigbitID
+            )
+
         OnRouteHit route ->
             let
                 clearStateOnRouteHit (Common common) ( model, shared ) =
