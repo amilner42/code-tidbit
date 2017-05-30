@@ -4,6 +4,7 @@ import DefaultServices.Util as Util
 import Dict
 import JSON.Bigbit
 import JSON.QA
+import JSON.TutorialBookmark
 import Json.Decode as Decode
 import Json.Decode.Pipeline exposing (decode, required, optional, hardcoded)
 import Json.Encode as Encode
@@ -22,7 +23,7 @@ encoder model =
         , ( "relevantHC", Encode.null )
         , ( "qa", Encode.null )
         , ( "relevantQuestions", Encode.null )
-        , ( "bookmark", Encode.null )
+        , ( "bookmark", JSON.TutorialBookmark.encoder model.bookmark )
         , ( "qaState", JSON.QA.qaStateEncoder JSON.QA.bigbitCodePointerEncoder model.qaState )
         , ( "tutorialCodePointer", Encode.null )
         ]
@@ -39,6 +40,6 @@ decoder =
         |> hardcoded Nothing
         |> hardcoded Nothing
         |> hardcoded Nothing
-        |> hardcoded TB.Introduction
+        |> optional "bookmark" JSON.TutorialBookmark.decoder TB.Introduction
         |> optional "qaState" (JSON.QA.qaStateDecoder JSON.QA.bigbitCodePointerDecoder) Dict.empty
         |> hardcoded Nothing

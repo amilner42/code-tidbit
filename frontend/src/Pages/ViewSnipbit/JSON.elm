@@ -6,6 +6,7 @@ import JSON.Completed
 import JSON.QA
 import JSON.Range
 import JSON.Snipbit
+import JSON.TutorialBookmark
 import Json.Decode as Decode
 import Json.Decode.Pipeline exposing (decode, required, optional, hardcoded)
 import Json.Encode as Encode
@@ -24,7 +25,7 @@ encoder model =
         , ( "relevantHC", Encode.null )
         , ( "qa", Encode.null )
         , ( "relevantQuestions", Encode.null )
-        , ( "bookmark", Encode.null )
+        , ( "bookmark", JSON.TutorialBookmark.encoder model.bookmark )
         , ( "qaState", JSON.QA.qaStateEncoder JSON.Range.encoder model.qaState )
         , ( "tutorialCodePointer", Encode.null )
         ]
@@ -41,6 +42,6 @@ decoder =
         |> hardcoded Nothing
         |> hardcoded Nothing
         |> hardcoded Nothing
-        |> hardcoded TB.Introduction
+        |> optional "bookmark" JSON.TutorialBookmark.decoder TB.Introduction
         |> optional "qaState" (JSON.QA.qaStateDecoder JSON.Range.decoder) Dict.empty
         |> hardcoded Nothing
