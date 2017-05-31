@@ -650,6 +650,9 @@ commentBox snipbit model shared =
                                                         ++ " to all of CodeTidbit in seconds!"
                                                     )
                                     , isHighlighting = isHighlighting
+                                    , allQuestionText = "All Questions"
+                                    , noQuestionsDuringSearchText = "None found"
+                                    , noQuestionsNotDuringSearchText = "Be the first to ask a question"
                                     }
                                     remainingQuestions
                                 ]

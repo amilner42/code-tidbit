@@ -11,6 +11,9 @@ type alias RenderConfig codePointer msg =
     { questionBoxRenderConfig : QuestionBoxRenderConfig codePointer msg
     , onClickAskQuestion : msg
     , isHighlighting : Bool
+    , allQuestionText : String
+    , noQuestionsDuringSearchText : String
+    , noQuestionsNotDuringSearchText : String
     }
 
 
@@ -19,7 +22,7 @@ type alias QuestionBoxRenderConfig codePointer msg =
 
 
 view : RenderConfig codePointer msg -> List (QA.Question codePointer) -> Html msg
-view { questionBoxRenderConfig, onClickAskQuestion, isHighlighting } questions =
+view ({ questionBoxRenderConfig, onClickAskQuestion, isHighlighting, allQuestionText } as config) questions =
     div [ class "questions" ] <|
         [ div
             [ class "questions-title" ]
@@ -27,17 +30,17 @@ view { questionBoxRenderConfig, onClickAskQuestion, isHighlighting } questions =
                 if isHighlighting then
                     "Related Questions"
                 else
-                    "All Questions"
+                    allQuestionText
             ]
         , hr [] []
         , div
             [ class "questions-list" ]
             [ case ( isHighlighting, List.length questions ) of
                 ( True, 0 ) ->
-                    div [ class "none-found-text" ] [ text "None found" ]
+                    div [ class "none-found-text" ] [ text <| config.noQuestionsDuringSearchText ]
 
                 ( False, 0 ) ->
-                    div [ class "no-questions-text" ] [ text "Be the first to ask a question" ]
+                    div [ class "no-questions-text" ] [ text <| config.noQuestionsNotDuringSearchText ]
 
                 _ ->
                     Util.hiddenDiv

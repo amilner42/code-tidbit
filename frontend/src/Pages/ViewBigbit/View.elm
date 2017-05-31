@@ -711,7 +711,10 @@ viewBigbitCommentBox bigbit model shared =
 
                                     Just ({ file, range } as codePointer) ->
                                         if Range.isEmptyRange range then
-                                            ( False, qa.questions )
+                                            ( False
+                                            , qa.questions
+                                                |> List.filter (.codePointer >> .file >> FS.isSameFilePath file)
+                                            )
                                         else
                                             ( True
                                             , qa.questions
@@ -735,6 +738,21 @@ viewBigbitCommentBox bigbit model shared =
                                         }
                                     , onClickAskQuestion = GoToAskQuestionWithCodePointer bigbitID browseCodePointer
                                     , isHighlighting = isHighlighting
+                                    , allQuestionText =
+                                        case browseCodePointer of
+                                            Just _ ->
+                                                "Questions in File"
+
+                                            Nothing ->
+                                                "All Questions"
+                                    , noQuestionsDuringSearchText = "None found"
+                                    , noQuestionsNotDuringSearchText =
+                                        case browseCodePointer of
+                                            Nothing ->
+                                                "Be the first to ask a question"
+
+                                            Just _ ->
+                                                "None found"
                                     }
                                     remainingQuestions
                                 ]
