@@ -565,10 +565,11 @@ viewBigbitCommentBox bigbit model shared =
                 , questionComments = List.filter (.questionID >> (==) question.id) qa.questionComments
                 , answerComments = List.filter (.questionID >> (==) question.id) qa.answerComments
                 , goToBrowseAllQuestions =
-                    GoTo <|
-                        Route.ViewBigbitQuestionsPage
-                            (Route.getFromStoryQueryParamOnViewBigbitRoute shared.route)
-                            bigbit.id
+                    GoToBrowseQuestionsWithCodePointer
+                        bigbit.id
+                        (Route.viewBigbitPageCurrentActiveFile shared.route bigbit (Just qa) qaState
+                            ||> (\file -> { file = file, range = Range.zeroRange })
+                        )
                 , goToQuestionTab =
                     GoTo <|
                         Route.ViewBigbitQuestionPage
