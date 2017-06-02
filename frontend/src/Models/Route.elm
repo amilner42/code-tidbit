@@ -973,7 +973,7 @@ viewBigbitPageCurrentActiveFile route bigbit maybeQA qaState =
         getActiveFileBasedOnQuestionID questionID =
             maybeQA
                 ||> .questions
-                |||> QA.getQuestionByID questionID
+                |||> QA.getQuestion questionID
                 ||> .codePointer
                 ||> .file
 
@@ -992,7 +992,7 @@ viewBigbitPageCurrentActiveFile route bigbit maybeQA qaState =
                     maybePath
                 else
                     Array.get (frameNumber - 1) bigbit.highlightedComments
-                        |> Maybe.map .file
+                        ||> .file
 
             ViewBigbitConclusionPage _ _ maybePath ->
                 maybePath
@@ -1025,7 +1025,7 @@ viewBigbitPageCurrentActiveFile route bigbit maybeQA qaState =
 
             ViewBigbitEditQuestion _ bigbitID questionID ->
                 qaState
-                    |> QA.getQuestionEditByID bigbitID questionID
+                    |> QA.getQuestionEdit bigbitID questionID
                     ||> .codePointer
                     ||> Editable.getBuffer
                     ||> .file
@@ -1177,7 +1177,7 @@ isOnViewSnipbitQARoute route =
             False
 
 
-{-| Returns true if on one of the tutorial routes.
+{-| Returns true if on one of the viewing snipbit tutorial routes.
 -}
 isOnViewSnipbitTutorialRoute : Route -> Bool
 isOnViewSnipbitTutorialRoute route =

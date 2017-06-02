@@ -47,11 +47,11 @@ view config model =
         isLoggedIn =
             Util.isNotNothing config.userID
 
-        isReadyComment =
-            Util.isNotNothing justReadyComment
-
         justReadyComment =
             Util.justNonblankStringInRange 1 300 model.newCommentText
+
+        isReadyComment =
+            Util.isNotNothing justReadyComment
     in
         div
             [ class "comment-list" ]
@@ -75,7 +75,7 @@ view config model =
                 , onInput <| config.msgTagger << OnNewCommentTextInput
                 , placeholder <|
                     if isLoggedIn then
-                        "Add Comment..."
+                        "Add comment..."
                     else
                         "Sign up or login to comment..."
                 , value model.newCommentText
@@ -146,9 +146,9 @@ commentBoxView config { deletingComments, commentEdits } comment =
                                             classList
                                                 [ ( "material-icons submit-edit", True )
                                                 , ( "not-allowed"
-                                                  , Util.isNothing <|
-                                                        Util.justNonBlankString <|
-                                                            Editable.getBuffer commentEdit
+                                                  , Editable.getBuffer commentEdit
+                                                        |> Util.justNonBlankString
+                                                        |> Util.isNothing
                                                   )
                                                 ]
                                         , Editable.getBuffer commentEdit

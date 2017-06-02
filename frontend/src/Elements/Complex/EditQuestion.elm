@@ -1,6 +1,7 @@
 module Elements.Complex.EditQuestion exposing (..)
 
 import DefaultServices.Editable as Editable
+import DefaultServices.InfixFunctions exposing (..)
 import DefaultServices.Util as Util
 import Html exposing (Html, div, text, textarea)
 import Html.Attributes exposing (class, classList, placeholder, value)
@@ -35,7 +36,7 @@ view config model =
             Editable.getBuffer model.codePointer
 
         maybeReadyQuestion =
-            case ( Util.justNonBlankString questionText, config.isReadyCodePointer codePointer ) of
+            case ( Util.justNonblankStringInRange 1 300 questionText, config.isReadyCodePointer codePointer ) of
                 ( Just questionText, True ) ->
                     Just { questionText = questionText, codePointer = codePointer }
 
@@ -60,12 +61,16 @@ view config model =
             , Util.markdownOr
                 model.previewMarkdown
                 questionText
-                (textarea
-                    [ placeholder "Edit Question Text"
-                    , value questionText
-                    , onInput (OnQuestionTextInput >> config.msgTagger)
-                    ]
+                (div
                     []
+                    [ textarea
+                        [ placeholder "Edit Question Text"
+                        , value questionText
+                        , onInput (OnQuestionTextInput >> config.msgTagger)
+                        ]
+                        []
+                    , Util.limitCharsText 300 questionText
+                    ]
                 )
             , div
                 (Util.maybeAttributes
@@ -75,9 +80,8 @@ view config model =
                             , ( "not-ready", not isQuestionReady )
                             , ( "hidden", model.previewMarkdown )
                             ]
-                    , Maybe.map
-                        (\{ codePointer, questionText } -> onClick <| config.editQuestion questionText codePointer)
-                        maybeReadyQuestion
+                    , maybeReadyQuestion
+                        ||> (\{ codePointer, questionText } -> onClick <| config.editQuestion questionText codePointer)
                     ]
                 )
                 [ text "Update Question" ]

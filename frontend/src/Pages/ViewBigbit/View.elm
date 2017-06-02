@@ -479,12 +479,9 @@ viewBigbitCommentBox bigbit model shared =
                                 bigbit.conclusion
 
                             Route.ViewBigbitFramePage _ _ frameNumber _ ->
-                                (Array.get
-                                    (frameNumber - 1)
-                                    bigbit.highlightedComments
-                                )
-                                    |> Maybe.map .comment
-                                    |> Maybe.withDefault ""
+                                Array.get (frameNumber - 1) bigbit.highlightedComments
+                                    ||> .comment
+                                    ?> ""
 
                             _ ->
                                 ""
@@ -737,7 +734,6 @@ viewBigbitCommentBox bigbit model shared =
                                                         question.id
                                             )
                                         }
-                                    , onClickAskQuestion = GoToAskQuestionWithCodePointer bigbitID browseCodePointer
                                     , isHighlighting = isHighlighting
                                     , allQuestionText =
                                         case browseCodePointer of
@@ -754,6 +750,15 @@ viewBigbitCommentBox bigbit model shared =
 
                                             Just _ ->
                                                 "None found"
+                                    , askQuestion =
+                                        case shared.user of
+                                            Nothing ->
+                                                SetUserNeedsAuthModal <|
+                                                    "We want to answer your question, sign up for free and get access"
+                                                        ++ " to all of CodeTidbit in seconds!"
+
+                                            Just _ ->
+                                                GoToAskQuestionWithCodePointer bigbitID browseCodePointer
                                     }
                                     remainingQuestions
                                 ]
@@ -766,16 +771,19 @@ viewBigbitCommentBox bigbit model shared =
                     { msgTagger = AskQuestionMsg bigbitID
                     , askQuestion = AskQuestion bigbitID
                     , isReadyCodePointer = .range >> Range.isEmptyRange >> not
-                    , goToAllQuestions = GoTo <| Route.ViewBigbitQuestionsPage maybeStoryID bigbitID
+                    , goToAllQuestions =
+                        GoToBrowseQuestionsWithCodePointer
+                            bigbitID
+                            (QA.getNewQuestion bigbitID model.qaState |||> .codePointer)
                     }
                     (QA.getNewQuestion bigbitID model.qaState ?> QA.defaultNewQuestion)
 
             Route.ViewBigbitEditQuestion _ bigbitID questionID ->
-                case model.qa ||> .questions |||> QA.getQuestionByID questionID of
+                case model.qa ||> .questions |||> QA.getQuestion questionID of
                     Just question ->
                         let
                             questionEdit =
-                                QA.getQuestionEditByID bigbitID questionID model.qaState
+                                QA.getQuestionEdit bigbitID questionID model.qaState
                                     ?> QA.questionEditFromQuestion question
                         in
                             EditQuestion.view
@@ -789,7 +797,7 @@ viewBigbitCommentBox bigbit model shared =
                         Util.hiddenDiv
 
             Route.ViewBigbitAnswerQuestion maybeStoryID bigbitID questionID ->
-                case model.qa ||> .questions |||> QA.getQuestionByID questionID of
+                case model.qa ||> .questions |||> QA.getQuestion questionID of
                     Just question ->
                         let
                             newAnswer =
@@ -815,7 +823,7 @@ viewBigbitCommentBox bigbit model shared =
 
             Route.ViewBigbitEditAnswer _ bigbitID answerID ->
                 case
-                    ( model.qa ||> .answers |||> QA.getAnswerByID answerID
+                    ( model.qa ||> .answers |||> QA.getAnswer answerID
                     , model.qa |||> QA.getQuestionByAnswerID answerID
                     )
                 of
@@ -839,7 +847,7 @@ viewBigbitCommentBox bigbit model shared =
             Route.ViewBigbitQuestionPage _ _ _ questionID ->
                 case model.qa of
                     Just qa ->
-                        case QA.getQuestionByID questionID qa.questions of
+                        case QA.getQuestion questionID qa.questions of
                             Just question ->
                                 viewQuestionView qa model.qaState ViewQuestion.QuestionTab question
 
@@ -852,7 +860,7 @@ viewBigbitCommentBox bigbit model shared =
             Route.ViewBigbitQuestionCommentsPage _ _ _ questionID maybeCommentID ->
                 case model.qa of
                     Just qa ->
-                        case QA.getQuestionByID questionID qa.questions of
+                        case QA.getQuestion questionID qa.questions of
                             Just question ->
                                 viewQuestionView
                                     qa
@@ -869,7 +877,7 @@ viewBigbitCommentBox bigbit model shared =
             Route.ViewBigbitAnswersPage _ _ _ questionID ->
                 case model.qa of
                     Just qa ->
-                        case QA.getQuestionByID questionID qa.questions of
+                        case QA.getQuestion questionID qa.questions of
                             Just question ->
                                 viewQuestionView
                                     qa

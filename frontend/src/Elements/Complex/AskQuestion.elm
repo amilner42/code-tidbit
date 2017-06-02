@@ -1,5 +1,6 @@
 module Elements.Complex.AskQuestion exposing (..)
 
+import DefaultServices.InfixFunctions exposing (..)
 import DefaultServices.Util as Util
 import Elements.Simple.Markdown as Markdown
 import Html exposing (Html, div, text, textarea)
@@ -20,9 +21,9 @@ type alias Model codePointer =
 
 type alias RenderConfig msg codePointer =
     { msgTagger : Msg -> msg
+    , goToAllQuestions : msg
     , askQuestion : codePointer -> QuestionText -> msg
     , isReadyCodePointer : codePointer -> Bool
-    , goToAllQuestions : msg
     }
 
 
@@ -81,9 +82,8 @@ view config model =
                             , ( "not-ready", not isQuestionReady )
                             , ( "hidden", model.previewMarkdown )
                             ]
-                    , Maybe.map
-                        (\{ codePointer, questionText } -> onClick <| config.askQuestion codePointer questionText)
-                        maybeReadyQuestion
+                    , maybeReadyQuestion
+                        ||> (\{ codePointer, questionText } -> onClick <| config.askQuestion codePointer questionText)
                     ]
                 )
                 [ text "Ask Question" ]

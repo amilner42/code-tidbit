@@ -686,7 +686,7 @@ type alias RenderConfig msg =
 
 
 view : RenderConfig msg -> FileStructure a { b | isExpanded : Bool } c -> Html msg
-view fsConfig fs =
+view config fs =
     skeletonView
         { fileStructureClass = "fs"
         , folderAndSubContentClass = "fs-folder-and-sub-content"
@@ -701,20 +701,20 @@ view fsConfig fs =
                         [ classList
                             [ ( "material-icons file-icon", True )
                             , ( "selected-file"
-                              , fsConfig.isFileSelected absolutePath
+                              , config.isFileSelected absolutePath
                               )
                             ]
-                        , onClick <| fsConfig.fileSelectedMsg absolutePath
+                        , onClick <| config.fileSelectedMsg absolutePath
                         ]
                         [ text "insert_drive_file" ]
                     , div
                         [ classList
                             [ ( "file-name", True )
                             , ( "selected-file"
-                              , fsConfig.isFileSelected absolutePath
+                              , config.isFileSelected absolutePath
                               )
                             ]
-                        , onClick <| fsConfig.fileSelectedMsg absolutePath
+                        , onClick <| config.fileSelectedMsg absolutePath
                         ]
                         [ text name ]
                     ]
@@ -726,7 +726,7 @@ view fsConfig fs =
                     ]
                     [ i
                         [ class "material-icons folder-icon"
-                        , onClick <| fsConfig.folderSelectedMsg absolutePath
+                        , onClick <| config.folderSelectedMsg absolutePath
                         ]
                         [ if folderMetadata.isExpanded then
                             text "folder_open"
@@ -735,7 +735,7 @@ view fsConfig fs =
                         ]
                     , div
                         [ class "folder-name"
-                        , onClick <| fsConfig.folderSelectedMsg absolutePath
+                        , onClick <| config.folderSelectedMsg absolutePath
                         ]
                         [ text <| name ++ "/" ]
                     ]

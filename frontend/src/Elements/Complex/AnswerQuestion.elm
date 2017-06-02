@@ -21,9 +21,9 @@ type Msg
 
 type alias RenderConfig codePointer msg =
     { msgTagger : Msg -> msg
-    , answerQuestion : AnswerText -> msg
-    , goToAllAnswers : msg
     , forQuestion : Question codePointer
+    , goToAllAnswers : msg
+    , answerQuestion : AnswerText -> msg
     }
 
 

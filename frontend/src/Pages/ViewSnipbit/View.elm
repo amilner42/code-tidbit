@@ -134,14 +134,14 @@ view model shared =
                 ( Just snipbitID, True, False, Just _ ) ->
                     button
                         [ class "sub-bar-button view-relevant-questions"
-                        , onClick <| GoToBrowseQuestions
+                        , onClick <| GoToBrowseQuestionsWithCodePointer model.tutorialCodePointer
                         ]
                         [ text "Browse Related Questions" ]
 
                 ( Just snipbitID, True, False, Nothing ) ->
                     button
                         [ class "sub-bar-button view-all-questions"
-                        , onClick <| GoToBrowseQuestions
+                        , onClick <| GoToBrowseQuestionsWithCodePointer model.tutorialCodePointer
                         ]
                         [ text "Browse All Questions" ]
 
@@ -639,7 +639,11 @@ commentBox snipbit model shared =
                                                         question.id
                                             )
                                         }
-                                    , onClickAskQuestion =
+                                    , isHighlighting = isHighlighting
+                                    , allQuestionText = "All Questions"
+                                    , noQuestionsDuringSearchText = "None found"
+                                    , noQuestionsNotDuringSearchText = "Be the first to ask a question"
+                                    , askQuestion =
                                         case shared.user of
                                             Just _ ->
                                                 GoToAskQuestion
@@ -649,10 +653,6 @@ commentBox snipbit model shared =
                                                     ("We want to answer your question, sign up for free and get access"
                                                         ++ " to all of CodeTidbit in seconds!"
                                                     )
-                                    , isHighlighting = isHighlighting
-                                    , allQuestionText = "All Questions"
-                                    , noQuestionsDuringSearchText = "None found"
-                                    , noQuestionsNotDuringSearchText = "Be the first to ask a question"
                                     }
                                     remainingQuestions
                                 ]
@@ -663,7 +663,7 @@ commentBox snipbit model shared =
             Route.ViewSnipbitQuestionPage maybeStoryID maybeTouringQuestions snipbitID questionID ->
                 case model.qa of
                     Just qa ->
-                        case QA.getQuestionByID questionID qa.questions of
+                        case QA.getQuestion questionID qa.questions of
                             Just question ->
                                 viewQuestionView qa model.qaState ViewQuestion.QuestionTab question
 
@@ -676,7 +676,7 @@ commentBox snipbit model shared =
             Route.ViewSnipbitAnswersPage maybeStoryID maybeTouringQuestions snipbitID questionID ->
                 case model.qa of
                     Just qa ->
-                        case QA.getQuestionByID questionID qa.questions of
+                        case QA.getQuestion questionID qa.questions of
                             Just question ->
                                 viewQuestionView qa model.qaState ViewQuestion.AnswersTab question
 
@@ -702,7 +702,7 @@ commentBox snipbit model shared =
             Route.ViewSnipbitQuestionCommentsPage maybeStoryID maybeTouringQuestions snipbitID questionID maybeCommentID ->
                 case model.qa of
                     Just qa ->
-                        case QA.getQuestionByID questionID qa.questions of
+                        case QA.getQuestion questionID qa.questions of
                             Just question ->
                                 viewQuestionView qa model.qaState (ViewQuestion.QuestionCommentsTab maybeCommentID) question
 
@@ -736,15 +736,13 @@ commentBox snipbit model shared =
                         , askQuestion = AskQuestion snipbitID
                         , isReadyCodePointer = not << Range.isEmptyRange
                         , goToAllQuestions =
-                            GoTo <|
-                                Route.ViewSnipbitQuestionsPage
-                                    (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
-                                    snipbitID
+                            GoToBrowseQuestionsWithCodePointer <|
+                                (QA.getNewQuestion snipbitID model.qaState |||> .codePointer)
                         }
                         newQuestion
 
             Route.ViewSnipbitAnswerQuestion maybeStoryID snipbitID questionID ->
-                case Maybe.andThen (QA.getQuestionByID questionID) (Maybe.map .questions model.qa) of
+                case model.qa ||> .questions |||> QA.getQuestion questionID of
                     Just question ->
                         AnswerQuestion.view
                             { msgTagger = AnswerQuestionMsg snipbitID question
@@ -759,7 +757,7 @@ commentBox snipbit model shared =
                             , forQuestion = question
                             }
                             (QA.getNewAnswer snipbitID questionID model.qaState
-                                |> Maybe.withDefault QA.defaultNewAnswer
+                                ?> QA.defaultNewAnswer
                             )
 
                     -- Will never happen, if the question doesn't exist we will redirect.
@@ -767,12 +765,12 @@ commentBox snipbit model shared =
                         Util.hiddenDiv
 
             Route.ViewSnipbitEditQuestion maybeStoryID snipbitID questionID ->
-                case Maybe.andThen (QA.getQuestionByID questionID) (Maybe.map .questions model.qa) of
+                case model.qa ||> .questions |||> QA.getQuestion questionID of
                     Just question ->
                         let
                             questionEdit =
-                                QA.getQuestionEditByID snipbitID questionID model.qaState
-                                    |> Maybe.withDefault (QA.questionEditFromQuestion question)
+                                QA.getQuestionEdit snipbitID questionID model.qaState
+                                    ?> QA.questionEditFromQuestion question
                         in
                             EditQuestion.view
                                 { msgTagger = EditQuestionMsg snipbitID question
@@ -787,8 +785,8 @@ commentBox snipbit model shared =
 
             Route.ViewSnipbitEditAnswer maybeStoryID snipbitID answerID ->
                 case
-                    ( Maybe.andThen (QA.getAnswerByID answerID) (Maybe.map .answers model.qa)
-                    , Maybe.andThen (QA.getQuestionByAnswerID answerID) model.qa
+                    ( model.qa ||> .answers |||> QA.getAnswer answerID
+                    , model.qa |||> QA.getQuestionByAnswerID answerID
                     )
                 of
                     ( Just answer, Just question ) ->
@@ -798,7 +796,7 @@ commentBox snipbit model shared =
                             , forQuestion = question
                             }
                             (QA.getAnswerEdit snipbitID answerID model.qaState
-                                |> Maybe.withDefault (QA.answerEditFromAnswer answer)
+                                ?> QA.answerEditFromAnswer answer
                             )
 
                     -- Will never happen, if answer/question don't exist we will redirect.

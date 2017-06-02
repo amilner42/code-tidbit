@@ -9,11 +9,11 @@ import Models.QA as QA
 
 type alias RenderConfig codePointer msg =
     { questionBoxRenderConfig : QuestionBoxRenderConfig codePointer msg
-    , onClickAskQuestion : msg
     , isHighlighting : Bool
     , allQuestionText : String
     , noQuestionsDuringSearchText : String
     , noQuestionsNotDuringSearchText : String
+    , askQuestion : msg
     }
 
 
@@ -22,7 +22,7 @@ type alias QuestionBoxRenderConfig codePointer msg =
 
 
 view : RenderConfig codePointer msg -> List (QA.Question codePointer) -> Html msg
-view ({ questionBoxRenderConfig, onClickAskQuestion, isHighlighting, allQuestionText } as config) questions =
+view ({ questionBoxRenderConfig, askQuestion, isHighlighting, allQuestionText } as config) questions =
     div [ class "questions" ] <|
         [ div
             [ class "questions-title" ]
@@ -48,7 +48,7 @@ view ({ questionBoxRenderConfig, onClickAskQuestion, isHighlighting, allQuestion
             ]
         , div
             [ class "ask-question"
-            , onClick onClickAskQuestion
+            , onClick askQuestion
             ]
             [ text "Ask Question" ]
         ]

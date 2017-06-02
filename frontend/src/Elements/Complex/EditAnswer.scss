@@ -22,6 +22,18 @@
         text-align: center;
     }
 
+    .preview-markdown {
+        top: 235px;
+
+        &.hiding-question {
+            top: 30px;
+        }
+
+        &.previewing-markdown {
+            top: 0;
+        }
+    }
+
     .edit-answer-submit {
         position: absolute;
         box-sizing: border-box;
@@ -44,40 +56,30 @@
 
     textarea {
         margin-top: 30px;
-        height: 540px;
+        position: absolute;
+        top: 235px !important;
+        height: 285px !important;
+
+        &.hiding-question {
+            top: 30px !important;
+            height: 490px !important;
+        }
     }
 
     .markdown-box {
         margin-top: 30px;
         height: 570px;
     }
-}
 
-.edit-answer {
-    .preview-markdown {
-        top: 235px;
-
-        &.hiding-question {
-            top: 30px;
-        }
-
-        &.previewing-markdown {
-            top: 0;
-        }
+    .char-count {
+        position: absolute;
+        top: 550px !important;
+        right: 0 !important;
+        color: $color8;
+        top: 300px;
     }
 
     .question {
         height: 200px;
-    }
-
-    textarea {
-        position: absolute;
-        top: 235px !important;
-        height: 305px !important;
-
-        &.hiding-question {
-            top: 30px !important;
-            height: 510px !important;
-        }
     }
 }

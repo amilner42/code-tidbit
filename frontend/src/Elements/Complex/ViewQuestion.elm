@@ -84,7 +84,7 @@ view config model =
                         [ ( "tab left-tab", True )
                         , ( "selected", isAnswerTab )
                         ]
-                    , onClick (config.goToAnswerTab answer)
+                    , onClick <| config.goToAnswerTab answer
                     ]
                     [ text "ANSWER" ]
                 , div
@@ -92,7 +92,7 @@ view config model =
                         [ ( "tab right-tab", True )
                         , ( "selected", not isAnswerTab )
                         ]
-                    , onClick (config.goToAnswerCommentsTab answer)
+                    , onClick <| config.goToAnswerCommentsTab answer
                     ]
                     [ text "COMMENTS" ]
                 ]
@@ -127,7 +127,7 @@ view config model =
                 , div
                     [ classList
                         [ ( "tab", True )
-                        , ( "selected", (==) AnswersTab config.tab )
+                        , ( "selected", AnswersTab == config.tab )
                         ]
                     , onClick config.goToAnswersTab
                     ]
@@ -203,7 +203,7 @@ view config model =
                         ]
 
                 AnswerTab answerID ->
-                    case getAnswerByID answerID config.answers of
+                    case getAnswer answerID config.answers of
                         Just answer ->
                             div
                                 [ class "answer-tab" ]
@@ -247,7 +247,7 @@ view config model =
                             Util.hiddenDiv
 
                 AnswerCommentsTab answerID maybeCommentID ->
-                    case getAnswerByID answerID config.answers of
+                    case getAnswer answerID config.answers of
                         Just answer ->
                             div
                                 [ class "answer-comments-tab" ]
@@ -367,20 +367,20 @@ type alias ReactiveRatingsBottomBarRenderConfig msg =
 reactiveRatingsBottomBarView : ReactiveRatingsBottomBarRenderConfig msg -> Html msg
 reactiveRatingsBottomBarView config =
     let
-        upvotedQuestion =
+        upvoted =
             Tuple.first config.upvotes
 
-        downvotedQuestion =
+        downvoted =
             Tuple.first config.downvotes
 
         onClickUpvote =
-            if upvotedQuestion then
+            if upvoted then
                 config.removeUpvote
             else
                 config.upvote
 
         onClickDownvote =
-            if downvotedQuestion then
+            if downvoted then
                 config.removeDownvote
             else
                 config.downvote
@@ -390,7 +390,7 @@ reactiveRatingsBottomBarView config =
             [ span
                 [ classList
                     [ ( "dislike-count", True )
-                    , ( "selected", downvotedQuestion )
+                    , ( "selected", downvoted )
                     ]
                 , onClick onClickDownvote
                 ]
@@ -398,7 +398,7 @@ reactiveRatingsBottomBarView config =
             , i
                 [ classList
                     [ ( "material-icons dislike", True )
-                    , ( "selected", downvotedQuestion )
+                    , ( "selected", downvoted )
                     ]
                 , onClick onClickDownvote
                 ]
@@ -406,7 +406,7 @@ reactiveRatingsBottomBarView config =
             , span
                 [ classList
                     [ ( "like-count", True )
-                    , ( "selected", upvotedQuestion )
+                    , ( "selected", upvoted )
                     ]
                 , onClick onClickUpvote
                 ]
@@ -414,7 +414,7 @@ reactiveRatingsBottomBarView config =
             , i
                 [ classList
                     [ ( "material-icons like", True )
-                    , ( "selected", upvotedQuestion )
+                    , ( "selected", upvoted )
                     ]
                 , onClick onClickUpvote
                 ]

@@ -26,16 +26,19 @@ update ((Common common) as commonUtil) msg model shared =
         OnRouteHit route ->
             case route of
                 Route.BrowsePage ->
-                    common.withCmd
-                        (Cmd.batch
-                            [ (Util.domFocus (always NoOp) "search-bar")
-                            , if model.showAdvancedSearchOptions then
-                                Ports.expandSearchAdvancedOptions True
-                              else
-                                Cmd.none
-                            ]
-                        )
-                        (performSearch True commonUtil ( model, shared ))
+                    common.handleAll
+                        [ performSearch True
+                        , (\(Common common) ( model, shared ) ->
+                            common.justProduceCmd <|
+                                Cmd.batch
+                                    [ (Util.domFocus (always NoOp) "search-bar")
+                                    , if model.showAdvancedSearchOptions then
+                                        Ports.expandSearchAdvancedOptions True
+                                      else
+                                        Cmd.none
+                                    ]
+                          )
+                        ]
 
                 _ ->
                     common.doNothing
@@ -62,7 +65,7 @@ update ((Common common) as commonUtil) msg model shared =
             common.justSetModalError apiError
 
         LoadMoreContent ->
-            performSearch False commonUtil ( model, shared )
+            common.handleAll [ performSearch False ]
 
         OnUpdateSearch newSearchQuery ->
             common.handleAll
@@ -72,16 +75,16 @@ update ((Common common) as commonUtil) msg model shared =
                   )
 
                 -- Only perform a search automatically if we're back to an empty search query.
-                , (\((Common common) as commonUtil) ( chainedModel, chainedShared ) ->
+                , (\(Common common) ( model, shared ) ->
                     if String.isEmpty newSearchQuery then
-                        performSearch True commonUtil ( chainedModel, chainedShared )
+                        common.handleAll [ performSearch True ]
                     else
                         common.doNothing
                   )
                 ]
 
         Search ->
-            performSearch True commonUtil ( model, shared )
+            common.handleAll [ performSearch True ]
 
         ToggleAdvancedOptions ->
             ( { model | showAdvancedSearchOptions = not model.showAdvancedSearchOptions }
@@ -147,32 +150,38 @@ update ((Common common) as commonUtil) msg model shared =
                 ]
 
         OnUpdateContentFilterAuthor newAuthorInput ->
-            common.handleAll
-                [ -- We always update the model.
-                  (\(Common common) ( model, shared ) ->
-                    common.justSetModel { model | contentFilterAuthor = ( newAuthorInput, Nothing ) }
-                  )
+            let
+                wasAuthor =
+                    model.contentFilterAuthor
+                        |> Tuple.second
+                        |> Util.isNotNothing
+            in
+                common.handleAll
+                    [ -- We always update the model.
+                      (\(Common common) ( model, shared ) ->
+                        common.justSetModel { model | contentFilterAuthor = ( newAuthorInput, Nothing ) }
+                      )
 
-                -- We only need to perform a search if their was an author before and we just cleared it.
-                , (\((Common common) as commonUtil) ( chainedModel, chainedShared ) ->
-                    if Util.isNotNothing <| Tuple.second model.contentFilterAuthor then
-                        performSearch True commonUtil ( chainedModel, chainedShared )
-                    else
-                        common.doNothing
-                  )
+                    -- We only need to perform a search if their was an author before and we just cleared it.
+                    , (\(Common common) ( model, shared ) ->
+                        if wasAuthor then
+                            common.handleAll [ performSearch True ]
+                        else
+                            common.doNothing
+                      )
 
-                -- We need to check if the new input is a valid email, unless the new input is an empty string.
-                , (\(Common common) ( chainedModel, chainedShared ) ->
-                    if String.isEmpty newAuthorInput then
-                        common.doNothing
-                    else
-                        common.justProduceCmd <|
-                            common.api.get.userExists
-                                newAuthorInput
-                                OnGetUserExistsFailure
-                                (OnGetUserExistsSuccess << ((,) newAuthorInput))
-                  )
-                ]
+                    -- We need to check if the new input is a valid email, unless the new input is an empty string.
+                    , (\(Common common) ( model, shared ) ->
+                        if String.isEmpty newAuthorInput then
+                            common.doNothing
+                        else
+                            common.justProduceCmd <|
+                                common.api.get.userExists
+                                    newAuthorInput
+                                    OnGetUserExistsFailure
+                                    (OnGetUserExistsSuccess << ((,) newAuthorInput))
+                      )
+                    ]
 
         OnGetUserExistsFailure apiError ->
             common.justSetModalError apiError
@@ -187,9 +196,9 @@ update ((Common common) as commonUtil) msg model shared =
                       )
 
                     -- If a valid email has been past then we perform a search (with the user filter).
-                    , (\((Common common) as commonUtil) ( chainedModel, chainedShared ) ->
+                    , (\(Common common) ( model, shared ) ->
                         if Util.isNotNothing maybeID then
-                            performSearch True commonUtil ( chainedModel, chainedShared )
+                            common.handleAll [ performSearch True ]
                         else
                             common.doNothing
                       )

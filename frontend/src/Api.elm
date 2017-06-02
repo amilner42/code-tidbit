@@ -279,9 +279,17 @@ api apiBaseUrl =
                         (Decode.maybe JSON.Rating.decoder)
                 )
             , snipbitQA =
-                (\snipbitID -> makeGETEndpoint ("qa/1" :/: snipbitID) JSON.QA.snipbitQADecoder)
+                (\snipbitID ->
+                    makeGETEndpoint
+                        ("qa" :/: tidbitPointerToUrl { tidbitType = TidbitPointer.Snipbit, targetID = snipbitID })
+                        JSON.QA.snipbitQADecoder
+                )
             , bigbitQA =
-                (\bigbitID -> makeGETEndpoint ("qa/2" :/: bigbitID) JSON.QA.bigbitQADecoder)
+                (\bigbitID ->
+                    makeGETEndpoint
+                        ("qa" :/: tidbitPointerToUrl { tidbitType = TidbitPointer.Bigbit, targetID = bigbitID })
+                        JSON.QA.bigbitQADecoder
+                )
             }
         , post =
             { login =

@@ -34,7 +34,7 @@ view config ({ previewMarkdown, showQuestion } as model) =
             Editable.getBuffer model.answerText
 
         maybeReadyAnswer =
-            Util.justNonBlankString answerText
+            Util.justNonblankStringInRange 1 1000 answerText
 
         isAnswerReady =
             Util.isNotNothing maybeReadyAnswer
@@ -78,13 +78,17 @@ view config ({ previewMarkdown, showQuestion } as model) =
             , Util.markdownOr
                 previewMarkdown
                 answerText
-                (textarea
-                    [ classList [ ( "hiding-question", not showQuestion ) ]
-                    , placeholder "Edit Answer Text"
-                    , value answerText
-                    , onInput (config.msgTagger << OnAnswerTextInput)
-                    ]
+                (div
                     []
+                    [ textarea
+                        [ classList [ ( "hiding-question", not showQuestion ) ]
+                        , placeholder "Edit Answer Text"
+                        , value answerText
+                        , onInput (config.msgTagger << OnAnswerTextInput)
+                        ]
+                        []
+                    , Util.limitCharsText 1000 answerText
+                    ]
                 )
             , div
                 (Util.maybeAttributes

@@ -43,6 +43,71 @@ update (Common common) msg model shared =
         GoTo route ->
             common.justProduceCmd <| Route.navigateTo route
 
+        -- Handles going to `AskQuestion` from different routes individually.
+        GoToAskQuestion ->
+            let
+                tutorialCodePointer =
+                    Maybe.withDefault Range.zeroRange model.tutorialCodePointer
+
+                browseCodePointer snipbitID =
+                    Maybe.withDefault
+                        Range.zeroRange
+                        (QA.getBrowseCodePointer snipbitID model.qaState)
+
+                navigateToAskQuestionWithRange maybeStoryID snipbitID codePointer (Common common) ( model, shared ) =
+                    ( { model
+                        | qaState =
+                            QA.updateNewQuestion
+                                snipbitID
+                                (\newQuestion ->
+                                    { newQuestion
+                                        | codePointer = Just codePointer
+                                        , questionText = ""
+                                    }
+                                )
+                                model.qaState
+                      }
+                    , shared
+                    , Route.navigateTo <| Route.ViewSnipbitAskQuestion maybeStoryID snipbitID
+                    )
+
+                clearBrowseCodePointer snipbitID (Common common) ( model, shared ) =
+                    common.justSetModel
+                        { model | qaState = QA.setBrowsingCodePointer snipbitID Nothing model.qaState }
+            in
+                case shared.route of
+                    Route.ViewSnipbitIntroductionPage maybeStoryID snipbitID ->
+                        common.handleAll [ navigateToAskQuestionWithRange maybeStoryID snipbitID tutorialCodePointer ]
+
+                    Route.ViewSnipbitFramePage maybeStoryID snipbitID _ ->
+                        common.handleAll [ navigateToAskQuestionWithRange maybeStoryID snipbitID tutorialCodePointer ]
+
+                    Route.ViewSnipbitConclusionPage maybeStoryID snipbitID ->
+                        common.handleAll [ navigateToAskQuestionWithRange maybeStoryID snipbitID tutorialCodePointer ]
+
+                    Route.ViewSnipbitQuestionsPage maybeStoryID snipbitID ->
+                        common.handleAll
+                            [ navigateToAskQuestionWithRange maybeStoryID snipbitID (browseCodePointer snipbitID)
+                            , clearBrowseCodePointer snipbitID
+                            ]
+
+                    _ ->
+                        common.doNothing
+
+        GoToBrowseQuestionsWithCodePointer maybeCodePointer ->
+            case (Route.getViewingContentID shared.route) of
+                Just snipbitID ->
+                    ( { model | qaState = QA.setBrowsingCodePointer snipbitID maybeCodePointer model.qaState }
+                    , shared
+                    , Route.navigateTo <|
+                        Route.ViewSnipbitQuestionsPage
+                            (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
+                            snipbitID
+                    )
+
+                Nothing ->
+                    common.doNothing
+
         OnRouteHit route ->
             let
                 {- Clears state that isn't meant to persist on route changes. -}
@@ -273,7 +338,7 @@ update (Common common) msg model shared =
                                                         OnMarkAsCompleteFailure
                                                         (always <|
                                                             OnMarkAsCompleteSuccess <|
-                                                                (Completed.IsCompleted completed.tidbitPointer True)
+                                                                Completed.IsCompleted completed.tidbitPointer True
                                                         )
                                                 else
                                                     Cmd.none
@@ -521,10 +586,7 @@ update (Common common) msg model shared =
                             }
 
                     Route.ViewSnipbitEditQuestion _ snipbitID questionID ->
-                        case Maybe.andThen (.questions >> QA.getQuestionByID questionID) model.qa of
-                            Nothing ->
-                                common.doNothing
-
+                        case model.qa |||> .questions >> QA.getQuestion questionID of
                             Just question ->
                                 common.justSetModel
                                     { model
@@ -533,26 +595,23 @@ update (Common common) msg model shared =
                                                 snipbitID
                                                 questionID
                                                 (\maybeQuestionEdit ->
-                                                    Just <|
-                                                        case maybeQuestionEdit of
-                                                            Nothing ->
-                                                                { questionText =
-                                                                    Editable.newEditing question.questionText
-                                                                , codePointer =
-                                                                    Editable.newEditing selectedRange
-                                                                , previewMarkdown = False
-                                                                }
-
-                                                            Just questionEdit ->
+                                                    maybeQuestionEdit
+                                                        ?> QA.questionEditFromQuestion question
+                                                        |> (\questionEdit ->
                                                                 { questionEdit
                                                                     | codePointer =
                                                                         Editable.setBuffer
                                                                             questionEdit.codePointer
                                                                             selectedRange
                                                                 }
+                                                           )
+                                                        |> Just
                                                 )
                                                 model.qaState
                                     }
+
+                            Nothing ->
+                                common.doNothing
 
                     _ ->
                         common.doNothing
@@ -614,75 +673,6 @@ update (Common common) msg model shared =
         OnMarkAsCompleteFailure apiError ->
             common.justSetModalError apiError
 
-        -- Handles going to `AskQuestion` from different routes individually.
-        GoToAskQuestion ->
-            let
-                tutorialCodePointer =
-                    Maybe.withDefault Range.zeroRange model.tutorialCodePointer
-
-                browseCodePointer snipbitID =
-                    Maybe.withDefault
-                        Range.zeroRange
-                        (QA.getBrowseCodePointer snipbitID model.qaState)
-
-                navigateToAskQuestionWithRange maybeStoryID snipbitID codePointer (Common common) ( model, shared ) =
-                    ( { model
-                        | qaState =
-                            QA.updateNewQuestion
-                                snipbitID
-                                (\newQuestion ->
-                                    { newQuestion
-                                        | codePointer = Just codePointer
-                                        , questionText = ""
-                                    }
-                                )
-                                model.qaState
-                      }
-                    , shared
-                    , Route.navigateTo <| Route.ViewSnipbitAskQuestion maybeStoryID snipbitID
-                    )
-
-                clearBrowseCodePointer snipbitID (Common common) ( model, shared ) =
-                    common.justSetModel
-                        { model | qaState = QA.setBrowsingCodePointer snipbitID Nothing model.qaState }
-            in
-                case shared.route of
-                    Route.ViewSnipbitIntroductionPage maybeStoryID snipbitID ->
-                        common.handleAll [ navigateToAskQuestionWithRange maybeStoryID snipbitID tutorialCodePointer ]
-
-                    Route.ViewSnipbitFramePage maybeStoryID snipbitID _ ->
-                        common.handleAll [ navigateToAskQuestionWithRange maybeStoryID snipbitID tutorialCodePointer ]
-
-                    Route.ViewSnipbitConclusionPage maybeStoryID snipbitID ->
-                        common.handleAll [ navigateToAskQuestionWithRange maybeStoryID snipbitID tutorialCodePointer ]
-
-                    Route.ViewSnipbitQuestionsPage maybeStoryID snipbitID ->
-                        common.handleAll
-                            [ navigateToAskQuestionWithRange maybeStoryID snipbitID (browseCodePointer snipbitID)
-                            , clearBrowseCodePointer snipbitID
-                            ]
-
-                    _ ->
-                        common.doNothing
-
-        GoToBrowseQuestions ->
-            let
-                codePointer =
-                    Maybe.withDefault Range.zeroRange model.tutorialCodePointer
-            in
-                case (Route.getViewingContentID shared.route) of
-                    Just snipbitID ->
-                        ( { model | qaState = QA.setBrowsingCodePointer snipbitID (Just codePointer) model.qaState }
-                        , shared
-                        , Route.navigateTo <|
-                            Route.ViewSnipbitQuestionsPage
-                                (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
-                                snipbitID
-                        )
-
-                    Nothing ->
-                        common.doNothing
-
         AskQuestion snipbitID codePointer questionText ->
             common.justProduceCmd <|
                 common.api.post.askQuestionOnSnipbit
@@ -697,11 +687,7 @@ update (Common common) msg model shared =
                 Just qa ->
                     ( { model
                         | qa = Just { qa | questions = QA.sortRateableContent <| question :: qa.questions }
-                        , qaState =
-                            QA.updateNewQuestion
-                                snipbitID
-                                (always { codePointer = Nothing, questionText = "", previewMarkdown = False })
-                                model.qaState
+                        , qaState = QA.updateNewQuestion snipbitID (always QA.defaultNewQuestion) model.qaState
                       }
                     , shared
                     , Route.navigateTo <|
@@ -728,21 +714,23 @@ update (Common common) msg model shared =
                     OnEditQuestionFailure
                     (OnEditQuestionSuccess snipbitID questionID questionText range)
 
-        OnEditQuestionSuccess snipbitID questionID questionText range date ->
+        OnEditQuestionSuccess snipbitID questionID questionText range lastModified ->
             ( { model
                 | -- Get rid of question edit.
                   qaState = QA.updateQuestionEdit snipbitID questionID (always Nothing) model.qaState
 
                 -- Update question in QA.
                 , qa =
-                    Maybe.map
-                        (QA.updateQuestion
-                            questionID
-                            (\question ->
-                                { question | questionText = questionText, codePointer = range, lastModified = date }
-                            )
-                        )
-                        model.qa
+                    model.qa
+                        ||> QA.updateQuestion
+                                questionID
+                                (\question ->
+                                    { question
+                                        | questionText = questionText
+                                        , codePointer = range
+                                        , lastModified = lastModified
+                                    }
+                                )
               }
             , shared
             , Route.navigateTo <|
@@ -768,10 +756,10 @@ update (Common common) msg model shared =
         OnAnswerQuestionSuccess snipbitID questionID answer ->
             ( { model
                 | -- Add the answer to the published answer list (and re-sort).
-                  qa = Maybe.map (\qa -> { qa | answers = QA.sortRateableContent <| answer :: qa.answers }) model.qa
+                  qa = model.qa ||> (\qa -> { qa | answers = QA.sortRateableContent <| answer :: qa.answers })
 
                 -- Clear the new answer from the QAState.
-                , qaState = QA.updateNewAnswer snipbitID questionID (always Nothing) model.qaState
+                , qaState = model.qaState |> QA.updateNewAnswer snipbitID questionID (always Nothing)
               }
             , shared
             , Route.navigateTo <|
@@ -794,22 +782,19 @@ update (Common common) msg model shared =
                     OnEditAnswerFailure
                     (OnEditAnswerSuccess snipbitID questionID answerID answerText)
 
-        OnEditAnswerSuccess snipbitID questionID answerID answerText date ->
+        OnEditAnswerSuccess snipbitID questionID answerID answerText lastModified ->
             ( { model
                 | -- Remove answer edit from QAState.
-                  qaState =
-                    QA.updateAnswerEdit snipbitID answerID (always Nothing) model.qaState
+                  qaState = model.qaState |> QA.updateAnswerEdit snipbitID answerID (always Nothing)
 
                 -- Update answer in QA.
                 , qa =
-                    Maybe.map
-                        (QA.updateAnswer
-                            answerID
-                            (\answer ->
-                                Just { answer | answerText = answerText, lastModified = date }
-                            )
-                        )
-                        model.qa
+                    model.qa
+                        ||> QA.updateAnswer
+                                answerID
+                                (\answer ->
+                                    Just { answer | answerText = answerText, lastModified = lastModified }
+                                )
               }
             , shared
             , Route.navigateTo <|
@@ -842,7 +827,7 @@ update (Common common) msg model shared =
                         updatedQA =
                             qa
                                 |> QA.updateAnswer answerID (always Nothing)
-                                |> QA.deleteAnswerComments answerID
+                                |> QA.deleteAnswerCommentsForAnswer answerID
 
                         -- Delete possible answer edit and answer-comment edits.
                         updatedQAState =
@@ -999,7 +984,7 @@ update (Common common) msg model shared =
         EditQuestionMsg snipbitID question editQuestionMsg ->
             let
                 editQuestionModel =
-                    QA.getQuestionEditByID snipbitID question.id model.qaState
+                    QA.getQuestionEdit snipbitID question.id model.qaState
                         |> Maybe.withDefault (QA.questionEditFromQuestion question)
 
                 ( newEditQuestionModel, newEditQuestionMsg ) =
@@ -1159,8 +1144,8 @@ update (Common common) msg model shared =
         OnSubmitCommentOnQuestionSuccess snipbitID questionID questionComment ->
             common.justSetModel
                 { model
-                    | qa = QA.addQuestionComment questionComment <|| model.qa
-                    , qaState = QA.setNewQuestionComment snipbitID questionID Nothing model.qaState
+                    | qa = model.qa ||> QA.addQuestionComment questionComment
+                    , qaState = model.qaState |> QA.setNewQuestionComment snipbitID questionID Nothing
                 }
 
         OnSubmitCommentOnQuestionFailure apiError ->
@@ -1179,8 +1164,8 @@ update (Common common) msg model shared =
         SubmitCommentOnAnswerSuccess snipbitID questionID answerID answerComment ->
             common.justSetModel
                 { model
-                    | qa = QA.addAnswerComment answerComment <|| model.qa
-                    , qaState = QA.updateNewAnswerComments snipbitID (Dict.remove answerID) model.qaState
+                    | qa = model.qa ||> QA.addAnswerComment answerComment
+                    , qaState = model.qaState |> QA.updateNewAnswerComments snipbitID (Dict.remove answerID)
                 }
 
         SubmitCommentOnAnswerFailure apiError ->
@@ -1194,12 +1179,11 @@ update (Common common) msg model shared =
                     OnDeleteCommentOnQuestionFailure
                     (always <| OnDeleteCommentOnQuestionSuccess snipbitID commentID)
 
-        -- TODO perhaps we should check `snipbitID` is for QA.
         OnDeleteCommentOnQuestionSuccess snipbitID commentID ->
             common.justSetModel
                 { model
                     | qa = model.qa ||> QA.deleteQuestionComment commentID
-                    , qaState = QA.updateQuestionCommentEdits snipbitID (Dict.remove commentID) model.qaState
+                    , qaState = model.qaState |> QA.updateQuestionCommentEdits snipbitID (Dict.remove commentID)
                 }
 
         OnDeleteCommentOnQuestionFailure apiError ->
@@ -1213,7 +1197,6 @@ update (Common common) msg model shared =
                     OnDeleteCommentOnAnswerFailure
                     (always <| OnDeleteCommentOnAnswerSuccess snipbitID commentID)
 
-        -- TODO perhaps we should check `snipbitID` is for QA.
         OnDeleteCommentOnAnswerSuccess snipbitID commentID ->
             common.justSetModel
                 { model
@@ -1233,7 +1216,6 @@ update (Common common) msg model shared =
                     OnEditCommentOnQuestionFailure
                     (OnEditCommentOnQuestionSuccess snipbitID commentID commentText)
 
-        -- TODO perhaps we should check `snipbitID` is for QA.
         OnEditCommentOnQuestionSuccess snipbitID commentID commentText lastModified ->
             common.justSetModel
                 { model
@@ -1256,7 +1238,6 @@ update (Common common) msg model shared =
                     OnEditCommentOnAnswerFailure
                     (OnEditCommentOnAnswerSuccess snipbitID commentID commentText)
 
-        -- TODO perhaps we should check `snipbitID` is for QA.
         OnEditCommentOnAnswerSuccess snipbitID commentID commentText lastModified ->
             common.justSetModel
                 { model
@@ -1282,7 +1263,7 @@ createViewSnipbitCodeEditor : Snipbit.Snipbit -> Shared -> Cmd msg
 createViewSnipbitCodeEditor snipbit { route, user } =
     let
         editorWithRange range =
-            snipbitEditor snipbit user True True True range
+            snipbitEditor snipbit user True True range
     in
         Cmd.batch
             [ case route of
@@ -1326,85 +1307,65 @@ createViewSnipbitQACodeEditor :
 createViewSnipbitQACodeEditor ( snipbit, qa, qaState ) bookmark { route, user } =
     let
         editorWithRange { selectAllowed, useMarker } range =
-            snipbitEditor snipbit user True selectAllowed useMarker range
+            snipbitEditor snipbit user selectAllowed useMarker range
 
-        redirectToTutorial maybeStoryID snipbitID =
-            Route.modifyTo <| routeForBookmark maybeStoryID snipbitID bookmark
+        redirectToTutorial maybeStoryID =
+            Route.modifyTo <| routeForBookmark maybeStoryID snipbit.id bookmark
+
+        -- Create the editor for the given question or redirect if the question doesn't exist.
+        createEditorForQuestionID maybeStoryID questionID =
+            QA.getQuestion questionID qa.questions
+                ||> (.codePointer >> Just >> editorWithRange { selectAllowed = False, useMarker = True })
+                ?> redirectToTutorial maybeStoryID
+
+        -- Create the editor for the given answer or redirect if the answer doesn't exist.
+        createEditorForAnswerID maybeStoryID answerID =
+            QA.getQuestionByAnswerID answerID qa
+                ||> (.codePointer >> Just >> editorWithRange { selectAllowed = False, useMarker = True })
+                ?> redirectToTutorial maybeStoryID
     in
         Cmd.batch
             [ case route of
                 -- Highlight browsingCodePointer or Nothing.
                 Route.ViewSnipbitQuestionsPage _ snipbitID ->
                     Dict.get snipbitID qaState
-                        |> Maybe.andThen .browsingCodePointer
+                        |||> .browsingCodePointer
                         |> editorWithRange { selectAllowed = True, useMarker = False }
 
-                -- Highlight question codePointer.
-                Route.ViewSnipbitQuestionPage maybeStoryID _ snipbitID questionID ->
-                    case QA.getQuestionByID questionID qa.questions of
-                        Nothing ->
-                            redirectToTutorial maybeStoryID snipbitID
+                Route.ViewSnipbitQuestionPage maybeStoryID _ _ questionID ->
+                    createEditorForQuestionID maybeStoryID questionID
 
-                        Just { codePointer } ->
-                            editorWithRange { selectAllowed = False, useMarker = True } <| Just codePointer
+                Route.ViewSnipbitAnswersPage maybeStoryID _ _ questionID ->
+                    createEditorForQuestionID maybeStoryID questionID
 
-                Route.ViewSnipbitAnswersPage maybeStoryID _ snipbitID questionID ->
-                    case QA.getQuestionByID questionID qa.questions of
-                        Nothing ->
-                            redirectToTutorial maybeStoryID snipbitID
+                Route.ViewSnipbitAnswerPage maybeStoryID _ _ answerID ->
+                    createEditorForAnswerID maybeStoryID answerID
 
-                        Just { codePointer } ->
-                            editorWithRange { selectAllowed = False, useMarker = True } <| Just codePointer
+                Route.ViewSnipbitQuestionCommentsPage maybeStoryID _ _ questionID _ ->
+                    createEditorForQuestionID maybeStoryID questionID
 
-                Route.ViewSnipbitAnswerPage maybeStoryID _ snipbitID answerID ->
-                    case QA.getQuestionByAnswerID answerID qa of
-                        Nothing ->
-                            redirectToTutorial maybeStoryID snipbitID
-
-                        Just { codePointer } ->
-                            editorWithRange { selectAllowed = False, useMarker = True } <| Just codePointer
-
-                Route.ViewSnipbitQuestionCommentsPage maybeStoryID _ snipbitID questionID maybeCommentID ->
-                    case QA.getQuestionByID questionID qa.questions of
-                        Nothing ->
-                            redirectToTutorial maybeStoryID snipbitID
-
-                        Just { codePointer } ->
-                            editorWithRange { selectAllowed = False, useMarker = True } <| Just codePointer
-
-                Route.ViewSnipbitAnswerCommentsPage maybeStoryID _ snipbitID answerID maybeCommentID ->
-                    case QA.getQuestionByAnswerID answerID qa of
-                        Nothing ->
-                            redirectToTutorial maybeStoryID snipbitID
-
-                        Just { codePointer } ->
-                            editorWithRange { selectAllowed = False, useMarker = True } <| Just codePointer
+                Route.ViewSnipbitAnswerCommentsPage maybeStoryID _ _ answerID _ ->
+                    createEditorForAnswerID maybeStoryID answerID
 
                 -- Higlight newQuestion codePointer or Nothing.
                 Route.ViewSnipbitAskQuestion maybeStoryID snipbitID ->
                     Dict.get snipbitID qaState
-                        |> Maybe.map .newQuestion
-                        |> Maybe.andThen .codePointer
+                        ||> .newQuestion
+                        |||> .codePointer
                         |> editorWithRange { selectAllowed = True, useMarker = False }
 
-                -- Highlight question codePointer.
-                Route.ViewSnipbitAnswerQuestion maybeStoryID snipbitID questionID ->
-                    case QA.getQuestionByID questionID qa.questions of
-                        Nothing ->
-                            redirectToTutorial maybeStoryID snipbitID
-
-                        Just { codePointer } ->
-                            editorWithRange { selectAllowed = False, useMarker = True } <| Just codePointer
+                Route.ViewSnipbitAnswerQuestion maybeStoryID _ questionID ->
+                    createEditorForQuestionID maybeStoryID questionID
 
                 -- Highlight questionEdit codePointer or original question codePointer.
                 Route.ViewSnipbitEditQuestion maybeStoryID snipbitID questionID ->
-                    case QA.getQuestionByID questionID qa.questions of
+                    case QA.getQuestion questionID qa.questions of
                         Nothing ->
-                            redirectToTutorial maybeStoryID snipbitID
+                            redirectToTutorial maybeStoryID
 
                         Just { authorID, codePointer } ->
                             if Util.maybeMapWithDefault (.id >> (==) authorID) False user then
-                                QA.getQuestionEditByID snipbitID questionID qaState
+                                QA.getQuestionEdit snipbitID questionID qaState
                                     |> (\maybeEdit ->
                                             case maybeEdit of
                                                 Nothing ->
@@ -1418,26 +1379,24 @@ createViewSnipbitQACodeEditor ( snipbit, qa, qaState ) bookmark { route, user } 
                                                         (Just <| Editable.getBuffer codePointer)
                                        )
                             else
-                                redirectToTutorial maybeStoryID snipbitID
+                                redirectToTutorial maybeStoryID
 
-                -- Highlight question codePointer.
                 Route.ViewSnipbitEditAnswer maybeStoryID snipbitID answerID ->
-                    case
-                        ( QA.getQuestionByAnswerID answerID qa
-                        , QA.getAnswerByID answerID qa.answers
-                            |||>
-                                (\{ authorID } ->
-                                    user
-                                        ||> .id
-                                        ||> (==) authorID
-                                )
-                        )
-                    of
-                        ( Just { codePointer }, Just True ) ->
-                            editorWithRange { selectAllowed = False, useMarker = True } <| Just codePointer
-
-                        _ ->
-                            redirectToTutorial maybeStoryID snipbitID
+                    let
+                        isAuthor =
+                            QA.getAnswer answerID qa.answers
+                                |||>
+                                    (\{ authorID } ->
+                                        user
+                                            ||> .id
+                                            ||> (==) authorID
+                                    )
+                                ?> False
+                    in
+                        if isAuthor then
+                            createEditorForAnswerID maybeStoryID answerID
+                        else
+                            redirectToTutorial maybeStoryID
 
                 _ ->
                     Cmd.none
@@ -1460,7 +1419,7 @@ createViewSnipbitHCCodeEditor maybeSnipbit maybeRHC user =
                 Just index ->
                     Array.get index relevantHC
                         |> maybeMapWithDefault
-                            (snipbitEditor snipbit user True False True << Just << .range << Tuple.second)
+                            (snipbitEditor snipbit user False True << Just << .range << Tuple.second)
                             Cmd.none
 
         _ ->
@@ -1469,8 +1428,8 @@ createViewSnipbitHCCodeEditor maybeSnipbit maybeRHC user =
 
 {-| Wrapper around the port for creating an editor with the view-snipbit-settings pre-filled.
 -}
-snipbitEditor : Snipbit.Snipbit -> Maybe User.User -> Bool -> Bool -> Bool -> Maybe Range.Range -> Cmd msg
-snipbitEditor snipbit user readOnly selectAllowed useMarker range =
+snipbitEditor : Snipbit.Snipbit -> Maybe User.User -> Bool -> Bool -> Maybe Range.Range -> Cmd msg
+snipbitEditor snipbit user selectAllowed useMarker range =
     Ports.createCodeEditor
         { id = "view-snipbit-code-editor"
         , fileID = ""
@@ -1479,6 +1438,6 @@ snipbitEditor snipbit user readOnly selectAllowed useMarker range =
         , value = snipbit.code
         , range = range
         , useMarker = useMarker
-        , readOnly = readOnly
+        , readOnly = True
         , selectAllowed = selectAllowed
         }

@@ -14,18 +14,6 @@ import ProjectTypeAliases exposing (..)
 import Set
 
 
-{-| The QA for snipbits.
--}
-type alias SnipbitQA =
-    QA Range.Range
-
-
-{-| The QA for bigbits.
--}
-type alias BigbitQA =
-    QA BigbitCodePointer
-
-
 {-| A QA document, almost directly a copy of the database version.
 -}
 type alias QA codePointerType =
@@ -37,6 +25,18 @@ type alias QA codePointerType =
     , answers : List Answer
     , answerComments : List AnswerComment
     }
+
+
+{-| The QA for snipbits.
+-}
+type alias SnipbitQA =
+    QA Range.Range
+
+
+{-| The QA for bigbits.
+-}
+type alias BigbitQA =
+    QA BigbitCodePointer
 
 
 {-| Snipbits use `Range`s as their code pointers.
@@ -241,35 +241,33 @@ answerEditFromAnswer { answerText } =
 
 {-| Get's a question by the ID.
 -}
-getQuestionByID : QuestionID -> List (Question codePointer) -> Maybe (Question codePointer)
-getQuestionByID questionID questions =
-    List.filter (\{ id } -> id == questionID) questions
-        |> List.head
-
-
-{-| Get's an answer by the ID.
--}
-getAnswerByID : AnswerID -> List Answer -> Maybe Answer
-getAnswerByID answerID answers =
-    List.filter (\{ id } -> id == answerID) answers
-        |> List.head
+getQuestion : QuestionID -> List (Question codePointer) -> Maybe (Question codePointer)
+getQuestion questionID =
+    List.Extra.find (.id >> (==) questionID)
 
 
 {-| Get's a question for a given answer.
 -}
 getQuestionByAnswerID : AnswerID -> QA codePointer -> Maybe (Question codePointer)
 getQuestionByAnswerID answerID qa =
-    getAnswerByID answerID qa.answers
-        |> Maybe.map .questionID
-        |> Maybe.andThen (\questionID -> getQuestionByID questionID qa.questions)
+    getAnswer answerID qa.answers
+        ||> .questionID
+        |||> (\questionID -> getQuestion questionID qa.questions)
+
+
+{-| Get's an answer by the ID.
+-}
+getAnswer : AnswerID -> List Answer -> Maybe Answer
+getAnswer answerID =
+    List.Extra.find (.id >> (==) answerID)
 
 
 {-| Get's a questionEdit by the ID.
 -}
-getQuestionEditByID : TidbitID -> QuestionID -> QAState codePointer -> Maybe (QuestionEdit codePointer)
-getQuestionEditByID tidbitID questionID qaState =
+getQuestionEdit : TidbitID -> QuestionID -> QAState codePointer -> Maybe (QuestionEdit codePointer)
+getQuestionEdit tidbitID questionID qaState =
     Dict.get tidbitID qaState
-        |> Maybe.andThen (.questionEdits >> Dict.get questionID)
+        |||> (.questionEdits >> Dict.get questionID)
 
 
 {-| Get's the `newQuestion` for the given tidbitID.
@@ -277,7 +275,7 @@ getQuestionEditByID tidbitID questionID qaState =
 getNewQuestion : TidbitID -> QAState codePointer -> Maybe (NewQuestion codePointer)
 getNewQuestion tidbitID qaState =
     Dict.get tidbitID qaState
-        |> Maybe.map .newQuestion
+        ||> .newQuestion
 
 
 {-| Get's the newAnswer for the given snipbit/question if it exists.
@@ -285,7 +283,7 @@ getNewQuestion tidbitID qaState =
 getNewAnswer : TidbitID -> QuestionID -> QAState codePointer -> Maybe NewAnswer
 getNewAnswer tidbitID questionID qaState =
     Dict.get tidbitID qaState
-        |> Maybe.andThen (.newAnswers >> Dict.get questionID)
+        |||> (.newAnswers >> Dict.get questionID)
 
 
 {-| Get's the answerEdit for the given snipbit/answerID if it exsits.
@@ -293,7 +291,7 @@ getNewAnswer tidbitID questionID qaState =
 getAnswerEdit : TidbitID -> AnswerID -> QAState codePointer -> Maybe AnswerEdit
 getAnswerEdit tidbitID answerID qaState =
     Dict.get tidbitID qaState
-        |> Maybe.andThen (.answerEdits >> Dict.get answerID)
+        |||> (.answerEdits >> Dict.get answerID)
 
 
 {-| Get's the browsing code pointer for a tidbit if it exsits.
@@ -301,7 +299,7 @@ getAnswerEdit tidbitID answerID qaState =
 getBrowseCodePointer : TidbitID -> QAState codePointer -> Maybe codePointer
 getBrowseCodePointer tidbitID qaState =
     Dict.get tidbitID qaState
-        |> Maybe.andThen .browsingCodePointer
+        |||> .browsingCodePointer
 
 
 {-| Get's the `questionCommentEdits` for a given tidbit from the `qaState` (or an empty dictionary).
@@ -396,17 +394,7 @@ setBrowsingCodePointer tidbitID codePointer =
 -}
 updateQuestion : QuestionID -> (Question codePointer -> Question codePointer) -> QA codePointer -> QA codePointer
 updateQuestion questionID questionUpdater qa =
-    { qa
-        | questions =
-            List.map
-                (\question ->
-                    if question.id == questionID then
-                        questionUpdater question
-                    else
-                        question
-                )
-                qa.questions
-    }
+    { qa | questions = List.Extra.updateIf (.id >> (==) questionID) questionUpdater qa.questions }
 
 
 {-| Updates a [published] question in the QA, handles all required logic:
@@ -506,8 +494,8 @@ deleteAnswerComment commentID qa =
 
 {-| Deletes all `AnswerComment`s from the [published] list of answer comments that are for a specific answer.
 -}
-deleteAnswerComments : AnswerID -> QA codePointer -> QA codePointer
-deleteAnswerComments answerID qa =
+deleteAnswerCommentsForAnswer : AnswerID -> QA codePointer -> QA codePointer
+deleteAnswerCommentsForAnswer answerID qa =
     { qa | answerComments = List.filter (.answerID >> (/=) answerID) qa.answerComments }
 
 

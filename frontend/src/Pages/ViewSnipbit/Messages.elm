@@ -22,6 +22,8 @@ import ProjectTypeAliases exposing (..)
 type Msg
     = NoOp
     | GoTo Route
+    | GoToAskQuestion
+    | GoToBrowseQuestionsWithCodePointer (Maybe Range)
     | OnRouteHit Route
     | OnGetCompletedSuccess IsCompleted
     | OnGetCompletedFailure ApiError
@@ -47,8 +49,6 @@ type Msg
     | JumpToFrame Route
     | OnMarkAsCompleteSuccess IsCompleted
     | OnMarkAsCompleteFailure ApiError
-    | GoToAskQuestion
-    | GoToBrowseQuestions
     | AskQuestion SnipbitID Range QuestionText
     | OnAskQuestionSuccess SnipbitID (Question Range)
     | OnAskQuestionFailure ApiError
