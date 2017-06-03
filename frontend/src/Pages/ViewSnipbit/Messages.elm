@@ -14,6 +14,7 @@ import Models.Range exposing (Range)
 import Models.Route exposing (Route)
 import Models.Snipbit exposing (Snipbit)
 import Models.Story exposing (ExpandedStory)
+import Models.Vote exposing (Vote)
 import ProjectTypeAliases exposing (..)
 
 
@@ -64,46 +65,22 @@ type Msg
     | DeleteAnswer SnipbitID QuestionID AnswerID
     | OnDeleteAnswerSuccess SnipbitID QuestionID AnswerID
     | OnDeleteAnswerFailure ApiError
-    | OnClickUpvoteQuestion SnipbitID QuestionID
-    | OnClickRemoveQuestionUpvote SnipbitID QuestionID
-    | OnClickDownvoteQuestion SnipbitID QuestionID
-    | OnClickRemoveQuestionDownvote SnipbitID QuestionID
-    | OnUpvoteQuestionSuccess QuestionID
-    | OnUpvoteQuestionFailure ApiError
-    | OnRemoveQuestionUpvoteSuccess QuestionID
-    | OnRemoveQuestionUpvoteFailure ApiError
-    | OnDownvoteQuestionSuccess QuestionID
-    | OnDownvoteQuestionFailure ApiError
-    | OnRemoveQuestionDownvoteSuccess QuestionID
-    | OnRemoveQuestionDownvoteFailure ApiError
-    | OnClickUpvoteAnswer SnipbitID AnswerID
-    | OnClickRemoveAnswerUpvote SnipbitID AnswerID
-    | OnClickDownvoteAnswer SnipbitID AnswerID
-    | OnClickRemoveAnswerDownvote SnipbitID AnswerID
-    | OnUpvoteAnswerSuccess AnswerID
-    | OnUpvoteAnswerFailure ApiError
-    | OnRemoveAnswerUpvoteSuccess AnswerID
-    | OnRemoveAnswerUpvoteFailure ApiError
-    | OnDownvoteAnswerSuccess AnswerID
-    | OnDownvoteAnswerFailure ApiError
-    | OnRemoveAnswerDownvoteSuccess AnswerID
-    | OnRemoveAnswerDownvoteFailure ApiError
+    | RateQuestion SnipbitID QuestionID (Maybe Vote)
+    | OnRateQuestionSuccess QuestionID (Maybe Vote)
+    | OnRateQuestionFailure ApiError
+    | RateAnswer SnipbitID AnswerID (Maybe Vote)
+    | OnRateAnswerSuccess AnswerID (Maybe Vote)
+    | OnRateAnswerFailure ApiError
     | AskQuestionMsg SnipbitID AskQuestion.Msg
     | EditQuestionMsg SnipbitID (Question Range) EditQuestion.Msg
     | AnswerQuestionMsg SnipbitID (Question Range) AnswerQuestion.Msg
     | EditAnswerMsg SnipbitID AnswerID Answer EditAnswer.Msg
-    | PinQuestion SnipbitID QuestionID
-    | OnPinQuestionSuccess SnipbitID QuestionID
+    | PinQuestion SnipbitID QuestionID Bool
+    | OnPinQuestionSuccess QuestionID Bool
     | OnPinQuestionFailure ApiError
-    | UnpinQuestion SnipbitID QuestionID
-    | OnUnpinQuestionSuccess SnipbitID QuestionID
-    | OnUnpinQuestionFailure ApiError
-    | PinAnswer SnipbitID AnswerID
-    | OnPinAnswerSuccess SnipbitID AnswerID
+    | PinAnswer SnipbitID AnswerID Bool
+    | OnPinAnswerSuccess AnswerID Bool
     | OnPinAnswerFailure ApiError
-    | UnpinAnswer SnipbitID AnswerID
-    | OnUnpinAnswerSuccess SnipbitID AnswerID
-    | OnUnpinAnswerFailure ApiError
     | ViewQuestionMsg SnipbitID QuestionID ViewQuestion.Msg
     | SubmitCommentOnQuestion SnipbitID QuestionID CommentText
     | OnSubmitCommentOnQuestionSuccess SnipbitID QuestionID QuestionComment

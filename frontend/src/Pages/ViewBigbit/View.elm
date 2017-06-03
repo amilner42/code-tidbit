@@ -25,6 +25,7 @@ import Models.Route as Route
 import Models.Story as Story
 import Models.TutorialBookmark as TB
 import Models.ViewerRelevantHC as ViewerRelevantHC
+import Models.Vote as Vote
 import Pages.Model exposing (Shared)
 import Pages.ViewBigbit.Messages exposing (..)
 import Pages.ViewBigbit.Model exposing (..)
@@ -656,18 +657,18 @@ viewBigbitCommentBox bigbit model shared =
                                 bigbit.id
                                 answer.id
                     )
-                , upvoteQuestion = ClickUpvoteQuestion bigbit.id question.id
-                , removeUpvoteQuestion = ClickRemoveUpvoteQuestion bigbit.id question.id
-                , downvoteQuestion = ClickDownvoteQuestion bigbit.id question.id
-                , removeDownvoteQuestion = ClickRemoveDownvoteQuestion bigbit.id question.id
-                , upvoteAnswer = (\answer -> ClickUpvoteAnswer bigbit.id answer.id)
-                , removeUpvoteAnswer = (\answer -> ClickRemoveUpvoteAnswer bigbit.id answer.id)
-                , downvoteAnswer = (\answer -> ClickDownvoteAnswer bigbit.id answer.id)
-                , removeDownvoteAnswer = (\answer -> ClickRemoveDownvoteAnswer bigbit.id answer.id)
-                , pinQuestion = ClickPinQuestion bigbit.id question.id
-                , unpinQuestion = ClickUnpinQuestion bigbit.id question.id
-                , pinAnswer = (\answer -> ClickPinAnswer bigbit.id answer.id)
-                , unpinAnswer = (\answer -> ClickUnpinAnswer bigbit.id answer.id)
+                , upvoteQuestion = RateQuestion bigbit.id question.id (Just Vote.Upvote)
+                , removeUpvoteQuestion = RateQuestion bigbit.id question.id Nothing
+                , downvoteQuestion = RateQuestion bigbit.id question.id (Just Vote.Downvote)
+                , removeDownvoteQuestion = RateQuestion bigbit.id question.id Nothing
+                , upvoteAnswer = (\answer -> RateAnswer bigbit.id answer.id (Just Vote.Upvote))
+                , removeUpvoteAnswer = (\answer -> RateAnswer bigbit.id answer.id Nothing)
+                , downvoteAnswer = (\answer -> RateAnswer bigbit.id answer.id (Just Vote.Downvote))
+                , removeDownvoteAnswer = (\answer -> RateAnswer bigbit.id answer.id Nothing)
+                , pinQuestion = PinQuestion bigbit.id question.id True
+                , unpinQuestion = PinQuestion bigbit.id question.id False
+                , pinAnswer = (\answer -> PinAnswer bigbit.id answer.id True)
+                , unpinAnswer = (\answer -> PinAnswer bigbit.id answer.id False)
                 , deleteAnswer = .id >> DeleteAnswer bigbit.id question.id
                 , commentOnQuestion = SubmitCommentOnQuestion bigbit.id question.id
                 , commentOnAnswer = SubmitCommentOnAnswer bigbit.id question.id

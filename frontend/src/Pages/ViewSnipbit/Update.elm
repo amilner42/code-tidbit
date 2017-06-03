@@ -851,120 +851,54 @@ update (Common common) msg model shared =
         OnDeleteAnswerFailure apiError ->
             common.justSetModalError apiError
 
-        OnClickUpvoteQuestion snipbitID questionID ->
-            common.justProduceCmd <|
-                common.api.post.rateQuestion
-                    { tidbitType = TidbitPointer.Snipbit, targetID = snipbitID }
-                    questionID
-                    Vote.Upvote
-                    OnUpvoteQuestionFailure
-                    (always <| OnUpvoteQuestionSuccess questionID)
+        RateQuestion snipbitID questionID maybeVote ->
+            case maybeVote of
+                Nothing ->
+                    common.justProduceCmd <|
+                        common.api.post.removeQuestionRating
+                            { tidbitType = TidbitPointer.Snipbit, targetID = snipbitID }
+                            questionID
+                            OnRateQuestionFailure
+                            (always <| OnRateQuestionSuccess questionID maybeVote)
 
-        OnClickRemoveQuestionUpvote snipbitID questionID ->
-            common.justProduceCmd <|
-                common.api.post.removeQuestionRating
-                    { tidbitType = TidbitPointer.Snipbit, targetID = snipbitID }
-                    questionID
-                    OnRemoveQuestionUpvoteFailure
-                    (always <| OnRemoveQuestionUpvoteSuccess questionID)
+                Just vote ->
+                    common.justProduceCmd <|
+                        common.api.post.rateQuestion
+                            { tidbitType = TidbitPointer.Snipbit, targetID = snipbitID }
+                            questionID
+                            vote
+                            OnRateQuestionFailure
+                            (always <| OnRateQuestionSuccess questionID maybeVote)
 
-        OnClickDownvoteQuestion snipbitID questionID ->
-            common.justProduceCmd <|
-                common.api.post.rateQuestion
-                    { tidbitType = TidbitPointer.Snipbit, targetID = snipbitID }
-                    questionID
-                    Vote.Downvote
-                    OnDownvoteQuestionFailure
-                    (always <| OnDownvoteQuestionSuccess questionID)
+        OnRateQuestionSuccess questionID maybeVote ->
+            common.justSetModel { model | qa = model.qa ||> QA.rateQuestion questionID maybeVote }
 
-        OnClickRemoveQuestionDownvote snipbitID questionID ->
-            common.justProduceCmd <|
-                common.api.post.removeQuestionRating
-                    { tidbitType = TidbitPointer.Snipbit, targetID = snipbitID }
-                    questionID
-                    OnRemoveQuestionDownvoteFailure
-                    (always <| OnRemoveQuestionDownvoteSuccess questionID)
-
-        OnUpvoteQuestionSuccess questionID ->
-            common.justSetModel { model | qa = Maybe.map (QA.rateQuestion questionID <| Just Vote.Upvote) model.qa }
-
-        OnUpvoteQuestionFailure apiError ->
+        OnRateQuestionFailure apiError ->
             common.justSetModalError apiError
 
-        OnRemoveQuestionUpvoteSuccess questionID ->
-            common.justSetModel { model | qa = Maybe.map (QA.rateQuestion questionID <| Nothing) model.qa }
+        RateAnswer snipbitID answerID maybeVote ->
+            case maybeVote of
+                Nothing ->
+                    common.justProduceCmd <|
+                        common.api.post.removeAnswerRating
+                            { tidbitType = TidbitPointer.Snipbit, targetID = snipbitID }
+                            answerID
+                            OnRateAnswerFailure
+                            (always <| OnRateAnswerSuccess answerID maybeVote)
 
-        OnRemoveQuestionUpvoteFailure apiError ->
-            common.justSetModalError apiError
+                Just vote ->
+                    common.justProduceCmd <|
+                        common.api.post.rateAnswer
+                            { tidbitType = TidbitPointer.Snipbit, targetID = snipbitID }
+                            answerID
+                            vote
+                            OnRateAnswerFailure
+                            (always <| OnRateAnswerSuccess answerID maybeVote)
 
-        OnDownvoteQuestionSuccess questionID ->
-            common.justSetModel { model | qa = Maybe.map (QA.rateQuestion questionID <| Just Vote.Downvote) model.qa }
+        OnRateAnswerSuccess answerID maybeVote ->
+            common.justSetModel { model | qa = model.qa ||> QA.rateAnswer answerID maybeVote }
 
-        OnDownvoteQuestionFailure apiError ->
-            common.justSetModalError apiError
-
-        OnRemoveQuestionDownvoteSuccess questionID ->
-            common.justSetModel { model | qa = Maybe.map (QA.rateQuestion questionID <| Nothing) model.qa }
-
-        OnRemoveQuestionDownvoteFailure apiError ->
-            common.justSetModalError apiError
-
-        OnClickUpvoteAnswer snipbitID answerID ->
-            common.justProduceCmd <|
-                common.api.post.rateAnswer
-                    { tidbitType = TidbitPointer.Snipbit, targetID = snipbitID }
-                    answerID
-                    Vote.Upvote
-                    OnUpvoteAnswerFailure
-                    (always <| OnUpvoteAnswerSuccess answerID)
-
-        OnClickRemoveAnswerUpvote snipbitID answerID ->
-            common.justProduceCmd <|
-                common.api.post.removeAnswerRating
-                    { tidbitType = TidbitPointer.Snipbit, targetID = snipbitID }
-                    answerID
-                    OnRemoveAnswerUpvoteFailure
-                    (always <| OnRemoveAnswerUpvoteSuccess answerID)
-
-        OnClickDownvoteAnswer snipbitID answerID ->
-            common.justProduceCmd <|
-                common.api.post.rateAnswer
-                    { tidbitType = TidbitPointer.Snipbit, targetID = snipbitID }
-                    answerID
-                    Vote.Downvote
-                    OnDownvoteAnswerFailure
-                    (always <| OnDownvoteAnswerSuccess answerID)
-
-        OnClickRemoveAnswerDownvote snipbitID answerID ->
-            common.justProduceCmd <|
-                common.api.post.removeAnswerRating
-                    { tidbitType = TidbitPointer.Snipbit, targetID = snipbitID }
-                    answerID
-                    OnRemoveAnswerDownvoteFailure
-                    (always <| OnRemoveAnswerDownvoteSuccess answerID)
-
-        OnUpvoteAnswerSuccess answerID ->
-            common.justSetModel { model | qa = Maybe.map (QA.rateAnswer answerID <| Just Vote.Upvote) model.qa }
-
-        OnUpvoteAnswerFailure apiError ->
-            common.justSetModalError apiError
-
-        OnRemoveAnswerUpvoteSuccess answerID ->
-            common.justSetModel { model | qa = Maybe.map (QA.rateAnswer answerID Nothing) model.qa }
-
-        OnRemoveAnswerUpvoteFailure apiError ->
-            common.justSetModalError apiError
-
-        OnDownvoteAnswerSuccess answerID ->
-            common.justSetModel { model | qa = Maybe.map (QA.rateAnswer answerID <| Just Vote.Downvote) model.qa }
-
-        OnDownvoteAnswerFailure apiError ->
-            common.justSetModalError apiError
-
-        OnRemoveAnswerDownvoteSuccess answerID ->
-            common.justSetModel { model | qa = Maybe.map (QA.rateAnswer answerID Nothing) model.qa }
-
-        OnRemoveAnswerDownvoteFailure apiError ->
+        OnRateAnswerFailure apiError ->
             common.justSetModalError apiError
 
         AskQuestionMsg snipbitID askQuestionMsg ->
@@ -1044,64 +978,34 @@ update (Common common) msg model shared =
                 , Cmd.map (EditAnswerMsg snipbitID answerID answer) newEditAnswerMsg
                 )
 
-        PinQuestion snipbitID questionID ->
+        PinQuestion snipbitID questionID pinQuestion ->
             common.justProduceCmd <|
                 common.api.post.pinQuestion
                     { targetID = snipbitID, tidbitType = TidbitPointer.Snipbit }
                     questionID
-                    True
+                    pinQuestion
                     OnPinQuestionFailure
-                    (always <| OnPinQuestionSuccess snipbitID questionID)
+                    (always <| OnPinQuestionSuccess questionID pinQuestion)
 
-        OnPinQuestionSuccess snipbitID questionID ->
-            common.justSetModel <| { model | qa = model.qa ||> QA.pinQuestion questionID True }
+        OnPinQuestionSuccess questionID pinQuestion ->
+            common.justSetModel { model | qa = model.qa ||> QA.pinQuestion questionID pinQuestion }
 
         OnPinQuestionFailure apiError ->
             common.justSetModalError apiError
 
-        UnpinQuestion snipbitID questionID ->
-            common.justProduceCmd <|
-                common.api.post.pinQuestion
-                    { targetID = snipbitID, tidbitType = TidbitPointer.Snipbit }
-                    questionID
-                    False
-                    OnUnpinQuestionFailure
-                    (always <| OnUnpinQuestionSuccess snipbitID questionID)
-
-        OnUnpinQuestionSuccess snipbitID questionID ->
-            common.justSetModel <| { model | qa = model.qa ||> QA.pinQuestion questionID False }
-
-        OnUnpinQuestionFailure apiError ->
-            common.justSetModalError apiError
-
-        PinAnswer snipbitID answerID ->
+        PinAnswer snipbitID answerID pinAnswer ->
             common.justProduceCmd <|
                 common.api.post.pinAnswer
                     { targetID = snipbitID, tidbitType = TidbitPointer.Snipbit }
                     answerID
-                    True
+                    pinAnswer
                     OnPinAnswerFailure
-                    (always <| OnPinAnswerSuccess snipbitID answerID)
+                    (always <| OnPinAnswerSuccess answerID pinAnswer)
 
-        OnPinAnswerSuccess snipbitID answerID ->
-            common.justSetModel { model | qa = model.qa ||> QA.pinAnswer answerID True }
+        OnPinAnswerSuccess answerID pinAnswer ->
+            common.justSetModel { model | qa = model.qa ||> QA.pinAnswer answerID pinAnswer }
 
         OnPinAnswerFailure apiError ->
-            common.justSetModalError apiError
-
-        UnpinAnswer snipbitID answerID ->
-            common.justProduceCmd <|
-                common.api.post.pinAnswer
-                    { targetID = snipbitID, tidbitType = TidbitPointer.Snipbit }
-                    answerID
-                    False
-                    OnUnpinAnswerFailure
-                    (always <| OnUnpinAnswerSuccess snipbitID answerID)
-
-        OnUnpinAnswerSuccess snipbitID answerID ->
-            common.justSetModel { model | qa = model.qa ||> QA.pinAnswer answerID False }
-
-        OnUnpinAnswerFailure apiError ->
             common.justSetModalError apiError
 
         ViewQuestionMsg snipbitID questionID viewQuestionMsg ->

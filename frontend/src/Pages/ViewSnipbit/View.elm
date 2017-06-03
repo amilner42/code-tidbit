@@ -26,6 +26,7 @@ import Models.Snipbit as Snipbit
 import Models.Story as Story
 import Models.TutorialBookmark as TB
 import Models.ViewerRelevantHC as ViewerRelevantHC
+import Models.Vote as Vote
 import Pages.Model exposing (Shared)
 import Pages.ViewSnipbit.Messages exposing (Msg(..))
 import Pages.ViewSnipbit.Model exposing (..)
@@ -567,18 +568,18 @@ commentBox snipbit model shared =
                             (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
                             snipbit.id
                         << .id
-                , upvoteQuestion = OnClickUpvoteQuestion snipbit.id question.id
-                , removeUpvoteQuestion = OnClickRemoveQuestionUpvote snipbit.id question.id
-                , downvoteQuestion = OnClickDownvoteQuestion snipbit.id question.id
-                , removeDownvoteQuestion = OnClickRemoveQuestionDownvote snipbit.id question.id
-                , upvoteAnswer = (\answer -> OnClickUpvoteAnswer snipbit.id answer.id)
-                , removeUpvoteAnswer = (\answer -> OnClickRemoveAnswerUpvote snipbit.id answer.id)
-                , downvoteAnswer = (\answer -> OnClickDownvoteAnswer snipbit.id answer.id)
-                , removeDownvoteAnswer = (\answer -> OnClickRemoveAnswerDownvote snipbit.id answer.id)
-                , pinQuestion = PinQuestion snipbit.id question.id
-                , unpinQuestion = UnpinQuestion snipbit.id question.id
-                , pinAnswer = (\answer -> PinAnswer snipbit.id answer.id)
-                , unpinAnswer = (\answer -> UnpinAnswer snipbit.id answer.id)
+                , upvoteQuestion = RateQuestion snipbit.id question.id (Just Vote.Upvote)
+                , removeUpvoteQuestion = RateQuestion snipbit.id question.id Nothing
+                , downvoteQuestion = RateQuestion snipbit.id question.id (Just Vote.Downvote)
+                , removeDownvoteQuestion = RateQuestion snipbit.id question.id Nothing
+                , upvoteAnswer = (\answer -> RateAnswer snipbit.id answer.id (Just Vote.Upvote))
+                , removeUpvoteAnswer = (\answer -> RateAnswer snipbit.id answer.id Nothing)
+                , downvoteAnswer = (\answer -> RateAnswer snipbit.id answer.id (Just Vote.Downvote))
+                , removeDownvoteAnswer = (\answer -> RateAnswer snipbit.id answer.id Nothing)
+                , pinQuestion = PinQuestion snipbit.id question.id True
+                , unpinQuestion = PinQuestion snipbit.id question.id False
+                , pinAnswer = (\answer -> PinAnswer snipbit.id answer.id True)
+                , unpinAnswer = (\answer -> PinAnswer snipbit.id answer.id False)
                 , deleteAnswer = .id >> DeleteAnswer snipbit.id question.id
                 , commentOnQuestion = SubmitCommentOnQuestion snipbit.id question.id
                 , commentOnAnswer = SubmitCommentOnAnswer snipbit.id question.id

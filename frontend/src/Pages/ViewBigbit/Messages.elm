@@ -13,6 +13,7 @@ import Models.Completed exposing (Completed, IsCompleted)
 import Models.Opinion exposing (Opinion, PossibleOpinion)
 import Models.QA exposing (BigbitQA, BigbitCodePointer, BigbitQuestion, Answer, QuestionComment, AnswerComment)
 import Models.Range exposing (Range)
+import Models.Vote exposing (Vote)
 import Models.Route exposing (Route)
 import Models.Story exposing (ExpandedStory)
 import ProjectTypeAliases exposing (..)
@@ -72,42 +73,18 @@ type Msg
     | OnEditAnswerSuccess BigbitID AnswerID AnswerText Date
     | OnEditAnswerFailure ApiError
     | ViewQuestionMsg BigbitID QuestionID ViewQuestion.Msg
-    | ClickUpvoteQuestion BigbitID QuestionID
-    | OnClickUpvoteQuestionSuccess QuestionID
-    | OnClickUpvoteQuestionFailure ApiError
-    | ClickRemoveUpvoteQuestion BigbitID QuestionID
-    | OnClickRemoveUpvoteQuestionSuccess QuestionID
-    | OnClickRemoveUpvoteQuestionFailure ApiError
-    | ClickDownvoteQuestion BigbitID QuestionID
-    | OnClickDownvoteQuestionSuccess QuestionID
-    | OnClickDownvoteQuestionFailure ApiError
-    | ClickRemoveDownvoteQuestion BigbitID QuestionID
-    | OnClickRemoveDownvoteQuestionSuccess QuestionID
-    | OnClickRemoveDownvoteQuestionFailure ApiError
-    | ClickUpvoteAnswer BigbitID AnswerID
-    | OnClickUpvoteAnswerSuccess AnswerID
-    | OnClickUpvoteAnswerFailure ApiError
-    | ClickRemoveUpvoteAnswer BigbitID AnswerID
-    | OnClickRemoveUpvoteAnswerSuccess AnswerID
-    | OnClickRemoveUpvoteAnswerFailure ApiError
-    | ClickDownvoteAnswer BigbitID AnswerID
-    | OnClickDownvoteAnswerSuccess AnswerID
-    | OnClickDownvoteAnswerFailure ApiError
-    | ClickRemoveDownvoteAnswer BigbitID AnswerID
-    | OnClickRemoveDownvoteAnswerSuccess AnswerID
-    | OnClickRemoveDownvoteAnswerFailure ApiError
-    | ClickPinQuestion BigbitID QuestionID
-    | OnClickPinQuestionSuccess QuestionID
-    | OnClickPinQuestionFailure ApiError
-    | ClickUnpinQuestion BigbitID QuestionID
-    | OnClickUnpinQuestionSuccess QuestionID
-    | OnClickUnpinQuestionFailure ApiError
-    | ClickPinAnswer BigbitID AnswerID
-    | OnClickPinAnswerSuccess AnswerID
-    | OnClickPinAnswerFailure ApiError
-    | ClickUnpinAnswer BigbitID AnswerID
-    | OnClickUnpinAnswerSuccess AnswerID
-    | OnClickUnpinAnswerFailure ApiError
+    | RateQuestion BigbitID QuestionID (Maybe Vote)
+    | OnRateQuestionSuccess QuestionID (Maybe Vote)
+    | OnRateQuestionFailure ApiError
+    | RateAnswer BigbitID AnswerID (Maybe Vote)
+    | OnRateAnswerSuccess AnswerID (Maybe Vote)
+    | OnRateAnswerFailure ApiError
+    | PinQuestion BigbitID QuestionID Bool
+    | OnPinQuestionSuccess QuestionID Bool
+    | OnPinQuestionFailure ApiError
+    | PinAnswer BigbitID AnswerID Bool
+    | OnPinAnswerSuccess AnswerID Bool
+    | OnPinAnswerFailure ApiError
     | DeleteAnswer BigbitID QuestionID AnswerID
     | OnDeleteAnswerSuccess BigbitID QuestionID AnswerID
     | OnDeleteAnswerFailure ApiError
