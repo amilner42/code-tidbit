@@ -121,11 +121,11 @@ update (Common common) msg model shared =
 
                 clearDeletingComments snipbitID (Common common) ( model, shared ) =
                     common.justSetModel
-                        { model | qaState = QA.updateDeletingComments snipbitID (always Set.empty) model.qaState }
+                        { model | qaState = model.qaState |> QA.updateDeletingComments snipbitID (always Set.empty) }
 
                 clearDeletingAnswers snipbitID (Common common) ( model, shared ) =
                     common.justSetModel
-                        { model | qaState = QA.updateDeletingAnswers snipbitID (always Set.empty) model.qaState }
+                        { model | qaState = model.qaState |> QA.updateDeletingAnswers snipbitID (always Set.empty) }
 
                 {- Get's data for viewing snipbit as required:
                     - May need to fetch tidbit itself                             [Cache level: localStorage]

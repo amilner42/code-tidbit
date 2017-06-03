@@ -84,6 +84,14 @@ update (Common common) msg model shared =
                             , tutorialCodePointer = Nothing
                         }
 
+                clearDeletingComments bigbitID (Common common) ( model, shared ) =
+                    common.justSetModel
+                        { model | qaState = model.qaState |> QA.updateDeletingComments bigbitID (always Set.empty) }
+
+                clearDeletingAnswers bigbitID (Common common) ( model, shared ) =
+                    common.justSetModel
+                        { model | qaState = model.qaState |> QA.updateDeletingAnswers bigbitID (always Set.empty) }
+
                 setBookmark tb (Common common) ( model, shared ) =
                     common.justSetModel
                         { model | bookmark = tb }
@@ -325,18 +333,21 @@ update (Common common) msg model shared =
                         common.handleAll
                             [ clearStateOnRouteHit
                             , fetchOrRenderViewBigbitData True bigbitID
+                            , clearDeletingAnswers bigbitID
                             ]
 
                     Route.ViewBigbitQuestionCommentsPage _ _ bigbitID _ _ ->
                         common.handleAll
                             [ clearStateOnRouteHit
                             , fetchOrRenderViewBigbitData True bigbitID
+                            , clearDeletingComments bigbitID
                             ]
 
                     Route.ViewBigbitAnswerCommentsPage _ _ bigbitID _ _ ->
                         common.handleAll
                             [ clearStateOnRouteHit
                             , fetchOrRenderViewBigbitData True bigbitID
+                            , clearDeletingComments bigbitID
                             ]
 
                     Route.ViewBigbitAskQuestion _ bigbitID ->
