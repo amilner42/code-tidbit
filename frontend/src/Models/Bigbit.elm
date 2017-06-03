@@ -6,8 +6,8 @@ import Date
 import DefaultServices.ArrayExtra as ArrayExtra
 import DefaultServices.Util as Util exposing (maybeMapWithDefault)
 import Dict
-import Elements.Editor as Editor
-import Elements.FileStructure as FS
+import Elements.Simple.Editor as Editor
+import Elements.Simple.FileStructure as FS
 import Models.Range as Range
 
 

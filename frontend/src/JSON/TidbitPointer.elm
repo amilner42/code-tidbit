@@ -31,12 +31,7 @@ decoder =
 -}
 tibitTypeEncoder : TidbitType -> Encode.Value
 tibitTypeEncoder tidbitType =
-    case tidbitType of
-        Snipbit ->
-            Encode.int 1
-
-        Bigbit ->
-            Encode.int 2
+    Encode.int <| tidbitTypeToInt tidbitType
 
 
 {-| `TidbitType` decoder.
@@ -59,3 +54,15 @@ tidbitTypeDecoder =
     in
         Decode.int
             |> Decode.andThen fromIntDecoder
+
+
+{-| Converts a tidbitType to an int, matches the format of the backend.
+-}
+tidbitTypeToInt : TidbitType -> Int
+tidbitTypeToInt tidbitType =
+    case tidbitType of
+        Snipbit ->
+            1
+
+        Bigbit ->
+            2

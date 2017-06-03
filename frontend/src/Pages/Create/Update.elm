@@ -1,6 +1,6 @@
 module Pages.Create.Update exposing (..)
 
-import DefaultServices.CommonSubPageUtil exposing (CommonSubPageUtil)
+import DefaultServices.CommonSubPageUtil exposing (CommonSubPageUtil(..))
 import DefaultServices.Util as Util
 import Models.Route as Route
 import Pages.Create.Messages exposing (..)
@@ -11,10 +11,10 @@ import Pages.Model exposing (Shared)
 {-| `Create` update.
 -}
 update : CommonSubPageUtil Model Shared Msg -> Msg -> Model -> Shared -> ( Model, Shared, Cmd Msg )
-update { doNothing, justSetShared, justUpdateModel, justProduceCmd, api, justSetModalError } msg model shared =
+update (Common common) msg model shared =
     case msg of
         GoTo route ->
-            justProduceCmd <| Route.navigateTo route
+            common.justProduceCmd <| Route.navigateTo route
 
         OnRouteHit route ->
             case route of
@@ -23,25 +23,25 @@ update { doNothing, justSetShared, justUpdateModel, justProduceCmd, api, justSet
                     Util.maybeMapWithDefault
                         (\{ id } ->
                             if Util.isNothing shared.userStories then
-                                justProduceCmd <|
-                                    api.get.stories
+                                common.justProduceCmd <|
+                                    common.api.get.stories
                                         [ ( "author", Just id ), ( "includeEmptyStories", Just "true" ) ]
                                         OnGetAccountStoriesFailure
                                         OnGetAccountStoriesSuccess
                             else
-                                doNothing
+                                common.doNothing
                         )
-                        doNothing
+                        common.doNothing
                         shared.user
 
                 _ ->
-                    doNothing
+                    common.doNothing
 
         OnGetAccountStoriesSuccess userStories ->
-            justSetShared { shared | userStories = Just userStories }
+            common.justSetShared { shared | userStories = Just userStories }
 
         OnGetAccountStoriesFailure apiError ->
-            justSetModalError apiError
+            common.justSetModalError apiError
 
         ShowInfoFor maybeTidbitType ->
-            justUpdateModel <| setShowInfoFor maybeTidbitType
+            common.justUpdateModel <| setShowInfoFor maybeTidbitType

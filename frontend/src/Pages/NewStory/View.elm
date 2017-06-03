@@ -1,7 +1,7 @@
 module Pages.NewStory.View exposing (..)
 
 import DefaultServices.Util as Util
-import Elements.Tags exposing (tags)
+import Elements.Simple.Tags as Tags
 import Html exposing (Html, div, text, input, textarea, button)
 import Html.Attributes exposing (class, classList, placeholder, value, id, hidden)
 import Html.Events exposing (onClick, onInput)
@@ -240,9 +240,7 @@ view model shared =
                                         )
                                     ]
                                     []
-                                , tags
-                                    RemoveTag
-                                    model.newStory.tags
+                                , Tags.view RemoveTag model.newStory.tags
                                 ]
 
                             Just _ ->
@@ -263,9 +261,7 @@ view model shared =
                                         )
                                     ]
                                     []
-                                , tags
-                                    EditingRemoveTag
-                                    model.editingStory.tags
+                                , Tags.view EditingRemoveTag model.editingStory.tags
                                 ]
                         )
 

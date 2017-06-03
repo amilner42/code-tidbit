@@ -1,7 +1,7 @@
 module JSON.FileStructure exposing (..)
 
 import DefaultServices.Util as Util
-import Elements.FileStructure exposing (..)
+import Elements.Simple.FileStructure exposing (..)
 import Json.Decode as Decode
 import Json.Decode.Pipeline exposing (decode, required, optional, hardcoded)
 import Json.Encode as Encode

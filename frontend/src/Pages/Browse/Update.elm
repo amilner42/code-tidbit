@@ -1,7 +1,7 @@
 module Pages.Browse.Update exposing (..)
 
 import Api
-import DefaultServices.CommonSubPageUtil exposing (CommonSubPageUtil)
+import DefaultServices.CommonSubPageUtil exposing (CommonSubPageUtil(..))
 import DefaultServices.Util as Util
 import Models.Content as Content
 import Models.Route as Route
@@ -9,40 +9,44 @@ import Pages.Browse.Messages exposing (..)
 import Pages.Browse.Model exposing (..)
 import Pages.Model exposing (Shared)
 import Ports
+import ProjectTypeAliases exposing (..)
 
 
 {-| `Browse` update.
 -}
 update : CommonSubPageUtil Model Shared Msg -> Msg -> Model -> Shared -> ( Model, Shared, Cmd Msg )
-update ({ doNothing, justSetShared, justUpdateModel, justSetModel, justProduceCmd, api } as common) msg model shared =
+update ((Common common) as commonUtil) msg model shared =
     case msg of
         NoOp ->
-            doNothing
+            common.doNothing
 
         GoTo route ->
-            justProduceCmd <| Route.navigateTo route
+            common.justProduceCmd <| Route.navigateTo route
 
         OnRouteHit route ->
             case route of
                 Route.BrowsePage ->
-                    common.withCmd
-                        (Cmd.batch
-                            [ (Util.domFocus (always NoOp) "search-bar")
-                            , if model.showAdvancedSearchOptions then
-                                Ports.expandSearchAdvancedOptions True
-                              else
-                                Cmd.none
-                            ]
-                        )
-                        (performSearch True ( model, shared ))
+                    common.handleAll
+                        [ performSearch True
+                        , (\(Common common) ( model, shared ) ->
+                            common.justProduceCmd <|
+                                Cmd.batch
+                                    [ (Util.domFocus (always NoOp) "search-bar")
+                                    , if model.showAdvancedSearchOptions then
+                                        Ports.expandSearchAdvancedOptions True
+                                      else
+                                        Cmd.none
+                                    ]
+                          )
+                        ]
 
                 _ ->
-                    doNothing
+                    common.doNothing
 
         OnGetContentSuccess content ->
             case model.content of
                 Nothing ->
-                    justSetModel
+                    common.justSetModel
                         { model
                             | content = Just content
                             , pageNumber = 2
@@ -50,7 +54,7 @@ update ({ doNothing, justSetShared, justUpdateModel, justSetModel, justProduceCm
                         }
 
                 Just currentContent ->
-                    justSetModel
+                    common.justSetModel
                         { model
                             | content = Just <| currentContent ++ content
                             , pageNumber = model.pageNumber + 1
@@ -61,24 +65,26 @@ update ({ doNothing, justSetShared, justUpdateModel, justSetModel, justProduceCm
             common.justSetModalError apiError
 
         LoadMoreContent ->
-            performSearch False ( model, shared )
+            common.handleAll [ performSearch False ]
 
         OnUpdateSearch newSearchQuery ->
             common.handleAll
                 [ -- Always update the model.
-                  (\( model, shared ) -> ( { model | searchQuery = newSearchQuery }, shared, Cmd.none ))
+                  (\(Common common) ( model, shared ) ->
+                    common.justSetModel { model | searchQuery = newSearchQuery }
+                  )
 
                 -- Only perform a search automatically if we're back to an empty search query.
-                , (\( chainedModel, chainedShared ) ->
+                , (\(Common common) ( model, shared ) ->
                     if String.isEmpty newSearchQuery then
-                        performSearch True ( chainedModel, chainedShared )
+                        common.handleAll [ performSearch True ]
                     else
-                        ( chainedModel, chainedShared, Cmd.none )
+                        common.doNothing
                   )
                 ]
 
         Search ->
-            performSearch True ( model, shared )
+            common.handleAll [ performSearch True ]
 
         ToggleAdvancedOptions ->
             ( { model | showAdvancedSearchOptions = not model.showAdvancedSearchOptions }
@@ -88,15 +94,11 @@ update ({ doNothing, justSetShared, justUpdateModel, justSetModel, justProduceCm
 
         ToggleContentFilterSnipbits ->
             let
-                updateFilterSnipbits : ( Model, Shared ) -> ( Model, Shared, Cmd Msg )
-                updateFilterSnipbits ( model, shared ) =
-                    ( { model | contentFilterSnipbits = not model.contentFilterSnipbits }
-                    , shared
-                    , Cmd.none
-                    )
+                updateFilterSnipbits (Common common) ( model, shared ) =
+                    common.justSetModel { model | contentFilterSnipbits = not model.contentFilterSnipbits }
             in
                 if (not model.contentFilterBigbits) && (not model.contentFilterStories) then
-                    doNothing
+                    common.doNothing
                 else
                     common.handleAll
                         [ updateFilterSnipbits
@@ -105,15 +107,11 @@ update ({ doNothing, justSetShared, justUpdateModel, justSetModel, justProduceCm
 
         ToggleContentFilterBigbits ->
             let
-                updateFilterBigbits : ( Model, Shared ) -> ( Model, Shared, Cmd Msg )
-                updateFilterBigbits ( model, shared ) =
-                    ( { model | contentFilterBigbits = not model.contentFilterBigbits }
-                    , shared
-                    , Cmd.none
-                    )
+                updateFilterBigbits (Common common) ( model, shared ) =
+                    common.justSetModel { model | contentFilterBigbits = not model.contentFilterBigbits }
             in
                 if (not model.contentFilterSnipbits) && (not model.contentFilterStories) then
-                    doNothing
+                    common.doNothing
                 else
                     common.handleAll
                         [ updateFilterBigbits
@@ -122,15 +120,11 @@ update ({ doNothing, justSetShared, justUpdateModel, justSetModel, justProduceCm
 
         ToggleContentFilterStories ->
             let
-                updateFilterStories : ( Model, Shared ) -> ( Model, Shared, Cmd Msg )
-                updateFilterStories ( model, shared ) =
-                    ( { model | contentFilterStories = not model.contentFilterStories }
-                    , shared
-                    , Cmd.none
-                    )
+                updateFilterStories (Common common) ( model, shared ) =
+                    common.justSetModel { model | contentFilterStories = not model.contentFilterStories }
             in
                 if (not model.contentFilterSnipbits) && (not model.contentFilterBigbits) then
-                    doNothing
+                    common.doNothing
                 else
                     common.handleAll
                         [ updateFilterStories
@@ -139,12 +133,8 @@ update ({ doNothing, justSetShared, justUpdateModel, justSetModel, justProduceCm
 
         SetIncludeEmptyStories includeEmptyStories ->
             let
-                updateIncludeEmptyStories : ( Model, Shared ) -> ( Model, Shared, Cmd Msg )
-                updateIncludeEmptyStories ( model, shared ) =
-                    ( { model | contentFilterIncludeEmptyStories = includeEmptyStories }
-                    , shared
-                    , Cmd.none
-                    )
+                updateIncludeEmptyStories (Common common) ( model, shared ) =
+                    common.justSetModel { model | contentFilterIncludeEmptyStories = includeEmptyStories }
             in
                 common.handleAll
                     [ updateIncludeEmptyStories
@@ -153,39 +143,45 @@ update ({ doNothing, justSetShared, justUpdateModel, justSetModel, justProduceCm
 
         SelectLanguage maybeLanguage ->
             common.handleAll
-                [ (\( model, shared ) -> ( { model | contentFilterLanguage = maybeLanguage }, shared, Cmd.none ))
+                [ (\(Common common) ( model, shared ) ->
+                    common.justSetModel { model | contentFilterLanguage = maybeLanguage }
+                  )
                 , performSearch True
                 ]
 
         OnUpdateContentFilterAuthor newAuthorInput ->
-            common.handleAll
-                [ -- We always update the model.
-                  (\( model, shared ) ->
-                    ( { model | contentFilterAuthor = ( newAuthorInput, Nothing ) }
-                    , shared
-                    , Cmd.none
-                    )
-                  )
+            let
+                wasAuthor =
+                    model.contentFilterAuthor
+                        |> Tuple.second
+                        |> Util.isNotNothing
+            in
+                common.handleAll
+                    [ -- We always update the model.
+                      (\(Common common) ( model, shared ) ->
+                        common.justSetModel { model | contentFilterAuthor = ( newAuthorInput, Nothing ) }
+                      )
 
-                -- We only need to perform a search if their was an author before and we just cleared it.
-                , (\( chainedModel, chainedShared ) ->
-                    if Util.isNotNothing <| Tuple.second model.contentFilterAuthor then
-                        performSearch True ( chainedModel, chainedShared )
-                    else
-                        ( chainedModel, chainedShared, Cmd.none )
-                  )
+                    -- We only need to perform a search if their was an author before and we just cleared it.
+                    , (\(Common common) ( model, shared ) ->
+                        if wasAuthor then
+                            common.handleAll [ performSearch True ]
+                        else
+                            common.doNothing
+                      )
 
-                -- We need to check if the new input is a valid email, unless the new input is an empty string.
-                , (\( chainedModel, chainedShared ) ->
-                    if String.isEmpty newAuthorInput then
-                        ( chainedModel, chainedShared, Cmd.none )
-                    else
-                        ( chainedModel
-                        , chainedShared
-                        , api.get.userExistsWrapper newAuthorInput OnGetUserExistsFailure OnGetUserExistsSuccess
-                        )
-                  )
-                ]
+                    -- We need to check if the new input is a valid email, unless the new input is an empty string.
+                    , (\(Common common) ( model, shared ) ->
+                        if String.isEmpty newAuthorInput then
+                            common.doNothing
+                        else
+                            common.justProduceCmd <|
+                                common.api.get.userExists
+                                    newAuthorInput
+                                    OnGetUserExistsFailure
+                                    (OnGetUserExistsSuccess << ((,) newAuthorInput))
+                      )
+                    ]
 
         OnGetUserExistsFailure apiError ->
             common.justSetModalError apiError
@@ -195,34 +191,31 @@ update ({ doNothing, justSetShared, justUpdateModel, justSetModel, justProduceCm
             if forEmail == (Tuple.first model.contentFilterAuthor) then
                 common.handleAll
                     [ -- We always update the model.
-                      (\( model, shared ) ->
-                        ( { model | contentFilterAuthor = newContentFilterAuthor }, shared, Cmd.none )
+                      (\(Common common) ( model, shared ) ->
+                        common.justSetModel { model | contentFilterAuthor = newContentFilterAuthor }
                       )
 
                     -- If a valid email has been past then we perform a search (with the user filter).
-                    , (\( chainedModel, chainedShared ) ->
+                    , (\(Common common) ( model, shared ) ->
                         if Util.isNotNothing maybeID then
-                            performSearch True ( chainedModel, chainedShared )
+                            common.handleAll [ performSearch True ]
                         else
-                            ( chainedModel, chainedShared, Cmd.none )
+                            common.doNothing
                       )
                     ]
             else
-                doNothing
+                common.doNothing
 
 
 {-| Performs a search based on `initialSearch` and the current model, handles updating the model.
 -}
-performSearch : Bool -> ( Model, Shared ) -> ( Model, Shared, Cmd Msg )
-performSearch initialSearch ( model, shared ) =
+performSearch : Bool -> CommonSubPageUtil Model Shared Msg -> ( Model, Shared ) -> ( Model, Shared, Cmd Msg )
+performSearch initialSearch (Common common) ( model, shared ) =
     let
-        api =
-            Api.api shared.flags.apiBaseUrl
-
         {- Get's the content with specific query params. -}
-        getContent : List ( String, Maybe String ) -> Cmd Msg
+        getContent : QueryParams -> Cmd Msg
         getContent queryParams =
-            api.get.content queryParams OnGetContentFailure OnGetContentSuccess
+            common.api.get.content queryParams OnGetContentFailure OnGetContentSuccess
 
         toJSBool bool =
             if bool then

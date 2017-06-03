@@ -1,0 +1,219 @@
+@import '../../Styles/variables';
+@import '../../Styles/mixins';
+
+
+.view-question {
+
+    .top-bar, .extended-top-bar {
+        position: absolute;
+        top: 0;
+        left: 0;
+        height: 30px;
+
+        .tab {
+            box-sizing: border-box;
+            border: 1px solid $color13;
+            height: 28px;
+            line-height: 28px;
+            font-size: 16px;
+            width: 120px;
+            display: inline-block;
+            text-align: center;
+            cursor: pointer;
+            color: $color8;
+
+            &.selected {
+                color: $color6;
+            }
+
+            &.center-tab {
+                margin: 0 1px 0 1px;
+                width: 118px;
+            }
+        }
+    }
+
+    .extended-top-bar {
+        top: 29px;
+
+        .tab {
+            width: 180px;
+
+            &.left-tab {
+                margin-right: 1px;
+                width: 179px;
+            }
+        }
+    }
+
+    .question-tab {
+        .question-markdown {
+            margin-top: 30px;
+            height: 545px;
+            width: 360px;
+        }
+    }
+
+    .answers-tab {
+        width: 100%;
+        height: 100%;
+
+        .answers-box {
+            box-sizing: border-box;
+            margin-top: 30px;
+            height: 540px;
+            width: 360px;
+            border: 1px solid $color9;
+            overflow: hidden;
+
+            .no-answers-text {
+                box-sizing: border-box;
+                position: relative;
+                color: $color5;
+                top: 200px;
+                text-align: center;
+                font-size: 26px;
+            }
+
+            .answers {
+                width: 360px;
+                height: 530px;
+                overflow-x: hidden;
+                overflow-y: scroll; // Scroll is hidden anyway, just keeps widths consistent.
+                padding-right: 200px;
+                padding-top: 10px;
+            }
+        }
+
+        .answer-question {
+            position: absolute;
+            top: 575px;
+            left: 0;
+            width: 360px;
+            height: 25px;
+            background-color: $color7;
+            color: white;
+            text-align: center;
+            font-size: 16px;
+            line-height: 25px;
+            cursor: pointer;
+        }
+    }
+
+    .answer-tab {
+        .answer-markdown {
+            height: 515px;
+            margin-top: 60px;
+
+        }
+    }
+
+    .reactive-bottom-bar {
+        position: absolute;
+        display: block;
+        top: 580px;
+        height: 30px;
+        width: 360px;
+
+        .like, .dislike, .like-count, .dislike-count, .pin-icon, .edit-icon, .delete-icon {
+            @include no-select();
+
+            text-align: left;
+            display: inline-block;
+            float: right;
+            color: $color4;
+            font-size: 20px;
+            line-height: 20px;
+            cursor: pointer;
+
+            &.selected {
+                color: $color6;
+            }
+        }
+
+        .like-count {
+            margin-right: 10px;
+        }
+
+        .like, .dislike {
+            margin-right: 3px;
+        }
+
+        .pin-icon, .edit-icon, .delete-icon {
+            float: left;
+
+            &.unclickable {
+                cursor: default;
+            }
+        }
+
+        .delete-icon {
+            &.warning-mode {
+                color: $error-color1;
+            }
+        }
+    }
+}
+
+.answer-box {
+    @include light-box-shadow();
+    box-sizing: border-box;
+    position: relative;
+    display: block;
+    width: 340px;
+    margin-bottom: 10px;
+    margin-left: 9px;
+    min-height: 50px;
+    cursor: pointer;
+
+    .answer-text {
+        box-sizing: border-box;
+        position: relative;
+        display: block;
+        width: 100%;
+        padding: 10px;
+        word-wrap: break-word;
+        hyphens: auto;
+    }
+
+    .bottom-bar {
+        position: relative;
+        display: block;
+        box-sizing: border-box;
+        bottom: 0;
+        width: 100%;
+        height: 20px;
+
+        .dislike-count, .like-count, .dislike, .like, .pinned {
+            line-height: 20px;
+            color: $color4;
+            float: right;
+            display: inline-block;
+            font-size: 16px;
+        }
+
+        .dislike, .like {
+            margin-right: 3px;
+        }
+
+        .dislike-count, .like-count {
+            margin-right: 5px;
+        }
+
+        .pinned {
+            margin-right: 6px;
+        }
+
+        .email {
+            float: left;
+            margin-left: 5px;
+            font-size: 10px;
+            color: $color8;
+            line-height: 20px;
+        }
+    }
+
+    &:hover {
+        @include strong-box-shadow();
+    }
+}

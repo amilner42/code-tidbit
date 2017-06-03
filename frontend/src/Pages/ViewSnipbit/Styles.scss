@@ -1,3 +1,6 @@
+@import '../../Styles/global';
+
+
 .view-snipbit-page {
     height: 100%;
 
@@ -11,5 +14,17 @@
 
     #code-editor-wrapper {
         padding-left: 0;
+    }
+
+    .comment-block {
+        .view-questions {
+            height: 570px;
+            width: 360px;
+            position: absolute;
+            top: 0;
+            box-sizing: border-box;
+            border: 1px solid $color9;
+            padding: 8px;
+        }
     }
 }

@@ -1,9 +1,10 @@
 module DefaultServices.Util exposing (..)
 
 import Date
+import DefaultServices.InfixFunctions exposing (..)
 import Dict
 import Dom
-import Elements.Markdown exposing (githubMarkdown)
+import Elements.Simple.Markdown as Markdown
 import Html exposing (Html, Attribute, div, i, text)
 import Html.Attributes exposing (hidden, class)
 import Html.Events exposing (Options, on, onWithOptions, keyCode, defaultOptions, targetValue)
@@ -11,6 +12,7 @@ import Html.Keyed as Keyed
 import Json.Decode as Decode
 import Json.Encode as Encode
 import Keyboard.Extra as KK
+import ProjectTypeAliases exposing (..)
 import Set
 import Task
 
@@ -195,7 +197,7 @@ Eg.
   [("path", Just "asdf"), ("bla", Just "bla")] -> "?path=asdf&bla=bla"
 
 -}
-queryParamsToString : List ( String, Maybe String ) -> String
+queryParamsToString : QueryParams -> String
 queryParamsToString listOfMaybeQueryParams =
     listOfMaybeQueryParams
         |> List.foldl
@@ -221,14 +223,16 @@ justNonEmptyString string =
         Just string
 
 
-{-| Returns true if a string is empty or just spaces.
+{-| Returns true if a string is empty or just spaces and newlines.
 -}
 isBlankString : String -> Bool
 isBlankString =
-    String.isEmpty << String.filter ((/=) ' ')
+    String.isEmpty << String.filter (\char -> char /= ' ' && char /= '\n')
 
 
-{-| If the string is blank (empty || just spaces) returns `Nothing`, otherwise `Just` the string.
+{-| If the string is blank returns `Nothing`, otherwise `Just` the string.
+
+@refer `isBlankString`
 -}
 justNonBlankString : String -> Maybe String
 justNonBlankString string =
@@ -250,6 +254,16 @@ justStringInRange lower upper string =
             Just string
         else
             Nothing
+
+
+{-| Checks that a string isn't blank and is within a specific range.
+
+@refer `justStringInRange`
+@refer `justNonBlankString`
+-}
+justNonblankStringInRange : Int -> Int -> String -> Maybe String
+justNonblankStringInRange lower upper string =
+    justStringInRange lower upper string |||> justNonBlankString
 
 
 {-| If the list is empty, returns `Nothing`, otherwise `Just` the list.
@@ -374,7 +388,7 @@ emptyFlexBoxesForAlignment =
 markdownOr : Bool -> String -> Html msg -> Html msg
 markdownOr condition markdownText backUpHtml =
     if condition then
-        githubMarkdown [] markdownText
+        Markdown.view [] markdownText
     else
         backUpHtml
 
@@ -409,3 +423,10 @@ limitCharsText limit string =
     div
         [ class "char-count" ]
         [ text <| (toString <| String.length string) ++ " / " ++ (toString limit) ]
+
+
+{-| Similar to `classList`, but for attributes, and using `Maybe` instead of a tuple.
+-}
+maybeAttributes : List (Maybe (Attribute msg)) -> List (Attribute msg)
+maybeAttributes =
+    List.filterMap identity

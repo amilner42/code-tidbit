@@ -62,6 +62,15 @@ setBuffer editable newBuffer =
             Editing { values | buffer = newBuffer }
 
 
+{-| For updating the buffer, same as calling `getBuffer` and then `setBuffer`.
+-}
+updateBuffer : Editable ofType -> (ofType -> ofType) -> Editable ofType
+updateBuffer editable bufferUpdater =
+    getBuffer editable
+        |> bufferUpdater
+        |> setBuffer editable
+
+
 {-| Creates an editable being edited.
 -}
 newEditing : ofType -> Editable ofType

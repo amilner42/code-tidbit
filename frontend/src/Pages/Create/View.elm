@@ -1,7 +1,7 @@
 module Pages.Create.View exposing (..)
 
 import DefaultServices.Util as Util
-import Elements.Editor exposing (prettyPrintLanguages)
+import Elements.Simple.Editor exposing (prettyPrintLanguages)
 import Html exposing (Html, div, text, button, i)
 import Html.Attributes exposing (class, classList)
 import Html.Events exposing (onClick)

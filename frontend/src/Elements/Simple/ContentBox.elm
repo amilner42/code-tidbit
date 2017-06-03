@@ -1,7 +1,7 @@
-module Elements.ContentBox exposing (..)
+module Elements.Simple.ContentBox exposing (..)
 
 import DefaultServices.Util as Util
-import Elements.Editor exposing (prettyPrintLanguages)
+import Elements.Simple.Editor exposing (prettyPrintLanguages)
 import Html exposing (Html, div, text, i)
 import Html.Attributes exposing (class, classList)
 import Html.Events exposing (onClick)
@@ -9,8 +9,6 @@ import Models.Content exposing (..)
 import Models.Route as Route
 
 
-{-| All the config for rendering some content.
--}
 type alias RenderConfig msg =
     { goToMsg : Route.Route -> msg
     , darkenBox : Bool
@@ -18,10 +16,8 @@ type alias RenderConfig msg =
     }
 
 
-{-| A fully-styled content box.
--}
-contentBox : RenderConfig msg -> Content -> Html msg
-contentBox { goToMsg, darkenBox, forStory } content =
+view : RenderConfig msg -> Content -> Html msg
+view { goToMsg, darkenBox, forStory } content =
     div
         [ classList
             [ ( "content-box", True )

@@ -1,7 +1,7 @@
-module Elements.ProgressBar exposing (..)
+module Elements.Simple.ProgressBar exposing (..)
 
 import DefaultServices.Util as Util
-import Html exposing (Html, div, text)
+import Html exposing (Html, div, text, i)
 import Html.Attributes exposing (class, classList, style)
 import Html.Events exposing (onClick)
 
@@ -45,9 +45,20 @@ type TextFormat
     | Custom { notStarted : String, started : Int -> String, done : String }
 
 
-{-| The config for rendering a progress bar.
+{-| We apply different styling depending on what's completed.
+-}
+type CompletedFor
+    = Tidbit
+    | Story
 
-NOTE: `shiftLeft` will make the `Completed` state 100% of the bar and x/x frames will render (x-1/x)% of the bar.
+
+{-| For specifying whether a user has already fully finished a tidbit/story.
+-}
+type alias CompleteConfig =
+    { complete : Bool, for : CompletedFor }
+
+
+{-| NOTE: `shiftLeft` will make the `Completed` state 100% of the bar and x/x frames will render (x-1/x)% of the bar.
 -}
 type alias RenderConfig msg =
     { state : State
@@ -57,13 +68,12 @@ type alias RenderConfig msg =
     , allowClick : Bool
     , textFormat : TextFormat
     , shiftLeft : Bool
+    , alreadyComplete : CompleteConfig
     }
 
 
-{-| Builds a progress bar with an additional click event if `allowClick`.
--}
-progressBar : RenderConfig msg -> Html msg
-progressBar { state, maxPosition, disabledStyling, onClickMsg, allowClick, textFormat, shiftLeft } =
+view : RenderConfig msg -> Html msg
+view { state, maxPosition, disabledStyling, onClickMsg, allowClick, textFormat, shiftLeft, alreadyComplete } =
     let
         percentComplete =
             case state of
@@ -118,5 +128,29 @@ progressBar { state, maxPosition, disabledStyling, onClickMsg, allowClick, textF
 
                                 Completed ->
                                     done
+                ]
+            , div
+                [ classList
+                    [ ( "completion-symbol", True )
+                    , ( "hidden", not alreadyComplete.complete )
+                    , ( "for-story"
+                      , case alreadyComplete.for of
+                            Story ->
+                                True
+
+                            _ ->
+                                False
+                      )
+                    ]
+                ]
+                [ i [ class "material-icons" ]
+                    [ text <|
+                        case alreadyComplete.for of
+                            Story ->
+                                "done_all"
+
+                            Tidbit ->
+                                "done"
+                    ]
                 ]
             ]

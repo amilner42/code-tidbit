@@ -1,6 +1,6 @@
 module Pages.DevelopStory.Update exposing (..)
 
-import DefaultServices.CommonSubPageUtil exposing (CommonSubPageUtil)
+import DefaultServices.CommonSubPageUtil exposing (CommonSubPageUtil(..))
 import DefaultServices.Util as Util exposing (maybeMapWithDefault)
 import Models.Route as Route
 import Models.Tidbit as Tidbit
@@ -13,13 +13,13 @@ import Ports
 {-| `DevelopStory` update.
 -}
 update : CommonSubPageUtil Model Shared Msg -> Msg -> Model -> Shared -> ( Model, Shared, Cmd Msg )
-update ({ doNothing, justSetShared, justSetModel, justUpdateModel, justProduceCmd, api } as common) msg model shared =
+update (Common common) msg model shared =
     case msg of
         NoOp ->
-            doNothing
+            common.doNothing
 
         GoTo route ->
-            justProduceCmd <| Route.navigateTo route
+            common.justProduceCmd <| Route.navigateTo route
 
         OnRouteHit route ->
             case route of
@@ -42,11 +42,11 @@ update ({ doNothing, justSetShared, justSetModel, justUpdateModel, justProduceCm
                       }
                     , shared
                     , Cmd.batch
-                        [ api.get.expandedStory storyID OnGetStoryFailure OnGetStorySuccess
+                        [ common.api.get.expandedStory storyID OnGetStoryFailure OnGetStorySuccess
                         , maybeMapWithDefault
                             (\{ id } ->
                                 if Util.isNothing shared.userTidbits then
-                                    api.get.tidbits [ ( "author", Just id ) ] OnGetTidbitsFailure OnGetTidbitsSuccess
+                                    common.api.get.tidbits [ ( "author", Just id ) ] OnGetTidbitsFailure OnGetTidbitsSuccess
                                 else
                                     Cmd.none
                             )
@@ -58,47 +58,47 @@ update ({ doNothing, justSetShared, justSetModel, justUpdateModel, justProduceCm
                     )
 
                 _ ->
-                    doNothing
+                    common.doNothing
 
         OnGetStorySuccess expandedStory ->
             maybeMapWithDefault
                 (\{ id } ->
                     -- If this is indeed the author, then stay on page, otherwise redirect.
                     if id == expandedStory.author then
-                        justUpdateModel <| setStory expandedStory
+                        common.justUpdateModel <| setStory expandedStory
                     else
-                        justProduceCmd <| Route.modifyTo Route.CreatePage
+                        common.justProduceCmd <| Route.modifyTo Route.CreatePage
                 )
-                doNothing
+                common.doNothing
                 shared.user
 
         OnGetStoryFailure apiError ->
             common.justSetModalError apiError
 
         OnGetTidbitsSuccess tidbits ->
-            justSetShared { shared | userTidbits = Just tidbits }
+            common.justSetShared { shared | userTidbits = Just tidbits }
 
         OnGetTidbitsFailure apiError ->
             -- Handle error.
-            doNothing
+            common.doNothing
 
         AddTidbit tidbit ->
-            justUpdateModel <| addTidbit tidbit
+            common.justUpdateModel <| addTidbit tidbit
 
         RemoveTidbit tidbit ->
-            justUpdateModel <| removeTidbit tidbit
+            common.justUpdateModel <| removeTidbit tidbit
 
         PublishAddedTidbits storyID tidbits ->
             if List.length tidbits > 0 then
-                justProduceCmd <|
-                    api.post.addTidbitsToStory
+                common.justProduceCmd <|
+                    common.api.post.addTidbitsToStory
                         storyID
                         (List.map Tidbit.compressTidbit tidbits)
                         OnPublishAddedTidbitsFailure
                         OnPublishAddedTidbitsSuccess
             else
                 -- Should never happen.
-                doNothing
+                common.doNothing
 
         OnPublishAddedTidbitsSuccess expandedStory ->
             ( { model

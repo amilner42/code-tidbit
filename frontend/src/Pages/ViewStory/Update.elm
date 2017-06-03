@@ -1,9 +1,9 @@
 module Pages.ViewStory.Update exposing (..)
 
 import Api
-import DefaultServices.CommonSubPageUtil exposing (CommonSubPageUtil, commonSubPageUtil)
+import DefaultServices.CommonSubPageUtil exposing (CommonSubPageUtil(..), commonSubPageUtil)
 import Models.ContentPointer as ContentPointer
-import Models.Opinion exposing (toPossibleOpinion)
+import Models.Opinion exposing (toPossibleOpinion, PossibleOpinion)
 import Models.Route as Route
 import Pages.Model exposing (Shared)
 import Pages.ViewStory.Messages exposing (..)
@@ -14,13 +14,13 @@ import Ports
 {-| `ViewStory` update.
 -}
 update : CommonSubPageUtil Model Shared Msg -> Msg -> Model -> Shared -> ( Model, Shared, Cmd Msg )
-update ({ doNothing, justSetModel, justProduceCmd, justSetShared, justSetModalError, api } as common) msg model shared =
+update (Common common) msg model shared =
     case msg of
         NoOp ->
-            doNothing
+            common.doNothing
 
         GoTo route ->
-            justProduceCmd <| Route.navigateTo route
+            common.justProduceCmd <| Route.navigateTo route
 
         OnRouteHit route ->
             case route of
@@ -31,12 +31,12 @@ update ({ doNothing, justSetModel, justProduceCmd, justSetShared, justSetModalEr
                 Route.ViewStoryPage mongoID ->
                     let
                         -- Fetches the story.
-                        getStory ( model, shared ) =
+                        getStory (Common common) ( model, shared ) =
                             ( model
                             , { shared | viewingStory = Nothing }
                             , Cmd.batch
                                 [ Ports.smoothScrollToSubBar
-                                , api.get.expandedStoryWithCompleted
+                                , common.api.get.expandedStoryWithCompleted
                                     mongoID
                                     OnGetExpandedStoryFailure
                                     OnGetExpandedStorySuccess
@@ -44,11 +44,8 @@ update ({ doNothing, justSetModel, justProduceCmd, justSetShared, justSetModalEr
                             )
 
                         -- Fetch's the opinion if needed.
-                        getOpinion ( model, shared ) =
+                        getOpinion (Common common) ( model, shared ) =
                             let
-                                { doNothing } =
-                                    commonSubPageUtil model shared
-
                                 contentPointer =
                                     { contentType = ContentPointer.Story
                                     , contentID = mongoID
@@ -57,16 +54,16 @@ update ({ doNothing, justSetModel, justProduceCmd, justSetShared, justSetModalEr
                                 getOpinion =
                                     ( { model | possibleOpinion = Nothing }
                                     , shared
-                                    , api.get.opinionWrapper
+                                    , common.api.get.opinion
                                         contentPointer
                                         OnGetOpinionFailure
-                                        OnGetOpinionSuccess
+                                        (OnGetOpinionSuccess << PossibleOpinion contentPointer)
                                     )
                             in
                                 case ( shared.user, model.possibleOpinion ) of
                                     ( Just user, Just { contentPointer, rating } ) ->
                                         if contentPointer.contentID == mongoID then
-                                            doNothing
+                                            common.doNothing
                                         else
                                             getOpinion
 
@@ -74,7 +71,7 @@ update ({ doNothing, justSetModel, justProduceCmd, justSetShared, justSetModalEr
                                         getOpinion
 
                                     _ ->
-                                        doNothing
+                                        common.doNothing
                     in
                         common.handleAll
                             [ getStory
@@ -82,36 +79,36 @@ update ({ doNothing, justSetModel, justProduceCmd, justSetShared, justSetModalEr
                             ]
 
                 _ ->
-                    doNothing
+                    common.doNothing
 
         OnGetExpandedStorySuccess expandedStory ->
-            justSetShared <| { shared | viewingStory = Just expandedStory }
+            common.justSetShared <| { shared | viewingStory = Just expandedStory }
 
         OnGetExpandedStoryFailure apiError ->
-            justSetModalError apiError
+            common.justSetModalError apiError
 
         OnGetOpinionSuccess possibleOpinion ->
-            justSetModel { model | possibleOpinion = Just possibleOpinion }
+            common.justSetModel { model | possibleOpinion = Just possibleOpinion }
 
         OnGetOpinionFailure apiError ->
             common.justSetModalError apiError
 
         AddOpinion opinion ->
-            justProduceCmd <|
-                api.post.addOpinionWrapper opinion OnAddOpinionFailure OnAddOpinionSuccess
+            common.justProduceCmd <|
+                common.api.post.addOpinion opinion OnAddOpinionFailure (always <| OnAddOpinionSuccess opinion)
 
         OnAddOpinionSuccess opinion ->
-            justSetModel { model | possibleOpinion = Just <| toPossibleOpinion opinion }
+            common.justSetModel { model | possibleOpinion = Just <| toPossibleOpinion opinion }
 
         OnAddOpinionFailure apiError ->
             common.justSetModalError apiError
 
         RemoveOpinion opinion ->
-            justProduceCmd <|
-                api.post.removeOpinionWrapper opinion OnRemoveOpinionFailure OnRemoveOpinionSuccess
+            common.justProduceCmd <|
+                common.api.post.removeOpinion opinion OnRemoveOpinionFailure (always <| OnRemoveOpinionSuccess opinion)
 
         OnRemoveOpinionSuccess { contentPointer } ->
-            justSetModel
+            common.justSetModel
                 { model
                     | possibleOpinion = Just { contentPointer = contentPointer, rating = Nothing }
                 }

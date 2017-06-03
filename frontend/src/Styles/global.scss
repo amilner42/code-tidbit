@@ -77,6 +77,18 @@ textarea:focus {
     display: inline-block;
 }
 
+.cursor-not-allowed {
+    cursor: not-allowed !important;
+}
+
+.cursor-progress {
+    cursor: progress !important;
+}
+
+.cursor-default {
+    cursor: default !important;
+}
+
 .flex-box {
     display: flex;
     flex-wrap: wrap;
@@ -164,14 +176,16 @@ textarea {
         }
 
         &.heart-button {
-            width: 150px;
+            width: 130px;
             display: inline-block;
+            float: left;
         }
 
-        &.view-relevant-ranges {
+        &.view-relevant-ranges, &.view-relevant-questions, &.ask-question, &.view-all-questions {
             width: 150px !important;
             float: right;
             margin-right: 10px;
+            margin-left: 0;
             background-color: $color1;
             color: white;
 
@@ -180,12 +194,21 @@ textarea {
             }
         }
 
+        &.ask-question {
+            width: 100px !important;
+        }
+
+        &.view-relevant-questions {
+            width: 160px !important;
+        }
+
         &.previous-frame-location {
             width: 160px;
         }
 
         &.complete-button {
-            width: 180px;
+            width: 170px;
+            float: left;
         }
 
         &.next-tidbit-button {
@@ -545,5 +568,20 @@ textarea {
             color: white;
             border-color: $color1;
         }
+    }
+}
+
+.link {
+    font-size: 12px;
+    color: $color1;
+    font-style: italic;
+    cursor: pointer;
+    opacity: 0.75;
+    text-decoration: underline;
+
+    &.qa-top-right-link {
+        position: absolute !important;
+        top: -16px !important;
+        right: 0 !important;
     }
 }

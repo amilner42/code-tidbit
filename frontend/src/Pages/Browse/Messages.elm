@@ -1,6 +1,6 @@
 module Pages.Browse.Messages exposing (..)
 
-import Elements.Editor exposing (Language)
+import Elements.Simple.Editor exposing (Language)
 import Models.ApiError exposing (ApiError)
 import Models.Content exposing (Content)
 import Models.Route exposing (Route)

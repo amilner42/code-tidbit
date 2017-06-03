@@ -1,6 +1,6 @@
 module JSON.Language exposing (..)
 
-import Elements.Editor exposing (..)
+import Elements.Simple.Editor exposing (..)
 import Json.Decode as Decode
 import Json.Decode.Pipeline exposing (decode, required, optional, hardcoded)
 import Json.Encode as Encode

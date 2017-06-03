@@ -9,6 +9,7 @@ import Models.User exposing (User)
 -}
 type Msg
     = GoTo Route
+    | OnRouteHit Route
     | Register
     | OnRegisterSuccess User
     | OnRegisterFailure ApiError
