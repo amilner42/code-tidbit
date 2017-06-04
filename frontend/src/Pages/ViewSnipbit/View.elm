@@ -225,14 +225,14 @@ view model shared =
                                 else
                                     case shared.route of
                                         Route.ViewSnipbitConclusionPage fromStoryID mongoID ->
-                                            JumpToFrame <|
+                                            GoTo <|
                                                 Route.ViewSnipbitFramePage
                                                     fromStoryID
                                                     mongoID
                                                     (Array.length snipbit.highlightedComments)
 
                                         Route.ViewSnipbitFramePage fromStoryID mongoID frameNumber ->
-                                            JumpToFrame <|
+                                            GoTo <|
                                                 Route.ViewSnipbitFramePage
                                                     fromStoryID
                                                     mongoID
@@ -359,10 +359,10 @@ view model shared =
                                 else
                                     case shared.route of
                                         Route.ViewSnipbitIntroductionPage fromStoryID mongoID ->
-                                            JumpToFrame <| Route.ViewSnipbitFramePage fromStoryID mongoID 1
+                                            GoTo <| Route.ViewSnipbitFramePage fromStoryID mongoID 1
 
                                         Route.ViewSnipbitFramePage fromStoryID mongoID frameNumber ->
-                                            JumpToFrame <|
+                                            GoTo <|
                                                 Route.ViewSnipbitFramePage fromStoryID mongoID (frameNumber + 1)
 
                                         _ ->
@@ -439,7 +439,7 @@ commentBox snipbit model shared =
                                     , onClick
                                         (Array.get index relevantHC
                                             |> Maybe.map
-                                                (JumpToFrame
+                                                (GoTo
                                                     << Route.ViewSnipbitFramePage
                                                         (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
                                                         snipbit.id

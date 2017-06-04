@@ -661,12 +661,6 @@ update (Common common) msg model shared =
                     shared.user
                 )
 
-        JumpToFrame route ->
-            ( setViewingSnipbitRelevantHC Nothing model
-            , shared
-            , Route.navigateTo route
-            )
-
         OnMarkAsCompleteSuccess isCompleted ->
             common.justUpdateModel <| setViewingSnipbitIsCompleted <| Just isCompleted
 
