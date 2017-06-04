@@ -49,7 +49,6 @@ type Msg
     | BrowseRelevantHC
     | NextRelevantHC
     | PreviousRelevantHC
-    | JumpToFrame Route
     | OnMarkAsCompleteSuccess IsCompleted
     | OnMarkAsCompleteFailure ApiError
     | BackToTutorialSpot

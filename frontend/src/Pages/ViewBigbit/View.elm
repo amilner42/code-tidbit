@@ -259,7 +259,7 @@ view model shared =
                                     if goingThroughTutorial then
                                         case currentRoute of
                                             Route.ViewBigbitConclusionPage fromStoryID mongoID _ ->
-                                                JumpToFrame <|
+                                                GoTo <|
                                                     Route.ViewBigbitFramePage
                                                         fromStoryID
                                                         mongoID
@@ -267,7 +267,7 @@ view model shared =
                                                         Nothing
 
                                             Route.ViewBigbitFramePage fromStoryID mongoID frameNumber _ ->
-                                                JumpToFrame <|
+                                                GoTo <|
                                                     Route.ViewBigbitFramePage
                                                         fromStoryID
                                                         mongoID
@@ -283,7 +283,7 @@ view model shared =
                             , div
                                 [ onClick <|
                                     if goingThroughTutorial then
-                                        JumpToFrame <|
+                                        GoTo <|
                                             Route.ViewBigbitIntroductionPage
                                                 (Route.getFromStoryQueryParamOnViewBigbitRoute currentRoute)
                                                 bigbit.id
@@ -339,7 +339,7 @@ view model shared =
                             , div
                                 [ onClick <|
                                     if goingThroughTutorial then
-                                        JumpToFrame <|
+                                        GoTo <|
                                             Route.ViewBigbitConclusionPage
                                                 (Route.getFromStoryQueryParamOnViewBigbitRoute currentRoute)
                                                 bigbit.id
@@ -379,11 +379,11 @@ view model shared =
                                     if goingThroughTutorial then
                                         case currentRoute of
                                             Route.ViewBigbitIntroductionPage fromStoryID mongoID _ ->
-                                                JumpToFrame <|
+                                                GoTo <|
                                                     Route.ViewBigbitFramePage fromStoryID mongoID 1 Nothing
 
                                             Route.ViewBigbitFramePage fromStoryID mongoID frameNumber _ ->
-                                                JumpToFrame <|
+                                                GoTo <|
                                                     Route.ViewBigbitFramePage
                                                         fromStoryID
                                                         mongoID
@@ -516,7 +516,7 @@ viewBigbitCommentBox bigbit model shared =
                                             , onClick
                                                 (Array.get index rhc.relevantHC
                                                     |> maybeMapWithDefault
-                                                        (JumpToFrame
+                                                        (GoTo
                                                             << (\frameNumber ->
                                                                     Route.ViewBigbitFramePage
                                                                         (Route.getFromStoryQueryParamOnViewBigbitRoute shared.route)
