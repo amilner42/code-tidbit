@@ -47,10 +47,8 @@ type Msg
     | ToggleFolder FS.Path
     | SelectFile FS.Path
     | BrowseRelevantHC
-    | CancelBrowseRelevantHC
     | NextRelevantHC
     | PreviousRelevantHC
-    | JumpToFrame Route
     | OnMarkAsCompleteSuccess IsCompleted
     | OnMarkAsCompleteFailure ApiError
     | BackToTutorialSpot

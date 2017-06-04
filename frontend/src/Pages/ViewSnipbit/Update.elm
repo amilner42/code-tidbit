@@ -631,10 +631,6 @@ update (Common common) msg model shared =
                     shared.user
                 )
 
-        CancelBrowseRelevantHC ->
-            common.justProduceCmd <|
-                Route.modifyTo shared.route
-
         NextRelevantHC ->
             let
                 newModel =
@@ -660,12 +656,6 @@ update (Common common) msg model shared =
                     newModel.relevantHC
                     shared.user
                 )
-
-        JumpToFrame route ->
-            ( setViewingSnipbitRelevantHC Nothing model
-            , shared
-            , Route.navigateTo route
-            )
 
         OnMarkAsCompleteSuccess isCompleted ->
             common.justUpdateModel <| setViewingSnipbitIsCompleted <| Just isCompleted

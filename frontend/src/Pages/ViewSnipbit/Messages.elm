@@ -44,10 +44,8 @@ type Msg
     | OnGetExpandedStoryFailure ApiError
     | OnRangeSelected Range
     | BrowseRelevantHC
-    | CancelBrowseRelevantHC
     | NextRelevantHC
     | PreviousRelevantHC
-    | JumpToFrame Route
     | OnMarkAsCompleteSuccess IsCompleted
     | OnMarkAsCompleteFailure ApiError
     | AskQuestion SnipbitID Range QuestionText

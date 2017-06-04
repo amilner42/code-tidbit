@@ -1252,20 +1252,19 @@ isOnViewBigbitTutorialRoute route =
             False
 
 
-{-| Returns true if on one of the viewing bigbit routes which has a file structure.
+{-| Returns true if on one of the viewing bigbit QA routes which has a file structure.
 -}
-isOnViewBigbitRouteWithFS : Route -> Bool
-isOnViewBigbitRouteWithFS route =
-    (isOnViewBigbitTutorialRoute route)
-        || case route of
-            ViewBigbitQuestionsPage _ _ ->
-                True
+isOnViewBigbitQARouteWithFS : Route -> Bool
+isOnViewBigbitQARouteWithFS route =
+    case route of
+        ViewBigbitQuestionsPage _ _ ->
+            True
 
-            ViewBigbitAskQuestion _ _ ->
-                True
+        ViewBigbitAskQuestion _ _ ->
+            True
 
-            ViewBigbitEditQuestion _ _ _ ->
-                True
+        ViewBigbitEditQuestion _ _ _ ->
+            True
 
-            _ ->
-                False
+        _ ->
+            False

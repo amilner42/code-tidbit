@@ -162,26 +162,14 @@ view model shared =
                 , onClick <| BrowseRelevantHC
                 ]
                 [ text "Browse Related Frames" ]
-            , button
-                [ classList
-                    [ ( "sub-bar-button view-relevant-ranges", True )
-                    , ( "hidden"
-                      , not <|
-                            maybeMapWithDefault
-                                ViewerRelevantHC.browsingFrames
-                                False
-                                model.relevantHC
-                      )
-                    ]
-                , onClick <| CancelBrowseRelevantHC
-                ]
-                [ text "Resume Tutorial" ]
             , case Route.getViewingContentID shared.route of
                 Just snipbitID ->
                     button
                         [ classList
                             [ ( "sub-bar-button view-relevant-questions", True )
-                            , ( "hidden", not <| Route.isOnViewSnipbitQARoute shared.route )
+                            , ( "hidden"
+                              , not <| Route.isOnViewSnipbitQARoute shared.route || isViewSnipbitRHCTabOpen model
+                              )
                             ]
                         , onClick <|
                             GoTo <|
@@ -225,14 +213,14 @@ view model shared =
                                 else
                                     case shared.route of
                                         Route.ViewSnipbitConclusionPage fromStoryID mongoID ->
-                                            JumpToFrame <|
+                                            GoTo <|
                                                 Route.ViewSnipbitFramePage
                                                     fromStoryID
                                                     mongoID
                                                     (Array.length snipbit.highlightedComments)
 
                                         Route.ViewSnipbitFramePage fromStoryID mongoID frameNumber ->
-                                            JumpToFrame <|
+                                            GoTo <|
                                                 Route.ViewSnipbitFramePage
                                                     fromStoryID
                                                     mongoID
@@ -359,10 +347,10 @@ view model shared =
                                 else
                                     case shared.route of
                                         Route.ViewSnipbitIntroductionPage fromStoryID mongoID ->
-                                            JumpToFrame <| Route.ViewSnipbitFramePage fromStoryID mongoID 1
+                                            GoTo <| Route.ViewSnipbitFramePage fromStoryID mongoID 1
 
                                         Route.ViewSnipbitFramePage fromStoryID mongoID frameNumber ->
-                                            JumpToFrame <|
+                                            GoTo <|
                                                 Route.ViewSnipbitFramePage fromStoryID mongoID (frameNumber + 1)
 
                                         _ ->
@@ -439,7 +427,7 @@ commentBox snipbit model shared =
                                     , onClick
                                         (Array.get index relevantHC
                                             |> Maybe.map
-                                                (JumpToFrame
+                                                (GoTo
                                                     << Route.ViewSnipbitFramePage
                                                         (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
                                                         snipbit.id

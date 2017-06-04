@@ -730,13 +730,6 @@ update (Common common) msg model shared =
                     shared.user
                 )
 
-        CancelBrowseRelevantHC ->
-            ( setRelevantHC Nothing model
-            , shared
-              -- Trigger route hook again, `modify` because we don't want to have the same page twice in history.
-            , Route.modifyTo shared.route
-            )
-
         NextRelevantHC ->
             let
                 newModel =
@@ -762,12 +755,6 @@ update (Common common) msg model shared =
                     newModel.relevantHC
                     shared.user
                 )
-
-        JumpToFrame route ->
-            ( setRelevantHC Nothing model
-            , shared
-            , Route.navigateTo route
-            )
 
         OnMarkAsCompleteSuccess isCompleted ->
             common.justUpdateModel <| setIsCompleted <| Just isCompleted
