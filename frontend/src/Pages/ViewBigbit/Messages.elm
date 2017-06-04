@@ -47,7 +47,6 @@ type Msg
     | ToggleFolder FS.Path
     | SelectFile FS.Path
     | BrowseRelevantHC
-    | CancelBrowseRelevantHC
     | NextRelevantHC
     | PreviousRelevantHC
     | JumpToFrame Route

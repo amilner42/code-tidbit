@@ -36,8 +36,11 @@ import Pages.ViewBigbit.Model exposing (..)
 view : Model -> Shared -> Html Msg
 view model shared =
     let
+        rhcTabOpen =
+            isBigbitRHCTabOpen model.relevantHC
+
         goingThroughTutorial =
-            Route.isOnViewBigbitTutorialRoute shared.route && (not <| isBigbitRHCTabOpen model.relevantHC)
+            Route.isOnViewBigbitTutorialRoute shared.route && (not rhcTabOpen)
 
         fsOpen =
             fsAllowed && (model.bigbit ||> .fs ||> Bigbit.isFSOpen ?> False)
@@ -207,26 +210,14 @@ view model shared =
                     , onClick BrowseRelevantHC
                     ]
                     [ text "Browse Related Frames" ]
-                , button
-                    [ classList
-                        [ ( "sub-bar-button view-relevant-ranges", True )
-                        , ( "hidden"
-                          , not <|
-                                maybeMapWithDefault
-                                    ViewerRelevantHC.browsingFrames
-                                    False
-                                    model.relevantHC
-                          )
-                        ]
-                    , onClick CancelBrowseRelevantHC
-                    ]
-                    [ text "Resume Tutorial" ]
                 , case Route.getViewingContentID shared.route of
                     Just bigbitID ->
                         button
                             [ classList
                                 [ ( "sub-bar-button view-relevant-questions", True )
-                                , ( "hidden", not <| Route.isOnViewBigbitQARoute shared.route )
+                                , ( "hidden"
+                                  , not <| (Route.isOnViewBigbitQARoute shared.route) || rhcTabOpen
+                                  )
                                 ]
                             , onClick <|
                                 GoTo <|
