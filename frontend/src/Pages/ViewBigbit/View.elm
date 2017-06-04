@@ -59,7 +59,7 @@ view model shared =
         div
             [ classList
                 [ ( "view-bigbit-page", True )
-                , ( "fs-closed", not <| fsAllowed && fsOpen )
+                , ( "fs-closed", not <| fsOpen )
                 ]
             ]
             [ div
@@ -428,7 +428,7 @@ view model shared =
                                 [ classList
                                     [ ( "above-editor-text", True )
                                     , ( "cursor-not-allowed", not fsAllowed )
-                                    , ( "cursor-default", fsAllowed && fsOpen )
+                                    , ( "cursor-default", fsOpen )
                                     ]
                                 , onClick <|
                                     if fsOpen || (not fsAllowed) then
