@@ -36,14 +36,14 @@ import Pages.ViewBigbit.Model exposing (..)
 view : Model -> Shared -> Html Msg
 view model shared =
     let
-        notGoingThroughTutorial =
-            (isBigbitRHCTabOpen model.relevantHC) || (not <| Route.isOnViewBigbitTutorialRoute shared.route)
+        goingThroughTutorial =
+            Route.isOnViewBigbitTutorialRoute shared.route && (not <| isBigbitRHCTabOpen model.relevantHC)
 
         fsOpen =
-            maybeMapWithDefault Bigbit.isFSOpen False (Maybe.map .fs model.bigbit)
+            fsAllowed && (model.bigbit ||> .fs ||> Bigbit.isFSOpen ?> False)
 
-        onRouteWithFS =
-            Route.isOnViewBigbitRouteWithFS shared.route
+        fsAllowed =
+            Route.isOnViewBigbitQARouteWithFS shared.route || goingThroughTutorial
 
         currentRoute =
             shared.route
@@ -59,7 +59,7 @@ view model shared =
         div
             [ classList
                 [ ( "view-bigbit-page", True )
-                , ( "fs-closed", not <| fsOpen && onRouteWithFS )
+                , ( "fs-closed", not <| fsAllowed && fsOpen )
                 ]
             ]
             [ div
@@ -253,7 +253,7 @@ view model shared =
                                 [ classList
                                     [ ( "material-icons action-button", True )
                                     , ( "disabled-icon"
-                                      , if notGoingThroughTutorial then
+                                      , if not goingThroughTutorial then
                                             True
                                         else
                                             case currentRoute of
@@ -265,9 +265,7 @@ view model shared =
                                       )
                                     ]
                                 , onClick <|
-                                    if notGoingThroughTutorial then
-                                        NoOp
-                                    else
+                                    if goingThroughTutorial then
                                         case currentRoute of
                                             Route.ViewBigbitConclusionPage fromStoryID mongoID _ ->
                                                 JumpToFrame <|
@@ -287,18 +285,20 @@ view model shared =
 
                                             _ ->
                                                 NoOp
+                                    else
+                                        NoOp
                                 ]
                                 [ text "arrow_back" ]
                             , div
                                 [ onClick <|
-                                    if notGoingThroughTutorial then
-                                        NoOp
-                                    else
+                                    if goingThroughTutorial then
                                         JumpToFrame <|
                                             Route.ViewBigbitIntroductionPage
                                                 (Route.getFromStoryQueryParamOnViewBigbitRoute currentRoute)
                                                 bigbit.id
                                                 Nothing
+                                    else
+                                        NoOp
                                 , classList
                                     [ ( "viewer-navbar-item", True )
                                     , ( "selected"
@@ -309,7 +309,7 @@ view model shared =
                                             _ ->
                                                 False
                                       )
-                                    , ( "disabled", notGoingThroughTutorial )
+                                    , ( "disabled", not goingThroughTutorial )
                                     ]
                                 ]
                                 [ text "Introduction" ]
@@ -325,10 +325,10 @@ view model shared =
                                         TB.Conclusion ->
                                             Completed
                                 , maxPosition = Array.length bigbit.highlightedComments
-                                , disabledStyling = notGoingThroughTutorial
+                                , disabledStyling = not goingThroughTutorial
                                 , onClickMsg = BackToTutorialSpot
                                 , allowClick =
-                                    (not <| notGoingThroughTutorial)
+                                    goingThroughTutorial
                                         && (case shared.route of
                                                 Route.ViewBigbitFramePage _ _ _ _ ->
                                                     True
@@ -347,14 +347,14 @@ view model shared =
                                 }
                             , div
                                 [ onClick <|
-                                    if notGoingThroughTutorial then
-                                        NoOp
-                                    else
+                                    if goingThroughTutorial then
                                         JumpToFrame <|
                                             Route.ViewBigbitConclusionPage
                                                 (Route.getFromStoryQueryParamOnViewBigbitRoute currentRoute)
                                                 bigbit.id
                                                 Nothing
+                                    else
+                                        NoOp
                                 , classList
                                     [ ( "viewer-navbar-item", True )
                                     , ( "selected"
@@ -365,7 +365,7 @@ view model shared =
                                             _ ->
                                                 False
                                       )
-                                    , ( "disabled", notGoingThroughTutorial )
+                                    , ( "disabled", not goingThroughTutorial )
                                     ]
                                 ]
                                 [ text "Conclusion" ]
@@ -373,7 +373,7 @@ view model shared =
                                 [ classList
                                     [ ( "material-icons action-button", True )
                                     , ( "disabled-icon"
-                                      , if notGoingThroughTutorial then
+                                      , if not goingThroughTutorial then
                                             True
                                         else
                                             case currentRoute of
@@ -385,9 +385,7 @@ view model shared =
                                       )
                                     ]
                                 , onClick <|
-                                    if notGoingThroughTutorial then
-                                        NoOp
-                                    else
+                                    if goingThroughTutorial then
                                         case currentRoute of
                                             Route.ViewBigbitIntroductionPage fromStoryID mongoID _ ->
                                                 JumpToFrame <|
@@ -403,6 +401,8 @@ view model shared =
 
                                             _ ->
                                                 NoOp
+                                    else
+                                        NoOp
                                 ]
                                 [ text "arrow_forward" ]
                             ]
@@ -427,11 +427,11 @@ view model shared =
                             , div
                                 [ classList
                                     [ ( "above-editor-text", True )
-                                    , ( "cursor-not-allowed", not onRouteWithFS )
-                                    , ( "cursor-default", onRouteWithFS && fsOpen )
+                                    , ( "cursor-not-allowed", not fsAllowed )
+                                    , ( "cursor-default", fsAllowed && fsOpen )
                                     ]
                                 , onClick <|
-                                    if fsOpen || (not onRouteWithFS) then
+                                    if fsOpen || (not fsAllowed) then
                                         NoOp
                                     else
                                         ToggleFS
