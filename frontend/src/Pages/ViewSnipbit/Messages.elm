@@ -44,7 +44,6 @@ type Msg
     | OnGetExpandedStoryFailure ApiError
     | OnRangeSelected Range
     | BrowseRelevantHC
-    | CancelBrowseRelevantHC
     | NextRelevantHC
     | PreviousRelevantHC
     | OnMarkAsCompleteSuccess IsCompleted

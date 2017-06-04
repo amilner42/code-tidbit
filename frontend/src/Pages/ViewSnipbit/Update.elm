@@ -631,10 +631,6 @@ update (Common common) msg model shared =
                     shared.user
                 )
 
-        CancelBrowseRelevantHC ->
-            common.justProduceCmd <|
-                Route.modifyTo shared.route
-
         NextRelevantHC ->
             let
                 newModel =

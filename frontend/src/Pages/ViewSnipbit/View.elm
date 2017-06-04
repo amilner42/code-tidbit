@@ -162,26 +162,14 @@ view model shared =
                 , onClick <| BrowseRelevantHC
                 ]
                 [ text "Browse Related Frames" ]
-            , button
-                [ classList
-                    [ ( "sub-bar-button view-relevant-ranges", True )
-                    , ( "hidden"
-                      , not <|
-                            maybeMapWithDefault
-                                ViewerRelevantHC.browsingFrames
-                                False
-                                model.relevantHC
-                      )
-                    ]
-                , onClick <| CancelBrowseRelevantHC
-                ]
-                [ text "Resume Tutorial" ]
             , case Route.getViewingContentID shared.route of
                 Just snipbitID ->
                     button
                         [ classList
                             [ ( "sub-bar-button view-relevant-questions", True )
-                            , ( "hidden", not <| Route.isOnViewSnipbitQARoute shared.route )
+                            , ( "hidden"
+                              , not <| Route.isOnViewSnipbitQARoute shared.route || isViewSnipbitRHCTabOpen model
+                              )
                             ]
                         , onClick <|
                             GoTo <|
