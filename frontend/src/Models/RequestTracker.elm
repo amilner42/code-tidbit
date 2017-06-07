@@ -14,7 +14,7 @@ in different parameters will result in different requests being tracked. Only us
 to track certain versions of a request differently.
 -}
 type TrackedRequest
-    = TODO
+    = LoginOrRegister
 
 
 {-| A dictionary containing a count of all the requests currently in progress.

@@ -2,6 +2,7 @@ module Pages.Welcome.Update exposing (update)
 
 import DefaultServices.CommonSubPageUtil exposing (CommonSubPageUtil(..))
 import Models.ApiError as ApiError
+import Models.RequestTracker as RT
 import Models.Route as Route
 import Pages.Model exposing (Shared)
 import Pages.Welcome.Init exposing (..)
@@ -34,34 +35,49 @@ update (Common common) msg model shared =
             common.justSetModel <| wipeError { model | name = newName }
 
         Register ->
-            if model.password == model.confirmPassword then
-                common.justProduceCmd <|
-                    common.api.post.register
-                        { name = model.name
-                        , email = model.email
-                        , password = model.password
-                        }
-                        OnRegisterFailure
-                        OnRegisterSuccess
-            else
-                common.justSetModel
-                    { model | apiError = Just ApiError.PasswordDoesNotMatchConfirmPassword }
+            let
+                registerAction =
+                    common.justProduceCmd <|
+                        common.api.post.register
+                            { name = model.name
+                            , email = model.email
+                            , password = model.password
+                            }
+                            OnRegisterFailure
+                            OnRegisterSuccess
+            in
+                if model.password == model.confirmPassword then
+                    common.doIfRequestNotAlreadyLoading RT.LoginOrRegister registerAction
+                else
+                    common.justSetModel
+                        { model | apiError = Just ApiError.PasswordDoesNotMatchConfirmPassword }
 
         OnRegisterFailure newApiError ->
             common.justSetModel { model | apiError = Just newApiError }
+                |> common.andFinishRequest RT.LoginOrRegister
 
         OnRegisterSuccess newUser ->
             ( init, { shared | user = Just newUser }, Route.navigateTo Route.BrowsePage )
+                |> common.andFinishRequest RT.LoginOrRegister
 
         Login ->
-            common.justProduceCmd <|
-                common.api.post.login { email = model.email, password = model.password } OnLoginFailure OnLoginSuccess
+            let
+                loginAction =
+                    common.justProduceCmd <|
+                        common.api.post.login
+                            { email = model.email, password = model.password }
+                            OnLoginFailure
+                            OnLoginSuccess
+            in
+                common.doIfRequestNotAlreadyLoading RT.LoginOrRegister loginAction
 
         OnLoginSuccess newUser ->
             ( init, { shared | user = Just newUser }, Route.navigateTo Route.BrowsePage )
+                |> common.andFinishRequest RT.LoginOrRegister
 
         OnLoginFailure newApiError ->
             common.justSetModel { model | apiError = Just newApiError }
+                |> common.andFinishRequest RT.LoginOrRegister
 
 
 {-| Sets the `apiError` on the `model` to `Nothing`.
