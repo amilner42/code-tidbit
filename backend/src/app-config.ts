@@ -17,7 +17,8 @@ export interface AppConfig {
   sessionCookieName: string,
   dbUrl: string
   port: number,
-  isHttps: boolean
+  isHttps: boolean,
+  slowNetwork: boolean
 }
 
 /**
@@ -66,6 +67,13 @@ const yargsOptions =
       type: "boolean",
       default: undefined,  // To prevent default (from being `false`)
       requiredForProd: true
+    },
+    'slow-network': {
+      demand: false,
+      describe: "Specify if you'd like to add an aritifical delay to the server to imitate a slow network",
+      type: "boolean",
+      default: undefined, // To prevent default (from being `false`)
+      requiredForProd: false
     }
   }
 
@@ -84,7 +92,8 @@ const cliArguments = <AppConfig>dropNullAndUndefinedProperties({
   sessionCookieName: argv["session-cookie-name"],
   dbUrl: argv["db-url"],
   port: argv["port"],
-  isHttps: argv["is-https"]
+  isHttps: argv["is-https"],
+  slowNetwork: argv["slow-network"]
 });
 
 /**
@@ -97,7 +106,8 @@ const defaultDevelopmentConfig: AppConfig = {
   sessionCookieName: "CodeTidbit",
   dbUrl: "mongodb://localhost:27017/CodeTidbit",
   port: 3001,
-  isHttps: false
+  isHttps: false,
+  slowNetwork: false
 };
 
 /**
@@ -110,23 +120,27 @@ const defaultDevelopmentConfig: AppConfig = {
  */
 export const APP_CONFIG: AppConfig = (() => {
 
-  /**
-   * Logging CLI arguments.
-   */
-  console.log("CLI Arguments");
-  let missingProdFlags = false;
-  for(let option in yargsOptions) {
-    const mentionDevDefault = (option === "mode" && argv[option] === "dev") ? " [DEFAULT]" : "";
-    const missingProdFlag =
-        argv["mode"] === "prod" && yargsOptions[option].requiredForProd === true && argv[option] === undefined;
-    console.log(` - ${option}: ${argv[option]}${mentionDevDefault}${missingProdFlag ? " [MISSING PROD FLAG]" : ""}`);
+  // Logging CLI arguments and checking for errors.
+  {
+    console.log("CLI Arguments");
+    let missingProdFlags = false;
+    for(let option in yargsOptions) {
+      const mentionDevDefault = (option === "mode" && argv[option] === "dev") ? " [DEFAULT]" : "";
+      const missingProdFlag =
+          argv["mode"] === "prod" && yargsOptions[option].requiredForProd === true && argv[option] === undefined;
+      console.log(` - ${option}: ${argv[option]}${mentionDevDefault}${missingProdFlag ? " [MISSING PROD FLAG]" : ""}`);
 
-    if(missingProdFlag) {
-      missingProdFlags = true;
+      if(missingProdFlag) {
+        missingProdFlags = true;
+      }
     }
+    // Checking errors below (these will terminate the program).
+    console.log("\n");
+    if(cliArguments.slowNetwork === true && cliArguments.mode === "prod") {
+      throw new Error("You cannot pass slow-network while running in prod mode.")
+    }
+    if(missingProdFlags) { throw new Error("Missing Prod Flags"); }
   }
-  console.log("\n");
-  if(missingProdFlags) { throw new Error("Missing Prod Flags"); }
 
   const cliInitialValues = R.merge(defaultDevelopmentConfig, cliArguments);
 

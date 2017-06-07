@@ -158,4 +158,18 @@ export const isBlankString = (str: string): boolean => {
   }
 
   return R.isEmpty(R.filter((char) => char !== " ", str.split("")));
-}
+};
+
+/**
+ * Calls `callback` after a random delay between `minDelay` and `maxDelay` (in milliseconds).
+ */
+export const randomDelay = (callback: () => void, minDelay = 500, maxDelay = 2000): void => {
+  setTimeout(callback, getRandomInt(minDelay, maxDelay));
+};
+
+/**
+ * Returns a random integer between min (included) and max (included).
+ */
+export const getRandomInt = (min: number, max: number): number => {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+};
