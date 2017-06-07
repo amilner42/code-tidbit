@@ -15,6 +15,7 @@ to track certain versions of a request differently.
 -}
 type TrackedRequest
     = LoginOrRegister
+    | PublishNewStory
 
 
 {-| A dictionary containing a count of all the requests currently in progress.

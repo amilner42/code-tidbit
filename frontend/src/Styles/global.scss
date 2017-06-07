@@ -429,6 +429,10 @@ textarea {
         background-color: $color1 !important;
         opacity: 0.9;
     }
+
+    &.cursor-progress {
+        cursor: progress !important;
+    }
 }
 
 .comment-body-bottom-buttons {
