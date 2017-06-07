@@ -8,6 +8,7 @@ import Models.Route as Route
 import Models.Story as Story
 import Models.Tidbit as Tidbit
 import Models.User as User
+import Models.RequestTracker as RT
 import Pages.Browse.Model as BrowseModel
 import Pages.Create.Model as CreateModel
 import Pages.CreateBigbit.Model as CreateBigbitModel
@@ -57,6 +58,7 @@ type alias Shared =
     , flags : Flags
     , apiModalError : Maybe ApiError.ApiError
     , userNeedsAuthModal : Maybe String
+    , apiRequestTracker : RT.RequestTracker
     }
 
 
