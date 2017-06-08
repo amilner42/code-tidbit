@@ -20,6 +20,9 @@ type TrackedRequest
     | UpdateStoryInfo
     | PublishSnipbit
     | PublishBigbit
+    | Logout
+    | UpdateName
+    | UpdateBio
 
 
 {-| A dictionary containing a count of all the requests currently in progress.

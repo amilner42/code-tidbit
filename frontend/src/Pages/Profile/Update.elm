@@ -2,6 +2,9 @@ module Pages.Profile.Update exposing (..)
 
 import DefaultServices.CommonSubPageUtil exposing (CommonSubPageUtil(..))
 import DefaultServices.Editable as Editable
+import DefaultServices.InfixFunctions exposing (..)
+import DefaultServices.Util as Util
+import Models.RequestTracker as RT
 import Models.Route as Route
 import Models.User exposing (defaultUserUpdateRecord)
 import Pages.Model exposing (Shared)
@@ -18,68 +21,96 @@ update (Common common) msg model shared =
             common.justUpdateModel <| setName originalName newName
 
         CancelEditedName ->
-            common.justUpdateModel cancelEditingName
+            if RT.isNotMakingRequest shared.apiRequestTracker RT.UpdateName then
+                common.justUpdateModel cancelEditingName
+            else
+                common.doNothing
 
         SaveEditedName ->
-            case model.accountName of
-                Nothing ->
-                    common.doNothing
+            let
+                maybeValidNewName =
+                    model.accountName
+                        ||> Editable.getBuffer
+                        |||> Util.justNonBlankString
 
-                Just editableName ->
-                    if Editable.bufferIs (not << String.isEmpty) editableName then
-                        common.justProduceCmd <|
-                            common.api.post.updateUser
-                                { defaultUserUpdateRecord | name = Just <| Editable.getBuffer editableName }
-                                OnSaveEditedNameFailure
-                                OnSaveEditedNameSuccess
-                    else
+                updateNameAction validNewName =
+                    common.justProduceCmd <|
+                        common.api.post.updateUser
+                            { defaultUserUpdateRecord | name = Just validNewName }
+                            OnSaveEditedNameFailure
+                            OnSaveEditedNameSuccess
+            in
+                case maybeValidNewName of
+                    Nothing ->
                         common.doNothing
+
+                    Just validNewName ->
+                        common.doIfRequestNotAlreadyLoading RT.UpdateName <| updateNameAction validNewName
 
         OnSaveEditedNameSuccess updatedUser ->
             ( setAccountNameToNothing model
             , { shared | user = Just updatedUser }
             , Cmd.none
             )
+                |> common.andFinishRequest RT.UpdateName
 
         OnSaveEditedNameFailure apiError ->
             common.justSetModalError apiError
+                |> common.andFinishRequest RT.UpdateName
 
         OnEditBio originalBio newBio ->
             common.justUpdateModel <| setBio originalBio newBio
 
         CancelEditedBio ->
-            common.justUpdateModel cancelEditingBio
+            if RT.isNotMakingRequest shared.apiRequestTracker RT.UpdateBio then
+                common.justUpdateModel cancelEditingBio
+            else
+                common.doNothing
 
         SaveEditedBio ->
-            case model.accountBio of
-                Nothing ->
-                    common.doNothing
+            let
+                maybeValidNewBio =
+                    model.accountBio
+                        ||> Editable.getBuffer
+                        |||> Util.justNonBlankString
 
-                Just editableBio ->
-                    if Editable.bufferIs (not << String.isEmpty) editableBio then
-                        common.justProduceCmd <|
-                            common.api.post.updateUser
-                                { defaultUserUpdateRecord | bio = Just <| Editable.getBuffer editableBio }
-                                OnSaveBioEditedFailure
-                                OnSaveEditedBioSuccess
-                    else
+                updateBioAction newValidBio =
+                    common.justProduceCmd <|
+                        common.api.post.updateUser
+                            { defaultUserUpdateRecord | bio = Just newValidBio }
+                            OnSaveBioEditedFailure
+                            OnSaveEditedBioSuccess
+            in
+                case maybeValidNewBio of
+                    Nothing ->
                         common.doNothing
+
+                    Just validNewBio ->
+                        common.doIfRequestNotAlreadyLoading RT.UpdateBio <| updateBioAction validNewBio
 
         OnSaveEditedBioSuccess updatedUser ->
             ( setAccountBioToNothing model
             , { shared | user = Just updatedUser }
             , Cmd.none
             )
+                |> common.andFinishRequest RT.UpdateBio
 
         OnSaveBioEditedFailure apiError ->
             common.justSetModalError apiError
+                |> common.andFinishRequest RT.UpdateBio
 
         LogOut ->
-            common.justProduceCmd <| common.api.get.logOut OnLogOutFailure OnLogOutSuccess
+            let
+                logoutAction =
+                    common.justProduceCmd <| common.api.get.logOut OnLogOutFailure OnLogOutSuccess
+            in
+                common.doIfRequestNotAlreadyLoading RT.Logout logoutAction
 
         OnLogOutSuccess basicResponse ->
-            -- The base update will check for this message and reset the entire model.
+            -- WARNING (unusual behaviour): The base update will check for this message and reset the entire model.
+            -- Because of this there is no need to `andFinishRequest` (in fact that will do nothing).
             common.justProduceCmd <| Route.navigateTo Route.RegisterPage
 
         OnLogOutFailure apiError ->
-            common.justSetModel <| { model | logOutError = Just apiError }
+            common.justSetModel { model | logOutError = Just apiError }
+                |> common.andFinishRequest RT.Logout
