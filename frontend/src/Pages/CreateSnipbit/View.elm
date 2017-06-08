@@ -9,6 +9,7 @@ import Html exposing (Html, div, text, button, hr, textarea, input)
 import Html.Attributes exposing (class, classList, disabled, hidden, value, id, placeholder)
 import Html.Events exposing (onClick, onInput)
 import Keyboard.Extra as KK
+import Models.RequestTracker as RT
 import Models.Route as Route
 import Pages.CreateSnipbit.Messages exposing (..)
 import Pages.CreateSnipbit.Model exposing (..)
@@ -464,7 +465,10 @@ view model shared =
 
                 Just publicationData ->
                     button
-                        [ classList [ ( "create-snipbit-publish-button", True ) ]
+                        [ classList
+                            [ ( "create-snipbit-publish-button", True )
+                            , ( "cursor-progress", RT.isMakingRequest shared.apiRequestTracker RT.PublishSnipbit )
+                            ]
                         , onClick <| Publish publicationData
                         ]
                         [ text "Publish" ]

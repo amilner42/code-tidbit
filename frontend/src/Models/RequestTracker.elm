@@ -18,6 +18,8 @@ type TrackedRequest
     | PublishNewStory
     | PublishNewTidbitsToStory
     | UpdateStoryInfo
+    | PublishSnipbit
+    | PublishBigbit
 
 
 {-| A dictionary containing a count of all the requests currently in progress.
