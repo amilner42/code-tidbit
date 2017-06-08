@@ -66,6 +66,7 @@ view model shared =
                                 [ ( "sub-bar-button save-changes", True )
                                 , ( "publish-button", editingStoryDataReadyForSave model )
                                 , ( "disabled-publish-button", not <| editingStoryDataReadyForSave model )
+                                , ( "cursor-progress", RT.isMakingRequest shared.apiRequestTracker RT.UpdateStoryInfo )
                                 ]
                             , onClick <| SaveEdits storyID
                             ]

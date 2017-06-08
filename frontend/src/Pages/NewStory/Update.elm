@@ -160,14 +160,17 @@ update (Common common) msg model shared =
                     , description = editingStory.description
                     , tags = editingStory.tags
                     }
-            in
-                if editingStoryDataReadyForSave model then
+
+                saveEditsAction =
                     common.justProduceCmd <|
                         common.api.post.updateStoryInformation
                             storyID
                             editingStoryInformation
                             OnSaveEditsFailure
                             OnSaveEditsSuccess
+            in
+                if editingStoryDataReadyForSave model then
+                    common.doIfRequestNotAlreadyLoading RT.UpdateStoryInfo saveEditsAction
                 else
                     common.doNothing
 
@@ -176,6 +179,8 @@ update (Common common) msg model shared =
             , { shared | userStories = Nothing }
             , Route.navigateTo <| Route.DevelopStoryPage targetID
             )
+                |> common.andFinishRequest RT.UpdateStoryInfo
 
         OnSaveEditsFailure apiError ->
             common.justSetModalError apiError
+                |> common.andFinishRequest RT.UpdateStoryInfo

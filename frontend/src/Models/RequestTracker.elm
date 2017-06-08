@@ -17,6 +17,7 @@ type TrackedRequest
     = LoginOrRegister
     | PublishNewStory
     | PublishNewTidbitsToStory
+    | UpdateStoryInfo
 
 
 {-| A dictionary containing a count of all the requests currently in progress.
