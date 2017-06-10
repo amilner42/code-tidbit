@@ -21,8 +21,10 @@ import Models.Completed as Completed
 import Models.QA as QA
 import Models.Range as Range
 import Models.Rating as Rating
+import Models.RequestTracker as RT
 import Models.Route as Route
 import Models.Story as Story
+import Models.TidbitPointer as TidbitPointer
 import Models.TutorialBookmark as TB
 import Models.ViewerRelevantHC as ViewerRelevantHC
 import Models.Vote as Vote
@@ -89,7 +91,13 @@ view model shared =
                                         )
                         in
                             button
-                                [ class "sub-bar-button heart-button"
+                                [ classList
+                                    [ ( "sub-bar-button heart-button", True )
+                                    , ( "cursor-progress"
+                                      , RT.isMakingRequest shared.apiRequestTracker <|
+                                            RT.AddOrRemoveOpinion TidbitPointer.Bigbit
+                                      )
+                                    ]
                                 , onClick <| newMsg
                                 ]
                                 [ text buttonText ]
@@ -553,6 +561,28 @@ viewBigbitCommentBox bigbit model shared =
                 , answers = List.filter (.questionID >> (==) question.id) qa.answers
                 , questionComments = List.filter (.questionID >> (==) question.id) qa.questionComments
                 , answerComments = List.filter (.questionID >> (==) question.id) qa.answerComments
+                , rateQuestionRequestInProgress =
+                    RT.isMakingRequest shared.apiRequestTracker (RT.RateQuestion TidbitPointer.Bigbit)
+                , rateAnswerRequestInProgress =
+                    RT.isMakingRequest shared.apiRequestTracker (RT.RateAnswer TidbitPointer.Bigbit)
+                , pinQuestionRequestInProgress =
+                    RT.isMakingRequest shared.apiRequestTracker (RT.PinQuestion TidbitPointer.Bigbit)
+                , pinAnswerRequestInProgress =
+                    RT.isMakingRequest shared.apiRequestTracker (RT.PinAnswer TidbitPointer.Bigbit)
+                , submitQuestionCommentRequestInProgress =
+                    RT.isMakingRequest shared.apiRequestTracker (RT.SubmitQuestionComment TidbitPointer.Bigbit)
+                , submitAnswerCommentRequestInProgress =
+                    RT.isMakingRequest shared.apiRequestTracker (RT.SubmitAnswerComment TidbitPointer.Bigbit)
+                , deleteAnswerRequestInProgress =
+                    RT.isMakingRequest shared.apiRequestTracker (RT.DeleteAnswer TidbitPointer.Bigbit)
+                , deleteAnswerCommentRequestInProgress =
+                    RT.DeleteAnswerComment TidbitPointer.Bigbit >> RT.isMakingRequest shared.apiRequestTracker
+                , deleteQuestionCommentRequestInProgress =
+                    RT.DeleteQuestionComment TidbitPointer.Bigbit >> RT.isMakingRequest shared.apiRequestTracker
+                , editAnswerCommentRequestInProgress =
+                    RT.EditAnswerComment TidbitPointer.Bigbit >> RT.isMakingRequest shared.apiRequestTracker
+                , editQuestionCommentRequestInProgress =
+                    RT.EditQuestionComment TidbitPointer.Bigbit >> RT.isMakingRequest shared.apiRequestTracker
                 , goToBrowseAllQuestions =
                     GoToBrowseQuestionsWithCodePointer
                         bigbit.id
@@ -761,6 +791,8 @@ viewBigbitCommentBox bigbit model shared =
             Route.ViewBigbitAskQuestion maybeStoryID bigbitID ->
                 AskQuestion.view
                     { msgTagger = AskQuestionMsg bigbitID
+                    , askQuestionRequestInProgress =
+                        RT.isMakingRequest shared.apiRequestTracker (RT.AskQuestion TidbitPointer.Bigbit)
                     , askQuestion = AskQuestion bigbitID
                     , isReadyCodePointer = .range >> Range.isEmptyRange >> not
                     , goToAllQuestions =
@@ -780,6 +812,8 @@ viewBigbitCommentBox bigbit model shared =
                         in
                             EditQuestion.view
                                 { msgTagger = EditQuestionMsg bigbitID question
+                                , editQuestionRequestInProgress =
+                                    RT.isMakingRequest shared.apiRequestTracker (RT.UpdateQuestion TidbitPointer.Bigbit)
                                 , isReadyCodePointer = .range >> Range.isEmptyRange >> not
                                 , editQuestion = EditQuestion bigbitID questionID
                                 }
@@ -798,6 +832,11 @@ viewBigbitCommentBox bigbit model shared =
                         in
                             AnswerQuestion.view
                                 { msgTagger = AnswerQuestionMsg bigbitID question
+                                , forQuestion = question
+                                , answerQuestionRequestInProgress =
+                                    RT.isMakingRequest
+                                        shared.apiRequestTracker
+                                        (RT.AnswerQuestion TidbitPointer.Bigbit)
                                 , goToAllAnswers =
                                     GoTo <|
                                         Route.ViewBigbitAnswersPage
@@ -806,7 +845,6 @@ viewBigbitCommentBox bigbit model shared =
                                             bigbitID
                                             questionID
                                 , answerQuestion = AnswerQuestion bigbitID questionID
-                                , forQuestion = question
                                 }
                                 newAnswer
 
@@ -828,6 +866,8 @@ viewBigbitCommentBox bigbit model shared =
                         in
                             EditAnswer.view
                                 { msgTagger = EditAnswerMsg bigbitID answer
+                                , editAnswerRequestInProgress =
+                                    RT.isMakingRequest shared.apiRequestTracker (RT.UpdateAnswer TidbitPointer.Bigbit)
                                 , editAnswer = EditAnswer bigbitID answerID
                                 , forQuestion = question
                                 }

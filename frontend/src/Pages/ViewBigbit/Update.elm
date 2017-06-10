@@ -19,6 +19,7 @@ import Models.ContentPointer as ContentPointer
 import Models.Opinion as Opinion
 import Models.QA as QA exposing (defaultNewQuestion)
 import Models.Range as Range
+import Models.RequestTracker as RT
 import Models.Route as Route
 import Models.TidbitPointer as TidbitPointer
 import Models.TutorialBookmark as TB
@@ -564,30 +565,42 @@ update (Common common) msg model shared =
             common.justSetModalError apiError
 
         AddOpinion opinion ->
-            common.justProduceCmd <|
-                common.api.post.addOpinion opinion OnAddOpinionFailure (always <| OnAddOpinionSuccess opinion)
+            let
+                addOpinionAction =
+                    common.justProduceCmd <|
+                        common.api.post.addOpinion opinion OnAddOpinionFailure (always <| OnAddOpinionSuccess opinion)
+            in
+                common.makeSingletonRequest (RT.AddOrRemoveOpinion TidbitPointer.Bigbit) addOpinionAction
 
         OnAddOpinionSuccess opinion ->
             common.justSetModel { model | possibleOpinion = Just (Opinion.toPossibleOpinion opinion) }
+                |> common.andFinishRequest (RT.AddOrRemoveOpinion TidbitPointer.Bigbit)
 
         OnAddOpinionFailure apiError ->
             common.justSetModalError apiError
+                |> common.andFinishRequest (RT.AddOrRemoveOpinion TidbitPointer.Bigbit)
 
         RemoveOpinion opinion ->
-            common.justProduceCmd <|
-                common.api.post.removeOpinion opinion OnRemoveOpinionFailure (always <| OnRemoveOpinionSuccess opinion)
+            let
+                removeOpinionAction =
+                    common.justProduceCmd <|
+                        common.api.post.removeOpinion
+                            opinion
+                            OnRemoveOpinionFailure
+                            (always <| OnRemoveOpinionSuccess opinion)
+            in
+                common.makeSingletonRequest (RT.AddOrRemoveOpinion TidbitPointer.Bigbit) removeOpinionAction
 
         {- Currently it doesn't matter what opinion we removed because you can only have 1, but it may change in the
            future where we have multiple opinions, then use the `opinion` to figure out which to remove.
         -}
         OnRemoveOpinionSuccess { contentPointer, rating } ->
-            common.justSetModel
-                { model
-                    | possibleOpinion = Just { contentPointer = contentPointer, rating = Nothing }
-                }
+            common.justSetModel { model | possibleOpinion = Just { contentPointer = contentPointer, rating = Nothing } }
+                |> common.andFinishRequest (RT.AddOrRemoveOpinion TidbitPointer.Bigbit)
 
         OnRemoveOpinionFailure apiError ->
             common.justSetModalError apiError
+                |> common.andFinishRequest (RT.AddOrRemoveOpinion TidbitPointer.Bigbit)
 
         OnGetExpandedStorySuccess story ->
             common.justSetShared { shared | viewingStory = Just story }
@@ -808,16 +821,20 @@ update (Common common) msg model shared =
                 )
 
         AskQuestion bigbitID codePointer questionText ->
-            common.justProduceCmd <|
-                common.api.post.askQuestionOnBigbit
-                    bigbitID
-                    questionText
-                    codePointer
-                    OnAskQuestionFailure
-                    (OnAskQuestionSuccess bigbitID)
+            let
+                askQuestionAction =
+                    common.justProduceCmd <|
+                        common.api.post.askQuestionOnBigbit
+                            bigbitID
+                            questionText
+                            codePointer
+                            OnAskQuestionFailure
+                            (OnAskQuestionSuccess bigbitID)
+            in
+                common.makeSingletonRequest (RT.AskQuestion TidbitPointer.Bigbit) askQuestionAction
 
         OnAskQuestionSuccess bigbitID question ->
-            case model.qa of
+            (case model.qa of
                 Just qa ->
                     ( { model
                         | qa = Just { qa | questions = QA.sortRateableContent <| question :: qa.questions }
@@ -838,9 +855,12 @@ update (Common common) msg model shared =
 
                 Nothing ->
                     common.doNothing
+            )
+                |> common.andFinishRequest (RT.AskQuestion TidbitPointer.Bigbit)
 
         OnAskQuestionFailure apiError ->
             common.justSetModalError apiError
+                |> common.andFinishRequest (RT.AskQuestion TidbitPointer.Bigbit)
 
         EditQuestionMsg bigbitID question editQuestionMsg ->
             let
@@ -864,17 +884,21 @@ update (Common common) msg model shared =
                 )
 
         EditQuestion bigbitID questionID questionText codePointer ->
-            common.justProduceCmd <|
-                common.api.post.editQuestionOnBigbit
-                    bigbitID
-                    questionID
-                    questionText
-                    codePointer
-                    OnEditQuestionFailure
-                    (OnEditQuestionSuccess bigbitID questionID questionText codePointer)
+            let
+                editQuestionAction =
+                    common.justProduceCmd <|
+                        common.api.post.editQuestionOnBigbit
+                            bigbitID
+                            questionID
+                            questionText
+                            codePointer
+                            OnEditQuestionFailure
+                            (OnEditQuestionSuccess bigbitID questionID questionText codePointer)
+            in
+                common.makeSingletonRequest (RT.UpdateQuestion TidbitPointer.Bigbit) editQuestionAction
 
         OnEditQuestionSuccess bigbitID questionID questionText codePointer lastModified ->
-            case model.qa of
+            (case model.qa of
                 Just qa ->
                     ( { model
                         | qa =
@@ -907,9 +931,12 @@ update (Common common) msg model shared =
 
                 Nothing ->
                     common.doNothing
+            )
+                |> common.andFinishRequest (RT.UpdateQuestion TidbitPointer.Bigbit)
 
         OnEditQuestionFailure apiError ->
             common.justSetModalError apiError
+                |> common.andFinishRequest (RT.UpdateQuestion TidbitPointer.Bigbit)
 
         AnswerQuestionMsg bigbitID question answerQuestionMsg ->
             let
@@ -933,16 +960,20 @@ update (Common common) msg model shared =
                 )
 
         AnswerQuestion bigbitID questionID answerText ->
-            common.justProduceCmd <|
-                common.api.post.answerQuestion
-                    { tidbitType = TidbitPointer.Bigbit, targetID = bigbitID }
-                    questionID
-                    answerText
-                    OnAnswerQuestionFailure
-                    (OnAnswerQuestionSuccess bigbitID questionID)
+            let
+                answerQuestionAction =
+                    common.justProduceCmd <|
+                        common.api.post.answerQuestion
+                            { tidbitType = TidbitPointer.Bigbit, targetID = bigbitID }
+                            questionID
+                            answerText
+                            OnAnswerQuestionFailure
+                            (OnAnswerQuestionSuccess bigbitID questionID)
+            in
+                common.makeSingletonRequest (RT.AnswerQuestion TidbitPointer.Bigbit) answerQuestionAction
 
         OnAnswerQuestionSuccess bigbitID questionID answer ->
-            case model.qa of
+            (case model.qa of
                 Just qa ->
                     ( { model
                         | qa = Just { qa | answers = QA.sortRateableContent <| answer :: qa.answers }
@@ -959,9 +990,12 @@ update (Common common) msg model shared =
 
                 Nothing ->
                     common.doNothing
+            )
+                |> common.andFinishRequest (RT.AnswerQuestion TidbitPointer.Bigbit)
 
         OnAnswerQuestionFailure apiError ->
             common.justSetModalError apiError
+                |> common.andFinishRequest (RT.AnswerQuestion TidbitPointer.Bigbit)
 
         EditAnswerMsg bigbitID answer editAnswerMsg ->
             let
@@ -983,16 +1017,20 @@ update (Common common) msg model shared =
                 )
 
         EditAnswer bigbitID answerID answerText ->
-            common.justProduceCmd <|
-                common.api.post.editAnswer
-                    { tidbitType = TidbitPointer.Bigbit, targetID = bigbitID }
-                    answerID
-                    answerText
-                    OnEditAnswerFailure
-                    (OnEditAnswerSuccess bigbitID answerID answerText)
+            let
+                updateAnswerAction =
+                    common.justProduceCmd <|
+                        common.api.post.editAnswer
+                            { tidbitType = TidbitPointer.Bigbit, targetID = bigbitID }
+                            answerID
+                            answerText
+                            OnEditAnswerFailure
+                            (OnEditAnswerSuccess bigbitID answerID answerText)
+            in
+                common.makeSingletonRequest (RT.UpdateAnswer TidbitPointer.Bigbit) updateAnswerAction
 
         OnEditAnswerSuccess bigbitID answerID answerText lastModified ->
-            case model.qa of
+            (case model.qa of
                 Just qa ->
                     ( { model
                         | qa =
@@ -1014,9 +1052,12 @@ update (Common common) msg model shared =
 
                 Nothing ->
                     common.doNothing
+            )
+                |> common.andFinishRequest (RT.UpdateAnswer TidbitPointer.Bigbit)
 
         OnEditAnswerFailure apiError ->
             common.justSetModalError apiError
+                |> common.andFinishRequest (RT.UpdateAnswer TidbitPointer.Bigbit)
 
         ViewQuestionMsg bigbitID questionID viewQuestionMsg ->
             let
@@ -1047,93 +1088,127 @@ update (Common common) msg model shared =
                 )
 
         RateQuestion bigbitID questionID maybeVote ->
-            common.justProduceCmd <|
-                case maybeVote of
-                    Nothing ->
-                        common.api.post.removeQuestionRating
-                            { tidbitType = TidbitPointer.Bigbit, targetID = bigbitID }
-                            questionID
-                            OnRateQuestionFailure
-                            (always <| OnRateQuestionSuccess questionID maybeVote)
+            let
+                rateQuestionAction =
+                    common.justProduceCmd <|
+                        case maybeVote of
+                            Nothing ->
+                                common.api.post.removeQuestionRating
+                                    { tidbitType = TidbitPointer.Bigbit, targetID = bigbitID }
+                                    questionID
+                                    OnRateQuestionFailure
+                                    (always <| OnRateQuestionSuccess questionID maybeVote)
 
-                    Just vote ->
-                        common.api.post.rateQuestion
-                            { tidbitType = TidbitPointer.Bigbit, targetID = bigbitID }
-                            questionID
-                            vote
-                            OnRateQuestionFailure
-                            (always <| OnRateQuestionSuccess questionID maybeVote)
+                            Just vote ->
+                                common.api.post.rateQuestion
+                                    { tidbitType = TidbitPointer.Bigbit, targetID = bigbitID }
+                                    questionID
+                                    vote
+                                    OnRateQuestionFailure
+                                    (always <| OnRateQuestionSuccess questionID maybeVote)
+            in
+                common.makeSingletonRequest (RT.RateQuestion TidbitPointer.Bigbit) rateQuestionAction
 
         OnRateQuestionSuccess questionID maybeVote ->
             common.justSetModel { model | qa = model.qa ||> QA.rateQuestion questionID maybeVote }
+                |> common.andFinishRequest (RT.RateQuestion TidbitPointer.Bigbit)
 
         OnRateQuestionFailure apiError ->
             common.justSetModalError apiError
+                |> common.andFinishRequest (RT.RateQuestion TidbitPointer.Bigbit)
 
         RateAnswer bigbitID answerID maybeVote ->
-            common.justProduceCmd <|
-                case maybeVote of
-                    Nothing ->
-                        common.api.post.removeAnswerRating
-                            { tidbitType = TidbitPointer.Bigbit, targetID = bigbitID }
-                            answerID
-                            OnRateAnswerFailure
-                            (always <| OnRateAnswerSuccess answerID maybeVote)
+            let
+                rateAnswerAction =
+                    common.justProduceCmd <|
+                        case maybeVote of
+                            Nothing ->
+                                common.api.post.removeAnswerRating
+                                    { tidbitType = TidbitPointer.Bigbit, targetID = bigbitID }
+                                    answerID
+                                    OnRateAnswerFailure
+                                    (always <| OnRateAnswerSuccess answerID maybeVote)
 
-                    Just vote ->
-                        common.api.post.rateAnswer
-                            { tidbitType = TidbitPointer.Bigbit, targetID = bigbitID }
-                            answerID
-                            vote
-                            OnRateAnswerFailure
-                            (always <| OnRateAnswerSuccess answerID maybeVote)
+                            Just vote ->
+                                common.api.post.rateAnswer
+                                    { tidbitType = TidbitPointer.Bigbit, targetID = bigbitID }
+                                    answerID
+                                    vote
+                                    OnRateAnswerFailure
+                                    (always <| OnRateAnswerSuccess answerID maybeVote)
+            in
+                if RT.isNotMakingRequest shared.apiRequestTracker (RT.DeleteAnswer TidbitPointer.Bigbit) then
+                    common.makeSingletonRequest (RT.RateAnswer TidbitPointer.Bigbit) rateAnswerAction
+                else
+                    common.doNothing
 
         OnRateAnswerSuccess answerID maybeVote ->
             common.justSetModel { model | qa = model.qa ||> QA.rateAnswer answerID maybeVote }
+                |> common.andFinishRequest (RT.RateAnswer TidbitPointer.Bigbit)
 
         OnRateAnswerFailure apiError ->
             common.justSetModalError apiError
+                |> common.andFinishRequest (RT.RateAnswer TidbitPointer.Bigbit)
 
         PinQuestion bigbitID questionID pinQuestion ->
-            common.justProduceCmd <|
-                common.api.post.pinQuestion
-                    { tidbitType = TidbitPointer.Bigbit, targetID = bigbitID }
-                    questionID
-                    pinQuestion
-                    OnPinQuestionFailure
-                    (always <| OnPinQuestionSuccess questionID pinQuestion)
+            let
+                pinQuestionAction =
+                    common.justProduceCmd <|
+                        common.api.post.pinQuestion
+                            { tidbitType = TidbitPointer.Bigbit, targetID = bigbitID }
+                            questionID
+                            pinQuestion
+                            OnPinQuestionFailure
+                            (always <| OnPinQuestionSuccess questionID pinQuestion)
+            in
+                common.makeSingletonRequest (RT.PinQuestion TidbitPointer.Bigbit) pinQuestionAction
 
         OnPinQuestionSuccess questionID pinQuestion ->
             common.justSetModel { model | qa = model.qa ||> QA.pinQuestion questionID pinQuestion }
+                |> common.andFinishRequest (RT.PinQuestion TidbitPointer.Bigbit)
 
         OnPinQuestionFailure apiError ->
             common.justSetModalError apiError
+                |> common.andFinishRequest (RT.PinQuestion TidbitPointer.Bigbit)
 
         PinAnswer bigbitID answerID pinAnswer ->
-            common.justProduceCmd <|
-                common.api.post.pinAnswer
-                    { tidbitType = TidbitPointer.Bigbit, targetID = bigbitID }
-                    answerID
-                    pinAnswer
-                    OnPinAnswerFailure
-                    (always <| OnPinAnswerSuccess answerID pinAnswer)
+            let
+                pinAnswerAction =
+                    common.justProduceCmd <|
+                        common.api.post.pinAnswer
+                            { tidbitType = TidbitPointer.Bigbit, targetID = bigbitID }
+                            answerID
+                            pinAnswer
+                            OnPinAnswerFailure
+                            (always <| OnPinAnswerSuccess answerID pinAnswer)
+            in
+                if RT.isNotMakingRequest shared.apiRequestTracker (RT.DeleteAnswer TidbitPointer.Bigbit) then
+                    common.makeSingletonRequest (RT.PinAnswer TidbitPointer.Bigbit) pinAnswerAction
+                else
+                    common.doNothing
 
         OnPinAnswerSuccess answerID pinAnswer ->
             common.justSetModel { model | qa = model.qa ||> QA.pinAnswer answerID pinAnswer }
+                |> common.andFinishRequest (RT.PinAnswer TidbitPointer.Bigbit)
 
         OnPinAnswerFailure apiError ->
             common.justSetModalError apiError
+                |> common.andFinishRequest (RT.PinAnswer TidbitPointer.Bigbit)
 
         DeleteAnswer bigbitID questionID answerID ->
-            common.justProduceCmd <|
-                common.api.post.deleteAnswer
-                    { tidbitType = TidbitPointer.Bigbit, targetID = bigbitID }
-                    answerID
-                    OnDeleteAnswerFailure
-                    (always <| OnDeleteAnswerSuccess bigbitID questionID answerID)
+            let
+                deleteAnswerAction =
+                    common.justProduceCmd <|
+                        common.api.post.deleteAnswer
+                            { tidbitType = TidbitPointer.Bigbit, targetID = bigbitID }
+                            answerID
+                            OnDeleteAnswerFailure
+                            (always <| OnDeleteAnswerSuccess bigbitID questionID answerID)
+            in
+                common.makeSingletonRequest (RT.DeleteAnswer TidbitPointer.Bigbit) deleteAnswerAction
 
         OnDeleteAnswerSuccess bigbitID questionID answerID ->
-            case model.qa of
+            (case model.qa of
                 Just qa ->
                     let
                         -- Delete answer and answer comments.
@@ -1163,18 +1238,25 @@ update (Common common) msg model shared =
 
                 Nothing ->
                     common.doNothing
+            )
+                |> common.andFinishRequest (RT.DeleteAnswer TidbitPointer.Bigbit)
 
         OnDeleteAnswerFailure apiError ->
             common.justSetModalError apiError
+                |> common.andFinishRequest (RT.DeleteAnswer TidbitPointer.Bigbit)
 
         SubmitCommentOnQuestion bigbitID questionID commentText ->
-            common.justProduceCmd <|
-                common.api.post.commentOnQuestion
-                    { tidbitType = TidbitPointer.Bigbit, targetID = bigbitID }
-                    questionID
-                    commentText
-                    OnSubmitCommentOnQuestionFailure
-                    (OnSubmitCommentOnQuestionSuccess bigbitID questionID)
+            let
+                submitQuestionCommentAction =
+                    common.justProduceCmd <|
+                        common.api.post.commentOnQuestion
+                            { tidbitType = TidbitPointer.Bigbit, targetID = bigbitID }
+                            questionID
+                            commentText
+                            OnSubmitCommentOnQuestionFailure
+                            (OnSubmitCommentOnQuestionSuccess bigbitID questionID)
+            in
+                common.makeSingletonRequest (RT.SubmitQuestionComment TidbitPointer.Bigbit) submitQuestionCommentAction
 
         OnSubmitCommentOnQuestionSuccess bigbitID questionID questionComment ->
             common.justSetModel
@@ -1182,19 +1264,25 @@ update (Common common) msg model shared =
                     | qa = model.qa ||> QA.addQuestionComment questionComment
                     , qaState = model.qaState |> QA.setNewQuestionComment bigbitID questionID Nothing
                 }
+                |> common.andFinishRequest (RT.SubmitQuestionComment TidbitPointer.Bigbit)
 
         OnSubmitCommentOnQuestionFailure apiError ->
             common.justSetModalError apiError
+                |> common.andFinishRequest (RT.SubmitQuestionComment TidbitPointer.Bigbit)
 
         SubmitCommentOnAnswer bigbitID questionID answerID commentText ->
-            common.justProduceCmd <|
-                common.api.post.commentOnAnswer
-                    { tidbitType = TidbitPointer.Bigbit, targetID = bigbitID }
-                    questionID
-                    answerID
-                    commentText
-                    OnSubmitCommentOnAnswerFailure
-                    (OnSubmitCommentOnAnswerSuccess bigbitID questionID answerID)
+            let
+                submitAnswerCommentAction =
+                    common.justProduceCmd <|
+                        common.api.post.commentOnAnswer
+                            { tidbitType = TidbitPointer.Bigbit, targetID = bigbitID }
+                            questionID
+                            answerID
+                            commentText
+                            OnSubmitCommentOnAnswerFailure
+                            (OnSubmitCommentOnAnswerSuccess bigbitID questionID answerID)
+            in
+                common.makeSingletonRequest (RT.SubmitAnswerComment TidbitPointer.Bigbit) submitAnswerCommentAction
 
         OnSubmitCommentOnAnswerSuccess bigbitID questionID answerID answerComment ->
             common.justSetModel
@@ -1202,35 +1290,52 @@ update (Common common) msg model shared =
                     | qa = model.qa ||> QA.addAnswerComment answerComment
                     , qaState = model.qaState |> QA.updateNewAnswerComments bigbitID (Dict.remove answerID)
                 }
+                |> common.andFinishRequest (RT.SubmitAnswerComment TidbitPointer.Bigbit)
 
         OnSubmitCommentOnAnswerFailure apiError ->
             common.justSetModalError apiError
+                |> common.andFinishRequest (RT.SubmitAnswerComment TidbitPointer.Bigbit)
 
         DeleteCommentOnQuestion bigbitID commentID ->
-            common.justProduceCmd <|
-                common.api.post.deleteQuestionComment
-                    { tidbitType = TidbitPointer.Bigbit, targetID = bigbitID }
-                    commentID
-                    OnDeleteCommentOnQuestionFailure
-                    (always <| OnDeleteCommentOnQuestionSuccess bigbitID commentID)
+            let
+                deleteQuestionCommentAction =
+                    common.justProduceCmd <|
+                        common.api.post.deleteQuestionComment
+                            { tidbitType = TidbitPointer.Bigbit, targetID = bigbitID }
+                            commentID
+                            (OnDeleteCommentOnQuestionFailure commentID)
+                            (always <| OnDeleteCommentOnQuestionSuccess bigbitID commentID)
+            in
+                common.makeSingletonRequest
+                    (RT.DeleteQuestionComment TidbitPointer.Bigbit commentID)
+                    deleteQuestionCommentAction
 
         OnDeleteCommentOnQuestionSuccess bigbitID commentID ->
-            common.justSetModel
+            (common.justSetModel
                 { model
                     | qa = model.qa ||> QA.deleteQuestionComment commentID
                     , qaState = model.qaState |> QA.updateQuestionCommentEdits bigbitID (Dict.remove commentID)
                 }
+            )
+                |> common.andFinishRequest (RT.DeleteQuestionComment TidbitPointer.Bigbit commentID)
 
-        OnDeleteCommentOnQuestionFailure apiError ->
+        OnDeleteCommentOnQuestionFailure commentID apiError ->
             common.justSetModalError apiError
+                |> common.andFinishRequest (RT.DeleteQuestionComment TidbitPointer.Bigbit commentID)
 
         DeleteCommentOnAnswer bigbitID commentID ->
-            common.justProduceCmd <|
-                common.api.post.deleteAnswerComment
-                    { tidbitType = TidbitPointer.Bigbit, targetID = bigbitID }
-                    commentID
-                    OnDeleteCommentOnAnswerFailure
-                    (always <| OnDeleteCommentOnAnswerSuccess bigbitID commentID)
+            let
+                deleteAnswerCommentAction =
+                    common.justProduceCmd <|
+                        common.api.post.deleteAnswerComment
+                            { tidbitType = TidbitPointer.Bigbit, targetID = bigbitID }
+                            commentID
+                            (OnDeleteCommentOnAnswerFailure commentID)
+                            (always <| OnDeleteCommentOnAnswerSuccess bigbitID commentID)
+            in
+                common.makeSingletonRequest
+                    (RT.DeleteAnswerComment TidbitPointer.Bigbit commentID)
+                    deleteAnswerCommentAction
 
         OnDeleteCommentOnAnswerSuccess bigbitID commentID ->
             common.justSetModel
@@ -1238,18 +1343,26 @@ update (Common common) msg model shared =
                     | qa = model.qa ||> QA.deleteAnswerComment commentID
                     , qaState = model.qaState |> QA.updateAnswerCommentEdits bigbitID (Dict.remove commentID)
                 }
+                |> common.andFinishRequest (RT.DeleteAnswerComment TidbitPointer.Bigbit commentID)
 
-        OnDeleteCommentOnAnswerFailure apiError ->
+        OnDeleteCommentOnAnswerFailure commentID apiError ->
             common.justSetModalError apiError
+                |> common.andFinishRequest (RT.DeleteAnswerComment TidbitPointer.Bigbit commentID)
 
         EditCommentOnQuestion bigbitID commentID commentText ->
-            common.justProduceCmd <|
-                common.api.post.editQuestionComment
-                    { tidbitType = TidbitPointer.Bigbit, targetID = bigbitID }
-                    commentID
-                    commentText
-                    OnEditCommentOnQuestionFailure
-                    (OnEditCommentOnQuestionSuccess bigbitID commentID commentText)
+            let
+                editQuestionCommentAction =
+                    common.justProduceCmd <|
+                        common.api.post.editQuestionComment
+                            { tidbitType = TidbitPointer.Bigbit, targetID = bigbitID }
+                            commentID
+                            commentText
+                            (OnEditCommentOnQuestionFailure commentID)
+                            (OnEditCommentOnQuestionSuccess bigbitID commentID commentText)
+            in
+                common.makeSingletonRequest
+                    (RT.EditQuestionComment TidbitPointer.Bigbit commentID)
+                    editQuestionCommentAction
 
         OnEditCommentOnQuestionSuccess bigbitID commentID commentText lastModified ->
             common.justSetModel
@@ -1260,18 +1373,26 @@ update (Common common) msg model shared =
                             |> QA.updateQuestionCommentEdits bigbitID (Dict.remove commentID)
                             |> QA.updateDeletingComments bigbitID (Set.remove commentID)
                 }
+                |> common.andFinishRequest (RT.EditQuestionComment TidbitPointer.Bigbit commentID)
 
-        OnEditCommentOnQuestionFailure apiError ->
+        OnEditCommentOnQuestionFailure commentID apiError ->
             common.justSetModalError apiError
+                |> common.andFinishRequest (RT.EditQuestionComment TidbitPointer.Bigbit commentID)
 
         EditCommentOnAnswer bigbitID commentID commentText ->
-            common.justProduceCmd <|
-                common.api.post.editAnswerComment
-                    { tidbitType = TidbitPointer.Bigbit, targetID = bigbitID }
-                    commentID
-                    commentText
-                    OnEditCommentOnAnswerFailure
-                    (OnEditCommentOnAnswerSuccess bigbitID commentID commentText)
+            let
+                editAnswerCommentAction =
+                    common.justProduceCmd <|
+                        common.api.post.editAnswerComment
+                            { tidbitType = TidbitPointer.Bigbit, targetID = bigbitID }
+                            commentID
+                            commentText
+                            (OnEditCommentOnAnswerFailure commentID)
+                            (OnEditCommentOnAnswerSuccess bigbitID commentID commentText)
+            in
+                common.makeSingletonRequest
+                    (RT.EditAnswerComment TidbitPointer.Bigbit commentID)
+                    editAnswerCommentAction
 
         OnEditCommentOnAnswerSuccess bigbitID commentID commentText lastModified ->
             common.justSetModel
@@ -1282,9 +1403,11 @@ update (Common common) msg model shared =
                             |> QA.updateAnswerCommentEdits bigbitID (Dict.remove commentID)
                             |> QA.updateDeletingComments bigbitID (Set.remove commentID)
                 }
+                |> common.andFinishRequest (RT.EditAnswerComment TidbitPointer.Bigbit commentID)
 
-        OnEditCommentOnAnswerFailure apiError ->
+        OnEditCommentOnAnswerFailure commentID apiError ->
             common.justSetModalError apiError
+                |> common.andFinishRequest (RT.EditAnswerComment TidbitPointer.Bigbit commentID)
 
 
 {-| Creates the code editor for the bigbit when browsing relevant HC.

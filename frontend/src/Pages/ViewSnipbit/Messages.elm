@@ -88,14 +88,14 @@ type Msg
     | SubmitCommentOnAnswerFailure ApiError
     | DeleteCommentOnQuestion SnipbitID CommentID
     | OnDeleteCommentOnQuestionSuccess SnipbitID CommentID
-    | OnDeleteCommentOnQuestionFailure ApiError
+    | OnDeleteCommentOnQuestionFailure CommentID ApiError
     | DeleteCommentOnAnswer SnipbitID CommentID
     | OnDeleteCommentOnAnswerSuccess SnipbitID CommentID
-    | OnDeleteCommentOnAnswerFailure ApiError
+    | OnDeleteCommentOnAnswerFailure CommentID ApiError
     | EditCommentOnQuestion SnipbitID CommentID CommentText
     | OnEditCommentOnQuestionSuccess SnipbitID CommentID CommentText Date.Date
-    | OnEditCommentOnQuestionFailure ApiError
+    | OnEditCommentOnQuestionFailure CommentID ApiError
     | EditCommentOnAnswer SnipbitID CommentID CommentText
     | OnEditCommentOnAnswerSuccess SnipbitID CommentID CommentText Date.Date
-    | OnEditCommentOnAnswerFailure ApiError
+    | OnEditCommentOnAnswerFailure CommentID ApiError
     | SetUserNeedsAuthModal String

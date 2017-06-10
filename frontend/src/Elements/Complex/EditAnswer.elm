@@ -4,7 +4,7 @@ import DefaultServices.Editable as Editable
 import DefaultServices.Util as Util
 import Elements.Simple.Markdown as Markdown
 import Html exposing (Html, div, text, textarea)
-import Html.Attributes exposing (class, classList, placeholder, value)
+import Html.Attributes exposing (class, classList, placeholder, value, disabled)
 import Html.Events exposing (onInput, onClick)
 import Models.QA exposing (..)
 import ProjectTypeAliases exposing (..)
@@ -22,6 +22,7 @@ type Msg
 
 type alias RenderConfig codePointer msg =
     { msgTagger : Msg -> msg
+    , editAnswerRequestInProgress : Bool
     , editAnswer : AnswerText -> msg
     , forQuestion : Question codePointer
     }
@@ -81,8 +82,12 @@ view config ({ previewMarkdown, showQuestion } as model) =
                 (div
                     []
                     [ textarea
-                        [ classList [ ( "hiding-question", not showQuestion ) ]
+                        [ classList
+                            [ ( "hiding-question", not showQuestion )
+                            , ( "cursor-progress", config.editAnswerRequestInProgress )
+                            ]
                         , placeholder "Edit Answer Text"
+                        , disabled config.editAnswerRequestInProgress
                         , value answerText
                         , onInput (config.msgTagger << OnAnswerTextInput)
                         ]
@@ -97,6 +102,7 @@ view config ({ previewMarkdown, showQuestion } as model) =
                             [ ( "edit-answer-submit", True )
                             , ( "not-ready", not isAnswerReady )
                             , ( "hidden", previewMarkdown )
+                            , ( "cursor-progress", config.editAnswerRequestInProgress )
                             ]
                     , Maybe.map
                         (onClick << config.editAnswer)

@@ -100,7 +100,7 @@ update (Common common) msg model shared =
                             OnPublishAddedTidbitsSuccess
             in
                 if List.length tidbits > 0 then
-                    common.doIfRequestNotAlreadyLoading RT.PublishNewTidbitsToStory publishAction
+                    common.makeSingletonRequest RT.PublishNewTidbitsToStory publishAction
                 else
                     -- Should never happen.
                     common.doNothing

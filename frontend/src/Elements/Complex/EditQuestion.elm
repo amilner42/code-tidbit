@@ -4,7 +4,7 @@ import DefaultServices.Editable as Editable
 import DefaultServices.InfixFunctions exposing (..)
 import DefaultServices.Util as Util
 import Html exposing (Html, div, text, textarea)
-import Html.Attributes exposing (class, classList, placeholder, value)
+import Html.Attributes exposing (class, classList, placeholder, value, disabled)
 import Html.Events exposing (onClick, onInput)
 import Models.QA exposing (..)
 import ProjectTypeAliases exposing (..)
@@ -21,6 +21,7 @@ type Msg
 
 type alias RenderConfig msg codePointer =
     { msgTagger : Msg -> msg
+    , editQuestionRequestInProgress : Bool
     , isReadyCodePointer : codePointer -> Bool
     , editQuestion : QuestionText -> codePointer -> msg
     }
@@ -64,9 +65,11 @@ view config model =
                 (div
                     []
                     [ textarea
-                        [ placeholder "Edit Question Text"
+                        [ classList [ ( "cursor-progress", config.editQuestionRequestInProgress ) ]
+                        , placeholder "Edit Question Text"
                         , value questionText
                         , onInput (OnQuestionTextInput >> config.msgTagger)
+                        , disabled <| config.editQuestionRequestInProgress
                         ]
                         []
                     , Util.limitCharsText 300 questionText
@@ -79,6 +82,7 @@ view config model =
                             [ ( "edit-question-submit", True )
                             , ( "not-ready", not isQuestionReady )
                             , ( "hidden", model.previewMarkdown )
+                            , ( "cursor-progress", config.editQuestionRequestInProgress )
                             ]
                     , maybeReadyQuestion
                         ||> (\{ codePointer, questionText } -> onClick <| config.editQuestion questionText codePointer)

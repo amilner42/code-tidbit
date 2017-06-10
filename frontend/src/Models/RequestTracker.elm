@@ -3,8 +3,9 @@ module Models.RequestTracker exposing (..)
 {- An extremely basic system for keeping track of what API requests are currently in progress. -}
 
 import DefaultServices.InfixFunctions exposing (..)
-import ProjectTypeAliases exposing (..)
 import Dict
+import Models.TidbitPointer exposing (TidbitType(..))
+import ProjectTypeAliases exposing (..)
 
 
 {-| All the requests that we are tracking.
@@ -23,6 +24,22 @@ type TrackedRequest
     | Logout
     | UpdateName
     | UpdateBio
+    | AddOrRemoveOpinion TidbitType
+    | AskQuestion TidbitType
+    | UpdateQuestion TidbitType
+    | RateQuestion TidbitType
+    | PinQuestion TidbitType
+    | SubmitQuestionComment TidbitType
+    | EditQuestionComment TidbitType CommentID
+    | DeleteQuestionComment TidbitType CommentID
+    | AnswerQuestion TidbitType
+    | UpdateAnswer TidbitType
+    | DeleteAnswer TidbitType
+    | RateAnswer TidbitType
+    | PinAnswer TidbitType
+    | SubmitAnswerComment TidbitType
+    | EditAnswerComment TidbitType CommentID
+    | DeleteAnswerComment TidbitType CommentID
 
 
 {-| A dictionary containing a count of all the requests currently in progress.
@@ -72,8 +89,8 @@ getRequestCount requestTracker trackedRequest =
 {-| Returns true if at least 1 `TrackedRequest` is currently being made.
 -}
 isMakingRequest : RequestTracker -> TrackedRequest -> Bool
-isMakingRequest requestTracker requestName =
-    getRequestCount requestTracker requestName
+isMakingRequest requestTracker trackerRequest =
+    getRequestCount requestTracker trackerRequest
         |> (\count -> count >= 1)
 
 
@@ -82,3 +99,10 @@ isMakingRequest requestTracker requestName =
 isNotMakingRequest : RequestTracker -> TrackedRequest -> Bool
 isNotMakingRequest requestTracker trackedRequest =
     not <| isMakingRequest requestTracker trackedRequest
+
+
+{-| Returns true if any of the list of the requests is being made.
+-}
+isMakingOneOfRequests : RequestTracker -> List TrackedRequest -> Bool
+isMakingOneOfRequests requestTracker =
+    List.any (isMakingRequest requestTracker)

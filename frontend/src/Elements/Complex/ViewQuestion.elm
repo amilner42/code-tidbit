@@ -39,6 +39,17 @@ type alias RenderConfig msg codePointer =
     , answers : List Answer
     , questionComments : List QuestionComment
     , answerComments : List AnswerComment
+    , rateQuestionRequestInProgress : Bool
+    , rateAnswerRequestInProgress : Bool
+    , pinQuestionRequestInProgress : Bool
+    , pinAnswerRequestInProgress : Bool
+    , submitQuestionCommentRequestInProgress : Bool
+    , submitAnswerCommentRequestInProgress : Bool
+    , deleteAnswerRequestInProgress : Bool
+    , deleteAnswerCommentRequestInProgress : CommentID -> Bool
+    , deleteQuestionCommentRequestInProgress : CommentID -> Bool
+    , editAnswerCommentRequestInProgress : CommentID -> Bool
+    , editQuestionCommentRequestInProgress : CommentID -> Bool
     , goToBrowseAllQuestions : msg
     , goToQuestionTab : msg
     , goToAnswersTab : msg
@@ -141,6 +152,9 @@ view config model =
                         , reactiveRatingsBottomBarView
                             { upvotes = config.question.upvotes
                             , downvotes = config.question.downvotes
+                            , rateRequestInProgress = config.rateQuestionRequestInProgress
+                            , pinRequetInProgress = config.pinQuestionRequestInProgress
+                            , deleteRequestInProgress = False
                             , isPinned = config.question.pinned
                             , isAuthor = config.userID == (Just config.question.authorID)
                             , isTidbitAuthor = config.userID == (Just config.tidbitAuthorID)
@@ -174,6 +188,9 @@ view config model =
                         , userID = config.userID
                         , comments = config.questionComments
                         , isSmall = False
+                        , submitCommentRequestInProgress = config.submitQuestionCommentRequestInProgress
+                        , deleteCommentRequestInProgress = config.deleteQuestionCommentRequestInProgress
+                        , editCommentRequestInProgress = config.editQuestionCommentRequestInProgress
                         , goToComment = config.goToQuestionComment
                         , newComment = config.commentOnQuestion
                         , editComment = config.editQuestionComment
@@ -212,6 +229,9 @@ view config model =
                                 , reactiveRatingsBottomBarView
                                     { upvotes = answer.upvotes
                                     , downvotes = answer.downvotes
+                                    , rateRequestInProgress = config.rateAnswerRequestInProgress
+                                    , pinRequetInProgress = config.pinAnswerRequestInProgress
+                                    , deleteRequestInProgress = config.deleteAnswerRequestInProgress
                                     , isPinned = answer.pinned
                                     , isAuthor = config.userID == (Just answer.authorID)
                                     , isTidbitAuthor = config.userID == (Just config.tidbitAuthorID)
@@ -257,6 +277,9 @@ view config model =
                                     , userID = config.userID
                                     , comments = List.filter (.answerID >> (==) answerID) config.answerComments
                                     , isSmall = True
+                                    , submitCommentRequestInProgress = config.submitAnswerCommentRequestInProgress
+                                    , deleteCommentRequestInProgress = config.deleteAnswerCommentRequestInProgress
+                                    , editCommentRequestInProgress = config.editAnswerCommentRequestInProgress
                                     , goToComment = config.goToAnswerComment
                                     , newComment = config.commentOnAnswer answer.id
                                     , editComment = config.editAnswerComment
@@ -347,6 +370,9 @@ answerBoxView goToAnswer answer =
 type alias ReactiveRatingsBottomBarRenderConfig msg =
     { upvotes : ( Bool, Int )
     , downvotes : ( Bool, Int )
+    , rateRequestInProgress : Bool
+    , pinRequetInProgress : Bool
+    , deleteRequestInProgress : Bool
     , isPinned : Bool
     , isAuthor : Bool
     , isTidbitAuthor : Bool
@@ -391,6 +417,7 @@ reactiveRatingsBottomBarView config =
                 [ classList
                     [ ( "dislike-count", True )
                     , ( "selected", downvoted )
+                    , ( "cursor-progress", config.rateRequestInProgress || config.deleteRequestInProgress )
                     ]
                 , onClick onClickDownvote
                 ]
@@ -399,6 +426,7 @@ reactiveRatingsBottomBarView config =
                 [ classList
                     [ ( "material-icons dislike", True )
                     , ( "selected", downvoted )
+                    , ( "cursor-progress", config.rateRequestInProgress || config.deleteRequestInProgress )
                     ]
                 , onClick onClickDownvote
                 ]
@@ -407,6 +435,7 @@ reactiveRatingsBottomBarView config =
                 [ classList
                     [ ( "like-count", True )
                     , ( "selected", upvoted )
+                    , ( "cursor-progress", config.rateRequestInProgress || config.deleteRequestInProgress )
                     ]
                 , onClick onClickUpvote
                 ]
@@ -415,6 +444,7 @@ reactiveRatingsBottomBarView config =
                 [ classList
                     [ ( "material-icons like", True )
                     , ( "selected", upvoted )
+                    , ( "cursor-progress", config.rateRequestInProgress || config.deleteRequestInProgress )
                     ]
                 , onClick onClickUpvote
                 ]
@@ -423,7 +453,10 @@ reactiveRatingsBottomBarView config =
                 -- Is author, pinned
                 ( True, True ) ->
                     i
-                        [ class "material-icons pin-icon"
+                        [ classList
+                            [ ( "material-icons pin-icon", True )
+                            , ( "cursor-progress", config.pinRequetInProgress || config.deleteRequestInProgress )
+                            ]
                         , onClick <| config.unpin
                         ]
                         [ text "star" ]
@@ -431,7 +464,10 @@ reactiveRatingsBottomBarView config =
                 -- Is author, not pinned
                 ( True, False ) ->
                     i
-                        [ class "material-icons pin-icon"
+                        [ classList
+                            [ ( "material-icons pin-icon", True )
+                            , ( "cursor-progress", config.pinRequetInProgress || config.deleteRequestInProgress )
+                            ]
                         , onClick <| config.pin
                         ]
                         [ text "star_border" ]
@@ -445,9 +481,18 @@ reactiveRatingsBottomBarView config =
                     Util.hiddenDiv
             , if config.isAuthor then
                 i
-                    [ class "material-icons edit-icon"
-                    , onClick config.edit
-                    ]
+                    (Util.maybeAttributes
+                        [ Just <|
+                            classList
+                                [ ( "material-icons edit-icon", True )
+                                , ( "cursor-progress", config.deleteRequestInProgress )
+                                ]
+                        , if config.deleteRequestInProgress then
+                            Nothing
+                          else
+                            Just <| onClick config.edit
+                        ]
+                    )
                     [ text "mode_edit" ]
               else
                 Util.hiddenDiv
@@ -457,6 +502,7 @@ reactiveRatingsBottomBarView config =
                         [ classList
                             [ ( "material-icons delete-icon", True )
                             , ( "warning-mode", config.isDeleteAlreadyClicked )
+                            , ( "cursor-progress", config.deleteRequestInProgress )
                             ]
                         , onClick deleteMsg
                         ]

@@ -631,7 +631,7 @@ update (Common common) msg model shared =
                     publishBigbitAction =
                         common.justProduceCmd <| common.api.post.createBigbit bigbit OnPublishFailure OnPublishSuccess
                 in
-                    common.doIfRequestNotAlreadyLoading RT.PublishBigbit publishBigbitAction
+                    common.makeSingletonRequest RT.PublishBigbit publishBigbitAction
 
             OnPublishSuccess { targetID } ->
                 ( init

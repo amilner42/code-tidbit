@@ -3,7 +3,7 @@ module Elements.Complex.AnswerQuestion exposing (..)
 import DefaultServices.Util as Util
 import Elements.Simple.Markdown as Markdown
 import Html exposing (Html, div, text, textarea)
-import Html.Attributes exposing (class, classList, value, placeholder)
+import Html.Attributes exposing (class, classList, value, placeholder, disabled)
 import Html.Events exposing (onInput, onClick)
 import Models.QA exposing (..)
 import ProjectTypeAliases exposing (..)
@@ -22,6 +22,7 @@ type Msg
 type alias RenderConfig codePointer msg =
     { msgTagger : Msg -> msg
     , forQuestion : Question codePointer
+    , answerQuestionRequestInProgress : Bool
     , goToAllAnswers : msg
     , answerQuestion : AnswerText -> msg
     }
@@ -83,8 +84,12 @@ view config { previewMarkdown, showQuestion, answerText } =
                 (div
                     []
                     [ textarea
-                        [ classList [ ( "hiding-question", not showQuestion ) ]
+                        [ classList
+                            [ ( "hiding-question", not showQuestion )
+                            , ( "cursor-progress", config.answerQuestionRequestInProgress )
+                            ]
                         , placeholder "Answer Question"
+                        , disabled config.answerQuestionRequestInProgress
                         , onInput (config.msgTagger << OnAnswerTextInput)
                         , value answerText
                         ]
@@ -99,6 +104,7 @@ view config { previewMarkdown, showQuestion, answerText } =
                             [ ( "answer-question-submit", True )
                             , ( "hidden", previewMarkdown )
                             , ( "not-ready", not isAnswerReady )
+                            , ( "cursor-progress", config.answerQuestionRequestInProgress )
                             ]
                     , Maybe.map (onClick << config.answerQuestion) maybeReadyAnswer
                     ]

@@ -4,7 +4,7 @@ import DefaultServices.InfixFunctions exposing (..)
 import DefaultServices.Util as Util
 import Elements.Simple.Markdown as Markdown
 import Html exposing (Html, div, text, textarea)
-import Html.Attributes exposing (class, classList, placeholder, value)
+import Html.Attributes exposing (class, classList, placeholder, value, disabled)
 import Html.Events exposing (onInput, onClick)
 import Models.QA exposing (..)
 import ProjectTypeAliases exposing (..)
@@ -21,6 +21,7 @@ type alias Model codePointer =
 
 type alias RenderConfig msg codePointer =
     { msgTagger : Msg -> msg
+    , askQuestionRequestInProgress : Bool
     , goToAllQuestions : msg
     , askQuestion : codePointer -> QuestionText -> msg
     , isReadyCodePointer : codePointer -> Bool
@@ -67,9 +68,11 @@ view config model =
                 div
                     []
                     [ textarea
-                        [ placeholder "Highlight code and ask your question..."
+                        [ classList [ ( "cursor-progress", config.askQuestionRequestInProgress ) ]
+                        , placeholder "Highlight code and ask your question..."
                         , onInput (OnQuestionTextInput >> config.msgTagger)
                         , value model.questionText
+                        , disabled <| config.askQuestionRequestInProgress
                         ]
                         []
                     , Util.limitCharsText 300 model.questionText
@@ -81,6 +84,7 @@ view config model =
                             [ ( "ask-question-submit", True )
                             , ( "not-ready", not isQuestionReady )
                             , ( "hidden", model.previewMarkdown )
+                            , ( "cursor-progress", config.askQuestionRequestInProgress )
                             ]
                     , maybeReadyQuestion
                         ||> (\{ codePointer, questionText } -> onClick <| config.askQuestion codePointer questionText)

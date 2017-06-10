@@ -422,7 +422,7 @@ update (Common common) msg model shared =
                     publishSnipbitAction =
                         common.justProduceCmd <| common.api.post.createSnipbit snipbit OnPublishFailure OnPublishSuccess
                 in
-                    common.doIfRequestNotAlreadyLoading RT.PublishSnipbit publishSnipbitAction
+                    common.makeSingletonRequest RT.PublishSnipbit publishSnipbitAction
 
             OnPublishSuccess { targetID } ->
                 ( init

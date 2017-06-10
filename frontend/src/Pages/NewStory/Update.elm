@@ -129,7 +129,7 @@ update (Common common) msg model shared =
                             OnPublishSuccess
             in
                 if newStoryDataReadyForPublication model then
-                    common.doIfRequestNotAlreadyLoading RT.PublishNewStory publishAction
+                    common.makeSingletonRequest RT.PublishNewStory publishAction
                 else
                     common.doNothing
 
@@ -170,7 +170,7 @@ update (Common common) msg model shared =
                             OnSaveEditsSuccess
             in
                 if editingStoryDataReadyForSave model then
-                    common.doIfRequestNotAlreadyLoading RT.UpdateStoryInfo saveEditsAction
+                    common.makeSingletonRequest RT.UpdateStoryInfo saveEditsAction
                 else
                     common.doNothing
 

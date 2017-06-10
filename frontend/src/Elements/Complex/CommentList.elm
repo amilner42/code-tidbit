@@ -34,6 +34,9 @@ type alias RenderConfig msg comment =
     , userID : Maybe UserID
     , comments : List (Comment comment)
     , isSmall : Bool
+    , submitCommentRequestInProgress : Bool
+    , deleteCommentRequestInProgress : CommentID -> Bool
+    , editCommentRequestInProgress : CommentID -> Bool
     , goToComment : Comment comment -> msg
     , newComment : CommentText -> msg
     , editComment : CommentID -> CommentText -> msg
@@ -71,7 +74,10 @@ view config model =
                     )
                 ]
             , textarea
-                [ class "new-comment-textarea"
+                [ classList
+                    [ ( "new-comment-textarea", True )
+                    , ( "cursor-progress", config.submitCommentRequestInProgress )
+                    ]
                 , onInput <| config.msgTagger << OnNewCommentTextInput
                 , placeholder <|
                     if isLoggedIn then
@@ -79,7 +85,7 @@ view config model =
                     else
                         "Sign up or login to comment..."
                 , value model.newCommentText
-                , disabled <| not isLoggedIn
+                , disabled <| not isLoggedIn || config.submitCommentRequestInProgress
                 ]
                 []
             , Util.limitCharsText 300 model.newCommentText
@@ -89,6 +95,7 @@ view config model =
                         classList
                             [ ( "submit-comment", True )
                             , ( "disabled", not isReadyComment || not isLoggedIn )
+                            , ( "cursor-progress", config.submitCommentRequestInProgress )
                             ]
                     , case ( isLoggedIn, justReadyComment ) of
                         ( True, Just comment ) ->
@@ -119,8 +126,12 @@ commentBoxView config { deletingComments, commentEdits } comment =
             [ case maybeCommentEdit of
                 Just commentEdit ->
                     textarea
-                        [ class "comment-box-text-edit-mode"
+                        [ classList
+                            [ ( "comment-box-text-edit-mode", True )
+                            , ( "cursor-progress", config.editCommentRequestInProgress comment.id )
+                            ]
                         , placeholder "Edit comment..."
+                        , disabled <| config.editCommentRequestInProgress comment.id
                         , value <| Editable.getBuffer commentEdit
                         , onInput <| config.msgTagger << OnEditCommentInput comment.id
                         ]
@@ -136,9 +147,18 @@ commentBoxView config { deletingComments, commentEdits } comment =
                         (case maybeCommentEdit of
                             Just commentEdit ->
                                 [ i
-                                    [ class "material-icons cancel-edit"
-                                    , onClick <| config.msgTagger <| CancelEditing comment.id
-                                    ]
+                                    (Util.maybeAttributes
+                                        [ Just <|
+                                            classList
+                                                [ ( "material-icons cancel-edit", True )
+                                                , ( "cursor-progress", config.editCommentRequestInProgress comment.id )
+                                                ]
+                                        , if config.editCommentRequestInProgress comment.id then
+                                            Nothing
+                                          else
+                                            Just <| onClick <| config.msgTagger <| CancelEditing comment.id
+                                        ]
+                                    )
                                     [ text "cancel" ]
                                 , i
                                     (Util.maybeAttributes
@@ -150,6 +170,7 @@ commentBoxView config { deletingComments, commentEdits } comment =
                                                         |> Util.justNonBlankString
                                                         |> Util.isNothing
                                                   )
+                                                , ( "cursor-progress", config.editCommentRequestInProgress comment.id )
                                                 ]
                                         , Editable.getBuffer commentEdit
                                             |> Util.justNonBlankString
@@ -165,6 +186,7 @@ commentBoxView config { deletingComments, commentEdits } comment =
                                     [ classList
                                         [ ( "material-icons delete-comment", True )
                                         , ( "delete-warning", isBeingDeleted )
+                                        , ( "cursor-progress", config.deleteCommentRequestInProgress comment.id )
                                         ]
                                     , onClick <|
                                         if isBeingDeleted then
@@ -179,9 +201,23 @@ commentBoxView config { deletingComments, commentEdits } comment =
                                             "delete"
                                     ]
                                 , i
-                                    [ class "material-icons edit-comment"
-                                    , onClick <| config.msgTagger <| StartEditing comment.id comment.commentText
-                                    ]
+                                    (Util.maybeAttributes
+                                        [ Just <|
+                                            classList
+                                                [ ( "material-icons edit-comment", True )
+                                                , ( "cursor-progress"
+                                                  , config.deleteCommentRequestInProgress comment.id
+                                                  )
+                                                ]
+                                        , if config.deleteCommentRequestInProgress comment.id then
+                                            Nothing
+                                          else
+                                            Just <|
+                                                onClick <|
+                                                    config.msgTagger <|
+                                                        StartEditing comment.id comment.commentText
+                                        ]
+                                    )
                                     [ text "edit_mode" ]
                                 ]
                         )

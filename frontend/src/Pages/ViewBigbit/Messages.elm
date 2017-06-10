@@ -94,13 +94,13 @@ type Msg
     | OnSubmitCommentOnAnswerFailure ApiError
     | DeleteCommentOnQuestion BigbitID CommentID
     | OnDeleteCommentOnQuestionSuccess BigbitID CommentID
-    | OnDeleteCommentOnQuestionFailure ApiError
+    | OnDeleteCommentOnQuestionFailure CommentID ApiError
     | DeleteCommentOnAnswer BigbitID CommentID
     | OnDeleteCommentOnAnswerSuccess BigbitID CommentID
-    | OnDeleteCommentOnAnswerFailure ApiError
+    | OnDeleteCommentOnAnswerFailure CommentID ApiError
     | EditCommentOnQuestion BigbitID CommentID CommentText
     | OnEditCommentOnQuestionSuccess BigbitID CommentID CommentText Date
-    | OnEditCommentOnQuestionFailure ApiError
+    | OnEditCommentOnQuestionFailure CommentID ApiError
     | EditCommentOnAnswer BigbitID CommentID CommentText
     | OnEditCommentOnAnswerSuccess BigbitID CommentID CommentText Date
-    | OnEditCommentOnAnswerFailure ApiError
+    | OnEditCommentOnAnswerFailure CommentID ApiError
