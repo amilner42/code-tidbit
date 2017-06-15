@@ -19,4 +19,5 @@ init =
     , contentFilterIncludeEmptyStories = False
     , contentFilterLanguage = Nothing
     , contentFilterAuthor = ( "", Nothing )
+    , mostRecentSearchSettings = Nothing
     }

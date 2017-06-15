@@ -30,6 +30,7 @@ encoder model =
                 , ( "authorForInput", justValueOrNull Encode.string <| Tuple.second model.contentFilterAuthor )
                 ]
           )
+        , ( "mostRecentSearchSettings", Encode.null )
         ]
 
 
@@ -54,3 +55,4 @@ decoder =
                 |> required "emailInput" Decode.string
                 |> required "authorForInput" (Decode.maybe Decode.string)
             )
+        |> hardcoded Nothing

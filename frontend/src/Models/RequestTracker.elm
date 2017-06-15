@@ -5,6 +5,7 @@ module Models.RequestTracker exposing (..)
 import DefaultServices.InfixFunctions exposing (..)
 import Dict
 import Models.TidbitPointer exposing (TidbitType(..))
+import Pages.Browse.Model exposing (SearchSettings)
 import ProjectTypeAliases exposing (..)
 
 
@@ -40,6 +41,7 @@ type TrackedRequest
     | SubmitAnswerComment TidbitType
     | EditAnswerComment TidbitType CommentID
     | DeleteAnswerComment TidbitType CommentID
+    | SearchForContent SearchSettings
 
 
 {-| A dictionary containing a count of all the requests currently in progress.
