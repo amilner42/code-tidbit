@@ -8,6 +8,7 @@ import Elements.Simple.Editor as Editor
 import Elements.Simple.FileStructure as FS
 import Models.Bigbit as Bigbit
 import Models.Range as Range
+import Models.RequestTracker as RT
 import Models.Route as Route exposing (createBigbitPageCurrentActiveFile)
 import Models.User as User
 import Pages.CreateBigbit.Init exposing (..)
@@ -626,13 +627,19 @@ update (Common common) msg model shared =
                     ( newModel, shared, newCmd )
 
             Publish bigbit ->
-                common.justProduceCmd <| common.api.post.createBigbit bigbit OnPublishFailure OnPublishSuccess
+                let
+                    publishBigbitAction =
+                        common.justProduceCmd <| common.api.post.createBigbit bigbit OnPublishFailure OnPublishSuccess
+                in
+                    common.makeSingletonRequest RT.PublishBigbit publishBigbitAction
 
             OnPublishSuccess { targetID } ->
                 ( init
                 , { shared | userTidbits = Nothing }
                 , Route.navigateTo <| Route.ViewBigbitIntroductionPage Nothing targetID Nothing
                 )
+                    |> common.andFinishRequest RT.PublishBigbit
 
             OnPublishFailure apiError ->
                 common.justSetModalError apiError
+                    |> common.andFinishRequest RT.PublishBigbit

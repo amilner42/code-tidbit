@@ -1,5 +1,6 @@
 module Pages.DefaultModel exposing (..)
 
+import Dict
 import Elements.Simple.Editor as Editor
 import Flags exposing (Flags)
 import Keyboard.Extra as KK
@@ -54,4 +55,5 @@ defaultShared route flags =
     , flags = flags
     , apiModalError = Nothing
     , userNeedsAuthModal = Nothing
+    , apiRequestTracker = Dict.empty
     }

@@ -15,6 +15,7 @@ import Keyboard.Extra as KK
 import Models.Bigbit as Bigbit
 import Models.Completed as Completed
 import Models.Range as Range
+import Models.RequestTracker as RT
 import Models.Route as Route exposing (createBigbitPageCurrentActiveFile)
 import Models.Snipbit as Snipbit
 import Models.Story as Story
@@ -49,7 +50,10 @@ view model shared =
 
                 Just bigbitForPublicaton ->
                     button
-                        [ class "create-bigbit-publish-button"
+                        [ classList
+                            [ ( "create-bigbit-publish-button", True )
+                            , ( "cursor-progress", RT.isMakingRequest shared.apiRequestTracker RT.PublishBigbit )
+                            ]
                         , onClick <| Publish bigbitForPublicaton
                         ]
                         [ text "Publish" ]

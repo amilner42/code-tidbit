@@ -9,6 +9,7 @@ import Elements.Simple.Editor as Editor
 import JSON.Language
 import Json.Decode as Decode
 import Models.Range as Range
+import Models.RequestTracker as RT
 import Models.Route as Route
 import Models.User as User
 import Pages.CreateSnipbit.Init exposing (..)
@@ -417,16 +418,22 @@ update (Common common) msg model shared =
                 common.justSetModel { model | conclusion = newConclusion }
 
             Publish snipbit ->
-                common.justProduceCmd <| common.api.post.createSnipbit snipbit OnPublishFailure OnPublishSuccess
+                let
+                    publishSnipbitAction =
+                        common.justProduceCmd <| common.api.post.createSnipbit snipbit OnPublishFailure OnPublishSuccess
+                in
+                    common.makeSingletonRequest RT.PublishSnipbit publishSnipbitAction
 
             OnPublishSuccess { targetID } ->
                 ( init
                 , { shared | userTidbits = Nothing }
                 , Route.navigateTo <| Route.ViewSnipbitIntroductionPage Nothing targetID
                 )
+                    |> common.andFinishRequest RT.PublishSnipbit
 
             OnPublishFailure apiError ->
                 common.justSetModalError apiError
+                    |> common.andFinishRequest RT.PublishSnipbit
 
 
 {-| Config for language-list auto-complete (used in snipbit creation).

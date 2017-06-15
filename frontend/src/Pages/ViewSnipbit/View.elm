@@ -21,9 +21,11 @@ import Models.Completed as Completed
 import Models.QA as QA
 import Models.Range as Range
 import Models.Rating as Rating
+import Models.RequestTracker as RT
 import Models.Route as Route
 import Models.Snipbit as Snipbit
 import Models.Story as Story
+import Models.TidbitPointer as TidbitPointer
 import Models.TutorialBookmark as TB
 import Models.ViewerRelevantHC as ViewerRelevantHC
 import Models.Vote as Vote
@@ -62,7 +64,14 @@ view model shared =
                                     )
                     in
                         button
-                            [ class "sub-bar-button heart-button"
+                            [ classList
+                                [ ( "sub-bar-button heart-button", True )
+                                , ( "cursor-progress"
+                                  , RT.isMakingRequest
+                                        shared.apiRequestTracker
+                                        (RT.AddOrRemoveOpinion TidbitPointer.Snipbit)
+                                  )
+                                ]
                             , onClick <| newMsg
                             ]
                             [ text buttonText ]
@@ -464,6 +473,28 @@ commentBox snipbit model shared =
                 , answers = List.filter (.questionID >> (==) question.id) qa.answers
                 , questionComments = List.filter (.questionID >> (==) question.id) qa.questionComments
                 , answerComments = List.filter (.questionID >> (==) question.id) qa.answerComments
+                , rateQuestionRequestInProgress =
+                    RT.isMakingRequest shared.apiRequestTracker (RT.RateQuestion TidbitPointer.Snipbit)
+                , rateAnswerRequestInProgress =
+                    RT.isMakingRequest shared.apiRequestTracker (RT.RateAnswer TidbitPointer.Snipbit)
+                , pinQuestionRequestInProgress =
+                    RT.isMakingRequest shared.apiRequestTracker (RT.PinQuestion TidbitPointer.Snipbit)
+                , pinAnswerRequestInProgress =
+                    RT.isMakingRequest shared.apiRequestTracker (RT.PinAnswer TidbitPointer.Snipbit)
+                , submitQuestionCommentRequestInProgress =
+                    RT.isMakingRequest shared.apiRequestTracker (RT.SubmitQuestionComment TidbitPointer.Snipbit)
+                , submitAnswerCommentRequestInProgress =
+                    RT.isMakingRequest shared.apiRequestTracker (RT.SubmitAnswerComment TidbitPointer.Snipbit)
+                , deleteAnswerRequestInProgress =
+                    RT.isMakingRequest shared.apiRequestTracker (RT.DeleteAnswer TidbitPointer.Snipbit)
+                , deleteAnswerCommentRequestInProgress =
+                    RT.DeleteAnswerComment TidbitPointer.Snipbit >> RT.isMakingRequest shared.apiRequestTracker
+                , deleteQuestionCommentRequestInProgress =
+                    RT.DeleteQuestionComment TidbitPointer.Snipbit >> RT.isMakingRequest shared.apiRequestTracker
+                , editAnswerCommentRequestInProgress =
+                    RT.EditAnswerComment TidbitPointer.Snipbit >> RT.isMakingRequest shared.apiRequestTracker
+                , editQuestionCommentRequestInProgress =
+                    RT.EditQuestionComment TidbitPointer.Snipbit >> RT.isMakingRequest shared.apiRequestTracker
                 , goToBrowseAllQuestions =
                     GoTo <|
                         Route.ViewSnipbitQuestionsPage
@@ -722,6 +753,8 @@ commentBox snipbit model shared =
                 in
                     AskQuestion.view
                         { msgTagger = AskQuestionMsg snipbitID
+                        , askQuestionRequestInProgress =
+                            RT.isMakingRequest shared.apiRequestTracker (RT.AskQuestion TidbitPointer.Snipbit)
                         , askQuestion = AskQuestion snipbitID
                         , isReadyCodePointer = not << Range.isEmptyRange
                         , goToAllQuestions =
@@ -735,6 +768,11 @@ commentBox snipbit model shared =
                     Just question ->
                         AnswerQuestion.view
                             { msgTagger = AnswerQuestionMsg snipbitID question
+                            , forQuestion = question
+                            , answerQuestionRequestInProgress =
+                                RT.isMakingRequest
+                                    shared.apiRequestTracker
+                                    (RT.AnswerQuestion TidbitPointer.Snipbit)
                             , answerQuestion = AnswerQuestion snipbitID questionID
                             , goToAllAnswers =
                                 GoTo <|
@@ -743,7 +781,6 @@ commentBox snipbit model shared =
                                         (Route.getTouringQuestionsQueryParamOnViewSnipbitQARoute shared.route)
                                         snipbitID
                                         questionID
-                            , forQuestion = question
                             }
                             (QA.getNewAnswer snipbitID questionID model.qaState
                                 ?> QA.defaultNewAnswer
@@ -763,6 +800,10 @@ commentBox snipbit model shared =
                         in
                             EditQuestion.view
                                 { msgTagger = EditQuestionMsg snipbitID question
+                                , editQuestionRequestInProgress =
+                                    RT.isMakingRequest
+                                        shared.apiRequestTracker
+                                        (RT.UpdateQuestion TidbitPointer.Snipbit)
                                 , isReadyCodePointer = not << Range.isEmptyRange
                                 , editQuestion = EditQuestion snipbitID questionID
                                 }
@@ -781,6 +822,8 @@ commentBox snipbit model shared =
                     ( Just answer, Just question ) ->
                         EditAnswer.view
                             { msgTagger = EditAnswerMsg snipbitID answerID answer
+                            , editAnswerRequestInProgress =
+                                RT.isMakingRequest shared.apiRequestTracker (RT.UpdateAnswer TidbitPointer.Snipbit)
                             , editAnswer = EditAnswer snipbitID question.id answerID
                             , forQuestion = question
                             }

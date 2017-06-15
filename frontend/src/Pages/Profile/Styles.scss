@@ -119,7 +119,6 @@
                 font-size: 16px;
                 width: 180px;
                 display: inline-block;
-                background-color: #FDFDFD;
                 border: none;
                 font-style: italic;
                 font-weight: 400;
@@ -132,6 +131,7 @@
 
             textarea {
                 display: inline-block;
+                font-size: 16px;
             }
 
             .logout-button {
@@ -147,6 +147,14 @@
                     opacity: 0.9;
                     color: white;
                 }
+            }
+
+            .logout-error {
+                position: absolute;
+                top: 60px;
+                left: 320px;
+                width: 160px;
+                text-align: right;
             }
 
             &.editor-card {

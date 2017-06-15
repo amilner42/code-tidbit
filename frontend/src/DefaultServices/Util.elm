@@ -213,6 +213,16 @@ queryParamsToString listOfMaybeQueryParams =
         |> String.dropRight 1
 
 
+{-| For converting Elm booleans to javascript booleans (useful in query params for instance).
+-}
+toJSBool : Bool -> String
+toJSBool bool =
+    if bool then
+        "true"
+    else
+        "false"
+
+
 {-| If the string is empty returns `Nothing`, otherwise `Just` the string.
 -}
 justNonEmptyString : String -> Maybe String

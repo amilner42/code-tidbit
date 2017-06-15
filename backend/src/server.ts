@@ -12,7 +12,7 @@ import * as kleen from "kleen";
 import { APP_CONFIG } from './app-config';
 import { toMongoObjectID, collection } from './db';
 import { loginStrategy, signUpStrategy } from './passport-local-auth-strategies';
-import { internalError } from './util';
+import { internalError, randomDelay } from './util';
 import { authlessRoutes, routes } from './routes';
 import { FrontendError, RouteHandler } from './types';
 
@@ -57,14 +57,20 @@ const handleError = (res: Response): ((error: FrontendError) => Promise<void>) =
   return (error) => {
     return kleen.validModel(frontendErrorScheme)(error)
     .then(() => {
-      res.status(400).json(error);
+      if(APP_CONFIG.slowNetwork) {
+        randomDelay(() => { res.status(400).json(error); });
+      } else {
+        res.status(400).json(error);
+      }
     })
     .catch(() => {
       console.log("[LOG] Unknown error: " + error);
 
-      res.status(400).json(
-        internalError("An unknown internal error occured...")
-      );
+      if(APP_CONFIG.slowNetwork) {
+        randomDelay(() => { res.status(400).json(internalError("An unknown internal error occured...")); });
+      } else {
+        res.status(400).json(internalError("An unknown internal error occured..."));
+      }
     });
   };
 };
@@ -74,7 +80,11 @@ const handleError = (res: Response): ((error: FrontendError) => Promise<void>) =
  */
 const handleSuccess =  (res: Response): ((successObj) => void) => {
   return (successObj) => {
-    res.status(200).json(successObj);
+    if(APP_CONFIG.slowNetwork) {
+      randomDelay(() => { res.status(200).json(successObj); });
+    } else {
+      res.status(200).json(successObj);
+    }
   }
 };
 

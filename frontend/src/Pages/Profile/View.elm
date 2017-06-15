@@ -3,8 +3,9 @@ module Pages.Profile.View exposing (..)
 import DefaultServices.Editable exposing (bufferIs)
 import DefaultServices.Util as Util
 import Html exposing (Html, div, button, text, input, i, textarea)
-import Html.Attributes exposing (class, classList, hidden, placeholder, value)
+import Html.Attributes exposing (class, classList, hidden, placeholder, value, disabled)
 import Html.Events exposing (onClick, onInput)
+import Models.RequestTracker as RT
 import Pages.Model exposing (Shared)
 import Pages.Profile.Messages exposing (..)
 import Pages.Profile.Model exposing (..)
@@ -44,16 +45,21 @@ view model shared =
                                 [ text "Name" ]
                             , div [ class "profile-card-sub-box-gap" ] []
                             , input
-                                [ class "profile-card-sub-box-content"
-                                , placeholder "Preferred Name"
+                                [ classList
+                                    [ ( "profile-card-sub-box-content", True )
+                                    , ( "cursor-progress", RT.isMakingRequest shared.apiRequestTracker RT.UpdateName )
+                                    ]
+                                , placeholder "Preferred name..."
                                 , value <| getNameWithDefault model user.name
                                 , onInput <| OnEditName user.name
+                                , disabled <| RT.isMakingRequest shared.apiRequestTracker RT.UpdateName
                                 ]
                                 []
                             , i
                                 [ classList
                                     [ ( "material-icons", True )
                                     , ( "hidden", not <| isEditingName model )
+                                    , ( "cursor-progress", RT.isMakingRequest shared.apiRequestTracker RT.UpdateName )
                                     ]
                                 , onClick CancelEditedName
                                 ]
@@ -62,6 +68,7 @@ view model shared =
                                 [ classList
                                     [ ( "material-icons", True )
                                     , ( "hidden", not <| isEditingName model )
+                                    , ( "cursor-progress", RT.isMakingRequest shared.apiRequestTracker RT.UpdateName )
                                     , ( "disabled"
                                       , Util.maybeMapWithDefault
                                             (bufferIs String.isEmpty)
@@ -82,10 +89,14 @@ view model shared =
                                 [ class "profile-card-sub-box-gap" ]
                                 []
                             , textarea
-                                [ class "profile-card-sub-box-content bio-textarea"
+                                [ classList
+                                    [ ( "profile-card-sub-box-content bio-textarea", True )
+                                    , ( "cursor-progress", RT.isMakingRequest shared.apiRequestTracker RT.UpdateBio )
+                                    ]
                                 , placeholder "Tell everyone about yourself..."
                                 , value <| getBioWithDefault model user.bio
                                 , onInput <| OnEditBio user.bio
+                                , disabled <| RT.isMakingRequest shared.apiRequestTracker RT.UpdateBio
                                 ]
                                 []
                             , div
@@ -94,6 +105,9 @@ view model shared =
                                     [ classList
                                         [ ( "material-icons", True )
                                         , ( "hidden", not <| isEditingBio model )
+                                        , ( "cursor-progress"
+                                          , RT.isMakingRequest shared.apiRequestTracker RT.UpdateBio
+                                          )
                                         ]
                                     , onClick CancelEditedBio
                                     ]
@@ -108,6 +122,9 @@ view model shared =
                                                 False
                                                 model.accountBio
                                           )
+                                        , ( "cursor-progress"
+                                          , RT.isMakingRequest shared.apiRequestTracker RT.UpdateBio
+                                          )
                                         ]
                                     , onClick SaveEditedBio
                                     ]
@@ -115,12 +132,17 @@ view model shared =
                                 ]
                             ]
                         , button
-                            [ class "logout-button"
+                            [ classList
+                                [ ( "logout-button", True )
+                                , ( "cursor-progress", RT.isMakingRequest shared.apiRequestTracker RT.Logout )
+                                ]
                             , onClick LogOut
                             ]
                             [ text "Log Out" ]
                         , div
-                            [ hidden <| Util.isNothing model.logOutError ]
+                            [ class "logout-error"
+                            , hidden <| Util.isNothing model.logOutError
+                            ]
                             [ text "Cannot log out right now, try again shortly." ]
                         ]
                     , div

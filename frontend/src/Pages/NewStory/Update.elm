@@ -2,6 +2,7 @@ module Pages.NewStory.Update exposing (..)
 
 import DefaultServices.CommonSubPageUtil exposing (CommonSubPageUtil(..))
 import DefaultServices.Util as Util
+import Models.RequestTracker as RT
 import Models.Route as Route
 import Models.Story as Story
 import Pages.Model exposing (Shared)
@@ -119,23 +120,29 @@ update (Common common) msg model shared =
             )
 
         Publish ->
-            if newStoryDataReadyForPublication model then
-                common.justProduceCmd <|
-                    common.api.post.createNewStory
-                        model.newStory
-                        OnPublishFailure
-                        OnPublishSuccess
-            else
-                common.doNothing
+            let
+                publishAction =
+                    common.justProduceCmd <|
+                        common.api.post.createNewStory
+                            model.newStory
+                            OnPublishFailure
+                            OnPublishSuccess
+            in
+                if newStoryDataReadyForPublication model then
+                    common.makeSingletonRequest RT.PublishNewStory publishAction
+                else
+                    common.doNothing
 
         OnPublishSuccess { targetID } ->
             ( init
             , { shared | userStories = Nothing }
             , Route.navigateTo <| Route.DevelopStoryPage targetID
             )
+                |> common.andFinishRequest RT.PublishNewStory
 
         OnPublishFailure apiError ->
             common.justSetModalError apiError
+                |> common.andFinishRequest RT.PublishNewStory
 
         CancelEdits storyID ->
             ( updateEditStory (always Story.blankStory) model
@@ -153,14 +160,17 @@ update (Common common) msg model shared =
                     , description = editingStory.description
                     , tags = editingStory.tags
                     }
-            in
-                if editingStoryDataReadyForSave model then
+
+                saveEditsAction =
                     common.justProduceCmd <|
                         common.api.post.updateStoryInformation
                             storyID
                             editingStoryInformation
                             OnSaveEditsFailure
                             OnSaveEditsSuccess
+            in
+                if editingStoryDataReadyForSave model then
+                    common.makeSingletonRequest RT.UpdateStoryInfo saveEditsAction
                 else
                     common.doNothing
 
@@ -169,6 +179,8 @@ update (Common common) msg model shared =
             , { shared | userStories = Nothing }
             , Route.navigateTo <| Route.DevelopStoryPage targetID
             )
+                |> common.andFinishRequest RT.UpdateStoryInfo
 
         OnSaveEditsFailure apiError ->
             common.justSetModalError apiError
+                |> common.andFinishRequest RT.UpdateStoryInfo

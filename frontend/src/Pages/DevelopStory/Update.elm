@@ -2,6 +2,7 @@ module Pages.DevelopStory.Update exposing (..)
 
 import DefaultServices.CommonSubPageUtil exposing (CommonSubPageUtil(..))
 import DefaultServices.Util as Util exposing (maybeMapWithDefault)
+import Models.RequestTracker as RT
 import Models.Route as Route
 import Models.Tidbit as Tidbit
 import Pages.DevelopStory.Messages exposing (..)
@@ -89,16 +90,20 @@ update (Common common) msg model shared =
             common.justUpdateModel <| removeTidbit tidbit
 
         PublishAddedTidbits storyID tidbits ->
-            if List.length tidbits > 0 then
-                common.justProduceCmd <|
-                    common.api.post.addTidbitsToStory
-                        storyID
-                        (List.map Tidbit.compressTidbit tidbits)
-                        OnPublishAddedTidbitsFailure
-                        OnPublishAddedTidbitsSuccess
-            else
-                -- Should never happen.
-                common.doNothing
+            let
+                publishAction =
+                    common.justProduceCmd <|
+                        common.api.post.addTidbitsToStory
+                            storyID
+                            (List.map Tidbit.compressTidbit tidbits)
+                            OnPublishAddedTidbitsFailure
+                            OnPublishAddedTidbitsSuccess
+            in
+                if List.length tidbits > 0 then
+                    common.makeSingletonRequest RT.PublishNewTidbitsToStory publishAction
+                else
+                    -- Should never happen.
+                    common.doNothing
 
         OnPublishAddedTidbitsSuccess expandedStory ->
             ( { model
@@ -108,6 +113,8 @@ update (Common common) msg model shared =
             , { shared | userStories = Nothing }
             , Cmd.none
             )
+                |> common.andFinishRequest RT.PublishNewTidbitsToStory
 
         OnPublishAddedTidbitsFailure apiError ->
             common.justSetModalError apiError
+                |> common.andFinishRequest RT.PublishNewTidbitsToStory

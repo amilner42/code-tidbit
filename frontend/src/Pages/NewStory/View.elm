@@ -6,6 +6,7 @@ import Html exposing (Html, div, text, input, textarea, button)
 import Html.Attributes exposing (class, classList, placeholder, value, id, hidden)
 import Html.Events exposing (onClick, onInput)
 import Keyboard.Extra as KK
+import Models.RequestTracker as RT
 import Models.Route as Route
 import Pages.Model exposing (Shared)
 import Pages.NewStory.Messages exposing (..)
@@ -47,6 +48,7 @@ view model shared =
                                 [ ( "continue-button", True )
                                 , ( "publish-button", newStoryDataReadyForPublication model )
                                 , ( "disabled-publish-button", not <| newStoryDataReadyForPublication model )
+                                , ( "cursor-progress", RT.isMakingRequest shared.apiRequestTracker RT.PublishNewStory )
                                 ]
                             , onClick Publish
                             ]
@@ -64,6 +66,7 @@ view model shared =
                                 [ ( "sub-bar-button save-changes", True )
                                 , ( "publish-button", editingStoryDataReadyForSave model )
                                 , ( "disabled-publish-button", not <| editingStoryDataReadyForSave model )
+                                , ( "cursor-progress", RT.isMakingRequest shared.apiRequestTracker RT.UpdateStoryInfo )
                                 ]
                             , onClick <| SaveEdits storyID
                             ]
