@@ -47,27 +47,47 @@ update ((Common common) as commonUtil) msg model shared =
                     common.doNothing
 
         OnGetContentSuccess searchSettings content ->
-            (if model.mostRecentSearchSettings == (Just searchSettings) then
-                case model.content of
-                    Nothing ->
-                        common.justSetModel
-                            { model
-                                | content = Just content
-                                , pageNumber = 2
-                                , noMoreContent = isNoMoreContent 10 content
-                            }
+            let
+                isMostRecentRequest =
+                    model.mostRecentSearchSettings == (Just searchSettings)
 
-                    Just currentContent ->
-                        common.justSetModel
-                            { model
-                                | content = Just <| currentContent ++ content
-                                , pageNumber = model.pageNumber + 1
-                                , noMoreContent = isNoMoreContent 10 content
-                            }
-             else
-                common.doNothing
-            )
-                |> common.andFinishRequest (RT.SearchForContent searchSettings)
+                getUpdatedModelForInitialRequest =
+                    { model
+                        | content = Just content
+                        , pageNumber = 2
+                        , noMoreContent = isNoMoreContent 10 content
+                    }
+
+                getUpdatedModelForNonInitialRequest currentContent =
+                    { model
+                        | content = Just <| currentContent ++ content
+                        , pageNumber = model.pageNumber + 1
+                        , noMoreContent = isNoMoreContent 10 content
+                    }
+
+                updatedModel =
+                    if isMostRecentRequest then
+                        case model.content of
+                            Nothing ->
+                                getUpdatedModelForInitialRequest
+
+                            Just currentContent ->
+                                -- This can happen if the user manages to switch his request settings so that as the
+                                -- requests are about to come in he switches to those settings and makes a new request,
+                                -- which won't happen because the request is already in progress but it will mark it as
+                                -- the `mostRecentSearchSettings`. So the user could (in a very weird case) "catch"
+                                -- multiple requests. So just to be sure, we check the page number and if it's the
+                                -- first page we know to trash all current content which must only be there because of
+                                -- a "caught" request.
+                                if searchSettings.pageNumber == 1 then
+                                    getUpdatedModelForInitialRequest
+                                else
+                                    getUpdatedModelForNonInitialRequest currentContent
+                    else
+                        model
+            in
+                common.justSetModel updatedModel
+                    |> common.andFinishRequest (RT.SearchForContent searchSettings)
 
         OnGetContentFailure searchSettings apiError ->
             common.justSetModalError apiError
