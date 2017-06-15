@@ -66,7 +66,7 @@ view config model =
                     []
                     [ textarea
                         [ classList [ ( "cursor-progress", config.editQuestionRequestInProgress ) ]
-                        , placeholder "Edit Question Text"
+                        , placeholder "Edit question text..."
                         , value questionText
                         , onInput (OnQuestionTextInput >> config.msgTagger)
                         , disabled <| config.editQuestionRequestInProgress

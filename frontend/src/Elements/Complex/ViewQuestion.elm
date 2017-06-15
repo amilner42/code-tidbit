@@ -153,7 +153,7 @@ view config model =
                             { upvotes = config.question.upvotes
                             , downvotes = config.question.downvotes
                             , rateRequestInProgress = config.rateQuestionRequestInProgress
-                            , pinRequetInProgress = config.pinQuestionRequestInProgress
+                            , pinRequestInProgress = config.pinQuestionRequestInProgress
                             , deleteRequestInProgress = False
                             , isPinned = config.question.pinned
                             , isAuthor = config.userID == (Just config.question.authorID)
@@ -230,7 +230,7 @@ view config model =
                                     { upvotes = answer.upvotes
                                     , downvotes = answer.downvotes
                                     , rateRequestInProgress = config.rateAnswerRequestInProgress
-                                    , pinRequetInProgress = config.pinAnswerRequestInProgress
+                                    , pinRequestInProgress = config.pinAnswerRequestInProgress
                                     , deleteRequestInProgress = config.deleteAnswerRequestInProgress
                                     , isPinned = answer.pinned
                                     , isAuthor = config.userID == (Just answer.authorID)
@@ -371,7 +371,7 @@ type alias ReactiveRatingsBottomBarRenderConfig msg =
     { upvotes : ( Bool, Int )
     , downvotes : ( Bool, Int )
     , rateRequestInProgress : Bool
-    , pinRequetInProgress : Bool
+    , pinRequestInProgress : Bool
     , deleteRequestInProgress : Bool
     , isPinned : Bool
     , isAuthor : Bool
@@ -455,7 +455,7 @@ reactiveRatingsBottomBarView config =
                     i
                         [ classList
                             [ ( "material-icons pin-icon", True )
-                            , ( "cursor-progress", config.pinRequetInProgress || config.deleteRequestInProgress )
+                            , ( "cursor-progress", config.pinRequestInProgress || config.deleteRequestInProgress )
                             ]
                         , onClick <| config.unpin
                         ]
@@ -466,7 +466,7 @@ reactiveRatingsBottomBarView config =
                     i
                         [ classList
                             [ ( "material-icons pin-icon", True )
-                            , ( "cursor-progress", config.pinRequetInProgress || config.deleteRequestInProgress )
+                            , ( "cursor-progress", config.pinRequestInProgress || config.deleteRequestInProgress )
                             ]
                         , onClick <| config.pin
                         ]
