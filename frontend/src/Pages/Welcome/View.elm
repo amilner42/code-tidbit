@@ -5,6 +5,7 @@ import Html exposing (Html, div, text, button, h1, input, a, img)
 import Html.Attributes exposing (class, placeholder, type_, value, hidden, disabled, classList, src)
 import Html.Events exposing (onClick, onInput)
 import Models.ApiError as ApiError
+import Models.RequestTracker as RT
 import Models.Route as Route
 import Pages.Model exposing (Shared)
 import Pages.Welcome.Messages exposing (..)
@@ -88,8 +89,8 @@ errorBox maybeApiError =
 
 {-| The welcome login view
 -}
-loginView : Model -> Html Msg
-loginView model =
+loginView : Model -> Shared -> Html Msg
+loginView model shared =
     let
         currentError =
             model.apiError
@@ -140,7 +141,9 @@ loginView model =
                     []
                 , errorBox currentError
                 , button
-                    [ onClick Login
+                    [ classList
+                        [ ( "cursor-progress", RT.isMakingRequest shared.apiRequestTracker RT.LoginOrRegister ) ]
+                    , onClick Login
                     , disabled invalidForm
                     ]
                     [ text "Login" ]
@@ -150,8 +153,8 @@ loginView model =
 
 {-| The welcome register view
 -}
-registerView : Model -> Html Msg
-registerView model =
+registerView : Model -> Shared -> Html Msg
+registerView model shared =
     let
         currentError =
             model.apiError
@@ -228,7 +231,9 @@ registerView model =
                 []
             , errorBox currentError
             , button
-                [ onClick Register
+                [ classList
+                    [ ( "cursor-progress", RT.isMakingRequest shared.apiRequestTracker RT.LoginOrRegister ) ]
+                , onClick Register
                 , disabled invalidForm
                 ]
                 [ text "Start learning" ]
@@ -241,10 +246,10 @@ displayViewForRoute : Model -> Shared -> Html Msg
 displayViewForRoute model shared =
     case shared.route of
         Route.LoginPage ->
-            loginView model
+            loginView model shared
 
         Route.RegisterPage ->
-            registerView model
+            registerView model shared
 
         _ ->
             Util.hiddenDiv

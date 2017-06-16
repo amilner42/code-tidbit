@@ -13,6 +13,8 @@ import { Range } from './range.model';
 import { ContentSearchFilter, ContentResultManipulation, ContentType, ContentPointer, getContent } from "./content.model";
 import { FileStructure, swapPeriodsWithStars, fileFold } from './file-structure.model';
 import * as KS from './kleen-schemas';
+import { qaDBActions } from "./qa.model";
+import { TidbitType } from "./tidbit.model";
 
 
 /**
@@ -150,6 +152,10 @@ export const bigbitDBActions = {
    *  - Adds user id as `author`
    *  - Adds user email as `authorEmail`
    *  - Adds a `languages` field containing all the languages used in the bigbit
+   *
+   * Will additionally initialize the QA for the given bigbit.
+   *
+   * Returns the ID of the newly created bigbit.
    */
   addNewBigbit: (userID: MongoID, userEmail: string, bigbit: Bigbit): Promise<TargetID> => {
     return kleen.validModel(bigbitSchema)(bigbit)
@@ -170,8 +176,17 @@ export const bigbitDBActions = {
       .then((bigbitCollection) => {
         return bigbitCollection.insertOne(updatedBigbit);
       })
+      // After inserting bigbit, we initialize the QA for that bigbit and return the ID of the new bigbit.
       .then((insertBigbitResult) => {
-        return { targetID: insertBigbitResult.insertedId };
+        return qaDBActions.newBlankQAForTidbit(
+          false,
+          {
+            tidbitType: TidbitType.Bigbit ,
+            targetID: insertBigbitResult.insertedId
+          },
+          toMongoObjectID(userID)
+        )
+        .then(R.always({ targetID: insertBigbitResult.insertedId }));
       });
     });
   },

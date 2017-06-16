@@ -2,7 +2,7 @@ module Models.Snipbit exposing (..)
 
 import Array
 import Date
-import Elements.Editor as Editor exposing (Language)
+import Elements.Simple.Editor as Editor exposing (Language)
 import Models.Range exposing (Range)
 
 

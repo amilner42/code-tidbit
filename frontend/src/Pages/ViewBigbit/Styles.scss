@@ -7,6 +7,16 @@
     width: 100%;
     min-width: $min-width-supported-2;
 
+    .view-questions {
+        height: 570px;
+        width: 360px;
+        position: absolute;
+        top: 0;
+        box-sizing: border-box;
+        border: 1px solid $color9;
+        padding: 8px;
+    }
+
     &.fs-closed {
         min-width: $min-width-supported-1;
 

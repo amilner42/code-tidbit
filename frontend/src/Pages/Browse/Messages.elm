@@ -1,9 +1,10 @@
 module Pages.Browse.Messages exposing (..)
 
-import Elements.Editor exposing (Language)
+import Elements.Simple.Editor exposing (Language)
 import Models.ApiError exposing (ApiError)
 import Models.Content exposing (Content)
 import Models.Route exposing (Route)
+import Pages.Browse.Model exposing (..)
 
 
 {-| Browse `Msg`
@@ -12,8 +13,8 @@ type Msg
     = NoOp
     | GoTo Route
     | OnRouteHit Route
-    | OnGetContentSuccess (List Content)
-    | OnGetContentFailure ApiError
+    | OnGetContentSuccess SearchSettings (List Content)
+    | OnGetContentFailure SearchSettings ApiError
     | LoadMoreContent
     | OnUpdateSearch String
     | Search

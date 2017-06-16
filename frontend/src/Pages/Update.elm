@@ -5,7 +5,7 @@ import Array
 import DefaultServices.CommonSubPageUtil exposing (commonSubPageUtil)
 import DefaultServices.LocalStorage as LocalStorage
 import DefaultServices.Util as Util exposing (maybeMapWithDefault)
-import Elements.Editor as Editor
+import Elements.Simple.Editor as Editor
 import Keyboard.Extra as KK
 import Models.Route as Route
 import Navigation
@@ -36,6 +36,7 @@ import Pages.ViewSnipbit.Update as ViewSnipbitUpdate
 import Pages.ViewStory.Messages as ViewStoryMessages
 import Pages.ViewStory.Model as ViewStoryModel
 import Pages.ViewStory.Update as ViewStoryUpdate
+import Pages.Welcome.Messages as WelcomeMessages
 import Pages.Welcome.Update as WelcomeUpdate
 import Ports
 import Task
@@ -391,8 +392,13 @@ updateCacheIf msg model shouldCache =
                                 KK.Up keyCode ->
                                     handleKeyRelease (KK.fromCode keyCode) modelWithNewKeys
 
-                CloseModal ->
+                CloseErrorModal ->
                     ( { model | shared = { shared | apiModalError = Nothing } }
+                    , Cmd.none
+                    )
+
+                CloseSignUpModal ->
+                    ( { model | shared = { shared | userNeedsAuthModal = Nothing } }
                     , Cmd.none
                     )
     in
@@ -654,6 +660,9 @@ handleLocationChange maybeRoute model =
                         ]
                     )
 
+                triggerRouteHookOnWelcomePage =
+                    triggerRouteHook <| WelcomeMessage <| WelcomeMessages.OnRouteHit route
+
                 triggerRouteHookOnViewSnipbitPage =
                     triggerRouteHook <| ViewSnipbitMessage <| ViewSnipbitMessages.OnRouteHit route
 
@@ -684,6 +693,12 @@ handleLocationChange maybeRoute model =
                 -- Handle general route-logic here, routes are a great way to be
                 -- able to trigger certain things (hooks).
                 case route of
+                    Route.LoginPage ->
+                        triggerRouteHookOnWelcomePage
+
+                    Route.RegisterPage ->
+                        triggerRouteHookOnWelcomePage
+
                     Route.BrowsePage ->
                         triggerRouteHookOnBrowsePage
 
@@ -699,6 +714,36 @@ handleLocationChange maybeRoute model =
                     Route.ViewSnipbitFramePage _ _ _ ->
                         triggerRouteHookOnViewSnipbitPage
 
+                    Route.ViewSnipbitQuestionsPage _ _ ->
+                        triggerRouteHookOnViewSnipbitPage
+
+                    Route.ViewSnipbitQuestionPage _ _ _ _ ->
+                        triggerRouteHookOnViewSnipbitPage
+
+                    Route.ViewSnipbitAnswersPage _ _ _ _ ->
+                        triggerRouteHookOnViewSnipbitPage
+
+                    Route.ViewSnipbitAnswerPage _ _ _ _ ->
+                        triggerRouteHookOnViewSnipbitPage
+
+                    Route.ViewSnipbitQuestionCommentsPage _ _ _ _ _ ->
+                        triggerRouteHookOnViewSnipbitPage
+
+                    Route.ViewSnipbitAnswerCommentsPage _ _ _ _ _ ->
+                        triggerRouteHookOnViewSnipbitPage
+
+                    Route.ViewSnipbitAskQuestion _ _ ->
+                        triggerRouteHookOnViewSnipbitPage
+
+                    Route.ViewSnipbitAnswerQuestion _ _ _ ->
+                        triggerRouteHookOnViewSnipbitPage
+
+                    Route.ViewSnipbitEditQuestion _ _ _ ->
+                        triggerRouteHookOnViewSnipbitPage
+
+                    Route.ViewSnipbitEditAnswer _ _ _ ->
+                        triggerRouteHookOnViewSnipbitPage
+
                     Route.ViewBigbitIntroductionPage _ _ _ ->
                         triggerRouteHookOnViewBigbitPage
 
@@ -706,6 +751,36 @@ handleLocationChange maybeRoute model =
                         triggerRouteHookOnViewBigbitPage
 
                     Route.ViewBigbitConclusionPage _ _ _ ->
+                        triggerRouteHookOnViewBigbitPage
+
+                    Route.ViewBigbitQuestionsPage _ _ ->
+                        triggerRouteHookOnViewBigbitPage
+
+                    Route.ViewBigbitQuestionPage _ _ _ _ ->
+                        triggerRouteHookOnViewBigbitPage
+
+                    Route.ViewBigbitAnswersPage _ _ _ _ ->
+                        triggerRouteHookOnViewBigbitPage
+
+                    Route.ViewBigbitAnswerPage _ _ _ _ ->
+                        triggerRouteHookOnViewBigbitPage
+
+                    Route.ViewBigbitQuestionCommentsPage _ _ _ _ _ ->
+                        triggerRouteHookOnViewBigbitPage
+
+                    Route.ViewBigbitAnswerCommentsPage _ _ _ _ _ ->
+                        triggerRouteHookOnViewBigbitPage
+
+                    Route.ViewBigbitAskQuestion _ _ ->
+                        triggerRouteHookOnViewBigbitPage
+
+                    Route.ViewBigbitEditQuestion _ _ _ ->
+                        triggerRouteHookOnViewBigbitPage
+
+                    Route.ViewBigbitAnswerQuestion _ _ _ ->
+                        triggerRouteHookOnViewBigbitPage
+
+                    Route.ViewBigbitEditAnswer _ _ _ ->
                         triggerRouteHookOnViewBigbitPage
 
                     Route.ViewStoryPage _ ->

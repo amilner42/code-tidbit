@@ -125,7 +125,7 @@ export const storyDBActions = {
   },
 
   /**
-   * Gets stories from the db.
+   * Gets stories from the db, customizable through `StorySearchFilter` and `StoryResultManipulation`.
    */
   getStories: (filter: StorySearchFilter, resultManipulation: StoryResultManipulation): Promise<Story[]> => {
     return getContent(ContentType.Story, filter, resultManipulation, prepareStoryForResponse);
@@ -180,6 +180,8 @@ export const storyDBActions = {
 
   /**
    * Creates a new story for the user.
+   *
+   * Returns the ID of the newly created story.
    */
   createNewStory: (userID: MongoID, userEmail: string, newStory: NewStory): Promise<TargetID> => {
     return kleen.validModel(newStorySchema)(newStory)
@@ -207,8 +209,9 @@ export const storyDBActions = {
   },
 
   /**
-   * Updates the information connected to a story. This will only allow the
-   * author to edit the information.
+   * Updates the information connected to a story, only the author is allowed to edit the information.
+   *
+   * Returns the ID of the edited story (same as `storyID`).
    */
   updateStoryInfo: (userID: MongoID, storyID: MongoID, editedInfo: NewStory): Promise<TargetID> => {
     return kleen.validModel(newStorySchema)(editedInfo)
@@ -243,8 +246,14 @@ export const storyDBActions = {
    *  - Story already exists
    *  - Author of story is current user
    *  - `newTidbitPointers` point to actual tidbits.
+   *
+   * Returns the updated story in expanded form.
    */
-  addTidbitPointersToStory: (userID: MongoID, storyID: MongoID, newTidbitPointers: TidbitPointer[]): Promise<ExpandedStory> => {
+  addTidbitPointersToStory:
+    ( userID: MongoID
+    , storyID: MongoID
+    , newTidbitPointers: TidbitPointer[]
+    ): Promise<ExpandedStory> => {
 
     const nonEmptyTidbitPointersSchema = nonEmptyArraySchema(
       tidbitPointerSchema,

@@ -1,84 +1,125 @@
 module Pages.Browse.Update exposing (..)
 
 import Api
-import DefaultServices.CommonSubPageUtil exposing (CommonSubPageUtil)
+import DefaultServices.CommonSubPageUtil exposing (CommonSubPageUtil(..))
+import DefaultServices.InfixFunctions exposing (..)
 import DefaultServices.Util as Util
 import Models.Content as Content
+import Models.RequestTracker as RT
 import Models.Route as Route
 import Pages.Browse.Messages exposing (..)
 import Pages.Browse.Model exposing (..)
 import Pages.Model exposing (Shared)
 import Ports
+import ProjectTypeAliases exposing (..)
 
 
 {-| `Browse` update.
 -}
 update : CommonSubPageUtil Model Shared Msg -> Msg -> Model -> Shared -> ( Model, Shared, Cmd Msg )
-update ({ doNothing, justSetShared, justUpdateModel, justSetModel, justProduceCmd, api } as common) msg model shared =
+update ((Common common) as commonUtil) msg model shared =
     case msg of
         NoOp ->
-            doNothing
+            common.doNothing
 
         GoTo route ->
-            justProduceCmd <| Route.navigateTo route
+            common.justProduceCmd <| Route.navigateTo route
 
         OnRouteHit route ->
             case route of
                 Route.BrowsePage ->
-                    common.withCmd
-                        (Cmd.batch
-                            [ (Util.domFocus (always NoOp) "search-bar")
-                            , if model.showAdvancedSearchOptions then
-                                Ports.expandSearchAdvancedOptions True
-                              else
-                                Cmd.none
-                            ]
-                        )
-                        (performSearch True ( model, shared ))
+                    common.handleAll
+                        [ resetPageNumber
+                        , performSearch
+                        , (\(Common common) ( model, shared ) ->
+                            common.justProduceCmd <|
+                                Cmd.batch
+                                    [ (Util.domFocus (always NoOp) "search-bar")
+                                    , if model.showAdvancedSearchOptions then
+                                        Ports.expandSearchAdvancedOptions True
+                                      else
+                                        Cmd.none
+                                    ]
+                          )
+                        ]
 
                 _ ->
-                    doNothing
+                    common.doNothing
 
-        OnGetContentSuccess content ->
-            case model.content of
-                Nothing ->
-                    justSetModel
-                        { model
-                            | content = Just content
-                            , pageNumber = 2
-                            , noMoreContent = isNoMoreContent 10 content
-                        }
+        OnGetContentSuccess searchSettings content ->
+            let
+                isMostRecentRequest =
+                    model.mostRecentSearchSettings == (Just searchSettings)
 
-                Just currentContent ->
-                    justSetModel
-                        { model
-                            | content = Just <| currentContent ++ content
-                            , pageNumber = model.pageNumber + 1
-                            , noMoreContent = isNoMoreContent 10 content
-                        }
+                getUpdatedModelForInitialRequest =
+                    { model
+                        | content = Just content
+                        , pageNumber = 2
+                        , noMoreContent = isNoMoreContent 10 content
+                    }
 
-        OnGetContentFailure apiError ->
+                getUpdatedModelForNonInitialRequest currentContent =
+                    { model
+                        | content = Just <| currentContent ++ content
+                        , pageNumber = model.pageNumber + 1
+                        , noMoreContent = isNoMoreContent 10 content
+                    }
+
+                updatedModel =
+                    if isMostRecentRequest then
+                        case model.content of
+                            Nothing ->
+                                getUpdatedModelForInitialRequest
+
+                            Just currentContent ->
+                                -- This can happen if the user manages to switch his request settings so that as the
+                                -- requests are about to come in he switches to those settings and makes a new request,
+                                -- which won't happen because the request is already in progress but it will mark it as
+                                -- the `mostRecentSearchSettings`. So the user could (in a very weird case) "catch"
+                                -- multiple requests. So just to be sure, we check the page number and if it's the
+                                -- first page we know to trash all current content which must only be there because of
+                                -- a "caught" request.
+                                if searchSettings.pageNumber == 1 then
+                                    getUpdatedModelForInitialRequest
+                                else
+                                    getUpdatedModelForNonInitialRequest currentContent
+                    else
+                        model
+            in
+                common.justSetModel updatedModel
+                    |> common.andFinishRequest (RT.SearchForContent searchSettings)
+
+        OnGetContentFailure searchSettings apiError ->
             common.justSetModalError apiError
+                |> common.andFinishRequest (RT.SearchForContent searchSettings)
 
         LoadMoreContent ->
-            performSearch False ( model, shared )
+            common.handleAll [ performSearch ]
 
         OnUpdateSearch newSearchQuery ->
             common.handleAll
                 [ -- Always update the model.
-                  (\( model, shared ) -> ( { model | searchQuery = newSearchQuery }, shared, Cmd.none ))
+                  (\(Common common) ( model, shared ) ->
+                    common.justSetModel { model | searchQuery = newSearchQuery }
+                  )
 
                 -- Only perform a search automatically if we're back to an empty search query.
-                , (\( chainedModel, chainedShared ) ->
+                , (\(Common common) ( model, shared ) ->
                     if String.isEmpty newSearchQuery then
-                        performSearch True ( chainedModel, chainedShared )
+                        common.handleAll
+                            [ resetPageNumber
+                            , performSearch
+                            ]
                     else
-                        ( chainedModel, chainedShared, Cmd.none )
+                        common.doNothing
                   )
                 ]
 
         Search ->
-            performSearch True ( model, shared )
+            common.handleAll
+                [ resetPageNumber
+                , performSearch
+                ]
 
         ToggleAdvancedOptions ->
             ( { model | showAdvancedSearchOptions = not model.showAdvancedSearchOptions }
@@ -88,104 +129,102 @@ update ({ doNothing, justSetShared, justUpdateModel, justSetModel, justProduceCm
 
         ToggleContentFilterSnipbits ->
             let
-                updateFilterSnipbits : ( Model, Shared ) -> ( Model, Shared, Cmd Msg )
-                updateFilterSnipbits ( model, shared ) =
-                    ( { model | contentFilterSnipbits = not model.contentFilterSnipbits }
-                    , shared
-                    , Cmd.none
-                    )
+                updateFilterSnipbits (Common common) ( model, shared ) =
+                    common.justSetModel { model | contentFilterSnipbits = not model.contentFilterSnipbits }
             in
                 if (not model.contentFilterBigbits) && (not model.contentFilterStories) then
-                    doNothing
+                    common.doNothing
                 else
                     common.handleAll
                         [ updateFilterSnipbits
-                        , performSearch True
+                        , resetPageNumber
+                        , performSearch
                         ]
 
         ToggleContentFilterBigbits ->
             let
-                updateFilterBigbits : ( Model, Shared ) -> ( Model, Shared, Cmd Msg )
-                updateFilterBigbits ( model, shared ) =
-                    ( { model | contentFilterBigbits = not model.contentFilterBigbits }
-                    , shared
-                    , Cmd.none
-                    )
+                updateFilterBigbits (Common common) ( model, shared ) =
+                    common.justSetModel { model | contentFilterBigbits = not model.contentFilterBigbits }
             in
                 if (not model.contentFilterSnipbits) && (not model.contentFilterStories) then
-                    doNothing
+                    common.doNothing
                 else
                     common.handleAll
                         [ updateFilterBigbits
-                        , performSearch True
+                        , resetPageNumber
+                        , performSearch
                         ]
 
         ToggleContentFilterStories ->
             let
-                updateFilterStories : ( Model, Shared ) -> ( Model, Shared, Cmd Msg )
-                updateFilterStories ( model, shared ) =
-                    ( { model | contentFilterStories = not model.contentFilterStories }
-                    , shared
-                    , Cmd.none
-                    )
+                updateFilterStories (Common common) ( model, shared ) =
+                    common.justSetModel { model | contentFilterStories = not model.contentFilterStories }
             in
                 if (not model.contentFilterSnipbits) && (not model.contentFilterBigbits) then
-                    doNothing
+                    common.doNothing
                 else
                     common.handleAll
                         [ updateFilterStories
-                        , performSearch True
+                        , resetPageNumber
+                        , performSearch
                         ]
 
         SetIncludeEmptyStories includeEmptyStories ->
             let
-                updateIncludeEmptyStories : ( Model, Shared ) -> ( Model, Shared, Cmd Msg )
-                updateIncludeEmptyStories ( model, shared ) =
-                    ( { model | contentFilterIncludeEmptyStories = includeEmptyStories }
-                    , shared
-                    , Cmd.none
-                    )
+                updateIncludeEmptyStories (Common common) ( model, shared ) =
+                    common.justSetModel { model | contentFilterIncludeEmptyStories = includeEmptyStories }
             in
                 common.handleAll
                     [ updateIncludeEmptyStories
-                    , performSearch True
+                    , resetPageNumber
+                    , performSearch
                     ]
 
         SelectLanguage maybeLanguage ->
             common.handleAll
-                [ (\( model, shared ) -> ( { model | contentFilterLanguage = maybeLanguage }, shared, Cmd.none ))
-                , performSearch True
+                [ (\(Common common) ( model, shared ) ->
+                    common.justSetModel { model | contentFilterLanguage = maybeLanguage }
+                  )
+                , resetPageNumber
+                , performSearch
                 ]
 
         OnUpdateContentFilterAuthor newAuthorInput ->
-            common.handleAll
-                [ -- We always update the model.
-                  (\( model, shared ) ->
-                    ( { model | contentFilterAuthor = ( newAuthorInput, Nothing ) }
-                    , shared
-                    , Cmd.none
-                    )
-                  )
+            let
+                wasAuthor =
+                    model.contentFilterAuthor
+                        |> Tuple.second
+                        |> Util.isNotNothing
+            in
+                common.handleAll
+                    [ -- We always update the model.
+                      (\(Common common) ( model, shared ) ->
+                        common.justSetModel { model | contentFilterAuthor = ( newAuthorInput, Nothing ) }
+                      )
 
-                -- We only need to perform a search if their was an author before and we just cleared it.
-                , (\( chainedModel, chainedShared ) ->
-                    if Util.isNotNothing <| Tuple.second model.contentFilterAuthor then
-                        performSearch True ( chainedModel, chainedShared )
-                    else
-                        ( chainedModel, chainedShared, Cmd.none )
-                  )
+                    -- We only need to perform a search if their was an author before and we just cleared it.
+                    , (\(Common common) ( model, shared ) ->
+                        if wasAuthor then
+                            common.handleAll
+                                [ resetPageNumber
+                                , performSearch
+                                ]
+                        else
+                            common.doNothing
+                      )
 
-                -- We need to check if the new input is a valid email, unless the new input is an empty string.
-                , (\( chainedModel, chainedShared ) ->
-                    if String.isEmpty newAuthorInput then
-                        ( chainedModel, chainedShared, Cmd.none )
-                    else
-                        ( chainedModel
-                        , chainedShared
-                        , api.get.userExistsWrapper newAuthorInput OnGetUserExistsFailure OnGetUserExistsSuccess
-                        )
-                  )
-                ]
+                    -- We need to check if the new input is a valid email, unless the new input is an empty string.
+                    , (\(Common common) ( model, shared ) ->
+                        if String.isEmpty newAuthorInput then
+                            common.doNothing
+                        else
+                            common.justProduceCmd <|
+                                common.api.get.userExists
+                                    newAuthorInput
+                                    OnGetUserExistsFailure
+                                    (OnGetUserExistsSuccess << ((,) newAuthorInput))
+                      )
+                    ]
 
         OnGetUserExistsFailure apiError ->
             common.justSetModalError apiError
@@ -195,97 +234,97 @@ update ({ doNothing, justSetShared, justUpdateModel, justSetModel, justProduceCm
             if forEmail == (Tuple.first model.contentFilterAuthor) then
                 common.handleAll
                     [ -- We always update the model.
-                      (\( model, shared ) ->
-                        ( { model | contentFilterAuthor = newContentFilterAuthor }, shared, Cmd.none )
+                      (\(Common common) ( model, shared ) ->
+                        common.justSetModel { model | contentFilterAuthor = newContentFilterAuthor }
                       )
 
                     -- If a valid email has been past then we perform a search (with the user filter).
-                    , (\( chainedModel, chainedShared ) ->
+                    , (\(Common common) ( model, shared ) ->
                         if Util.isNotNothing maybeID then
-                            performSearch True ( chainedModel, chainedShared )
+                            common.handleAll
+                                [ resetPageNumber
+                                , performSearch
+                                ]
                         else
-                            ( chainedModel, chainedShared, Cmd.none )
+                            common.doNothing
                       )
                     ]
             else
-                doNothing
+                common.doNothing
 
 
-{-| Performs a search based on `initialSearch` and the current model, handles updating the model.
+{-| Performs a search based on the current model, handles updating the model if needed.
+
+NOTE (1):
+Will track the request (including the `SearchSetting`s) and will avoid performing the search if an identical request is
+already in progress.
+
+NOTE (2):
+Will also update `mostRecentSearchSettings` to keep track of what the most recent search request was, this allows us
+to know what results from the server are still meaningful.
 -}
-performSearch : Bool -> ( Model, Shared ) -> ( Model, Shared, Cmd Msg )
-performSearch initialSearch ( model, shared ) =
+performSearch : CommonSubPageUtil Model Shared Msg -> ( Model, Shared ) -> ( Model, Shared, Cmd Msg )
+performSearch (Common common) ( model, shared ) =
     let
-        api =
-            Api.api shared.flags.apiBaseUrl
+        searchSettings : SearchSettings
+        searchSettings =
+            extractSearchSettingsFromModel model
 
         {- Get's the content with specific query params. -}
-        getContent : List ( String, Maybe String ) -> Cmd Msg
+        getContent : QueryParams -> Cmd Msg
         getContent queryParams =
-            api.get.content queryParams OnGetContentFailure OnGetContentSuccess
-
-        toJSBool bool =
-            if bool then
-                "true"
-            else
-                "false"
+            common.api.get.content
+                queryParams
+                (OnGetContentFailure searchSettings)
+                (OnGetContentSuccess searchSettings)
 
         commonQueryParams =
-            [ ( "includeSnipbits", Just <| toJSBool model.contentFilterSnipbits )
-            , ( "includeBigbits", Just <| toJSBool model.contentFilterBigbits )
-            , ( "includeStories", Just <| toJSBool model.contentFilterStories )
-            , ( "includeEmptyStories", Just <| toJSBool model.contentFilterIncludeEmptyStories )
-            , ( "restrictLanguage", Maybe.map toString model.contentFilterLanguage )
-            , ( "author", Tuple.second model.contentFilterAuthor )
+            [ ( "includeSnipbits", Just <| Util.toJSBool searchSettings.includeSnipbits )
+            , ( "includeBigbits", Just <| Util.toJSBool searchSettings.includeBigbits )
+            , ( "includeStories", Just <| Util.toJSBool searchSettings.includeStories )
+            , ( "includeEmptyStories", Just <| Util.toJSBool searchSettings.includeEmptyStories )
+            , ( "restrictLanguage", searchSettings.restrictLanguage )
+            , ( "author", searchSettings.author )
+            , ( "pageNumber", Just <| toString searchSettings.pageNumber )
             ]
+
+        currentRequest =
+            RT.SearchForContent searchSettings
+
+        ( newModel, newShared, newCmd ) =
+            common.makeSingletonRequest currentRequest <|
+                ( -- If it's the initial search, we reset a few fields, otherwise we leave the model the same.
+                  if searchSettings.pageNumber == 1 then
+                    { model
+                        | showNewContentMessage = Util.isNothing searchSettings.searchQuery
+                        , content = Nothing
+                        , noMoreContent = False
+                    }
+                  else
+                    model
+                , shared
+                , getContent <|
+                    commonQueryParams
+                        ++ case searchSettings.searchQuery of
+                            Nothing ->
+                                [ ( "sortByLastModified", Just "true" ) ]
+
+                            Just searchQuery ->
+                                [ ( "searchQuery", Just searchQuery )
+                                , ( "sortByTextScore", Just "true" )
+                                ]
+                )
     in
-        if Util.isBlankString model.searchQuery then
-            ( if initialSearch then
-                { model
-                    | pageNumber = 1
-                    , showNewContentMessage = True
-                    , content = Nothing
-                    , noMoreContent = False
-                }
-              else
-                model
-            , shared
-            , getContent <|
-                commonQueryParams
-                    ++ [ ( "sortByLastModified", Just "true" )
-                       , ( "pageNumber"
-                         , Just <|
-                            if initialSearch then
-                                "1"
-                            else
-                                toString model.pageNumber
-                         )
-                       ]
-            )
-        else
-            ( if initialSearch then
-                { model
-                    | pageNumber = 1
-                    , showNewContentMessage = False
-                    , content = Nothing
-                    , noMoreContent = False
-                }
-              else
-                model
-            , shared
-            , getContent <|
-                commonQueryParams
-                    ++ [ ( "searchQuery", Util.justNonBlankString model.searchQuery )
-                       , ( "sortByTextScore", Just "true" )
-                       , ( "pageNumber"
-                         , Just <|
-                            if initialSearch then
-                                "1"
-                            else
-                                toString model.pageNumber
-                         )
-                       ]
-            )
+        -- Regardless of whether we actually performed the singleton request, we need to mark that it is the most
+        -- recent request.
+        ( { newModel | mostRecentSearchSettings = Just searchSettings }, newShared, newCmd )
+
+
+{-| Resets the page number back to 1.
+-}
+resetPageNumber : CommonSubPageUtil Model Shared Msg -> ( Model, Shared ) -> ( Model, Shared, Cmd Msg )
+resetPageNumber (Common common) ( model, shared ) =
+    common.justSetModel { model | pageNumber = 1 }
 
 
 {-| Checks if this is gauranteed to be the last content by seeing if less than the full page size is being returned from

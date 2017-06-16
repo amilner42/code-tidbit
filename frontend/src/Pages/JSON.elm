@@ -1,7 +1,8 @@
 module Pages.JSON exposing (..)
 
+import Dict
 import DefaultServices.Util exposing (justValueOrNull)
-import Elements.Editor as Editor
+import Elements.Simple.Editor as Editor
 import JSON.Route
 import JSON.Story
 import JSON.Tidbit
@@ -80,6 +81,8 @@ sharedEncoder shared =
         , ( "viewingStory", Encode.null )
         , ( "flags", Encode.null )
         , ( "apiModalError", Encode.null )
+        , ( "userNeedsAuthModal", Encode.null )
+        , ( "apiRequestTracker", Encode.null )
         ]
 
 
@@ -97,3 +100,5 @@ sharedDecoder shared =
         |> hardcoded Nothing
         |> required "flags" (Decode.succeed shared.flags)
         |> hardcoded Nothing
+        |> hardcoded Nothing
+        |> hardcoded Dict.empty

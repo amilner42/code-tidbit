@@ -1,10 +1,11 @@
 module Pages.DevelopStory.View exposing (..)
 
 import DefaultServices.Util as Util
-import Elements.Editor exposing (prettyPrintLanguages)
+import Elements.Simple.Editor exposing (prettyPrintLanguages)
 import Html exposing (Html, div, button, text, i, span)
 import Html.Attributes exposing (class, classList, id)
 import Html.Events exposing (onClick)
+import Models.RequestTracker as RT
 import Models.Route as Route
 import Models.Tidbit as Tidbit
 import Pages.DevelopStory.Messages exposing (..)
@@ -45,7 +46,12 @@ view model shared =
 
                             tidbits ->
                                 button
-                                    [ class "publish-button"
+                                    [ classList
+                                        [ ( "publish-button", True )
+                                        , ( "cursor-progress"
+                                          , RT.isMakingRequest shared.apiRequestTracker RT.PublishNewTidbitsToStory
+                                          )
+                                        ]
                                     , onClick <| PublishAddedTidbits story.id tidbits
                                     ]
                                     [ text "Add Tidbits" ]

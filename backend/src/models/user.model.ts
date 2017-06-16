@@ -88,6 +88,8 @@ export const userDBActions = {
 
   /**
    * Updates the basic informaton connected to a user.
+   *
+   * Returns the updated user.
    */
   updateUser: (userID: MongoID, userUpdateObject: UserUpdateObject): Promise<User> => {
     return kleen.validModel(updateUserSchema)(userUpdateObject)

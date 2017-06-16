@@ -1,0 +1,62 @@
+@import '../../Styles/variables';
+
+
+.edit-question {
+    height: 600px;
+    width: 360px;
+    position: absolute;
+    top: 0;
+
+    .preview-markdown {
+        position: absolute;
+        box-sizing: border-box;
+        width: 360px;
+        height: 25px;
+        font-size: 16px;
+        line-height: 25px;
+        padding: 0;
+        top: 0;
+        background-color: $color6;
+        color: white;
+        cursor: pointer;
+        text-align: center;
+    }
+
+    .edit-question-submit {
+        position: absolute;
+        box-sizing: border-box;
+        width: 360px;
+        height: 25px;
+        font-size: 16px;
+        line-height: 25px;
+        padding: 0;
+        bottom: 0;
+        background-color: $color7;
+        color: white;
+        cursor: pointer;
+        text-align: center;
+
+        &.not-ready {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+    }
+
+    textarea {
+        margin-top: 30px;
+        height: 520px !important;
+    }
+
+    .markdown-box {
+        margin-top: 30px;
+        height: 570px;
+    }
+
+    .char-count {
+        position: absolute;
+        top: 550px !important;
+        right: 0 !important;
+        color: $color8;
+        top: 300px;
+    }
+}

@@ -13,6 +13,7 @@ import { Snipbit, snipbitDBActions } from './models/snipbit.model';
 import { Bigbit, bigbitDBActions } from './models/bigbit.model';
 import { Story, NewStory, ExpandedStory, storyDBActions, StorySearchFilter } from "./models/story.model";
 import { Tidbit, tidbitDBActions } from './models/tidbit.model';
+import { QA, Question, Answer, AnswerComment, QuestionComment, qaDBActions } from "./models/qa.model";
 import { AppRoutes, AppRoutesAuth, FrontendError, TargetID, ErrorCode, BasicResponse, MongoID } from './types';
 import { internalError, combineArrays, maybeMap } from './util';
 
@@ -34,7 +35,8 @@ export const authlessRoutes: AppRoutesAuth = {
   '/stories/:id': { get: true },
   '/tidbits': { get: true },
   '/content': { get: true },
-  '/opinions/:contentType/:contentID': { get: true }
+  '/opinions/:contentType/:contentID': { get: true },
+  '/qa/:tidbitType/:tidbitID': { get: true }
 };
 
 /**
@@ -135,7 +137,7 @@ export const routes: AppRoutes = {
 
   '/userID/:email': {
     /**
-     * Retrieves the id of the user with the given email, returns `null` if the user doesn't exist.
+     * @refer `userDBActions.getUserID`.
      */
     get: (req, res): Promise<MongoID> => {
       const params = req.params;
@@ -154,7 +156,7 @@ export const routes: AppRoutes = {
     },
 
     /**
-     * Updates the user and returns the new updated user.
+     * @refer `userDBActions.updateUser`.
      */
     post: (req, res): Promise<User> => {
       const userUpdateObject = req.body;
@@ -166,8 +168,7 @@ export const routes: AppRoutes = {
 
   '/account/addCompleted': {
     /**
-     * Adds the tidbit as completed for the logged-in user, if it's already
-     * completed no changes are made.
+     * @refer `completedDBActions.addCompleted`.
      */
     post: (req, res): Promise<TargetID> => {
       const userID = req.user._id;
@@ -179,9 +180,7 @@ export const routes: AppRoutes = {
 
   '/account/removeCompleted': {
     /**
-     * Removes the tidbit from the completed table for the logged-in user, no
-     * changes are made if the tidbit wasn't in the completed table to begin
-     * with.
+     * @refer `completedDBActions.removeCompleted`.
      */
     post: (req, res): Promise<boolean> => {
       const userID = req.user._id;
@@ -193,7 +192,7 @@ export const routes: AppRoutes = {
 
   '/account/checkCompleted': {
     /**
-     * Checks if a tidbit is completed for the logged-in user.
+     * @refer `completedDBActions.isCompleted`.
      */
     post: (req, res): Promise<boolean> => {
       const userID = req.user._id;
@@ -205,7 +204,7 @@ export const routes: AppRoutes = {
 
   '/account/getOpinion/:contentType/:contentID': {
     /**
-     * Get's a user's opinion on specific content.
+     * @refer `opinionDBActions.getUsersOpinionOnContent`.
      */
     get: (req, res): Promise<Rating> => {
       const { contentType, contentID } = req.params;
@@ -221,7 +220,7 @@ export const routes: AppRoutes = {
 
   '/account/addOpinion': {
     /**
-     * Adds an opinion, will overwrite the previous opinion if one existed.
+     * @refer `opinionDBActions.addOpinion`.
      */
     post: (req, res): Promise<boolean> => {
       const userID = req.user._id;
@@ -233,8 +232,7 @@ export const routes: AppRoutes = {
 
   '/account/removeOpinion': {
     /**
-     * Removes an opinion, returns `true` if the opinion existed and was deleted, returns false if it didn't exist to
-     * begin with.
+     * @refer `opinionDBActions.removeOpinion`.
      */
     post: (req, res): Promise<boolean> => {
       const userID = req.user._id;
@@ -246,7 +244,7 @@ export const routes: AppRoutes = {
 
   '/snipbits': {
     /**
-     * Gets snipbits, customizable through query params.
+     * @refer `snipbitDBActions.getSnipbits`.
      */
     get: (req, res): Promise<Snipbit[]> => {
       const queryParams = req.query;
@@ -257,7 +255,7 @@ export const routes: AppRoutes = {
     },
 
     /**
-     * Creates a new snipbit for the logged-in user.
+     * @refer `snipbitDBActions.addNewSnipbit`.
      */
     post: (req, res): Promise<TargetID> => {
       const userID = req.user._id;
@@ -270,7 +268,7 @@ export const routes: AppRoutes = {
 
   '/bigbits': {
     /**
-     * Gets bigbits, customizable through query params.
+     * @refer `bigbitDBActions.getBigbits`.
      */
     get: (req, res): Promise<Bigbit[]> => {
       const queryParams = req.query;
@@ -281,7 +279,7 @@ export const routes: AppRoutes = {
     },
 
     /**
-     * Creates a new snipbit for the logged-in user.
+     * @refer `bigbitDBActions.addNewBigbit`.
      */
     post: (req, res): Promise<TargetID> => {
       const userID = req.user._id;
@@ -294,7 +292,7 @@ export const routes: AppRoutes = {
 
   '/snipbits/:id': {
     /**
-     * Gets a snipbit.
+     * @refer `snipbitDBActions.getSnipbit`.
      */
     get: (req, res): Promise<Snipbit> => {
       const params = req.params;
@@ -306,7 +304,7 @@ export const routes: AppRoutes = {
 
   '/bigbits/:id': {
     /**
-     * Gets a bigbit.
+     * @refer `bigbitDBActions.getBigbit`.
      */
     get: (req, res): Promise<Bigbit> => {
       const params = req.params;
@@ -317,9 +315,8 @@ export const routes: AppRoutes = {
   },
 
   '/stories': {
-
     /**
-     * Get's stories, can customize query through query-params.
+     * @refer `storyDBActions.getStories`.
      */
     get: (req, res): Promise<Story[]> => {
       const userID = req.user._id;
@@ -331,7 +328,7 @@ export const routes: AppRoutes = {
     },
 
     /**
-     * For creating a new story for the given user.
+     * @refer `storyDBActions.createNewStory`.
      */
     post: (req, res): Promise<TargetID> => {
       const newStory: NewStory  = req.body;
@@ -344,7 +341,7 @@ export const routes: AppRoutes = {
 
   '/stories/:id': {
     /**
-     * Gets a story from the db, customizable through query params.
+     * @refer `storyDBActions.getStory`.
      */
     get: (req, res): Promise<Story | ExpandedStory> => {
       const params = req.params;
@@ -360,7 +357,7 @@ export const routes: AppRoutes = {
 
   '/stories/:id/information': {
     /**
-     * Updates the basic information connected to a story.
+     * @refer `storyDBActions.updateStoryInfo`.
      */
     post: (req, res): Promise<TargetID> => {
       const params = req.params;
@@ -374,7 +371,7 @@ export const routes: AppRoutes = {
 
   '/stories/:id/addTidbits': {
     /**
-     * Adds tidbits to an existing story.
+     * @refer `storyDBActions.addTidbitPointersToStory`.
      */
     post: (req, res): Promise<ExpandedStory> => {
       const params = req.params;
@@ -388,7 +385,7 @@ export const routes: AppRoutes = {
 
   '/tidbits': {
     /**
-     * Gets all the tidbits, customizable through query params.
+     * @refer `tidbitDBActions.getTidbits`.
      */
     get: (req, res): Promise<Tidbit[]> => {
       const queryParams = req.query;
@@ -401,7 +398,7 @@ export const routes: AppRoutes = {
 
   '/content': {
     /**
-     * Get's `Content` (for the browse page), customizable through query params.
+     * @refer `contentDBActions.getContent`.
      */
     get: (req, res): Promise<Content[]> => {
       const queryParams = req.query;
@@ -416,7 +413,7 @@ export const routes: AppRoutes = {
 
   '/opinions/:contentType/:contentID': {
     /**
-    * Get's `Rating`s for some specific `Content`.
+    * @refer `opinionDBActions.getAllOpinionsOnContent`.
     */
     get: (req, res): Promise<Ratings> => {
       const params = req.params;
@@ -426,6 +423,361 @@ export const routes: AppRoutes = {
       };
 
       return opinionDBActions.getAllOpinionsOnContent(contentPointer);
+    }
+  },
+
+  '/qa/:tidbitType/:tidbitID': {
+    /**
+     * @refer `qaDBActions.getQAForTidbit`.
+     */
+    get: (req, res): Promise<QA<any>> => {
+      const { tidbitType, tidbitID } = req.params;
+      // Auth is optional, changes results (but not result type).
+      const userID = req.user ? req.user._id : null;
+
+      return qaDBActions.getQAForTidbit(true, { tidbitType: parseInt(tidbitType), targetID: tidbitID }, userID);
+    }
+  },
+
+  '/qa/:tidbitType/:tidbitID/askQuestion': {
+    /**
+     * @refer `qaDBActions.askQuestion`.
+     */
+    post: (req, res): Promise<Question<any>> => {
+      const { tidbitType, tidbitID } = req.params;
+      const { questionText, codePointer } = req.body;
+      const { _id, email } = req.user;
+
+      return qaDBActions.askQuestion(
+        true,
+        { tidbitType: parseInt(tidbitType), targetID: tidbitID },
+        questionText,
+        codePointer,
+        _id,
+        email
+      );
+    }
+  },
+
+  '/qa/:tidbitType/:tidbitID/editQuestion': {
+    /**
+     * @refer `qaDBActions.editQuestion`.
+     */
+    post: (req, res): Promise<Date> => {
+      const { tidbitType, tidbitID } = req.params;
+      const { questionID, questionText, codePointer } = req.body;
+      const { _id } = req.user;
+
+      return qaDBActions.editQuestion(
+        true,
+        { tidbitType: parseInt(tidbitType), targetID: tidbitID },
+        questionID,
+        questionText,
+        codePointer,
+        _id
+      );
+    }
+  },
+
+  '/qa/:tidbitType/:tidbitID/deleteQuestion': {
+    /**
+     * @refer `qaDBActions.deleteQuestion`.
+     */
+    post: (req, res): Promise<void> => {
+      const { tidbitType, tidbitID } = req.params;
+      const { questionID } = req.body;
+      const { _id } = req.user;
+
+      return qaDBActions.deleteQuestion(
+        true,
+        { tidbitType: parseInt(tidbitType), targetID: tidbitID },
+        questionID,
+        _id
+      );
+    }
+  },
+
+  '/qa/:tidbitType/:tidbitID/rateQuestion': {
+    /**
+     * @refer `qaDBActions.rateQuestion`.
+     */
+    post: (req, res): Promise<void> => {
+      const { tidbitType, tidbitID } = req.params;
+      const { vote, questionID } = req.body;
+      const { _id } = req.user;
+
+      return qaDBActions.rateQuestion(
+        true,
+        vote,
+        { tidbitType: parseInt(tidbitType), targetID: tidbitID },
+        questionID,
+        _id
+      );
+    }
+  },
+
+  '/qa/:tidbitType/:tidbitID/removeQuestionRating': {
+    /**
+     * @refer `qaDBActions.removeQuestionRating`.
+     */
+    post: (req, res): Promise<void> => {
+      const { tidbitType, tidbitID } = req.params;
+      const { questionID } = req.body;
+      const { _id } = req.user;
+
+      return qaDBActions.removeQuestionRating(
+        true,
+        { tidbitType: parseInt(tidbitType), targetID: tidbitID },
+        questionID,
+        _id
+      );
+    }
+  },
+
+  '/qa/:tidbitType/:tidbitID/pinQuestion': {
+    /**
+     * @refer `qaDBActions.pinQuestion`.
+     */
+    post: (req, res): Promise<void> => {
+      const { tidbitType, tidbitID } = req.params;
+      const { pin, questionID } = req.body;
+      const { _id } = req.user;
+
+      return qaDBActions.pinQuestion(
+        true,
+        { tidbitType: parseInt(tidbitType), targetID: tidbitID },
+        questionID,
+        pin,
+        _id
+      );
+    }
+  },
+
+  '/qa/:tidbitType/:tidbitID/answerQuestion': {
+    /**
+     * @refer `qaDBActions.answerQuestion`.
+     */
+    post: (req, res): Promise<Answer> => {
+      const { tidbitType, tidbitID } = req.params;
+      const { answerText, questionID } = req.body;
+      const { _id, email } = req.user;
+
+      return qaDBActions.answerQuestion(
+        true,
+        { tidbitType: parseInt(tidbitType), targetID: tidbitID },
+        questionID,
+        answerText,
+        _id,
+        email
+      );
+    }
+  },
+
+  '/qa/:tidbitType/:tidbitID/editAnswer': {
+    /**
+     * @refer `qaDBActions.editAnswer`.
+     */
+    post: (req, res): Promise<Date> => {
+      const { tidbitType, tidbitID } = req.params;
+      const { answerText, answerID } = req.body;
+      const { _id } = req.user;
+
+      return qaDBActions.editAnswer(
+        true,
+        { tidbitType: parseInt(tidbitType), targetID: tidbitID },
+        answerID,
+        answerText,
+        _id
+      );
+    }
+  },
+
+  '/qa/:tidbitType/:tidbitID/deleteAnswer': {
+    /**
+     * @refer `qaDBActions.deleteAnswer`.
+     */
+    post: (req, res): Promise<void> => {
+      const { tidbitType, tidbitID } = req.params;
+      const { answerID } = req.body;
+      const { _id } = req.user;
+
+      return qaDBActions.deleteAnswer(
+        true,
+        { tidbitType: parseInt(tidbitType), targetID: tidbitID },
+        answerID,
+        _id
+      );
+    }
+  },
+
+  '/qa/:tidbitType/:tidbitID/rateAnswer': {
+    /**
+     * @refer `qaDBActions.rateAnswer`.
+     */
+    post: (req, res): Promise<void> => {
+      const { tidbitType, tidbitID } = req.params;
+      const { vote, answerID } = req.body;
+      const { _id } = req.user;
+
+      return qaDBActions.rateAnswer(
+        true,
+        vote,
+        { tidbitType: parseInt(tidbitType), targetID: tidbitID },
+        answerID,
+        _id
+      );
+    }
+  },
+
+  '/qa/:tidbitType/:tidbitID/removeAnswerRating': {
+    /**
+     * @refer `qaDBActions.removeAnswerRating`.
+     */
+    post: (req, res): Promise<void> => {
+      const { tidbitType, tidbitID } = req.params;
+      const { answerID } = req.body;
+      const { _id } = req.user;
+
+      return qaDBActions.removeAnswerRating(
+        true,
+        { tidbitType: parseInt(tidbitType), targetID: tidbitID },
+        answerID,
+        _id
+      );
+    }
+  },
+
+  '/qa/:tidbitType/:tidbitID/pinAnswer': {
+    /**
+     * @refer `qaDBActions.pinAnswer`.
+     */
+    post: (req, res): Promise<void> => {
+      const { tidbitType, tidbitID } = req.params;
+      const { pin, answerID } = req.body;
+      const { _id } = req.user;
+
+      return qaDBActions.pinAnswer(
+        true,
+        { tidbitType: parseInt(tidbitType), targetID: tidbitID },
+        answerID,
+        pin,
+        _id
+      );
+    }
+  },
+
+  '/qa/:tidbitType/:tidbitID/comment/question': {
+    /**
+     * @refer `qaDBActions.commentOnQuestion`.
+     */
+    post: (req, res): Promise<QuestionComment> => {
+      const { tidbitType, tidbitID } = req.params;
+      const { questionID, commentText } = req.body;
+      const { _id, email } = req.user;
+
+      return qaDBActions.commentOnQuestion(
+        true,
+        { tidbitType: parseInt(tidbitType), targetID: tidbitID },
+        questionID,
+        commentText,
+        _id,
+        email
+      );
+    }
+  },
+
+  '/qa/:tidbitType/:tidbitID/editComment/question': {
+    /**
+     * @refer `qaDBActions.editQuestionComment`.
+     */
+    post: (req, res): Promise<Date> => {
+      const { tidbitType, tidbitID } = req.params;
+      const { commentText, commentID } = req.body;
+      const { _id } = req.user;
+
+      return qaDBActions.editQuestionComment(
+        true,
+        { tidbitType: parseInt(tidbitType), targetID: tidbitID },
+        commentID,
+        commentText,
+        _id
+      );
+    }
+  },
+
+  '/qa/:tidbitType/:tidbitID/deleteComment/question': {
+    /**
+     * @refer `qaDBActions.deleteQuestionComment`.
+     */
+    post: (req, res): Promise<void> => {
+      const { tidbitType, tidbitID } = req.params;
+      const { commentID } = req.body;
+      const { _id } = req.user;
+
+      return qaDBActions.deleteQuestionComment(
+        true,
+        { tidbitType: parseInt(tidbitType), targetID: tidbitID },
+        commentID,
+        _id
+      );
+    }
+  },
+
+  '/qa/:tidbitType/:tidbitID/comment/answer': {
+    /**
+     * @refer `qaDBActions.commentOnAnswer`.
+     */
+    post: (req, res): Promise<AnswerComment> => {
+      const { tidbitType, tidbitID } = req.params;
+      const { answerID, questionID, commentText } = req.body;
+      const { _id, email } = req.user;
+
+      return qaDBActions.commentOnAnswer(
+        true,
+        { tidbitType: parseInt(tidbitType), targetID: tidbitID },
+        questionID,
+        answerID,
+        commentText,
+        _id,
+        email
+      );
+    }
+  },
+
+  '/qa/:tidbitType/:tidbitID/editComment/answer': {
+    /**
+     * @refer `qaDBActions.editAnswerComment`.
+     */
+    post: (req, res): Promise<Date> => {
+      const { tidbitType, tidbitID } = req.params;
+      const { commentID, commentText } = req.body;
+      const { _id } = req.user;
+
+      return qaDBActions.editAnswerComment(
+        true,
+        { tidbitType: parseInt(tidbitType), targetID: tidbitID },
+        commentID,
+        commentText,
+        _id
+      );
+    }
+  },
+
+  '/qa/:tidbitType/:tidbitID/deleteComment/answer': {
+    /**
+     * @refer `qaDBActions.deleteAnswerComment`.
+     */
+    post: (req, res): Promise<void> => {
+      const { tidbitType, tidbitID } = req.params;
+      const { commentID } = req.body;
+      const { _id } = req.user;
+
+      return qaDBActions.deleteAnswerComment(
+        true,
+        { tidbitType: parseInt(tidbitType), targetID: tidbitID },
+        commentID,
+        _id
+      );
     }
   }
 }

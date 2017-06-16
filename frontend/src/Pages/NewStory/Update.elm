@@ -1,7 +1,8 @@
 module Pages.NewStory.Update exposing (..)
 
-import DefaultServices.CommonSubPageUtil exposing (CommonSubPageUtil)
+import DefaultServices.CommonSubPageUtil exposing (CommonSubPageUtil(..))
 import DefaultServices.Util as Util
+import Models.RequestTracker as RT
 import Models.Route as Route
 import Models.Story as Story
 import Pages.Model exposing (Shared)
@@ -13,20 +14,20 @@ import Pages.NewStory.Model exposing (..)
 {-| `NewStory` update.
 -}
 update : CommonSubPageUtil Model Shared Msg -> Msg -> Model -> Shared -> ( Model, Shared, Cmd Msg )
-update { doNothing, justUpdateModel, justProduceCmd, api, justSetModalError } msg model shared =
+update (Common common) msg model shared =
     case msg of
         NoOp ->
-            doNothing
+            common.doNothing
 
         GoTo route ->
-            justProduceCmd <| Route.navigateTo route
+            common.justProduceCmd <| Route.navigateTo route
 
         OnRouteHit route ->
             let
                 getEditingStoryAndFocusOn theID qpEditingStory =
                     case qpEditingStory of
                         Nothing ->
-                            justProduceCmd <| Util.domFocus (\_ -> NoOp) theID
+                            common.justProduceCmd <| Util.domFocus (\_ -> NoOp) theID
 
                         Just storyID ->
                             {- If we already loaded the story we want to edit, we don't re-query because it
@@ -36,13 +37,13 @@ update { doNothing, justUpdateModel, justProduceCmd, api, justSetModalError } ms
                                current edits.
                             -}
                             if storyID == model.editingStory.id then
-                                justProduceCmd <| Util.domFocus (\_ -> NoOp) theID
+                                common.justProduceCmd <| Util.domFocus (\_ -> NoOp) theID
                             else
                                 ( { model | editingStory = Story.blankStory }
                                 , shared
                                 , Cmd.batch
                                     [ Util.domFocus (\_ -> NoOp) theID
-                                    , api.get.story storyID OnGetEditingStoryFailure OnGetEditingStorySuccess
+                                    , common.api.get.story storyID OnGetEditingStoryFailure OnGetEditingStorySuccess
                                     ]
                                 )
             in
@@ -57,59 +58,59 @@ update { doNothing, justUpdateModel, justProduceCmd, api, justSetModalError } ms
                         getEditingStoryAndFocusOn "tags-input" qpEditingStory
 
                     _ ->
-                        doNothing
+                        common.doNothing
 
         OnGetEditingStorySuccess story ->
             case shared.user of
                 Nothing ->
-                    doNothing
+                    common.doNothing
 
                 Just user ->
                     if story.author == user.id then
-                        justUpdateModel <| updateEditStory <| always story
+                        common.justUpdateModel <| updateEditStory <| always story
                     else
-                        justProduceCmd <| Route.modifyTo <| Route.CreatePage
+                        common.justProduceCmd <| Route.modifyTo <| Route.CreatePage
 
         OnGetEditingStoryFailure apiError ->
-            justSetModalError apiError
+            common.justSetModalError apiError
 
         OnUpdateName newName ->
-            justUpdateModel <| updateName newName
+            common.justUpdateModel <| updateName newName
 
         OnEditingUpdateName newName ->
-            justUpdateModel <| updateEditName newName
+            common.justUpdateModel <| updateEditName newName
 
         OnUpdateDescription newDescription ->
-            justUpdateModel <| updateDescription newDescription
+            common.justUpdateModel <| updateDescription newDescription
 
         OnEditingUpdateDescription newDescription ->
-            justUpdateModel <| updateEditDescription newDescription
+            common.justUpdateModel <| updateEditDescription newDescription
 
         OnUpdateTagInput newTagInput ->
-            justUpdateModel <|
+            common.justUpdateModel <|
                 if String.endsWith " " newTagInput then
                     newTag <| String.dropRight 1 newTagInput
                 else
                     updateTagInput newTagInput
 
         OnEditingUpdateTagInput newTagInput ->
-            justUpdateModel <|
+            common.justUpdateModel <|
                 if String.endsWith " " newTagInput then
                     newEditTag <| String.dropRight 1 newTagInput
                 else
                     updateEditTagInput newTagInput
 
         AddTag tagName ->
-            justUpdateModel <| newTag tagName
+            common.justUpdateModel <| newTag tagName
 
         EditingAddTag tagName ->
-            justUpdateModel <| newEditTag tagName
+            common.justUpdateModel <| newEditTag tagName
 
         RemoveTag tagName ->
-            justUpdateModel <| removeTag tagName
+            common.justUpdateModel <| removeTag tagName
 
         EditingRemoveTag tagName ->
-            justUpdateModel <| removeEditTag tagName
+            common.justUpdateModel <| removeEditTag tagName
 
         Reset ->
             ( init
@@ -119,23 +120,29 @@ update { doNothing, justUpdateModel, justProduceCmd, api, justSetModalError } ms
             )
 
         Publish ->
-            if newStoryDataReadyForPublication model then
-                justProduceCmd <|
-                    api.post.createNewStory
-                        model.newStory
-                        OnPublishFailure
-                        OnPublishSuccess
-            else
-                doNothing
+            let
+                publishAction =
+                    common.justProduceCmd <|
+                        common.api.post.createNewStory
+                            model.newStory
+                            OnPublishFailure
+                            OnPublishSuccess
+            in
+                if newStoryDataReadyForPublication model then
+                    common.makeSingletonRequest RT.PublishNewStory publishAction
+                else
+                    common.doNothing
 
         OnPublishSuccess { targetID } ->
             ( init
             , { shared | userStories = Nothing }
             , Route.navigateTo <| Route.DevelopStoryPage targetID
             )
+                |> common.andFinishRequest RT.PublishNewStory
 
         OnPublishFailure apiError ->
-            justSetModalError apiError
+            common.justSetModalError apiError
+                |> common.andFinishRequest RT.PublishNewStory
 
         CancelEdits storyID ->
             ( updateEditStory (always Story.blankStory) model
@@ -153,22 +160,27 @@ update { doNothing, justUpdateModel, justProduceCmd, api, justSetModalError } ms
                     , description = editingStory.description
                     , tags = editingStory.tags
                     }
-            in
-                if editingStoryDataReadyForSave model then
-                    justProduceCmd <|
-                        api.post.updateStoryInformation
+
+                saveEditsAction =
+                    common.justProduceCmd <|
+                        common.api.post.updateStoryInformation
                             storyID
                             editingStoryInformation
                             OnSaveEditsFailure
                             OnSaveEditsSuccess
+            in
+                if editingStoryDataReadyForSave model then
+                    common.makeSingletonRequest RT.UpdateStoryInfo saveEditsAction
                 else
-                    doNothing
+                    common.doNothing
 
         OnSaveEditsSuccess { targetID } ->
             ( model
             , { shared | userStories = Nothing }
             , Route.navigateTo <| Route.DevelopStoryPage targetID
             )
+                |> common.andFinishRequest RT.UpdateStoryInfo
 
         OnSaveEditsFailure apiError ->
-            justSetModalError apiError
+            common.justSetModalError apiError
+                |> common.andFinishRequest RT.UpdateStoryInfo

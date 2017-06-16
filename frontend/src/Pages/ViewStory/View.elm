@@ -1,8 +1,8 @@
 module Pages.ViewStory.View exposing (..)
 
 import DefaultServices.Util as Util
-import Elements.ContentBox exposing (contentBox)
-import Elements.ProgressBar exposing (TextFormat(Percentage), State(..), progressBar)
+import Elements.Simple.ContentBox as ContentBox
+import Elements.Simple.ProgressBar as ProgressBar exposing (TextFormat(Percentage), State(..))
 import Html exposing (Html, div, button, text, i)
 import Html.Attributes exposing (class, classList)
 import Html.Events exposing (onClick)
@@ -143,7 +143,7 @@ view model shared =
                                         , div
                                             [ classList [ ( "story-progress-bar-bar", True ) ]
                                             ]
-                                            [ progressBar
+                                            [ ProgressBar.view
                                                 { state =
                                                     if totalCompleted == 0 then
                                                         NotStarted
@@ -157,6 +157,7 @@ view model shared =
                                                 , allowClick = False
                                                 , textFormat = Percentage
                                                 , shiftLeft = False
+                                                , alreadyComplete = { complete = doneStory, for = ProgressBar.Story }
                                                 }
                                             ]
                                         ]
@@ -175,7 +176,7 @@ view model shared =
                                     ((List.indexedMap
                                         (\index tidbit ->
                                             Content.fromTidbit tidbit
-                                                |> contentBox
+                                                |> ContentBox.view
                                                     { goToMsg = GoTo
                                                     , darkenBox = Story.tidbitCompletedAtIndex index story
                                                     , forStory = Just story.id

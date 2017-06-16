@@ -251,3 +251,10 @@ getNewRangeAfterDelta oldCode newCode action deltaRange selectedRange =
             -- and never sends it.
             _ ->
                 selectedRange
+
+
+{-| An empty range with every point on the origin.
+-}
+zeroRange : Range
+zeroRange =
+    Range 0 0 0 0

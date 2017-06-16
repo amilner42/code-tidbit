@@ -1,6 +1,8 @@
 module Pages.Browse.Model exposing (..)
 
-import Elements.Editor exposing (Language)
+import DefaultServices.Util as Util
+import DefaultServices.InfixFunctions exposing (..)
+import Elements.Simple.Editor exposing (Language)
 import Models.Content exposing (Content)
 
 
@@ -19,4 +21,34 @@ type alias Model =
     , contentFilterIncludeEmptyStories : Bool
     , contentFilterLanguage : Maybe Language
     , contentFilterAuthor : ( String, Maybe String )
+    , mostRecentSearchSettings : Maybe SearchSettings
+    }
+
+
+{-| All the options for customizing the search settings.
+-}
+type alias SearchSettings =
+    { includeSnipbits : Bool
+    , includeBigbits : Bool
+    , includeStories : Bool
+    , includeEmptyStories : Bool
+    , restrictLanguage : Maybe String
+    , author : Maybe String
+    , searchQuery : Maybe String
+    , pageNumber : Int
+    }
+
+
+{-| Extracts the search settings from the model.
+-}
+extractSearchSettingsFromModel : Model -> SearchSettings
+extractSearchSettingsFromModel model =
+    { includeSnipbits = model.contentFilterSnipbits
+    , includeBigbits = model.contentFilterBigbits
+    , includeStories = model.contentFilterStories
+    , includeEmptyStories = model.contentFilterIncludeEmptyStories
+    , restrictLanguage = model.contentFilterLanguage ||> toString
+    , author = model.contentFilterAuthor |> Tuple.second
+    , searchQuery = Util.justNonBlankString model.searchQuery
+    , pageNumber = model.pageNumber
     }

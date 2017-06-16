@@ -3,12 +3,13 @@ module Pages.CreateSnipbit.View exposing (..)
 import Array
 import Autocomplete as AC
 import DefaultServices.Util as Util
-import Elements.Editor as Editor
-import Elements.Tags exposing (tags)
+import Elements.Simple.Editor as Editor
+import Elements.Simple.Tags as Tags
 import Html exposing (Html, div, text, button, hr, textarea, input)
 import Html.Attributes exposing (class, classList, disabled, hidden, value, id, placeholder)
 import Html.Events exposing (onClick, onInput)
 import Keyboard.Extra as KK
+import Models.RequestTracker as RT
 import Models.Route as Route
 import Pages.CreateSnipbit.Messages exposing (..)
 import Pages.CreateSnipbit.Model exposing (..)
@@ -217,7 +218,7 @@ view model shared =
                         )
                     ]
                     []
-                , tags RemoveTag model.tags
+                , Tags.view RemoveTag model.tags
                 ]
 
         tidbitView : Html Msg
@@ -416,7 +417,7 @@ view model shared =
             in
                 div
                     [ class "create-snipbit-code" ]
-                    [ Editor.editor "create-snipbit-code-editor"
+                    [ Editor.view "create-snipbit-code-editor"
                     , div
                         [ class "comment-creator" ]
                         [ body
@@ -464,7 +465,10 @@ view model shared =
 
                 Just publicationData ->
                     button
-                        [ classList [ ( "create-snipbit-publish-button", True ) ]
+                        [ classList
+                            [ ( "create-snipbit-publish-button", True )
+                            , ( "cursor-progress", RT.isMakingRequest shared.apiRequestTracker RT.PublishSnipbit )
+                            ]
                         , onClick <| Publish publicationData
                         ]
                         [ text "Publish" ]
