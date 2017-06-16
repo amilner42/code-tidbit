@@ -12,9 +12,7 @@ import Pages.Browse.View as BrowseView
 import Pages.Create.Model as CreateModel
 import Pages.Create.View as CreateView
 import Pages.CreateBigbit.Model as CreateBigbitModel
-import Pages.CreateBigbit.Model as HomeModel
 import Pages.CreateBigbit.View as CreateBigbitView
-import Pages.CreateBigbit.View as HomeView
 import Pages.CreateSnipbit.Model as CreateSnipbitModel
 import Pages.CreateSnipbit.View as CreateSnipbitView
 import Pages.DevelopStory.Model as DevelopStoryModel
