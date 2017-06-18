@@ -4,7 +4,7 @@ import DefaultServices.Editable as Editable
 import DefaultServices.Util as Util
 import JSON.Range
 import Json.Decode as Decode
-import Json.Decode.Pipeline exposing (decode, required, optional, hardcoded)
+import Json.Decode.Pipeline exposing (decode, hardcoded, optional, required)
 import Json.Encode as Encode
 import Models.QA exposing (..)
 import Set
@@ -176,19 +176,19 @@ tidbitQAStateEncoder codePointerEncoder qaState =
                 , ( "showQuestion", Encode.null )
                 ]
     in
-        Encode.object
-            [ ( "browsingCodePointer", Util.justValueOrNull codePointerEncoder qaState.browsingCodePointer )
-            , ( "newQuestion", newQuestionEncoder qaState.newQuestion )
-            , ( "questionEdits", Util.encodeStringDict questionEditEncoder qaState.questionEdits )
-            , ( "newAnswers", Util.encodeStringDict newAnswerEncoder qaState.newAnswers )
-            , ( "answerEdits", Util.encodeStringDict answerEditEncoder qaState.answerEdits )
-            , ( "newQuestionComments", stringToStringDictEncoder qaState.newQuestionComments )
-            , ( "newAnswerComments", stringToStringDictEncoder qaState.newAnswerComments )
-            , ( "questionCommentEdits", stringToEditableStringDictEncoder qaState.questionCommentEdits )
-            , ( "answerCommentEdits", stringToEditableStringDictEncoder qaState.answerCommentEdits )
-            , ( "deletingComments", Encode.null )
-            , ( "deletingAnswers", Encode.null )
-            ]
+    Encode.object
+        [ ( "browsingCodePointer", Util.justValueOrNull codePointerEncoder qaState.browsingCodePointer )
+        , ( "newQuestion", newQuestionEncoder qaState.newQuestion )
+        , ( "questionEdits", Util.encodeStringDict questionEditEncoder qaState.questionEdits )
+        , ( "newAnswers", Util.encodeStringDict newAnswerEncoder qaState.newAnswers )
+        , ( "answerEdits", Util.encodeStringDict answerEditEncoder qaState.answerEdits )
+        , ( "newQuestionComments", stringToStringDictEncoder qaState.newQuestionComments )
+        , ( "newAnswerComments", stringToStringDictEncoder qaState.newAnswerComments )
+        , ( "questionCommentEdits", stringToEditableStringDictEncoder qaState.questionCommentEdits )
+        , ( "answerCommentEdits", stringToEditableStringDictEncoder qaState.answerCommentEdits )
+        , ( "deletingComments", Encode.null )
+        , ( "deletingAnswers", Encode.null )
+        ]
 
 
 {-| `QAState` decoder.
@@ -236,15 +236,15 @@ tidbitQAStateDecoder codePointerDecoder =
                 |> hardcoded False
                 |> hardcoded True
     in
-        decode TidbitQAState
-            |> required "browsingCodePointer" (Decode.maybe codePointerDecoder)
-            |> required "newQuestion" newQuestionDecoder
-            |> required "questionEdits" (Util.decodeStringDict questionEditDecoder)
-            |> required "newAnswers" (Util.decodeStringDict newAnswerDecoder)
-            |> required "answerEdits" (Util.decodeStringDict answerEditDecoder)
-            |> required "newQuestionComments" stringToStringDictDecoder
-            |> required "newAnswerComments" stringToStringDictDecoder
-            |> required "questionCommentEdits" stringToEditableStringDictDecoder
-            |> required "answerCommentEdits" stringToEditableStringDictDecoder
-            |> hardcoded Set.empty
-            |> hardcoded Set.empty
+    decode TidbitQAState
+        |> required "browsingCodePointer" (Decode.maybe codePointerDecoder)
+        |> required "newQuestion" newQuestionDecoder
+        |> required "questionEdits" (Util.decodeStringDict questionEditDecoder)
+        |> required "newAnswers" (Util.decodeStringDict newAnswerDecoder)
+        |> required "answerEdits" (Util.decodeStringDict answerEditDecoder)
+        |> required "newQuestionComments" stringToStringDictDecoder
+        |> required "newAnswerComments" stringToStringDictDecoder
+        |> required "questionCommentEdits" stringToEditableStringDictDecoder
+        |> required "answerCommentEdits" stringToEditableStringDictDecoder
+        |> hardcoded Set.empty
+        |> hardcoded Set.empty

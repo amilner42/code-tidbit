@@ -2,8 +2,8 @@ module Pages.ViewStory.View exposing (..)
 
 import DefaultServices.Util as Util
 import Elements.Simple.ContentBox as ContentBox
-import Elements.Simple.ProgressBar as ProgressBar exposing (TextFormat(Percentage), State(..))
-import Html exposing (Html, div, button, text, i)
+import Elements.Simple.ProgressBar as ProgressBar exposing (State(..), TextFormat(Percentage))
+import Html exposing (Html, button, div, i, text)
 import Html.Attributes exposing (class, classList)
 import Html.Events exposing (onClick)
 import Models.Content as Content
@@ -45,146 +45,145 @@ view model shared =
                                     |> Maybe.map (Tidbit.getTidbitRoute (Just story.id) >> (,) index)
                             )
             in
-                div
-                    [ class "view-story-page" ]
-                    [ case shared.user of
-                        Just _ ->
-                            Util.keyedDiv
-                                [ class "sub-bar" ]
-                                [ ( "view-story-next-tidbit-button"
-                                  , case nextTidbitInStory of
-                                        Just ( index, routeForViewingTidbit ) ->
-                                            button
-                                                [ class "sub-bar-button next-tidbit-button"
-                                                , onClick <| GoTo routeForViewingTidbit
-                                                ]
-                                                [ text <| "Continue on Tidbit " ++ (toString <| index + 1)
-                                                ]
+            div
+                [ class "view-story-page" ]
+                [ case shared.user of
+                    Just _ ->
+                        Util.keyedDiv
+                            [ class "sub-bar" ]
+                            [ ( "view-story-next-tidbit-button"
+                              , case nextTidbitInStory of
+                                    Just ( index, routeForViewingTidbit ) ->
+                                        button
+                                            [ class "sub-bar-button next-tidbit-button"
+                                            , onClick <| GoTo routeForViewingTidbit
+                                            ]
+                                            [ text <| "Continue on Tidbit " ++ (toString <| index + 1)
+                                            ]
 
-                                        _ ->
-                                            Util.hiddenDiv
-                                  )
-                                , ( "view-story-opinions-button"
-                                  , case model.possibleOpinion of
-                                        Just possibleOpinion ->
-                                            let
-                                                ( newMsg, buttonText ) =
-                                                    case possibleOpinion.rating of
-                                                        Nothing ->
-                                                            ( AddOpinion
-                                                                { contentPointer = possibleOpinion.contentPointer
-                                                                , rating = Rating.Like
-                                                                }
-                                                            , "Love it!"
-                                                            )
+                                    _ ->
+                                        Util.hiddenDiv
+                              )
+                            , ( "view-story-opinions-button"
+                              , case model.possibleOpinion of
+                                    Just possibleOpinion ->
+                                        let
+                                            ( newMsg, buttonText ) =
+                                                case possibleOpinion.rating of
+                                                    Nothing ->
+                                                        ( AddOpinion
+                                                            { contentPointer = possibleOpinion.contentPointer
+                                                            , rating = Rating.Like
+                                                            }
+                                                        , "Love it!"
+                                                        )
 
-                                                        Just rating ->
-                                                            ( RemoveOpinion
-                                                                { contentPointer = possibleOpinion.contentPointer
-                                                                , rating = rating
-                                                                }
-                                                            , "Take Back Love"
-                                                            )
-                                            in
-                                                button
-                                                    [ class "sub-bar-button heart-button"
-                                                    , onClick <| newMsg
-                                                    ]
-                                                    [ text buttonText ]
+                                                    Just rating ->
+                                                        ( RemoveOpinion
+                                                            { contentPointer = possibleOpinion.contentPointer
+                                                            , rating = rating
+                                                            }
+                                                        , "Take Back Love"
+                                                        )
+                                        in
+                                        button
+                                            [ class "sub-bar-button heart-button"
+                                            , onClick <| newMsg
+                                            ]
+                                            [ text buttonText ]
 
-                                        Nothing ->
-                                            Util.hiddenDiv
-                                  )
+                                    Nothing ->
+                                        Util.hiddenDiv
+                              )
+                            ]
+
+                    _ ->
+                        Util.hiddenDiv
+                , case nextTidbitInStory of
+                    Just _ ->
+                        Util.keyedDiv [ class "sub-bar-ghost hidden" ] []
+
+                    _ ->
+                        Util.hiddenDiv
+                , div
+                    [ class "view-story-page-content" ]
+                    [ div
+                        [ class "story-name" ]
+                        [ text story.name ]
+                    , case ( completedListForLoggedInUser, story.tidbits ) of
+                        ( Just hasCompletedList, h :: xs ) ->
+                            let
+                                totalCompleted =
+                                    List.foldl
+                                        (\currentBool totalComplete ->
+                                            if currentBool then
+                                                totalComplete + 1
+                                            else
+                                                totalComplete
+                                        )
+                                        0
+                                        hasCompletedList
+
+                                totalTidbits =
+                                    List.length hasCompletedList
+
+                                doneStory =
+                                    totalCompleted == totalTidbits
+                            in
+                            div
+                                []
+                                [ div
+                                    [ classList [ ( "progress-bar-title", True ) ]
+                                    ]
+                                    [ if doneStory then
+                                        text "story complete"
+                                      else
+                                        text "you've completed"
+                                    ]
+                                , div
+                                    [ classList [ ( "story-progress-bar-bar", True ) ]
+                                    ]
+                                    [ ProgressBar.view
+                                        { state =
+                                            if totalCompleted == 0 then
+                                                NotStarted
+                                            else if totalCompleted == totalTidbits then
+                                                Completed
+                                            else
+                                                Started totalCompleted
+                                        , maxPosition = totalTidbits
+                                        , disabledStyling = False
+                                        , onClickMsg = NoOp
+                                        , allowClick = False
+                                        , textFormat = Percentage
+                                        , shiftLeft = False
+                                        , alreadyComplete = { complete = doneStory, for = ProgressBar.Story }
+                                        }
+                                    ]
                                 ]
 
                         _ ->
                             Util.hiddenDiv
-                    , case nextTidbitInStory of
-                        Just _ ->
-                            Util.keyedDiv [ class "sub-bar-ghost hidden" ] []
+                    , case story.tidbits of
+                        [] ->
+                            div
+                                [ class "no-tidbit-text" ]
+                                [ text "This story has no tidbits yet!" ]
 
                         _ ->
-                            Util.hiddenDiv
-                    , div
-                        [ class "view-story-page-content" ]
-                        [ div
-                            [ class "story-name" ]
-                            [ text story.name ]
-                        , case ( completedListForLoggedInUser, story.tidbits ) of
-                            ( Just hasCompletedList, h :: xs ) ->
-                                let
-                                    totalCompleted =
-                                        List.foldl
-                                            (\currentBool totalComplete ->
-                                                if currentBool then
-                                                    totalComplete + 1
-                                                else
-                                                    totalComplete
-                                            )
-                                            0
-                                            hasCompletedList
-
-                                    totalTidbits =
-                                        List.length hasCompletedList
-
-                                    doneStory =
-                                        totalCompleted == totalTidbits
-                                in
-                                    div
-                                        []
-                                        [ div
-                                            [ classList [ ( "progress-bar-title", True ) ]
-                                            ]
-                                            [ if doneStory then
-                                                text "story complete"
-                                              else
-                                                text "you've completed"
-                                            ]
-                                        , div
-                                            [ classList [ ( "story-progress-bar-bar", True ) ]
-                                            ]
-                                            [ ProgressBar.view
-                                                { state =
-                                                    if totalCompleted == 0 then
-                                                        NotStarted
-                                                    else if totalCompleted == totalTidbits then
-                                                        Completed
-                                                    else
-                                                        Started totalCompleted
-                                                , maxPosition = totalTidbits
-                                                , disabledStyling = False
-                                                , onClickMsg = NoOp
-                                                , allowClick = False
-                                                , textFormat = Percentage
-                                                , shiftLeft = False
-                                                , alreadyComplete = { complete = doneStory, for = ProgressBar.Story }
+                            div
+                                [ class "flex-box space-between" ]
+                                (List.indexedMap
+                                    (\index tidbit ->
+                                        Content.fromTidbit tidbit
+                                            |> ContentBox.view
+                                                { goToMsg = GoTo
+                                                , darkenBox = Story.tidbitCompletedAtIndex index story
+                                                , forStory = Just story.id
                                                 }
-                                            ]
-                                        ]
-
-                            _ ->
-                                Util.hiddenDiv
-                        , case story.tidbits of
-                            [] ->
-                                div
-                                    [ class "no-tidbit-text" ]
-                                    [ text "This story has no tidbits yet!" ]
-
-                            _ ->
-                                div
-                                    [ class "flex-box space-between" ]
-                                    ((List.indexedMap
-                                        (\index tidbit ->
-                                            Content.fromTidbit tidbit
-                                                |> ContentBox.view
-                                                    { goToMsg = GoTo
-                                                    , darkenBox = Story.tidbitCompletedAtIndex index story
-                                                    , forStory = Just story.id
-                                                    }
-                                        )
-                                        story.tidbits
-                                     )
-                                        ++ Util.emptyFlexBoxesForAlignment
                                     )
-                        ]
+                                    story.tidbits
+                                    ++ Util.emptyFlexBoxesForAlignment
+                                )
                     ]
+                ]

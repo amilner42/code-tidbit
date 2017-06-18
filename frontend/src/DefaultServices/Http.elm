@@ -39,17 +39,18 @@ handleHttpResult onApiError onApiSuccess httpResult =
                 Http.BadPayload _ _ ->
                     ApiError.UnexpectedPayload
     in
-        case httpResult of
-            Ok expectedResult ->
-                onApiSuccess expectedResult
+    case httpResult of
+        Ok expectedResult ->
+            onApiSuccess expectedResult
 
-            Err httpError ->
-                onApiError (convertToApiError httpError)
+        Err httpError ->
+            onApiError (convertToApiError httpError)
 
 
 {-| A HTTP get request.
 
- - Set's `withCredentials` = `True`.
+  - Set's `withCredentials` = `True`.
+
 -}
 get : String -> Decode.Decoder a -> (ApiError.ApiError -> b) -> (a -> b) -> Cmd b
 get url decoder onApiError onApiSuccess =
@@ -70,13 +71,14 @@ get url decoder onApiError onApiSuccess =
         httpRequest =
             get url decoder
     in
-        Http.send (handleHttpResult onApiError onApiSuccess) httpRequest
+    Http.send (handleHttpResult onApiError onApiSuccess) httpRequest
 
 
 {-| A HTTP post request.
 
- - adds a JSON header
- - Set's `withCredentials` = `True`
+  - adds a JSON header
+  - Set's `withCredentials` = `True`
+
 -}
 post : String -> Decode.Decoder a -> Encode.Value -> (ApiError.ApiError -> b) -> (a -> b) -> Cmd b
 post url decoder body onApiError onApiSuccess =
@@ -97,4 +99,4 @@ post url decoder body onApiError onApiSuccess =
         httpRequest =
             post url (Http.jsonBody body) decoder
     in
-        Http.send (handleHttpResult onApiError onApiSuccess) httpRequest
+    Http.send (handleHttpResult onApiError onApiSuccess) httpRequest

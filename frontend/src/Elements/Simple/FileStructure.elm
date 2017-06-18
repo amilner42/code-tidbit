@@ -2,8 +2,8 @@ module Elements.Simple.FileStructure exposing (..)
 
 import DefaultServices.Util as Util
 import Dict
-import Html exposing (Html, div, text, i)
-import Html.Attributes exposing (class, hidden, classList)
+import Html exposing (Html, div, i, text)
+import Html.Attributes exposing (class, classList, hidden)
 import Html.Events exposing (onClick)
 
 
@@ -26,6 +26,7 @@ type alias Name =
 {-| For clarity.
 
 NOTE: Paths may optionally start with a slash. All paths should be absolute.
+
 -}
 type alias Path =
     String
@@ -34,6 +35,7 @@ type alias Path =
 {-| A filestructure is where all the code and metadata is stored.
 
 NOTE: Metadata can be placed at the top level, on folders, and on files.
+
 -}
 type FileStructure fileStructureMetadata folderMetadata fileMetadata
     = FileStructure (Folder folderMetadata fileMetadata) fileStructureMetadata
@@ -83,22 +85,24 @@ isEmpty (FileStructure (Folder files subFolders metadata) fsMetaData) =
 same format.
 
 NOTE: You should always use this to check path equality, otherwise bugs maybe caused by one file having a `/` and the
-      other not.
+other not.
+
 -}
 isSameFilePath : Path -> Path -> Bool
 isSameFilePath file1 file2 =
-    (uniqueFilePath file1) == (uniqueFilePath file2)
+    uniqueFilePath file1 == uniqueFilePath file2
 
 
 {-| Checks if two folder paths are the same, drops both the initial and final optional slashes to make sure they follow
 the same format.
 
 NOTE: You should always use this to check path eqaulity, otherwise bugs maybe caused by one folder having
-      ending/starting slashes and the other not.
+ending/starting slashes and the other not.
+
 -}
 isSameFolderPath : Path -> Path -> Bool
 isSameFolderPath folder1 folder2 =
-    (uniqueFolderPath folder1) == (uniqueFolderPath folder2)
+    uniqueFolderPath folder1 == uniqueFolderPath folder2
 
 
 {-| Files `/bla/bla.a` and `bla/bla.a` point to the same file, this gets rid of the initial slash to produce a unique
@@ -127,6 +131,7 @@ posssibly modified children. Because it first changes itself then runs on it's p
 change the type itself or it would change the type of it's children and then the recursive function would be typed
 incorrectly. Use this function when you want to modify the structures values but not the structure itself (of the
 metadata, hence a b and c are fixed).
+
 -}
 valueMap :
     FileStructure a b c
@@ -159,9 +164,9 @@ valueMap ((FileStructure rootFolder metadata) as fs) folderFunc fileFunc fsFunc 
                                     folderMetadata
                            )
             in
-                FileStructure
-                    (mapOverFolderTree "" "/" rootFolder)
-                    metadata
+            FileStructure
+                (mapOverFolderTree "" "/" rootFolder)
+                metadata
 
         {- Map over all the files. -}
         fileMap : FileStructure a b c -> FileStructure a b c
@@ -183,9 +188,9 @@ valueMap ((FileStructure rootFolder metadata) as fs) folderFunc fileFunc fsFunc 
                         )
                         folderMetadata
             in
-                FileStructure
-                    (mapOverFileTree "" "/" rootFolder)
-                    metadata
+            FileStructure
+                (mapOverFileTree "" "/" rootFolder)
+                metadata
 
         fsMap : FileStructure a b c -> FileStructure a b c
         fsMap (FileStructure rootFolder fsMetadata) =
@@ -193,10 +198,10 @@ valueMap ((FileStructure rootFolder metadata) as fs) folderFunc fileFunc fsFunc 
                 rootFolder
                 (fsFunc fsMetadata)
     in
-        fs
-            |> folderMap
-            |> fileMap
-            |> fsMap
+    fs
+        |> folderMap
+        |> fileMap
+        |> fsMap
 
 
 {-| Maps over all the metadata.
@@ -215,9 +220,9 @@ metaMap aFunc bFunc cFunc (FileStructure rootFolder a) =
                 (Dict.map applyFolder folders)
                 (bFunc b)
     in
-        FileStructure
-            (applyFolder "" rootFolder)
-            (aFunc a)
+    FileStructure
+        (applyFolder "" rootFolder)
+        (aFunc a)
 
 
 {-| Drops the first char from a string if it starts with a slash.
@@ -252,16 +257,16 @@ getFolder (FileStructure rootFolder metadata) absolutePath =
 
                 a :: rest ->
                     Dict.get a folders
-                        |> Maybe.andThen ((flip followPath) rest)
+                        |> Maybe.andThen (flip followPath rest)
     in
-        if absolutePath == "/" then
-            Just rootFolder
-        else
-            absolutePath
-                |> dropOptionalLeftSlash
-                |> dropOptionalRightSlash
-                |> String.split "/"
-                |> followPath rootFolder
+    if absolutePath == "/" then
+        Just rootFolder
+    else
+        absolutePath
+            |> dropOptionalLeftSlash
+            |> dropOptionalRightSlash
+            |> String.split "/"
+            |> followPath rootFolder
 
 
 {-| Gets a specific file from the tree if it exists in the tree, otherwise `Nothing`.
@@ -280,12 +285,12 @@ getFile (FileStructure rootFolder metadata) absolutePath =
 
                 folderName :: restOfPath ->
                     Dict.get folderName folders
-                        |> Maybe.andThen ((flip followPath) restOfPath)
+                        |> Maybe.andThen (flip followPath restOfPath)
     in
-        absolutePath
-            |> dropOptionalLeftSlash
-            |> String.split "/"
-            |> followPath rootFolder
+    absolutePath
+        |> dropOptionalLeftSlash
+        |> String.split "/"
+        |> followPath rootFolder
 
 
 {-| Updates a specific file if it exists.
@@ -325,11 +330,11 @@ updateFile absolutePath fileUpdater (FileStructure rootFolder metadata) =
                                 )
                                 metadata
     in
-        absolutePath
-            |> dropOptionalLeftSlash
-            |> String.split "/"
-            |> followAndUpdate rootFolder
-            |> ((flip FileStructure) metadata)
+    absolutePath
+        |> dropOptionalLeftSlash
+        |> String.split "/"
+        |> followAndUpdate rootFolder
+        |> flip FileStructure metadata
 
 
 {-| Updates a specific folder if it exists.
@@ -373,24 +378,25 @@ updateFolder absolutePath folderUpdater (FileStructure rootFolder fsMetadata) =
                                 )
                                 metadata
     in
-        if absolutePath == "/" then
-            FileStructure
-                (folderUpdater rootFolder)
-                fsMetadata
-        else
-            absolutePath
-                |> dropOptionalLeftSlash
-                |> dropOptionalRightSlash
-                |> String.split "/"
-                |> followAndUpdate rootFolder
-                |> ((flip FileStructure) fsMetadata)
+    if absolutePath == "/" then
+        FileStructure
+            (folderUpdater rootFolder)
+            fsMetadata
+    else
+        absolutePath
+            |> dropOptionalLeftSlash
+            |> dropOptionalRightSlash
+            |> String.split "/"
+            |> followAndUpdate rootFolder
+            |> flip FileStructure fsMetadata
 
 
 {-| The options for adding a folder.
 
-@param forceCreateDirectories A function for creating blank directories given  a folderName, for force-creating
-                              directories.
+@param forceCreateDirectories A function for creating blank directories given a folderName, for force-creating
+directories.
 @param overwriteExisting Will only overwrite an existing folder if this is set to true.
+
 -}
 type alias AddFolderOptions b c =
     { forceCreateDirectories : Maybe (String -> Folder b c)
@@ -410,7 +416,7 @@ addFolder addFolderOptions absolutePath newFolder (FileStructure rootFolder fsMe
                     folder
 
                 [ folderName ] ->
-                    if (Dict.member folderName folders) && not addFolderOptions.overwriteExisting then
+                    if Dict.member folderName folders && not addFolderOptions.overwriteExisting then
                         folder
                     else
                         Folder
@@ -434,10 +440,10 @@ addFolder addFolderOptions absolutePath newFolder (FileStructure rootFolder fsMe
                                         newForceCreatedFolder =
                                             createFolder (createEmptyFolder folderName) restOfPath
                                     in
-                                        Folder
-                                            files
-                                            (Dict.insert folderName newForceCreatedFolder folders)
-                                            folderMetadata
+                                    Folder
+                                        files
+                                        (Dict.insert folderName newForceCreatedFolder folders)
+                                        folderMetadata
 
                         Just aFolder ->
                             Folder
@@ -449,18 +455,19 @@ addFolder addFolderOptions absolutePath newFolder (FileStructure rootFolder fsMe
                                 )
                                 folderMetadata
     in
-        absolutePath
-            |> dropOptionalLeftSlash
-            |> dropOptionalRightSlash
-            |> String.split "/"
-            |> createFolder rootFolder
-            |> ((flip FileStructure) fsMetadata)
+    absolutePath
+        |> dropOptionalLeftSlash
+        |> dropOptionalRightSlash
+        |> String.split "/"
+        |> createFolder rootFolder
+        |> flip FileStructure fsMetadata
 
 
 {-| The options for adding a file.
 
 @param forceCreateDirectories Will only create directories along the way if they don't already exist if set to true.
 @param overwriteExisting Will only replace existing files if this is set to true.
+
 -}
 type alias AddFileOptions b c =
     { overwriteExisting : Bool
@@ -499,10 +506,10 @@ addFile addFileOptions absolutePath newFile (FileStructure rootFolder fsMetadata
                                         newForceCreatedFolder =
                                             createFile (createEmptyFolder folderName) restOfPath
                                     in
-                                        Folder
-                                            files
-                                            (Dict.insert folderName newForceCreatedFolder folders)
-                                            folderMetadata
+                                    Folder
+                                        files
+                                        (Dict.insert folderName newForceCreatedFolder folders)
+                                        folderMetadata
 
                         Just aFolder ->
                             Folder
@@ -514,11 +521,11 @@ addFile addFileOptions absolutePath newFile (FileStructure rootFolder fsMetadata
                                 )
                                 folderMetadata
     in
-        absolutePath
-            |> dropOptionalLeftSlash
-            |> String.split "/"
-            |> createFile rootFolder
-            |> ((flip FileStructure) fsMetadata)
+    absolutePath
+        |> dropOptionalLeftSlash
+        |> String.split "/"
+        |> createFile rootFolder
+        |> flip FileStructure fsMetadata
 
 
 {-| Returns true if the fs already has that file.
@@ -563,16 +570,17 @@ removeFile absolutePath (FileStructure rootFolder fsMetadata) =
                                 (Dict.insert folderName (removeFile subFolder restOfPath) folders)
                                 folderMetadata
     in
-        absolutePath
-            |> dropOptionalLeftSlash
-            |> String.split "/"
-            |> removeFile rootFolder
-            |> ((flip FileStructure) fsMetadata)
+    absolutePath
+        |> dropOptionalLeftSlash
+        |> String.split "/"
+        |> removeFile rootFolder
+        |> flip FileStructure fsMetadata
 
 
 {-| Removes a folder if it exists, otherwise returns the same FS.
 
 NOTE: You cannot delete the root of the entire tree, calling `removeFolder "/" someFS` will return `someFS`.
+
 -}
 removeFolder : Path -> FileStructure a b c -> FileStructure a b c
 removeFolder absolutePath (FileStructure rootFolder fsMetadata) =
@@ -600,12 +608,12 @@ removeFolder absolutePath (FileStructure rootFolder fsMetadata) =
                                 (Dict.insert folderName (removeFolder subFolder restOfPath) folders)
                                 folderMetadata
     in
-        absolutePath
-            |> dropOptionalLeftSlash
-            |> dropOptionalRightSlash
-            |> String.split "/"
-            |> removeFolder rootFolder
-            |> ((flip FileStructure) fsMetadata)
+    absolutePath
+        |> dropOptionalLeftSlash
+        |> dropOptionalRightSlash
+        |> String.split "/"
+        |> removeFolder rootFolder
+        |> flip FileStructure fsMetadata
 
 
 {-| Updates the fs metadata.
@@ -673,9 +681,9 @@ skeletonView renderConfig (FileStructure rootFolder fsMetadata) =
                     ]
                 ]
     in
-        div
-            [ class renderConfig.fileStructureClass ]
-            [ (renderFolder "" "/" rootFolder) ]
+    div
+        [ class renderConfig.fileStructureClass ]
+        [ renderFolder "" "/" rootFolder ]
 
 
 type alias RenderConfig msg =
@@ -694,7 +702,7 @@ view config fs =
         , subFoldersClass = "fs-sub-folders"
         , subFilesClass = "fs-sub-files"
         , renderFile =
-            (\name absolutePath fileMetadata ->
+            \name absolutePath fileMetadata ->
                 div
                     [ class "fs-file" ]
                     [ i
@@ -718,9 +726,8 @@ view config fs =
                         ]
                         [ text name ]
                     ]
-            )
         , renderFolder =
-            (\name absolutePath folderMetadata ->
+            \name absolutePath folderMetadata ->
                 div
                     [ class "fs-folder"
                     ]
@@ -739,7 +746,6 @@ view config fs =
                         ]
                         [ text <| name ++ "/" ]
                     ]
-            )
         , expandFolderIf = .isExpanded
         }
         fs

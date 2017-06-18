@@ -2,8 +2,8 @@ module Pages.Profile.View exposing (..)
 
 import DefaultServices.Editable exposing (bufferIs)
 import DefaultServices.Util as Util
-import Html exposing (Html, div, button, text, input, i, textarea)
-import Html.Attributes exposing (class, classList, hidden, placeholder, value, disabled)
+import Html exposing (Html, button, div, i, input, text, textarea)
+import Html.Attributes exposing (class, classList, disabled, hidden, placeholder, value)
 import Html.Events exposing (onClick, onInput)
 import Models.RequestTracker as RT
 import Pages.Model exposing (Shared)

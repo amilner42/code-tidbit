@@ -9,7 +9,7 @@ type alias User =
     { id : String
     , name : String
     , email : String
-    , password : Maybe (String)
+    , password : Maybe String
     , bio : String
     }
 
@@ -42,6 +42,7 @@ type alias UserUpdateRecord =
 {-| Gets the theme for a user.
 
 TODO Implement function
+
 -}
 getTheme : Maybe User -> String
 getTheme maybeUser =

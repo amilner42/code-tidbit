@@ -12,6 +12,7 @@ import Maybe
 {-| An alias for `Maybe.map`.
 
 Purposefully a similar ligature to |> as it has the same type but with `Maybe`.
+
 -}
 (||>) : Maybe a -> (a -> b) -> Maybe b
 (||>) maybeA func =
@@ -22,6 +23,7 @@ infixl 0 ||>
 {-| An alias for `Maybe.map`.
 
 Purposefully a similar ligature to <| as it has the same type but with `Maybe`.
+
 -}
 (<||) : (a -> b) -> Maybe a -> Maybe b
 (<||) func maybeA =
@@ -32,6 +34,7 @@ infixr 0 <||
 {-| An alias for `Maybe.andThen`.
 
 Purposefully a similar ligature to |> as it has the same type but with `Maybe`s.
+
 -}
 (|||>) : Maybe a -> (a -> Maybe b) -> Maybe b
 (|||>) maybeA func =
@@ -42,6 +45,7 @@ infixl 0 |||>
 {-| An alias for `Maybe.andThen`.
 
 Purposefully a similar ligature to <| as it has the same type but with `Maybe`s.
+
 -}
 (<|||) : (a -> Maybe b) -> Maybe a -> Maybe b
 (<|||) func maybeA =
@@ -52,6 +56,7 @@ infixr 0 <|||
 {-| An alias for `Maybe.withDefault`.
 
 Purposefully a similar ligature to `|>`, meant to be used in a `|>` chain.
+
 -}
 (?>) : Maybe a -> a -> a
 (?>) maybeA defaultA =
@@ -62,6 +67,7 @@ infixl 0 ?>
 {-| An alias for `Maybe.withDefault`.
 
 Purposefully a similar ligature to `<|`, meant to be used in a `<|` chain.
+
 -}
 (<?) : a -> Maybe a -> a
 (<?) defaultA maybeA =

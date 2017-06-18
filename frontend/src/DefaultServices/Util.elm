@@ -5,9 +5,9 @@ import DefaultServices.InfixFunctions exposing (..)
 import Dict
 import Dom
 import Elements.Simple.Markdown as Markdown
-import Html exposing (Html, Attribute, div, i, text)
-import Html.Attributes exposing (hidden, class)
-import Html.Events exposing (Options, on, onWithOptions, keyCode, defaultOptions, targetValue)
+import Html exposing (Attribute, Html, div, i, text)
+import Html.Attributes exposing (class, hidden)
+import Html.Events exposing (Options, defaultOptions, keyCode, on, onWithOptions, targetValue)
 import Html.Keyed as Keyed
 import Json.Decode as Decode
 import Json.Encode as Encode
@@ -91,10 +91,10 @@ onKeydownWithOptions options keyToMsg =
                 |> keyToMsg
                 |> maybeMapWithDefault Decode.succeed (Decode.fail "")
     in
-        onWithOptions
-            "keydown"
-            options
-            (Decode.andThen decodeMsgFromKeyCode keyCode)
+    onWithOptions
+        "keydown"
+        options
+        (Decode.andThen decodeMsgFromKeyCode keyCode)
 
 
 {-| Default event handler for `keyDown` events.
@@ -107,6 +107,7 @@ onKeydown =
 {-| Event handler for `keyDown` events that also `preventDefault`.
 
 WARNING: It'll only prevent default if your function returns a message not `Nothing`.
+
 -}
 onKeydownPreventDefault : (KK.Key -> Maybe msg) -> Attribute msg
 onKeydownPreventDefault =
@@ -192,9 +193,9 @@ resultToBool result =
 {-| Given a bunch of maybe query params, turns it into a string of the query params that are actually there.
 
 Eg.
-  []  -> ""
-  [("path", Just "asdf"), ("bla", Nothing)] -> "?path=asdf"
-  [("path", Just "asdf"), ("bla", Just "bla")] -> "?path=asdf&bla=bla"
+[] -> ""
+[("path", Just "asdf"), ("bla", Nothing)] -> "?path=asdf"
+[("path", Just "asdf"), ("bla", Just "bla")] -> "?path=asdf&bla=bla"
 
 -}
 queryParamsToString : QueryParams -> String
@@ -243,6 +244,7 @@ isBlankString =
 {-| If the string is blank returns `Nothing`, otherwise `Just` the string.
 
 @refer `isBlankString`
+
 -}
 justNonBlankString : String -> Maybe String
 justNonBlankString string =
@@ -260,16 +262,17 @@ justStringInRange lower upper string =
         stringLength =
             String.length string
     in
-        if (stringLength >= lower) && (stringLength <= upper) then
-            Just string
-        else
-            Nothing
+    if (stringLength >= lower) && (stringLength <= upper) then
+        Just string
+    else
+        Nothing
 
 
 {-| Checks that a string isn't blank and is within a specific range.
 
 @refer `justStringInRange`
 @refer `justNonBlankString`
+
 -}
 justNonblankStringInRange : Int -> Int -> String -> Maybe String
 justNonblankStringInRange lower upper string =
@@ -297,6 +300,7 @@ maybeMapWithDefault func default maybeA =
 {-| Date decoder.
 
 NOTE: Will decode both dates in number-form and dates in ISO-string-form.
+
 -}
 dateDecoder : Decode.Decoder Date.Date
 dateDecoder =
@@ -313,13 +317,14 @@ dateDecoder =
             Decode.float
                 |> Decode.map Date.fromTime
     in
-        Decode.oneOf
-            [ decodeFloatDate, decodeStringDate ]
+    Decode.oneOf
+        [ decodeFloatDate, decodeStringDate ]
 
 
 {-| Encodes a date into number-form.
 
 NOTE: Compatible with `dateDecoder`.
+
 -}
 dateEncoder : Date.Date -> Encode.Value
 dateEncoder =
@@ -364,7 +369,7 @@ indexOfFirstFalse =
                     else
                         go (index + 1) xs
     in
-        go 0
+    go 0
 
 
 {-| When running multiple updates, it can be cleaner aesthetically to have it as one list as opposed to using pipes.
@@ -386,7 +391,8 @@ addUniqueNonEmptyString stringToAdd listOfStrings =
 
 {-| A semi-hack for flex-box justify-center but align-left.
 
-@REFER http://stackoverflow.com/questions/18744164/flex-box-align-last-row-to-grid
+@REFER <http://stackoverflow.com/questions/18744164/flex-box-align-last-row-to-grid>
+
 -}
 emptyFlexBoxesForAlignment : List (Html msg)
 emptyFlexBoxesForAlignment =
@@ -414,10 +420,11 @@ togglePreviewMarkdown record =
 
 xThings "thing" "s" 1 = "1 thing"
 xThings "thing" "s" 3 = "3 things"
+
 -}
 xThings : String -> String -> Int -> String
 xThings baseWord suffix number =
-    (toString number)
+    toString number
         ++ " "
         ++ (if number == 1 then
                 baseWord
@@ -432,7 +439,7 @@ limitCharsText : Int -> String -> Html msg
 limitCharsText limit string =
     div
         [ class "char-count" ]
-        [ text <| (toString <| String.length string) ++ " / " ++ (toString limit) ]
+        [ text <| (toString <| String.length string) ++ " / " ++ toString limit ]
 
 
 {-| Similar to `classList`, but for attributes, and using `Maybe` instead of a tuple.

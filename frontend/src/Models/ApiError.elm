@@ -6,6 +6,7 @@ module Models.ApiError exposing (..)
 {-| An error from the backend converted to a union.
 
 NOTE: This must stay up to date with the backend, refer to types.ts to see backend errors.
+
 -}
 type ApiError
     = UnexpectedPayload

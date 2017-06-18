@@ -6,7 +6,7 @@ import JSON.FileStructure
 import JSON.Language
 import JSON.Range
 import Json.Decode as Decode
-import Json.Decode.Pipeline exposing (decode, required, optional, hardcoded)
+import Json.Decode.Pipeline exposing (decode, hardcoded, optional, required)
 import Json.Encode as Encode
 import Models.Bigbit exposing (..)
 
@@ -23,22 +23,22 @@ encoder bigbit =
                 (\fileMetadata -> Encode.object [ ( "language", JSON.Language.encoder fileMetadata.language ) ])
                 fs
     in
-        Encode.object
-            [ ( "name", Encode.string bigbit.name )
-            , ( "description", Encode.string bigbit.description )
-            , ( "tags", Encode.list <| List.map Encode.string bigbit.tags )
-            , ( "introduction", Encode.string bigbit.introduction )
-            , ( "conclusion", Encode.string bigbit.conclusion )
-            , ( "fs", fsEncoder bigbit.fs )
-            , ( "highlightedComments", Encode.array <| Array.map highlightedCommentEncoder bigbit.highlightedComments )
-            , ( "author", Encode.string bigbit.author )
-            , ( "authorEmail", Encode.string bigbit.authorEmail )
-            , ( "id", Encode.string bigbit.id )
-            , ( "createdAt", Util.dateEncoder bigbit.createdAt )
-            , ( "lastModified", Util.dateEncoder bigbit.lastModified )
-            , ( "languages", Encode.list <| List.map JSON.Language.encoder bigbit.languages )
-            , ( "likes", Encode.int bigbit.likes )
-            ]
+    Encode.object
+        [ ( "name", Encode.string bigbit.name )
+        , ( "description", Encode.string bigbit.description )
+        , ( "tags", Encode.list <| List.map Encode.string bigbit.tags )
+        , ( "introduction", Encode.string bigbit.introduction )
+        , ( "conclusion", Encode.string bigbit.conclusion )
+        , ( "fs", fsEncoder bigbit.fs )
+        , ( "highlightedComments", Encode.array <| Array.map highlightedCommentEncoder bigbit.highlightedComments )
+        , ( "author", Encode.string bigbit.author )
+        , ( "authorEmail", Encode.string bigbit.authorEmail )
+        , ( "id", Encode.string bigbit.id )
+        , ( "createdAt", Util.dateEncoder bigbit.createdAt )
+        , ( "lastModified", Util.dateEncoder bigbit.lastModified )
+        , ( "languages", Encode.list <| List.map JSON.Language.encoder bigbit.languages )
+        , ( "likes", Encode.int bigbit.likes )
+        ]
 
 
 {-| `Bigbit` decoder.
@@ -58,22 +58,22 @@ decoder =
                     |> required "language" JSON.Language.decoder
                 )
     in
-        decode Bigbit
-            |> required "name" Decode.string
-            |> required "description" Decode.string
-            |> required "tags" (Decode.list Decode.string)
-            |> required "introduction" Decode.string
-            |> required "conclusion" Decode.string
-            |> required "fs" fsDecoder
-            |> required "highlightedComments" (Decode.array highlightedCommentDecoder)
-            |> required "author" Decode.string
-            |> required "authorEmail" Decode.string
-            |> required "id" Decode.string
-            |> required "createdAt" Util.dateDecoder
-            |> required "lastModified" Util.dateDecoder
-            |> required "languages" (Decode.list JSON.Language.decoder)
-            -- Optional for backwards compatibility.
-            |> optional "likes" Decode.int 0
+    decode Bigbit
+        |> required "name" Decode.string
+        |> required "description" Decode.string
+        |> required "tags" (Decode.list Decode.string)
+        |> required "introduction" Decode.string
+        |> required "conclusion" Decode.string
+        |> required "fs" fsDecoder
+        |> required "highlightedComments" (Decode.array highlightedCommentDecoder)
+        |> required "author" Decode.string
+        |> required "authorEmail" Decode.string
+        |> required "id" Decode.string
+        |> required "createdAt" Util.dateDecoder
+        |> required "lastModified" Util.dateDecoder
+        |> required "languages" (Decode.list JSON.Language.decoder)
+        -- Optional for backwards compatibility.
+        |> optional "likes" Decode.int 0
 
 
 {-| `HighlightedComment` encoder.

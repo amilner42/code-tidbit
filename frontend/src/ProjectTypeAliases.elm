@@ -72,6 +72,7 @@ type alias QueryParams =
 {-| For when you have a string where the value is irrelevant (currently helpful for query parameter).
 
 NOTE: Only use this type if the value of the string should never be checked and does not matter.
+
 -}
 type alias MeaninglessString =
     String

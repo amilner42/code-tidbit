@@ -8,8 +8,8 @@ import Dict
 import Elements.Simple.Editor as Editor
 import Elements.Simple.FileStructure as FS
 import Elements.Simple.Tags as Tags
-import Html exposing (Html, div, text, textarea, button, input, h1, h3, img, hr, i)
-import Html.Attributes exposing (class, classList, disabled, placeholder, value, hidden, id, src, style)
+import Html exposing (Html, button, div, h1, h3, hr, i, img, input, text, textarea)
+import Html.Attributes exposing (class, classList, disabled, hidden, id, placeholder, src, style, value)
 import Html.Events exposing (onClick, onInput)
 import Keyboard.Extra as KK
 import Models.Bigbit as Bigbit
@@ -345,18 +345,18 @@ view model shared =
                                                     else
                                                         Util.hiddenDiv
                                             in
-                                                case actionState of
-                                                    AddingFile ->
-                                                        showSubmitIconIf validFileInput True
+                                            case actionState of
+                                                AddingFile ->
+                                                    showSubmitIconIf validFileInput True
 
-                                                    AddingFolder ->
-                                                        showSubmitIconIf validFolderInput True
+                                                AddingFolder ->
+                                                    showSubmitIconIf validFolderInput True
 
-                                                    RemovingFile ->
-                                                        showSubmitIconIf validRemoveFileInput False
+                                                RemovingFile ->
+                                                    showSubmitIconIf validRemoveFileInput False
 
-                                                    RemovingFolder ->
-                                                        showSubmitIconIf validRemoveFolderInput False
+                                                RemovingFolder ->
+                                                    showSubmitIconIf validRemoveFolderInput False
                                     ]
                                 , button
                                     [ classList
@@ -400,18 +400,18 @@ view model shared =
                                     [ text "Remove Folder" ]
                                 ]
                     in
-                        div
-                            [ class "bigbit-fs" ]
-                            [ div [ hidden <| not fsOpen ] [ fs ]
-                            , i
-                                [ classList
-                                    [ ( "close-fs material-icons", True )
-                                    , ( "hidden", not fsOpen )
-                                    ]
-                                , onClick ToggleFS
+                    div
+                        [ class "bigbit-fs" ]
+                        [ div [ hidden <| not fsOpen ] [ fs ]
+                        , i
+                            [ classList
+                                [ ( "close-fs material-icons", True )
+                                , ( "hidden", not fsOpen )
                                 ]
-                                [ text "close" ]
+                            , onClick ToggleFS
                             ]
+                            [ text "close" ]
+                        ]
 
                 bigbitEditor =
                     div
@@ -464,21 +464,21 @@ view model shared =
                                                             newKeysDown =
                                                                 kkUpdateWrapper (KK.Down <| KK.toCode key) shared.keysDown
                                                         in
-                                                            if key == KK.Tab then
-                                                                if newKeysDown == shared.keysDown then
-                                                                    Just NoOp
-                                                                else if KK.isOneKeyPressed KK.Tab newKeysDown then
-                                                                    Just <|
-                                                                        GoTo <|
-                                                                            Route.CreateBigbitCodeFramePage
-                                                                                1
-                                                                                (getActiveFileForFrame 1 model)
-                                                                else if KK.isTwoKeysPressed KK.Tab KK.Shift newKeysDown then
-                                                                    Just <| GoTo <| Route.CreateBigbitTagsPage
-                                                                else
-                                                                    Nothing
+                                                        if key == KK.Tab then
+                                                            if newKeysDown == shared.keysDown then
+                                                                Just NoOp
+                                                            else if KK.isOneKeyPressed KK.Tab newKeysDown then
+                                                                Just <|
+                                                                    GoTo <|
+                                                                        Route.CreateBigbitCodeFramePage
+                                                                            1
+                                                                            (getActiveFileForFrame 1 model)
+                                                            else if KK.isTwoKeysPressed KK.Tab KK.Shift newKeysDown then
+                                                                Just <| GoTo <| Route.CreateBigbitTagsPage
                                                             else
                                                                 Nothing
+                                                        else
+                                                            Nothing
                                                     )
                                                 ]
                                                 []
@@ -487,60 +487,59 @@ view model shared =
                                     Route.CreateBigbitCodeFramePage frameNumber _ ->
                                         let
                                             frameText =
-                                                (Array.get
+                                                Array.get
                                                     (frameNumber - 1)
                                                     model.highlightedComments
-                                                )
                                                     |> Maybe.map .comment
                                                     |> Maybe.withDefault ""
                                         in
-                                            Util.markdownOr
-                                                markdownOpen
-                                                frameText
-                                                (textarea
-                                                    [ placeholder <|
-                                                        "Frame "
-                                                            ++ (toString frameNumber)
-                                                            ++ "\n\n"
-                                                            ++ "Highlight a chunk of code and explain it..."
-                                                    , id "frame-input"
-                                                    , onInput <| OnUpdateFrameComment frameNumber
-                                                    , value frameText
-                                                    , Util.onKeydownPreventDefault
-                                                        (\key ->
-                                                            let
-                                                                newKeysDown =
-                                                                    kkUpdateWrapper (KK.Down <| KK.toCode key) shared.keysDown
-                                                            in
-                                                                if key == KK.Tab then
-                                                                    if newKeysDown == shared.keysDown then
-                                                                        Just NoOp
-                                                                    else if KK.isOneKeyPressed KK.Tab newKeysDown then
-                                                                        Just <|
-                                                                            GoTo <|
-                                                                                Route.CreateBigbitCodeFramePage
-                                                                                    (frameNumber + 1)
-                                                                                    (getActiveFileForFrame
-                                                                                        (frameNumber + 1)
-                                                                                        model
-                                                                                    )
-                                                                    else if KK.isTwoKeysPressed KK.Tab KK.Shift newKeysDown then
-                                                                        Just <|
-                                                                            GoTo <|
-                                                                                Route.CreateBigbitCodeFramePage
-                                                                                    (frameNumber - 1)
-                                                                                    (getActiveFileForFrame
-                                                                                        (frameNumber - 1)
-                                                                                        model
-                                                                                    )
-                                                                    else
-                                                                        Nothing
-                                                                else
-                                                                    Nothing
-                                                        )
-                                                    ]
-                                                    []
-                                                )
+                                        Util.markdownOr
+                                            markdownOpen
+                                            frameText
+                                            (textarea
+                                                [ placeholder <|
+                                                    "Frame "
+                                                        ++ toString frameNumber
+                                                        ++ "\n\n"
+                                                        ++ "Highlight a chunk of code and explain it..."
+                                                , id "frame-input"
+                                                , onInput <| OnUpdateFrameComment frameNumber
+                                                , value frameText
+                                                , Util.onKeydownPreventDefault
+                                                    (\key ->
+                                                        let
+                                                            newKeysDown =
+                                                                kkUpdateWrapper (KK.Down <| KK.toCode key) shared.keysDown
+                                                        in
+                                                        if key == KK.Tab then
+                                                            if newKeysDown == shared.keysDown then
+                                                                Just NoOp
+                                                            else if KK.isOneKeyPressed KK.Tab newKeysDown then
+                                                                Just <|
+                                                                    GoTo <|
+                                                                        Route.CreateBigbitCodeFramePage
+                                                                            (frameNumber + 1)
+                                                                            (getActiveFileForFrame
+                                                                                (frameNumber + 1)
+                                                                                model
+                                                                            )
+                                                            else if KK.isTwoKeysPressed KK.Tab KK.Shift newKeysDown then
+                                                                Just <|
+                                                                    GoTo <|
+                                                                        Route.CreateBigbitCodeFramePage
+                                                                            (frameNumber - 1)
+                                                                            (getActiveFileForFrame
+                                                                                (frameNumber - 1)
+                                                                                model
+                                                                            )
+                                                            else
+                                                                Nothing
+                                                        else
+                                                            Nothing
+                                                    )
+                                                ]
+                                                []
+                                            )
 
                                     Route.CreateBigbitCodeConclusionPage _ ->
                                         Util.markdownOr
@@ -557,24 +556,24 @@ view model shared =
                                                             newKeysDown =
                                                                 kkUpdateWrapper (KK.Down <| KK.toCode key) shared.keysDown
                                                         in
-                                                            if key == KK.Tab then
-                                                                if newKeysDown == shared.keysDown then
-                                                                    Just NoOp
-                                                                else if KK.isOneKeyPressed KK.Tab newKeysDown then
-                                                                    Just <| NoOp
-                                                                else if KK.isTwoKeysPressed KK.Tab KK.Shift newKeysDown then
-                                                                    Just <|
-                                                                        GoTo <|
-                                                                            Route.CreateBigbitCodeFramePage
+                                                        if key == KK.Tab then
+                                                            if newKeysDown == shared.keysDown then
+                                                                Just NoOp
+                                                            else if KK.isOneKeyPressed KK.Tab newKeysDown then
+                                                                Just <| NoOp
+                                                            else if KK.isTwoKeysPressed KK.Tab KK.Shift newKeysDown then
+                                                                Just <|
+                                                                    GoTo <|
+                                                                        Route.CreateBigbitCodeFramePage
+                                                                            (Array.length model.highlightedComments)
+                                                                            (getActiveFileForFrame
                                                                                 (Array.length model.highlightedComments)
-                                                                                (getActiveFileForFrame
-                                                                                    (Array.length model.highlightedComments)
-                                                                                    model
-                                                                                )
-                                                                else
-                                                                    Nothing
+                                                                                model
+                                                                            )
                                                             else
                                                                 Nothing
+                                                        else
+                                                            Nothing
                                                     )
                                                 ]
                                                 []
@@ -590,7 +589,7 @@ view model shared =
                                 dynamicFrameButtons =
                                     div
                                         [ class "frame-buttons-box" ]
-                                        ((Array.indexedMap
+                                        (Array.indexedMap
                                             (\index highlightedComment ->
                                                 button
                                                     [ classList [ ( "selected-frame", (Just <| index + 1) == frameTab ) ]
@@ -606,179 +605,178 @@ view model shared =
                                                     [ text <| toString <| index + 1 ]
                                             )
                                             model.highlightedComments
-                                         )
                                             |> Array.toList
                                         )
                             in
-                                div
-                                    [ class "comment-body-bottom-buttons"
-                                    , hidden markdownOpen
-                                    ]
-                                    [ button
-                                        [ onClick <| GoTo <| Route.CreateBigbitCodeIntroductionPage Nothing
-                                        , classList
-                                            [ ( "introduction-button", True )
-                                            , ( "selected-frame", introTab )
-                                            ]
-                                        ]
-                                        [ text "Introduction" ]
-                                    , button
-                                        [ onClick <| GoTo <| Route.CreateBigbitCodeConclusionPage Nothing
-                                        , classList
-                                            [ ( "conclusion-button", True )
-                                            , ( "selected-frame", conclusionTab )
-                                            ]
-                                        ]
-                                        [ text "Conclusion" ]
-                                    , button
-                                        [ class "add-or-remove-frame-button"
-                                        , onClick <| AddFrame
-                                        ]
-                                        [ text "+" ]
-                                    , button
-                                        [ class "add-or-remove-frame-button"
-                                        , onClick <| RemoveFrame
-                                        , disabled <|
-                                            Array.length model.highlightedComments
-                                                <= 1
-                                        ]
-                                        [ text "-" ]
-                                    , hr [] []
-                                    , dynamicFrameButtons
-                                    ]
-                    in
-                        div
-                            []
-                            [ div
-                                [ class "comment-creator" ]
-                                [ body
-                                , tabBar
+                            div
+                                [ class "comment-body-bottom-buttons"
+                                , hidden markdownOpen
                                 ]
+                                [ button
+                                    [ onClick <| GoTo <| Route.CreateBigbitCodeIntroductionPage Nothing
+                                    , classList
+                                        [ ( "introduction-button", True )
+                                        , ( "selected-frame", introTab )
+                                        ]
+                                    ]
+                                    [ text "Introduction" ]
+                                , button
+                                    [ onClick <| GoTo <| Route.CreateBigbitCodeConclusionPage Nothing
+                                    , classList
+                                        [ ( "conclusion-button", True )
+                                        , ( "selected-frame", conclusionTab )
+                                        ]
+                                    ]
+                                    [ text "Conclusion" ]
+                                , button
+                                    [ class "add-or-remove-frame-button"
+                                    , onClick <| AddFrame
+                                    ]
+                                    [ text "+" ]
+                                , button
+                                    [ class "add-or-remove-frame-button"
+                                    , onClick <| RemoveFrame
+                                    , disabled <|
+                                        Array.length model.highlightedComments
+                                            <= 1
+                                    ]
+                                    [ text "-" ]
+                                , hr [] []
+                                , dynamicFrameButtons
+                                ]
+                    in
+                    div
+                        []
+                        [ div
+                            [ class "comment-creator" ]
+                            [ body
+                            , tabBar
                             ]
+                        ]
             in
-                div
-                    [ class "create-bigbit-code" ]
-                    [ div
-                        [ class "bigbit-extended-view" ]
-                        [ bigbitFS
-                        , bigbitEditor
-                        , bigbitCommentBox
-                        ]
+            div
+                [ class "create-bigbit-code" ]
+                [ div
+                    [ class "bigbit-extended-view" ]
+                    [ bigbitFS
+                    , bigbitEditor
+                    , bigbitCommentBox
                     ]
+                ]
     in
-        div
-            [ classList
-                [ ( "create-bigbit", True )
-                , ( "fs-closed", not fsOpen )
-                , ( "viewing-fs-open"
-                  , case shared.route of
-                        Route.CreateBigbitCodeIntroductionPage _ ->
-                            fsOpen
+    div
+        [ classList
+            [ ( "create-bigbit", True )
+            , ( "fs-closed", not fsOpen )
+            , ( "viewing-fs-open"
+              , case shared.route of
+                    Route.CreateBigbitCodeIntroductionPage _ ->
+                        fsOpen
 
-                        Route.CreateBigbitCodeFramePage _ _ ->
-                            fsOpen
+                    Route.CreateBigbitCodeFramePage _ _ ->
+                        fsOpen
 
-                        Route.CreateBigbitCodeConclusionPage _ ->
-                            fsOpen
+                    Route.CreateBigbitCodeConclusionPage _ ->
+                        fsOpen
 
-                        _ ->
-                            False
-                  )
-                ]
+                    _ ->
+                        False
+              )
             ]
-            [ div
-                [ class "sub-bar" ]
-                [ button
-                    [ class "sub-bar-button"
-                    , onClick <| Reset
-                    ]
-                    [ text "Reset" ]
-                , case previousFrameRange model shared.route of
-                    Nothing ->
-                        Util.hiddenDiv
-
-                    Just ( filePath, _ ) ->
-                        button
-                            [ class "sub-bar-button previous-frame-location"
-                            , onClick <| JumpToLineFromPreviousFrame filePath
-                            ]
-                            [ text "Previous Frame Location" ]
-                , publishButton
+        ]
+        [ div
+            [ class "sub-bar" ]
+            [ button
+                [ class "sub-bar-button"
+                , onClick <| Reset
                 ]
-            , createBigbitNavbar
-            , case shared.route of
-                Route.CreateBigbitNamePage ->
-                    div
-                        [ class "create-bigbit-name" ]
-                        [ input
-                            [ placeholder "Name"
-                            , id "name-input"
-                            , onInput OnUpdateName
-                            , value model.name
-                            , Util.onKeydownPreventDefault
-                                (\key ->
-                                    if key == KK.Tab then
-                                        Just NoOp
-                                    else
-                                        Nothing
-                                )
-                            ]
-                            []
-                        , Util.limitCharsText 50 model.name
-                        ]
-
-                Route.CreateBigbitDescriptionPage ->
-                    div
-                        [ class "create-bigbit-description" ]
-                        [ textarea
-                            [ placeholder "Description"
-                            , id "description-input"
-                            , onInput OnUpdateDescription
-                            , value model.description
-                            , Util.onKeydownPreventDefault
-                                (\key ->
-                                    if key == KK.Tab then
-                                        Just NoOp
-                                    else
-                                        Nothing
-                                )
-                            ]
-                            []
-                        , Util.limitCharsText 300 model.description
-                        ]
-
-                Route.CreateBigbitTagsPage ->
-                    div
-                        [ class "create-tidbit-tags" ]
-                        [ input
-                            [ placeholder "Tags"
-                            , id "tags-input"
-                            , onInput OnUpdateTagInput
-                            , value model.tagInput
-                            , Util.onKeydownPreventDefault
-                                (\key ->
-                                    if key == KK.Enter then
-                                        Just <| AddTag model.tagInput
-                                    else if key == KK.Tab then
-                                        Just <| NoOp
-                                    else
-                                        Nothing
-                                )
-                            ]
-                            []
-                        , Tags.view RemoveTag model.tags
-                        ]
-
-                Route.CreateBigbitCodeIntroductionPage _ ->
-                    bigbitCodeTab
-
-                Route.CreateBigbitCodeFramePage frameNumber _ ->
-                    bigbitCodeTab
-
-                Route.CreateBigbitCodeConclusionPage _ ->
-                    bigbitCodeTab
-
-                -- Should never happen
-                _ ->
+                [ text "Reset" ]
+            , case previousFrameRange model shared.route of
+                Nothing ->
                     Util.hiddenDiv
+
+                Just ( filePath, _ ) ->
+                    button
+                        [ class "sub-bar-button previous-frame-location"
+                        , onClick <| JumpToLineFromPreviousFrame filePath
+                        ]
+                        [ text "Previous Frame Location" ]
+            , publishButton
             ]
+        , createBigbitNavbar
+        , case shared.route of
+            Route.CreateBigbitNamePage ->
+                div
+                    [ class "create-bigbit-name" ]
+                    [ input
+                        [ placeholder "Name"
+                        , id "name-input"
+                        , onInput OnUpdateName
+                        , value model.name
+                        , Util.onKeydownPreventDefault
+                            (\key ->
+                                if key == KK.Tab then
+                                    Just NoOp
+                                else
+                                    Nothing
+                            )
+                        ]
+                        []
+                    , Util.limitCharsText 50 model.name
+                    ]
+
+            Route.CreateBigbitDescriptionPage ->
+                div
+                    [ class "create-bigbit-description" ]
+                    [ textarea
+                        [ placeholder "Description"
+                        , id "description-input"
+                        , onInput OnUpdateDescription
+                        , value model.description
+                        , Util.onKeydownPreventDefault
+                            (\key ->
+                                if key == KK.Tab then
+                                    Just NoOp
+                                else
+                                    Nothing
+                            )
+                        ]
+                        []
+                    , Util.limitCharsText 300 model.description
+                    ]
+
+            Route.CreateBigbitTagsPage ->
+                div
+                    [ class "create-tidbit-tags" ]
+                    [ input
+                        [ placeholder "Tags"
+                        , id "tags-input"
+                        , onInput OnUpdateTagInput
+                        , value model.tagInput
+                        , Util.onKeydownPreventDefault
+                            (\key ->
+                                if key == KK.Enter then
+                                    Just <| AddTag model.tagInput
+                                else if key == KK.Tab then
+                                    Just <| NoOp
+                                else
+                                    Nothing
+                            )
+                        ]
+                        []
+                    , Tags.view RemoveTag model.tags
+                    ]
+
+            Route.CreateBigbitCodeIntroductionPage _ ->
+                bigbitCodeTab
+
+            Route.CreateBigbitCodeFramePage frameNumber _ ->
+                bigbitCodeTab
+
+            Route.CreateBigbitCodeConclusionPage _ ->
+                bigbitCodeTab
+
+            -- Should never happen
+            _ ->
+                Util.hiddenDiv
+        ]

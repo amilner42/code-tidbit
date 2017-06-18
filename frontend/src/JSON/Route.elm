@@ -1,7 +1,7 @@
 module JSON.Route exposing (..)
 
 import Json.Decode as Decode
-import Json.Decode.Pipeline exposing (decode, required, optional, hardcoded)
+import Json.Decode.Pipeline exposing (decode, hardcoded, optional, required)
 import Json.Encode as Encode
 import Models.Route exposing (..)
 
@@ -40,12 +40,12 @@ decoder =
                 maybeRoute =
                     parseLocation <| fakeLocation encodedHash
             in
-                case maybeRoute of
-                    Nothing ->
-                        Decode.fail <| encodedHash ++ " is not a valid encoded hash!"
+            case maybeRoute of
+                Nothing ->
+                    Decode.fail <| encodedHash ++ " is not a valid encoded hash!"
 
-                    Just aRoute ->
-                        Decode.succeed aRoute
+                Just aRoute ->
+                    Decode.succeed aRoute
     in
-        Decode.string
-            |> Decode.andThen fromStringDecoder
+    Decode.string
+        |> Decode.andThen fromStringDecoder

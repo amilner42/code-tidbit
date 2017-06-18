@@ -1,6 +1,6 @@
 module Elements.Simple.Tags exposing (..)
 
-import Html exposing (Html, div, button, text)
+import Html exposing (Html, button, div, text)
 import Html.Attributes exposing (class)
 import Html.Events exposing (onClick)
 

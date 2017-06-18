@@ -1,7 +1,7 @@
 module Models.Story exposing (..)
 
 import Date
-import DefaultServices.Util exposing (maybeMapWithDefault, getAt)
+import DefaultServices.Util exposing (getAt, maybeMapWithDefault)
 import Elements.Simple.Editor exposing (Language)
 import Models.Route as Route
 import Models.Tidbit as Tidbit
@@ -47,6 +47,7 @@ type alias ExpandedStory =
 {-| A new story being created, does not yet contain any db-added fields.
 
 This data structure can also represent the information for editing a story.
+
 -}
 type alias NewStory =
     { name : String
@@ -68,6 +69,7 @@ defaultNewStory =
 {-| A completely blank story.
 
 Meaningless stub-dates are used for the dates.
+
 -}
 blankStory : Story
 blankStory =

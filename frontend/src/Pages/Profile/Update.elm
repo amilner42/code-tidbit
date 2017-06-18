@@ -40,12 +40,12 @@ update (Common common) msg model shared =
                             OnSaveEditedNameFailure
                             OnSaveEditedNameSuccess
             in
-                case maybeValidNewName of
-                    Nothing ->
-                        common.doNothing
+            case maybeValidNewName of
+                Nothing ->
+                    common.doNothing
 
-                    Just validNewName ->
-                        common.makeSingletonRequest RT.UpdateName <| updateNameAction validNewName
+                Just validNewName ->
+                    common.makeSingletonRequest RT.UpdateName <| updateNameAction validNewName
 
         OnSaveEditedNameSuccess updatedUser ->
             ( setAccountNameToNothing model
@@ -81,12 +81,12 @@ update (Common common) msg model shared =
                             OnSaveBioEditedFailure
                             OnSaveEditedBioSuccess
             in
-                case maybeValidNewBio of
-                    Nothing ->
-                        common.doNothing
+            case maybeValidNewBio of
+                Nothing ->
+                    common.doNothing
 
-                    Just validNewBio ->
-                        common.makeSingletonRequest RT.UpdateBio <| updateBioAction validNewBio
+                Just validNewBio ->
+                    common.makeSingletonRequest RT.UpdateBio <| updateBioAction validNewBio
 
         OnSaveEditedBioSuccess updatedUser ->
             ( setAccountBioToNothing model
@@ -104,7 +104,7 @@ update (Common common) msg model shared =
                 logoutAction =
                     common.justProduceCmd <| common.api.get.logOut OnLogOutFailure OnLogOutSuccess
             in
-                common.makeSingletonRequest RT.Logout logoutAction
+            common.makeSingletonRequest RT.Logout logoutAction
 
         OnLogOutSuccess basicResponse ->
             -- WARNING (unusual behaviour): The base update will check for this message and reset the entire model.

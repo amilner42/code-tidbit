@@ -4,7 +4,7 @@ import JSON.Bigbit
 import JSON.Snipbit
 import JSON.Story
 import Json.Decode as Decode
-import Json.Decode.Pipeline exposing (decode, required, optional, hardcoded)
+import Json.Decode.Pipeline exposing (decode, hardcoded, optional, required)
 import Json.Encode as Encode
 import Models.Content exposing (..)
 
@@ -26,4 +26,4 @@ decoder =
         decodeStory =
             Decode.map Story JSON.Story.decoder
     in
-        Decode.oneOf [ decodeSnipbit, decodeBigbit, decodeStory ]
+    Decode.oneOf [ decodeSnipbit, decodeBigbit, decodeStory ]

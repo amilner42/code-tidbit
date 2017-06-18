@@ -1,11 +1,11 @@
 module JSON.Opinion exposing (..)
 
 import DefaultServices.Util as Util
-import Json.Decode as Decode
-import Json.Decode.Pipeline exposing (decode, required, optional, hardcoded)
-import Json.Encode as Encode
 import JSON.ContentPointer
 import JSON.Rating
+import Json.Decode as Decode
+import Json.Decode.Pipeline exposing (decode, hardcoded, optional, required)
+import Json.Encode as Encode
 import Models.Opinion exposing (..)
 
 

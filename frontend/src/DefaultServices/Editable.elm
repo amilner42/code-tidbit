@@ -3,7 +3,7 @@ module DefaultServices.Editable exposing (..)
 -- Inspired by Corey: https://gist.github.com/coreyhaines/cf40b7dca8916b77878c97fdb5c8184e
 
 import Json.Decode as Decode
-import Json.Decode.Pipeline exposing (decode, required, optional, hardcoded)
+import Json.Decode.Pipeline exposing (decode, hardcoded, optional, required)
 import Json.Encode as Encode
 
 
@@ -179,7 +179,7 @@ decoder decodeOfType =
                 |> required "value" decodeOfType
                 |> Decode.map NotEditing
     in
-        Decode.oneOf [ decodeEditing, decodeNotEditing ]
+    Decode.oneOf [ decodeEditing, decodeNotEditing ]
 
 
 {-| Returns true if the editable is in editing mode and the buffer satisfies the predicate.

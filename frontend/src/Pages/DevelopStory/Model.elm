@@ -43,4 +43,4 @@ removeTidbit tidbit storyData =
 -}
 remainingTidbits : List Tidbit.Tidbit -> List Tidbit.Tidbit -> List Tidbit.Tidbit
 remainingTidbits currentStories =
-    List.filter (not << (flip List.member) currentStories)
+    List.filter (not << flip List.member currentStories)

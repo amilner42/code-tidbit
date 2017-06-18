@@ -47,18 +47,18 @@ update (Common common) msg model shared =
                                     ]
                                 )
             in
-                case route of
-                    Route.CreateStoryNamePage qpEditingStory ->
-                        getEditingStoryAndFocusOn "name-input" qpEditingStory
+            case route of
+                Route.CreateStoryNamePage qpEditingStory ->
+                    getEditingStoryAndFocusOn "name-input" qpEditingStory
 
-                    Route.CreateStoryDescriptionPage qpEditingStory ->
-                        getEditingStoryAndFocusOn "description-input" qpEditingStory
+                Route.CreateStoryDescriptionPage qpEditingStory ->
+                    getEditingStoryAndFocusOn "description-input" qpEditingStory
 
-                    Route.CreateStoryTagsPage qpEditingStory ->
-                        getEditingStoryAndFocusOn "tags-input" qpEditingStory
+                Route.CreateStoryTagsPage qpEditingStory ->
+                    getEditingStoryAndFocusOn "tags-input" qpEditingStory
 
-                    _ ->
-                        common.doNothing
+                _ ->
+                    common.doNothing
 
         OnGetEditingStorySuccess story ->
             case shared.user of
@@ -128,10 +128,10 @@ update (Common common) msg model shared =
                             OnPublishFailure
                             OnPublishSuccess
             in
-                if newStoryDataReadyForPublication model then
-                    common.makeSingletonRequest RT.PublishNewStory publishAction
-                else
-                    common.doNothing
+            if newStoryDataReadyForPublication model then
+                common.makeSingletonRequest RT.PublishNewStory publishAction
+            else
+                common.doNothing
 
         OnPublishSuccess { targetID } ->
             ( init
@@ -169,10 +169,10 @@ update (Common common) msg model shared =
                             OnSaveEditsFailure
                             OnSaveEditsSuccess
             in
-                if editingStoryDataReadyForSave model then
-                    common.makeSingletonRequest RT.UpdateStoryInfo saveEditsAction
-                else
-                    common.doNothing
+            if editingStoryDataReadyForSave model then
+                common.makeSingletonRequest RT.UpdateStoryInfo saveEditsAction
+            else
+                common.doNothing
 
         OnSaveEditsSuccess { targetID } ->
             ( model

@@ -12,6 +12,7 @@ type alias Comparator t =
 {-| When you only need to sort by a single comparator.
 
 Wrapper around `List.sortWith` so all sorting can be performed with this module.
+
 -}
 sortBy : Comparator t -> List t -> List t
 sortBy comparator =
@@ -41,7 +42,7 @@ sortByAll comparators =
                                 Basics.EQ ->
                                     go restOfComparators
             in
-                go comparators
+            go comparators
         )
 
 

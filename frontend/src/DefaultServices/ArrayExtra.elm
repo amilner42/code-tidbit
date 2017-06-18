@@ -16,7 +16,7 @@ update index updater array =
                 newItemAtIndex =
                     updater itemAtIndex
             in
-                Array.set
-                    index
-                    newItemAtIndex
-                    array
+            Array.set
+                index
+                newItemAtIndex
+                array

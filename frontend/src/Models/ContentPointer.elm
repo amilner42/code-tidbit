@@ -1,9 +1,12 @@
 module Models.ContentPointer exposing (..)
 
+{-| -}
+
 
 {-| A way of pointing to specific content.
 
 Parallels to a `ContentPointer` from the backend.
+
 -}
 type alias ContentPointer =
     { contentType : ContentType
@@ -14,6 +17,7 @@ type alias ContentPointer =
 {-| The different `ContentType`s
 
 Parallels directly to `ContentType` enum on the backend.
+
 -}
 type ContentType
     = Snipbit

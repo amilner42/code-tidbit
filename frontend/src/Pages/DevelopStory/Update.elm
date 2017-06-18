@@ -36,7 +36,7 @@ update (Common common) msg model shared =
                     ( { model
                         | story = Nothing
                         , tidbitsToAdd =
-                            if maybeMapWithDefault (.id >> ((==) storyID)) False model.story then
+                            if maybeMapWithDefault (.id >> (==) storyID) False model.story then
                                 model.tidbitsToAdd
                             else
                                 []
@@ -99,11 +99,11 @@ update (Common common) msg model shared =
                             OnPublishAddedTidbitsFailure
                             OnPublishAddedTidbitsSuccess
             in
-                if List.length tidbits > 0 then
-                    common.makeSingletonRequest RT.PublishNewTidbitsToStory publishAction
-                else
-                    -- Should never happen.
-                    common.doNothing
+            if List.length tidbits > 0 then
+                common.makeSingletonRequest RT.PublishNewTidbitsToStory publishAction
+            else
+                -- Should never happen.
+                common.doNothing
 
         OnPublishAddedTidbitsSuccess expandedStory ->
             ( { model

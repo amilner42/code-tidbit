@@ -6,9 +6,9 @@ import DefaultServices.Editable as Editable
 import DefaultServices.InfixFunctions exposing (..)
 import DefaultServices.Util as Util
 import Dict
-import Html exposing (Html, div, span, i, text, textarea)
-import Html.Attributes exposing (class, classList, placeholder, value, disabled)
-import Html.Events exposing (onInput, onClick)
+import Html exposing (Html, div, i, span, text, textarea)
+import Html.Attributes exposing (class, classList, disabled, placeholder, value)
+import Html.Events exposing (onClick, onInput)
 import Models.QA exposing (..)
 import ProjectTypeAliases exposing (..)
 import Set
@@ -56,57 +56,57 @@ view config model =
         isReadyComment =
             Util.isNotNothing justReadyComment
     in
-        div
-            [ class "comment-list" ]
-            [ div
-                [ classList [ ( "comments-wrapper", True ), ( "small", config.isSmall ) ] ]
-                [ Util.keyedDiv
-                    [ class "comments" ]
-                    (if List.isEmpty config.comments then
-                        [ ( "no-comments-text"
-                          , span [ class "no-comments-text" ] [ text "No Comments" ]
-                          )
-                        ]
-                     else
-                        List.map
-                            (\comment -> ( comment.id, commentBoxView config model comment ))
-                            config.comments
-                    )
-                ]
-            , textarea
-                [ classList
-                    [ ( "new-comment-textarea", True )
-                    , ( "cursor-progress", config.submitCommentRequestInProgress )
+    div
+        [ class "comment-list" ]
+        [ div
+            [ classList [ ( "comments-wrapper", True ), ( "small", config.isSmall ) ] ]
+            [ Util.keyedDiv
+                [ class "comments" ]
+                (if List.isEmpty config.comments then
+                    [ ( "no-comments-text"
+                      , span [ class "no-comments-text" ] [ text "No Comments" ]
+                      )
                     ]
-                , onInput <| config.msgTagger << OnNewCommentTextInput
-                , placeholder <|
-                    if isLoggedIn then
-                        "Add comment..."
-                    else
-                        "Sign up or login to comment..."
-                , value model.newCommentText
-                , disabled <| not isLoggedIn || config.submitCommentRequestInProgress
-                ]
-                []
-            , Util.limitCharsText 300 model.newCommentText
-            , div
-                (Util.maybeAttributes
-                    [ Just <|
-                        classList
-                            [ ( "submit-comment", True )
-                            , ( "disabled", not isReadyComment || not isLoggedIn )
-                            , ( "cursor-progress", config.submitCommentRequestInProgress )
-                            ]
-                    , case ( isLoggedIn, justReadyComment ) of
-                        ( True, Just comment ) ->
-                            Just <| onClick <| config.newComment comment
-
-                        _ ->
-                            Nothing
-                    ]
+                 else
+                    List.map
+                        (\comment -> ( comment.id, commentBoxView config model comment ))
+                        config.comments
                 )
-                [ text "Submit Comment" ]
             ]
+        , textarea
+            [ classList
+                [ ( "new-comment-textarea", True )
+                , ( "cursor-progress", config.submitCommentRequestInProgress )
+                ]
+            , onInput <| config.msgTagger << OnNewCommentTextInput
+            , placeholder <|
+                if isLoggedIn then
+                    "Add comment..."
+                else
+                    "Sign up or login to comment..."
+            , value model.newCommentText
+            , disabled <| not isLoggedIn || config.submitCommentRequestInProgress
+            ]
+            []
+        , Util.limitCharsText 300 model.newCommentText
+        , div
+            (Util.maybeAttributes
+                [ Just <|
+                    classList
+                        [ ( "submit-comment", True )
+                        , ( "disabled", not isReadyComment || not isLoggedIn )
+                        , ( "cursor-progress", config.submitCommentRequestInProgress )
+                        ]
+                , case ( isLoggedIn, justReadyComment ) of
+                    ( True, Just comment ) ->
+                        Just <| onClick <| config.newComment comment
+
+                    _ ->
+                        Nothing
+                ]
+            )
+            [ text "Submit Comment" ]
+        ]
 
 
 commentBoxView : RenderConfig msg comment -> Model -> Comment comment -> Html msg
@@ -119,117 +119,117 @@ commentBoxView config { deletingComments, commentEdits } comment =
             Dict.get comment.id commentEdits
 
         isCommentAuthor =
-            config.userID == (Just comment.authorID)
+            config.userID == Just comment.authorID
     in
-        div
-            [ class "comment-box" ]
-            [ case maybeCommentEdit of
-                Just commentEdit ->
-                    textarea
-                        [ classList
-                            [ ( "comment-box-text-edit-mode", True )
-                            , ( "cursor-progress", config.editCommentRequestInProgress comment.id )
-                            ]
-                        , placeholder "Edit comment..."
-                        , disabled <| config.editCommentRequestInProgress comment.id
-                        , value <| Editable.getBuffer commentEdit
-                        , onInput <| config.msgTagger << OnEditCommentInput comment.id
+    div
+        [ class "comment-box" ]
+        [ case maybeCommentEdit of
+            Just commentEdit ->
+                textarea
+                    [ classList
+                        [ ( "comment-box-text-edit-mode", True )
+                        , ( "cursor-progress", config.editCommentRequestInProgress comment.id )
                         ]
-                        []
+                    , placeholder "Edit comment..."
+                    , disabled <| config.editCommentRequestInProgress comment.id
+                    , value <| Editable.getBuffer commentEdit
+                    , onInput <| config.msgTagger << OnEditCommentInput comment.id
+                    ]
+                    []
 
-                Nothing ->
-                    span [ class "comment-box-text" ] [ text <| comment.commentText ]
-            , div
-                [ class "comment-box-bottom" ]
-                [ if isCommentAuthor then
-                    div
-                        [ class "author-icons" ]
-                        (case maybeCommentEdit of
-                            Just commentEdit ->
-                                [ i
-                                    (Util.maybeAttributes
-                                        [ Just <|
-                                            classList
-                                                [ ( "material-icons cancel-edit", True )
-                                                , ( "cursor-progress", config.editCommentRequestInProgress comment.id )
-                                                ]
-                                        , if config.editCommentRequestInProgress comment.id then
-                                            Nothing
-                                          else
-                                            Just <| onClick <| config.msgTagger <| CancelEditing comment.id
-                                        ]
-                                    )
-                                    [ text "cancel" ]
-                                , i
-                                    (Util.maybeAttributes
-                                        [ Just <|
-                                            classList
-                                                [ ( "material-icons submit-edit", True )
-                                                , ( "not-allowed"
-                                                  , Editable.getBuffer commentEdit
-                                                        |> Util.justNonBlankString
-                                                        |> Util.isNothing
-                                                  )
-                                                , ( "cursor-progress", config.editCommentRequestInProgress comment.id )
-                                                ]
-                                        , Editable.getBuffer commentEdit
-                                            |> Util.justNonBlankString
-                                            ||> config.editComment comment.id
-                                            ||> onClick
-                                        ]
-                                    )
-                                    [ text "check_circle" ]
-                                ]
+            Nothing ->
+                span [ class "comment-box-text" ] [ text <| comment.commentText ]
+        , div
+            [ class "comment-box-bottom" ]
+            [ if isCommentAuthor then
+                div
+                    [ class "author-icons" ]
+                    (case maybeCommentEdit of
+                        Just commentEdit ->
+                            [ i
+                                (Util.maybeAttributes
+                                    [ Just <|
+                                        classList
+                                            [ ( "material-icons cancel-edit", True )
+                                            , ( "cursor-progress", config.editCommentRequestInProgress comment.id )
+                                            ]
+                                    , if config.editCommentRequestInProgress comment.id then
+                                        Nothing
+                                      else
+                                        Just <| onClick <| config.msgTagger <| CancelEditing comment.id
+                                    ]
+                                )
+                                [ text "cancel" ]
+                            , i
+                                (Util.maybeAttributes
+                                    [ Just <|
+                                        classList
+                                            [ ( "material-icons submit-edit", True )
+                                            , ( "not-allowed"
+                                              , Editable.getBuffer commentEdit
+                                                    |> Util.justNonBlankString
+                                                    |> Util.isNothing
+                                              )
+                                            , ( "cursor-progress", config.editCommentRequestInProgress comment.id )
+                                            ]
+                                    , Editable.getBuffer commentEdit
+                                        |> Util.justNonBlankString
+                                        ||> config.editComment comment.id
+                                        ||> onClick
+                                    ]
+                                )
+                                [ text "check_circle" ]
+                            ]
 
-                            Nothing ->
-                                [ i
-                                    [ classList
-                                        [ ( "material-icons delete-comment", True )
-                                        , ( "delete-warning", isBeingDeleted )
-                                        , ( "cursor-progress", config.deleteCommentRequestInProgress comment.id )
-                                        ]
-                                    , onClick <|
-                                        if isBeingDeleted then
-                                            config.deleteComment comment.id
-                                        else
-                                            config.msgTagger <| AddToDeletingComments comment.id
+                        Nothing ->
+                            [ i
+                                [ classList
+                                    [ ( "material-icons delete-comment", True )
+                                    , ( "delete-warning", isBeingDeleted )
+                                    , ( "cursor-progress", config.deleteCommentRequestInProgress comment.id )
                                     ]
-                                    [ text <|
-                                        if isBeingDeleted then
-                                            "delete_forever"
-                                        else
-                                            "delete"
-                                    ]
-                                , i
-                                    (Util.maybeAttributes
-                                        [ Just <|
-                                            classList
-                                                [ ( "material-icons edit-comment", True )
-                                                , ( "cursor-progress"
-                                                  , config.deleteCommentRequestInProgress comment.id
-                                                  )
-                                                ]
-                                        , if config.deleteCommentRequestInProgress comment.id then
-                                            Nothing
-                                          else
-                                            Just <|
-                                                onClick <|
-                                                    config.msgTagger <|
-                                                        StartEditing comment.id comment.commentText
-                                        ]
-                                    )
-                                    [ text "edit_mode" ]
+                                , onClick <|
+                                    if isBeingDeleted then
+                                        config.deleteComment comment.id
+                                    else
+                                        config.msgTagger <| AddToDeletingComments comment.id
                                 ]
-                        )
-                  else
-                    span
-                        [ class "email" ]
-                        [ text <| comment.authorEmail ]
-                , span
-                    [ class "date" ]
-                    [ text <| Date.Format.format "%m/%d/%Y" comment.createdAt ]
-                ]
+                                [ text <|
+                                    if isBeingDeleted then
+                                        "delete_forever"
+                                    else
+                                        "delete"
+                                ]
+                            , i
+                                (Util.maybeAttributes
+                                    [ Just <|
+                                        classList
+                                            [ ( "material-icons edit-comment", True )
+                                            , ( "cursor-progress"
+                                              , config.deleteCommentRequestInProgress comment.id
+                                              )
+                                            ]
+                                    , if config.deleteCommentRequestInProgress comment.id then
+                                        Nothing
+                                      else
+                                        Just <|
+                                            onClick <|
+                                                config.msgTagger <|
+                                                    StartEditing comment.id comment.commentText
+                                    ]
+                                )
+                                [ text "edit_mode" ]
+                            ]
+                    )
+              else
+                span
+                    [ class "email" ]
+                    [ text <| comment.authorEmail ]
+            , span
+                [ class "date" ]
+                [ text <| Date.Format.format "%m/%d/%Y" comment.createdAt ]
             ]
+        ]
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )

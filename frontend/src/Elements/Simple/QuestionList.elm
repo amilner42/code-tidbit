@@ -1,7 +1,7 @@
 module Elements.Simple.QuestionList exposing (..)
 
 import DefaultServices.Util as Util
-import Html exposing (Html, div, text, i, hr)
+import Html exposing (Html, div, hr, i, text)
 import Html.Attributes exposing (class, classList)
 import Html.Events exposing (onClick)
 import Models.QA as QA

@@ -4,8 +4,8 @@ import DefaultServices.InfixFunctions exposing (..)
 import DefaultServices.Util as Util
 import Elements.Simple.Markdown as Markdown
 import Html exposing (Html, div, text, textarea)
-import Html.Attributes exposing (class, classList, placeholder, value, disabled)
-import Html.Events exposing (onInput, onClick)
+import Html.Attributes exposing (class, classList, disabled, placeholder, value)
+import Html.Events exposing (onClick, onInput)
 import Models.QA exposing (..)
 import ProjectTypeAliases exposing (..)
 
@@ -45,53 +45,53 @@ view config model =
         isQuestionReady =
             Util.isNotNothing maybeReadyQuestion
     in
-        div
-            [ class "ask-question" ]
-            [ div
-                [ class "link qa-top-right-link"
-                , onClick config.goToAllQuestions
-                ]
-                [ text "see all questions" ]
-            , div
-                [ class "preview-markdown"
-                , onClick <| config.msgTagger TogglePreviewMarkdown
-                ]
-                [ text <|
-                    if model.previewMarkdown then
-                        "Close Preview"
-                    else
-                        "Markdown Preview"
-                ]
-            , if model.previewMarkdown then
-                Markdown.view [] model.questionText
-              else
-                div
-                    []
-                    [ textarea
-                        [ classList [ ( "cursor-progress", config.askQuestionRequestInProgress ) ]
-                        , placeholder "Highlight code and ask your question..."
-                        , onInput (OnQuestionTextInput >> config.msgTagger)
-                        , value model.questionText
-                        , disabled <| config.askQuestionRequestInProgress
-                        ]
-                        []
-                    , Util.limitCharsText 300 model.questionText
-                    ]
-            , div
-                (Util.maybeAttributes
-                    [ Just <|
-                        classList
-                            [ ( "ask-question-submit", True )
-                            , ( "not-ready", not isQuestionReady )
-                            , ( "hidden", model.previewMarkdown )
-                            , ( "cursor-progress", config.askQuestionRequestInProgress )
-                            ]
-                    , maybeReadyQuestion
-                        ||> (\{ codePointer, questionText } -> onClick <| config.askQuestion codePointer questionText)
-                    ]
-                )
-                [ text "Ask Question" ]
+    div
+        [ class "ask-question" ]
+        [ div
+            [ class "link qa-top-right-link"
+            , onClick config.goToAllQuestions
             ]
+            [ text "see all questions" ]
+        , div
+            [ class "preview-markdown"
+            , onClick <| config.msgTagger TogglePreviewMarkdown
+            ]
+            [ text <|
+                if model.previewMarkdown then
+                    "Close Preview"
+                else
+                    "Markdown Preview"
+            ]
+        , if model.previewMarkdown then
+            Markdown.view [] model.questionText
+          else
+            div
+                []
+                [ textarea
+                    [ classList [ ( "cursor-progress", config.askQuestionRequestInProgress ) ]
+                    , placeholder "Highlight code and ask your question..."
+                    , onInput (OnQuestionTextInput >> config.msgTagger)
+                    , value model.questionText
+                    , disabled <| config.askQuestionRequestInProgress
+                    ]
+                    []
+                , Util.limitCharsText 300 model.questionText
+                ]
+        , div
+            (Util.maybeAttributes
+                [ Just <|
+                    classList
+                        [ ( "ask-question-submit", True )
+                        , ( "not-ready", not isQuestionReady )
+                        , ( "hidden", model.previewMarkdown )
+                        , ( "cursor-progress", config.askQuestionRequestInProgress )
+                        ]
+                , maybeReadyQuestion
+                    ||> (\{ codePointer, questionText } -> onClick <| config.askQuestion codePointer questionText)
+                ]
+            )
+            [ text "Ask Question" ]
+        ]
 
 
 update : Msg -> Model codePointer -> ( Model codePointer, Cmd Msg )

@@ -1,8 +1,8 @@
 module JSON.ApiError exposing (..)
 
-import Json.Encode as Encode
 import Json.Decode as Decode
-import Json.Decode.Pipeline exposing (decode, required, optional, hardcoded)
+import Json.Decode.Pipeline exposing (decode, hardcoded, optional, required)
+import Json.Encode as Encode
 import Models.ApiError exposing (..)
 
 
@@ -178,4 +178,4 @@ decoder =
         backendErrorToApiError { errorCode } =
             fromErrorCode errorCode
     in
-        Decode.map backendErrorToApiError backendDecoder
+    Decode.map backendErrorToApiError backendDecoder

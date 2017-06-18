@@ -1,7 +1,7 @@
 module Pages.Browse.Model exposing (..)
 
-import DefaultServices.Util as Util
 import DefaultServices.InfixFunctions exposing (..)
+import DefaultServices.Util as Util
 import Elements.Simple.Editor exposing (Language)
 import Models.Content exposing (Content)
 

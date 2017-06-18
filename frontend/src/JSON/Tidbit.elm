@@ -3,7 +3,7 @@ module JSON.Tidbit exposing (..)
 import JSON.Bigbit
 import JSON.Snipbit
 import Json.Decode as Decode
-import Json.Decode.Pipeline exposing (decode, required, optional, hardcoded)
+import Json.Decode.Pipeline exposing (decode, hardcoded, optional, required)
 import Json.Encode as Encode
 import Models.Tidbit exposing (..)
 
@@ -33,4 +33,4 @@ decoder =
         decodeBigbit =
             Decode.map Bigbit JSON.Bigbit.decoder
     in
-        Decode.oneOf [ decodeSnipbit, decodeBigbit ]
+    Decode.oneOf [ decodeSnipbit, decodeBigbit ]

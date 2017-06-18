@@ -6,7 +6,7 @@ import DefaultServices.Util as Util
 import Elements.Simple.Editor as Editor exposing (Language)
 import Models.Range as Range
 import Models.Route as Route
-import Models.Snipbit exposing (MaybeHighlightedComment, HighlightedComment)
+import Models.Snipbit exposing (HighlightedComment, MaybeHighlightedComment)
 
 
 {-| `CreateSnipbit` model.
@@ -89,22 +89,21 @@ conclusionFilledIn =
 highlightedCommentsFilledIn : Model -> Maybe (Array.Array HighlightedComment)
 highlightedCommentsFilledIn =
     .highlightedComments
-        >> (Array.foldr
-                (\maybeHC previousHC ->
-                    case ( maybeHC.range, maybeHC.comment ) of
-                        ( Just aRange, Just aComment ) ->
-                            if (String.length aComment > 0) && (not <| Range.isEmptyRange aRange) then
-                                Maybe.map
-                                    ((::) { range = aRange, comment = aComment })
-                                    previousHC
-                            else
-                                Nothing
-
-                        _ ->
+        >> Array.foldr
+            (\maybeHC previousHC ->
+                case ( maybeHC.range, maybeHC.comment ) of
+                    ( Just aRange, Just aComment ) ->
+                        if (String.length aComment > 0) && (not <| Range.isEmptyRange aRange) then
+                            Maybe.map
+                                ((::) { range = aRange, comment = aComment })
+                                previousHC
+                        else
                             Nothing
-                )
-                (Just [])
-           )
+
+                    _ ->
+                        Nothing
+            )
+            (Just [])
         >> Maybe.map Array.fromList
 
 
@@ -167,7 +166,7 @@ filterLanguagesByQuery query =
         containsQuery =
             String.toLower >> String.contains (String.toLower query)
     in
-        List.filter
-            (\langPair ->
-                (containsQuery <| Tuple.second langPair) || (containsQuery <| toString <| Tuple.first langPair)
-            )
+    List.filter
+        (\langPair ->
+            (containsQuery <| Tuple.second langPair) || (containsQuery <| toString <| Tuple.first langPair)
+        )

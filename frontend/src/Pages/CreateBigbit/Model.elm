@@ -6,7 +6,7 @@ import DefaultServices.ArrayExtra as ArrayExtra
 import DefaultServices.Util as Util exposing (maybeMapWithDefault)
 import Elements.Simple.Editor as Editor
 import Elements.Simple.FileStructure as FS
-import Models.Bigbit exposing (FolderMetadata, FileMetadata, HighlightedComment)
+import Models.Bigbit exposing (FileMetadata, FolderMetadata, HighlightedComment)
 import Models.Range as Range
 import Models.Route as Route
 
@@ -116,8 +116,10 @@ type InvalidRemoveFolderName
 NOTE: Only the following are valid characters: a-Z 1-9 - _ . /
 
 NOTE: We restrict the characters because:
+
   - It'll keep it cleaner, I don't want funky ascii chars.
   - We'll need to encode them for the url params, prevent weird bugs.
+
 -}
 pathHasInvalidChars : FS.Path -> Bool
 pathHasInvalidChars =
@@ -127,7 +129,7 @@ pathHasInvalidChars =
                 Char.isDigit char
                     || Char.isUpper char
                     || Char.isLower char
-                    || (List.member char [ '_', '-', '.', '/' ])
+                    || List.member char [ '_', '-', '.', '/' ]
             )
         >> not
 
@@ -267,35 +269,34 @@ conclusionFilledIn =
 highlightedCommentsFilledIn : Model -> Maybe (List HighlightedComment)
 highlightedCommentsFilledIn =
     .highlightedComments
-        >> (Array.foldr
-                (\hc currentList ->
-                    if String.isEmpty hc.comment then
-                        Nothing
-                    else
-                        case hc.fileAndRange of
-                            Just { file, range } ->
-                                case range of
-                                    Nothing ->
+        >> Array.foldr
+            (\hc currentList ->
+                if String.isEmpty hc.comment then
+                    Nothing
+                else
+                    case hc.fileAndRange of
+                        Just { file, range } ->
+                            case range of
+                                Nothing ->
+                                    Nothing
+
+                                Just aRange ->
+                                    if Range.isEmptyRange aRange then
                                         Nothing
+                                    else
+                                        Maybe.map
+                                            ((::)
+                                                { file = file
+                                                , comment = hc.comment
+                                                , range = aRange
+                                                }
+                                            )
+                                            currentList
 
-                                    Just aRange ->
-                                        if Range.isEmptyRange aRange then
-                                            Nothing
-                                        else
-                                            Maybe.map
-                                                ((::)
-                                                    { file = file
-                                                    , comment = hc.comment
-                                                    , range = aRange
-                                                    }
-                                                )
-                                                currentList
-
-                            _ ->
-                                Nothing
-                )
-                (Just [])
-           )
+                        _ ->
+                            Nothing
+            )
+            (Just [])
 
 
 {-| Returns true if all data in the code tab is filled-in.
@@ -331,7 +332,7 @@ toPublicationData model =
                     tags
                     introduction
                     conclusion
-                    (model.fs |> FS.metaMap (always ()) (always ()) (identity))
+                    (model.fs |> FS.metaMap (always ()) (always ()) identity)
                     hc
 
         _ ->

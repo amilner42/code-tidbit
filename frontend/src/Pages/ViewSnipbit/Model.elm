@@ -3,10 +3,10 @@ module Pages.ViewSnipbit.Model exposing (..)
 import DefaultServices.Util as Util exposing (maybeMapWithDefault)
 import Models.Completed exposing (IsCompleted)
 import Models.Opinion exposing (PossibleOpinion)
-import Models.QA exposing (SnipbitQA, SnipbitQuestion, SnipbitQAState)
+import Models.QA exposing (SnipbitQA, SnipbitQAState, SnipbitQuestion)
 import Models.Range exposing (Range)
 import Models.Route as Route
-import Models.Snipbit exposing (Snipbit, HighlightedComment)
+import Models.Snipbit exposing (HighlightedComment, Snipbit)
 import Models.TutorialBookmark as TB
 import Models.ViewerRelevantHC exposing (ViewerRelevantHC, browsingFrames)
 

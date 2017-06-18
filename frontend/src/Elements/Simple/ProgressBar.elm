@@ -1,7 +1,7 @@
 module Elements.Simple.ProgressBar exposing (..)
 
 import DefaultServices.Util as Util
-import Html exposing (Html, div, text, i)
+import Html exposing (Html, div, i, text)
 import Html.Attributes exposing (class, classList, style)
 import Html.Events exposing (onClick)
 
@@ -82,75 +82,76 @@ view { state, maxPosition, disabledStyling, onClickMsg, allowClick, textFormat, 
 
                 Started currentFrame ->
                     if shiftLeft then
-                        100 * (toFloat currentFrame - 1) / (toFloat maxPosition)
+                        100 * (toFloat currentFrame - 1) / toFloat maxPosition
                     else
-                        100 * (toFloat currentFrame) / (toFloat maxPosition)
+                        100 * toFloat currentFrame / toFloat maxPosition
 
                 Completed ->
                     100
     in
-        div
-            ([ classList
-                [ ( "progress-bar", True )
-                , ( "selected", isStartedState state )
-                , ( "completed", isCompletedState state )
-                , ( "disabled", disabledStyling )
-                , ( "click-allowed", allowClick )
-                ]
-             ]
-                ++ if allowClick then
+    div
+        ([ classList
+            [ ( "progress-bar", True )
+            , ( "selected", isStartedState state )
+            , ( "completed", isCompletedState state )
+            , ( "disabled", disabledStyling )
+            , ( "click-allowed", allowClick )
+            ]
+         ]
+            ++ (if allowClick then
                     [ onClick onClickMsg ]
-                   else
+                else
                     []
-            )
-            [ div
-                [ classList
-                    [ ( "progress-bar-completion-bar", True )
-                    , ( "disabled", disabledStyling )
-                    ]
-                , style [ ( "width", (toString <| round <| percentComplete * 1.6) ++ "px" ) ]
+               )
+        )
+        [ div
+            [ classList
+                [ ( "progress-bar-completion-bar", True )
+                , ( "disabled", disabledStyling )
                 ]
-                []
-            , div
-                []
-                [ text <|
-                    case textFormat of
-                        Percentage ->
-                            (toString <| round <| percentComplete) ++ "%"
+            , style [ ( "width", (toString <| round <| percentComplete * 1.6) ++ "px" ) ]
+            ]
+            []
+        , div
+            []
+            [ text <|
+                case textFormat of
+                    Percentage ->
+                        (toString <| round <| percentComplete) ++ "%"
 
-                        Custom { notStarted, started, done } ->
-                            case state of
-                                NotStarted ->
-                                    notStarted
+                    Custom { notStarted, started, done } ->
+                        case state of
+                            NotStarted ->
+                                notStarted
 
-                                Started currentFrame ->
-                                    started currentFrame
+                            Started currentFrame ->
+                                started currentFrame
 
-                                Completed ->
-                                    done
-                ]
-            , div
-                [ classList
-                    [ ( "completion-symbol", True )
-                    , ( "hidden", not alreadyComplete.complete )
-                    , ( "for-story"
-                      , case alreadyComplete.for of
-                            Story ->
-                                True
+                            Completed ->
+                                done
+            ]
+        , div
+            [ classList
+                [ ( "completion-symbol", True )
+                , ( "hidden", not alreadyComplete.complete )
+                , ( "for-story"
+                  , case alreadyComplete.for of
+                        Story ->
+                            True
 
-                            _ ->
-                                False
-                      )
-                    ]
-                ]
-                [ i [ class "material-icons" ]
-                    [ text <|
-                        case alreadyComplete.for of
-                            Story ->
-                                "done_all"
-
-                            Tidbit ->
-                                "done"
-                    ]
+                        _ ->
+                            False
+                  )
                 ]
             ]
+            [ i [ class "material-icons" ]
+                [ text <|
+                    case alreadyComplete.for of
+                        Story ->
+                            "done_all"
+
+                        Tidbit ->
+                            "done"
+                ]
+            ]
+        ]

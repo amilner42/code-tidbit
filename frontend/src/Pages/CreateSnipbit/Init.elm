@@ -12,7 +12,7 @@ init : Model
 init =
     { language = Nothing
     , languageQueryACState = AC.empty
-    , languageListHowManyToShow = (List.length humanReadableListOfLanguages)
+    , languageListHowManyToShow = List.length humanReadableListOfLanguages
     , languageQuery = ""
     , name = ""
     , description = ""

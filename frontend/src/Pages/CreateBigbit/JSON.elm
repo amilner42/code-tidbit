@@ -7,9 +7,9 @@ import JSON.FileStructure
 import JSON.Language
 import JSON.Range
 import Json.Decode as Decode
-import Json.Decode.Pipeline exposing (decode, required, optional, hardcoded)
+import Json.Decode.Pipeline exposing (decode, hardcoded, optional, required)
 import Json.Encode as Encode
-import Models.Bigbit exposing (FolderMetadata, FileMetadata)
+import Models.Bigbit exposing (FileMetadata, FolderMetadata)
 import Models.Range as Range
 import Pages.CreateBigbit.Model exposing (..)
 
@@ -35,19 +35,19 @@ encoder model =
                 (\folderMetadata -> Encode.object [ ( "isExpanded", Encode.bool folderMetadata.isExpanded ) ])
                 (\fileMetadata -> Encode.object [ ( "language", JSON.Language.encoder fileMetadata.language ) ])
     in
-        Encode.object
-            [ ( "name", Encode.string model.name )
-            , ( "description", Encode.string model.description )
-            , ( "tags", Encode.list <| List.map Encode.string model.tags )
-            , ( "tagInput", Encode.string model.tagInput )
-            , ( "introduction", Encode.string model.introduction )
-            , ( "conclusion", Encode.string model.conclusion )
-            , ( "fs", fsEncoder model.fs )
-            , ( "highlightedComments"
-              , Encode.array <| Array.map createHighlightedCommentEncoder model.highlightedComments
-              )
-            , ( "previewMarkdown", Encode.bool model.previewMarkdown )
-            ]
+    Encode.object
+        [ ( "name", Encode.string model.name )
+        , ( "description", Encode.string model.description )
+        , ( "tags", Encode.list <| List.map Encode.string model.tags )
+        , ( "tagInput", Encode.string model.tagInput )
+        , ( "introduction", Encode.string model.introduction )
+        , ( "conclusion", Encode.string model.conclusion )
+        , ( "fs", fsEncoder model.fs )
+        , ( "highlightedComments"
+          , Encode.array <| Array.map createHighlightedCommentEncoder model.highlightedComments
+          )
+        , ( "previewMarkdown", Encode.bool model.previewMarkdown )
+        ]
 
 
 {-| `CreateBigbit` decoder.
@@ -71,16 +71,16 @@ decoder =
                     |> required "language" JSON.Language.decoder
                 )
     in
-        decode Model
-            |> required "name" Decode.string
-            |> required "description" Decode.string
-            |> required "tags" (Decode.list Decode.string)
-            |> required "tagInput" Decode.string
-            |> required "introduction" Decode.string
-            |> required "conclusion" Decode.string
-            |> required "fs" fsDecoder
-            |> required "highlightedComments" (Decode.array createHighlightedCommentDecoder)
-            |> required "previewMarkdown" Decode.bool
+    decode Model
+        |> required "name" Decode.string
+        |> required "description" Decode.string
+        |> required "tags" (Decode.list Decode.string)
+        |> required "tagInput" Decode.string
+        |> required "introduction" Decode.string
+        |> required "conclusion" Decode.string
+        |> required "fs" fsDecoder
+        |> required "highlightedComments" (Decode.array createHighlightedCommentDecoder)
+        |> required "previewMarkdown" Decode.bool
 
 
 {-| `FSActionButtonState` encoder.
@@ -112,8 +112,8 @@ fsActionButtonStateDecoder =
                 _ ->
                     Decode.fail <| "Not a valid encoded action state: " ++ encodedActionState
     in
-        Decode.string
-            |> Decode.andThen fromStringDecoder
+    Decode.string
+        |> Decode.andThen fromStringDecoder
 
 
 {-| `BigbitForPublication` encoder.
@@ -128,15 +128,15 @@ publicationEncoder bigbit =
                 (\fileMetadata -> Encode.object [ ( "language", JSON.Language.encoder fileMetadata.language ) ])
                 fs
     in
-        Encode.object
-            [ ( "name", Encode.string bigbit.name )
-            , ( "description", Encode.string bigbit.description )
-            , ( "tags", Encode.list <| List.map Encode.string bigbit.tags )
-            , ( "introduction", Encode.string bigbit.introduction )
-            , ( "conclusion", Encode.string bigbit.conclusion )
-            , ( "fs", fsEncoder bigbit.fs )
-            , ( "highlightedComments", Encode.list <| List.map highlightedCommentEncoder bigbit.highlightedComments )
-            ]
+    Encode.object
+        [ ( "name", Encode.string bigbit.name )
+        , ( "description", Encode.string bigbit.description )
+        , ( "tags", Encode.list <| List.map Encode.string bigbit.tags )
+        , ( "introduction", Encode.string bigbit.introduction )
+        , ( "conclusion", Encode.string bigbit.conclusion )
+        , ( "fs", fsEncoder bigbit.fs )
+        , ( "highlightedComments", Encode.list <| List.map highlightedCommentEncoder bigbit.highlightedComments )
+        ]
 
 
 {-| `HighlightedCommentForCreate` encoder.
@@ -170,6 +170,6 @@ createHighlightedCommentDecoder =
                     |> required "file" Decode.string
                 )
     in
-        decode HighlightedCommentForCreate
-            |> required "comment" Decode.string
-            |> required "fileAndRange" decodeFileAndRange
+    decode HighlightedCommentForCreate
+        |> required "comment" Decode.string
+        |> required "fileAndRange" decodeFileAndRange

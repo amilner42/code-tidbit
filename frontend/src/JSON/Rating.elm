@@ -1,7 +1,7 @@
 module JSON.Rating exposing (..)
 
 import Json.Decode as Decode
-import Json.Decode.Pipeline exposing (decode, required, optional, hardcoded)
+import Json.Decode.Pipeline exposing (decode, hardcoded, optional, required)
 import Json.Encode as Encode
 import Models.Rating exposing (..)
 
@@ -9,6 +9,7 @@ import Models.Rating exposing (..)
 {-| `Rating` encoder.
 
 Parallels to the backend `Rating` enum.
+
 -}
 encoder : Rating -> Encode.Value
 encoder =
@@ -18,6 +19,7 @@ encoder =
 {-| `Rating` decoder.
 
 Parallels to the backend `Rating` enum.
+
 -}
 decoder : Decode.Decoder Rating
 decoder =
@@ -28,9 +30,9 @@ decoder =
                     Decode.succeed Like
 
                 _ ->
-                    Decode.fail <| (toString encodedInt) ++ " is not a valid encoded rating!"
+                    Decode.fail <| toString encodedInt ++ " is not a valid encoded rating!"
     in
-        Decode.int |> Decode.andThen fromIntDecoder
+    Decode.int |> Decode.andThen fromIntDecoder
 
 
 {-| This maps exactly to the `Rating` enum on the backend.

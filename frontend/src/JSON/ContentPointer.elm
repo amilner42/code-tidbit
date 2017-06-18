@@ -1,7 +1,7 @@
 module JSON.ContentPointer exposing (..)
 
 import Json.Decode as Decode
-import Json.Decode.Pipeline exposing (decode, required, optional, hardcoded)
+import Json.Decode.Pipeline exposing (decode, hardcoded, optional, required)
 import Json.Encode as Encode
 import Models.ContentPointer exposing (..)
 
@@ -28,6 +28,7 @@ decoder =
 {-| `ContentType` encoder.
 
 Parallel to backend `ContentType` enum.
+
 -}
 contentTypeEncoder : ContentType -> Encode.Value
 contentTypeEncoder =
@@ -37,6 +38,7 @@ contentTypeEncoder =
 {-| `ContentType` decoder.
 
 Parallel to backend `ContentType` enum.
+
 -}
 contentTypeDecoder : Decode.Decoder ContentType
 contentTypeDecoder =
@@ -53,9 +55,9 @@ contentTypeDecoder =
                     Decode.succeed Story
 
                 _ ->
-                    Decode.fail <| (toString encodedInt) ++ " is not a valid encoded content type!"
+                    Decode.fail <| toString encodedInt ++ " is not a valid encoded content type!"
     in
-        Decode.int |> Decode.andThen fromIntDecoder
+    Decode.int |> Decode.andThen fromIntDecoder
 
 
 {-| This maps exactly to the `ContentType` enum on the backend.

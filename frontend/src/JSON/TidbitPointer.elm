@@ -1,7 +1,7 @@
 module JSON.TidbitPointer exposing (..)
 
 import Json.Decode as Decode
-import Json.Decode.Pipeline exposing (decode, required, optional, hardcoded)
+import Json.Decode.Pipeline exposing (decode, hardcoded, optional, required)
 import Json.Encode as Encode
 import Models.TidbitPointer exposing (..)
 
@@ -28,6 +28,7 @@ decoder =
 {-| `TidbitType` encoder.
 
 @NOTE This matches the backend format.
+
 -}
 tibitTypeEncoder : TidbitType -> Encode.Value
 tibitTypeEncoder tidbitType =
@@ -37,6 +38,7 @@ tibitTypeEncoder tidbitType =
 {-| `TidbitType` decoder.
 
 @NOTE This matches the backend format.
+
 -}
 tidbitTypeDecoder : Decode.Decoder TidbitType
 tidbitTypeDecoder =
@@ -50,10 +52,10 @@ tidbitTypeDecoder =
                     Decode.succeed Bigbit
 
                 _ ->
-                    Decode.fail <| "That is not a valid encoded tidbitType: " ++ (toString encodedInt)
+                    Decode.fail <| "That is not a valid encoded tidbitType: " ++ toString encodedInt
     in
-        Decode.int
-            |> Decode.andThen fromIntDecoder
+    Decode.int
+        |> Decode.andThen fromIntDecoder
 
 
 {-| Converts a tidbitType to an int, matches the format of the backend.
