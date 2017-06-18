@@ -39,7 +39,7 @@ isEditingName =
 -}
 cancelEditingName : Model -> Model
 cancelEditingName model =
-    { model | accountName = Maybe.map (Editable.cancelEditing) model.accountName }
+    { model | accountName = Maybe.map Editable.cancelEditing model.accountName }
 
 
 {-| Sets the accountName to `Nothing`.
@@ -67,7 +67,7 @@ setBio originalBio newBio model =
 -}
 cancelEditingBio : Model -> Model
 cancelEditingBio model =
-    { model | accountBio = Maybe.map (Editable.cancelEditing) model.accountBio }
+    { model | accountBio = Maybe.map Editable.cancelEditing model.accountBio }
 
 
 {-| Sets the accountBio to `Nothing`

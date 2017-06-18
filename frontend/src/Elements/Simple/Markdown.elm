@@ -1,6 +1,6 @@
 module Elements.Simple.Markdown exposing (..)
 
-import Html exposing (Html, Attribute, div)
+import Html exposing (Attribute, Html, div)
 import Html.Attributes exposing (class)
 import Markdown
 

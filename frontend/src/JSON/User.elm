@@ -2,13 +2,15 @@ module JSON.User exposing (..)
 
 import DefaultServices.Util as Util exposing (justValueOrNull)
 import Json.Decode as Decode
-import Json.Decode.Pipeline exposing (decode, required, optional, hardcoded)
+import Json.Decode.Pipeline exposing (decode, hardcoded, optional, required)
 import Json.Encode as Encode
 import Models.User exposing (..)
 
 
 {-| `User` safe encoder.
-      - Does not encode password.
+
+  - Does not encode password.
+
 -}
 safeEncoder : User -> Encode.Value
 safeEncoder user =

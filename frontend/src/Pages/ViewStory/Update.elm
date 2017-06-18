@@ -3,7 +3,7 @@ module Pages.ViewStory.Update exposing (..)
 import Api
 import DefaultServices.CommonSubPageUtil exposing (CommonSubPageUtil(..), commonSubPageUtil)
 import Models.ContentPointer as ContentPointer
-import Models.Opinion exposing (toPossibleOpinion, PossibleOpinion)
+import Models.Opinion exposing (PossibleOpinion, toPossibleOpinion)
 import Models.Route as Route
 import Pages.Model exposing (Shared)
 import Pages.ViewStory.Messages exposing (..)
@@ -60,23 +60,23 @@ update (Common common) msg model shared =
                                         (OnGetOpinionSuccess << PossibleOpinion contentPointer)
                                     )
                             in
-                                case ( shared.user, model.possibleOpinion ) of
-                                    ( Just user, Just { contentPointer, rating } ) ->
-                                        if contentPointer.contentID == mongoID then
-                                            common.doNothing
-                                        else
-                                            getOpinion
-
-                                    ( Just user, Nothing ) ->
+                            case ( shared.user, model.possibleOpinion ) of
+                                ( Just user, Just { contentPointer, rating } ) ->
+                                    if contentPointer.contentID == mongoID then
+                                        common.doNothing
+                                    else
                                         getOpinion
 
-                                    _ ->
-                                        common.doNothing
+                                ( Just user, Nothing ) ->
+                                    getOpinion
+
+                                _ ->
+                                    common.doNothing
                     in
-                        common.handleAll
-                            [ getStory
-                            , getOpinion
-                            ]
+                    common.handleAll
+                        [ getStory
+                        , getOpinion
+                        ]
 
                 _ ->
                     common.doNothing

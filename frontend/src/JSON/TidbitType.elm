@@ -1,7 +1,7 @@
 module JSON.TidbitType exposing (..)
 
 import Json.Decode as Decode
-import Json.Decode.Pipeline exposing (decode, required, optional, hardcoded)
+import Json.Decode.Pipeline exposing (decode, hardcoded, optional, required)
 import Json.Encode as Encode
 import Models.TidbitType exposing (..)
 
@@ -29,5 +29,5 @@ decoder =
                 _ ->
                     Decode.fail <| encodedTidbitType ++ " is not a valid encoded tidbit type."
     in
-        Decode.string
-            |> Decode.andThen fromStringDecoder
+    Decode.string
+        |> Decode.andThen fromStringDecoder

@@ -147,6 +147,7 @@ type alias BigbitCodePointer =
 For keeping track of things like half-written questions, or new questions etc...
 
 NOTE: The state for each tidbit is saved separately so tidbit-states do not overwrite each other.
+
 -}
 type alias QAState codePointer =
     Dict.Dict TidbitID (TidbitQAState codePointer)
@@ -167,6 +168,7 @@ type alias BigbitQAState =
 {-| The QA state for a single tidbit.
 
 State includes creating new and editing: question / answers on questions / comment on answers / comment on questions.
+
 -}
 type alias TidbitQAState codePointer =
     { browsingCodePointer : Maybe codePointer
@@ -398,12 +400,14 @@ updateQuestion questionID questionUpdater qa =
 
 
 {-| Updates a [published] question in the QA, handles all required logic:
+
   - Upvoting/downvoting question
   - Possibly removing previous upvote/downvote
   - Updating upvote/downvote count
   - Resorting questions.
 
 NOTE: If `vote` is `Nothing`, means that the user was removing a vote (could be either upvote/downvote).
+
 -}
 rateQuestion : QuestionID -> Maybe Vote.Vote -> QA codePointer -> QA codePointer
 rateQuestion questionID vote =
@@ -411,7 +415,7 @@ rateQuestion questionID vote =
         updateQuestionUpvotesAndDownvotesForQA qa =
             updateQuestion questionID (updateVotes vote) qa
     in
-        updateQuestionUpvotesAndDownvotesForQA >> sortQuestions
+    updateQuestionUpvotesAndDownvotesForQA >> sortQuestions
 
 
 {-| Adds a `QuestionComment` to the [published] list of question comments.
@@ -449,12 +453,14 @@ sortQuestions qa =
 
 
 {-| Updates a [published] answer, handles:
-    - Upvoting/downvoting answer
-    - Possibly removing previous upvote/downvote
-    - Updating upvote/downvote count
-    - Resorting answers.
+
+  - Upvoting/downvoting answer
+  - Possibly removing previous upvote/downvote
+  - Updating upvote/downvote count
+  - Resorting answers.
 
 NOTE: If vote is `Nothing`, means the user was was removing a vote (could be either upvote/downvote).
+
 -}
 rateAnswer : AnswerID -> Maybe Vote.Vote -> QA codePointer -> QA codePointer
 rateAnswer answerID vote =
@@ -462,7 +468,7 @@ rateAnswer answerID vote =
         updateAnswerUpvotesAndDownvotesForQA qa =
             updateAnswer answerID (Just << updateVotes vote) qa
     in
-        updateAnswerUpvotesAndDownvotesForQA >> sortAnswers
+    updateAnswerUpvotesAndDownvotesForQA >> sortAnswers
 
 
 {-| Adds a `AnswerComment` to the [published] list of answer comments.
@@ -507,8 +513,10 @@ sortAnswers qa =
 
 
 {-| Updates a [published] question, handles:
-    - Pinning/unpinning question
-    - Resorting questions
+
+  - Pinning/unpinning question
+  - Resorting questions
+
 -}
 pinQuestion : QuestionID -> Bool -> QA codePointer -> QA codePointer
 pinQuestion questionID isPinned =
@@ -516,12 +524,14 @@ pinQuestion questionID isPinned =
         updatePin =
             updateQuestion questionID (\question -> { question | pinned = isPinned })
     in
-        updatePin >> sortQuestions
+    updatePin >> sortQuestions
 
 
 {-| Updates a [published] answer, handles:
-    - Pinning/unpinning answer
-    - Resorting answers
+
+  - Pinning/unpinning answer
+  - Resorting answers
+
 -}
 pinAnswer : AnswerID -> Bool -> QA codePointer -> QA codePointer
 pinAnswer answerID isPinned =
@@ -529,7 +539,7 @@ pinAnswer answerID isPinned =
         updatePin =
             updateAnswer answerID (\answer -> Just { answer | pinned = isPinned })
     in
-        updatePin >> sortAnswers
+    updatePin >> sortAnswers
 
 
 {-| Updates a [published] answer in the QA.
@@ -564,6 +574,7 @@ updateNewQuestion tidbitID newQuestionUpdater =
 {-| questionEdit updater, handles setting default tidbitQAState if needed.
 
 Updater has to handle case where no edit exits yet (hence `Maybe QuestionEdit...`).
+
 -}
 updateQuestionEdit :
     TidbitID
@@ -587,6 +598,7 @@ updateQuestionEdit tidbitID questionID questionEditUpdater =
 {-| newAnswer updater, handles setting default tidbitQAState if needed.
 
 Updater has to handle case where no new answer exists yet for that question (hence `Maybe NewAnswer...`).
+
 -}
 updateNewAnswer :
     TidbitID
@@ -609,10 +621,12 @@ updateNewAnswer tidbitID questionID newAnswerUpdater =
 
 
 {-| Sorts the RateableContent by:
-    - is pinned
-    - most upvotes
-    - least downvotes
-    - newest date
+
+  - is pinned
+  - most upvotes
+  - least downvotes
+  - newest date
+
 -}
 sortRateableContent : List (RateableContent x) -> List (RateableContent x)
 sortRateableContent =
@@ -627,6 +641,7 @@ sortRateableContent =
 {-| answerEdit updater, handles setting default tidbitQAState if needed.
 
 Updater has to handle case where no new answer edit exists (hence `Maybe AnswerEdit...`).
+
 -}
 updateAnswerEdit :
     TidbitID
@@ -685,6 +700,7 @@ updateAnswerCommentEdits tidbitID answerCommentEditsUpdater =
 {-| Delete all `answerCommentEdits` on a `qaState` pointing to non-existant comments.
 
 Handles setting default if no `tidbitQAState` exists.
+
 -}
 deleteOldAnswerCommentEdits : TidbitID -> List AnswerComment -> QAState codePointer -> QAState codePointer
 deleteOldAnswerCommentEdits tidbitID answerComments =
@@ -723,6 +739,7 @@ updateNewAnswerComments tidbitID newAnswerCommentsUpdater =
 {-| Set's a single `newQuestionComment`, handles setting default if no `tidbitQAState` exists.
 
 If you'd like to delete the new question comment, pass in `Nothing` for the `commentText`.
+
 -}
 setNewQuestionComment : TidbitID -> QuestionID -> Maybe CommentText -> QAState codePointer -> QAState codePointer
 setNewQuestionComment tidbitID questionID commentText =
@@ -760,6 +777,7 @@ setTidbitQAState tidbitID tidbitQAStateUpdater qaState =
 {-| Helper for updating the vote count.
 
 NOTE: If `vote` is `Nothing` that means that the user was removing his vote.
+
 -}
 updateVotes : Maybe Vote.Vote -> ContentWithVotes x -> ContentWithVotes x
 updateVotes vote contentWithVotes =
@@ -774,7 +792,7 @@ updateVotes vote contentWithVotes =
 
                 _ ->
                     if Tuple.first contentWithVotes.upvotes then
-                        ( False, (flip (-)) 1 <| Tuple.second contentWithVotes.upvotes )
+                        ( False, flip (-) 1 <| Tuple.second contentWithVotes.upvotes )
                     else
                         contentWithVotes.upvotes
         , downvotes =
@@ -787,7 +805,7 @@ updateVotes vote contentWithVotes =
 
                 _ ->
                     if Tuple.first contentWithVotes.downvotes then
-                        ( False, (flip (-)) 1 <| Tuple.second contentWithVotes.downvotes )
+                        ( False, flip (-) 1 <| Tuple.second contentWithVotes.downvotes )
                     else
                         contentWithVotes.downvotes
     }
@@ -797,8 +815,8 @@ updateVotes vote contentWithVotes =
 -}
 isBigbitCodePointerOverlap : BigbitCodePointer -> BigbitCodePointer -> Bool
 isBigbitCodePointerOverlap codePointer1 codePointer2 =
-    (FS.isSameFilePath codePointer1.file codePointer2.file)
-        && (Range.overlappingRanges codePointer1.range codePointer2.range)
+    FS.isSameFilePath codePointer1.file codePointer2.file
+        && Range.overlappingRanges codePointer1.range codePointer2.range
 
 
 {-| The default state for `TidbitQAState`.

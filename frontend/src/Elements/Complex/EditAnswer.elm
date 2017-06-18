@@ -4,8 +4,8 @@ import DefaultServices.Editable as Editable
 import DefaultServices.Util as Util
 import Elements.Simple.Markdown as Markdown
 import Html exposing (Html, div, text, textarea)
-import Html.Attributes exposing (class, classList, placeholder, value, disabled)
-import Html.Events exposing (onInput, onClick)
+import Html.Attributes exposing (class, classList, disabled, placeholder, value)
+import Html.Events exposing (onClick, onInput)
 import Models.QA exposing (..)
 import ProjectTypeAliases exposing (..)
 
@@ -40,77 +40,77 @@ view config ({ previewMarkdown, showQuestion } as model) =
         isAnswerReady =
             Util.isNotNothing maybeReadyAnswer
     in
-        div
-            [ class "edit-answer" ]
-            [ div
-                [ classList
-                    [ ( "display-question", True )
-                    , ( "hidden", previewMarkdown )
-                    ]
-                , onClick <| config.msgTagger ToggleShowQuestion
+    div
+        [ class "edit-answer" ]
+        [ div
+            [ classList
+                [ ( "display-question", True )
+                , ( "hidden", previewMarkdown )
                 ]
-                [ text <|
-                    if showQuestion then
-                        "Hide Question"
-                    else
-                        "Show Question"
-                ]
-            , Markdown.view
-                [ classList
-                    [ ( "question", True )
-                    , ( "hidden", previewMarkdown || not showQuestion )
-                    ]
-                ]
-                config.forQuestion.questionText
-            , div
-                [ classList
-                    [ ( "preview-markdown", True )
-                    , ( "previewing-markdown", previewMarkdown )
-                    , ( "hiding-question", not showQuestion )
-                    ]
-                , onClick <| config.msgTagger TogglePreviewMarkdown
-                ]
-                [ text <|
-                    if previewMarkdown then
-                        "Close Preview"
-                    else
-                        "Markdown Preview"
-                ]
-            , Util.markdownOr
-                previewMarkdown
-                answerText
-                (div
-                    []
-                    [ textarea
-                        [ classList
-                            [ ( "hiding-question", not showQuestion )
-                            , ( "cursor-progress", config.editAnswerRequestInProgress )
-                            ]
-                        , placeholder "Edit Answer Text"
-                        , disabled config.editAnswerRequestInProgress
-                        , value answerText
-                        , onInput (config.msgTagger << OnAnswerTextInput)
-                        ]
-                        []
-                    , Util.limitCharsText 1000 answerText
-                    ]
-                )
-            , div
-                (Util.maybeAttributes
-                    [ Just <|
-                        classList
-                            [ ( "edit-answer-submit", True )
-                            , ( "not-ready", not isAnswerReady )
-                            , ( "hidden", previewMarkdown )
-                            , ( "cursor-progress", config.editAnswerRequestInProgress )
-                            ]
-                    , Maybe.map
-                        (onClick << config.editAnswer)
-                        maybeReadyAnswer
-                    ]
-                )
-                [ text "Update Answer" ]
+            , onClick <| config.msgTagger ToggleShowQuestion
             ]
+            [ text <|
+                if showQuestion then
+                    "Hide Question"
+                else
+                    "Show Question"
+            ]
+        , Markdown.view
+            [ classList
+                [ ( "question", True )
+                , ( "hidden", previewMarkdown || not showQuestion )
+                ]
+            ]
+            config.forQuestion.questionText
+        , div
+            [ classList
+                [ ( "preview-markdown", True )
+                , ( "previewing-markdown", previewMarkdown )
+                , ( "hiding-question", not showQuestion )
+                ]
+            , onClick <| config.msgTagger TogglePreviewMarkdown
+            ]
+            [ text <|
+                if previewMarkdown then
+                    "Close Preview"
+                else
+                    "Markdown Preview"
+            ]
+        , Util.markdownOr
+            previewMarkdown
+            answerText
+            (div
+                []
+                [ textarea
+                    [ classList
+                        [ ( "hiding-question", not showQuestion )
+                        , ( "cursor-progress", config.editAnswerRequestInProgress )
+                        ]
+                    , placeholder "Edit Answer Text"
+                    , disabled config.editAnswerRequestInProgress
+                    , value answerText
+                    , onInput (config.msgTagger << OnAnswerTextInput)
+                    ]
+                    []
+                , Util.limitCharsText 1000 answerText
+                ]
+            )
+        , div
+            (Util.maybeAttributes
+                [ Just <|
+                    classList
+                        [ ( "edit-answer-submit", True )
+                        , ( "not-ready", not isAnswerReady )
+                        , ( "hidden", previewMarkdown )
+                        , ( "cursor-progress", config.editAnswerRequestInProgress )
+                        ]
+                , Maybe.map
+                    (onClick << config.editAnswer)
+                    maybeReadyAnswer
+                ]
+            )
+            [ text "Update Answer" ]
+        ]
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )

@@ -3,13 +3,14 @@ module JSON.FileStructure exposing (..)
 import DefaultServices.Util as Util
 import Elements.Simple.FileStructure exposing (..)
 import Json.Decode as Decode
-import Json.Decode.Pipeline exposing (decode, required, optional, hardcoded)
+import Json.Decode.Pipeline exposing (decode, hardcoded, optional, required)
 import Json.Encode as Encode
 
 
 {-| `File` encoder.
 
 Requires encoder for `fileMetadata`.
+
 -}
 fileEncoder : (fileMetadata -> Encode.Value) -> File fileMetadata -> Encode.Value
 fileEncoder fileMetadataEncoder (File content fileMetadata) =
@@ -22,6 +23,7 @@ fileEncoder fileMetadataEncoder (File content fileMetadata) =
 {-| `Folder` encoder.
 
 Requires encoder for `folderMetadata` and `fileMetadata`.
+
 -}
 folderEncoder :
     (folderMetadata -> Encode.Value)
@@ -39,6 +41,7 @@ folderEncoder folderMetadataEncoder fileMetadataEncoder (Folder files folders fo
 {-| `FileStructure` encoder.
 
 Requires `fsMetadata`/`folderMetadata`/`fileMetadata` encoders.
+
 -}
 encoder :
     (fsMetadata -> Encode.Value)
@@ -56,6 +59,7 @@ encoder fsMetadataEncoder folderMetadataEncoder fileMetadataEncoder (FileStructu
 {-| `File` decoder.
 
 Requires `fileMetadata` encoder.
+
 -}
 fileDecoder : Decode.Decoder fileMetadata -> Decode.Decoder (File fileMetadata)
 fileDecoder fileMetadataDecoder =
@@ -67,6 +71,7 @@ fileDecoder fileMetadataDecoder =
 {-| `Folder` decoder.
 
 Requires decoder for `fileMetadata` and `folderMetadata`.
+
 -}
 folderDecoder :
     Decode.Decoder folderMetadata
@@ -75,13 +80,14 @@ folderDecoder :
 folderDecoder folderMetadataDecoder fileMetadataDecoder =
     decode Folder
         |> required "files" (Util.decodeStringDict (fileDecoder fileMetadataDecoder))
-        |> required "folders" (Util.decodeStringDict (Decode.lazy (\_ -> (folderDecoder folderMetadataDecoder fileMetadataDecoder))))
+        |> required "folders" (Util.decodeStringDict (Decode.lazy (\_ -> folderDecoder folderMetadataDecoder fileMetadataDecoder)))
         |> required "folderMetadata" folderMetadataDecoder
 
 
 {-| `FileStructure` decoder.
 
 Requires `fsMetadata`/`folderMetadata`/`fileMetadata` decoders.
+
 -}
 decoder :
     Decode.Decoder fsMetadata

@@ -2,7 +2,7 @@ module Pages.View exposing (view)
 
 import DefaultServices.Util as Util
 import Html exposing (Html, div, img, text)
-import Html.Attributes exposing (class, src, classList)
+import Html.Attributes exposing (class, classList, src)
 import Html.Events exposing (onClick)
 import Models.ApiError as ApiError
 import Models.Bigbit as Bigbit
@@ -12,9 +12,7 @@ import Pages.Browse.View as BrowseView
 import Pages.Create.Model as CreateModel
 import Pages.Create.View as CreateView
 import Pages.CreateBigbit.Model as CreateBigbitModel
-import Pages.CreateBigbit.Model as HomeModel
 import Pages.CreateBigbit.View as CreateBigbitView
-import Pages.CreateBigbit.View as HomeView
 import Pages.CreateSnipbit.Model as CreateSnipbitModel
 import Pages.CreateSnipbit.View as CreateSnipbitView
 import Pages.DevelopStory.Model as DevelopStoryModel
@@ -38,6 +36,7 @@ import Pages.Welcome.View as WelcomeView
 {-| `Base` view.
 
 NOTE: This is the Html entry point to the entire application.
+
 -}
 view : Model -> Html.Html Msg
 view model =
@@ -128,9 +127,10 @@ signUpModal modalMessage =
 {-| Loads the correct view depending on the route we are on.
 
 NOTE: The way we structure the routing we don't need to do ANY checking here to see if the route being loaded is correct
-      (eg. maybe their loading a route that needs auth but they're not logged in) because that logic is already handled
-      in `handleLocationChange`. At the point this function is called, the user has already changed their route, we've
-      already approved that the route change is good and updated the model, and now we just need to render it.
+(eg. maybe their loading a route that needs auth but they're not logged in) because that logic is already handled
+in `handleLocationChange`. At the point this function is called, the user has already changed their route, we've
+already approved that the route change is good and updated the model, and now we just need to render it.
+
 -}
 viewForRoute : Model -> Html.Html Msg
 viewForRoute model =
@@ -168,153 +168,153 @@ viewForRoute model =
         browsePage =
             browseView model.browsePage model.shared
     in
-        case model.shared.route of
-            Route.RegisterPage ->
-                welcomePage
+    case model.shared.route of
+        Route.RegisterPage ->
+            welcomePage
 
-            Route.LoginPage ->
-                welcomePage
+        Route.LoginPage ->
+            welcomePage
 
-            Route.BrowsePage ->
-                browsePage
+        Route.BrowsePage ->
+            browsePage
 
-            Route.ViewSnipbitIntroductionPage _ _ ->
-                viewSnipbitPage
+        Route.ViewSnipbitIntroductionPage _ _ ->
+            viewSnipbitPage
 
-            Route.ViewSnipbitConclusionPage _ _ ->
-                viewSnipbitPage
+        Route.ViewSnipbitConclusionPage _ _ ->
+            viewSnipbitPage
 
-            Route.ViewSnipbitFramePage _ _ _ ->
-                viewSnipbitPage
+        Route.ViewSnipbitFramePage _ _ _ ->
+            viewSnipbitPage
 
-            Route.ViewSnipbitQuestionsPage _ _ ->
-                viewSnipbitPage
+        Route.ViewSnipbitQuestionsPage _ _ ->
+            viewSnipbitPage
 
-            Route.ViewSnipbitQuestionPage _ _ _ _ ->
-                viewSnipbitPage
+        Route.ViewSnipbitQuestionPage _ _ _ _ ->
+            viewSnipbitPage
 
-            Route.ViewSnipbitAnswersPage _ _ _ _ ->
-                viewSnipbitPage
+        Route.ViewSnipbitAnswersPage _ _ _ _ ->
+            viewSnipbitPage
 
-            Route.ViewSnipbitAnswerPage _ _ _ _ ->
-                viewSnipbitPage
+        Route.ViewSnipbitAnswerPage _ _ _ _ ->
+            viewSnipbitPage
 
-            Route.ViewSnipbitQuestionCommentsPage _ _ _ _ _ ->
-                viewSnipbitPage
+        Route.ViewSnipbitQuestionCommentsPage _ _ _ _ _ ->
+            viewSnipbitPage
 
-            Route.ViewSnipbitAnswerCommentsPage _ _ _ _ _ ->
-                viewSnipbitPage
+        Route.ViewSnipbitAnswerCommentsPage _ _ _ _ _ ->
+            viewSnipbitPage
 
-            Route.ViewSnipbitAskQuestion _ _ ->
-                viewSnipbitPage
+        Route.ViewSnipbitAskQuestion _ _ ->
+            viewSnipbitPage
 
-            Route.ViewSnipbitAnswerQuestion _ _ _ ->
-                viewSnipbitPage
+        Route.ViewSnipbitAnswerQuestion _ _ _ ->
+            viewSnipbitPage
 
-            Route.ViewSnipbitEditQuestion _ _ _ ->
-                viewSnipbitPage
+        Route.ViewSnipbitEditQuestion _ _ _ ->
+            viewSnipbitPage
 
-            Route.ViewSnipbitEditAnswer _ _ _ ->
-                viewSnipbitPage
+        Route.ViewSnipbitEditAnswer _ _ _ ->
+            viewSnipbitPage
 
-            Route.ViewBigbitIntroductionPage _ _ _ ->
-                viewBigbitPage
+        Route.ViewBigbitIntroductionPage _ _ _ ->
+            viewBigbitPage
 
-            Route.ViewBigbitFramePage _ _ _ _ ->
-                viewBigbitPage
+        Route.ViewBigbitFramePage _ _ _ _ ->
+            viewBigbitPage
 
-            Route.ViewBigbitConclusionPage _ _ _ ->
-                viewBigbitPage
+        Route.ViewBigbitConclusionPage _ _ _ ->
+            viewBigbitPage
 
-            Route.ViewBigbitQuestionsPage _ _ ->
-                viewBigbitPage
+        Route.ViewBigbitQuestionsPage _ _ ->
+            viewBigbitPage
 
-            Route.ViewBigbitQuestionPage _ _ _ _ ->
-                viewBigbitPage
+        Route.ViewBigbitQuestionPage _ _ _ _ ->
+            viewBigbitPage
 
-            Route.ViewBigbitAnswersPage _ _ _ _ ->
-                viewBigbitPage
+        Route.ViewBigbitAnswersPage _ _ _ _ ->
+            viewBigbitPage
 
-            Route.ViewBigbitAnswerPage _ _ _ _ ->
-                viewBigbitPage
+        Route.ViewBigbitAnswerPage _ _ _ _ ->
+            viewBigbitPage
 
-            Route.ViewBigbitQuestionCommentsPage _ _ _ _ _ ->
-                viewBigbitPage
+        Route.ViewBigbitQuestionCommentsPage _ _ _ _ _ ->
+            viewBigbitPage
 
-            Route.ViewBigbitAnswerCommentsPage _ _ _ _ _ ->
-                viewBigbitPage
+        Route.ViewBigbitAnswerCommentsPage _ _ _ _ _ ->
+            viewBigbitPage
 
-            Route.ViewBigbitAskQuestion _ _ ->
-                viewBigbitPage
+        Route.ViewBigbitAskQuestion _ _ ->
+            viewBigbitPage
 
-            Route.ViewBigbitEditQuestion _ _ _ ->
-                viewBigbitPage
+        Route.ViewBigbitEditQuestion _ _ _ ->
+            viewBigbitPage
 
-            Route.ViewBigbitAnswerQuestion _ _ _ ->
-                viewBigbitPage
+        Route.ViewBigbitAnswerQuestion _ _ _ ->
+            viewBigbitPage
 
-            Route.ViewBigbitEditAnswer _ _ _ ->
-                viewBigbitPage
+        Route.ViewBigbitEditAnswer _ _ _ ->
+            viewBigbitPage
 
-            Route.ViewStoryPage _ ->
-                viewStoryPage
+        Route.ViewStoryPage _ ->
+            viewStoryPage
 
-            Route.CreatePage ->
-                createPage
+        Route.CreatePage ->
+            createPage
 
-            Route.CreateSnipbitNamePage ->
-                createSnipbitPage
+        Route.CreateSnipbitNamePage ->
+            createSnipbitPage
 
-            Route.CreateSnipbitDescriptionPage ->
-                createSnipbitPage
+        Route.CreateSnipbitDescriptionPage ->
+            createSnipbitPage
 
-            Route.CreateSnipbitLanguagePage ->
-                createSnipbitPage
+        Route.CreateSnipbitLanguagePage ->
+            createSnipbitPage
 
-            Route.CreateSnipbitTagsPage ->
-                createSnipbitPage
+        Route.CreateSnipbitTagsPage ->
+            createSnipbitPage
 
-            Route.CreateSnipbitCodeIntroductionPage ->
-                createSnipbitPage
+        Route.CreateSnipbitCodeIntroductionPage ->
+            createSnipbitPage
 
-            Route.CreateSnipbitCodeFramePage _ ->
-                createSnipbitPage
+        Route.CreateSnipbitCodeFramePage _ ->
+            createSnipbitPage
 
-            Route.CreateSnipbitCodeConclusionPage ->
-                createSnipbitPage
+        Route.CreateSnipbitCodeConclusionPage ->
+            createSnipbitPage
 
-            Route.CreateBigbitNamePage ->
-                createBigbitPage
+        Route.CreateBigbitNamePage ->
+            createBigbitPage
 
-            Route.CreateBigbitDescriptionPage ->
-                createBigbitPage
+        Route.CreateBigbitDescriptionPage ->
+            createBigbitPage
 
-            Route.CreateBigbitTagsPage ->
-                createBigbitPage
+        Route.CreateBigbitTagsPage ->
+            createBigbitPage
 
-            Route.CreateBigbitCodeIntroductionPage _ ->
-                createBigbitPage
+        Route.CreateBigbitCodeIntroductionPage _ ->
+            createBigbitPage
 
-            Route.CreateBigbitCodeFramePage _ _ ->
-                createBigbitPage
+        Route.CreateBigbitCodeFramePage _ _ ->
+            createBigbitPage
 
-            Route.CreateBigbitCodeConclusionPage _ ->
-                createBigbitPage
+        Route.CreateBigbitCodeConclusionPage _ ->
+            createBigbitPage
 
-            Route.CreateStoryNamePage _ ->
-                newStoryPage
+        Route.CreateStoryNamePage _ ->
+            newStoryPage
 
-            Route.CreateStoryDescriptionPage _ ->
-                newStoryPage
+        Route.CreateStoryDescriptionPage _ ->
+            newStoryPage
 
-            Route.CreateStoryTagsPage _ ->
-                newStoryPage
+        Route.CreateStoryTagsPage _ ->
+            newStoryPage
 
-            Route.DevelopStoryPage _ ->
-                developStoryPage
+        Route.DevelopStoryPage _ ->
+            developStoryPage
 
-            Route.ProfilePage ->
-                profilePage
+        Route.ProfilePage ->
+            profilePage
 
 
 {-| `Welcome` view.
@@ -536,7 +536,7 @@ navbar model =
                     True
 
                 _ ->
-                    (List.member
+                    List.member
                         shared.route
                         [ Route.CreatePage
                         , Route.CreateSnipbitNamePage
@@ -549,77 +549,77 @@ navbar model =
                         , Route.CreateBigbitDescriptionPage
                         , Route.CreateBigbitTagsPage
                         ]
-                    )
     in
-        div
+    div
+        [ classList
+            [ ( "nav", True )
+            , ( "nav-wide-2", isWideNav2 model )
+            , ( "nav-wide-3", isWideNav3 model )
+            ]
+        ]
+        [ img
+            [ class "logo"
+            , src "assets/ct-logo-small.png"
+            ]
+            []
+        , div
             [ classList
-                [ ( "nav", True )
-                , ( "nav-wide-2", isWideNav2 model )
-                , ( "nav-wide-3", isWideNav3 model )
+                [ ( "nav-btn left code-tidbit", True )
+                , ( "hidden", Util.isNotNothing shared.user )
                 ]
+            , onClick <| GoTo Route.BrowsePage
             ]
-            [ img
-                [ class "logo"
-                , src "assets/ct-logo-small.png"
+            [ text "Code Tidbit" ]
+        , div
+            [ classList
+                [ ( "nav-btn left", True )
+                , ( "hidden", Util.isNothing shared.user )
+                , ( "selected", browseViewSelected )
                 ]
-                []
-            , div
-                [ classList
-                    [ ( "nav-btn left code-tidbit", True )
-                    , ( "hidden", Util.isNotNothing shared.user )
-                    ]
-                , onClick <| GoTo Route.BrowsePage
-                ]
-                [ text "Code Tidbit" ]
-            , div
-                [ classList
-                    [ ( "nav-btn left", True )
-                    , ( "hidden", Util.isNothing shared.user )
-                    , ( "selected", browseViewSelected )
-                    ]
-                , onClick <| GoTo Route.BrowsePage
-                ]
-                [ text "Browse" ]
-            , div
-                [ classList
-                    [ ( "nav-btn left", True )
-                    , ( "hidden", Util.isNothing shared.user )
-                    , ( "selected", createViewSelected )
-                    ]
-                , onClick <| GoTo Route.CreatePage
-                ]
-                [ text "Create" ]
-            , div
-                [ classList
-                    [ ( "nav-btn right", True )
-                    , ( "hidden", Util.isNothing shared.user )
-                    , ( "selected", profileViewSelected )
-                    ]
-                , onClick <| GoTo Route.ProfilePage
-                ]
-                [ text "Profile" ]
-            , div
-                [ classList
-                    [ ( "nav-btn sign-up right", True )
-                    , ( "hidden", Util.isNotNothing shared.user )
-                    ]
-                , onClick <| GoTo Route.RegisterPage
-                ]
-                [ text "Sign Up" ]
-            , div
-                [ classList
-                    [ ( "nav-btn login right", True )
-                    , ( "hidden", Util.isNotNothing shared.user )
-                    ]
-                , onClick <| GoTo Route.LoginPage
-                ]
-                [ text "Login" ]
+            , onClick <| GoTo Route.BrowsePage
             ]
+            [ text "Browse" ]
+        , div
+            [ classList
+                [ ( "nav-btn left", True )
+                , ( "hidden", Util.isNothing shared.user )
+                , ( "selected", createViewSelected )
+                ]
+            , onClick <| GoTo Route.CreatePage
+            ]
+            [ text "Create" ]
+        , div
+            [ classList
+                [ ( "nav-btn right", True )
+                , ( "hidden", Util.isNothing shared.user )
+                , ( "selected", profileViewSelected )
+                ]
+            , onClick <| GoTo Route.ProfilePage
+            ]
+            [ text "Profile" ]
+        , div
+            [ classList
+                [ ( "nav-btn sign-up right", True )
+                , ( "hidden", Util.isNotNothing shared.user )
+                ]
+            , onClick <| GoTo Route.RegisterPage
+            ]
+            [ text "Sign Up" ]
+        , div
+            [ classList
+                [ ( "nav-btn login right", True )
+                , ( "hidden", Util.isNotNothing shared.user )
+                ]
+            , onClick <| GoTo Route.LoginPage
+            ]
+            [ text "Login" ]
+        ]
 
 
 {-| Returns true if the nav needs to be `$min-width-supported-2` wide.
 
 Currently wide-mode-2 is required for viewing bigbits when the FS is expanded.
+
 -}
 isWideNav2 : Model -> Bool
 isWideNav2 model =
@@ -627,23 +627,24 @@ isWideNav2 model =
         viewBigbitFSOpen =
             ViewBigbitModel.isBigbitFSOpen model.viewBigbitPage.bigbit
     in
-        case model.shared.route of
-            Route.ViewBigbitIntroductionPage _ _ _ ->
-                viewBigbitFSOpen
+    case model.shared.route of
+        Route.ViewBigbitIntroductionPage _ _ _ ->
+            viewBigbitFSOpen
 
-            Route.ViewBigbitFramePage _ _ _ _ ->
-                viewBigbitFSOpen
+        Route.ViewBigbitFramePage _ _ _ _ ->
+            viewBigbitFSOpen
 
-            Route.ViewBigbitConclusionPage _ _ _ ->
-                viewBigbitFSOpen
+        Route.ViewBigbitConclusionPage _ _ _ ->
+            viewBigbitFSOpen
 
-            _ ->
-                False
+        _ ->
+            False
 
 
 {-| Returns true if the nav needs to be `$min-width-supported-3` wide.
 
 Currently wide-mode-3 is required for creating bigbits when the fs is expanded.
+
 -}
 isWideNav3 : Model -> Bool
 isWideNav3 model =
@@ -651,15 +652,15 @@ isWideNav3 model =
         createBigbitFSOpen =
             Bigbit.isFSOpen model.createBigbitPage.fs
     in
-        case model.shared.route of
-            Route.CreateBigbitCodeIntroductionPage _ ->
-                createBigbitFSOpen
+    case model.shared.route of
+        Route.CreateBigbitCodeIntroductionPage _ ->
+            createBigbitFSOpen
 
-            Route.CreateBigbitCodeFramePage _ _ ->
-                createBigbitFSOpen
+        Route.CreateBigbitCodeFramePage _ _ ->
+            createBigbitFSOpen
 
-            Route.CreateBigbitCodeConclusionPage _ ->
-                createBigbitFSOpen
+        Route.CreateBigbitCodeConclusionPage _ ->
+            createBigbitFSOpen
 
-            _ ->
-                False
+        _ ->
+            False

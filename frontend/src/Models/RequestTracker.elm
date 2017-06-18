@@ -14,6 +14,7 @@ import ProjectTypeAliases exposing (..)
 NOTE: We will be `toString`ing these and using them as they key. So if you add parameters to the constructors, passing
 in different parameters will result in different requests being tracked. Only use parameters if you specifically want
 to track certain versions of a request differently.
+
 -}
 type TrackedRequest
     = LoginOrRegister
@@ -59,7 +60,7 @@ startRequest trackedRequest =
         (\maybeCount ->
             maybeCount
                 ?> 0
-                |> ((+) 1)
+                |> (+) 1
                 |> Just
         )
 

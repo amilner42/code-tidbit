@@ -6,7 +6,7 @@ import JSON.Bigbit
 import JSON.QA
 import JSON.TutorialBookmark
 import Json.Decode as Decode
-import Json.Decode.Pipeline exposing (decode, required, optional, hardcoded)
+import Json.Decode.Pipeline exposing (decode, hardcoded, optional, required)
 import Json.Encode as Encode
 import Models.TutorialBookmark as TB
 import Pages.ViewBigbit.Model exposing (..)

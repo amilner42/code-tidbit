@@ -2,7 +2,7 @@ module JSON.Language exposing (..)
 
 import Elements.Simple.Editor exposing (..)
 import Json.Decode as Decode
-import Json.Decode.Pipeline exposing (decode, required, optional, hardcoded)
+import Json.Decode.Pipeline exposing (decode, hardcoded, optional, required)
 import Json.Encode as Encode
 
 
@@ -183,5 +183,5 @@ decoder =
                 _ ->
                     Decode.fail <| encodedLanguage ++ " is not a valid encoded string."
     in
-        Decode.string
-            |> Decode.andThen fromStringDecoder
+    Decode.string
+        |> Decode.andThen fromStringDecoder

@@ -3,7 +3,7 @@ module JSON.ViewerRelevantHC exposing (..)
 import Array
 import DefaultServices.Util as Util
 import Json.Decode as Decode
-import Json.Decode.Pipeline exposing (decode, required, optional, hardcoded)
+import Json.Decode.Pipeline exposing (decode, hardcoded, optional, required)
 import Json.Encode as Encode
 import Models.ViewerRelevantHC exposing (..)
 

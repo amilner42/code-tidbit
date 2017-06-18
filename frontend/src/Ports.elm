@@ -19,6 +19,7 @@ port loadModelFromLocalStorage : () -> Cmd msg
 @param querySelector For finding the element
 @param duration Number of milliseconds for scroll to take.
 @param extraScroll Extra pixels to scroll vertically.
+
 -}
 port doScrolling : { querySelector : String, duration : Int, extraScroll : Int } -> Cmd msg
 

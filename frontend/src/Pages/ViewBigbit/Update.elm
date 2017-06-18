@@ -124,27 +124,27 @@ update (Common common) msg model shared =
                                         (OnGetBigbitSuccess requireLoadingQAPreRender)
                                     )
                             in
-                                case model.bigbit of
-                                    Nothing ->
+                            case model.bigbit of
+                                Nothing ->
+                                    getBigbit
+
+                                Just bigbit ->
+                                    if bigbit.id == bigbitID then
+                                        common.justProduceCmd <|
+                                            if not requireLoadingQAPreRender then
+                                                createViewBigbitCodeEditor bigbit shared
+                                            else
+                                                case model.qa of
+                                                    Nothing ->
+                                                        Cmd.none
+
+                                                    Just qa ->
+                                                        createViewBigbitQACodeEditor
+                                                            ( bigbit, qa, model.qaState )
+                                                            model.bookmark
+                                                            shared
+                                    else
                                         getBigbit
-
-                                    Just bigbit ->
-                                        if bigbit.id == bigbitID then
-                                            common.justProduceCmd <|
-                                                if not requireLoadingQAPreRender then
-                                                    createViewBigbitCodeEditor bigbit shared
-                                                else
-                                                    case model.qa of
-                                                        Nothing ->
-                                                            Cmd.none
-
-                                                        Just qa ->
-                                                            createViewBigbitQACodeEditor
-                                                                ( bigbit, qa, model.qaState )
-                                                                model.bookmark
-                                                                shared
-                                        else
-                                            getBigbit
 
                         -- Handle getting bigbit is-completed if needed.
                         handleGetBigbitIsCompleted (Common common) ( model, shared ) =
@@ -159,18 +159,18 @@ update (Common common) msg model shared =
                                         (OnGetCompletedSuccess << Completed.IsCompleted currentTidbitPointer)
                                     )
                             in
-                                case ( shared.user, model.isCompleted ) of
-                                    ( Just user, Just currentCompleted ) ->
-                                        if currentCompleted.tidbitPointer == currentTidbitPointer then
-                                            common.doNothing
-                                        else
-                                            getBigbitIsCompleted user.id
-
-                                    ( Just user, Nothing ) ->
+                            case ( shared.user, model.isCompleted ) of
+                                ( Just user, Just currentCompleted ) ->
+                                    if currentCompleted.tidbitPointer == currentTidbitPointer then
+                                        common.doNothing
+                                    else
                                         getBigbitIsCompleted user.id
 
-                                    _ ->
-                                        common.doNothing
+                                ( Just user, Nothing ) ->
+                                    getBigbitIsCompleted user.id
+
+                                _ ->
+                                    common.doNothing
 
                         handleGetBigbitOpinion (Common common) ( model, shared ) =
                             let
@@ -185,21 +185,21 @@ update (Common common) msg model shared =
                                     , common.api.get.opinion
                                         contentPointer
                                         OnGetOpinionFailure
-                                        (OnGetOpinionSuccess << (Opinion.PossibleOpinion contentPointer))
+                                        (OnGetOpinionSuccess << Opinion.PossibleOpinion contentPointer)
                                     )
                             in
-                                case ( shared.user, model.possibleOpinion ) of
-                                    ( Just user, Just { contentPointer, rating } ) ->
-                                        if contentPointer.contentID == bigbitID then
-                                            common.doNothing
-                                        else
-                                            getOpinion
-
-                                    ( Just user, Nothing ) ->
+                            case ( shared.user, model.possibleOpinion ) of
+                                ( Just user, Just { contentPointer, rating } ) ->
+                                    if contentPointer.contentID == bigbitID then
+                                        common.doNothing
+                                    else
                                         getOpinion
 
-                                    _ ->
-                                        common.doNothing
+                                ( Just user, Nothing ) ->
+                                    getOpinion
+
+                                _ ->
+                                    common.doNothing
 
                         handleGetStoryForBigbit (Common common) ( model, shared ) =
                             let
@@ -212,18 +212,18 @@ update (Common common) msg model shared =
                                         OnGetExpandedStoryFailure
                                         OnGetExpandedStorySuccess
                             in
-                                case Route.getFromStoryQueryParamOnViewBigbitRoute shared.route of
-                                    Just fromStoryID ->
-                                        if Just fromStoryID == maybeViewingStoryID then
-                                            common.doNothing
-                                        else
-                                            ( model
-                                            , { shared | viewingStory = Nothing }
-                                            , getStory fromStoryID
-                                            )
+                            case Route.getFromStoryQueryParamOnViewBigbitRoute shared.route of
+                                Just fromStoryID ->
+                                    if Just fromStoryID == maybeViewingStoryID then
+                                        common.doNothing
+                                    else
+                                        ( model
+                                        , { shared | viewingStory = Nothing }
+                                        , getStory fromStoryID
+                                        )
 
-                                    _ ->
-                                        common.justSetShared { shared | viewingStory = Nothing }
+                                _ ->
+                                    common.justSetShared { shared | viewingStory = Nothing }
 
                         handleGetQA (Common common) ( model, shared ) =
                             let
@@ -236,147 +236,146 @@ update (Common common) msg model shared =
                                         (OnGetQASuccess requireLoadingQAPreRender)
                                     )
                             in
-                                case model.qa of
-                                    Nothing ->
+                            case model.qa of
+                                Nothing ->
+                                    getQA
+
+                                Just qa ->
+                                    if qa.tidbitID == bigbitID then
+                                        common.justProduceCmd <|
+                                            if not requireLoadingQAPreRender then
+                                                Cmd.none
+                                            else
+                                                case model.bigbit of
+                                                    Nothing ->
+                                                        Cmd.none
+
+                                                    Just bigbit ->
+                                                        createViewBigbitQACodeEditor
+                                                            ( bigbit, qa, model.qaState )
+                                                            model.bookmark
+                                                            shared
+                                    else
                                         getQA
-
-                                    Just qa ->
-                                        if qa.tidbitID == bigbitID then
-                                            common.justProduceCmd <|
-                                                if not requireLoadingQAPreRender then
-                                                    Cmd.none
-                                                else
-                                                    case model.bigbit of
-                                                        Nothing ->
-                                                            Cmd.none
-
-                                                        Just bigbit ->
-                                                            createViewBigbitQACodeEditor
-                                                                ( bigbit, qa, model.qaState )
-                                                                model.bookmark
-                                                                shared
-                                        else
-                                            getQA
                     in
-                        common.handleAll
-                            [ handleGetBigbit
-                            , handleGetBigbitIsCompleted
-                            , handleGetBigbitOpinion
-                            , handleGetStoryForBigbit
-                            , handleGetQA
-                            ]
+                    common.handleAll
+                        [ handleGetBigbit
+                        , handleGetBigbitIsCompleted
+                        , handleGetBigbitOpinion
+                        , handleGetStoryForBigbit
+                        , handleGetQA
+                        ]
             in
-                case route of
-                    Route.ViewBigbitIntroductionPage _ bigbitID _ ->
-                        common.handleAll
-                            [ clearStateOnRouteHit
-                            , setBookmark TB.Introduction
-                            , fetchOrRenderViewBigbitData False bigbitID
-                            ]
+            case route of
+                Route.ViewBigbitIntroductionPage _ bigbitID _ ->
+                    common.handleAll
+                        [ clearStateOnRouteHit
+                        , setBookmark TB.Introduction
+                        , fetchOrRenderViewBigbitData False bigbitID
+                        ]
 
-                    Route.ViewBigbitFramePage _ bigbitID frameNumber _ ->
-                        common.handleAll
-                            [ clearStateOnRouteHit
-                            , setBookmark <| TB.FrameNumber frameNumber
-                            , fetchOrRenderViewBigbitData False bigbitID
-                            ]
+                Route.ViewBigbitFramePage _ bigbitID frameNumber _ ->
+                    common.handleAll
+                        [ clearStateOnRouteHit
+                        , setBookmark <| TB.FrameNumber frameNumber
+                        , fetchOrRenderViewBigbitData False bigbitID
+                        ]
 
-                    Route.ViewBigbitConclusionPage _ bigbitID _ ->
-                        common.handleAll
-                            [ clearStateOnRouteHit
-                            , setBookmark TB.Conclusion
-                            , fetchOrRenderViewBigbitData False bigbitID
+                Route.ViewBigbitConclusionPage _ bigbitID _ ->
+                    common.handleAll
+                        [ clearStateOnRouteHit
+                        , setBookmark TB.Conclusion
+                        , fetchOrRenderViewBigbitData False bigbitID
 
-                            -- Setting completed if not already complete.
-                            , (\(Common common) ( model, shared ) ->
-                                common.justProduceCmd <|
-                                    case ( shared.user, model.isCompleted ) of
-                                        ( Just user, Just isCompleted ) ->
-                                            let
-                                                completed =
-                                                    Completed.completedFromIsCompleted isCompleted user.id
-                                            in
-                                                if isCompleted.complete == False then
-                                                    common.api.post.addCompleted
-                                                        completed
-                                                        OnMarkAsCompleteFailure
-                                                        (always <|
-                                                            OnMarkAsCompleteSuccess <|
-                                                                Completed.IsCompleted completed.tidbitPointer True
-                                                        )
-                                                else
-                                                    Cmd.none
-
-                                        _ ->
+                        -- Setting completed if not already complete.
+                        , \(Common common) ( model, shared ) ->
+                            common.justProduceCmd <|
+                                case ( shared.user, model.isCompleted ) of
+                                    ( Just user, Just isCompleted ) ->
+                                        let
+                                            completed =
+                                                Completed.completedFromIsCompleted isCompleted user.id
+                                        in
+                                        if isCompleted.complete == False then
+                                            common.api.post.addCompleted
+                                                completed
+                                                OnMarkAsCompleteFailure
+                                                (always <|
+                                                    OnMarkAsCompleteSuccess <|
+                                                        Completed.IsCompleted completed.tidbitPointer True
+                                                )
+                                        else
                                             Cmd.none
-                              )
-                            ]
 
-                    Route.ViewBigbitQuestionsPage _ bigbitID ->
-                        common.handleAll
-                            [ clearStateOnRouteHit
-                            , fetchOrRenderViewBigbitData True bigbitID
-                            ]
+                                    _ ->
+                                        Cmd.none
+                        ]
 
-                    Route.ViewBigbitQuestionPage _ _ bigbitID _ ->
-                        common.handleAll
-                            [ clearStateOnRouteHit
-                            , fetchOrRenderViewBigbitData True bigbitID
-                            ]
+                Route.ViewBigbitQuestionsPage _ bigbitID ->
+                    common.handleAll
+                        [ clearStateOnRouteHit
+                        , fetchOrRenderViewBigbitData True bigbitID
+                        ]
 
-                    Route.ViewBigbitAnswersPage _ _ bigbitID _ ->
-                        common.handleAll
-                            [ clearStateOnRouteHit
-                            , fetchOrRenderViewBigbitData True bigbitID
-                            ]
+                Route.ViewBigbitQuestionPage _ _ bigbitID _ ->
+                    common.handleAll
+                        [ clearStateOnRouteHit
+                        , fetchOrRenderViewBigbitData True bigbitID
+                        ]
 
-                    Route.ViewBigbitAnswerPage _ _ bigbitID _ ->
-                        common.handleAll
-                            [ clearStateOnRouteHit
-                            , fetchOrRenderViewBigbitData True bigbitID
-                            , clearDeletingAnswers bigbitID
-                            ]
+                Route.ViewBigbitAnswersPage _ _ bigbitID _ ->
+                    common.handleAll
+                        [ clearStateOnRouteHit
+                        , fetchOrRenderViewBigbitData True bigbitID
+                        ]
 
-                    Route.ViewBigbitQuestionCommentsPage _ _ bigbitID _ _ ->
-                        common.handleAll
-                            [ clearStateOnRouteHit
-                            , fetchOrRenderViewBigbitData True bigbitID
-                            , clearDeletingComments bigbitID
-                            ]
+                Route.ViewBigbitAnswerPage _ _ bigbitID _ ->
+                    common.handleAll
+                        [ clearStateOnRouteHit
+                        , fetchOrRenderViewBigbitData True bigbitID
+                        , clearDeletingAnswers bigbitID
+                        ]
 
-                    Route.ViewBigbitAnswerCommentsPage _ _ bigbitID _ _ ->
-                        common.handleAll
-                            [ clearStateOnRouteHit
-                            , fetchOrRenderViewBigbitData True bigbitID
-                            , clearDeletingComments bigbitID
-                            ]
+                Route.ViewBigbitQuestionCommentsPage _ _ bigbitID _ _ ->
+                    common.handleAll
+                        [ clearStateOnRouteHit
+                        , fetchOrRenderViewBigbitData True bigbitID
+                        , clearDeletingComments bigbitID
+                        ]
 
-                    Route.ViewBigbitAskQuestion _ bigbitID ->
-                        common.handleAll
-                            [ clearStateOnRouteHit
-                            , fetchOrRenderViewBigbitData True bigbitID
-                            ]
+                Route.ViewBigbitAnswerCommentsPage _ _ bigbitID _ _ ->
+                    common.handleAll
+                        [ clearStateOnRouteHit
+                        , fetchOrRenderViewBigbitData True bigbitID
+                        , clearDeletingComments bigbitID
+                        ]
 
-                    Route.ViewBigbitEditQuestion _ bigbitID _ ->
-                        common.handleAll
-                            [ clearStateOnRouteHit
-                            , fetchOrRenderViewBigbitData True bigbitID
-                            ]
+                Route.ViewBigbitAskQuestion _ bigbitID ->
+                    common.handleAll
+                        [ clearStateOnRouteHit
+                        , fetchOrRenderViewBigbitData True bigbitID
+                        ]
 
-                    Route.ViewBigbitAnswerQuestion _ bigbitID _ ->
-                        common.handleAll
-                            [ clearStateOnRouteHit
-                            , fetchOrRenderViewBigbitData True bigbitID
-                            ]
+                Route.ViewBigbitEditQuestion _ bigbitID _ ->
+                    common.handleAll
+                        [ clearStateOnRouteHit
+                        , fetchOrRenderViewBigbitData True bigbitID
+                        ]
 
-                    Route.ViewBigbitEditAnswer _ bigbitID _ ->
-                        common.handleAll
-                            [ clearStateOnRouteHit
-                            , fetchOrRenderViewBigbitData True bigbitID
-                            ]
+                Route.ViewBigbitAnswerQuestion _ bigbitID _ ->
+                    common.handleAll
+                        [ clearStateOnRouteHit
+                        , fetchOrRenderViewBigbitData True bigbitID
+                        ]
 
-                    _ ->
-                        common.doNothing
+                Route.ViewBigbitEditAnswer _ bigbitID _ ->
+                    common.handleAll
+                        [ clearStateOnRouteHit
+                        , fetchOrRenderViewBigbitData True bigbitID
+                        ]
+
+                _ ->
+                    common.doNothing
 
         OnRangeSelected selectedRange ->
             let
@@ -439,97 +438,97 @@ update (Common common) msg model shared =
                         Nothing ->
                             common.doNothing
             in
-                case ( maybeCurrentActiveFile, shared.route ) of
-                    ( Just currentActiveFile, Route.ViewBigbitIntroductionPage _ _ _ ) ->
-                        common.handleAll
-                            [ handleSetTutorialCodePointer currentActiveFile
-                            , handleFindRelevantFrames currentActiveFile
-                            , handleFindRelevantQuestions currentActiveFile
-                            ]
+            case ( maybeCurrentActiveFile, shared.route ) of
+                ( Just currentActiveFile, Route.ViewBigbitIntroductionPage _ _ _ ) ->
+                    common.handleAll
+                        [ handleSetTutorialCodePointer currentActiveFile
+                        , handleFindRelevantFrames currentActiveFile
+                        , handleFindRelevantQuestions currentActiveFile
+                        ]
 
-                    ( Just currentActiveFile, Route.ViewBigbitFramePage _ _ _ _ ) ->
-                        common.handleAll
-                            [ handleSetTutorialCodePointer currentActiveFile
-                            , handleFindRelevantFrames currentActiveFile
-                            , handleFindRelevantQuestions currentActiveFile
-                            ]
+                ( Just currentActiveFile, Route.ViewBigbitFramePage _ _ _ _ ) ->
+                    common.handleAll
+                        [ handleSetTutorialCodePointer currentActiveFile
+                        , handleFindRelevantFrames currentActiveFile
+                        , handleFindRelevantQuestions currentActiveFile
+                        ]
 
-                    ( Just currentActiveFile, Route.ViewBigbitConclusionPage _ _ _ ) ->
-                        common.handleAll
-                            [ handleSetTutorialCodePointer currentActiveFile
-                            , handleFindRelevantFrames currentActiveFile
-                            , handleFindRelevantQuestions currentActiveFile
-                            ]
+                ( Just currentActiveFile, Route.ViewBigbitConclusionPage _ _ _ ) ->
+                    common.handleAll
+                        [ handleSetTutorialCodePointer currentActiveFile
+                        , handleFindRelevantFrames currentActiveFile
+                        , handleFindRelevantQuestions currentActiveFile
+                        ]
 
-                    ( Just _, Route.ViewBigbitQuestionsPage _ bigbitID ) ->
-                        case QA.getBrowseCodePointer bigbitID model.qaState of
-                            Just codePointer ->
-                                common.justSetModel
-                                    { model
-                                        | qaState =
-                                            QA.setBrowsingCodePointer
-                                                bigbitID
-                                                (Just { codePointer | range = selectedRange })
-                                                model.qaState
-                                    }
+                ( Just _, Route.ViewBigbitQuestionsPage _ bigbitID ) ->
+                    case QA.getBrowseCodePointer bigbitID model.qaState of
+                        Just codePointer ->
+                            common.justSetModel
+                                { model
+                                    | qaState =
+                                        QA.setBrowsingCodePointer
+                                            bigbitID
+                                            (Just { codePointer | range = selectedRange })
+                                            model.qaState
+                                }
 
-                            -- No active file (impossible, outer case checks for file).
-                            Nothing ->
-                                common.doNothing
+                        -- No active file (impossible, outer case checks for file).
+                        Nothing ->
+                            common.doNothing
 
-                    ( Just _, Route.ViewBigbitAskQuestion _ bigbitID ) ->
-                        case QA.getNewQuestion bigbitID model.qaState |||> .codePointer of
-                            Just codePointer ->
-                                common.justSetModel
-                                    { model
-                                        | qaState =
-                                            QA.updateNewQuestion
-                                                bigbitID
-                                                (\newQuestion ->
-                                                    { newQuestion
-                                                        | codePointer = Just { codePointer | range = selectedRange }
-                                                    }
-                                                )
-                                                model.qaState
-                                    }
+                ( Just _, Route.ViewBigbitAskQuestion _ bigbitID ) ->
+                    case QA.getNewQuestion bigbitID model.qaState |||> .codePointer of
+                        Just codePointer ->
+                            common.justSetModel
+                                { model
+                                    | qaState =
+                                        QA.updateNewQuestion
+                                            bigbitID
+                                            (\newQuestion ->
+                                                { newQuestion
+                                                    | codePointer = Just { codePointer | range = selectedRange }
+                                                }
+                                            )
+                                            model.qaState
+                                }
 
-                            -- No active file (impossible, outer case checks for file).
-                            Nothing ->
-                                common.doNothing
+                        -- No active file (impossible, outer case checks for file).
+                        Nothing ->
+                            common.doNothing
 
-                    ( Just _, Route.ViewBigbitEditQuestion _ bigbitID questionID ) ->
-                        case model.qa ||> .questions |||> QA.getQuestion questionID of
-                            Just question ->
-                                common.justSetModel
-                                    { model
-                                        | qaState =
-                                            QA.updateQuestionEdit
-                                                bigbitID
-                                                questionID
-                                                (\maybeQuestionEdit ->
-                                                    maybeQuestionEdit
-                                                        ?> QA.questionEditFromQuestion question
-                                                        |> (\questionEdit ->
-                                                                { questionEdit
-                                                                    | codePointer =
-                                                                        Editable.updateBuffer
-                                                                            questionEdit.codePointer
-                                                                            (\codePointer ->
-                                                                                { codePointer | range = selectedRange }
-                                                                            )
-                                                                }
-                                                           )
-                                                        |> Just
-                                                )
-                                                model.qaState
-                                    }
+                ( Just _, Route.ViewBigbitEditQuestion _ bigbitID questionID ) ->
+                    case model.qa ||> .questions |||> QA.getQuestion questionID of
+                        Just question ->
+                            common.justSetModel
+                                { model
+                                    | qaState =
+                                        QA.updateQuestionEdit
+                                            bigbitID
+                                            questionID
+                                            (\maybeQuestionEdit ->
+                                                maybeQuestionEdit
+                                                    ?> QA.questionEditFromQuestion question
+                                                    |> (\questionEdit ->
+                                                            { questionEdit
+                                                                | codePointer =
+                                                                    Editable.updateBuffer
+                                                                        questionEdit.codePointer
+                                                                        (\codePointer ->
+                                                                            { codePointer | range = selectedRange }
+                                                                        )
+                                                            }
+                                                       )
+                                                    |> Just
+                                            )
+                                            model.qaState
+                                }
 
-                            -- Means that editing a non-existant question, should never happen (will have redirected).
-                            _ ->
-                                common.doNothing
+                        -- Means that editing a non-existant question, should never happen (will have redirected).
+                        _ ->
+                            common.doNothing
 
-                    _ ->
-                        common.doNothing
+                _ ->
+                    common.doNothing
 
         OnGetBigbitSuccess requireLoadingQAPreRender bigbit ->
             ( Util.multipleUpdates
@@ -570,7 +569,7 @@ update (Common common) msg model shared =
                     common.justProduceCmd <|
                         common.api.post.addOpinion opinion OnAddOpinionFailure (always <| OnAddOpinionSuccess opinion)
             in
-                common.makeSingletonRequest (RT.AddOrRemoveOpinion TidbitPointer.Bigbit) addOpinionAction
+            common.makeSingletonRequest (RT.AddOrRemoveOpinion TidbitPointer.Bigbit) addOpinionAction
 
         OnAddOpinionSuccess opinion ->
             common.justSetModel { model | possibleOpinion = Just (Opinion.toPossibleOpinion opinion) }
@@ -589,7 +588,7 @@ update (Common common) msg model shared =
                             OnRemoveOpinionFailure
                             (always <| OnRemoveOpinionSuccess opinion)
             in
-                common.makeSingletonRequest (RT.AddOrRemoveOpinion TidbitPointer.Bigbit) removeOpinionAction
+            common.makeSingletonRequest (RT.AddOrRemoveOpinion TidbitPointer.Bigbit) removeOpinionAction
 
         {- Currently it doesn't matter what opinion we removed because you can only have 1, but it may change in the
            future where we have multiple opinions, then use the `opinion` to figure out which to remove.
@@ -630,99 +629,98 @@ update (Common common) msg model shared =
                                 _ ->
                                     Nothing
                     in
-                        if Just absolutePath == tutorialFile then
-                            common.justProduceCmd <|
-                                Route.navigateToSameUrlWithFilePath Nothing shared.route
-                        else
-                            common.justProduceCmd <|
-                                Route.navigateToSameUrlWithFilePath (Just absolutePath) shared.route
+                    if Just absolutePath == tutorialFile then
+                        common.justProduceCmd <|
+                            Route.navigateToSameUrlWithFilePath Nothing shared.route
+                    else
+                        common.justProduceCmd <|
+                            Route.navigateToSameUrlWithFilePath (Just absolutePath) shared.route
 
                 refreshCmd =
                     Route.modifyTo shared.route
             in
-                case shared.route of
-                    Route.ViewBigbitIntroductionPage _ _ _ ->
-                        handleFileSelectOnTutorialRoute
+            case shared.route of
+                Route.ViewBigbitIntroductionPage _ _ _ ->
+                    handleFileSelectOnTutorialRoute
 
-                    Route.ViewBigbitFramePage _ _ _ _ ->
-                        handleFileSelectOnTutorialRoute
+                Route.ViewBigbitFramePage _ _ _ _ ->
+                    handleFileSelectOnTutorialRoute
 
-                    Route.ViewBigbitConclusionPage _ _ _ ->
-                        handleFileSelectOnTutorialRoute
+                Route.ViewBigbitConclusionPage _ _ _ ->
+                    handleFileSelectOnTutorialRoute
 
-                    Route.ViewBigbitQuestionsPage _ bigbitID ->
-                        ( { model
-                            | qaState =
-                                QA.setBrowsingCodePointer
-                                    bigbitID
-                                    (Just { file = absolutePath, range = Range.zeroRange })
-                                    model.qaState
-                          }
-                        , shared
-                        , refreshCmd
-                        )
+                Route.ViewBigbitQuestionsPage _ bigbitID ->
+                    ( { model
+                        | qaState =
+                            QA.setBrowsingCodePointer
+                                bigbitID
+                                (Just { file = absolutePath, range = Range.zeroRange })
+                                model.qaState
+                      }
+                    , shared
+                    , refreshCmd
+                    )
 
-                    Route.ViewBigbitAskQuestion _ bigbitID ->
-                        ( { model
-                            | qaState =
-                                QA.updateNewQuestion
-                                    bigbitID
-                                    (\newQuestion ->
-                                        { newQuestion
-                                            | codePointer = Just { file = absolutePath, range = Range.zeroRange }
-                                        }
-                                    )
-                                    model.qaState
-                          }
-                        , shared
-                        , refreshCmd
-                        )
-
-                    Route.ViewBigbitEditQuestion _ bigbitID questionID ->
-                        case model.qa ||> .questions |||> QA.getQuestion questionID of
-                            Just question ->
-                                ( { model
-                                    | qaState =
-                                        QA.updateQuestionEdit
-                                            bigbitID
-                                            questionID
-                                            (\maybeQuestionEdit ->
-                                                maybeQuestionEdit
-                                                    ?> QA.questionEditFromQuestion question
-                                                    |> (\questionEdit ->
-                                                            { questionEdit
-                                                                | codePointer =
-                                                                    Editable.setBuffer
-                                                                        questionEdit.codePointer
-                                                                        { file = absolutePath
-                                                                        , range = Range.zeroRange
-                                                                        }
-                                                            }
-                                                       )
-                                                    |> Just
-                                            )
-                                            model.qaState
-                                  }
-                                , shared
-                                , refreshCmd
+                Route.ViewBigbitAskQuestion _ bigbitID ->
+                    ( { model
+                        | qaState =
+                            QA.updateNewQuestion
+                                bigbitID
+                                (\newQuestion ->
+                                    { newQuestion
+                                        | codePointer = Just { file = absolutePath, range = Range.zeroRange }
+                                    }
                                 )
+                                model.qaState
+                      }
+                    , shared
+                    , refreshCmd
+                    )
 
-                            -- Should never happen (will have redirected).
-                            Nothing ->
-                                common.doNothing
+                Route.ViewBigbitEditQuestion _ bigbitID questionID ->
+                    case model.qa ||> .questions |||> QA.getQuestion questionID of
+                        Just question ->
+                            ( { model
+                                | qaState =
+                                    QA.updateQuestionEdit
+                                        bigbitID
+                                        questionID
+                                        (\maybeQuestionEdit ->
+                                            maybeQuestionEdit
+                                                ?> QA.questionEditFromQuestion question
+                                                |> (\questionEdit ->
+                                                        { questionEdit
+                                                            | codePointer =
+                                                                Editable.setBuffer
+                                                                    questionEdit.codePointer
+                                                                    { file = absolutePath
+                                                                    , range = Range.zeroRange
+                                                                    }
+                                                        }
+                                                   )
+                                                |> Just
+                                        )
+                                        model.qaState
+                              }
+                            , shared
+                            , refreshCmd
+                            )
 
-                    _ ->
-                        common.doNothing
+                        -- Should never happen (will have redirected).
+                        Nothing ->
+                            common.doNothing
+
+                _ ->
+                    common.doNothing
 
         ToggleFolder absolutePath ->
             common.justUpdateModel <|
                 updateBigbit <|
-                    (\currentViewingBigbit ->
+                    \currentViewingBigbit ->
                         { currentViewingBigbit
                             | fs =
                                 Bigbit.toggleFSFolder absolutePath currentViewingBigbit.fs
                         }
-                    )
 
         BrowseRelevantHC ->
             let
@@ -735,39 +733,39 @@ update (Common common) msg model shared =
                         )
                         model
             in
-                ( newModel
-                , shared
-                , createViewBigbitHCCodeEditor
-                    newModel.bigbit
-                    newModel.relevantHC
-                    shared.user
-                )
+            ( newModel
+            , shared
+            , createViewBigbitHCCodeEditor
+                newModel.bigbit
+                newModel.relevantHC
+                shared.user
+            )
 
         NextRelevantHC ->
             let
                 newModel =
                     updateRelevantHC ViewerRelevantHC.goToNextFrame model
             in
-                ( newModel
-                , shared
-                , createViewBigbitHCCodeEditor
-                    newModel.bigbit
-                    newModel.relevantHC
-                    shared.user
-                )
+            ( newModel
+            , shared
+            , createViewBigbitHCCodeEditor
+                newModel.bigbit
+                newModel.relevantHC
+                shared.user
+            )
 
         PreviousRelevantHC ->
             let
                 newModel =
                     updateRelevantHC ViewerRelevantHC.goToPreviousFrame model
             in
-                ( newModel
-                , shared
-                , createViewBigbitHCCodeEditor
-                    newModel.bigbit
-                    newModel.relevantHC
-                    shared.user
-                )
+            ( newModel
+            , shared
+            , createViewBigbitHCCodeEditor
+                newModel.bigbit
+                newModel.relevantHC
+                shared.user
+            )
 
         OnMarkAsCompleteSuccess isCompleted ->
             common.justUpdateModel <| setIsCompleted <| Just isCompleted
@@ -815,10 +813,10 @@ update (Common common) msg model shared =
                 ( newAskQuestionModel, newAskQuestionMsg ) =
                     AskQuestion.update askQuestionMsg askQuestionModel
             in
-                ( { model | qaState = model.qaState |> QA.updateNewQuestion bigbitID (always newAskQuestionModel) }
-                , shared
-                , Cmd.map (AskQuestionMsg bigbitID) newAskQuestionMsg
-                )
+            ( { model | qaState = model.qaState |> QA.updateNewQuestion bigbitID (always newAskQuestionModel) }
+            , shared
+            , Cmd.map (AskQuestionMsg bigbitID) newAskQuestionMsg
+            )
 
         AskQuestion bigbitID codePointer questionText ->
             let
@@ -831,7 +829,7 @@ update (Common common) msg model shared =
                             OnAskQuestionFailure
                             (OnAskQuestionSuccess bigbitID)
             in
-                common.makeSingletonRequest (RT.AskQuestion TidbitPointer.Bigbit) askQuestionAction
+            common.makeSingletonRequest (RT.AskQuestion TidbitPointer.Bigbit) askQuestionAction
 
         OnAskQuestionSuccess bigbitID question ->
             (case model.qa of
@@ -871,17 +869,17 @@ update (Common common) msg model shared =
                 ( newEditQuestionModel, newQuestionEditMsg ) =
                     EditQuestion.update editQuestionMsg editQuestionModel
             in
-                ( { model
-                    | qaState =
-                        QA.updateQuestionEdit
-                            bigbitID
-                            question.id
-                            (always <| Just newEditQuestionModel)
-                            model.qaState
-                  }
-                , shared
-                , Cmd.map (EditQuestionMsg bigbitID question) newQuestionEditMsg
-                )
+            ( { model
+                | qaState =
+                    QA.updateQuestionEdit
+                        bigbitID
+                        question.id
+                        (always <| Just newEditQuestionModel)
+                        model.qaState
+              }
+            , shared
+            , Cmd.map (EditQuestionMsg bigbitID question) newQuestionEditMsg
+            )
 
         EditQuestion bigbitID questionID questionText codePointer ->
             let
@@ -895,7 +893,7 @@ update (Common common) msg model shared =
                             OnEditQuestionFailure
                             (OnEditQuestionSuccess bigbitID questionID questionText codePointer)
             in
-                common.makeSingletonRequest (RT.UpdateQuestion TidbitPointer.Bigbit) editQuestionAction
+            common.makeSingletonRequest (RT.UpdateQuestion TidbitPointer.Bigbit) editQuestionAction
 
         OnEditQuestionSuccess bigbitID questionID questionText codePointer lastModified ->
             (case model.qa of
@@ -947,17 +945,17 @@ update (Common common) msg model shared =
                 ( newAnswerQuestionModel, newAnswerQuestionMsg ) =
                     AnswerQuestion.update answerQuestionMsg answerQuestionModel
             in
-                ( { model
-                    | qaState =
-                        model.qaState
-                            |> QA.updateNewAnswer
-                                bigbitID
-                                question.id
-                                (always <| Just <| newAnswerQuestionModel)
-                  }
-                , shared
-                , Cmd.map (AnswerQuestionMsg bigbitID question) newAnswerQuestionMsg
-                )
+            ( { model
+                | qaState =
+                    model.qaState
+                        |> QA.updateNewAnswer
+                            bigbitID
+                            question.id
+                            (always <| Just <| newAnswerQuestionModel)
+              }
+            , shared
+            , Cmd.map (AnswerQuestionMsg bigbitID question) newAnswerQuestionMsg
+            )
 
         AnswerQuestion bigbitID questionID answerText ->
             let
@@ -970,7 +968,7 @@ update (Common common) msg model shared =
                             OnAnswerQuestionFailure
                             (OnAnswerQuestionSuccess bigbitID questionID)
             in
-                common.makeSingletonRequest (RT.AnswerQuestion TidbitPointer.Bigbit) answerQuestionAction
+            common.makeSingletonRequest (RT.AnswerQuestion TidbitPointer.Bigbit) answerQuestionAction
 
         OnAnswerQuestionSuccess bigbitID questionID answer ->
             (case model.qa of
@@ -1007,14 +1005,14 @@ update (Common common) msg model shared =
                 ( newEditAnswerModel, newEditAnswerMsg ) =
                     EditAnswer.update editAnswerMsg editAnswerModel
             in
-                ( { model
-                    | qaState =
-                        model.qaState
-                            |> QA.updateAnswerEdit bigbitID answer.id (always <| Just <| newEditAnswerModel)
-                  }
-                , shared
-                , Cmd.map (EditAnswerMsg bigbitID answer) newEditAnswerMsg
-                )
+            ( { model
+                | qaState =
+                    model.qaState
+                        |> QA.updateAnswerEdit bigbitID answer.id (always <| Just <| newEditAnswerModel)
+              }
+            , shared
+            , Cmd.map (EditAnswerMsg bigbitID answer) newEditAnswerMsg
+            )
 
         EditAnswer bigbitID answerID answerText ->
             let
@@ -1027,7 +1025,7 @@ update (Common common) msg model shared =
                             OnEditAnswerFailure
                             (OnEditAnswerSuccess bigbitID answerID answerText)
             in
-                common.makeSingletonRequest (RT.UpdateAnswer TidbitPointer.Bigbit) updateAnswerAction
+            common.makeSingletonRequest (RT.UpdateAnswer TidbitPointer.Bigbit) updateAnswerAction
 
         OnEditAnswerSuccess bigbitID answerID answerText lastModified ->
             (case model.qa of
@@ -1073,19 +1071,19 @@ update (Common common) msg model shared =
                 ( newViewQuestionModel, newViewQuestionMsg ) =
                     ViewQuestion.update viewQuestionMsg viewQuestionModel
             in
-                ( { model
-                    | qaState =
-                        model.qaState
-                            |> QA.updateQuestionCommentEdits bigbitID (always newViewQuestionModel.questionCommentEdits)
-                            |> QA.setNewQuestionComment bigbitID questionID (Just newViewQuestionModel.newQuestionComment)
-                            |> QA.updateAnswerCommentEdits bigbitID (always newViewQuestionModel.answerCommentEdits)
-                            |> QA.updateNewAnswerComments bigbitID (always newViewQuestionModel.newAnswerComments)
-                            |> QA.updateDeletingComments bigbitID (always newViewQuestionModel.deletingComments)
-                            |> QA.updateDeletingAnswers bigbitID (always newViewQuestionModel.deletingAnswers)
-                  }
-                , shared
-                , Cmd.map (ViewQuestionMsg bigbitID questionID) newViewQuestionMsg
-                )
+            ( { model
+                | qaState =
+                    model.qaState
+                        |> QA.updateQuestionCommentEdits bigbitID (always newViewQuestionModel.questionCommentEdits)
+                        |> QA.setNewQuestionComment bigbitID questionID (Just newViewQuestionModel.newQuestionComment)
+                        |> QA.updateAnswerCommentEdits bigbitID (always newViewQuestionModel.answerCommentEdits)
+                        |> QA.updateNewAnswerComments bigbitID (always newViewQuestionModel.newAnswerComments)
+                        |> QA.updateDeletingComments bigbitID (always newViewQuestionModel.deletingComments)
+                        |> QA.updateDeletingAnswers bigbitID (always newViewQuestionModel.deletingAnswers)
+              }
+            , shared
+            , Cmd.map (ViewQuestionMsg bigbitID questionID) newViewQuestionMsg
+            )
 
         RateQuestion bigbitID questionID maybeVote ->
             let
@@ -1107,7 +1105,7 @@ update (Common common) msg model shared =
                                     OnRateQuestionFailure
                                     (always <| OnRateQuestionSuccess questionID maybeVote)
             in
-                common.makeSingletonRequest (RT.RateQuestion TidbitPointer.Bigbit) rateQuestionAction
+            common.makeSingletonRequest (RT.RateQuestion TidbitPointer.Bigbit) rateQuestionAction
 
         OnRateQuestionSuccess questionID maybeVote ->
             common.justSetModel { model | qa = model.qa ||> QA.rateQuestion questionID maybeVote }
@@ -1137,10 +1135,10 @@ update (Common common) msg model shared =
                                     OnRateAnswerFailure
                                     (always <| OnRateAnswerSuccess answerID maybeVote)
             in
-                if RT.isNotMakingRequest shared.apiRequestTracker (RT.DeleteAnswer TidbitPointer.Bigbit) then
-                    common.makeSingletonRequest (RT.RateAnswer TidbitPointer.Bigbit) rateAnswerAction
-                else
-                    common.doNothing
+            if RT.isNotMakingRequest shared.apiRequestTracker (RT.DeleteAnswer TidbitPointer.Bigbit) then
+                common.makeSingletonRequest (RT.RateAnswer TidbitPointer.Bigbit) rateAnswerAction
+            else
+                common.doNothing
 
         OnRateAnswerSuccess answerID maybeVote ->
             common.justSetModel { model | qa = model.qa ||> QA.rateAnswer answerID maybeVote }
@@ -1161,7 +1159,7 @@ update (Common common) msg model shared =
                             OnPinQuestionFailure
                             (always <| OnPinQuestionSuccess questionID pinQuestion)
             in
-                common.makeSingletonRequest (RT.PinQuestion TidbitPointer.Bigbit) pinQuestionAction
+            common.makeSingletonRequest (RT.PinQuestion TidbitPointer.Bigbit) pinQuestionAction
 
         OnPinQuestionSuccess questionID pinQuestion ->
             common.justSetModel { model | qa = model.qa ||> QA.pinQuestion questionID pinQuestion }
@@ -1182,10 +1180,10 @@ update (Common common) msg model shared =
                             OnPinAnswerFailure
                             (always <| OnPinAnswerSuccess answerID pinAnswer)
             in
-                if RT.isNotMakingRequest shared.apiRequestTracker (RT.DeleteAnswer TidbitPointer.Bigbit) then
-                    common.makeSingletonRequest (RT.PinAnswer TidbitPointer.Bigbit) pinAnswerAction
-                else
-                    common.doNothing
+            if RT.isNotMakingRequest shared.apiRequestTracker (RT.DeleteAnswer TidbitPointer.Bigbit) then
+                common.makeSingletonRequest (RT.PinAnswer TidbitPointer.Bigbit) pinAnswerAction
+            else
+                common.doNothing
 
         OnPinAnswerSuccess answerID pinAnswer ->
             common.justSetModel { model | qa = model.qa ||> QA.pinAnswer answerID pinAnswer }
@@ -1205,7 +1203,7 @@ update (Common common) msg model shared =
                             OnDeleteAnswerFailure
                             (always <| OnDeleteAnswerSuccess bigbitID questionID answerID)
             in
-                common.makeSingletonRequest (RT.DeleteAnswer TidbitPointer.Bigbit) deleteAnswerAction
+            common.makeSingletonRequest (RT.DeleteAnswer TidbitPointer.Bigbit) deleteAnswerAction
 
         OnDeleteAnswerSuccess bigbitID questionID answerID ->
             (case model.qa of
@@ -1223,18 +1221,18 @@ update (Common common) msg model shared =
                                 |> QA.updateAnswerEdit bigbitID answerID (always Nothing)
                                 |> QA.deleteOldAnswerCommentEdits bigbitID updatedQA.answerComments
                     in
-                        ( { model
-                            | qa = Just updatedQA
-                            , qaState = updatedQAState
-                          }
-                        , shared
-                        , Route.navigateTo <|
-                            Route.ViewBigbitAnswersPage
-                                (Route.getFromStoryQueryParamOnViewBigbitRoute shared.route)
-                                (Route.getTouringQuestionsQueryParamOnViewBigbitQARoute shared.route)
-                                bigbitID
-                                questionID
-                        )
+                    ( { model
+                        | qa = Just updatedQA
+                        , qaState = updatedQAState
+                      }
+                    , shared
+                    , Route.navigateTo <|
+                        Route.ViewBigbitAnswersPage
+                            (Route.getFromStoryQueryParamOnViewBigbitRoute shared.route)
+                            (Route.getTouringQuestionsQueryParamOnViewBigbitQARoute shared.route)
+                            bigbitID
+                            questionID
+                    )
 
                 Nothing ->
                     common.doNothing
@@ -1256,7 +1254,7 @@ update (Common common) msg model shared =
                             OnSubmitCommentOnQuestionFailure
                             (OnSubmitCommentOnQuestionSuccess bigbitID questionID)
             in
-                common.makeSingletonRequest (RT.SubmitQuestionComment TidbitPointer.Bigbit) submitQuestionCommentAction
+            common.makeSingletonRequest (RT.SubmitQuestionComment TidbitPointer.Bigbit) submitQuestionCommentAction
 
         OnSubmitCommentOnQuestionSuccess bigbitID questionID questionComment ->
             common.justSetModel
@@ -1282,7 +1280,7 @@ update (Common common) msg model shared =
                             OnSubmitCommentOnAnswerFailure
                             (OnSubmitCommentOnAnswerSuccess bigbitID questionID answerID)
             in
-                common.makeSingletonRequest (RT.SubmitAnswerComment TidbitPointer.Bigbit) submitAnswerCommentAction
+            common.makeSingletonRequest (RT.SubmitAnswerComment TidbitPointer.Bigbit) submitAnswerCommentAction
 
         OnSubmitCommentOnAnswerSuccess bigbitID questionID answerID answerComment ->
             common.justSetModel
@@ -1306,17 +1304,16 @@ update (Common common) msg model shared =
                             (OnDeleteCommentOnQuestionFailure commentID)
                             (always <| OnDeleteCommentOnQuestionSuccess bigbitID commentID)
             in
-                common.makeSingletonRequest
-                    (RT.DeleteQuestionComment TidbitPointer.Bigbit commentID)
-                    deleteQuestionCommentAction
+            common.makeSingletonRequest
+                (RT.DeleteQuestionComment TidbitPointer.Bigbit commentID)
+                deleteQuestionCommentAction
 
         OnDeleteCommentOnQuestionSuccess bigbitID commentID ->
-            (common.justSetModel
+            common.justSetModel
                 { model
                     | qa = model.qa ||> QA.deleteQuestionComment commentID
                     , qaState = model.qaState |> QA.updateQuestionCommentEdits bigbitID (Dict.remove commentID)
                 }
-            )
                 |> common.andFinishRequest (RT.DeleteQuestionComment TidbitPointer.Bigbit commentID)
 
         OnDeleteCommentOnQuestionFailure commentID apiError ->
@@ -1333,9 +1330,9 @@ update (Common common) msg model shared =
                             (OnDeleteCommentOnAnswerFailure commentID)
                             (always <| OnDeleteCommentOnAnswerSuccess bigbitID commentID)
             in
-                common.makeSingletonRequest
-                    (RT.DeleteAnswerComment TidbitPointer.Bigbit commentID)
-                    deleteAnswerCommentAction
+            common.makeSingletonRequest
+                (RT.DeleteAnswerComment TidbitPointer.Bigbit commentID)
+                deleteAnswerCommentAction
 
         OnDeleteCommentOnAnswerSuccess bigbitID commentID ->
             common.justSetModel
@@ -1360,9 +1357,9 @@ update (Common common) msg model shared =
                             (OnEditCommentOnQuestionFailure commentID)
                             (OnEditCommentOnQuestionSuccess bigbitID commentID commentText)
             in
-                common.makeSingletonRequest
-                    (RT.EditQuestionComment TidbitPointer.Bigbit commentID)
-                    editQuestionCommentAction
+            common.makeSingletonRequest
+                (RT.EditQuestionComment TidbitPointer.Bigbit commentID)
+                editQuestionCommentAction
 
         OnEditCommentOnQuestionSuccess bigbitID commentID commentText lastModified ->
             common.justSetModel
@@ -1390,9 +1387,9 @@ update (Common common) msg model shared =
                             (OnEditCommentOnAnswerFailure commentID)
                             (OnEditCommentOnAnswerSuccess bigbitID commentID commentText)
             in
-                common.makeSingletonRequest
-                    (RT.EditAnswerComment TidbitPointer.Bigbit commentID)
-                    editAnswerCommentAction
+            common.makeSingletonRequest
+                (RT.EditAnswerComment TidbitPointer.Bigbit commentID)
+                editAnswerCommentAction
 
         OnEditCommentOnAnswerSuccess bigbitID commentID commentText lastModified ->
             common.justSetModel
@@ -1413,6 +1410,7 @@ update (Common common) msg model shared =
 {-| Creates the code editor for the bigbit when browsing relevant HC.
 
 This will only create the editor if the state of the model (the `Maybe`s) makes it appropriate to render the editor.
+
 -}
 createViewBigbitHCCodeEditor : Maybe Bigbit.Bigbit -> Maybe ViewingBigbitRelevantHC -> Maybe User.User -> Cmd msg
 createViewBigbitHCCodeEditor maybeBigbit maybeRHC user =
@@ -1422,27 +1420,27 @@ createViewBigbitHCCodeEditor maybeBigbit maybeRHC user =
                 editorWithRange range language code =
                     bigbitEditor "" (Just language) user code (Just range) { useMarker = True, selectAllowed = False }
             in
-                case currentHC of
-                    Nothing ->
-                        Cmd.none
+            case currentHC of
+                Nothing ->
+                    Cmd.none
 
-                    Just index ->
-                        Array.get index relevantHC
-                            |> maybeMapWithDefault
-                                (Tuple.second
-                                    >> (\{ range, file } ->
-                                            FS.getFile bigbit.fs file
-                                                |> maybeMapWithDefault
-                                                    (\(FS.File content metadata) ->
-                                                        editorWithRange
-                                                            range
-                                                            metadata.language
-                                                            content
-                                                    )
-                                                    Cmd.none
-                                       )
-                                )
-                                Cmd.none
+                Just index ->
+                    Array.get index relevantHC
+                        |> maybeMapWithDefault
+                            (Tuple.second
+                                >> (\{ range, file } ->
+                                        FS.getFile bigbit.fs file
+                                            |> maybeMapWithDefault
+                                                (\(FS.File content metadata) ->
+                                                    editorWithRange
+                                                        range
+                                                        metadata.language
+                                                        content
+                                                )
+                                                Cmd.none
+                                   )
+                            )
+                            Cmd.none
 
         _ ->
             Cmd.none
@@ -1451,6 +1449,7 @@ createViewBigbitHCCodeEditor maybeBigbit maybeRHC user =
 {-| Based on the maybePath and the bigbit creates the editor.
 
 Will handle redirects if file path is invalid or frameNumber is invalid.
+
 -}
 createViewBigbitCodeEditor : Bigbit.Bigbit -> Shared -> Cmd msg
 createViewBigbitCodeEditor bigbit { route, user } =
@@ -1474,52 +1473,53 @@ createViewBigbitCodeEditor bigbit { route, user } =
                                 Nothing
                                 { useMarker = True, selectAllowed = True }
     in
-        Cmd.batch
-            [ case route of
-                Route.ViewBigbitIntroductionPage fromStoryID _ maybePath ->
-                    loadFileWithNoHighlight fromStoryID maybePath
+    Cmd.batch
+        [ case route of
+            Route.ViewBigbitIntroductionPage fromStoryID _ maybePath ->
+                loadFileWithNoHighlight fromStoryID maybePath
 
-                Route.ViewBigbitFramePage fromStoryID _ frameNumber maybePath ->
-                    case Array.get (frameNumber - 1) bigbit.highlightedComments of
-                        Nothing ->
-                            if frameNumber > (Array.length bigbit.highlightedComments) then
-                                Route.modifyTo <| Route.ViewBigbitConclusionPage fromStoryID bigbit.id Nothing
-                            else
-                                Route.modifyTo <| Route.ViewBigbitIntroductionPage fromStoryID bigbit.id Nothing
+            Route.ViewBigbitFramePage fromStoryID _ frameNumber maybePath ->
+                case Array.get (frameNumber - 1) bigbit.highlightedComments of
+                    Nothing ->
+                        if frameNumber > Array.length bigbit.highlightedComments then
+                            Route.modifyTo <| Route.ViewBigbitConclusionPage fromStoryID bigbit.id Nothing
+                        else
+                            Route.modifyTo <| Route.ViewBigbitIntroductionPage fromStoryID bigbit.id Nothing
 
-                        Just hc ->
-                            case maybePath of
-                                Nothing ->
-                                    case FS.getFile bigbit.fs hc.file of
-                                        -- Should never happen, comments should always be pointing to valid files.
-                                        Nothing ->
-                                            Cmd.none
+                    Just hc ->
+                        case maybePath of
+                            Nothing ->
+                                case FS.getFile bigbit.fs hc.file of
+                                    -- Should never happen, comments should always be pointing to valid files.
+                                    Nothing ->
+                                        Cmd.none
 
-                                        Just (FS.File content { language }) ->
-                                            bigbitEditor
-                                                hc.file
-                                                (Just language)
-                                                user
-                                                content
-                                                (Just hc.range)
-                                                { useMarker = True, selectAllowed = True }
+                                    Just (FS.File content { language }) ->
+                                        bigbitEditor
+                                            hc.file
+                                            (Just language)
+                                            user
+                                            content
+                                            (Just hc.range)
+                                            { useMarker = True, selectAllowed = True }
 
-                                Just absolutePath ->
-                                    loadFileWithNoHighlight fromStoryID maybePath
+                            Just absolutePath ->
+                                loadFileWithNoHighlight fromStoryID maybePath
 
-                Route.ViewBigbitConclusionPage fromStoryID _ maybePath ->
-                    loadFileWithNoHighlight fromStoryID maybePath
+            Route.ViewBigbitConclusionPage fromStoryID _ maybePath ->
+                loadFileWithNoHighlight fromStoryID maybePath
 
-                _ ->
-                    Cmd.none
-            , Ports.smoothScrollToBottom
-            ]
+            _ ->
+                Cmd.none
+        , Ports.smoothScrollToBottom
+        ]
 
 
 {-| Creates the code editor for routes which require both the bigbit and the QA.
 
 Will handle redirects if required (for example the content doesn't exist or if the user tries editing content that isn't
 theirs). Will redirect to the appropriate route based on the bookmark (same as resuming the tutorial).
+
 -}
 createViewBigbitQACodeEditor :
     ( Bigbit.Bigbit, QA.BigbitQA, QA.BigbitQAState )
@@ -1633,29 +1633,29 @@ createViewBigbitQACodeEditor ( bigbit, qa, qaState ) bookmark { user, route } =
                                     )
                                 ?> False
                     in
-                        if isAuthor then
-                            qaState
-                                |> QA.getQuestionEdit bigbitID questionID
-                                ||> (.codePointer >> Editable.getBuffer)
-                                ||> (\{ file, range } ->
-                                        FS.getFile bigbit.fs file
-                                            ||> (\(FS.File content { language }) ->
-                                                    bigbitEditor
-                                                        file
-                                                        (Just language)
-                                                        user
-                                                        content
-                                                        (Just range)
-                                                        { useMarker = False, selectAllowed = True }
-                                                )
-                                            ?> redirectToTutorial maybeStoryID
-                                    )
-                                ?> createEditorForQuestionID
-                                    maybeStoryID
-                                    questionID
-                                    { useMarker = False, selectAllowed = True }
-                        else
-                            redirectToTutorial maybeStoryID
+                    if isAuthor then
+                        qaState
+                            |> QA.getQuestionEdit bigbitID questionID
+                            ||> (.codePointer >> Editable.getBuffer)
+                            ||> (\{ file, range } ->
+                                    FS.getFile bigbit.fs file
+                                        ||> (\(FS.File content { language }) ->
+                                                bigbitEditor
+                                                    file
+                                                    (Just language)
+                                                    user
+                                                    content
+                                                    (Just range)
+                                                    { useMarker = False, selectAllowed = True }
+                                            )
+                                        ?> redirectToTutorial maybeStoryID
+                                )
+                            ?> createEditorForQuestionID
+                                maybeStoryID
+                                questionID
+                                { useMarker = False, selectAllowed = True }
+                    else
+                        redirectToTutorial maybeStoryID
 
                 Route.ViewBigbitAnswerQuestion maybeStoryID _ questionID ->
                     createEditorForQuestionID maybeStoryID questionID { useMarker = True, selectAllowed = False }
@@ -1667,18 +1667,18 @@ createViewBigbitQACodeEditor ( bigbit, qa, qaState ) bookmark { user, route } =
                                 |||> (\{ authorID } -> user ||> .id ||> (==) authorID)
                                 ?> False
                     in
-                        if isAuthor then
-                            createEditorForAnswerID maybeStoryID answerID { useMarker = True, selectAllowed = False }
-                        else
-                            redirectToTutorial maybeStoryID
+                    if isAuthor then
+                        createEditorForAnswerID maybeStoryID answerID { useMarker = True, selectAllowed = False }
+                    else
+                        redirectToTutorial maybeStoryID
 
                 _ ->
                     Cmd.none
     in
-        Cmd.batch
-            [ createEditorForRoute
-            , Ports.smoothScrollToBottom
-            ]
+    Cmd.batch
+        [ createEditorForRoute
+        , Ports.smoothScrollToBottom
+        ]
 
 
 {-| Wrapper for creating a blank editor.

@@ -69,7 +69,7 @@ isFSOpen (FS.FileStructure _ { openFS }) =
 -}
 toggleFS : FS.FileStructure { a | openFS : Bool } b c -> FS.FileStructure { a | openFS : Bool } b c
 toggleFS (FS.FileStructure tree fsMetadata) =
-    FS.FileStructure tree { fsMetadata | openFS = (not fsMetadata.openFS) }
+    FS.FileStructure tree { fsMetadata | openFS = not fsMetadata.openFS }
 
 
 {-| Closes the FS.

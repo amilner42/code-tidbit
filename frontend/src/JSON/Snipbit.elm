@@ -5,7 +5,7 @@ import DefaultServices.Util as Util
 import JSON.Language
 import JSON.Range
 import Json.Decode as Decode
-import Json.Decode.Pipeline exposing (decode, required, optional, hardcoded)
+import Json.Decode.Pipeline exposing (decode, hardcoded, optional, required)
 import Json.Encode as Encode
 import Models.Snipbit exposing (..)
 

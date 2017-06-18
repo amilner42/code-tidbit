@@ -33,7 +33,7 @@ onFirstFrame =
 -}
 onLastFrame : ViewerRelevantHC a -> Bool
 onLastFrame vr =
-    vr.currentHC == Just ((Array.length vr.relevantHC) - 1)
+    vr.currentHC == Just (Array.length vr.relevantHC - 1)
 
 
 {-| Returns the current frame and the total number of frames, 1-based-indexing.
@@ -84,7 +84,7 @@ goToPreviousFrame vr =
             if onFirstFrame vr then
                 vr.currentHC
             else
-                Maybe.map ((flip (-)) 1) vr.currentHC
+                Maybe.map (flip (-) 1) vr.currentHC
     }
 
 
@@ -99,8 +99,8 @@ relevantHCTextAboveFrameSpecifyingPosition ( current, total ) =
           else
             text <|
                 "On frame "
-                    ++ (toString current)
+                    ++ toString current
                     ++ " of the "
-                    ++ (toString total)
+                    ++ toString total
                     ++ " frames that are related to your selection"
         ]

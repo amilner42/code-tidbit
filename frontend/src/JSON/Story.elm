@@ -5,7 +5,7 @@ import JSON.Language
 import JSON.Tidbit
 import JSON.TidbitPointer
 import Json.Decode as Decode
-import Json.Decode.Pipeline exposing (decode, required, optional, hardcoded)
+import Json.Decode.Pipeline exposing (decode, hardcoded, optional, required)
 import Json.Encode as Encode
 import Models.Story exposing (..)
 

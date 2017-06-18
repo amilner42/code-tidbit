@@ -12,9 +12,9 @@ import Elements.Complex.EditQuestion as EditQuestion
 import Elements.Complex.ViewQuestion as ViewQuestion
 import Elements.Simple.Editor as Editor
 import Elements.Simple.Markdown as Markdown
-import Elements.Simple.ProgressBar as ProgressBar exposing (TextFormat(Custom), State(..))
+import Elements.Simple.ProgressBar as ProgressBar exposing (State(..), TextFormat(Custom))
 import Elements.Simple.QuestionList as QuestionList
-import Html exposing (Html, div, text, button, i, textarea)
+import Html exposing (Html, button, div, i, text, textarea)
 import Html.Attributes exposing (class, classList, disabled, hidden, id, placeholder, value)
 import Html.Events exposing (onClick, onInput)
 import Models.Completed as Completed
@@ -63,18 +63,18 @@ view model shared =
                                     , "Take Back Love"
                                     )
                     in
-                        button
-                            [ classList
-                                [ ( "sub-bar-button heart-button", True )
-                                , ( "cursor-progress"
-                                  , RT.isMakingRequest
-                                        shared.apiRequestTracker
-                                        (RT.AddOrRemoveOpinion TidbitPointer.Snipbit)
-                                  )
-                                ]
-                            , onClick <| newMsg
+                    button
+                        [ classList
+                            [ ( "sub-bar-button heart-button", True )
+                            , ( "cursor-progress"
+                              , RT.isMakingRequest
+                                    shared.apiRequestTracker
+                                    (RT.AddOrRemoveOpinion TidbitPointer.Snipbit)
+                              )
                             ]
-                            [ text buttonText ]
+                        , onClick <| newMsg
+                        ]
+                        [ text buttonText ]
 
                 _ ->
                     Util.hiddenDiv
@@ -212,7 +212,7 @@ view model shared =
                                         _ ->
                                             False
                                     )
-                                        || (isViewSnipbitRHCTabOpen model)
+                                        || isViewSnipbitRHCTabOpen model
                                         || Route.isOnViewSnipbitQARoute shared.route
                                   )
                                 ]
@@ -287,15 +287,14 @@ view model shared =
                                     _ ->
                                         False
                                 )
-                                    && (maybeMapWithDefault
-                                            (not << ViewerRelevantHC.browsingFrames)
-                                            True
-                                            model.relevantHC
-                                       )
+                                    && maybeMapWithDefault
+                                        (not << ViewerRelevantHC.browsingFrames)
+                                        True
+                                        model.relevantHC
                             , textFormat =
                                 Custom
                                     { notStarted = "0%"
-                                    , started = (\frameNumber -> "Frame " ++ (toString frameNumber))
+                                    , started = \frameNumber -> "Frame " ++ toString frameNumber
                                     , done = "100%"
                                     }
                             , shiftLeft = True
@@ -346,12 +345,12 @@ view model shared =
                                         _ ->
                                             False
                                     )
-                                        || (isViewSnipbitRHCTabOpen model)
+                                        || isViewSnipbitRHCTabOpen model
                                         || Route.isOnViewSnipbitQARoute shared.route
                                   )
                                 ]
                             , onClick <|
-                                if (isViewSnipbitRHCTabOpen model) then
+                                if isViewSnipbitRHCTabOpen model then
                                     NoOp
                                 else
                                     case shared.route of
@@ -392,10 +391,9 @@ commentBox snipbit model shared =
                         snipbit.conclusion
 
                     Route.ViewSnipbitFramePage _ _ frameNumber ->
-                        (Array.get
+                        Array.get
                             (frameNumber - 1)
                             snipbit.highlightedComments
-                        )
                             |> Maybe.map .comment
                             |> Maybe.withDefault ""
 
@@ -440,7 +438,7 @@ commentBox snipbit model shared =
                                                     << Route.ViewSnipbitFramePage
                                                         (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
                                                         snipbit.id
-                                                    << ((+) 1)
+                                                    << (+) 1
                                                     << Tuple.first
                                                 )
                                             |> Maybe.withDefault NoOp
@@ -523,16 +521,15 @@ commentBox snipbit model shared =
                             question.id
                             Nothing
                 , goToAnswerTab =
-                    (\answer ->
+                    \answer ->
                         GoTo <|
                             Route.ViewSnipbitAnswerPage
                                 (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
                                 (Route.getTouringQuestionsQueryParamOnViewSnipbitQARoute shared.route)
                                 snipbit.id
                                 answer.id
-                    )
                 , goToAnswerCommentsTab =
-                    (\answer ->
+                    \answer ->
                         GoTo <|
                             Route.ViewSnipbitAnswerCommentsPage
                                 (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
@@ -540,9 +537,8 @@ commentBox snipbit model shared =
                                 snipbit.id
                                 answer.id
                                 Nothing
-                    )
                 , goToQuestionComment =
-                    (\questionComment ->
+                    \questionComment ->
                         GoTo <|
                             Route.ViewSnipbitQuestionCommentsPage
                                 (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
@@ -550,9 +546,8 @@ commentBox snipbit model shared =
                                 snipbit.id
                                 questionComment.questionID
                                 (Just questionComment.id)
-                    )
                 , goToAnswerComment =
-                    (\answerComment ->
+                    \answerComment ->
                         GoTo <|
                             Route.ViewSnipbitAnswerCommentsPage
                                 (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
@@ -560,7 +555,6 @@ commentBox snipbit model shared =
                                 snipbit.id
                                 answerComment.answerID
                                 (Just answerComment.id)
-                    )
                 , goToAnswerQuestion =
                     case shared.user of
                         Just _ ->
@@ -591,14 +585,14 @@ commentBox snipbit model shared =
                 , removeUpvoteQuestion = RateQuestion snipbit.id question.id Nothing
                 , downvoteQuestion = RateQuestion snipbit.id question.id (Just Vote.Downvote)
                 , removeDownvoteQuestion = RateQuestion snipbit.id question.id Nothing
-                , upvoteAnswer = (\answer -> RateAnswer snipbit.id answer.id (Just Vote.Upvote))
-                , removeUpvoteAnswer = (\answer -> RateAnswer snipbit.id answer.id Nothing)
-                , downvoteAnswer = (\answer -> RateAnswer snipbit.id answer.id (Just Vote.Downvote))
-                , removeDownvoteAnswer = (\answer -> RateAnswer snipbit.id answer.id Nothing)
+                , upvoteAnswer = \answer -> RateAnswer snipbit.id answer.id (Just Vote.Upvote)
+                , removeUpvoteAnswer = \answer -> RateAnswer snipbit.id answer.id Nothing
+                , downvoteAnswer = \answer -> RateAnswer snipbit.id answer.id (Just Vote.Downvote)
+                , removeDownvoteAnswer = \answer -> RateAnswer snipbit.id answer.id Nothing
                 , pinQuestion = PinQuestion snipbit.id question.id True
                 , unpinQuestion = PinQuestion snipbit.id question.id False
-                , pinAnswer = (\answer -> PinAnswer snipbit.id answer.id True)
-                , unpinAnswer = (\answer -> PinAnswer snipbit.id answer.id False)
+                , pinAnswer = \answer -> PinAnswer snipbit.id answer.id True
+                , unpinAnswer = \answer -> PinAnswer snipbit.id answer.id False
                 , deleteAnswer = .id >> DeleteAnswer snipbit.id question.id
                 , commentOnQuestion = SubmitCommentOnQuestion snipbit.id question.id
                 , commentOnAnswer = SubmitCommentOnAnswer snipbit.id question.id
@@ -616,224 +610,223 @@ commentBox snipbit model shared =
                 , deletingAnswers = QA.getDeletingAnswers snipbit.id qaState
                 }
     in
-        case shared.route of
-            Route.ViewSnipbitIntroductionPage _ _ ->
-                tutorialRoute
+    case shared.route of
+        Route.ViewSnipbitIntroductionPage _ _ ->
+            tutorialRoute
 
-            Route.ViewSnipbitConclusionPage _ _ ->
-                tutorialRoute
+        Route.ViewSnipbitConclusionPage _ _ ->
+            tutorialRoute
 
-            Route.ViewSnipbitFramePage _ _ _ ->
-                tutorialRoute
+        Route.ViewSnipbitFramePage _ _ _ ->
+            tutorialRoute
 
-            Route.ViewSnipbitQuestionsPage maybeStoryID snipbitID ->
-                case model.qa of
-                    Just { questions } ->
-                        let
-                            ( isHighlighting, remainingQuestions ) =
-                                case QA.getBrowseCodePointer snipbitID model.qaState of
-                                    Nothing ->
+        Route.ViewSnipbitQuestionsPage maybeStoryID snipbitID ->
+            case model.qa of
+                Just { questions } ->
+                    let
+                        ( isHighlighting, remainingQuestions ) =
+                            case QA.getBrowseCodePointer snipbitID model.qaState of
+                                Nothing ->
+                                    ( False, questions )
+
+                                Just codePointer ->
+                                    if Range.isEmptyRange codePointer then
                                         ( False, questions )
-
-                                    Just codePointer ->
-                                        if Range.isEmptyRange codePointer then
-                                            ( False, questions )
-                                        else
-                                            ( True
-                                            , List.filter
-                                                (.codePointer >> Range.overlappingRanges codePointer)
-                                                questions
-                                            )
-                        in
-                            div
-                                [ class "view-questions" ]
-                                [ QuestionList.view
-                                    { questionBoxRenderConfig =
-                                        { onClickQuestionBox =
-                                            (\question ->
-                                                GoTo <|
-                                                    Route.ViewSnipbitQuestionPage
-                                                        (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
-                                                        Nothing
-                                                        snipbitID
-                                                        question.id
-                                            )
-                                        }
-                                    , isHighlighting = isHighlighting
-                                    , allQuestionText = "All Questions"
-                                    , noQuestionsDuringSearchText = "None found"
-                                    , noQuestionsNotDuringSearchText = "Be the first to ask a question"
-                                    , askQuestion =
-                                        case shared.user of
-                                            Just _ ->
-                                                GoToAskQuestion
-
-                                            Nothing ->
-                                                SetUserNeedsAuthModal
-                                                    ("We want to answer your question, sign up for free and get access"
-                                                        ++ " to all of CodeTidbit in seconds!"
-                                                    )
-                                    }
-                                    remainingQuestions
-                                ]
-
-                    Nothing ->
-                        Util.hiddenDiv
-
-            Route.ViewSnipbitQuestionPage maybeStoryID maybeTouringQuestions snipbitID questionID ->
-                case model.qa of
-                    Just qa ->
-                        case QA.getQuestion questionID qa.questions of
-                            Just question ->
-                                viewQuestionView qa model.qaState ViewQuestion.QuestionTab question
-
-                            Nothing ->
-                                Util.hiddenDiv
-
-                    Nothing ->
-                        Util.hiddenDiv
-
-            Route.ViewSnipbitAnswersPage maybeStoryID maybeTouringQuestions snipbitID questionID ->
-                case model.qa of
-                    Just qa ->
-                        case QA.getQuestion questionID qa.questions of
-                            Just question ->
-                                viewQuestionView qa model.qaState ViewQuestion.AnswersTab question
-
-                            Nothing ->
-                                Util.hiddenDiv
-
-                    Nothing ->
-                        Util.hiddenDiv
-
-            Route.ViewSnipbitAnswerPage maybeStoryID maybeTouringQuestions snipbitID answerID ->
-                case model.qa of
-                    Just qa ->
-                        case QA.getQuestionByAnswerID answerID qa of
-                            Just question ->
-                                viewQuestionView qa model.qaState (ViewQuestion.AnswerTab answerID) question
-
-                            Nothing ->
-                                Util.hiddenDiv
-
-                    Nothing ->
-                        Util.hiddenDiv
-
-            Route.ViewSnipbitQuestionCommentsPage maybeStoryID maybeTouringQuestions snipbitID questionID maybeCommentID ->
-                case model.qa of
-                    Just qa ->
-                        case QA.getQuestion questionID qa.questions of
-                            Just question ->
-                                viewQuestionView qa model.qaState (ViewQuestion.QuestionCommentsTab maybeCommentID) question
-
-                            Nothing ->
-                                Util.hiddenDiv
-
-                    Nothing ->
-                        Util.hiddenDiv
-
-            Route.ViewSnipbitAnswerCommentsPage maybeStoryID maybeTouringQuestions snipbitID answerID maybeCommentID ->
-                case model.qa of
-                    Just qa ->
-                        case QA.getQuestionByAnswerID answerID qa of
-                            Just question ->
-                                viewQuestionView qa model.qaState (ViewQuestion.AnswerCommentsTab answerID maybeCommentID) question
-
-                            Nothing ->
-                                Util.hiddenDiv
-
-                    Nothing ->
-                        Util.hiddenDiv
-
-            Route.ViewSnipbitAskQuestion maybeStoryID snipbitID ->
-                let
-                    newQuestion =
-                        QA.getNewQuestion snipbitID model.qaState
-                            |> Maybe.withDefault QA.defaultNewQuestion
-                in
-                    AskQuestion.view
-                        { msgTagger = AskQuestionMsg snipbitID
-                        , askQuestionRequestInProgress =
-                            RT.isMakingRequest shared.apiRequestTracker (RT.AskQuestion TidbitPointer.Snipbit)
-                        , askQuestion = AskQuestion snipbitID
-                        , isReadyCodePointer = not << Range.isEmptyRange
-                        , goToAllQuestions =
-                            GoToBrowseQuestionsWithCodePointer <|
-                                (QA.getNewQuestion snipbitID model.qaState |||> .codePointer)
-                        }
-                        newQuestion
-
-            Route.ViewSnipbitAnswerQuestion maybeStoryID snipbitID questionID ->
-                case model.qa ||> .questions |||> QA.getQuestion questionID of
-                    Just question ->
-                        AnswerQuestion.view
-                            { msgTagger = AnswerQuestionMsg snipbitID question
-                            , forQuestion = question
-                            , answerQuestionRequestInProgress =
-                                RT.isMakingRequest
-                                    shared.apiRequestTracker
-                                    (RT.AnswerQuestion TidbitPointer.Snipbit)
-                            , answerQuestion = AnswerQuestion snipbitID questionID
-                            , goToAllAnswers =
-                                GoTo <|
-                                    Route.ViewSnipbitAnswersPage
-                                        (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
-                                        (Route.getTouringQuestionsQueryParamOnViewSnipbitQARoute shared.route)
-                                        snipbitID
-                                        questionID
-                            }
-                            (QA.getNewAnswer snipbitID questionID model.qaState
-                                ?> QA.defaultNewAnswer
-                            )
-
-                    -- Will never happen, if the question doesn't exist we will redirect.
-                    Nothing ->
-                        Util.hiddenDiv
-
-            Route.ViewSnipbitEditQuestion maybeStoryID snipbitID questionID ->
-                case model.qa ||> .questions |||> QA.getQuestion questionID of
-                    Just question ->
-                        let
-                            questionEdit =
-                                QA.getQuestionEdit snipbitID questionID model.qaState
-                                    ?> QA.questionEditFromQuestion question
-                        in
-                            EditQuestion.view
-                                { msgTagger = EditQuestionMsg snipbitID question
-                                , editQuestionRequestInProgress =
-                                    RT.isMakingRequest
-                                        shared.apiRequestTracker
-                                        (RT.UpdateQuestion TidbitPointer.Snipbit)
-                                , isReadyCodePointer = not << Range.isEmptyRange
-                                , editQuestion = EditQuestion snipbitID questionID
+                                    else
+                                        ( True
+                                        , List.filter
+                                            (.codePointer >> Range.overlappingRanges codePointer)
+                                            questions
+                                        )
+                    in
+                    div
+                        [ class "view-questions" ]
+                        [ QuestionList.view
+                            { questionBoxRenderConfig =
+                                { onClickQuestionBox =
+                                    \question ->
+                                        GoTo <|
+                                            Route.ViewSnipbitQuestionPage
+                                                (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
+                                                Nothing
+                                                snipbitID
+                                                question.id
                                 }
-                                questionEdit
+                            , isHighlighting = isHighlighting
+                            , allQuestionText = "All Questions"
+                            , noQuestionsDuringSearchText = "None found"
+                            , noQuestionsNotDuringSearchText = "Be the first to ask a question"
+                            , askQuestion =
+                                case shared.user of
+                                    Just _ ->
+                                        GoToAskQuestion
 
-                    -- This will never happen, if the question doesn't exist we will have redirected URLs.
-                    _ ->
-                        Util.hiddenDiv
-
-            Route.ViewSnipbitEditAnswer maybeStoryID snipbitID answerID ->
-                case
-                    ( model.qa ||> .answers |||> QA.getAnswer answerID
-                    , model.qa |||> QA.getQuestionByAnswerID answerID
-                    )
-                of
-                    ( Just answer, Just question ) ->
-                        EditAnswer.view
-                            { msgTagger = EditAnswerMsg snipbitID answerID answer
-                            , editAnswerRequestInProgress =
-                                RT.isMakingRequest shared.apiRequestTracker (RT.UpdateAnswer TidbitPointer.Snipbit)
-                            , editAnswer = EditAnswer snipbitID question.id answerID
-                            , forQuestion = question
+                                    Nothing ->
+                                        SetUserNeedsAuthModal
+                                            ("We want to answer your question, sign up for free and get access"
+                                                ++ " to all of CodeTidbit in seconds!"
+                                            )
                             }
-                            (QA.getAnswerEdit snipbitID answerID model.qaState
-                                ?> QA.answerEditFromAnswer answer
-                            )
+                            remainingQuestions
+                        ]
 
-                    -- Will never happen, if answer/question don't exist we will redirect.
-                    _ ->
-                        Util.hiddenDiv
+                Nothing ->
+                    Util.hiddenDiv
 
-            _ ->
-                Util.hiddenDiv
+        Route.ViewSnipbitQuestionPage maybeStoryID maybeTouringQuestions snipbitID questionID ->
+            case model.qa of
+                Just qa ->
+                    case QA.getQuestion questionID qa.questions of
+                        Just question ->
+                            viewQuestionView qa model.qaState ViewQuestion.QuestionTab question
+
+                        Nothing ->
+                            Util.hiddenDiv
+
+                Nothing ->
+                    Util.hiddenDiv
+
+        Route.ViewSnipbitAnswersPage maybeStoryID maybeTouringQuestions snipbitID questionID ->
+            case model.qa of
+                Just qa ->
+                    case QA.getQuestion questionID qa.questions of
+                        Just question ->
+                            viewQuestionView qa model.qaState ViewQuestion.AnswersTab question
+
+                        Nothing ->
+                            Util.hiddenDiv
+
+                Nothing ->
+                    Util.hiddenDiv
+
+        Route.ViewSnipbitAnswerPage maybeStoryID maybeTouringQuestions snipbitID answerID ->
+            case model.qa of
+                Just qa ->
+                    case QA.getQuestionByAnswerID answerID qa of
+                        Just question ->
+                            viewQuestionView qa model.qaState (ViewQuestion.AnswerTab answerID) question
+
+                        Nothing ->
+                            Util.hiddenDiv
+
+                Nothing ->
+                    Util.hiddenDiv
+
+        Route.ViewSnipbitQuestionCommentsPage maybeStoryID maybeTouringQuestions snipbitID questionID maybeCommentID ->
+            case model.qa of
+                Just qa ->
+                    case QA.getQuestion questionID qa.questions of
+                        Just question ->
+                            viewQuestionView qa model.qaState (ViewQuestion.QuestionCommentsTab maybeCommentID) question
+
+                        Nothing ->
+                            Util.hiddenDiv
+
+                Nothing ->
+                    Util.hiddenDiv
+
+        Route.ViewSnipbitAnswerCommentsPage maybeStoryID maybeTouringQuestions snipbitID answerID maybeCommentID ->
+            case model.qa of
+                Just qa ->
+                    case QA.getQuestionByAnswerID answerID qa of
+                        Just question ->
+                            viewQuestionView qa model.qaState (ViewQuestion.AnswerCommentsTab answerID maybeCommentID) question
+
+                        Nothing ->
+                            Util.hiddenDiv
+
+                Nothing ->
+                    Util.hiddenDiv
+
+        Route.ViewSnipbitAskQuestion maybeStoryID snipbitID ->
+            let
+                newQuestion =
+                    QA.getNewQuestion snipbitID model.qaState
+                        |> Maybe.withDefault QA.defaultNewQuestion
+            in
+            AskQuestion.view
+                { msgTagger = AskQuestionMsg snipbitID
+                , askQuestionRequestInProgress =
+                    RT.isMakingRequest shared.apiRequestTracker (RT.AskQuestion TidbitPointer.Snipbit)
+                , askQuestion = AskQuestion snipbitID
+                , isReadyCodePointer = not << Range.isEmptyRange
+                , goToAllQuestions =
+                    GoToBrowseQuestionsWithCodePointer <|
+                        (QA.getNewQuestion snipbitID model.qaState |||> .codePointer)
+                }
+                newQuestion
+
+        Route.ViewSnipbitAnswerQuestion maybeStoryID snipbitID questionID ->
+            case model.qa ||> .questions |||> QA.getQuestion questionID of
+                Just question ->
+                    AnswerQuestion.view
+                        { msgTagger = AnswerQuestionMsg snipbitID question
+                        , forQuestion = question
+                        , answerQuestionRequestInProgress =
+                            RT.isMakingRequest
+                                shared.apiRequestTracker
+                                (RT.AnswerQuestion TidbitPointer.Snipbit)
+                        , answerQuestion = AnswerQuestion snipbitID questionID
+                        , goToAllAnswers =
+                            GoTo <|
+                                Route.ViewSnipbitAnswersPage
+                                    (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
+                                    (Route.getTouringQuestionsQueryParamOnViewSnipbitQARoute shared.route)
+                                    snipbitID
+                                    questionID
+                        }
+                        (QA.getNewAnswer snipbitID questionID model.qaState
+                            ?> QA.defaultNewAnswer
+                        )
+
+                -- Will never happen, if the question doesn't exist we will redirect.
+                Nothing ->
+                    Util.hiddenDiv
+
+        Route.ViewSnipbitEditQuestion maybeStoryID snipbitID questionID ->
+            case model.qa ||> .questions |||> QA.getQuestion questionID of
+                Just question ->
+                    let
+                        questionEdit =
+                            QA.getQuestionEdit snipbitID questionID model.qaState
+                                ?> QA.questionEditFromQuestion question
+                    in
+                    EditQuestion.view
+                        { msgTagger = EditQuestionMsg snipbitID question
+                        , editQuestionRequestInProgress =
+                            RT.isMakingRequest
+                                shared.apiRequestTracker
+                                (RT.UpdateQuestion TidbitPointer.Snipbit)
+                        , isReadyCodePointer = not << Range.isEmptyRange
+                        , editQuestion = EditQuestion snipbitID questionID
+                        }
+                        questionEdit
+
+                -- This will never happen, if the question doesn't exist we will have redirected URLs.
+                _ ->
+                    Util.hiddenDiv
+
+        Route.ViewSnipbitEditAnswer maybeStoryID snipbitID answerID ->
+            case
+                ( model.qa ||> .answers |||> QA.getAnswer answerID
+                , model.qa |||> QA.getQuestionByAnswerID answerID
+                )
+            of
+                ( Just answer, Just question ) ->
+                    EditAnswer.view
+                        { msgTagger = EditAnswerMsg snipbitID answerID answer
+                        , editAnswerRequestInProgress =
+                            RT.isMakingRequest shared.apiRequestTracker (RT.UpdateAnswer TidbitPointer.Snipbit)
+                        , editAnswer = EditAnswer snipbitID question.id answerID
+                        , forQuestion = question
+                        }
+                        (QA.getAnswerEdit snipbitID answerID model.qaState
+                            ?> QA.answerEditFromAnswer answer
+                        )
+
+                -- Will never happen, if answer/question don't exist we will redirect.
+                _ ->
+                    Util.hiddenDiv
+
+        _ ->
+            Util.hiddenDiv

@@ -6,7 +6,7 @@ import DefaultServices.Util as Util
 import Dict
 import Elements.Complex.CommentList as CommentList
 import Elements.Simple.Markdown as Markdown
-import Html exposing (Html, div, span, text, button, i)
+import Html exposing (Html, button, div, i, span, text)
 import Html.Attributes exposing (class, classList)
 import Html.Events exposing (onClick)
 import Models.QA exposing (..)
@@ -111,189 +111,189 @@ view config model =
         unauthMessageForUpvoteAndDownvote =
             "We want your feedback, sign up for free and get access to all of CodeTidbit in seconds!"
     in
-        div [ class "view-question" ] <|
-            [ div
-                [ class "link qa-top-right-link"
-                , onClick config.goToBrowseAllQuestions
-                ]
-                [ text "see all questions" ]
-            , div
-                [ class "top-bar" ]
-                [ div
-                    [ classList
-                        [ ( "tab", True )
-                        , ( "selected", config.tab == QuestionTab )
-                        ]
-                    , onClick config.goToQuestionTab
-                    ]
-                    [ text "QUESTION" ]
-                , div
-                    [ classList
-                        [ ( "tab center-tab", True )
-                        , ( "selected", isQuestionCommentsTab config.tab )
-                        ]
-                    , onClick config.goToQuestionCommentsTab
-                    ]
-                    [ text "COMMENTS" ]
-                , div
-                    [ classList
-                        [ ( "tab", True )
-                        , ( "selected", AnswersTab == config.tab )
-                        ]
-                    , onClick config.goToAnswersTab
-                    ]
-                    [ text "ANSWERS" ]
-                ]
-            , case config.tab of
-                QuestionTab ->
-                    div
-                        [ class "question-tab" ]
-                        [ Markdown.view [ class "question-markdown" ] config.question.questionText
-                        , reactiveRatingsBottomBarView
-                            { upvotes = config.question.upvotes
-                            , downvotes = config.question.downvotes
-                            , rateRequestInProgress = config.rateQuestionRequestInProgress
-                            , pinRequestInProgress = config.pinQuestionRequestInProgress
-                            , deleteRequestInProgress = False
-                            , isPinned = config.question.pinned
-                            , isAuthor = config.userID == (Just config.question.authorID)
-                            , isTidbitAuthor = config.userID == (Just config.tidbitAuthorID)
-                            , isDeleteAlreadyClicked = False
-                            , upvote =
-                                case config.userID of
-                                    Just _ ->
-                                        config.upvoteQuestion
-
-                                    Nothing ->
-                                        config.handleUnauthAction unauthMessageForUpvoteAndDownvote
-                            , removeUpvote = config.removeUpvoteQuestion
-                            , downvote =
-                                case config.userID of
-                                    Just _ ->
-                                        config.downvoteQuestion
-
-                                    Nothing ->
-                                        config.handleUnauthAction unauthMessageForUpvoteAndDownvote
-                            , removeDownvote = config.removeDownvoteQuestion
-                            , pin = config.pinQuestion
-                            , unpin = config.unpinQuestion
-                            , edit = config.goToEditQuestion
-                            , delete = Nothing
-                            }
-                        ]
-
-                QuestionCommentsTab maybeCommentID ->
-                    CommentList.view
-                        { msgTagger = config.msgTagger << QuestionCommentListMsg
-                        , userID = config.userID
-                        , comments = config.questionComments
-                        , isSmall = False
-                        , submitCommentRequestInProgress = config.submitQuestionCommentRequestInProgress
-                        , deleteCommentRequestInProgress = config.deleteQuestionCommentRequestInProgress
-                        , editCommentRequestInProgress = config.editQuestionCommentRequestInProgress
-                        , goToComment = config.goToQuestionComment
-                        , newComment = config.commentOnQuestion
-                        , editComment = config.editQuestionComment
-                        , deleteComment = config.deleteQuestionComment
-                        }
-                        { commentEdits = model.questionCommentEdits
-                        , newCommentText = model.newQuestionComment
-                        , deletingComments = model.deletingComments
-                        }
-
-                AnswersTab ->
-                    div
-                        [ class "answers-tab" ]
-                        [ div
-                            [ class "answers-box" ]
-                            [ if List.isEmpty config.answers then
-                                div [ class "no-answers-text" ] [ text "Be the first to answer the question" ]
-                              else
-                                div [ class "answers" ] <|
-                                    List.map (answerBoxView config.goToAnswerTab) config.answers
-                            ]
-                        , div
-                            [ class "answer-question"
-                            , onClick config.goToAnswerQuestion
-                            ]
-                            [ text "Answer Question" ]
-                        ]
-
-                AnswerTab answerID ->
-                    case getAnswer answerID config.answers of
-                        Just answer ->
-                            div
-                                [ class "answer-tab" ]
-                                [ extendedTopBar True answer
-                                , Markdown.view [ class "answer-markdown" ] answer.answerText
-                                , reactiveRatingsBottomBarView
-                                    { upvotes = answer.upvotes
-                                    , downvotes = answer.downvotes
-                                    , rateRequestInProgress = config.rateAnswerRequestInProgress
-                                    , pinRequestInProgress = config.pinAnswerRequestInProgress
-                                    , deleteRequestInProgress = config.deleteAnswerRequestInProgress
-                                    , isPinned = answer.pinned
-                                    , isAuthor = config.userID == (Just answer.authorID)
-                                    , isTidbitAuthor = config.userID == (Just config.tidbitAuthorID)
-                                    , isDeleteAlreadyClicked = Set.member answer.id model.deletingAnswers
-                                    , upvote =
-                                        case config.userID of
-                                            Just _ ->
-                                                config.upvoteAnswer answer
-
-                                            Nothing ->
-                                                config.handleUnauthAction unauthMessageForUpvoteAndDownvote
-                                    , removeUpvote = config.removeUpvoteAnswer answer
-                                    , downvote =
-                                        case config.userID of
-                                            Just _ ->
-                                                config.downvoteAnswer answer
-
-                                            Nothing ->
-                                                config.handleUnauthAction unauthMessageForUpvoteAndDownvote
-                                    , removeDownvote = config.removeDownvoteAnswer answer
-                                    , pin = config.pinAnswer answer
-                                    , unpin = config.unpinAnswer answer
-                                    , edit = config.goToEditAnswer answer
-                                    , delete =
-                                        if Set.member answer.id model.deletingAnswers then
-                                            Just <| config.deleteAnswer answer
-                                        else
-                                            Just <| config.msgTagger <| AddToDeletingAnswers answer.id
-                                    }
-                                ]
-
-                        Nothing ->
-                            Util.hiddenDiv
-
-                AnswerCommentsTab answerID maybeCommentID ->
-                    case getAnswer answerID config.answers of
-                        Just answer ->
-                            div
-                                [ class "answer-comments-tab" ]
-                                [ extendedTopBar False answer
-                                , CommentList.view
-                                    { msgTagger = config.msgTagger << (AnswerCommentListMsg answerID)
-                                    , userID = config.userID
-                                    , comments = List.filter (.answerID >> (==) answerID) config.answerComments
-                                    , isSmall = True
-                                    , submitCommentRequestInProgress = config.submitAnswerCommentRequestInProgress
-                                    , deleteCommentRequestInProgress = config.deleteAnswerCommentRequestInProgress
-                                    , editCommentRequestInProgress = config.editAnswerCommentRequestInProgress
-                                    , goToComment = config.goToAnswerComment
-                                    , newComment = config.commentOnAnswer answer.id
-                                    , editComment = config.editAnswerComment
-                                    , deleteComment = config.deleteAnswerComment
-                                    }
-                                    { commentEdits = model.answerCommentEdits
-                                    , newCommentText = "" <? Dict.get answerID model.newAnswerComments
-                                    , deletingComments = model.deletingComments
-                                    }
-                                ]
-
-                        Nothing ->
-                            Util.hiddenDiv
+    div [ class "view-question" ] <|
+        [ div
+            [ class "link qa-top-right-link"
+            , onClick config.goToBrowseAllQuestions
             ]
+            [ text "see all questions" ]
+        , div
+            [ class "top-bar" ]
+            [ div
+                [ classList
+                    [ ( "tab", True )
+                    , ( "selected", config.tab == QuestionTab )
+                    ]
+                , onClick config.goToQuestionTab
+                ]
+                [ text "QUESTION" ]
+            , div
+                [ classList
+                    [ ( "tab center-tab", True )
+                    , ( "selected", isQuestionCommentsTab config.tab )
+                    ]
+                , onClick config.goToQuestionCommentsTab
+                ]
+                [ text "COMMENTS" ]
+            , div
+                [ classList
+                    [ ( "tab", True )
+                    , ( "selected", AnswersTab == config.tab )
+                    ]
+                , onClick config.goToAnswersTab
+                ]
+                [ text "ANSWERS" ]
+            ]
+        , case config.tab of
+            QuestionTab ->
+                div
+                    [ class "question-tab" ]
+                    [ Markdown.view [ class "question-markdown" ] config.question.questionText
+                    , reactiveRatingsBottomBarView
+                        { upvotes = config.question.upvotes
+                        , downvotes = config.question.downvotes
+                        , rateRequestInProgress = config.rateQuestionRequestInProgress
+                        , pinRequestInProgress = config.pinQuestionRequestInProgress
+                        , deleteRequestInProgress = False
+                        , isPinned = config.question.pinned
+                        , isAuthor = config.userID == Just config.question.authorID
+                        , isTidbitAuthor = config.userID == Just config.tidbitAuthorID
+                        , isDeleteAlreadyClicked = False
+                        , upvote =
+                            case config.userID of
+                                Just _ ->
+                                    config.upvoteQuestion
+
+                                Nothing ->
+                                    config.handleUnauthAction unauthMessageForUpvoteAndDownvote
+                        , removeUpvote = config.removeUpvoteQuestion
+                        , downvote =
+                            case config.userID of
+                                Just _ ->
+                                    config.downvoteQuestion
+
+                                Nothing ->
+                                    config.handleUnauthAction unauthMessageForUpvoteAndDownvote
+                        , removeDownvote = config.removeDownvoteQuestion
+                        , pin = config.pinQuestion
+                        , unpin = config.unpinQuestion
+                        , edit = config.goToEditQuestion
+                        , delete = Nothing
+                        }
+                    ]
+
+            QuestionCommentsTab maybeCommentID ->
+                CommentList.view
+                    { msgTagger = config.msgTagger << QuestionCommentListMsg
+                    , userID = config.userID
+                    , comments = config.questionComments
+                    , isSmall = False
+                    , submitCommentRequestInProgress = config.submitQuestionCommentRequestInProgress
+                    , deleteCommentRequestInProgress = config.deleteQuestionCommentRequestInProgress
+                    , editCommentRequestInProgress = config.editQuestionCommentRequestInProgress
+                    , goToComment = config.goToQuestionComment
+                    , newComment = config.commentOnQuestion
+                    , editComment = config.editQuestionComment
+                    , deleteComment = config.deleteQuestionComment
+                    }
+                    { commentEdits = model.questionCommentEdits
+                    , newCommentText = model.newQuestionComment
+                    , deletingComments = model.deletingComments
+                    }
+
+            AnswersTab ->
+                div
+                    [ class "answers-tab" ]
+                    [ div
+                        [ class "answers-box" ]
+                        [ if List.isEmpty config.answers then
+                            div [ class "no-answers-text" ] [ text "Be the first to answer the question" ]
+                          else
+                            div [ class "answers" ] <|
+                                List.map (answerBoxView config.goToAnswerTab) config.answers
+                        ]
+                    , div
+                        [ class "answer-question"
+                        , onClick config.goToAnswerQuestion
+                        ]
+                        [ text "Answer Question" ]
+                    ]
+
+            AnswerTab answerID ->
+                case getAnswer answerID config.answers of
+                    Just answer ->
+                        div
+                            [ class "answer-tab" ]
+                            [ extendedTopBar True answer
+                            , Markdown.view [ class "answer-markdown" ] answer.answerText
+                            , reactiveRatingsBottomBarView
+                                { upvotes = answer.upvotes
+                                , downvotes = answer.downvotes
+                                , rateRequestInProgress = config.rateAnswerRequestInProgress
+                                , pinRequestInProgress = config.pinAnswerRequestInProgress
+                                , deleteRequestInProgress = config.deleteAnswerRequestInProgress
+                                , isPinned = answer.pinned
+                                , isAuthor = config.userID == Just answer.authorID
+                                , isTidbitAuthor = config.userID == Just config.tidbitAuthorID
+                                , isDeleteAlreadyClicked = Set.member answer.id model.deletingAnswers
+                                , upvote =
+                                    case config.userID of
+                                        Just _ ->
+                                            config.upvoteAnswer answer
+
+                                        Nothing ->
+                                            config.handleUnauthAction unauthMessageForUpvoteAndDownvote
+                                , removeUpvote = config.removeUpvoteAnswer answer
+                                , downvote =
+                                    case config.userID of
+                                        Just _ ->
+                                            config.downvoteAnswer answer
+
+                                        Nothing ->
+                                            config.handleUnauthAction unauthMessageForUpvoteAndDownvote
+                                , removeDownvote = config.removeDownvoteAnswer answer
+                                , pin = config.pinAnswer answer
+                                , unpin = config.unpinAnswer answer
+                                , edit = config.goToEditAnswer answer
+                                , delete =
+                                    if Set.member answer.id model.deletingAnswers then
+                                        Just <| config.deleteAnswer answer
+                                    else
+                                        Just <| config.msgTagger <| AddToDeletingAnswers answer.id
+                                }
+                            ]
+
+                    Nothing ->
+                        Util.hiddenDiv
+
+            AnswerCommentsTab answerID maybeCommentID ->
+                case getAnswer answerID config.answers of
+                    Just answer ->
+                        div
+                            [ class "answer-comments-tab" ]
+                            [ extendedTopBar False answer
+                            , CommentList.view
+                                { msgTagger = config.msgTagger << AnswerCommentListMsg answerID
+                                , userID = config.userID
+                                , comments = List.filter (.answerID >> (==) answerID) config.answerComments
+                                , isSmall = True
+                                , submitCommentRequestInProgress = config.submitAnswerCommentRequestInProgress
+                                , deleteCommentRequestInProgress = config.deleteAnswerCommentRequestInProgress
+                                , editCommentRequestInProgress = config.editAnswerCommentRequestInProgress
+                                , goToComment = config.goToAnswerComment
+                                , newComment = config.commentOnAnswer answer.id
+                                , editComment = config.editAnswerComment
+                                , deleteComment = config.deleteAnswerComment
+                                }
+                                { commentEdits = model.answerCommentEdits
+                                , newCommentText = "" <? Dict.get answerID model.newAnswerComments
+                                , deletingComments = model.deletingComments
+                                }
+                            ]
+
+                    Nothing ->
+                        Util.hiddenDiv
+        ]
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -310,13 +310,13 @@ update msg model =
                 ( newCommentListModel, newCommentListMsg ) =
                     CommentList.update commentListMsg commentListModel
             in
-                ( { model
-                    | questionCommentEdits = newCommentListModel.commentEdits
-                    , newQuestionComment = newCommentListModel.newCommentText
-                    , deletingComments = newCommentListModel.deletingComments
-                  }
-                , Cmd.map QuestionCommentListMsg newCommentListMsg
-                )
+            ( { model
+                | questionCommentEdits = newCommentListModel.commentEdits
+                , newQuestionComment = newCommentListModel.newCommentText
+                , deletingComments = newCommentListModel.deletingComments
+              }
+            , Cmd.map QuestionCommentListMsg newCommentListMsg
+            )
 
         AnswerCommentListMsg answerID commentListMsg ->
             let
@@ -329,14 +329,14 @@ update msg model =
                 ( newCommentListModel, newCommentListMsg ) =
                     CommentList.update commentListMsg commentListModel
             in
-                ( { model
-                    | answerCommentEdits = newCommentListModel.commentEdits
-                    , newAnswerComments =
-                        Dict.insert answerID newCommentListModel.newCommentText model.newAnswerComments
-                    , deletingComments = newCommentListModel.deletingComments
-                  }
-                , Cmd.map (AnswerCommentListMsg answerID) newCommentListMsg
-                )
+            ( { model
+                | answerCommentEdits = newCommentListModel.commentEdits
+                , newAnswerComments =
+                    Dict.insert answerID newCommentListModel.newCommentText model.newAnswerComments
+                , deletingComments = newCommentListModel.deletingComments
+              }
+            , Cmd.map (AnswerCommentListMsg answerID) newCommentListMsg
+            )
 
         AddToDeletingAnswers answerID ->
             ( { model | deletingAnswers = Set.insert answerID model.deletingAnswers }, Cmd.none )
@@ -411,111 +411,111 @@ reactiveRatingsBottomBarView config =
             else
                 config.downvote
     in
-        div
-            [ class "reactive-bottom-bar" ]
-            [ span
-                [ classList
-                    [ ( "dislike-count", True )
-                    , ( "selected", downvoted )
-                    , ( "cursor-progress", config.rateRequestInProgress || config.deleteRequestInProgress )
-                    ]
-                , onClick onClickDownvote
+    div
+        [ class "reactive-bottom-bar" ]
+        [ span
+            [ classList
+                [ ( "dislike-count", True )
+                , ( "selected", downvoted )
+                , ( "cursor-progress", config.rateRequestInProgress || config.deleteRequestInProgress )
                 ]
-                [ text <| toString <| Tuple.second <| config.downvotes ]
-            , i
-                [ classList
-                    [ ( "material-icons dislike", True )
-                    , ( "selected", downvoted )
-                    , ( "cursor-progress", config.rateRequestInProgress || config.deleteRequestInProgress )
-                    ]
-                , onClick onClickDownvote
+            , onClick onClickDownvote
+            ]
+            [ text <| toString <| Tuple.second <| config.downvotes ]
+        , i
+            [ classList
+                [ ( "material-icons dislike", True )
+                , ( "selected", downvoted )
+                , ( "cursor-progress", config.rateRequestInProgress || config.deleteRequestInProgress )
                 ]
-                [ text "thumb_down" ]
-            , span
-                [ classList
-                    [ ( "like-count", True )
-                    , ( "selected", upvoted )
-                    , ( "cursor-progress", config.rateRequestInProgress || config.deleteRequestInProgress )
-                    ]
-                , onClick onClickUpvote
+            , onClick onClickDownvote
+            ]
+            [ text "thumb_down" ]
+        , span
+            [ classList
+                [ ( "like-count", True )
+                , ( "selected", upvoted )
+                , ( "cursor-progress", config.rateRequestInProgress || config.deleteRequestInProgress )
                 ]
-                [ text <| toString <| Tuple.second <| config.upvotes ]
-            , i
-                [ classList
-                    [ ( "material-icons like", True )
-                    , ( "selected", upvoted )
-                    , ( "cursor-progress", config.rateRequestInProgress || config.deleteRequestInProgress )
-                    ]
-                , onClick onClickUpvote
+            , onClick onClickUpvote
+            ]
+            [ text <| toString <| Tuple.second <| config.upvotes ]
+        , i
+            [ classList
+                [ ( "material-icons like", True )
+                , ( "selected", upvoted )
+                , ( "cursor-progress", config.rateRequestInProgress || config.deleteRequestInProgress )
                 ]
-                [ text "thumb_up" ]
-            , case ( config.isTidbitAuthor, config.isPinned ) of
-                -- Is author, pinned
-                ( True, True ) ->
-                    i
-                        [ classList
-                            [ ( "material-icons pin-icon", True )
-                            , ( "cursor-progress", config.pinRequestInProgress || config.deleteRequestInProgress )
-                            ]
-                        , onClick <| config.unpin
-                        ]
-                        [ text "star" ]
-
-                -- Is author, not pinned
-                ( True, False ) ->
-                    i
-                        [ classList
-                            [ ( "material-icons pin-icon", True )
-                            , ( "cursor-progress", config.pinRequestInProgress || config.deleteRequestInProgress )
-                            ]
-                        , onClick <| config.pin
-                        ]
-                        [ text "star_border" ]
-
-                -- Not Author, pinned
-                ( False, True ) ->
-                    i [ class "material-icons pin-icon unclickable" ] [ text "star" ]
-
-                -- Not author, not pinned
-                ( False, False ) ->
-                    Util.hiddenDiv
-            , if config.isAuthor then
+            , onClick onClickUpvote
+            ]
+            [ text "thumb_up" ]
+        , case ( config.isTidbitAuthor, config.isPinned ) of
+            -- Is author, pinned
+            ( True, True ) ->
                 i
-                    (Util.maybeAttributes
-                        [ Just <|
-                            classList
-                                [ ( "material-icons edit-icon", True )
-                                , ( "cursor-progress", config.deleteRequestInProgress )
-                                ]
-                        , if config.deleteRequestInProgress then
-                            Nothing
-                          else
-                            Just <| onClick config.edit
+                    [ classList
+                        [ ( "material-icons pin-icon", True )
+                        , ( "cursor-progress", config.pinRequestInProgress || config.deleteRequestInProgress )
                         ]
-                    )
-                    [ text "mode_edit" ]
-              else
+                    , onClick <| config.unpin
+                    ]
+                    [ text "star" ]
+
+            -- Is author, not pinned
+            ( True, False ) ->
+                i
+                    [ classList
+                        [ ( "material-icons pin-icon", True )
+                        , ( "cursor-progress", config.pinRequestInProgress || config.deleteRequestInProgress )
+                        ]
+                    , onClick <| config.pin
+                    ]
+                    [ text "star_border" ]
+
+            -- Not Author, pinned
+            ( False, True ) ->
+                i [ class "material-icons pin-icon unclickable" ] [ text "star" ]
+
+            -- Not author, not pinned
+            ( False, False ) ->
                 Util.hiddenDiv
-            , case ( config.isAuthor, config.delete ) of
-                ( True, Just deleteMsg ) ->
-                    i
-                        [ classList
-                            [ ( "material-icons delete-icon", True )
-                            , ( "warning-mode", config.isDeleteAlreadyClicked )
+        , if config.isAuthor then
+            i
+                (Util.maybeAttributes
+                    [ Just <|
+                        classList
+                            [ ( "material-icons edit-icon", True )
                             , ( "cursor-progress", config.deleteRequestInProgress )
                             ]
-                        , onClick deleteMsg
+                    , if config.deleteRequestInProgress then
+                        Nothing
+                      else
+                        Just <| onClick config.edit
+                    ]
+                )
+                [ text "mode_edit" ]
+          else
+            Util.hiddenDiv
+        , case ( config.isAuthor, config.delete ) of
+            ( True, Just deleteMsg ) ->
+                i
+                    [ classList
+                        [ ( "material-icons delete-icon", True )
+                        , ( "warning-mode", config.isDeleteAlreadyClicked )
+                        , ( "cursor-progress", config.deleteRequestInProgress )
                         ]
-                        [ text <|
-                            if config.isDeleteAlreadyClicked then
-                                "delete_forever"
-                            else
-                                "delete"
-                        ]
+                    , onClick deleteMsg
+                    ]
+                    [ text <|
+                        if config.isDeleteAlreadyClicked then
+                            "delete_forever"
+                        else
+                            "delete"
+                    ]
 
-                _ ->
-                    Util.hiddenDiv
-            ]
+            _ ->
+                Util.hiddenDiv
+        ]
 
 
 {-| The possible tabs within the question view.

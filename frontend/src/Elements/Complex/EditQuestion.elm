@@ -4,7 +4,7 @@ import DefaultServices.Editable as Editable
 import DefaultServices.InfixFunctions exposing (..)
 import DefaultServices.Util as Util
 import Html exposing (Html, div, text, textarea)
-import Html.Attributes exposing (class, classList, placeholder, value, disabled)
+import Html.Attributes exposing (class, classList, disabled, placeholder, value)
 import Html.Events exposing (onClick, onInput)
 import Models.QA exposing (..)
 import ProjectTypeAliases exposing (..)
@@ -47,49 +47,49 @@ view config model =
         isQuestionReady =
             Util.isNotNothing maybeReadyQuestion
     in
-        div
-            [ class "edit-question" ]
-            [ div
-                [ class "preview-markdown"
-                , onClick <| config.msgTagger TogglePreviewMarkdown
-                ]
-                [ text <|
-                    if model.previewMarkdown then
-                        "Close Preview"
-                    else
-                        "Markdown Preview"
-                ]
-            , Util.markdownOr
-                model.previewMarkdown
-                questionText
-                (div
-                    []
-                    [ textarea
-                        [ classList [ ( "cursor-progress", config.editQuestionRequestInProgress ) ]
-                        , placeholder "Edit question text..."
-                        , value questionText
-                        , onInput (OnQuestionTextInput >> config.msgTagger)
-                        , disabled <| config.editQuestionRequestInProgress
-                        ]
-                        []
-                    , Util.limitCharsText 300 questionText
-                    ]
-                )
-            , div
-                (Util.maybeAttributes
-                    [ Just <|
-                        classList
-                            [ ( "edit-question-submit", True )
-                            , ( "not-ready", not isQuestionReady )
-                            , ( "hidden", model.previewMarkdown )
-                            , ( "cursor-progress", config.editQuestionRequestInProgress )
-                            ]
-                    , maybeReadyQuestion
-                        ||> (\{ codePointer, questionText } -> onClick <| config.editQuestion questionText codePointer)
-                    ]
-                )
-                [ text "Update Question" ]
+    div
+        [ class "edit-question" ]
+        [ div
+            [ class "preview-markdown"
+            , onClick <| config.msgTagger TogglePreviewMarkdown
             ]
+            [ text <|
+                if model.previewMarkdown then
+                    "Close Preview"
+                else
+                    "Markdown Preview"
+            ]
+        , Util.markdownOr
+            model.previewMarkdown
+            questionText
+            (div
+                []
+                [ textarea
+                    [ classList [ ( "cursor-progress", config.editQuestionRequestInProgress ) ]
+                    , placeholder "Edit question text..."
+                    , value questionText
+                    , onInput (OnQuestionTextInput >> config.msgTagger)
+                    , disabled <| config.editQuestionRequestInProgress
+                    ]
+                    []
+                , Util.limitCharsText 300 questionText
+                ]
+            )
+        , div
+            (Util.maybeAttributes
+                [ Just <|
+                    classList
+                        [ ( "edit-question-submit", True )
+                        , ( "not-ready", not isQuestionReady )
+                        , ( "hidden", model.previewMarkdown )
+                        , ( "cursor-progress", config.editQuestionRequestInProgress )
+                        ]
+                , maybeReadyQuestion
+                    ||> (\{ codePointer, questionText } -> onClick <| config.editQuestion questionText codePointer)
+                ]
+            )
+            [ text "Update Question" ]
+        ]
 
 
 update : Msg -> Model codePointer -> ( Model codePointer, Cmd Msg )

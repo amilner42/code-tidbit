@@ -3,8 +3,8 @@ module Pages.Browse.View exposing (..)
 import DefaultServices.Util as Util
 import Elements.Simple.ContentBox as ContentBox
 import Elements.Simple.Editor as Editor
-import Html exposing (Html, div, text, button, input, span, i, select, option)
-import Html.Attributes exposing (class, hidden, classList, placeholder, value, id, disabled, selected)
+import Html exposing (Html, button, div, i, input, option, select, span, text)
+import Html.Attributes exposing (class, classList, disabled, hidden, id, placeholder, selected, value)
 import Html.Events exposing (onClick, onInput)
 import Keyboard.Extra as KK
 import Pages.Browse.Messages exposing (..)
@@ -95,18 +95,16 @@ view model shared =
                     [ span [ class "language-filter-title" ] [ text "Select Language" ]
                     , select
                         [ Util.onChange (Editor.languageFromHumanReadableName >> SelectLanguage) ]
-                        ((option
+                        (option
                             [ selected <| Util.isNothing model.contentFilterLanguage ]
                             [ text "All" ]
-                         )
-                            :: (List.map
-                                    (\( language, humanReadableName ) ->
-                                        option
-                                            [ selected <| Just language == model.contentFilterLanguage ]
-                                            [ text humanReadableName ]
-                                    )
-                                    Editor.humanReadableListOfLanguages
-                               )
+                            :: List.map
+                                (\( language, humanReadableName ) ->
+                                    option
+                                        [ selected <| Just language == model.contentFilterLanguage ]
+                                        [ text humanReadableName ]
+                                )
+                                Editor.humanReadableListOfLanguages
                         )
                     ]
                 , div
@@ -136,7 +134,7 @@ view model shared =
                 ]
             ]
         , div [ class "sub-bar-ghost hidden" ] []
-        , (case model.content of
+        , case model.content of
             Nothing ->
                 Util.hiddenDiv
 
@@ -153,7 +151,7 @@ view model shared =
                         [ class "all-content" ]
                         (content
                             |> List.map (ContentBox.view { goToMsg = GoTo, darkenBox = False, forStory = Nothing })
-                            |> (flip (++)) Util.emptyFlexBoxesForAlignment
+                            |> flip (++) Util.emptyFlexBoxesForAlignment
                         )
                     , button
                         [ classList
@@ -180,7 +178,6 @@ view model shared =
                                     text "no more results"
                         ]
                     ]
-          )
         ]
 
 

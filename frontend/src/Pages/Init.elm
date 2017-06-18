@@ -23,4 +23,4 @@ init flags location =
         defaultModelWithRoute =
             defaultModel route flags
     in
-        updateCacheIf LoadModelFromLocalStorage defaultModelWithRoute False
+    updateCacheIf LoadModelFromLocalStorage defaultModelWithRoute False

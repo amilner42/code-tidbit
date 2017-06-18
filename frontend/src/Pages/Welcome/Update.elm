@@ -46,11 +46,11 @@ update (Common common) msg model shared =
                             OnRegisterFailure
                             OnRegisterSuccess
             in
-                if model.password == model.confirmPassword then
-                    common.makeSingletonRequest RT.LoginOrRegister registerAction
-                else
-                    common.justSetModel
-                        { model | apiError = Just ApiError.PasswordDoesNotMatchConfirmPassword }
+            if model.password == model.confirmPassword then
+                common.makeSingletonRequest RT.LoginOrRegister registerAction
+            else
+                common.justSetModel
+                    { model | apiError = Just ApiError.PasswordDoesNotMatchConfirmPassword }
 
         OnRegisterFailure newApiError ->
             common.justSetModel { model | apiError = Just newApiError }
@@ -69,7 +69,7 @@ update (Common common) msg model shared =
                             OnLoginFailure
                             OnLoginSuccess
             in
-                common.makeSingletonRequest RT.LoginOrRegister loginAction
+            common.makeSingletonRequest RT.LoginOrRegister loginAction
 
         OnLoginSuccess newUser ->
             ( init, { shared | user = Just newUser }, Route.navigateTo Route.BrowsePage )

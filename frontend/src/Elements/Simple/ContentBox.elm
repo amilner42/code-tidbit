@@ -2,7 +2,7 @@ module Elements.Simple.ContentBox exposing (..)
 
 import DefaultServices.Util as Util
 import Elements.Simple.Editor exposing (prettyPrintLanguages)
-import Html exposing (Html, div, text, i)
+import Html exposing (Html, div, i, text)
 import Html.Attributes exposing (class, classList)
 import Html.Events exposing (onClick)
 import Models.Content exposing (..)

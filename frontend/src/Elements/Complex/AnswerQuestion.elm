@@ -3,8 +3,8 @@ module Elements.Complex.AnswerQuestion exposing (..)
 import DefaultServices.Util as Util
 import Elements.Simple.Markdown as Markdown
 import Html exposing (Html, div, text, textarea)
-import Html.Attributes exposing (class, classList, value, placeholder, disabled)
-import Html.Events exposing (onInput, onClick)
+import Html.Attributes exposing (class, classList, disabled, placeholder, value)
+import Html.Events exposing (onClick, onInput)
 import Models.QA exposing (..)
 import ProjectTypeAliases exposing (..)
 
@@ -37,80 +37,80 @@ view config { previewMarkdown, showQuestion, answerText } =
         isAnswerReady =
             Util.isNotNothing maybeReadyAnswer
     in
-        div
-            [ class "answer-question" ]
-            [ div
-                [ class "link qa-top-right-link"
-                , onClick config.goToAllAnswers
-                ]
-                [ text "see all answers" ]
-            , div
-                [ classList
-                    [ ( "display-question", True )
-                    , ( "hidden", previewMarkdown )
-                    ]
-                , onClick <| config.msgTagger ToggleShowQuestion
-                ]
-                [ text <|
-                    if showQuestion then
-                        "Hide Question"
-                    else
-                        "Show Question"
-                ]
-            , Markdown.view
-                [ classList
-                    [ ( "question", True )
-                    , ( "hidden", previewMarkdown || not showQuestion )
-                    ]
-                ]
-                config.forQuestion.questionText
-            , div
-                [ classList
-                    [ ( "preview-markdown", True )
-                    , ( "previewing-markdown", previewMarkdown )
-                    , ( "hiding-question", not showQuestion )
-                    ]
-                , onClick <| config.msgTagger TogglePreviewMarkdown
-                ]
-                [ text <|
-                    if previewMarkdown then
-                        "Close Preview"
-                    else
-                        "Markdown Preview"
-                ]
-            , Util.markdownOr
-                previewMarkdown
-                answerText
-                (div
-                    []
-                    [ textarea
-                        [ classList
-                            [ ( "hiding-question", not showQuestion )
-                            , ( "cursor-progress", config.answerQuestionRequestInProgress )
-                            ]
-                        , placeholder "Answer Question"
-                        , disabled config.answerQuestionRequestInProgress
-                        , onInput (config.msgTagger << OnAnswerTextInput)
-                        , value answerText
-                        ]
-                        []
-                    , Util.limitCharsText 1000 answerText
-                    ]
-                )
-            , div
-                (Util.maybeAttributes
-                    [ Just <|
-                        classList
-                            [ ( "answer-question-submit", True )
-                            , ( "hidden", previewMarkdown )
-                            , ( "not-ready", not isAnswerReady )
-                            , ( "cursor-progress", config.answerQuestionRequestInProgress )
-                            ]
-                    , Maybe.map (onClick << config.answerQuestion) maybeReadyAnswer
-                    ]
-                )
-                [ text "Submit Answer" ]
+    div
+        [ class "answer-question" ]
+        [ div
+            [ class "link qa-top-right-link"
+            , onClick config.goToAllAnswers
             ]
+            [ text "see all answers" ]
+        , div
+            [ classList
+                [ ( "display-question", True )
+                , ( "hidden", previewMarkdown )
+                ]
+            , onClick <| config.msgTagger ToggleShowQuestion
+            ]
+            [ text <|
+                if showQuestion then
+                    "Hide Question"
+                else
+                    "Show Question"
+            ]
+        , Markdown.view
+            [ classList
+                [ ( "question", True )
+                , ( "hidden", previewMarkdown || not showQuestion )
+                ]
+            ]
+            config.forQuestion.questionText
+        , div
+            [ classList
+                [ ( "preview-markdown", True )
+                , ( "previewing-markdown", previewMarkdown )
+                , ( "hiding-question", not showQuestion )
+                ]
+            , onClick <| config.msgTagger TogglePreviewMarkdown
+            ]
+            [ text <|
+                if previewMarkdown then
+                    "Close Preview"
+                else
+                    "Markdown Preview"
+            ]
+        , Util.markdownOr
+            previewMarkdown
+            answerText
+            (div
+                []
+                [ textarea
+                    [ classList
+                        [ ( "hiding-question", not showQuestion )
+                        , ( "cursor-progress", config.answerQuestionRequestInProgress )
+                        ]
+                    , placeholder "Answer Question"
+                    , disabled config.answerQuestionRequestInProgress
+                    , onInput (config.msgTagger << OnAnswerTextInput)
+                    , value answerText
+                    ]
+                    []
+                , Util.limitCharsText 1000 answerText
+                ]
+            )
+        , div
+            (Util.maybeAttributes
+                [ Just <|
+                    classList
+                        [ ( "answer-question-submit", True )
+                        , ( "hidden", previewMarkdown )
+                        , ( "not-ready", not isAnswerReady )
+                        , ( "cursor-progress", config.answerQuestionRequestInProgress )
+                        ]
+                , Maybe.map (onClick << config.answerQuestion) maybeReadyAnswer
+                ]
+            )
+            [ text "Submit Answer" ]
+        ]
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )

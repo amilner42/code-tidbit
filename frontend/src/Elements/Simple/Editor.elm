@@ -16,6 +16,7 @@ view editorID =
 {-| The languages the Ace Editor supports.
 
 @NOTE: Keep up to date with `backend/src/models/language.model.ts`.
+
 -}
 type Language
     = ActionScript
@@ -329,7 +330,7 @@ humanReadableListOfLanguages =
 languageFromHumanReadableName : String -> Maybe Language
 languageFromHumanReadableName languageAsString =
     humanReadableListOfLanguages
-        |> List.filter (Tuple.second >> ((==) languageAsString))
+        |> List.filter (Tuple.second >> (==) languageAsString)
         |> List.head
         |> Maybe.map Tuple.first
 
@@ -344,219 +345,220 @@ prettyPrintLanguages =
 {-| Given a file name, like `bla.py`, returns the appropriate language [python].
 
 NOTE: Due to ambiguity in certain file extensions (.sql), we return a list of the possible languages it could be. An
-      empty list means it's an unsupported file extension.
+empty list means it's an unsupported file extension.
 
 NOTE: This is the fileName, not the absolute path.
+
 -}
 languagesFromFileName : String -> List Language
 languagesFromFileName fileName =
     let
         maybeSuffix =
-            ((String.split ".") >> Util.lastElem) fileName
+            (String.split "." >> Util.lastElem) fileName
     in
-        -- Fucking docker...
-        if fileName == "Dockerfile" then
-            [ DockerFile ]
-        else if not <| String.contains "." fileName then
-            []
-        else
-            case maybeSuffix of
-                Nothing ->
-                    []
+    -- Fucking docker...
+    if fileName == "Dockerfile" then
+        [ DockerFile ]
+    else if not <| String.contains "." fileName then
+        []
+    else
+        case maybeSuffix of
+            Nothing ->
+                []
 
-                Just suffix ->
-                    case suffix of
-                        "as" ->
-                            [ ActionScript ]
+            Just suffix ->
+                case suffix of
+                    "as" ->
+                        [ ActionScript ]
 
-                        "a" ->
-                            [ Ada ]
+                    "a" ->
+                        [ Ada ]
 
-                        "scpt" ->
-                            [ AppleScript ]
+                    "scpt" ->
+                        [ AppleScript ]
 
-                        "asm" ->
-                            [ AssemblyX86 ]
+                    "asm" ->
+                        [ AssemblyX86 ]
 
-                        "c" ->
-                            [ C ]
+                    "c" ->
+                        [ C ]
 
-                        "cc" ->
-                            [ CPlusPlus ]
+                    "cc" ->
+                        [ CPlusPlus ]
 
-                        "cpp" ->
-                            [ CPlusPlus ]
+                    "cpp" ->
+                        [ CPlusPlus ]
 
-                        "h" ->
-                            [ CPlusPlus ]
+                    "h" ->
+                        [ CPlusPlus ]
 
-                        "clj" ->
-                            [ Clojure ]
+                    "clj" ->
+                        [ Clojure ]
 
-                        "cljs" ->
-                            [ Clojure ]
+                    "cljs" ->
+                        [ Clojure ]
 
-                        "cljc" ->
-                            [ Clojure ]
+                    "cljc" ->
+                        [ Clojure ]
 
-                        "edn" ->
-                            [ Clojure ]
+                    "edn" ->
+                        [ Clojure ]
 
-                        "cbl" ->
-                            [ Cobol ]
+                    "cbl" ->
+                        [ Cobol ]
 
-                        "cob" ->
-                            [ Cobol ]
+                    "cob" ->
+                        [ Cobol ]
 
-                        "coffee" ->
-                            [ CoffeeScript ]
+                    "coffee" ->
+                        [ CoffeeScript ]
 
-                        "cs" ->
-                            [ CSharp ]
+                    "cs" ->
+                        [ CSharp ]
 
-                        "css" ->
-                            [ CSS ]
+                    "css" ->
+                        [ CSS ]
 
-                        "d" ->
-                            [ D ]
+                    "d" ->
+                        [ D ]
 
-                        "dart" ->
-                            [ Dart ]
+                    "dart" ->
+                        [ Dart ]
 
-                        "ex" ->
-                            [ Elixir ]
+                    "ex" ->
+                        [ Elixir ]
 
-                        "exs" ->
-                            [ Elixir ]
+                    "exs" ->
+                        [ Elixir ]
 
-                        "elm" ->
-                            [ Elm ]
+                    "elm" ->
+                        [ Elm ]
 
-                        "erl" ->
-                            [ Erlang ]
+                    "erl" ->
+                        [ Erlang ]
 
-                        "hrl" ->
-                            [ Erlang ]
+                    "hrl" ->
+                        [ Erlang ]
 
-                        "f" ->
-                            [ Fortran ]
+                    "f" ->
+                        [ Fortran ]
 
-                        "for" ->
-                            [ Fortran ]
+                    "for" ->
+                        [ Fortran ]
 
-                        "go" ->
-                            [ GoLang ]
+                    "go" ->
+                        [ GoLang ]
 
-                        "groovy" ->
-                            [ Groovy ]
+                    "groovy" ->
+                        [ Groovy ]
 
-                        "haml" ->
-                            [ HAML ]
+                    "haml" ->
+                        [ HAML ]
 
-                        "html" ->
-                            [ HTML ]
+                    "html" ->
+                        [ HTML ]
 
-                        "hs" ->
-                            [ Haskell ]
+                    "hs" ->
+                        [ Haskell ]
 
-                        "java" ->
-                            [ Java ]
+                    "java" ->
+                        [ Java ]
 
-                        "js" ->
-                            [ JavaScript ]
+                    "js" ->
+                        [ JavaScript ]
 
-                        "json" ->
-                            [ JSON ]
+                    "json" ->
+                        [ JSON ]
 
-                        "dtx" ->
-                            [ Latex ]
+                    "dtx" ->
+                        [ Latex ]
 
-                        "lpx" ->
-                            [ Latex ]
+                    "lpx" ->
+                        [ Latex ]
 
-                        "less" ->
-                            [ Less ]
+                    "less" ->
+                        [ Less ]
 
-                        "ls" ->
-                            [ LiveScript ]
+                    "ls" ->
+                        [ LiveScript ]
 
-                        "lua" ->
-                            [ Lua ]
+                    "lua" ->
+                        [ Lua ]
 
-                        "mak" ->
-                            [ Makefile ]
+                    "mak" ->
+                        [ Makefile ]
 
-                        "matlab" ->
-                            [ Matlab ]
+                    "matlab" ->
+                        [ Matlab ]
 
-                        "sql" ->
-                            [ MySQL, PGSQL, SQL, SQLServer ]
+                    "sql" ->
+                        [ MySQL, PGSQL, SQL, SQLServer ]
 
-                        "m" ->
-                            [ ObjectiveC ]
+                    "m" ->
+                        [ ObjectiveC ]
 
-                        "ml" ->
-                            [ OCaml ]
+                    "ml" ->
+                        [ OCaml ]
 
-                        "mli" ->
-                            [ OCaml ]
+                    "mli" ->
+                        [ OCaml ]
 
-                        "pas" ->
-                            [ Pascal ]
+                    "pas" ->
+                        [ Pascal ]
 
-                        "pascal" ->
-                            [ Pascal ]
+                    "pascal" ->
+                        [ Pascal ]
 
-                        "pl" ->
-                            [ Perl ]
+                    "pl" ->
+                        [ Perl ]
 
-                        "php" ->
-                            [ PHP ]
+                    "php" ->
+                        [ PHP ]
 
-                        "ps1" ->
-                            [ PowerShell ]
+                    "ps1" ->
+                        [ PowerShell ]
 
-                        "pro" ->
-                            [ Prolog ]
+                    "pro" ->
+                        [ Prolog ]
 
-                        "py" ->
-                            [ Python ]
+                    "py" ->
+                        [ Python ]
 
-                        "r" ->
-                            [ R ]
+                    "r" ->
+                        [ R ]
 
-                        "rb" ->
-                            [ Ruby ]
+                    "rb" ->
+                        [ Ruby ]
 
-                        "rs" ->
-                            [ Rust ]
+                    "rs" ->
+                        [ Rust ]
 
-                        "scss" ->
-                            [ SASS ]
+                    "scss" ->
+                        [ SASS ]
 
-                        "sass" ->
-                            [ SASS ]
+                    "sass" ->
+                        [ SASS ]
 
-                        "scala" ->
-                            [ Scala ]
+                    "scala" ->
+                        [ Scala ]
 
-                        "sc" ->
-                            [ Scala ]
+                    "sc" ->
+                        [ Scala ]
 
-                        "swift" ->
-                            [ Swift ]
+                    "swift" ->
+                        [ Swift ]
 
-                        "ts" ->
-                            [ TypeScript ]
+                    "ts" ->
+                        [ TypeScript ]
 
-                        "xml" ->
-                            [ XML ]
+                    "xml" ->
+                        [ XML ]
 
-                        "yaml" ->
-                            [ YAML ]
+                    "yaml" ->
+                        [ YAML ]
 
-                        _ ->
-                            []
+                    _ ->
+                        []
 
 
 {-| Given a language, returns the ACE location which can be used with the ACE API to set the language.
@@ -728,7 +730,7 @@ aceLanguageLocation lang =
                 YAML ->
                     "yaml"
     in
-        baseLocation ++ languagePath
+    baseLocation ++ languagePath
 
 
 {-| Given a theme, returns the location which can be used with the ACE API to set the theme.
@@ -804,4 +806,4 @@ aceThemeLocation theme =
                 XCode ->
                     "xcode"
     in
-        baseLocation ++ themeLocation
+    baseLocation ++ themeLocation

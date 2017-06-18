@@ -22,7 +22,7 @@ import Pages.DefaultModel exposing (defaultModel)
 import Pages.DevelopStory.Messages as DevelopStoryMessages
 import Pages.DevelopStory.Update as DevelopStoryUpdate
 import Pages.Messages exposing (Msg(..))
-import Pages.Model exposing (Model, updateKeysDown, updateKeysDownWithKeys, kkUpdateWrapper)
+import Pages.Model exposing (Model, kkUpdateWrapper, updateKeysDown, updateKeysDownWithKeys)
 import Pages.NewStory.Messages as NewStoryMessages
 import Pages.NewStory.Update as NewStoryUpdate
 import Pages.Profile.Messages as ProfileMessages
@@ -52,8 +52,9 @@ update msg model =
 {-| Wrapper around `update` allowing to cache the model in local storage.
 
 NOTE: Sometimes we don't want to save to the cache, for example when the website originally loads if we save to cache we
-      end up loading what we saved (the default model) instead of what was in there before. As well, we may in the
-      future allow users to turn off automatic cacheing, so this function easily allows to control that.
+end up loading what we saved (the default model) instead of what was in there before. As well, we may in the
+future allow users to turn off automatic cacheing, so this function easily allows to control that.
+
 -}
 updateCacheIf : Msg -> Model -> Bool -> ( Model, Cmd Msg )
 updateCacheIf msg model shouldCache =
@@ -83,7 +84,7 @@ updateCacheIf msg model shouldCache =
                         newRoute =
                             Route.parseLocation location
                     in
-                        handleLocationChange newRoute model
+                    handleLocationChange newRoute model
 
                 LoadModelFromLocalStorage ->
                     ( model, LocalStorage.loadModel () )
@@ -106,7 +107,7 @@ updateCacheIf msg model shouldCache =
                         newModel =
                             { model | shared = { shared | user = Just user } }
                     in
-                        ( newModel, Route.navigateTo shared.route )
+                    ( newModel, Route.navigateTo shared.route )
 
                 OnGetUserAndThenRefreshFailure newApiError ->
                     ( model, Route.navigateTo shared.route )
@@ -126,7 +127,7 @@ updateCacheIf msg model shouldCache =
                                 , shared = newShared
                             }
                     in
-                        ( newModel, Cmd.map WelcomeMessage newSubMsg )
+                    ( newModel, Cmd.map WelcomeMessage newSubMsg )
 
                 ViewSnipbitMessage subMsg ->
                     let
@@ -143,7 +144,7 @@ updateCacheIf msg model shouldCache =
                                 , shared = newShared
                             }
                     in
-                        ( newModel, Cmd.map ViewSnipbitMessage newSubMsg )
+                    ( newModel, Cmd.map ViewSnipbitMessage newSubMsg )
 
                 ViewBigbitMessage subMsg ->
                     let
@@ -160,7 +161,7 @@ updateCacheIf msg model shouldCache =
                                 , shared = newShared
                             }
                     in
-                        ( newModel, Cmd.map ViewBigbitMessage newSubMsg )
+                    ( newModel, Cmd.map ViewBigbitMessage newSubMsg )
 
                 ViewStoryMessage subMsg ->
                     let
@@ -177,7 +178,7 @@ updateCacheIf msg model shouldCache =
                                 , shared = newShared
                             }
                     in
-                        ( newModel, Cmd.map ViewStoryMessage newSubMsg )
+                    ( newModel, Cmd.map ViewStoryMessage newSubMsg )
 
                 ProfileMessage subMsg ->
                     let
@@ -205,7 +206,7 @@ updateCacheIf msg model shouldCache =
                                     , shared = newShared
                                 }
                     in
-                        ( newModel, Cmd.map ProfileMessage newSubMsg )
+                    ( newModel, Cmd.map ProfileMessage newSubMsg )
 
                 NewStoryMessage subMsg ->
                     let
@@ -222,7 +223,7 @@ updateCacheIf msg model shouldCache =
                                 , shared = newShared
                             }
                     in
-                        ( newModel, Cmd.map NewStoryMessage newSubMsg )
+                    ( newModel, Cmd.map NewStoryMessage newSubMsg )
 
                 CreateMessage subMsg ->
                     let
@@ -239,7 +240,7 @@ updateCacheIf msg model shouldCache =
                                 , shared = newShared
                             }
                     in
-                        ( newModel, Cmd.map CreateMessage newSubMsg )
+                    ( newModel, Cmd.map CreateMessage newSubMsg )
 
                 DevelopStoryMessage subMsg ->
                     let
@@ -256,7 +257,7 @@ updateCacheIf msg model shouldCache =
                                 , shared = newShared
                             }
                     in
-                        ( newModel, Cmd.map DevelopStoryMessage newSubMsg )
+                    ( newModel, Cmd.map DevelopStoryMessage newSubMsg )
 
                 CreateSnipbitMessage subMsg ->
                     let
@@ -273,7 +274,7 @@ updateCacheIf msg model shouldCache =
                                 , shared = newShared
                             }
                     in
-                        ( newModel, Cmd.map CreateSnipbitMessage newSubMsg )
+                    ( newModel, Cmd.map CreateSnipbitMessage newSubMsg )
 
                 CreateBigbitMessage subMsg ->
                     let
@@ -290,7 +291,7 @@ updateCacheIf msg model shouldCache =
                                 , shared = newShared
                             }
                     in
-                        ( newModel, Cmd.map CreateBigbitMessage newSubMsg )
+                    ( newModel, Cmd.map CreateBigbitMessage newSubMsg )
 
                 BrowseMessage subMsg ->
                     let
@@ -307,12 +308,12 @@ updateCacheIf msg model shouldCache =
                                 , shared = newShared
                             }
                     in
-                        ( newModel, Cmd.map BrowseMessage newSubMsg )
+                    ( newModel, Cmd.map BrowseMessage newSubMsg )
 
                 CodeEditorUpdate { id, value, deltaRange, action } ->
                     case id of
                         "create-snipbit-code-editor" ->
-                            (updateCacheIf
+                            updateCacheIf
                                 (CreateSnipbitMessage <|
                                     CreateSnipbitMessages.OnUpdateCode
                                         { newCode = value
@@ -322,10 +323,9 @@ updateCacheIf msg model shouldCache =
                                 )
                                 model
                                 shouldCache
-                            )
 
                         "create-bigbit-code-editor" ->
-                            (updateCacheIf
+                            updateCacheIf
                                 (CreateBigbitMessage <|
                                     CreateBigbitMessages.OnUpdateCode
                                         { newCode = value
@@ -335,7 +335,6 @@ updateCacheIf msg model shouldCache =
                                 )
                                 model
                                 shouldCache
-                            )
 
                         _ ->
                             doNothing
@@ -343,32 +342,28 @@ updateCacheIf msg model shouldCache =
                 CodeEditorSelectionUpdate { id, range } ->
                     case id of
                         "create-snipbit-code-editor" ->
-                            (updateCacheIf
+                            updateCacheIf
                                 (CreateSnipbitMessage <| CreateSnipbitMessages.OnRangeSelected range)
                                 model
                                 shouldCache
-                            )
 
                         "create-bigbit-code-editor" ->
-                            (updateCacheIf
+                            updateCacheIf
                                 (CreateBigbitMessage <| CreateBigbitMessages.OnRangeSelected range)
                                 model
                                 shouldCache
-                            )
 
                         "view-snipbit-code-editor" ->
-                            (updateCacheIf
+                            updateCacheIf
                                 (ViewSnipbitMessage <| ViewSnipbitMessages.OnRangeSelected range)
                                 model
                                 shouldCache
-                            )
 
                         "view-bigbit-code-editor" ->
-                            (updateCacheIf
+                            updateCacheIf
                                 (ViewBigbitMessage <| ViewBigbitMessages.OnRangeSelected range)
                                 model
                                 shouldCache
-                            )
 
                         _ ->
                             doNothing
@@ -381,16 +376,16 @@ updateCacheIf msg model shouldCache =
                         modelWithNewKeys =
                             updateKeysDown newKeysDown model
                     in
-                        -- Key held, but no new key clicked. Get rid of this if we need hotkeys with key-holds.
-                        if model.shared.keysDown == newKeysDown then
-                            doNothing
-                        else
-                            case msg of
-                                KK.Down keyCode ->
-                                    handleKeyPress modelWithNewKeys
+                    -- Key held, but no new key clicked. Get rid of this if we need hotkeys with key-holds.
+                    if model.shared.keysDown == newKeysDown then
+                        doNothing
+                    else
+                        case msg of
+                            KK.Down keyCode ->
+                                handleKeyPress modelWithNewKeys
 
-                                KK.Up keyCode ->
-                                    handleKeyRelease (KK.fromCode keyCode) modelWithNewKeys
+                            KK.Up keyCode ->
+                                handleKeyRelease (KK.fromCode keyCode) modelWithNewKeys
 
                 CloseErrorModal ->
                     ( { model | shared = { shared | apiModalError = Nothing } }
@@ -402,23 +397,24 @@ updateCacheIf msg model shouldCache =
                     , Cmd.none
                     )
     in
-        case shouldCache of
-            True ->
-                ( newModel
-                , Cmd.batch
-                    [ newCmd
-                    , LocalStorage.saveModel newModel
-                    ]
-                )
+    case shouldCache of
+        True ->
+            ( newModel
+            , Cmd.batch
+                [ newCmd
+                , LocalStorage.saveModel newModel
+                ]
+            )
 
-            False ->
-                ( newModel, newCmd )
+        False ->
+            ( newModel, newCmd )
 
 
 {-| Logic for handling new key-press, all keys currently pressed exist in `shared.keysDown`.
 
 NOTE: This doesn't require that a specific element be focussed, put logic for route hotkeys here, if you want a hotkey
-      only if a certain element is focussed, stick to putting that on the element itself.
+only if a certain element is focussed, stick to putting that on the element itself.
+
 -}
 handleKeyPress : Model -> ( Model, Cmd Msg )
 handleKeyPress model =
@@ -473,104 +469,104 @@ handleKeyPress model =
             else
                 watchForLeftAndRightArrow onLeft onRight
     in
-        case model.shared.route of
-            Route.CreateBigbitNamePage ->
-                watchForTabAndShiftTab
-                    (Route.navigateTo Route.CreateBigbitDescriptionPage)
-                    Cmd.none
+    case model.shared.route of
+        Route.CreateBigbitNamePage ->
+            watchForTabAndShiftTab
+                (Route.navigateTo Route.CreateBigbitDescriptionPage)
+                Cmd.none
 
-            Route.CreateBigbitDescriptionPage ->
-                watchForTabAndShiftTab
-                    (Route.navigateTo Route.CreateBigbitTagsPage)
-                    (Route.navigateTo Route.CreateBigbitNamePage)
+        Route.CreateBigbitDescriptionPage ->
+            watchForTabAndShiftTab
+                (Route.navigateTo Route.CreateBigbitTagsPage)
+                (Route.navigateTo Route.CreateBigbitNamePage)
 
-            Route.CreateBigbitTagsPage ->
-                watchForTabAndShiftTab
-                    (Util.cmdFromMsg <| CreateBigbitMessage CreateBigbitMessages.GoToCodeTab)
-                    (Route.navigateTo Route.CreateBigbitDescriptionPage)
+        Route.CreateBigbitTagsPage ->
+            watchForTabAndShiftTab
+                (Util.cmdFromMsg <| CreateBigbitMessage CreateBigbitMessages.GoToCodeTab)
+                (Route.navigateTo Route.CreateBigbitDescriptionPage)
 
-            Route.CreateSnipbitNamePage ->
-                watchForTabAndShiftTab
-                    (Route.navigateTo Route.CreateSnipbitDescriptionPage)
-                    (Cmd.none)
+        Route.CreateSnipbitNamePage ->
+            watchForTabAndShiftTab
+                (Route.navigateTo Route.CreateSnipbitDescriptionPage)
+                Cmd.none
 
-            Route.CreateSnipbitDescriptionPage ->
-                watchForTabAndShiftTab
-                    (Route.navigateTo Route.CreateSnipbitLanguagePage)
-                    (Route.navigateTo Route.CreateSnipbitNamePage)
+        Route.CreateSnipbitDescriptionPage ->
+            watchForTabAndShiftTab
+                (Route.navigateTo Route.CreateSnipbitLanguagePage)
+                (Route.navigateTo Route.CreateSnipbitNamePage)
 
-            Route.CreateSnipbitLanguagePage ->
-                watchForTabAndShiftTab
-                    (Route.navigateTo Route.CreateSnipbitTagsPage)
-                    (Route.navigateTo Route.CreateSnipbitDescriptionPage)
+        Route.CreateSnipbitLanguagePage ->
+            watchForTabAndShiftTab
+                (Route.navigateTo Route.CreateSnipbitTagsPage)
+                (Route.navigateTo Route.CreateSnipbitDescriptionPage)
 
-            Route.CreateSnipbitTagsPage ->
-                watchForTabAndShiftTab
-                    (Util.cmdFromMsg <| CreateSnipbitMessage CreateSnipbitMessages.GoToCodeTab)
-                    (Route.navigateTo Route.CreateSnipbitLanguagePage)
+        Route.CreateSnipbitTagsPage ->
+            watchForTabAndShiftTab
+                (Util.cmdFromMsg <| CreateSnipbitMessage CreateSnipbitMessages.GoToCodeTab)
+                (Route.navigateTo Route.CreateSnipbitLanguagePage)
 
-            Route.ViewSnipbitIntroductionPage fromStoryID mongoID ->
-                viewSnipbitWatchForLeftAndRightArrow
-                    Cmd.none
-                    (Route.navigateTo <| Route.ViewSnipbitFramePage fromStoryID mongoID 1)
+        Route.ViewSnipbitIntroductionPage fromStoryID mongoID ->
+            viewSnipbitWatchForLeftAndRightArrow
+                Cmd.none
+                (Route.navigateTo <| Route.ViewSnipbitFramePage fromStoryID mongoID 1)
 
-            Route.ViewSnipbitFramePage fromStoryID mongoID frameNumber ->
-                viewSnipbitWatchForLeftAndRightArrow
-                    (Route.navigateTo <| Route.ViewSnipbitFramePage fromStoryID mongoID (frameNumber - 1))
-                    (Route.navigateTo <| Route.ViewSnipbitFramePage fromStoryID mongoID (frameNumber + 1))
+        Route.ViewSnipbitFramePage fromStoryID mongoID frameNumber ->
+            viewSnipbitWatchForLeftAndRightArrow
+                (Route.navigateTo <| Route.ViewSnipbitFramePage fromStoryID mongoID (frameNumber - 1))
+                (Route.navigateTo <| Route.ViewSnipbitFramePage fromStoryID mongoID (frameNumber + 1))
 
-            Route.ViewSnipbitConclusionPage fromStoryID mongoID ->
-                viewSnipbitWatchForLeftAndRightArrow
-                    (Route.navigateTo <|
-                        Route.ViewSnipbitFramePage
-                            fromStoryID
-                            mongoID
-                            (model.viewSnipbitPage.snipbit
-                                |> maybeMapWithDefault (.highlightedComments >> Array.length) 0
-                            )
-                    )
-                    Cmd.none
+        Route.ViewSnipbitConclusionPage fromStoryID mongoID ->
+            viewSnipbitWatchForLeftAndRightArrow
+                (Route.navigateTo <|
+                    Route.ViewSnipbitFramePage
+                        fromStoryID
+                        mongoID
+                        (model.viewSnipbitPage.snipbit
+                            |> maybeMapWithDefault (.highlightedComments >> Array.length) 0
+                        )
+                )
+                Cmd.none
 
-            Route.ViewBigbitIntroductionPage fromStoryID mongoID _ ->
-                viewBigbitWatchForLeftAndRightArrow
-                    Cmd.none
-                    (Route.navigateTo <| Route.ViewBigbitFramePage fromStoryID mongoID 1 Nothing)
+        Route.ViewBigbitIntroductionPage fromStoryID mongoID _ ->
+            viewBigbitWatchForLeftAndRightArrow
+                Cmd.none
+                (Route.navigateTo <| Route.ViewBigbitFramePage fromStoryID mongoID 1 Nothing)
 
-            Route.ViewBigbitFramePage fromStoryID mongoID frameNumber _ ->
-                viewBigbitWatchForLeftAndRightArrow
-                    (Route.navigateTo <| Route.ViewBigbitFramePage fromStoryID mongoID (frameNumber - 1) Nothing)
-                    (Route.navigateTo <| Route.ViewBigbitFramePage fromStoryID mongoID (frameNumber + 1) Nothing)
+        Route.ViewBigbitFramePage fromStoryID mongoID frameNumber _ ->
+            viewBigbitWatchForLeftAndRightArrow
+                (Route.navigateTo <| Route.ViewBigbitFramePage fromStoryID mongoID (frameNumber - 1) Nothing)
+                (Route.navigateTo <| Route.ViewBigbitFramePage fromStoryID mongoID (frameNumber + 1) Nothing)
 
-            Route.ViewBigbitConclusionPage fromStoryID mongoID _ ->
-                viewBigbitWatchForLeftAndRightArrow
-                    (Route.navigateTo <|
-                        Route.ViewBigbitFramePage
-                            fromStoryID
-                            mongoID
-                            (model.viewBigbitPage.bigbit
-                                |> maybeMapWithDefault (.highlightedComments >> Array.length) 0
-                            )
-                            Nothing
-                    )
-                    Cmd.none
+        Route.ViewBigbitConclusionPage fromStoryID mongoID _ ->
+            viewBigbitWatchForLeftAndRightArrow
+                (Route.navigateTo <|
+                    Route.ViewBigbitFramePage
+                        fromStoryID
+                        mongoID
+                        (model.viewBigbitPage.bigbit
+                            |> maybeMapWithDefault (.highlightedComments >> Array.length) 0
+                        )
+                        Nothing
+                )
+                Cmd.none
 
-            Route.CreateStoryNamePage qpEditingStory ->
-                watchForTabAndShiftTab
-                    (Route.navigateTo <| Route.CreateStoryDescriptionPage qpEditingStory)
-                    Cmd.none
+        Route.CreateStoryNamePage qpEditingStory ->
+            watchForTabAndShiftTab
+                (Route.navigateTo <| Route.CreateStoryDescriptionPage qpEditingStory)
+                Cmd.none
 
-            Route.CreateStoryDescriptionPage qpEditingStory ->
-                watchForTabAndShiftTab
-                    (Route.navigateTo <| Route.CreateStoryTagsPage qpEditingStory)
-                    (Route.navigateTo <| Route.CreateStoryNamePage qpEditingStory)
+        Route.CreateStoryDescriptionPage qpEditingStory ->
+            watchForTabAndShiftTab
+                (Route.navigateTo <| Route.CreateStoryTagsPage qpEditingStory)
+                (Route.navigateTo <| Route.CreateStoryNamePage qpEditingStory)
 
-            Route.CreateStoryTagsPage qpEditingStory ->
-                watchForTabAndShiftTab
-                    Cmd.none
-                    (Route.navigateTo <| Route.CreateStoryDescriptionPage qpEditingStory)
+        Route.CreateStoryTagsPage qpEditingStory ->
+            watchForTabAndShiftTab
+                Cmd.none
+                (Route.navigateTo <| Route.CreateStoryDescriptionPage qpEditingStory)
 
-            _ ->
-                doNothing
+        _ ->
+            doNothing
 
 
 {-| Logic for handling new key-release, all keys currently pressed available in `shared.keysDown`.
@@ -587,6 +583,7 @@ users going to routes that don't exist (just goes `back` to the route they were 
 
 Aside from auth logic, nothing else should be put here otherwise it gets crowded. Trigger route hooks on the sub-pages
 and let them hande the logic.
+
 -}
 handleLocationChange : Maybe Route.Route -> Model -> ( Model, Cmd Msg )
 handleLocationChange maybeRoute model =
@@ -617,19 +614,19 @@ handleLocationChange maybeRoute model =
                                         newModel =
                                             modelWithRoute route
                                     in
-                                        ( newModel, LocalStorage.saveModel newModel )
+                                    ( newModel, LocalStorage.saveModel newModel )
 
                                 True ->
                                     let
                                         newModel =
                                             modelWithRoute Route.defaultUnauthRoute
                                     in
-                                        ( newModel
-                                        , Cmd.batch
-                                            [ Route.modifyTo newModel.shared.route
-                                            , LocalStorage.saveModel newModel
-                                            ]
-                                        )
+                                    ( newModel
+                                    , Cmd.batch
+                                        [ Route.modifyTo newModel.shared.route
+                                        , LocalStorage.saveModel newModel
+                                        ]
+                                    )
 
                         True ->
                             case Route.routeRequiresNotAuth route of
@@ -638,19 +635,19 @@ handleLocationChange maybeRoute model =
                                         newModel =
                                             modelWithRoute route
                                     in
-                                        ( newModel, LocalStorage.saveModel newModel )
+                                    ( newModel, LocalStorage.saveModel newModel )
 
                                 True ->
                                     let
                                         newModel =
                                             modelWithRoute Route.defaultAuthRoute
                                     in
-                                        ( newModel
-                                        , Cmd.batch
-                                            [ Route.modifyTo newModel.shared.route
-                                            , LocalStorage.saveModel newModel
-                                            ]
-                                        )
+                                    ( newModel
+                                    , Cmd.batch
+                                        [ Route.modifyTo newModel.shared.route
+                                        , LocalStorage.saveModel newModel
+                                        ]
+                                    )
 
                 triggerRouteHook withMsg =
                     ( newModel
@@ -690,152 +687,152 @@ handleLocationChange maybeRoute model =
                 triggerRouteHookOnBrowsePage =
                     triggerRouteHook <| BrowseMessage <| BrowseMessages.OnRouteHit route
             in
-                -- Handle general route-logic here, routes are a great way to be
-                -- able to trigger certain things (hooks).
-                case route of
-                    Route.LoginPage ->
-                        triggerRouteHookOnWelcomePage
+            -- Handle general route-logic here, routes are a great way to be
+            -- able to trigger certain things (hooks).
+            case route of
+                Route.LoginPage ->
+                    triggerRouteHookOnWelcomePage
 
-                    Route.RegisterPage ->
-                        triggerRouteHookOnWelcomePage
+                Route.RegisterPage ->
+                    triggerRouteHookOnWelcomePage
 
-                    Route.BrowsePage ->
-                        triggerRouteHookOnBrowsePage
+                Route.BrowsePage ->
+                    triggerRouteHookOnBrowsePage
 
-                    Route.CreatePage ->
-                        triggerRouteHookOnCreatePage
+                Route.CreatePage ->
+                    triggerRouteHookOnCreatePage
 
-                    Route.ViewSnipbitIntroductionPage _ _ ->
-                        triggerRouteHookOnViewSnipbitPage
+                Route.ViewSnipbitIntroductionPage _ _ ->
+                    triggerRouteHookOnViewSnipbitPage
 
-                    Route.ViewSnipbitConclusionPage _ _ ->
-                        triggerRouteHookOnViewSnipbitPage
+                Route.ViewSnipbitConclusionPage _ _ ->
+                    triggerRouteHookOnViewSnipbitPage
 
-                    Route.ViewSnipbitFramePage _ _ _ ->
-                        triggerRouteHookOnViewSnipbitPage
+                Route.ViewSnipbitFramePage _ _ _ ->
+                    triggerRouteHookOnViewSnipbitPage
 
-                    Route.ViewSnipbitQuestionsPage _ _ ->
-                        triggerRouteHookOnViewSnipbitPage
+                Route.ViewSnipbitQuestionsPage _ _ ->
+                    triggerRouteHookOnViewSnipbitPage
 
-                    Route.ViewSnipbitQuestionPage _ _ _ _ ->
-                        triggerRouteHookOnViewSnipbitPage
+                Route.ViewSnipbitQuestionPage _ _ _ _ ->
+                    triggerRouteHookOnViewSnipbitPage
 
-                    Route.ViewSnipbitAnswersPage _ _ _ _ ->
-                        triggerRouteHookOnViewSnipbitPage
+                Route.ViewSnipbitAnswersPage _ _ _ _ ->
+                    triggerRouteHookOnViewSnipbitPage
 
-                    Route.ViewSnipbitAnswerPage _ _ _ _ ->
-                        triggerRouteHookOnViewSnipbitPage
+                Route.ViewSnipbitAnswerPage _ _ _ _ ->
+                    triggerRouteHookOnViewSnipbitPage
 
-                    Route.ViewSnipbitQuestionCommentsPage _ _ _ _ _ ->
-                        triggerRouteHookOnViewSnipbitPage
+                Route.ViewSnipbitQuestionCommentsPage _ _ _ _ _ ->
+                    triggerRouteHookOnViewSnipbitPage
 
-                    Route.ViewSnipbitAnswerCommentsPage _ _ _ _ _ ->
-                        triggerRouteHookOnViewSnipbitPage
+                Route.ViewSnipbitAnswerCommentsPage _ _ _ _ _ ->
+                    triggerRouteHookOnViewSnipbitPage
 
-                    Route.ViewSnipbitAskQuestion _ _ ->
-                        triggerRouteHookOnViewSnipbitPage
+                Route.ViewSnipbitAskQuestion _ _ ->
+                    triggerRouteHookOnViewSnipbitPage
 
-                    Route.ViewSnipbitAnswerQuestion _ _ _ ->
-                        triggerRouteHookOnViewSnipbitPage
+                Route.ViewSnipbitAnswerQuestion _ _ _ ->
+                    triggerRouteHookOnViewSnipbitPage
 
-                    Route.ViewSnipbitEditQuestion _ _ _ ->
-                        triggerRouteHookOnViewSnipbitPage
+                Route.ViewSnipbitEditQuestion _ _ _ ->
+                    triggerRouteHookOnViewSnipbitPage
 
-                    Route.ViewSnipbitEditAnswer _ _ _ ->
-                        triggerRouteHookOnViewSnipbitPage
+                Route.ViewSnipbitEditAnswer _ _ _ ->
+                    triggerRouteHookOnViewSnipbitPage
 
-                    Route.ViewBigbitIntroductionPage _ _ _ ->
-                        triggerRouteHookOnViewBigbitPage
+                Route.ViewBigbitIntroductionPage _ _ _ ->
+                    triggerRouteHookOnViewBigbitPage
 
-                    Route.ViewBigbitFramePage _ _ _ _ ->
-                        triggerRouteHookOnViewBigbitPage
+                Route.ViewBigbitFramePage _ _ _ _ ->
+                    triggerRouteHookOnViewBigbitPage
 
-                    Route.ViewBigbitConclusionPage _ _ _ ->
-                        triggerRouteHookOnViewBigbitPage
+                Route.ViewBigbitConclusionPage _ _ _ ->
+                    triggerRouteHookOnViewBigbitPage
 
-                    Route.ViewBigbitQuestionsPage _ _ ->
-                        triggerRouteHookOnViewBigbitPage
+                Route.ViewBigbitQuestionsPage _ _ ->
+                    triggerRouteHookOnViewBigbitPage
 
-                    Route.ViewBigbitQuestionPage _ _ _ _ ->
-                        triggerRouteHookOnViewBigbitPage
+                Route.ViewBigbitQuestionPage _ _ _ _ ->
+                    triggerRouteHookOnViewBigbitPage
 
-                    Route.ViewBigbitAnswersPage _ _ _ _ ->
-                        triggerRouteHookOnViewBigbitPage
+                Route.ViewBigbitAnswersPage _ _ _ _ ->
+                    triggerRouteHookOnViewBigbitPage
 
-                    Route.ViewBigbitAnswerPage _ _ _ _ ->
-                        triggerRouteHookOnViewBigbitPage
+                Route.ViewBigbitAnswerPage _ _ _ _ ->
+                    triggerRouteHookOnViewBigbitPage
 
-                    Route.ViewBigbitQuestionCommentsPage _ _ _ _ _ ->
-                        triggerRouteHookOnViewBigbitPage
+                Route.ViewBigbitQuestionCommentsPage _ _ _ _ _ ->
+                    triggerRouteHookOnViewBigbitPage
 
-                    Route.ViewBigbitAnswerCommentsPage _ _ _ _ _ ->
-                        triggerRouteHookOnViewBigbitPage
+                Route.ViewBigbitAnswerCommentsPage _ _ _ _ _ ->
+                    triggerRouteHookOnViewBigbitPage
 
-                    Route.ViewBigbitAskQuestion _ _ ->
-                        triggerRouteHookOnViewBigbitPage
+                Route.ViewBigbitAskQuestion _ _ ->
+                    triggerRouteHookOnViewBigbitPage
 
-                    Route.ViewBigbitEditQuestion _ _ _ ->
-                        triggerRouteHookOnViewBigbitPage
+                Route.ViewBigbitEditQuestion _ _ _ ->
+                    triggerRouteHookOnViewBigbitPage
 
-                    Route.ViewBigbitAnswerQuestion _ _ _ ->
-                        triggerRouteHookOnViewBigbitPage
+                Route.ViewBigbitAnswerQuestion _ _ _ ->
+                    triggerRouteHookOnViewBigbitPage
 
-                    Route.ViewBigbitEditAnswer _ _ _ ->
-                        triggerRouteHookOnViewBigbitPage
+                Route.ViewBigbitEditAnswer _ _ _ ->
+                    triggerRouteHookOnViewBigbitPage
 
-                    Route.ViewStoryPage _ ->
-                        triggerRouteHookOnViewStoryPage
+                Route.ViewStoryPage _ ->
+                    triggerRouteHookOnViewStoryPage
 
-                    Route.CreateSnipbitNamePage ->
-                        triggerRouteHookOnCreateSnipbitPage
+                Route.CreateSnipbitNamePage ->
+                    triggerRouteHookOnCreateSnipbitPage
 
-                    Route.CreateSnipbitDescriptionPage ->
-                        triggerRouteHookOnCreateSnipbitPage
+                Route.CreateSnipbitDescriptionPage ->
+                    triggerRouteHookOnCreateSnipbitPage
 
-                    Route.CreateSnipbitLanguagePage ->
-                        triggerRouteHookOnCreateSnipbitPage
+                Route.CreateSnipbitLanguagePage ->
+                    triggerRouteHookOnCreateSnipbitPage
 
-                    Route.CreateSnipbitTagsPage ->
-                        triggerRouteHookOnCreateSnipbitPage
+                Route.CreateSnipbitTagsPage ->
+                    triggerRouteHookOnCreateSnipbitPage
 
-                    Route.CreateSnipbitCodeIntroductionPage ->
-                        triggerRouteHookOnCreateSnipbitPage
+                Route.CreateSnipbitCodeIntroductionPage ->
+                    triggerRouteHookOnCreateSnipbitPage
 
-                    Route.CreateSnipbitCodeConclusionPage ->
-                        triggerRouteHookOnCreateSnipbitPage
+                Route.CreateSnipbitCodeConclusionPage ->
+                    triggerRouteHookOnCreateSnipbitPage
 
-                    Route.CreateSnipbitCodeFramePage _ ->
-                        triggerRouteHookOnCreateSnipbitPage
+                Route.CreateSnipbitCodeFramePage _ ->
+                    triggerRouteHookOnCreateSnipbitPage
 
-                    Route.CreateBigbitNamePage ->
-                        triggerRouteHookOnCreateBigbitPage
+                Route.CreateBigbitNamePage ->
+                    triggerRouteHookOnCreateBigbitPage
 
-                    Route.CreateBigbitDescriptionPage ->
-                        triggerRouteHookOnCreateBigbitPage
+                Route.CreateBigbitDescriptionPage ->
+                    triggerRouteHookOnCreateBigbitPage
 
-                    Route.CreateBigbitTagsPage ->
-                        triggerRouteHookOnCreateBigbitPage
+                Route.CreateBigbitTagsPage ->
+                    triggerRouteHookOnCreateBigbitPage
 
-                    Route.CreateBigbitCodeIntroductionPage _ ->
-                        triggerRouteHookOnCreateBigbitPage
+                Route.CreateBigbitCodeIntroductionPage _ ->
+                    triggerRouteHookOnCreateBigbitPage
 
-                    Route.CreateBigbitCodeFramePage _ _ ->
-                        triggerRouteHookOnCreateBigbitPage
+                Route.CreateBigbitCodeFramePage _ _ ->
+                    triggerRouteHookOnCreateBigbitPage
 
-                    Route.CreateBigbitCodeConclusionPage _ ->
-                        triggerRouteHookOnCreateBigbitPage
+                Route.CreateBigbitCodeConclusionPage _ ->
+                    triggerRouteHookOnCreateBigbitPage
 
-                    Route.CreateStoryNamePage _ ->
-                        triggerRouteHookOnNewStoryPage
+                Route.CreateStoryNamePage _ ->
+                    triggerRouteHookOnNewStoryPage
 
-                    Route.CreateStoryDescriptionPage _ ->
-                        triggerRouteHookOnNewStoryPage
+                Route.CreateStoryDescriptionPage _ ->
+                    triggerRouteHookOnNewStoryPage
 
-                    Route.CreateStoryTagsPage _ ->
-                        triggerRouteHookOnNewStoryPage
+                Route.CreateStoryTagsPage _ ->
+                    triggerRouteHookOnNewStoryPage
 
-                    Route.DevelopStoryPage _ ->
-                        triggerRouteHookOnDevelopStoryPage
+                Route.DevelopStoryPage _ ->
+                    triggerRouteHookOnDevelopStoryPage
 
-                    _ ->
-                        ( newModel, newCmd )
+                _ ->
+                    ( newModel, newCmd )

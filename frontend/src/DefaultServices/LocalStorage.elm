@@ -1,7 +1,7 @@
-module DefaultServices.LocalStorage exposing (saveModel, onLoadModel, loadModel)
+module DefaultServices.LocalStorage exposing (loadModel, onLoadModel, saveModel)
 
 import DefaultServices.Util as Util
-import Pages.JSON exposing (encoder, decoder)
+import Pages.JSON exposing (decoder, encoder)
 import Pages.Messages exposing (Msg(..))
 import Pages.Model exposing (Model)
 import Ports
@@ -57,7 +57,7 @@ saveModel model =
 -}
 onLoadModel : Model -> String -> Msg
 onLoadModel currentModel modelAsStringFromStorage =
-    case (Util.fromJsonString (decoder currentModel) modelAsStringFromStorage) of
+    case Util.fromJsonString (decoder currentModel) modelAsStringFromStorage of
         Ok model ->
             OnLoadModelFromLocalStorageSuccess model
 

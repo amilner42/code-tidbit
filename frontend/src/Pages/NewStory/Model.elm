@@ -80,7 +80,7 @@ newTag newTag newStoryData =
                 (\newStory -> { newStory | tags = Util.addUniqueNonEmptyString newTag newStory.tags })
                 newStoryData
     in
-        updateTagInput "" modelWithNewTags
+    updateTagInput "" modelWithNewTags
 
 
 {-| Adds a new tag to the `editingStory` if it's unique and not empty.
@@ -93,7 +93,7 @@ newEditTag newTag newStoryData =
                 (\editingStory -> { editingStory | tags = Util.addUniqueNonEmptyString newTag editingStory.tags })
                 newStoryData
     in
-        updateEditTagInput "" modelWithNewTags
+    updateEditTagInput "" modelWithNewTags
 
 
 {-| Removes a tag from the `newStory` if it exists in the tags.

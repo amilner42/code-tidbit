@@ -1,7 +1,7 @@
 module JSON.TutorialBookmark exposing (..)
 
 import Json.Decode as Decode
-import Json.Decode.Pipeline exposing (decode, required, optional, hardcoded)
+import Json.Decode.Pipeline exposing (decode, hardcoded, optional, required)
 import Json.Encode as Encode
 import Models.TutorialBookmark exposing (..)
 
@@ -48,4 +48,4 @@ decoder =
                     else
                         decodeFailure encodedBookmark
     in
-        Decode.string |> Decode.andThen fromStringDecoder
+    Decode.string |> Decode.andThen fromStringDecoder

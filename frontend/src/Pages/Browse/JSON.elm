@@ -1,10 +1,10 @@
 module Pages.Browse.JSON exposing (..)
 
 import DefaultServices.Util exposing (justValueOrNull)
-import Json.Encode as Encode
-import Json.Decode as Decode
-import Json.Decode.Pipeline exposing (decode, required, optional, hardcoded)
 import JSON.Language
+import Json.Decode as Decode
+import Json.Decode.Pipeline exposing (decode, hardcoded, optional, required)
+import Json.Encode as Encode
 import Pages.Browse.Model exposing (..)
 
 

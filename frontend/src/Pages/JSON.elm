@@ -1,14 +1,14 @@
 module Pages.JSON exposing (..)
 
-import Dict
 import DefaultServices.Util exposing (justValueOrNull)
+import Dict
 import Elements.Simple.Editor as Editor
 import JSON.Route
 import JSON.Story
 import JSON.Tidbit
 import JSON.User
 import Json.Decode as Decode
-import Json.Decode.Pipeline exposing (decode, required, optional, hardcoded)
+import Json.Decode.Pipeline exposing (decode, hardcoded, optional, required)
 import Json.Encode as Encode
 import Keyboard.Extra as KK
 import Pages.Browse.JSON as BrowseJSON
@@ -53,7 +53,7 @@ decoder : Model -> Decode.Decoder Model
 decoder model =
     decode Model
         |> required "shared" (sharedDecoder model.shared)
-        |> required "welcomePage" (WelcomeJSON.decoder)
+        |> required "welcomePage" WelcomeJSON.decoder
         |> required "viewSnipbitPage" ViewSnipbitJSON.decoder
         |> required "viewBigbitPage" ViewBigbitJSON.decoder
         |> required "profilePage" ProfileJSON.decoder

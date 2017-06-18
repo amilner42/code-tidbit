@@ -2,7 +2,7 @@ module Pages.DevelopStory.View exposing (..)
 
 import DefaultServices.Util as Util
 import Elements.Simple.Editor exposing (prettyPrintLanguages)
-import Html exposing (Html, div, button, text, i, span)
+import Html exposing (Html, button, div, i, span, text)
 import Html.Attributes exposing (class, classList, id)
 import Html.Events exposing (onClick)
 import Models.RequestTracker as RT
@@ -78,8 +78,8 @@ view model shared =
                         [ class "flex-box space-around" ]
                         (story.tidbits
                             |> List.indexedMap (\index tidbit -> tidbitBox { state = Finalized index } tidbit)
-                            |> (flip (++)) (List.map (tidbitBox { state = Added }) model.tidbitsToAdd)
-                            |> (flip (++)) Util.emptyFlexBoxesForAlignment
+                            |> flip (++) (List.map (tidbitBox { state = Added }) model.tidbitsToAdd)
+                            |> flip (++) Util.emptyFlexBoxesForAlignment
                         )
                     , div
                         [ class "create-story-page-title" ]
@@ -100,7 +100,7 @@ view model shared =
                             |> Util.sortByDate Tidbit.getLastModified
                             |> List.reverse
                             |> List.map (tidbitBox { state = NotYetAdded })
-                            |> (flip (++)) Util.emptyFlexBoxesForAlignment
+                            |> flip (++) Util.emptyFlexBoxesForAlignment
                         )
                     ]
                 ]

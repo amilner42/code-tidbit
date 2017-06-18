@@ -9,7 +9,7 @@ import Elements.Complex.ViewQuestion as ViewQuestion
 import Models.ApiError exposing (ApiError)
 import Models.Completed exposing (Completed, IsCompleted)
 import Models.Opinion exposing (Opinion, PossibleOpinion)
-import Models.QA exposing (SnipbitQA, Question, Answer, QuestionComment, AnswerComment)
+import Models.QA exposing (Answer, AnswerComment, Question, QuestionComment, SnipbitQA)
 import Models.Range exposing (Range)
 import Models.Route exposing (Route)
 import Models.Snipbit exposing (Snipbit)

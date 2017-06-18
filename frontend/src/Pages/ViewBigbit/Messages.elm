@@ -11,11 +11,11 @@ import Models.ApiError exposing (ApiError)
 import Models.Bigbit exposing (Bigbit)
 import Models.Completed exposing (Completed, IsCompleted)
 import Models.Opinion exposing (Opinion, PossibleOpinion)
-import Models.QA exposing (BigbitQA, BigbitCodePointer, BigbitQuestion, Answer, QuestionComment, AnswerComment)
+import Models.QA exposing (Answer, AnswerComment, BigbitCodePointer, BigbitQA, BigbitQuestion, QuestionComment)
 import Models.Range exposing (Range)
-import Models.Vote exposing (Vote)
 import Models.Route exposing (Route)
 import Models.Story exposing (ExpandedStory)
+import Models.Vote exposing (Vote)
 import ProjectTypeAliases exposing (..)
 
 

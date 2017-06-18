@@ -4,7 +4,7 @@ import DefaultServices.Util as Util exposing (maybeMapWithDefault)
 import Models.Bigbit exposing (Bigbit, HighlightedComment, isFSOpen)
 import Models.Completed exposing (IsCompleted)
 import Models.Opinion exposing (Opinion, PossibleOpinion)
-import Models.QA exposing (BigbitQA, BigbitQAState, BigbitQuestion, BigbitCodePointer)
+import Models.QA exposing (BigbitCodePointer, BigbitQA, BigbitQAState, BigbitQuestion)
 import Models.Route as Route
 import Models.TutorialBookmark as TB
 import Models.ViewerRelevantHC exposing (ViewerRelevantHC, browsingFrames)
@@ -90,6 +90,7 @@ isBigbitFSOpen =
 {-| Get's the route from the bookmark.
 
 Resumes to the tutorial itself, not the browsing-file state, so the current file is set to `Nothing`.
+
 -}
 routeForBookmark : Maybe String -> String -> TB.TutorialBookmark -> Route.Route
 routeForBookmark maybeStoryID bigbitID bookmark =

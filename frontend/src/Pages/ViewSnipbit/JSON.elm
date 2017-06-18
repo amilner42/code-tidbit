@@ -8,7 +8,7 @@ import JSON.Range
 import JSON.Snipbit
 import JSON.TutorialBookmark
 import Json.Decode as Decode
-import Json.Decode.Pipeline exposing (decode, required, optional, hardcoded)
+import Json.Decode.Pipeline exposing (decode, hardcoded, optional, required)
 import Json.Encode as Encode
 import Models.TutorialBookmark as TB
 import Pages.ViewSnipbit.Model exposing (..)

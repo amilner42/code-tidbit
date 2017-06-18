@@ -9,12 +9,13 @@ import Models.Bigbit as Bigbit
 import Models.QA as QA
 import Navigation
 import ProjectTypeAliases exposing (..)
-import UrlParser exposing (Parser, s, (</>), (<?>), oneOf, map, top, int, string, stringParam)
+import UrlParser exposing ((</>), (<?>), Parser, int, map, oneOf, s, string, stringParam, top)
 
 
 {-| All of the app routes.
 
 NOTE: When creating routes, use type aliases to make sure that the purpose of each parameter is clear (eg. StoryID).
+
 -}
 type Route
     = BrowsePage
@@ -271,57 +272,57 @@ matchers =
         login =
             s "login"
     in
-        oneOf
-            [ map BrowsePage top
-            , map ViewSnipbitIntroductionPage viewSnipbitIntroduction
-            , map ViewSnipbitConclusionPage viewSnipbitConclusion
-            , map ViewSnipbitFramePage viewSnipbitFrame
-            , map ViewSnipbitQuestionsPage viewSnipbitQuestionsPage
-            , map ViewSnipbitQuestionPage viewSnipbitQuestionPage
-            , map ViewSnipbitAnswersPage viewSnipbitAnswersPage
-            , map ViewSnipbitAnswerPage viewSnipbitAnswerPage
-            , map ViewSnipbitQuestionCommentsPage viewSnipbitQuestionCommentsPage
-            , map ViewSnipbitAnswerCommentsPage viewSnipbitAnswerCommentsPage
-            , map ViewSnipbitAskQuestion viewSnipbitAskQuestion
-            , map ViewSnipbitAnswerQuestion viewSnipbitAnswerQuestion
-            , map ViewSnipbitEditQuestion viewSnipbitEditQuestion
-            , map ViewSnipbitEditAnswer viewSnipbitEditAnswer
-            , map ViewBigbitIntroductionPage viewBigbitIntroduction
-            , map ViewBigbitFramePage viewBigbitFrame
-            , map ViewBigbitConclusionPage viewBigbitConclusion
-            , map ViewBigbitQuestionsPage viewBigbitQuestionsPage
-            , map ViewBigbitQuestionPage viewBigbitQuestionPage
-            , map ViewBigbitAnswersPage viewBigbitAnswersPage
-            , map ViewBigbitAnswerPage viewBigbitAnswerPage
-            , map ViewBigbitQuestionCommentsPage viewBigbitQuestionCommentsPage
-            , map ViewBigbitAnswerCommentsPage viewBigbitAnswerCommentsPage
-            , map ViewBigbitAskQuestion viewBigbitAskQuestion
-            , map ViewBigbitEditQuestion viewBigbitEditQuestion
-            , map ViewBigbitAnswerQuestion viewBigbitAnswerQuestion
-            , map ViewBigbitEditAnswer viewBigbitEditAnswer
-            , map ViewStoryPage viewStory
-            , map CreatePage create
-            , map CreateSnipbitNamePage createSnipbitName
-            , map CreateSnipbitDescriptionPage createSnipbitDescription
-            , map CreateSnipbitLanguagePage createSnipbitLanguage
-            , map CreateSnipbitTagsPage createSnipbitTags
-            , map CreateSnipbitCodeIntroductionPage createSnipbitCodeIntroduction
-            , map CreateSnipbitCodeFramePage createSnipbitCodeFrame
-            , map CreateSnipbitCodeConclusionPage createSnipbitCodeConclusion
-            , map CreateBigbitNamePage createBigbitName
-            , map CreateBigbitDescriptionPage createBigbitDescription
-            , map CreateBigbitTagsPage createBigbitTags
-            , map CreateBigbitCodeIntroductionPage createBigbitCodeIntroduction
-            , map CreateBigbitCodeFramePage createBigbitCodeFrame
-            , map CreateBigbitCodeConclusionPage createBigbitCodeConclusion
-            , map CreateStoryNamePage createStoryName
-            , map CreateStoryDescriptionPage createStoryDescription
-            , map CreateStoryTagsPage createStoryTags
-            , map DevelopStoryPage developStory
-            , map ProfilePage profile
-            , map RegisterPage register
-            , map LoginPage login
-            ]
+    oneOf
+        [ map BrowsePage top
+        , map ViewSnipbitIntroductionPage viewSnipbitIntroduction
+        , map ViewSnipbitConclusionPage viewSnipbitConclusion
+        , map ViewSnipbitFramePage viewSnipbitFrame
+        , map ViewSnipbitQuestionsPage viewSnipbitQuestionsPage
+        , map ViewSnipbitQuestionPage viewSnipbitQuestionPage
+        , map ViewSnipbitAnswersPage viewSnipbitAnswersPage
+        , map ViewSnipbitAnswerPage viewSnipbitAnswerPage
+        , map ViewSnipbitQuestionCommentsPage viewSnipbitQuestionCommentsPage
+        , map ViewSnipbitAnswerCommentsPage viewSnipbitAnswerCommentsPage
+        , map ViewSnipbitAskQuestion viewSnipbitAskQuestion
+        , map ViewSnipbitAnswerQuestion viewSnipbitAnswerQuestion
+        , map ViewSnipbitEditQuestion viewSnipbitEditQuestion
+        , map ViewSnipbitEditAnswer viewSnipbitEditAnswer
+        , map ViewBigbitIntroductionPage viewBigbitIntroduction
+        , map ViewBigbitFramePage viewBigbitFrame
+        , map ViewBigbitConclusionPage viewBigbitConclusion
+        , map ViewBigbitQuestionsPage viewBigbitQuestionsPage
+        , map ViewBigbitQuestionPage viewBigbitQuestionPage
+        , map ViewBigbitAnswersPage viewBigbitAnswersPage
+        , map ViewBigbitAnswerPage viewBigbitAnswerPage
+        , map ViewBigbitQuestionCommentsPage viewBigbitQuestionCommentsPage
+        , map ViewBigbitAnswerCommentsPage viewBigbitAnswerCommentsPage
+        , map ViewBigbitAskQuestion viewBigbitAskQuestion
+        , map ViewBigbitEditQuestion viewBigbitEditQuestion
+        , map ViewBigbitAnswerQuestion viewBigbitAnswerQuestion
+        , map ViewBigbitEditAnswer viewBigbitEditAnswer
+        , map ViewStoryPage viewStory
+        , map CreatePage create
+        , map CreateSnipbitNamePage createSnipbitName
+        , map CreateSnipbitDescriptionPage createSnipbitDescription
+        , map CreateSnipbitLanguagePage createSnipbitLanguage
+        , map CreateSnipbitTagsPage createSnipbitTags
+        , map CreateSnipbitCodeIntroductionPage createSnipbitCodeIntroduction
+        , map CreateSnipbitCodeFramePage createSnipbitCodeFrame
+        , map CreateSnipbitCodeConclusionPage createSnipbitCodeConclusion
+        , map CreateBigbitNamePage createBigbitName
+        , map CreateBigbitDescriptionPage createBigbitDescription
+        , map CreateBigbitTagsPage createBigbitTags
+        , map CreateBigbitCodeIntroductionPage createBigbitCodeIntroduction
+        , map CreateBigbitCodeFramePage createBigbitCodeFrame
+        , map CreateBigbitCodeConclusionPage createBigbitCodeConclusion
+        , map CreateStoryNamePage createStoryName
+        , map CreateStoryDescriptionPage createStoryDescription
+        , map CreateStoryTagsPage createStoryTags
+        , map DevelopStoryPage developStory
+        , map ProfilePage profile
+        , map RegisterPage register
+        , map LoginPage login
+        ]
 
 
 {-| Returns `True` iff the route requires authentication.
@@ -402,7 +403,8 @@ routeRequiresAuth route =
 {-| Returns `True` iff the route requires that the user not be authenticated.
 
 NOTE: This is NOT the same as `not routeRequiresAuth` as there are routes that the user can access both logged-in and
-      logged-out, these are specifically the routes that you must be logged-out to access.
+logged-out, these are specifically the routes that you must be logged-out to access.
+
 -}
 routeRequiresNotAuth : Route -> Bool
 routeRequiresNotAuth route =
@@ -436,286 +438,287 @@ defaultUnauthRoute =
 toHashUrl : Route -> String
 toHashUrl route =
     "#"
-        ++ case route of
-            BrowsePage ->
-                ""
+        ++ (case route of
+                BrowsePage ->
+                    ""
 
-            CreatePage ->
-                "create"
+                CreatePage ->
+                    "create"
 
-            ViewSnipbitIntroductionPage qpStoryID mongoID ->
-                "view/snipbit/"
-                    ++ mongoID
-                    ++ "/introduction"
-                    ++ Util.queryParamsToString [ ( "fromStory", qpStoryID ) ]
+                ViewSnipbitIntroductionPage qpStoryID mongoID ->
+                    "view/snipbit/"
+                        ++ mongoID
+                        ++ "/introduction"
+                        ++ Util.queryParamsToString [ ( "fromStory", qpStoryID ) ]
 
-            ViewSnipbitConclusionPage qpStoryID mongoID ->
-                "view/snipbit/"
-                    ++ mongoID
-                    ++ "/conclusion"
-                    ++ Util.queryParamsToString [ ( "fromStory", qpStoryID ) ]
+                ViewSnipbitConclusionPage qpStoryID mongoID ->
+                    "view/snipbit/"
+                        ++ mongoID
+                        ++ "/conclusion"
+                        ++ Util.queryParamsToString [ ( "fromStory", qpStoryID ) ]
 
-            ViewSnipbitFramePage qpStoryID mongoID frameNumber ->
-                "view/snipbit/"
-                    ++ mongoID
-                    ++ "/frame/"
-                    ++ (toString frameNumber)
-                    ++ Util.queryParamsToString [ ( "fromStory", qpStoryID ) ]
+                ViewSnipbitFramePage qpStoryID mongoID frameNumber ->
+                    "view/snipbit/"
+                        ++ mongoID
+                        ++ "/frame/"
+                        ++ toString frameNumber
+                        ++ Util.queryParamsToString [ ( "fromStory", qpStoryID ) ]
 
-            ViewSnipbitQuestionsPage qpStoryID snipbitID ->
-                "view/snipbit/"
-                    ++ snipbitID
-                    ++ "/questions"
-                    ++ Util.queryParamsToString [ ( "fromStory", qpStoryID ) ]
+                ViewSnipbitQuestionsPage qpStoryID snipbitID ->
+                    "view/snipbit/"
+                        ++ snipbitID
+                        ++ "/questions"
+                        ++ Util.queryParamsToString [ ( "fromStory", qpStoryID ) ]
 
-            ViewSnipbitQuestionPage qpStoryID qpTouringQuestions snipbitID questionID ->
-                "view/snipbit/"
-                    ++ snipbitID
-                    ++ "/question/"
-                    ++ questionID
-                    ++ Util.queryParamsToString
-                        [ ( "fromStory", qpStoryID ), ( "touringQuestions", qpTouringQuestions ) ]
+                ViewSnipbitQuestionPage qpStoryID qpTouringQuestions snipbitID questionID ->
+                    "view/snipbit/"
+                        ++ snipbitID
+                        ++ "/question/"
+                        ++ questionID
+                        ++ Util.queryParamsToString
+                            [ ( "fromStory", qpStoryID ), ( "touringQuestions", qpTouringQuestions ) ]
 
-            ViewSnipbitAnswersPage qpStoryID qpTouringQuestions snipbitID questionID ->
-                "view/snipbit/"
-                    ++ snipbitID
-                    ++ "/question/"
-                    ++ questionID
-                    ++ "/answers"
-                    ++ Util.queryParamsToString
-                        [ ( "fromStory", qpStoryID ), ( "touringQuestions", qpTouringQuestions ) ]
+                ViewSnipbitAnswersPage qpStoryID qpTouringQuestions snipbitID questionID ->
+                    "view/snipbit/"
+                        ++ snipbitID
+                        ++ "/question/"
+                        ++ questionID
+                        ++ "/answers"
+                        ++ Util.queryParamsToString
+                            [ ( "fromStory", qpStoryID ), ( "touringQuestions", qpTouringQuestions ) ]
 
-            ViewSnipbitAnswerPage qpStoryID qpTouringQuestions snipbitID answerID ->
-                "view/snipbit/"
-                    ++ snipbitID
-                    ++ "/answer/"
-                    ++ answerID
-                    ++ Util.queryParamsToString
-                        [ ( "fromStory", qpStoryID ), ( "touringQuestions", qpTouringQuestions ) ]
+                ViewSnipbitAnswerPage qpStoryID qpTouringQuestions snipbitID answerID ->
+                    "view/snipbit/"
+                        ++ snipbitID
+                        ++ "/answer/"
+                        ++ answerID
+                        ++ Util.queryParamsToString
+                            [ ( "fromStory", qpStoryID ), ( "touringQuestions", qpTouringQuestions ) ]
 
-            ViewSnipbitQuestionCommentsPage qpStoryID qpTouringQuestions snipbitID questionID qpCommentID ->
-                "view/snipbit/"
-                    ++ snipbitID
-                    ++ "/question/"
-                    ++ questionID
-                    ++ "/comments"
-                    ++ Util.queryParamsToString
-                        [ ( "fromStory", qpStoryID )
-                        , ( "commentID", qpCommentID )
-                        , ( "touringQuestions", qpTouringQuestions )
-                        ]
+                ViewSnipbitQuestionCommentsPage qpStoryID qpTouringQuestions snipbitID questionID qpCommentID ->
+                    "view/snipbit/"
+                        ++ snipbitID
+                        ++ "/question/"
+                        ++ questionID
+                        ++ "/comments"
+                        ++ Util.queryParamsToString
+                            [ ( "fromStory", qpStoryID )
+                            , ( "commentID", qpCommentID )
+                            , ( "touringQuestions", qpTouringQuestions )
+                            ]
 
-            ViewSnipbitAnswerCommentsPage qpStoryID qpTouringQuestions snipbitID answerID qpCommentID ->
-                "view/snipbit/"
-                    ++ snipbitID
-                    ++ "/answer/"
-                    ++ answerID
-                    ++ "/comments"
-                    ++ Util.queryParamsToString
-                        [ ( "fromStory", qpStoryID )
-                        , ( "commentID", qpCommentID )
-                        , ( "touringQuestions", qpTouringQuestions )
-                        ]
+                ViewSnipbitAnswerCommentsPage qpStoryID qpTouringQuestions snipbitID answerID qpCommentID ->
+                    "view/snipbit/"
+                        ++ snipbitID
+                        ++ "/answer/"
+                        ++ answerID
+                        ++ "/comments"
+                        ++ Util.queryParamsToString
+                            [ ( "fromStory", qpStoryID )
+                            , ( "commentID", qpCommentID )
+                            , ( "touringQuestions", qpTouringQuestions )
+                            ]
 
-            ViewSnipbitAskQuestion qpStoryID snipbitID ->
-                "view/snipbit/"
-                    ++ snipbitID
-                    ++ "/askQuestion"
-                    ++ Util.queryParamsToString [ ( "fromStory", qpStoryID ) ]
+                ViewSnipbitAskQuestion qpStoryID snipbitID ->
+                    "view/snipbit/"
+                        ++ snipbitID
+                        ++ "/askQuestion"
+                        ++ Util.queryParamsToString [ ( "fromStory", qpStoryID ) ]
 
-            ViewSnipbitAnswerQuestion qpStoryID snipbitID questionID ->
-                "view/snipbit/"
-                    ++ snipbitID
-                    ++ "/answerQuestion/"
-                    ++ questionID
-                    ++ Util.queryParamsToString [ ( "fromStory", qpStoryID ) ]
+                ViewSnipbitAnswerQuestion qpStoryID snipbitID questionID ->
+                    "view/snipbit/"
+                        ++ snipbitID
+                        ++ "/answerQuestion/"
+                        ++ questionID
+                        ++ Util.queryParamsToString [ ( "fromStory", qpStoryID ) ]
 
-            ViewSnipbitEditQuestion qpStoryID snipbitID questionID ->
-                "view/snipbit/"
-                    ++ snipbitID
-                    ++ "/editQuestion/"
-                    ++ questionID
-                    ++ Util.queryParamsToString [ ( "fromStory", qpStoryID ) ]
+                ViewSnipbitEditQuestion qpStoryID snipbitID questionID ->
+                    "view/snipbit/"
+                        ++ snipbitID
+                        ++ "/editQuestion/"
+                        ++ questionID
+                        ++ Util.queryParamsToString [ ( "fromStory", qpStoryID ) ]
 
-            ViewSnipbitEditAnswer qpStoryID snipbitID answerID ->
-                "view/snipbit/"
-                    ++ snipbitID
-                    ++ "/editAnswer/"
-                    ++ answerID
-                    ++ Util.queryParamsToString [ ( "fromStory", qpStoryID ) ]
+                ViewSnipbitEditAnswer qpStoryID snipbitID answerID ->
+                    "view/snipbit/"
+                        ++ snipbitID
+                        ++ "/editAnswer/"
+                        ++ answerID
+                        ++ Util.queryParamsToString [ ( "fromStory", qpStoryID ) ]
 
-            ViewBigbitIntroductionPage qpStoryID mongoID qpFile ->
-                "view/bigbit/"
-                    ++ mongoID
-                    ++ "/introduction/"
-                    ++ Util.queryParamsToString [ ( "file", qpFile ), ( "fromStory", qpStoryID ) ]
+                ViewBigbitIntroductionPage qpStoryID mongoID qpFile ->
+                    "view/bigbit/"
+                        ++ mongoID
+                        ++ "/introduction/"
+                        ++ Util.queryParamsToString [ ( "file", qpFile ), ( "fromStory", qpStoryID ) ]
 
-            ViewBigbitConclusionPage qpStoryID mongoID qpFile ->
-                "view/bigbit/"
-                    ++ mongoID
-                    ++ "/conclusion/"
-                    ++ Util.queryParamsToString [ ( "file", qpFile ), ( "fromStory", qpStoryID ) ]
+                ViewBigbitConclusionPage qpStoryID mongoID qpFile ->
+                    "view/bigbit/"
+                        ++ mongoID
+                        ++ "/conclusion/"
+                        ++ Util.queryParamsToString [ ( "file", qpFile ), ( "fromStory", qpStoryID ) ]
 
-            ViewBigbitFramePage qpStoryID mongoID frameNumber qpFile ->
-                "view/bigbit/"
-                    ++ mongoID
-                    ++ "/frame/"
-                    ++ (toString frameNumber)
-                    ++ "/"
-                    ++ Util.queryParamsToString [ ( "file", qpFile ), ( "fromStory", qpStoryID ) ]
+                ViewBigbitFramePage qpStoryID mongoID frameNumber qpFile ->
+                    "view/bigbit/"
+                        ++ mongoID
+                        ++ "/frame/"
+                        ++ toString frameNumber
+                        ++ "/"
+                        ++ Util.queryParamsToString [ ( "file", qpFile ), ( "fromStory", qpStoryID ) ]
 
-            ViewBigbitQuestionsPage qpStoryID bigbitID ->
-                "view/bigbit/"
-                    ++ bigbitID
-                    ++ "/questions"
-                    ++ Util.queryParamsToString [ ( "fromStory", qpStoryID ) ]
+                ViewBigbitQuestionsPage qpStoryID bigbitID ->
+                    "view/bigbit/"
+                        ++ bigbitID
+                        ++ "/questions"
+                        ++ Util.queryParamsToString [ ( "fromStory", qpStoryID ) ]
 
-            ViewBigbitQuestionPage qpStoryID qpTouringQuestions bigbitID questionID ->
-                "view/bigbit/"
-                    ++ bigbitID
-                    ++ "/question/"
-                    ++ questionID
-                    ++ Util.queryParamsToString
-                        [ ( "fromStory", qpStoryID ), ( "touringQuestions", qpTouringQuestions ) ]
+                ViewBigbitQuestionPage qpStoryID qpTouringQuestions bigbitID questionID ->
+                    "view/bigbit/"
+                        ++ bigbitID
+                        ++ "/question/"
+                        ++ questionID
+                        ++ Util.queryParamsToString
+                            [ ( "fromStory", qpStoryID ), ( "touringQuestions", qpTouringQuestions ) ]
 
-            ViewBigbitAnswersPage qpStoryID qpTouringQuestions bigbitID questionID ->
-                "view/bigbit/"
-                    ++ bigbitID
-                    ++ "/question/"
-                    ++ questionID
-                    ++ "/answers"
-                    ++ Util.queryParamsToString
-                        [ ( "fromStory", qpStoryID ), ( "touringQuestions", qpTouringQuestions ) ]
+                ViewBigbitAnswersPage qpStoryID qpTouringQuestions bigbitID questionID ->
+                    "view/bigbit/"
+                        ++ bigbitID
+                        ++ "/question/"
+                        ++ questionID
+                        ++ "/answers"
+                        ++ Util.queryParamsToString
+                            [ ( "fromStory", qpStoryID ), ( "touringQuestions", qpTouringQuestions ) ]
 
-            ViewBigbitAnswerPage qpStoryID qpTouringQuestions bigbitID answerID ->
-                "view/bigbit/"
-                    ++ bigbitID
-                    ++ "/answer/"
-                    ++ answerID
-                    ++ Util.queryParamsToString
-                        [ ( "fromStory", qpStoryID ), ( "touringQuestions", qpTouringQuestions ) ]
+                ViewBigbitAnswerPage qpStoryID qpTouringQuestions bigbitID answerID ->
+                    "view/bigbit/"
+                        ++ bigbitID
+                        ++ "/answer/"
+                        ++ answerID
+                        ++ Util.queryParamsToString
+                            [ ( "fromStory", qpStoryID ), ( "touringQuestions", qpTouringQuestions ) ]
 
-            ViewBigbitQuestionCommentsPage qpStoryID qpTouringQuestions bigbitID questionID qpCommentID ->
-                "view/bigbit/"
-                    ++ bigbitID
-                    ++ "/question/"
-                    ++ questionID
-                    ++ "/comments"
-                    ++ Util.queryParamsToString
-                        [ ( "fromStory", qpStoryID )
-                        , ( "touringQuestions", qpTouringQuestions )
-                        , ( "commentID", qpCommentID )
-                        ]
+                ViewBigbitQuestionCommentsPage qpStoryID qpTouringQuestions bigbitID questionID qpCommentID ->
+                    "view/bigbit/"
+                        ++ bigbitID
+                        ++ "/question/"
+                        ++ questionID
+                        ++ "/comments"
+                        ++ Util.queryParamsToString
+                            [ ( "fromStory", qpStoryID )
+                            , ( "touringQuestions", qpTouringQuestions )
+                            , ( "commentID", qpCommentID )
+                            ]
 
-            ViewBigbitAnswerCommentsPage qpStoryID qpTouringQuestions bigbitID answerID qpCommentID ->
-                "view/bigbit/"
-                    ++ bigbitID
-                    ++ "/answer/"
-                    ++ answerID
-                    ++ "/comments"
-                    ++ Util.queryParamsToString
-                        [ ( "fromStory", qpStoryID )
-                        , ( "touringQuestions", qpTouringQuestions )
-                        , ( "commentID", qpCommentID )
-                        ]
+                ViewBigbitAnswerCommentsPage qpStoryID qpTouringQuestions bigbitID answerID qpCommentID ->
+                    "view/bigbit/"
+                        ++ bigbitID
+                        ++ "/answer/"
+                        ++ answerID
+                        ++ "/comments"
+                        ++ Util.queryParamsToString
+                            [ ( "fromStory", qpStoryID )
+                            , ( "touringQuestions", qpTouringQuestions )
+                            , ( "commentID", qpCommentID )
+                            ]
 
-            ViewBigbitAskQuestion qpStoryID bigbitID ->
-                "view/bigbit/"
-                    ++ bigbitID
-                    ++ "/askQuestion"
-                    ++ Util.queryParamsToString [ ( "fromStory", qpStoryID ) ]
+                ViewBigbitAskQuestion qpStoryID bigbitID ->
+                    "view/bigbit/"
+                        ++ bigbitID
+                        ++ "/askQuestion"
+                        ++ Util.queryParamsToString [ ( "fromStory", qpStoryID ) ]
 
-            ViewBigbitEditQuestion qpStoryID bigbitID questionID ->
-                "view/bigbit/"
-                    ++ bigbitID
-                    ++ "/editQuestion/"
-                    ++ questionID
-                    ++ Util.queryParamsToString [ ( "fromStory", qpStoryID ) ]
+                ViewBigbitEditQuestion qpStoryID bigbitID questionID ->
+                    "view/bigbit/"
+                        ++ bigbitID
+                        ++ "/editQuestion/"
+                        ++ questionID
+                        ++ Util.queryParamsToString [ ( "fromStory", qpStoryID ) ]
 
-            ViewBigbitAnswerQuestion qpStoryID bigbitID questionID ->
-                "view/bigbit/"
-                    ++ bigbitID
-                    ++ "/answerQuestion/"
-                    ++ questionID
-                    ++ Util.queryParamsToString [ ( "fromStory", qpStoryID ) ]
+                ViewBigbitAnswerQuestion qpStoryID bigbitID questionID ->
+                    "view/bigbit/"
+                        ++ bigbitID
+                        ++ "/answerQuestion/"
+                        ++ questionID
+                        ++ Util.queryParamsToString [ ( "fromStory", qpStoryID ) ]
 
-            ViewBigbitEditAnswer qpStoryID bigbitID answerID ->
-                "view/bigbit/"
-                    ++ bigbitID
-                    ++ "/editAnswer/"
-                    ++ answerID
-                    ++ Util.queryParamsToString [ ( "fromStory", qpStoryID ) ]
+                ViewBigbitEditAnswer qpStoryID bigbitID answerID ->
+                    "view/bigbit/"
+                        ++ bigbitID
+                        ++ "/editAnswer/"
+                        ++ answerID
+                        ++ Util.queryParamsToString [ ( "fromStory", qpStoryID ) ]
 
-            ViewStoryPage mongoID ->
-                "view/story/" ++ mongoID
+                ViewStoryPage mongoID ->
+                    "view/story/" ++ mongoID
 
-            CreateSnipbitNamePage ->
-                "create/snipbit/name"
+                CreateSnipbitNamePage ->
+                    "create/snipbit/name"
 
-            CreateSnipbitDescriptionPage ->
-                "create/snipbit/description"
+                CreateSnipbitDescriptionPage ->
+                    "create/snipbit/description"
 
-            CreateSnipbitLanguagePage ->
-                "create/snipbit/language"
+                CreateSnipbitLanguagePage ->
+                    "create/snipbit/language"
 
-            CreateSnipbitTagsPage ->
-                "create/snipbit/tags"
+                CreateSnipbitTagsPage ->
+                    "create/snipbit/tags"
 
-            CreateSnipbitCodeIntroductionPage ->
-                "create/snipbit/code/introduction"
+                CreateSnipbitCodeIntroductionPage ->
+                    "create/snipbit/code/introduction"
 
-            CreateSnipbitCodeFramePage frameNumber ->
-                "create/snipbit/code/frame/" ++ (toString frameNumber)
+                CreateSnipbitCodeFramePage frameNumber ->
+                    "create/snipbit/code/frame/" ++ toString frameNumber
 
-            CreateSnipbitCodeConclusionPage ->
-                "create/snipbit/code/conclusion"
+                CreateSnipbitCodeConclusionPage ->
+                    "create/snipbit/code/conclusion"
 
-            CreateBigbitNamePage ->
-                "create/bigbit/name"
+                CreateBigbitNamePage ->
+                    "create/bigbit/name"
 
-            CreateBigbitDescriptionPage ->
-                "create/bigbit/description"
+                CreateBigbitDescriptionPage ->
+                    "create/bigbit/description"
 
-            CreateBigbitTagsPage ->
-                "create/bigbit/tags"
+                CreateBigbitTagsPage ->
+                    "create/bigbit/tags"
 
-            CreateBigbitCodeIntroductionPage qpFile ->
-                "create/bigbit/code/introduction/"
-                    ++ (Util.queryParamsToString [ ( "file", qpFile ) ])
+                CreateBigbitCodeIntroductionPage qpFile ->
+                    "create/bigbit/code/introduction/"
+                        ++ Util.queryParamsToString [ ( "file", qpFile ) ]
 
-            CreateBigbitCodeFramePage frameNumber qpFile ->
-                "create/bigbit/code/frame/"
-                    ++ (toString frameNumber)
-                    ++ "/"
-                    ++ (Util.queryParamsToString [ ( "file", qpFile ) ])
+                CreateBigbitCodeFramePage frameNumber qpFile ->
+                    "create/bigbit/code/frame/"
+                        ++ toString frameNumber
+                        ++ "/"
+                        ++ Util.queryParamsToString [ ( "file", qpFile ) ]
 
-            CreateBigbitCodeConclusionPage qpFile ->
-                "create/bigbit/code/conclusion/"
-                    ++ (Util.queryParamsToString [ ( "file", qpFile ) ])
+                CreateBigbitCodeConclusionPage qpFile ->
+                    "create/bigbit/code/conclusion/"
+                        ++ Util.queryParamsToString [ ( "file", qpFile ) ]
 
-            CreateStoryNamePage qpStory ->
-                "create/story/name"
-                    ++ (Util.queryParamsToString [ ( "editingStory", qpStory ) ])
+                CreateStoryNamePage qpStory ->
+                    "create/story/name"
+                        ++ Util.queryParamsToString [ ( "editingStory", qpStory ) ]
 
-            CreateStoryDescriptionPage qpStory ->
-                "create/story/description"
-                    ++ (Util.queryParamsToString [ ( "editingStory", qpStory ) ])
+                CreateStoryDescriptionPage qpStory ->
+                    "create/story/description"
+                        ++ Util.queryParamsToString [ ( "editingStory", qpStory ) ]
 
-            CreateStoryTagsPage qpStory ->
-                "create/story/tags"
-                    ++ (Util.queryParamsToString [ ( "editingStory", qpStory ) ])
+                CreateStoryTagsPage qpStory ->
+                    "create/story/tags"
+                        ++ Util.queryParamsToString [ ( "editingStory", qpStory ) ]
 
-            DevelopStoryPage storyID ->
-                "develop/story/" ++ storyID
+                DevelopStoryPage storyID ->
+                    "develop/story/" ++ storyID
 
-            ProfilePage ->
-                "profile"
+                ProfilePage ->
+                    "profile"
 
-            LoginPage ->
-                "login"
+                LoginPage ->
+                    "login"
 
-            RegisterPage ->
-                "register"
+                RegisterPage ->
+                    "register"
+           )
 
 
 {-| Attempts to parse a location into a route.
@@ -737,10 +740,10 @@ parseLocation location =
                         |> String.join "?"
                         |> String.append "?"
             in
-                { location | hash = hash, search = search }
+            { location | hash = hash, search = search }
     in
-        fixLocationHashQuery location
-            |> UrlParser.parseHash matchers
+    fixLocationHashQuery location
+        |> UrlParser.parseHash matchers
 
 
 {-| Navigates to a given route.
@@ -757,7 +760,7 @@ modifyTo route =
     Navigation.modifyUrl <| toHashUrl <| route
 
 
-{-| For routes that have a file path query paramter, will  navigate to the same URL but with the file path added as a
+{-| For routes that have a file path query paramter, will navigate to the same URL but with the file path added as a
 query param, otheriwse will do nothing.
 -}
 navigateToSameUrlWithFilePath : Maybe FS.Path -> Route -> Cmd msg
@@ -983,69 +986,69 @@ viewBigbitPageCurrentActiveFile route bigbit maybeQA qaState =
                 ||> .codePointer
                 ||> .file
     in
-        case route of
-            ViewBigbitIntroductionPage _ _ maybePath ->
+    case route of
+        ViewBigbitIntroductionPage _ _ maybePath ->
+            maybePath
+
+        ViewBigbitFramePage _ _ frameNumber maybePath ->
+            if Util.isNotNothing maybePath then
                 maybePath
-
-            ViewBigbitFramePage _ _ frameNumber maybePath ->
-                if Util.isNotNothing maybePath then
-                    maybePath
-                else
-                    Array.get (frameNumber - 1) bigbit.highlightedComments
-                        ||> .file
-
-            ViewBigbitConclusionPage _ _ maybePath ->
-                maybePath
-
-            ViewBigbitQuestionsPage _ bigbitID ->
-                qaState
-                    |> QA.getBrowseCodePointer bigbitID
+            else
+                Array.get (frameNumber - 1) bigbit.highlightedComments
                     ||> .file
 
-            ViewBigbitQuestionPage _ _ _ questionID ->
-                getActiveFileBasedOnQuestionID questionID
+        ViewBigbitConclusionPage _ _ maybePath ->
+            maybePath
 
-            ViewBigbitAnswersPage _ _ _ questionID ->
-                getActiveFileBasedOnQuestionID questionID
+        ViewBigbitQuestionsPage _ bigbitID ->
+            qaState
+                |> QA.getBrowseCodePointer bigbitID
+                ||> .file
 
-            ViewBigbitAnswerPage _ _ _ answerID ->
-                getActiveFileBasedOnAnswerID answerID
+        ViewBigbitQuestionPage _ _ _ questionID ->
+            getActiveFileBasedOnQuestionID questionID
 
-            ViewBigbitQuestionCommentsPage _ _ _ questionID _ ->
-                getActiveFileBasedOnQuestionID questionID
+        ViewBigbitAnswersPage _ _ _ questionID ->
+            getActiveFileBasedOnQuestionID questionID
 
-            ViewBigbitAnswerCommentsPage _ _ _ answerID _ ->
-                getActiveFileBasedOnAnswerID answerID
+        ViewBigbitAnswerPage _ _ _ answerID ->
+            getActiveFileBasedOnAnswerID answerID
 
-            ViewBigbitAskQuestion _ bigbitID ->
-                qaState
-                    |> QA.getNewQuestion bigbitID
-                    |||> .codePointer
-                    ||> .file
+        ViewBigbitQuestionCommentsPage _ _ _ questionID _ ->
+            getActiveFileBasedOnQuestionID questionID
 
-            ViewBigbitEditQuestion _ bigbitID questionID ->
-                qaState
-                    |> QA.getQuestionEdit bigbitID questionID
-                    ||> .codePointer
-                    ||> Editable.getBuffer
-                    ||> .file
-                    |> (\maybeFileFromEdit ->
-                            case maybeFileFromEdit of
-                                Nothing ->
-                                    getActiveFileBasedOnQuestionID questionID
+        ViewBigbitAnswerCommentsPage _ _ _ answerID _ ->
+            getActiveFileBasedOnAnswerID answerID
 
-                                Just fileFromEdit ->
-                                    Just fileFromEdit
-                       )
+        ViewBigbitAskQuestion _ bigbitID ->
+            qaState
+                |> QA.getNewQuestion bigbitID
+                |||> .codePointer
+                ||> .file
 
-            ViewBigbitAnswerQuestion _ _ questionID ->
-                getActiveFileBasedOnQuestionID questionID
+        ViewBigbitEditQuestion _ bigbitID questionID ->
+            qaState
+                |> QA.getQuestionEdit bigbitID questionID
+                ||> .codePointer
+                ||> Editable.getBuffer
+                ||> .file
+                |> (\maybeFileFromEdit ->
+                        case maybeFileFromEdit of
+                            Nothing ->
+                                getActiveFileBasedOnQuestionID questionID
 
-            ViewBigbitEditAnswer _ _ answerID ->
-                getActiveFileBasedOnAnswerID answerID
+                            Just fileFromEdit ->
+                                Just fileFromEdit
+                   )
 
-            _ ->
-                Nothing
+        ViewBigbitAnswerQuestion _ _ questionID ->
+            getActiveFileBasedOnQuestionID questionID
+
+        ViewBigbitEditAnswer _ _ answerID ->
+            getActiveFileBasedOnAnswerID answerID
+
+        _ ->
+            Nothing
 
 
 {-| Get's the ID of the content that we are viewing.

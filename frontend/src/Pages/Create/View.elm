@@ -2,7 +2,7 @@ module Pages.Create.View exposing (..)
 
 import DefaultServices.Util as Util
 import Elements.Simple.Editor exposing (prettyPrintLanguages)
-import Html exposing (Html, div, text, button, i)
+import Html exposing (Html, button, div, i, text)
 import Html.Attributes exposing (class, classList)
 import Html.Events exposing (onClick)
 import Models.Route as Route
@@ -39,7 +39,7 @@ view model shared =
         makeTidbitTypeBox title subTitle description onClickMsg tidbitType =
             div
                 [ class "create-select-tidbit-type" ]
-                (if model.showInfoFor == (Just tidbitType) then
+                (if model.showInfoFor == Just tidbitType then
                     [ div
                         [ class "description-text" ]
                         [ text description ]
@@ -91,66 +91,65 @@ view model shared =
                                     [ text "add" ]
                                 ]
                              ]
-                                ++ (List.map
-                                        (\story ->
-                                            div
-                                                [ class "story-box"
-                                                , onClick <| GoTo <| Route.DevelopStoryPage story.id
+                                ++ List.map
+                                    (\story ->
+                                        div
+                                            [ class "story-box"
+                                            , onClick <| GoTo <| Route.DevelopStoryPage story.id
+                                            ]
+                                            [ div
+                                                [ class "story-box-name" ]
+                                                [ text story.name ]
+                                            , div
+                                                [ class "story-box-languages" ]
+                                                [ text <| prettyPrintLanguages <| story.languages
                                                 ]
-                                                [ div
-                                                    [ class "story-box-name" ]
-                                                    [ text story.name ]
-                                                , div
-                                                    [ class "story-box-languages" ]
-                                                    [ text <| prettyPrintLanguages <| story.languages
-                                                    ]
-                                                , div
-                                                    [ class "story-box-tidbit-count" ]
-                                                    [ text <| Util.xThings "tidbit" "s" <| List.length story.tidbitPointers ]
-                                                , div
-                                                    [ class "story-box-opinions" ]
-                                                    [ i [ class "material-icons" ] [ text "favorite" ]
-                                                    , div [ class "like-count" ] [ text <| toString <| story.likes ]
-                                                    ]
+                                            , div
+                                                [ class "story-box-tidbit-count" ]
+                                                [ text <| Util.xThings "tidbit" "s" <| List.length story.tidbitPointers ]
+                                            , div
+                                                [ class "story-box-opinions" ]
+                                                [ i [ class "material-icons" ] [ text "favorite" ]
+                                                , div [ class "like-count" ] [ text <| toString <| story.likes ]
                                                 ]
-                                        )
-                                        (List.reverse <| Util.sortByDate .lastModified userStories)
-                                   )
+                                            ]
+                                    )
+                                    (List.reverse <| Util.sortByDate .lastModified userStories)
                                 ++ Util.emptyFlexBoxesForAlignment
                             )
                         ]
     in
-        div
-            [ class "create-page" ]
-            [ div
-                [ class "title-banner" ]
-                [ text "CREATE TIDBIT" ]
+    div
+        [ class "create-page" ]
+        [ div
+            [ class "title-banner" ]
+            [ text "CREATE TIDBIT" ]
+        , div
+            [ class "make-tidbits" ]
+            [ makeTidbitTypeBox
+                "SnipBit"
+                "Explain a chunk of code"
+                snipBitDescription
+                (GoTo Route.CreateSnipbitNamePage)
+                SnipBit
+            , makeTidbitTypeBox
+                "BigBit"
+                "Explain a full project"
+                bigBitInfo
+                (GoTo Route.CreateBigbitNamePage)
+                BigBit
             , div
-                [ class "make-tidbits" ]
-                [ makeTidbitTypeBox
-                    "SnipBit"
-                    "Explain a chunk of code"
-                    snipBitDescription
-                    (GoTo Route.CreateSnipbitNamePage)
-                    SnipBit
-                , makeTidbitTypeBox
-                    "BigBit"
-                    "Explain a full project"
-                    bigBitInfo
-                    (GoTo Route.CreateBigbitNamePage)
-                    BigBit
+                [ class "create-select-tidbit-type-coming-soon" ]
+                [ div
+                    [ class "coming-soon-text" ]
+                    [ text "More Coming Soon" ]
                 , div
-                    [ class "create-select-tidbit-type-coming-soon" ]
-                    [ div
-                        [ class "coming-soon-text" ]
-                        [ text "More Coming Soon" ]
-                    , div
-                        [ class "coming-soon-sub-text" ]
-                        [ text "We are working on it" ]
-                    ]
+                    [ class "coming-soon-sub-text" ]
+                    [ text "We are working on it" ]
                 ]
-            , div
-                [ class "title-banner story-banner" ]
-                [ text "DEVELOP STORY" ]
-            , yourStoriesHtml
             ]
+        , div
+            [ class "title-banner story-banner" ]
+            [ text "DEVELOP STORY" ]
+        , yourStoriesHtml
+        ]
