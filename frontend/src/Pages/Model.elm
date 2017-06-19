@@ -1,5 +1,6 @@
 module Pages.Model exposing (..)
 
+import DefaultServices.TextFields as TextFields
 import Elements.Simple.Editor as Editor
 import Flags exposing (Flags)
 import Keyboard.Extra as KK
@@ -61,6 +62,7 @@ type alias Shared =
     , apiModalError : Maybe ApiError.ApiError
     , userNeedsAuthModal : Maybe String
     , apiRequestTracker : RT.RequestTracker
+    , textFieldKeyTracker : TextFields.KeyTracker
     }
 
 

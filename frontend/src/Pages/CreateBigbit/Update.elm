@@ -2,6 +2,7 @@ module Pages.CreateBigbit.Update exposing (..)
 
 import Array
 import DefaultServices.CommonSubPageUtil exposing (CommonSubPageUtil(..), commonSubPageUtil)
+import DefaultServices.TextFields as TextFields
 import DefaultServices.Util as Util exposing (maybeMapWithDefault, togglePreviewMarkdown)
 import Dict
 import Elements.Simple.Editor as Editor
@@ -25,6 +26,9 @@ update (Common common) msg model shared =
     let
         currentBigbitHighlightedComments =
             model.highlightedComments
+
+        focusOnActionInputBox =
+            Util.domFocus (always NoOp) "fs-action-input-box"
     in
     case msg of
         NoOp ->
@@ -335,18 +339,25 @@ update (Common common) msg model shared =
             common.justUpdateModel togglePreviewMarkdown
 
         AddFile absolutePath language ->
-            common.justSetModel <|
-                { model
-                    | fs =
-                        model.fs
-                            |> FS.addFile
-                                { overwriteExisting = False
-                                , forceCreateDirectories = Just <| always defaultEmptyFolder
-                                }
-                                absolutePath
-                                (FS.emptyFile { language = language })
-                            |> clearActionButtonInput
-                }
+            ( { model
+                | fs =
+                    model.fs
+                        |> FS.addFile
+                            { overwriteExisting = False
+                            , forceCreateDirectories = Just <| always defaultEmptyFolder
+                            }
+                            absolutePath
+                            (FS.emptyFile { language = language })
+                        |> clearActionButtonInput
+              }
+            , { shared
+                | textFieldKeyTracker =
+                    TextFields.changeKey
+                        shared.textFieldKeyTracker
+                        "create-bigbit-fs-action-input-box"
+              }
+            , focusOnActionInputBox
+            )
 
         JumpToLineFromPreviousFrame filePath ->
             case shared.route of
@@ -386,11 +397,13 @@ update (Common common) msg model shared =
                 common.justSetModel { model | tagInput = newTagInput }
 
         AddTag tagName ->
-            common.justSetModel
-                { model
-                    | tags = Util.addUniqueNonEmptyString tagName model.tags
-                    , tagInput = ""
-                }
+            ( { model
+                | tags = Util.addUniqueNonEmptyString tagName model.tags
+                , tagInput = ""
+              }
+            , { shared | textFieldKeyTracker = TextFields.changeKey shared.textFieldKeyTracker "create-bigbit-tags" }
+            , Util.domFocus (always NoOp) "tags-input"
+            )
 
         RemoveTag tagName ->
             common.justSetModel { model | tags = List.filter (\tag -> tag /= tagName) model.tags }
@@ -519,110 +532,116 @@ update (Common common) msg model shared =
                         _ ->
                             redirectIfFileRemoved
 
-                ( newModel, newCmd ) =
-                    case maybeCurrentActionState of
-                        -- Should never happen.
-                        Nothing ->
-                            ( model, Cmd.none )
-
-                        Just currentActionState ->
-                            case currentActionState of
-                                AddingFile ->
-                                    case isValidAddFileInput absolutePath fs of
-                                        Err _ ->
-                                            ( model, Cmd.none )
-
-                                        Ok language ->
-                                            let
-                                                ( newModel, _, newCmd ) =
-                                                    update
-                                                        (commonSubPageUtil model shared)
-                                                        (AddFile absolutePath language)
-                                                        model
-                                                        shared
-                                            in
-                                            ( newModel, newCmd )
-
-                                AddingFolder ->
-                                    case isValidAddFolderInput absolutePath fs of
-                                        Err _ ->
-                                            ( model, Cmd.none )
-
-                                        Ok _ ->
-                                            ( { model
-                                                | fs =
-                                                    fs
-                                                        |> FS.addFolder
-                                                            { overwriteExisting = False
-                                                            , forceCreateDirectories =
-                                                                Just <| always defaultEmptyFolder
-                                                            }
-                                                            absolutePath
-                                                            (FS.Folder Dict.empty Dict.empty { isExpanded = True })
-                                                        |> clearActionButtonInput
-                                              }
-                                            , Cmd.none
-                                            )
-
-                                RemovingFile ->
-                                    case isValidRemoveFileInput absolutePath fs of
-                                        Err _ ->
-                                            ( model, Cmd.none )
-
-                                        Ok _ ->
-                                            if .actionButtonSubmitConfirmed <| FS.getFSMetadata fs then
-                                                let
-                                                    newFS =
-                                                        fs
-                                                            |> FS.removeFile absolutePath
-                                                            |> clearActionButtonInput
-
-                                                    newHighlightedComments =
-                                                        getNewHighlightedComments
-                                                            currentBigbitHighlightedComments
-                                                            newFS
-                                                in
-                                                ( { model
-                                                    | fs = newFS
-                                                    , highlightedComments = newHighlightedComments
-                                                  }
-                                                , navigateIfRouteNowInvalid newFS newHighlightedComments
-                                                )
-                                            else
-                                                ( { model | fs = fs |> setActionButtonSubmitConfirmed True }
-                                                , Cmd.none
-                                                )
-
-                                RemovingFolder ->
-                                    case isValidRemoveFolderInput absolutePath fs of
-                                        Err _ ->
-                                            ( model, Cmd.none )
-
-                                        Ok _ ->
-                                            if .actionButtonSubmitConfirmed <| FS.getFSMetadata fs then
-                                                let
-                                                    newFS =
-                                                        fs
-                                                            |> FS.removeFolder absolutePath
-                                                            |> clearActionButtonInput
-
-                                                    newHighlightedComments =
-                                                        getNewHighlightedComments
-                                                            currentBigbitHighlightedComments
-                                                            newFS
-                                                in
-                                                ( { model
-                                                    | fs = newFS
-                                                    , highlightedComments = newHighlightedComments
-                                                  }
-                                                , navigateIfRouteNowInvalid newFS newHighlightedComments
-                                                )
-                                            else
-                                                ( { model | fs = fs |> setActionButtonSubmitConfirmed True }
-                                                , Cmd.none
-                                                )
+                sharedWithTextFieldKeyChanged =
+                    { shared
+                        | textFieldKeyTracker =
+                            TextFields.changeKey
+                                shared.textFieldKeyTracker
+                                "create-bigbit-fs-action-input-box"
+                    }
             in
-            ( newModel, shared, newCmd )
+            case maybeCurrentActionState of
+                -- Should never happen.
+                Nothing ->
+                    common.doNothing
+
+                Just currentActionState ->
+                    case currentActionState of
+                        AddingFile ->
+                            case isValidAddFileInput absolutePath fs of
+                                Err _ ->
+                                    common.doNothing
+
+                                Ok language ->
+                                    update
+                                        (commonSubPageUtil model shared)
+                                        (AddFile absolutePath language)
+                                        model
+                                        shared
+
+                        AddingFolder ->
+                            case isValidAddFolderInput absolutePath fs of
+                                Err _ ->
+                                    common.doNothing
+
+                                Ok _ ->
+                                    ( { model
+                                        | fs =
+                                            fs
+                                                |> FS.addFolder
+                                                    { overwriteExisting = False
+                                                    , forceCreateDirectories =
+                                                        Just <| always defaultEmptyFolder
+                                                    }
+                                                    absolutePath
+                                                    (FS.Folder Dict.empty Dict.empty { isExpanded = True })
+                                                |> clearActionButtonInput
+                                      }
+                                    , sharedWithTextFieldKeyChanged
+                                    , focusOnActionInputBox
+                                    )
+
+                        RemovingFile ->
+                            case isValidRemoveFileInput absolutePath fs of
+                                Err _ ->
+                                    common.doNothing
+
+                                Ok _ ->
+                                    if .actionButtonSubmitConfirmed <| FS.getFSMetadata fs then
+                                        let
+                                            newFS =
+                                                fs
+                                                    |> FS.removeFile absolutePath
+                                                    |> clearActionButtonInput
+
+                                            newHighlightedComments =
+                                                getNewHighlightedComments
+                                                    currentBigbitHighlightedComments
+                                                    newFS
+                                        in
+                                        ( { model
+                                            | fs = newFS
+                                            , highlightedComments = newHighlightedComments
+                                          }
+                                        , sharedWithTextFieldKeyChanged
+                                        , Cmd.batch
+                                            [ navigateIfRouteNowInvalid newFS newHighlightedComments
+                                            , focusOnActionInputBox
+                                            ]
+                                        )
+                                    else
+                                        common.justSetModel { model | fs = fs |> setActionButtonSubmitConfirmed True }
+
+                        RemovingFolder ->
+                            case isValidRemoveFolderInput absolutePath fs of
+                                Err _ ->
+                                    common.doNothing
+
+                                Ok _ ->
+                                    if .actionButtonSubmitConfirmed <| FS.getFSMetadata fs then
+                                        let
+                                            newFS =
+                                                fs
+                                                    |> FS.removeFolder absolutePath
+                                                    |> clearActionButtonInput
+
+                                            newHighlightedComments =
+                                                getNewHighlightedComments
+                                                    currentBigbitHighlightedComments
+                                                    newFS
+                                        in
+                                        ( { model
+                                            | fs = newFS
+                                            , highlightedComments = newHighlightedComments
+                                          }
+                                        , sharedWithTextFieldKeyChanged
+                                        , Cmd.batch
+                                            [ navigateIfRouteNowInvalid newFS newHighlightedComments
+                                            , focusOnActionInputBox
+                                            ]
+                                        )
+                                    else
+                                        common.justSetModel { model | fs = fs |> setActionButtonSubmitConfirmed True }
 
         Publish bigbit ->
             let
