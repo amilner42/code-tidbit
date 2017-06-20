@@ -1,6 +1,7 @@
 module Pages.NewStory.Update exposing (..)
 
 import DefaultServices.CommonSubPageUtil exposing (CommonSubPageUtil(..))
+import DefaultServices.TextFields as TextFields
 import DefaultServices.Util as Util
 import Models.RequestTracker as RT
 import Models.Route as Route
@@ -87,24 +88,22 @@ update (Common common) msg model shared =
             common.justUpdateModel <| updateEditDescription newDescription
 
         OnUpdateTagInput newTagInput ->
-            common.justUpdateModel <|
-                if String.endsWith " " newTagInput then
-                    newTag <| String.dropRight 1 newTagInput
-                else
-                    updateTagInput newTagInput
+            common.justUpdateModel <| updateTagInput newTagInput
 
         OnEditingUpdateTagInput newTagInput ->
-            common.justUpdateModel <|
-                if String.endsWith " " newTagInput then
-                    newEditTag <| String.dropRight 1 newTagInput
-                else
-                    updateEditTagInput newTagInput
+            common.justUpdateModel <| updateEditTagInput newTagInput
 
         AddTag tagName ->
-            common.justUpdateModel <| newTag tagName
+            ( newTag tagName model
+            , { shared | textFieldKeyTracker = TextFields.changeKey shared.textFieldKeyTracker "create-story-tags" }
+            , Util.domFocus (always NoOp) "tags-input"
+            )
 
         EditingAddTag tagName ->
-            common.justUpdateModel <| newEditTag tagName
+            ( newEditTag tagName model
+            , { shared | textFieldKeyTracker = TextFields.changeKey shared.textFieldKeyTracker "edit-story-tags" }
+            , Util.domFocus (always NoOp) "tags-input"
+            )
 
         RemoveTag tagName ->
             common.justUpdateModel <| removeTag tagName
@@ -112,10 +111,10 @@ update (Common common) msg model shared =
         EditingRemoveTag tagName ->
             common.justUpdateModel <| removeEditTag tagName
 
+        -- The reset button only exists when there is no `qpEditingStory`.
         Reset ->
             ( init
-            , shared
-              -- The reset button only exists when there is no `qpEditingStory`.
+            , { shared | textFieldKeyTracker = TextFields.changeKey shared.textFieldKeyTracker "create-story-name" }
             , Route.navigateTo <| Route.CreateStoryNamePage Nothing
             )
 
