@@ -270,7 +270,7 @@ update (Common common) msg model shared =
 
         Reset ->
             ( init
-            , shared
+            , { shared | textFieldKeyTracker = TextFields.changeKey shared.textFieldKeyTracker "create-bigbit-name" }
             , Route.navigateTo Route.CreateBigbitNamePage
             )
 

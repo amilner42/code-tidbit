@@ -250,7 +250,10 @@ update (Common common) msg model shared =
             )
 
         Reset ->
-            ( init, shared, Route.navigateTo Route.CreateSnipbitNamePage )
+            ( init
+            , { shared | textFieldKeyTracker = TextFields.changeKey shared.textFieldKeyTracker "create-snipbit-name" }
+            , Route.navigateTo Route.CreateSnipbitNamePage
+            )
 
         AddFrame ->
             let
