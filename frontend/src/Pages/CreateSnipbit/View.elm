@@ -215,7 +215,7 @@ view model shared =
                     , defaultValue model.tagInput
                     , Util.onKeydownPreventDefault
                         (\key ->
-                            if key == KK.Enter then
+                            if key == KK.Enter || key == KK.Space then
                                 Just <| AddTag model.tagInput
                             else if key == KK.Tab then
                                 Just <| NoOp

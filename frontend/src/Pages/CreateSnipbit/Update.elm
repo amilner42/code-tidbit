@@ -379,21 +379,7 @@ update (Common common) msg model shared =
             common.justSetModel { model | description = newDescription }
 
         OnUpdateTagInput newTagInput ->
-            if String.endsWith " " newTagInput then
-                let
-                    newTag =
-                        String.dropRight 1 newTagInput
-
-                    newTags =
-                        Util.addUniqueNonEmptyString newTag model.tags
-                in
-                common.justSetModel
-                    { model
-                        | tagInput = ""
-                        , tags = newTags
-                    }
-            else
-                common.justSetModel { model | tagInput = newTagInput }
+            common.justSetModel { model | tagInput = newTagInput }
 
         RemoveTag tagName ->
             common.justSetModel { model | tags = List.filter (\aTag -> aTag /= tagName) model.tags }
