@@ -4,10 +4,11 @@ import Date
 import Date.Format
 import DefaultServices.Editable as Editable
 import DefaultServices.InfixFunctions exposing (..)
+import DefaultServices.TextFields as TextFields
 import DefaultServices.Util as Util
 import Dict
-import Html exposing (Html, div, i, span, text, textarea)
-import Html.Attributes exposing (class, classList, disabled, placeholder, value)
+import Html exposing (Html, div, i, span, text)
+import Html.Attributes exposing (class, classList, defaultValue, disabled, placeholder)
 import Html.Events exposing (onClick, onInput)
 import Models.QA exposing (..)
 import ProjectTypeAliases exposing (..)
@@ -31,6 +32,7 @@ type alias Model =
 
 type alias RenderConfig msg comment =
     { msgTagger : Msg -> msg
+    , textFieldKeyTracker : TextFields.KeyTracker
     , userID : Maybe UserID
     , comments : List (Comment comment)
     , isSmall : Bool
@@ -73,7 +75,9 @@ view config model =
                         config.comments
                 )
             ]
-        , textarea
+        , TextFields.textarea
+            config.textFieldKeyTracker
+            "new-comment"
             [ classList
                 [ ( "new-comment-textarea", True )
                 , ( "cursor-progress", config.submitCommentRequestInProgress )
@@ -84,10 +88,9 @@ view config model =
                     "Add comment..."
                 else
                     "Sign up or login to comment..."
-            , value model.newCommentText
+            , defaultValue model.newCommentText
             , disabled <| not isLoggedIn || config.submitCommentRequestInProgress
             ]
-            []
         , Util.limitCharsText 300 model.newCommentText
         , div
             (Util.maybeAttributes
@@ -125,17 +128,18 @@ commentBoxView config { deletingComments, commentEdits } comment =
         [ class "comment-box" ]
         [ case maybeCommentEdit of
             Just commentEdit ->
-                textarea
+                TextFields.textarea
+                    config.textFieldKeyTracker
+                    ("edit-comment-" ++ toString comment.id)
                     [ classList
                         [ ( "comment-box-text-edit-mode", True )
                         , ( "cursor-progress", config.editCommentRequestInProgress comment.id )
                         ]
                     , placeholder "Edit comment..."
                     , disabled <| config.editCommentRequestInProgress comment.id
-                    , value <| Editable.getBuffer commentEdit
+                    , defaultValue <| Editable.getBuffer commentEdit
                     , onInput <| config.msgTagger << OnEditCommentInput comment.id
                     ]
-                    []
 
             Nothing ->
                 span [ class "comment-box-text" ] [ text <| comment.commentText ]

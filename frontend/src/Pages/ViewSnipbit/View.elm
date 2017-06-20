@@ -464,6 +464,7 @@ commentBox snipbit model shared =
         viewQuestionView qa qaState tab question =
             ViewQuestion.view
                 { msgTagger = ViewQuestionMsg snipbit.id question.id
+                , textFieldKeyTracker = shared.textFieldKeyTracker
                 , userID = shared.user ||> .id
                 , tidbitAuthorID = qa.tidbitAuthor
                 , tab = tab
@@ -746,6 +747,7 @@ commentBox snipbit model shared =
             in
             AskQuestion.view
                 { msgTagger = AskQuestionMsg snipbitID
+                , textFieldKeyTracker = shared.textFieldKeyTracker
                 , askQuestionRequestInProgress =
                     RT.isMakingRequest shared.apiRequestTracker (RT.AskQuestion TidbitPointer.Snipbit)
                 , askQuestion = AskQuestion snipbitID
@@ -761,6 +763,7 @@ commentBox snipbit model shared =
                 Just question ->
                     AnswerQuestion.view
                         { msgTagger = AnswerQuestionMsg snipbitID question
+                        , textFieldKeyTracker = shared.textFieldKeyTracker
                         , forQuestion = question
                         , answerQuestionRequestInProgress =
                             RT.isMakingRequest
@@ -793,6 +796,7 @@ commentBox snipbit model shared =
                     in
                     EditQuestion.view
                         { msgTagger = EditQuestionMsg snipbitID question
+                        , textFieldKeyTracker = shared.textFieldKeyTracker
                         , editQuestionRequestInProgress =
                             RT.isMakingRequest
                                 shared.apiRequestTracker
@@ -815,6 +819,7 @@ commentBox snipbit model shared =
                 ( Just answer, Just question ) ->
                     EditAnswer.view
                         { msgTagger = EditAnswerMsg snipbitID answerID answer
+                        , textFieldKeyTracker = shared.textFieldKeyTracker
                         , editAnswerRequestInProgress =
                             RT.isMakingRequest shared.apiRequestTracker (RT.UpdateAnswer TidbitPointer.Snipbit)
                         , editAnswer = EditAnswer snipbitID question.id answerID
