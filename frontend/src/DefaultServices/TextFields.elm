@@ -29,8 +29,8 @@ type alias KeyTracker =
 
 {-| A wrapper around `textarea` which uses `Html.Keyed`.
 
-Use `defaultValue` instead of `value` to avoid cursor bugs. If you need to update the text through Elm and have it be reflected
-in the textarea, then use `makeKey` to generate the `Key` and run `changeKey` everytime you want it to update.
+Use `defaultValue` instead of `value` to avoid cursor bugs. If you need to update the text through Elm and have it be
+reflected in the textarea then use `changeKey`.
 
 -}
 textarea : KeyTracker -> Key -> List (Html.Attribute msg) -> Html.Html msg
@@ -40,8 +40,8 @@ textarea keyTracker key attributes =
 
 {-| A wrapper around `input` which uses `Html.Keyed`.
 
-Use `defaultValue` instead of `value` to avoid cursor bugs. If you need to update the text through Elm and have it be reflected
-in the input, then use `makeKey` to generate the `Key` and run `changeKey` everytime you want it to update.
+Use `defaultValue` instead of `value` to avoid cursor bugs. If you need to update the text through Elm and have it be
+reflected in the input then use `changeKey`.
 
 -}
 input : KeyTracker -> Key -> List (Html.Attribute msg) -> Html.Html msg
