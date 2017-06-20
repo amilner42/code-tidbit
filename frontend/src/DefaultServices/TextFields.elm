@@ -33,9 +33,9 @@ Use `defaultValue` instead of `value` to avoid cursor bugs. If you need to updat
 in the textarea, then use `makeKey` to generate the `Key` and run `changeKey` everytime you want it to update.
 
 -}
-textarea : Key -> List (Html.Attribute msg) -> Html.Html msg
-textarea key attributes =
-    Html.Keyed.node "div" [] [ ( key, Html.textarea attributes [] ) ]
+textarea : KeyTracker -> Key -> List (Html.Attribute msg) -> Html.Html msg
+textarea keyTracker key attributes =
+    Html.Keyed.node "div" [] [ ( makeKey keyTracker key, Html.textarea attributes [] ) ]
 
 
 {-| A wrapper around `input` which uses `Html.Keyed`.
@@ -44,9 +44,9 @@ Use `defaultValue` instead of `value` to avoid cursor bugs. If you need to updat
 in the input, then use `makeKey` to generate the `Key` and run `changeKey` everytime you want it to update.
 
 -}
-input : Key -> List (Html.Attribute msg) -> Html.Html msg
-input key attributes =
-    Html.Keyed.node "div" [] [ ( key, Html.input attributes [] ) ]
+input : KeyTracker -> Key -> List (Html.Attribute msg) -> Html.Html msg
+input keyTracker key attributes =
+    Html.Keyed.node "div" [] [ ( makeKey keyTracker key, Html.input attributes [] ) ]
 
 
 {-| Makes a key given the `KeyTracker` and the `Key`.

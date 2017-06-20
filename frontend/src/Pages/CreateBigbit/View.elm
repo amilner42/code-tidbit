@@ -301,10 +301,8 @@ view model shared =
                                                                         text "File doesn't exist"
                                         ]
                                     , TextFields.input
-                                        (TextFields.makeKey
-                                            shared.textFieldKeyTracker
-                                            "create-bigbit-fs-action-input-box"
-                                        )
+                                        shared.textFieldKeyTracker
+                                        "create-bigbit-fs-action-input-box"
                                         [ id "fs-action-input-box"
                                         , placeholder "Absolute Path"
                                         , onInput OnUpdateActionInput
@@ -458,10 +456,8 @@ view model shared =
                                             markdownOpen
                                             model.introduction
                                             (TextFields.textarea
-                                                (TextFields.makeKey
-                                                    shared.textFieldKeyTracker
-                                                    "create-bigbit-introduction"
-                                                )
+                                                shared.textFieldKeyTracker
+                                                "create-bigbit-introduction"
                                                 [ placeholder "General Introduction"
                                                 , id "introduction-input"
                                                 , onInput <| OnUpdateIntroduction
@@ -504,10 +500,8 @@ view model shared =
                                             markdownOpen
                                             frameText
                                             (TextFields.textarea
-                                                (TextFields.makeKey
-                                                    shared.textFieldKeyTracker
-                                                    ("create-bigbit-frame-" ++ toString frameNumber)
-                                                )
+                                                shared.textFieldKeyTracker
+                                                ("create-bigbit-frame-" ++ toString frameNumber)
                                                 [ placeholder <|
                                                     "Frame "
                                                         ++ toString frameNumber
@@ -556,10 +550,8 @@ view model shared =
                                             markdownOpen
                                             model.conclusion
                                             (TextFields.textarea
-                                                (TextFields.makeKey
-                                                    shared.textFieldKeyTracker
-                                                    "create-bigbit-conclusion"
-                                                )
+                                                shared.textFieldKeyTracker
+                                                "create-bigbit-conclusion"
                                                 [ placeholder "General Conclusion"
                                                 , id "conclusion-input"
                                                 , onInput OnUpdateConclusion
@@ -722,7 +714,8 @@ view model shared =
                 div
                     [ class "create-bigbit-name" ]
                     [ TextFields.input
-                        (TextFields.makeKey shared.textFieldKeyTracker "create-bigbit-name")
+                        shared.textFieldKeyTracker
+                        "create-bigbit-name"
                         [ placeholder "Name"
                         , id "name-input"
                         , onInput OnUpdateName
@@ -742,7 +735,8 @@ view model shared =
                 div
                     [ class "create-bigbit-description" ]
                     [ TextFields.textarea
-                        (TextFields.makeKey shared.textFieldKeyTracker "create-bigbit-description")
+                        shared.textFieldKeyTracker
+                        "create-bigbit-description"
                         [ placeholder "Description"
                         , id "description-input"
                         , onInput OnUpdateDescription
@@ -762,7 +756,8 @@ view model shared =
                 div
                     [ class "create-tidbit-tags" ]
                     [ TextFields.input
-                        (TextFields.makeKey shared.textFieldKeyTracker "create-bigbit-tags")
+                        shared.textFieldKeyTracker
+                        "create-bigbit-tags"
                         [ placeholder "Tags"
                         , id "tags-input"
                         , onInput OnUpdateTagInput
