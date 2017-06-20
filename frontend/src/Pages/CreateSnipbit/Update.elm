@@ -4,6 +4,7 @@ import Array
 import Autocomplete as AC
 import DefaultServices.ArrayExtra as ArrayExtra
 import DefaultServices.CommonSubPageUtil exposing (CommonSubPageUtil(..), commonSubPageUtil)
+import DefaultServices.TextFields as TextFields
 import DefaultServices.Util as Util exposing (maybeMapWithDefault, togglePreviewMarkdown)
 import Elements.Simple.Editor as Editor
 import JSON.Language
@@ -249,7 +250,10 @@ update (Common common) msg model shared =
             )
 
         Reset ->
-            ( init, shared, Route.navigateTo Route.CreateSnipbitNamePage )
+            ( init
+            , { shared | textFieldKeyTracker = TextFields.changeKey shared.textFieldKeyTracker "create-snipbit-name" }
+            , Route.navigateTo Route.CreateSnipbitNamePage
+            )
 
         AddFrame ->
             let
@@ -361,7 +365,12 @@ update (Common common) msg model shared =
                         , languageQuery = newLanguageQuery
                     }
             in
-            ( newModel, shared, newCmd )
+            ( newModel
+            , { shared
+                | textFieldKeyTracker = TextFields.changeKey shared.textFieldKeyTracker "create-snipbit-language"
+              }
+            , newCmd
+            )
 
         OnUpdateName newName ->
             common.justSetModel { model | name = newName }
@@ -370,31 +379,19 @@ update (Common common) msg model shared =
             common.justSetModel { model | description = newDescription }
 
         OnUpdateTagInput newTagInput ->
-            if String.endsWith " " newTagInput then
-                let
-                    newTag =
-                        String.dropRight 1 newTagInput
-
-                    newTags =
-                        Util.addUniqueNonEmptyString newTag model.tags
-                in
-                common.justSetModel
-                    { model
-                        | tagInput = ""
-                        , tags = newTags
-                    }
-            else
-                common.justSetModel { model | tagInput = newTagInput }
+            common.justSetModel { model | tagInput = newTagInput }
 
         RemoveTag tagName ->
             common.justSetModel { model | tags = List.filter (\aTag -> aTag /= tagName) model.tags }
 
         AddTag tagName ->
-            common.justSetModel
-                { model
-                    | tags = Util.addUniqueNonEmptyString tagName model.tags
-                    , tagInput = ""
-                }
+            ( { model
+                | tags = Util.addUniqueNonEmptyString tagName model.tags
+                , tagInput = ""
+              }
+            , { shared | textFieldKeyTracker = TextFields.changeKey shared.textFieldKeyTracker "create-snipbit-tags" }
+            , Util.domFocus (always NoOp) "tags-input"
+            )
 
         OnUpdateFrameComment index newComment ->
             case Array.get index currentHighlightedComments of

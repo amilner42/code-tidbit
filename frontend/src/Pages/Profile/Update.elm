@@ -3,6 +3,7 @@ module Pages.Profile.Update exposing (..)
 import DefaultServices.CommonSubPageUtil exposing (CommonSubPageUtil(..))
 import DefaultServices.Editable as Editable
 import DefaultServices.InfixFunctions exposing (..)
+import DefaultServices.TextFields as TextFields
 import DefaultServices.Util as Util
 import Models.RequestTracker as RT
 import Models.Route as Route
@@ -22,7 +23,12 @@ update (Common common) msg model shared =
 
         CancelEditedName ->
             if RT.isNotMakingRequest shared.apiRequestTracker RT.UpdateName then
-                common.justUpdateModel cancelEditingName
+                ( cancelEditingName model
+                , { shared
+                    | textFieldKeyTracker = TextFields.changeKey shared.textFieldKeyTracker "profile-account-name"
+                  }
+                , Cmd.none
+                )
             else
                 common.doNothing
 
@@ -63,7 +69,12 @@ update (Common common) msg model shared =
 
         CancelEditedBio ->
             if RT.isNotMakingRequest shared.apiRequestTracker RT.UpdateBio then
-                common.justUpdateModel cancelEditingBio
+                ( cancelEditingBio model
+                , { shared
+                    | textFieldKeyTracker = TextFields.changeKey shared.textFieldKeyTracker "profile-account-bio"
+                  }
+                , Cmd.none
+                )
             else
                 common.doNothing
 

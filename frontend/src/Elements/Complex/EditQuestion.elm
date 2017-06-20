@@ -2,9 +2,10 @@ module Elements.Complex.EditQuestion exposing (..)
 
 import DefaultServices.Editable as Editable
 import DefaultServices.InfixFunctions exposing (..)
+import DefaultServices.TextFields as TextFields
 import DefaultServices.Util as Util
-import Html exposing (Html, div, text, textarea)
-import Html.Attributes exposing (class, classList, disabled, placeholder, value)
+import Html exposing (Html, div, text)
+import Html.Attributes exposing (class, classList, defaultValue, disabled, placeholder)
 import Html.Events exposing (onClick, onInput)
 import Models.QA exposing (..)
 import ProjectTypeAliases exposing (..)
@@ -21,6 +22,7 @@ type Msg
 
 type alias RenderConfig msg codePointer =
     { msgTagger : Msg -> msg
+    , textFieldKeyTracker : TextFields.KeyTracker
     , editQuestionRequestInProgress : Bool
     , isReadyCodePointer : codePointer -> Bool
     , editQuestion : QuestionText -> codePointer -> msg
@@ -64,14 +66,15 @@ view config model =
             questionText
             (div
                 []
-                [ textarea
+                [ TextFields.textarea
+                    config.textFieldKeyTracker
+                    "edit-question"
                     [ classList [ ( "cursor-progress", config.editQuestionRequestInProgress ) ]
                     , placeholder "Edit question text..."
-                    , value questionText
+                    , defaultValue questionText
                     , onInput (OnQuestionTextInput >> config.msgTagger)
                     , disabled <| config.editQuestionRequestInProgress
                     ]
-                    []
                 , Util.limitCharsText 300 questionText
                 ]
             )

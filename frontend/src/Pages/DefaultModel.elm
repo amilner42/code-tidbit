@@ -57,4 +57,5 @@ defaultShared route flags =
     , apiModalError = Nothing
     , userNeedsAuthModal = Nothing
     , apiRequestTracker = Dict.empty
+    , textFieldKeyTracker = Dict.empty
     }

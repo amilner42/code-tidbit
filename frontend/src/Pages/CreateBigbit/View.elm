@@ -3,13 +3,14 @@ module Pages.CreateBigbit.View exposing (..)
 import Array
 import Autocomplete as AC
 import DefaultServices.Editable as Editable
+import DefaultServices.TextFields as TextFields
 import DefaultServices.Util as Util exposing (maybeMapWithDefault, togglePreviewMarkdown)
 import Dict
 import Elements.Simple.Editor as Editor
 import Elements.Simple.FileStructure as FS
 import Elements.Simple.Tags as Tags
-import Html exposing (Html, button, div, h1, h3, hr, i, img, input, text, textarea)
-import Html.Attributes exposing (class, classList, disabled, hidden, id, placeholder, src, style, value)
+import Html exposing (Html, button, div, h1, h3, hr, i, img, text)
+import Html.Attributes exposing (class, classList, defaultValue, disabled, hidden, id, placeholder, src, style)
 import Html.Events exposing (onClick, onInput)
 import Keyboard.Extra as KK
 import Models.Bigbit as Bigbit
@@ -299,7 +300,9 @@ view model shared =
                                                                     RemoveFileDoesNotExist ->
                                                                         text "File doesn't exist"
                                         ]
-                                    , input
+                                    , TextFields.input
+                                        shared.textFieldKeyTracker
+                                        "create-bigbit-fs-action-input-box"
                                         [ id "fs-action-input-box"
                                         , placeholder "Absolute Path"
                                         , onInput OnUpdateActionInput
@@ -310,13 +313,12 @@ view model shared =
                                                 else
                                                     Nothing
                                             )
-                                        , value
+                                        , defaultValue
                                             (model.fs
                                                 |> FS.getFSMetadata
                                                 |> .actionButtonInput
                                             )
                                         ]
-                                        []
                                     , case maybeActionState of
                                         Nothing ->
                                             Util.hiddenDiv
@@ -453,11 +455,13 @@ view model shared =
                                         Util.markdownOr
                                             markdownOpen
                                             model.introduction
-                                            (textarea
+                                            (TextFields.textarea
+                                                shared.textFieldKeyTracker
+                                                "create-bigbit-introduction"
                                                 [ placeholder "General Introduction"
                                                 , id "introduction-input"
                                                 , onInput <| OnUpdateIntroduction
-                                                , value model.introduction
+                                                , defaultValue model.introduction
                                                 , Util.onKeydownPreventDefault
                                                     (\key ->
                                                         let
@@ -481,7 +485,6 @@ view model shared =
                                                             Nothing
                                                     )
                                                 ]
-                                                []
                                             )
 
                                     Route.CreateBigbitCodeFramePage frameNumber _ ->
@@ -496,7 +499,9 @@ view model shared =
                                         Util.markdownOr
                                             markdownOpen
                                             frameText
-                                            (textarea
+                                            (TextFields.textarea
+                                                shared.textFieldKeyTracker
+                                                ("create-bigbit-frame-" ++ toString frameNumber)
                                                 [ placeholder <|
                                                     "Frame "
                                                         ++ toString frameNumber
@@ -504,7 +509,7 @@ view model shared =
                                                         ++ "Highlight a chunk of code and explain it..."
                                                 , id "frame-input"
                                                 , onInput <| OnUpdateFrameComment frameNumber
-                                                , value frameText
+                                                , defaultValue frameText
                                                 , Util.onKeydownPreventDefault
                                                     (\key ->
                                                         let
@@ -538,18 +543,19 @@ view model shared =
                                                             Nothing
                                                     )
                                                 ]
-                                                []
                                             )
 
                                     Route.CreateBigbitCodeConclusionPage _ ->
                                         Util.markdownOr
                                             markdownOpen
                                             model.conclusion
-                                            (textarea
+                                            (TextFields.textarea
+                                                shared.textFieldKeyTracker
+                                                "create-bigbit-conclusion"
                                                 [ placeholder "General Conclusion"
                                                 , id "conclusion-input"
                                                 , onInput OnUpdateConclusion
-                                                , value model.conclusion
+                                                , defaultValue model.conclusion
                                                 , Util.onKeydownPreventDefault
                                                     (\key ->
                                                         let
@@ -576,7 +582,6 @@ view model shared =
                                                             Nothing
                                                     )
                                                 ]
-                                                []
                                             )
 
                                     _ ->
@@ -708,11 +713,13 @@ view model shared =
             Route.CreateBigbitNamePage ->
                 div
                     [ class "create-bigbit-name" ]
-                    [ input
+                    [ TextFields.input
+                        shared.textFieldKeyTracker
+                        "create-bigbit-name"
                         [ placeholder "Name"
                         , id "name-input"
                         , onInput OnUpdateName
-                        , value model.name
+                        , defaultValue model.name
                         , Util.onKeydownPreventDefault
                             (\key ->
                                 if key == KK.Tab then
@@ -721,18 +728,19 @@ view model shared =
                                     Nothing
                             )
                         ]
-                        []
                     , Util.limitCharsText 50 model.name
                     ]
 
             Route.CreateBigbitDescriptionPage ->
                 div
                     [ class "create-bigbit-description" ]
-                    [ textarea
+                    [ TextFields.textarea
+                        shared.textFieldKeyTracker
+                        "create-bigbit-description"
                         [ placeholder "Description"
                         , id "description-input"
                         , onInput OnUpdateDescription
-                        , value model.description
+                        , defaultValue model.description
                         , Util.onKeydownPreventDefault
                             (\key ->
                                 if key == KK.Tab then
@@ -741,21 +749,22 @@ view model shared =
                                     Nothing
                             )
                         ]
-                        []
                     , Util.limitCharsText 300 model.description
                     ]
 
             Route.CreateBigbitTagsPage ->
                 div
                     [ class "create-tidbit-tags" ]
-                    [ input
+                    [ TextFields.input
+                        shared.textFieldKeyTracker
+                        "create-bigbit-tags"
                         [ placeholder "Tags"
                         , id "tags-input"
                         , onInput OnUpdateTagInput
-                        , value model.tagInput
+                        , defaultValue model.tagInput
                         , Util.onKeydownPreventDefault
                             (\key ->
-                                if key == KK.Enter then
+                                if key == KK.Enter || key == KK.Space then
                                     Just <| AddTag model.tagInput
                                 else if key == KK.Tab then
                                     Just <| NoOp
@@ -763,7 +772,6 @@ view model shared =
                                     Nothing
                             )
                         ]
-                        []
                     , Tags.view RemoveTag model.tags
                     ]
 

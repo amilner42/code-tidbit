@@ -4,6 +4,7 @@ import Array
 import DefaultServices.CommonSubPageUtil exposing (CommonSubPageUtil(..), commonSubPageUtil)
 import DefaultServices.Editable as Editable
 import DefaultServices.InfixFunctions exposing (..)
+import DefaultServices.TextFields as TextFields
 import DefaultServices.Util as Util exposing (maybeMapWithDefault)
 import Dict
 import Elements.Complex.AnswerQuestion as AnswerQuestion
@@ -1111,11 +1112,13 @@ update (Common common) msg model shared =
             common.makeSingletonRequest (RT.SubmitQuestionComment TidbitPointer.Snipbit) submitQuestionCommentAction
 
         OnSubmitCommentOnQuestionSuccess snipbitID questionID questionComment ->
-            common.justSetModel
-                { model
-                    | qa = model.qa ||> QA.addQuestionComment questionComment
-                    , qaState = model.qaState |> QA.setNewQuestionComment snipbitID questionID Nothing
-                }
+            ( { model
+                | qa = model.qa ||> QA.addQuestionComment questionComment
+                , qaState = model.qaState |> QA.setNewQuestionComment snipbitID questionID Nothing
+              }
+            , { shared | textFieldKeyTracker = TextFields.changeKey shared.textFieldKeyTracker "new-comment" }
+            , Cmd.none
+            )
                 |> common.andFinishRequest (RT.SubmitQuestionComment TidbitPointer.Snipbit)
 
         OnSubmitCommentOnQuestionFailure apiError ->
@@ -1137,11 +1140,13 @@ update (Common common) msg model shared =
             common.makeSingletonRequest (RT.SubmitAnswerComment TidbitPointer.Snipbit) submitAnswerCommentAction
 
         SubmitCommentOnAnswerSuccess snipbitID questionID answerID answerComment ->
-            common.justSetModel
-                { model
-                    | qa = model.qa ||> QA.addAnswerComment answerComment
-                    , qaState = model.qaState |> QA.updateNewAnswerComments snipbitID (Dict.remove answerID)
-                }
+            ( { model
+                | qa = model.qa ||> QA.addAnswerComment answerComment
+                , qaState = model.qaState |> QA.updateNewAnswerComments snipbitID (Dict.remove answerID)
+              }
+            , { shared | textFieldKeyTracker = TextFields.changeKey shared.textFieldKeyTracker "new-comment" }
+            , Cmd.none
+            )
                 |> common.andFinishRequest (RT.SubmitAnswerComment TidbitPointer.Snipbit)
 
         SubmitCommentOnAnswerFailure apiError ->

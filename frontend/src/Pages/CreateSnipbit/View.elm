@@ -2,11 +2,12 @@ module Pages.CreateSnipbit.View exposing (..)
 
 import Array
 import Autocomplete as AC
+import DefaultServices.TextFields as TextFields
 import DefaultServices.Util as Util
 import Elements.Simple.Editor as Editor
 import Elements.Simple.Tags as Tags
-import Html exposing (Html, button, div, hr, input, text, textarea)
-import Html.Attributes exposing (class, classList, disabled, hidden, id, placeholder, value)
+import Html exposing (Html, button, div, hr, text)
+import Html.Attributes exposing (class, classList, defaultValue, disabled, hidden, id, placeholder)
 import Html.Events exposing (onClick, onInput)
 import Keyboard.Extra as KK
 import Models.RequestTracker as RT
@@ -130,11 +131,13 @@ view model shared =
         nameView =
             div
                 [ class "create-snipbit-name" ]
-                [ input
+                [ TextFields.input
+                    shared.textFieldKeyTracker
+                    "create-snipbit-name"
                     [ placeholder "Name"
                     , id "name-input"
                     , onInput OnUpdateName
-                    , value model.name
+                    , defaultValue model.name
                     , Util.onKeydownPreventDefault
                         (\key ->
                             if key == KK.Tab then
@@ -143,7 +146,6 @@ view model shared =
                                 Nothing
                         )
                     ]
-                    []
                 , Util.limitCharsText 50 model.name
                 ]
 
@@ -151,12 +153,14 @@ view model shared =
         descriptionView =
             div
                 [ class "create-snipbit-description" ]
-                [ textarea
+                [ TextFields.textarea
+                    shared.textFieldKeyTracker
+                    "create-snipbit-description"
                     [ class "create-snipbit-description-box"
                     , placeholder "Description"
                     , id "description-input"
                     , onInput OnUpdateDescription
-                    , value model.description
+                    , defaultValue model.description
                     , Util.onKeydownPreventDefault
                         (\key ->
                             if key == KK.Tab then
@@ -165,7 +169,6 @@ view model shared =
                                 Nothing
                         )
                     ]
-                    []
                 , Util.limitCharsText 300 model.description
                 ]
 
@@ -173,11 +176,13 @@ view model shared =
         languageView =
             div
                 [ class "create-snipbit-language" ]
-                [ input
+                [ TextFields.input
+                    shared.textFieldKeyTracker
+                    "create-snipbit-language"
                     [ placeholder "Language"
                     , id "language-query-input"
                     , onInput OnUpdateLanguageQuery
-                    , value model.languageQuery
+                    , defaultValue model.languageQuery
                     , disabled <|
                         Util.isNotNothing
                             model.language
@@ -189,7 +194,6 @@ view model shared =
                                 Nothing
                         )
                     ]
-                    []
                 , viewMenu
                 , button
                     [ onClick <| SelectLanguage Nothing
@@ -202,14 +206,16 @@ view model shared =
         tagsView =
             div
                 [ class "create-tidbit-tags" ]
-                [ input
+                [ TextFields.input
+                    shared.textFieldKeyTracker
+                    "create-snipbit-tags"
                     [ placeholder "Tags"
                     , id "tags-input"
                     , onInput OnUpdateTagInput
-                    , value model.tagInput
+                    , defaultValue model.tagInput
                     , Util.onKeydownPreventDefault
                         (\key ->
-                            if key == KK.Enter then
+                            if key == KK.Enter || key == KK.Space then
                                 Just <| AddTag model.tagInput
                             else if key == KK.Tab then
                                 Just <| NoOp
@@ -217,7 +223,6 @@ view model shared =
                                 Nothing
                         )
                     ]
-                    []
                 , Tags.view RemoveTag model.tags
                 ]
 
@@ -244,11 +249,13 @@ view model shared =
                                 Util.markdownOr
                                     markdownOpen
                                     model.introduction
-                                    (textarea
+                                    (TextFields.textarea
+                                        shared.textFieldKeyTracker
+                                        "create-snipbit-introduction"
                                         [ placeholder "General Introduction"
                                         , id "introduction-input"
                                         , onInput <| OnUpdateIntroduction
-                                        , value model.introduction
+                                        , defaultValue model.introduction
                                         , Util.onKeydownPreventDefault
                                             (\key ->
                                                 let
@@ -268,7 +275,6 @@ view model shared =
                                                     Nothing
                                             )
                                         ]
-                                        []
                                     )
 
                             Route.CreateSnipbitCodeFramePage frameNumber ->
@@ -284,7 +290,9 @@ view model shared =
                                 Util.markdownOr
                                     markdownOpen
                                     frameText
-                                    (textarea
+                                    (TextFields.textarea
+                                        shared.textFieldKeyTracker
+                                        ("create-snipbit-frame-" ++ toString frameNumber)
                                         [ placeholder <|
                                             "Frame "
                                                 ++ toString frameNumber
@@ -292,7 +300,7 @@ view model shared =
                                                 ++ "Highlight a chunk of code and explain it..."
                                         , id "frame-input"
                                         , onInput <| OnUpdateFrameComment frameIndex
-                                        , value frameText
+                                        , defaultValue frameText
                                         , Util.onKeydownPreventDefault
                                             (\key ->
                                                 let
@@ -318,18 +326,19 @@ view model shared =
                                                     Nothing
                                             )
                                         ]
-                                        []
                                     )
 
                             Route.CreateSnipbitCodeConclusionPage ->
                                 Util.markdownOr
                                     markdownOpen
                                     model.conclusion
-                                    (textarea
+                                    (TextFields.textarea
+                                        shared.textFieldKeyTracker
+                                        "create-snipbit-conclusion"
                                         [ placeholder "General Conclusion"
                                         , id "conclusion-input"
                                         , onInput <| OnUpdateConclusion
-                                        , value model.conclusion
+                                        , defaultValue model.conclusion
                                         , Util.onKeydownPreventDefault
                                             (\key ->
                                                 let
@@ -352,7 +361,6 @@ view model shared =
                                                     Nothing
                                             )
                                         ]
-                                        []
                                     )
 
                             _ ->

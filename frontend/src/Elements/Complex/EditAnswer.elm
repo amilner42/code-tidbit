@@ -1,10 +1,11 @@
 module Elements.Complex.EditAnswer exposing (..)
 
 import DefaultServices.Editable as Editable
+import DefaultServices.TextFields as TextFields
 import DefaultServices.Util as Util
 import Elements.Simple.Markdown as Markdown
-import Html exposing (Html, div, text, textarea)
-import Html.Attributes exposing (class, classList, disabled, placeholder, value)
+import Html exposing (Html, div, text)
+import Html.Attributes exposing (class, classList, defaultValue, disabled, placeholder)
 import Html.Events exposing (onClick, onInput)
 import Models.QA exposing (..)
 import ProjectTypeAliases exposing (..)
@@ -22,6 +23,7 @@ type Msg
 
 type alias RenderConfig codePointer msg =
     { msgTagger : Msg -> msg
+    , textFieldKeyTracker : TextFields.KeyTracker
     , editAnswerRequestInProgress : Bool
     , editAnswer : AnswerText -> msg
     , forQuestion : Question codePointer
@@ -81,17 +83,18 @@ view config ({ previewMarkdown, showQuestion } as model) =
             answerText
             (div
                 []
-                [ textarea
+                [ TextFields.textarea
+                    config.textFieldKeyTracker
+                    "edit-answer"
                     [ classList
                         [ ( "hiding-question", not showQuestion )
                         , ( "cursor-progress", config.editAnswerRequestInProgress )
                         ]
                     , placeholder "Edit Answer Text"
                     , disabled config.editAnswerRequestInProgress
-                    , value answerText
+                    , defaultValue answerText
                     , onInput (config.msgTagger << OnAnswerTextInput)
                     ]
-                    []
                 , Util.limitCharsText 1000 answerText
                 ]
             )

@@ -1,9 +1,10 @@
 module Elements.Complex.AnswerQuestion exposing (..)
 
+import DefaultServices.TextFields as TextFields
 import DefaultServices.Util as Util
 import Elements.Simple.Markdown as Markdown
-import Html exposing (Html, div, text, textarea)
-import Html.Attributes exposing (class, classList, disabled, placeholder, value)
+import Html exposing (Html, div, text)
+import Html.Attributes exposing (class, classList, defaultValue, disabled, placeholder)
 import Html.Events exposing (onClick, onInput)
 import Models.QA exposing (..)
 import ProjectTypeAliases exposing (..)
@@ -21,6 +22,7 @@ type Msg
 
 type alias RenderConfig codePointer msg =
     { msgTagger : Msg -> msg
+    , textFieldKeyTracker : TextFields.KeyTracker
     , forQuestion : Question codePointer
     , answerQuestionRequestInProgress : Bool
     , goToAllAnswers : msg
@@ -83,7 +85,9 @@ view config { previewMarkdown, showQuestion, answerText } =
             answerText
             (div
                 []
-                [ textarea
+                [ TextFields.textarea
+                    config.textFieldKeyTracker
+                    "answer-question"
                     [ classList
                         [ ( "hiding-question", not showQuestion )
                         , ( "cursor-progress", config.answerQuestionRequestInProgress )
@@ -91,9 +95,8 @@ view config { previewMarkdown, showQuestion, answerText } =
                     , placeholder "Answer Question"
                     , disabled config.answerQuestionRequestInProgress
                     , onInput (config.msgTagger << OnAnswerTextInput)
-                    , value answerText
+                    , defaultValue answerText
                     ]
-                    []
                 , Util.limitCharsText 1000 answerText
                 ]
             )

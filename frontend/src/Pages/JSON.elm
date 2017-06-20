@@ -83,6 +83,7 @@ sharedEncoder shared =
         , ( "apiModalError", Encode.null )
         , ( "userNeedsAuthModal", Encode.null )
         , ( "apiRequestTracker", Encode.null )
+        , ( "textFieldKeyTracker", Encode.null )
         ]
 
 
@@ -101,4 +102,5 @@ sharedDecoder shared =
         |> required "flags" (Decode.succeed shared.flags)
         |> hardcoded Nothing
         |> hardcoded Nothing
+        |> hardcoded Dict.empty
         |> hardcoded Dict.empty

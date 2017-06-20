@@ -2,6 +2,7 @@ module Elements.Complex.ViewQuestion exposing (..)
 
 import DefaultServices.Editable as Editable
 import DefaultServices.InfixFunctions exposing (..)
+import DefaultServices.TextFields as TextFields
 import DefaultServices.Util as Util
 import Dict
 import Elements.Complex.CommentList as CommentList
@@ -32,6 +33,7 @@ type alias Model =
 
 type alias RenderConfig msg codePointer =
     { msgTagger : Msg -> msg
+    , textFieldKeyTracker : TextFields.KeyTracker
     , userID : Maybe UserID
     , tidbitAuthorID : UserID
     , tab : Tab
@@ -185,6 +187,7 @@ view config model =
             QuestionCommentsTab maybeCommentID ->
                 CommentList.view
                     { msgTagger = config.msgTagger << QuestionCommentListMsg
+                    , textFieldKeyTracker = config.textFieldKeyTracker
                     , userID = config.userID
                     , comments = config.questionComments
                     , isSmall = False
@@ -274,6 +277,7 @@ view config model =
                             [ extendedTopBar False answer
                             , CommentList.view
                                 { msgTagger = config.msgTagger << AnswerCommentListMsg answerID
+                                , textFieldKeyTracker = config.textFieldKeyTracker
                                 , userID = config.userID
                                 , comments = List.filter (.answerID >> (==) answerID) config.answerComments
                                 , isSmall = True

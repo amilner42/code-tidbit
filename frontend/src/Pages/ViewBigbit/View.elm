@@ -553,6 +553,7 @@ viewBigbitCommentBox bigbit model shared =
         viewQuestionView qa qaState tab question =
             ViewQuestion.view
                 { msgTagger = ViewQuestionMsg bigbit.id question.id
+                , textFieldKeyTracker = shared.textFieldKeyTracker
                 , userID = shared.user ||> .id
                 , tidbitAuthorID = bigbit.author
                 , tab = tab
@@ -784,6 +785,7 @@ viewBigbitCommentBox bigbit model shared =
         Route.ViewBigbitAskQuestion maybeStoryID bigbitID ->
             AskQuestion.view
                 { msgTagger = AskQuestionMsg bigbitID
+                , textFieldKeyTracker = shared.textFieldKeyTracker
                 , askQuestionRequestInProgress =
                     RT.isMakingRequest shared.apiRequestTracker (RT.AskQuestion TidbitPointer.Bigbit)
                 , askQuestion = AskQuestion bigbitID
@@ -805,6 +807,7 @@ viewBigbitCommentBox bigbit model shared =
                     in
                     EditQuestion.view
                         { msgTagger = EditQuestionMsg bigbitID question
+                        , textFieldKeyTracker = shared.textFieldKeyTracker
                         , editQuestionRequestInProgress =
                             RT.isMakingRequest shared.apiRequestTracker (RT.UpdateQuestion TidbitPointer.Bigbit)
                         , isReadyCodePointer = .range >> Range.isEmptyRange >> not
@@ -825,6 +828,7 @@ viewBigbitCommentBox bigbit model shared =
                     in
                     AnswerQuestion.view
                         { msgTagger = AnswerQuestionMsg bigbitID question
+                        , textFieldKeyTracker = shared.textFieldKeyTracker
                         , forQuestion = question
                         , answerQuestionRequestInProgress =
                             RT.isMakingRequest
@@ -859,6 +863,7 @@ viewBigbitCommentBox bigbit model shared =
                     in
                     EditAnswer.view
                         { msgTagger = EditAnswerMsg bigbitID answer
+                        , textFieldKeyTracker = shared.textFieldKeyTracker
                         , editAnswerRequestInProgress =
                             RT.isMakingRequest shared.apiRequestTracker (RT.UpdateAnswer TidbitPointer.Bigbit)
                         , editAnswer = EditAnswer bigbitID answerID

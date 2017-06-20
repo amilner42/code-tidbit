@@ -1,10 +1,11 @@
 module Pages.Browse.View exposing (..)
 
+import DefaultServices.TextFields as TextFields
 import DefaultServices.Util as Util
 import Elements.Simple.ContentBox as ContentBox
 import Elements.Simple.Editor as Editor
-import Html exposing (Html, button, div, i, input, option, select, span, text)
-import Html.Attributes exposing (class, classList, disabled, hidden, id, placeholder, selected, value)
+import Html exposing (Html, button, div, i, option, select, span, text)
+import Html.Attributes exposing (class, classList, defaultValue, disabled, hidden, id, placeholder, selected)
 import Html.Events exposing (onClick, onInput)
 import Keyboard.Extra as KK
 import Pages.Browse.Messages exposing (..)
@@ -21,11 +22,13 @@ view model shared =
         [ div
             [ class "search-bar sub-bar"
             ]
-            [ input
+            [ TextFields.input
+                shared.textFieldKeyTracker
+                "browse-search"
                 [ class "search-input"
                 , id "search-bar"
                 , placeholder "search"
-                , value model.searchQuery
+                , defaultValue model.searchQuery
                 , onInput OnUpdateSearch
                 , Util.onKeydown
                     (\key ->
@@ -35,7 +38,6 @@ view model shared =
                             Nothing
                     )
                 ]
-                []
             , div
                 [ class "advanced-search-options-toggle"
                 , onClick ToggleAdvancedOptions
@@ -110,16 +112,17 @@ view model shared =
                 , div
                     [ class "author-filter" ]
                     [ span [ class "author-filter-title" ] [ text "Filter Content by Author" ]
-                    , input
+                    , TextFields.input
+                        shared.textFieldKeyTracker
+                        "browse-author-filter"
                         [ classList
                             [ ( "author-email-input", True )
                             , ( "valid-email", Util.isNotNothing <| Tuple.second model.contentFilterAuthor )
                             ]
                         , placeholder "email"
-                        , value <| Tuple.first model.contentFilterAuthor
+                        , defaultValue <| Tuple.first model.contentFilterAuthor
                         , onInput OnUpdateContentFilterAuthor
                         ]
-                        []
                     , div
                         [ classList
                             [ ( "no-user-message", True )

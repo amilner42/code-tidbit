@@ -1,9 +1,10 @@
 module Pages.NewStory.View exposing (..)
 
+import DefaultServices.TextFields as TextFields
 import DefaultServices.Util as Util
 import Elements.Simple.Tags as Tags
-import Html exposing (Html, button, div, input, text, textarea)
-import Html.Attributes exposing (class, classList, hidden, id, placeholder, value)
+import Html exposing (Html, button, div, text)
+import Html.Attributes exposing (class, classList, defaultValue, hidden, id, placeholder)
 import Html.Events exposing (onClick, onInput)
 import Keyboard.Extra as KK
 import Models.RequestTracker as RT
@@ -145,11 +146,13 @@ view model shared =
                     [ class "create-new-story-name" ]
                     (case qpEditingStory of
                         Nothing ->
-                            [ input
+                            [ TextFields.input
+                                shared.textFieldKeyTracker
+                                "create-story-name"
                                 [ placeholder "Name"
                                 , id "name-input"
                                 , onInput OnUpdateName
-                                , value model.newStory.name
+                                , defaultValue model.newStory.name
                                 , Util.onKeydownPreventDefault
                                     (\key ->
                                         if key == KK.Tab then
@@ -158,16 +161,17 @@ view model shared =
                                             Nothing
                                     )
                                 ]
-                                []
                             , Util.limitCharsText 50 model.newStory.name
                             ]
 
                         _ ->
-                            [ input
+                            [ TextFields.input
+                                shared.textFieldKeyTracker
+                                "edit-story-name"
                                 [ placeholder "Edit Story Name"
                                 , id "name-input"
                                 , onInput OnEditingUpdateName
-                                , value model.editingStory.name
+                                , defaultValue model.editingStory.name
                                 , Util.onKeydownPreventDefault
                                     (\key ->
                                         if key == KK.Tab then
@@ -176,7 +180,6 @@ view model shared =
                                             Nothing
                                     )
                                 ]
-                                []
                             , Util.limitCharsText 50 model.editingStory.name
                             ]
                     )
@@ -186,11 +189,13 @@ view model shared =
                     [ class "create-new-story-description" ]
                     (case qpEditingStory of
                         Nothing ->
-                            [ textarea
+                            [ TextFields.textarea
+                                shared.textFieldKeyTracker
+                                "create-story-description"
                                 [ placeholder "Description"
                                 , id "description-input"
                                 , onInput OnUpdateDescription
-                                , value model.newStory.description
+                                , defaultValue model.newStory.description
                                 , Util.onKeydownPreventDefault
                                     (\key ->
                                         if key == KK.Tab then
@@ -199,16 +204,17 @@ view model shared =
                                             Nothing
                                     )
                                 ]
-                                []
                             , Util.limitCharsText 300 model.newStory.description
                             ]
 
                         Just editingStory ->
-                            [ textarea
+                            [ TextFields.textarea
+                                shared.textFieldKeyTracker
+                                "edit-story-description"
                                 [ placeholder "Edit Story Description"
                                 , id "description-input"
                                 , onInput OnEditingUpdateDescription
-                                , value model.editingStory.description
+                                , defaultValue model.editingStory.description
                                 , Util.onKeydownPreventDefault
                                     (\key ->
                                         if key == KK.Tab then
@@ -217,7 +223,6 @@ view model shared =
                                             Nothing
                                     )
                                 ]
-                                []
                             , Util.limitCharsText 300 model.editingStory.description
                             ]
                     )
@@ -227,14 +232,16 @@ view model shared =
                     [ class "create-new-story-tags" ]
                     (case qpEditingStory of
                         Nothing ->
-                            [ input
+                            [ TextFields.input
+                                shared.textFieldKeyTracker
+                                "create-story-tags"
                                 [ placeholder "Tags"
                                 , id "tags-input"
                                 , onInput OnUpdateTagInput
-                                , value model.tagInput
+                                , defaultValue model.tagInput
                                 , Util.onKeydownPreventDefault
                                     (\key ->
-                                        if key == KK.Enter then
+                                        if key == KK.Enter || key == KK.Space then
                                             Just <| AddTag model.tagInput
                                         else if key == KK.Tab then
                                             Just <| NoOp
@@ -242,28 +249,27 @@ view model shared =
                                             Nothing
                                     )
                                 ]
-                                []
                             , Tags.view RemoveTag model.newStory.tags
                             ]
 
                         Just _ ->
-                            [ input
+                            [ TextFields.input
+                                shared.textFieldKeyTracker
+                                "edit-story-tags"
                                 [ placeholder "Edit Story Tags"
                                 , id "tags-input"
                                 , onInput OnEditingUpdateTagInput
-                                , value model.editingStoryTagInput
+                                , defaultValue model.editingStoryTagInput
                                 , Util.onKeydownPreventDefault
                                     (\key ->
-                                        if key == KK.Enter then
-                                            Just <|
-                                                EditingAddTag model.editingStoryTagInput
+                                        if key == KK.Enter || key == KK.Space then
+                                            Just <| EditingAddTag model.editingStoryTagInput
                                         else if key == KK.Tab then
                                             Just <| NoOp
                                         else
                                             Nothing
                                     )
                                 ]
-                                []
                             , Tags.view EditingRemoveTag model.editingStory.tags
                             ]
                     )
