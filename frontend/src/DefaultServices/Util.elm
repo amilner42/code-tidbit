@@ -13,6 +13,7 @@ import Json.Decode as Decode
 import Json.Encode as Encode
 import Keyboard.Extra as KK
 import ProjectTypeAliases exposing (..)
+import Regex
 import Set
 import Task
 
@@ -239,6 +240,21 @@ justNonEmptyString string =
 isBlankString : String -> Bool
 isBlankString =
     String.isEmpty << String.filter (\char -> char /= ' ' && char /= '\n')
+
+
+{-| Checks that an email has valid characters.
+
+@refer <https://github.com/rtfeldman/elm-validate/blob/master/src/Validate.elm#L135>
+
+-}
+isValidEmail : String -> Bool
+isValidEmail =
+    let
+        validEmail =
+            Regex.regex "^[a-zA-Z0-9.!#$%&'*+\\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$"
+                |> Regex.caseInsensitive
+    in
+    Regex.contains validEmail
 
 
 {-| If the string is blank returns `Nothing`, otherwise `Just` the string.
