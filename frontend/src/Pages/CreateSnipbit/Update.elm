@@ -4,6 +4,7 @@ import Array
 import Autocomplete as AC
 import DefaultServices.ArrayExtra as ArrayExtra
 import DefaultServices.CommonSubPageUtil exposing (CommonSubPageUtil(..), commonSubPageUtil)
+import DefaultServices.TextFields as TextFields
 import DefaultServices.Util as Util exposing (maybeMapWithDefault, togglePreviewMarkdown)
 import Elements.Simple.Editor as Editor
 import JSON.Language
@@ -361,7 +362,12 @@ update (Common common) msg model shared =
                         , languageQuery = newLanguageQuery
                     }
             in
-            ( newModel, shared, newCmd )
+            ( newModel
+            , { shared
+                | textFieldKeyTracker = TextFields.changeKey shared.textFieldKeyTracker "create-snipbit-language"
+              }
+            , newCmd
+            )
 
         OnUpdateName newName ->
             common.justSetModel { model | name = newName }
@@ -390,11 +396,13 @@ update (Common common) msg model shared =
             common.justSetModel { model | tags = List.filter (\aTag -> aTag /= tagName) model.tags }
 
         AddTag tagName ->
-            common.justSetModel
-                { model
-                    | tags = Util.addUniqueNonEmptyString tagName model.tags
-                    , tagInput = ""
-                }
+            ( { model
+                | tags = Util.addUniqueNonEmptyString tagName model.tags
+                , tagInput = ""
+              }
+            , { shared | textFieldKeyTracker = TextFields.changeKey shared.textFieldKeyTracker "create-snipbit-tags" }
+            , Util.domFocus (always NoOp) "tags-input"
+            )
 
         OnUpdateFrameComment index newComment ->
             case Array.get index currentHighlightedComments of
