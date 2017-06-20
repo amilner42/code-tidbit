@@ -1,9 +1,10 @@
 module Pages.Profile.View exposing (..)
 
 import DefaultServices.Editable exposing (bufferIs)
+import DefaultServices.TextFields as TextFields
 import DefaultServices.Util as Util
-import Html exposing (Html, button, div, i, input, text, textarea)
-import Html.Attributes exposing (class, classList, disabled, hidden, placeholder, value)
+import Html exposing (Html, button, div, i, text)
+import Html.Attributes exposing (class, classList, defaultValue, disabled, hidden, placeholder)
 import Html.Events exposing (onClick, onInput)
 import Models.RequestTracker as RT
 import Pages.Model exposing (Shared)
@@ -44,17 +45,18 @@ view model shared =
                                 [ class "profile-card-sub-box-title" ]
                                 [ text "Name" ]
                             , div [ class "profile-card-sub-box-gap" ] []
-                            , input
+                            , TextFields.input
+                                shared.textFieldKeyTracker
+                                "profile-account-name"
                                 [ classList
                                     [ ( "profile-card-sub-box-content", True )
                                     , ( "cursor-progress", RT.isMakingRequest shared.apiRequestTracker RT.UpdateName )
                                     ]
                                 , placeholder "Preferred name..."
-                                , value <| getNameWithDefault model user.name
+                                , defaultValue <| getNameWithDefault model user.name
                                 , onInput <| OnEditName user.name
                                 , disabled <| RT.isMakingRequest shared.apiRequestTracker RT.UpdateName
                                 ]
-                                []
                             , i
                                 [ classList
                                     [ ( "material-icons", True )
@@ -88,17 +90,18 @@ view model shared =
                             , div
                                 [ class "profile-card-sub-box-gap" ]
                                 []
-                            , textarea
+                            , TextFields.textarea
+                                shared.textFieldKeyTracker
+                                "profile-account-bio"
                                 [ classList
                                     [ ( "profile-card-sub-box-content bio-textarea", True )
                                     , ( "cursor-progress", RT.isMakingRequest shared.apiRequestTracker RT.UpdateBio )
                                     ]
                                 , placeholder "Tell everyone about yourself..."
-                                , value <| getBioWithDefault model user.bio
+                                , defaultValue <| getBioWithDefault model user.bio
                                 , onInput <| OnEditBio user.bio
                                 , disabled <| RT.isMakingRequest shared.apiRequestTracker RT.UpdateBio
                                 ]
-                                []
                             , div
                                 [ class "bio-icons-box" ]
                                 [ i
@@ -140,8 +143,10 @@ view model shared =
                             ]
                             [ text "Log Out" ]
                         , div
-                            [ class "logout-error"
-                            , hidden <| Util.isNothing model.logOutError
+                            [ classList
+                                [ ( "logout-error", True )
+                                , ( "hidden", Util.isNothing model.logOutError )
+                                ]
                             ]
                             [ text "Cannot log out right now, try again shortly." ]
                         ]
