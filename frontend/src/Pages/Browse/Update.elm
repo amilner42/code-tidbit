@@ -45,7 +45,7 @@ update ((Common common) as commonUtil) msg model shared =
                 _ ->
                     common.doNothing
 
-        OnGetContentSuccess searchSettings content ->
+        OnGetContentSuccess searchSettings ( isMoreContent, content ) ->
             let
                 isMostRecentRequest =
                     model.mostRecentSearchSettings == Just searchSettings
@@ -54,14 +54,14 @@ update ((Common common) as commonUtil) msg model shared =
                     { model
                         | content = Just content
                         , pageNumber = 2
-                        , noMoreContent = isNoMoreContent 10 content
+                        , noMoreContent = not isMoreContent
                     }
 
                 getUpdatedModelForNonInitialRequest currentContent =
                     { model
                         | content = Just <| currentContent ++ content
                         , pageNumber = model.pageNumber + 1
-                        , noMoreContent = isNoMoreContent 10 content
+                        , noMoreContent = not isMoreContent
                     }
 
                 updatedModel =
@@ -319,30 +319,3 @@ performSearch (Common common) ( model, shared ) =
 resetPageNumber : CommonSubPageUtil Model Shared Msg -> ( Model, Shared ) -> ( Model, Shared, Cmd Msg )
 resetPageNumber (Common common) ( model, shared ) =
     common.justSetModel { model | pageNumber = 1 }
-
-
-{-| Checks if this is gauranteed to be the last content by seeing if less than the full page size is being returned from
-the server (for all collections). But because this does not query the backend and just uses the pageSize, it could
-happen that the backend returns the exact pageSize as the last content, but this function will assume there could be
-more content.
--}
-isNoMoreContent : Int -> List Content.Content -> Bool
-isNoMoreContent pageSize content =
-    let
-        go ( snipbits, bigbits, stories ) remainingContent =
-            case remainingContent of
-                [] ->
-                    (snipbits < pageSize) && (bigbits < pageSize) && (stories < pageSize)
-
-                h :: xs ->
-                    case h of
-                        Content.Snipbit _ ->
-                            go ( snipbits + 1, bigbits, stories ) xs
-
-                        Content.Bigbit _ ->
-                            go ( snipbits, bigbits + 1, stories ) xs
-
-                        Content.Story _ ->
-                            go ( snipbits, bigbits, stories + 1 ) xs
-    in
-    go ( 0, 0, 0 ) content

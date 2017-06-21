@@ -94,7 +94,7 @@ export const getPaginatedResults = (pageNumber: number, pageSize: number, cursor
 
   return cursor.skip(amountToSkip).limit(pageSize + 1).toArray()
   .then((results) => {
-    if(results.length == (pageSize + 1)) {
+    if(results.length === (pageSize + 1)) {
       return [true, R.dropLast(1, results) ]
     }
 

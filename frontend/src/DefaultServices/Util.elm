@@ -172,6 +172,13 @@ decodeStringDict decodeValue =
         |> Decode.map Dict.fromList
 
 
+{-| Decodes a pair from javascript (which comes as an array).
+-}
+decodePair : Decode.Decoder a -> Decode.Decoder b -> Decode.Decoder ( a, b )
+decodePair decodeA decodeB =
+    Decode.map2 (,) (Decode.index 0 decodeA) (Decode.index 1 decodeB)
+
+
 {-| Creates a basic hidden div.
 -}
 hiddenDiv : Html.Html msg

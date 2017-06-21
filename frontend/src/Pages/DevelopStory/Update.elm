@@ -47,7 +47,10 @@ update (Common common) msg model shared =
                         , maybeMapWithDefault
                             (\{ id } ->
                                 if Util.isNothing shared.userTidbits then
-                                    common.api.get.tidbits [ ( "author", Just id ) ] OnGetTidbitsFailure OnGetTidbitsSuccess
+                                    common.api.get.tidbits
+                                        [ ( "author", Just id ) ]
+                                        OnGetTidbitsFailure
+                                        (Tuple.second >> OnGetTidbitsSuccess)
                                 else
                                     Cmd.none
                             )

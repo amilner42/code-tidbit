@@ -105,7 +105,7 @@ answerCommentDecoder =
 -}
 votesDecoder : Decode.Decoder ( Bool, Int )
 votesDecoder =
-    Decode.map2 (,) (Decode.index 0 Decode.bool) (Decode.index 1 Decode.int)
+    Util.decodePair Decode.bool Decode.int
 
 
 {-| `BigbitCodePointer` decoder.
