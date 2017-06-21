@@ -29,7 +29,7 @@ view model shared =
         viewMenu : Html Msg
         viewMenu =
             div
-                [ classList [ ( "hidden", String.isEmpty model.languageQuery || Util.isNotNothing model.language ) ]
+                [ classList [ ( "hidden", not <| languageACActive shared.route model ) ]
                 ]
                 [ Html.map
                     OnUpdateACState

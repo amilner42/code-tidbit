@@ -119,6 +119,19 @@ codeTabFilledIn model =
             False
 
 
+{-| Returns true if the AC is currently active.
+
+Active means that the user is in the process of selecting a language. We will only display the dropdown and trigger the
+subscription if the AC is active.
+
+-}
+languageACActive : Route.Route -> Model -> Bool
+languageACActive route { languageQuery, language } =
+    (route == Route.CreateSnipbitLanguagePage)
+        && (not <| String.isEmpty languageQuery)
+        && Util.isNothing language
+
+
 {-| Given the model, returns the publication data if everything is filled out, otherwise returns `Nothing`.
 -}
 toPublicationData : Model -> Maybe SnipbitForPublication
