@@ -2,6 +2,7 @@
 /// Will get the URL for the mongodb from the global config `app-config.ts`.
 
 import { MongoClient, Collection, ObjectID, Cursor, UpdateWriteOpResult } from 'mongodb';
+import * as R from "ramda";
 
 import { APP_CONFIG } from './app-config';
 import { isNullOrUndefined, internalError } from './util';
@@ -84,11 +85,21 @@ export const sameID = (id1: MongoID, id2: MongoID): boolean => {
 /**
  * Paginates results, assumes the results are already in some meaningful order - this just handles the `limit` and
  * `skip` to get the proper chunk of results. Also will ensure `MAX_PAGE_SIZE`.
+ *
+ * @RETURNS A pair: [ Boolean that is `true` if there is MORE data, the results ]
  */
-export const paginateResults = (pageNumber: number, pageSize: number, cursor: Cursor): Cursor => {
+export const getPaginatedResults = (pageNumber: number, pageSize: number, cursor: Cursor): PromiseLike<[boolean, any[]]> => {
   pageSize = Math.min(pageSize, MAX_PAGE_SIZE);
   const amountToSkip = (pageNumber - 1) * pageSize;
-  return cursor.skip(amountToSkip).limit(pageSize);
+
+  return cursor.skip(amountToSkip).limit(pageSize + 1).toArray()
+  .then((results) => {
+    if(results.length == (pageSize + 1)) {
+      return [true, R.dropLast(1, results) ]
+    }
+
+    return [false, results ];
+  });
 }
 
 /**

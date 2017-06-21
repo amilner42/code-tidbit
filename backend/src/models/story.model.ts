@@ -6,7 +6,7 @@ import { Collection } from 'mongodb';
 import moment from "moment";
 
 import { opinionDBActions } from "./opinion.model";
-import { renameIDField, collection, toMongoObjectID, sameID, paginateResults } from '../db';
+import { renameIDField, collection, toMongoObjectID, sameID } from '../db';
 import { malformedFieldError, isNullOrUndefined, dropNullAndUndefinedProperties } from '../util';
 import { nameSchema, descriptionSchema, optional, tagsSchema, nonEmptyArraySchema } from "./kleen-schemas";
 import { MongoID, MongoObjectID, ErrorCode, TargetID } from '../types';
@@ -127,7 +127,7 @@ export const storyDBActions = {
   /**
    * Gets stories from the db, customizable through `StorySearchFilter` and `StoryResultManipulation`.
    */
-  getStories: (filter: StorySearchFilter, resultManipulation: StoryResultManipulation): Promise<Story[]> => {
+  getStories: (filter: StorySearchFilter, resultManipulation: StoryResultManipulation): Promise<[boolean, Story[]]> => {
     return getContent(ContentType.Story, filter, resultManipulation, prepareStoryForResponse);
   },
 

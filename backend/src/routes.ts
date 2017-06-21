@@ -245,7 +245,7 @@ export const routes: AppRoutes = {
     /**
      * @refer `snipbitDBActions.getSnipbits`.
      */
-    get: (req, res): Promise<Snipbit[]> => {
+    get: (req, res): Promise<[ boolean, Snipbit[] ]> => {
       const queryParams = req.query;
       const searchFilter = getContentSearchFilterFromQP(queryParams);
       const resultManipulation = getContentResultManipulationFromQP(queryParams);
@@ -269,7 +269,7 @@ export const routes: AppRoutes = {
     /**
      * @refer `bigbitDBActions.getBigbits`.
      */
-    get: (req, res): Promise<Bigbit[]> => {
+    get: (req, res): Promise<[ boolean, Bigbit[] ]> => {
       const queryParams = req.query;
       const searchFilter = getContentSearchFilterFromQP(queryParams);
       const resultManipulation = getContentResultManipulationFromQP(queryParams);
@@ -317,7 +317,7 @@ export const routes: AppRoutes = {
     /**
      * @refer `storyDBActions.getStories`.
      */
-    get: (req, res): Promise<Story[]> => {
+    get: (req, res): Promise<[ boolean, Story[] ]> => {
       const userID = req.user._id;
       const queryParams = req.query;
       const searchFilter = getContentSearchFilterFromQP(queryParams);
@@ -386,12 +386,15 @@ export const routes: AppRoutes = {
     /**
      * @refer `tidbitDBActions.getTidbits`.
      */
-    get: (req, res): Promise<Tidbit[]> => {
+    get: (req, res): Promise<[ boolean, Tidbit[] ]> => {
       const queryParams = req.query;
       const searchFilter = getContentSearchFilterFromQP(queryParams);
       const resultManipulation = getContentResultManipulationFromQP(queryParams);
 
-      return tidbitDBActions.getTidbits(searchFilter, resultManipulation).then(R.map(removeMetadataForResponse));
+      return tidbitDBActions.getTidbits(searchFilter, resultManipulation)
+      .then(([ isMoreTidbits, tidbits ]) => {
+        return [ isMoreTidbits, R.map(removeMetadataForResponse, tidbits) ];
+      });
     }
   },
 
@@ -399,14 +402,16 @@ export const routes: AppRoutes = {
     /**
      * @refer `contentDBActions.getContent`.
      */
-    get: (req, res): Promise<Content[]> => {
+    get: (req, res): Promise<[ boolean, Content[] ]> => {
       const queryParams = req.query;
       const generalSearchConfig = getGeneralContentSearchConfiguration(queryParams);
       const searchFilter = getContentSearchFilterFromQP(queryParams);
       const resultManipulation = getContentResultManipulationFromQP(queryParams);
 
       return contentDBActions.getContent(generalSearchConfig, searchFilter, resultManipulation)
-      .then(R.map(removeMetadataForResponse));
+      .then(([ isMoreContent, content ]) => {
+        return [ isMoreContent, R.map(removeMetadataForResponse, content) ];
+      });
     }
   },
 
