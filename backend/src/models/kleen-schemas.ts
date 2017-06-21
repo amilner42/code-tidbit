@@ -1,12 +1,12 @@
 /// Module for all abstract kleen schemas to be used in multiple models.
 
 import * as kleen from "kleen";
+import { ObjectID } from 'mongodb';
 
 import { isLanguage } from "./language.model";
 import { Range, emptyRange } from './range.model';
 import { malformedFieldError, internalError } from '../util';
 import { ErrorCode, FrontendError } from '../types';
-import { validMongoID  } from '../validifier';
 
 
 /**
@@ -17,7 +17,8 @@ type RestrictableSchema
   | kleen.objectSchema
   | kleen.arraySchema
   | kleen.referenceSchema
-  | kleen.mapSchema;
+  | kleen.mapSchema
+  | kleen.anySchema;
 
 /**
  * Mutates a schema to allow undefined.
@@ -52,7 +53,7 @@ export const optional = (schema: kleen.typeSchema): kleen.typeSchema => {
  * Mutates a schema to use the given restriction. Will overwrite previous
  * restrictions.
  *
- * @WARNING muates `schema`
+ * @WARNING mutates `schema`
  */
 export const withRestriction = (schema: RestrictableSchema , restriction: (any: any) => void | Promise<void>): RestrictableSchema  => {
   schema.restriction = restriction;
@@ -333,14 +334,13 @@ export const fileStructureSchema =
 };
 
 /**
- * A mongo id schema, will error with `error`.
+ * A `MongoID` schema using the validifier of the mongodb ObjectID class.
  */
-export const mongoStringIDSchema = (invalidMongoIDError: FrontendError): kleen.primitiveSchema => {
+export const mongoIDSchema = (invalidMongoIDError: FrontendError): kleen.anySchema => {
   return {
-    primitiveType: kleen.kindOfPrimitive.string,
-    typeFailureError: invalidMongoIDError,
-    restriction: (mongoID: string) => {
-      if(!validMongoID(mongoID)) {
+    isAny: true,
+    restriction: (mongoID: any) => {
+      if(!ObjectID.isValid(mongoID)) {
         return Promise.reject(invalidMongoIDError);
       }
     }

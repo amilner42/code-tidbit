@@ -4,7 +4,7 @@ import { Collection, Cursor } from "mongodb";
 import * as R from "ramda";
 import * as kleen from "kleen";
 
-import { mongoStringIDSchema } from "./kleen-schemas";
+import { mongoIDSchema } from "./kleen-schemas";
 import { toMongoObjectID, paginateResults, collection } from "../db";
 import { combineArrays, isNullOrUndefined, dropNullAndUndefinedProperties, getTime, sortByAll, SortOrder, isBlankString, malformedFieldError }  from "../util";
 import { MongoID, MongoObjectID } from "../types"
@@ -82,7 +82,7 @@ export const contentPointerSchema: kleen.objectSchema = {
         if(!(contentType in ContentType)) return Promise.reject(malformedFieldError("contentType"));
       }
     },
-    contentID: mongoStringIDSchema(malformedFieldError("contentID"))
+    contentID: mongoIDSchema(malformedFieldError("contentID"))
   },
   typeFailureError: malformedFieldError("contentPointer")
 };

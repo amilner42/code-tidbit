@@ -5,7 +5,7 @@ import * as R from "ramda";
 
 import { malformedFieldError, isNullOrUndefined, combineArrays, sortByAll, getTime, SortOrder } from '../util';
 import { ErrorCode, MongoID, MongoObjectID } from '../types';
-import { mongoStringIDSchema } from './kleen-schemas';
+import { mongoIDSchema } from './kleen-schemas';
 import { ContentSearchFilter, ContentResultManipulation, contentDBActions } from "./content.model";
 import { Snipbit, snipbitDBActions } from './snipbit.model';
 import { Bigbit, bigbitDBActions } from './bigbit.model';
@@ -60,7 +60,7 @@ export const tidbitPointerSchema: kleen.objectSchema = {
       },
       typeFailureError: malformedFieldError("tidbitPointer.tidbitType")
     },
-    "targetID": mongoStringIDSchema(malformedFieldError("tidbitPointer.targetID")),
+    "targetID": mongoIDSchema(malformedFieldError("tidbitPointer.targetID")),
   }
 };
 

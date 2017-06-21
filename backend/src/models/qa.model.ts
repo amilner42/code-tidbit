@@ -10,7 +10,7 @@ import { MongoObjectID, MongoID, ErrorCode } from "../types";
 import { collection, toMongoObjectID, renameIDField, rejectIfResultNotOK, rejectIfNoneModified, rejectIfNoneMatched, rejectIfNoneUpserted } from "../db";
 import { Range } from "./range.model";
 import { TidbitPointer, TidbitType, tidbitPointerSchema } from "./tidbit.model";
-import { stringInRange, rangeSchema, nonEmptyStringSchema, mongoStringIDSchema, booleanSchema } from "./kleen-schemas";
+import { stringInRange, rangeSchema, nonEmptyStringSchema, mongoIDSchema, booleanSchema } from "./kleen-schemas";
 
 
 /**
@@ -283,7 +283,7 @@ export const qaDBActions = {
     const resolveIfValid = (): Promise<any> => {
       return Promise.all([
         kleen.validModel(tidbitPointerSchema)(tidbitPointer),
-        kleen.validModel(mongoStringIDSchema(malformedFieldError("questionID")))(questionID),
+        kleen.validModel(mongoIDSchema(malformedFieldError("questionID")))(questionID),
         kleen.validModel(questionTextSchema)(questionText)
       ])
       .then(() => {
@@ -338,7 +338,7 @@ export const qaDBActions = {
     const resolveIfValid = (): Promise<any> => {
       return Promise.all([
         kleen.validModel(tidbitPointerSchema)(tidbitPointer),
-        kleen.validModel(mongoStringIDSchema(malformedFieldError("questionID")))(questionID)
+        kleen.validModel(mongoIDSchema(malformedFieldError("questionID")))(questionID)
       ]);
     };
 
@@ -388,7 +388,7 @@ export const qaDBActions = {
       return Promise.all([
         kleen.validModel(voteSchema)(vote),
         kleen.validModel(tidbitPointerSchema)(tidbitPointer),
-        kleen.validModel(mongoStringIDSchema(malformedFieldError("questionID")))(questionID)
+        kleen.validModel(mongoIDSchema(malformedFieldError("questionID")))(questionID)
       ]);
     }
 
@@ -434,7 +434,7 @@ export const qaDBActions = {
     const resolveIfValid = (): Promise<any> => {
       return Promise.all([
         kleen.validModel(tidbitPointerSchema)(tidbitPointer),
-        kleen.validModel(mongoStringIDSchema(malformedFieldError("questionID")))(questionID)
+        kleen.validModel(mongoIDSchema(malformedFieldError("questionID")))(questionID)
       ]);
     }
 
@@ -471,7 +471,7 @@ export const qaDBActions = {
     const resolveIfValid = (): Promise<any> => {
       return Promise.all([
         kleen.validModel(tidbitPointerSchema)(tidbitPointer),
-        kleen.validModel(mongoStringIDSchema(malformedFieldError("questionID")))(questionID),
+        kleen.validModel(mongoIDSchema(malformedFieldError("questionID")))(questionID),
         kleen.validModel(booleanSchema(malformedFieldError("pin")))(pin)
       ]);
     }
@@ -514,7 +514,7 @@ export const qaDBActions = {
     const resolveIfValid = (): Promise<any> => {
       return Promise.all([
         kleen.validModel(tidbitPointerSchema)(tidbitPointer),
-        kleen.validModel(mongoStringIDSchema(malformedFieldError("questionID")))(questionID),
+        kleen.validModel(mongoIDSchema(malformedFieldError("questionID")))(questionID),
         kleen.validModel(answerTextSchema)(answerText)
       ]);
     }
@@ -568,7 +568,7 @@ export const qaDBActions = {
     const resolveIfValid = (): Promise<any> => {
       return Promise.all([
         kleen.validModel(tidbitPointerSchema)(tidbitPointer),
-        kleen.validModel(mongoStringIDSchema(malformedFieldError("answerID")))(answerID)
+        kleen.validModel(mongoIDSchema(malformedFieldError("answerID")))(answerID)
       ]);
     };
 
@@ -616,7 +616,7 @@ export const qaDBActions = {
     const resolveIfValid = (): Promise<any> => {
       return Promise.all([
         kleen.validModel(tidbitPointerSchema)(tidbitPointer),
-        kleen.validModel(mongoStringIDSchema(malformedFieldError("answerID")))(answerID),
+        kleen.validModel(mongoIDSchema(malformedFieldError("answerID")))(answerID),
         kleen.validModel(answerTextSchema)(answerText)
       ]);
     }
@@ -667,7 +667,7 @@ export const qaDBActions = {
       return Promise.all([
         kleen.validModel(tidbitPointerSchema)(tidbitPointer),
         kleen.validModel(voteSchema)(vote),
-        kleen.validModel(mongoStringIDSchema(malformedFieldError("answerID")))(answerID)
+        kleen.validModel(mongoIDSchema(malformedFieldError("answerID")))(answerID)
       ]);
     }
 
@@ -713,7 +713,7 @@ export const qaDBActions = {
     const resolveIfValid = (): Promise<any> => {
       return Promise.all([
         kleen.validModel(tidbitPointerSchema)(tidbitPointer),
-        kleen.validModel(mongoStringIDSchema(malformedFieldError("answerID")))(answerID)
+        kleen.validModel(mongoIDSchema(malformedFieldError("answerID")))(answerID)
       ]);
     }
 
@@ -750,7 +750,7 @@ export const qaDBActions = {
     const resolveIfValid = (): Promise<any> => {
       return Promise.all([
         kleen.validModel(tidbitPointerSchema)(tidbitPointer),
-        kleen.validModel(mongoStringIDSchema(malformedFieldError("answerID")))(answerID),
+        kleen.validModel(mongoIDSchema(malformedFieldError("answerID")))(answerID),
         kleen.validModel(booleanSchema(malformedFieldError("pin")))(pin)
       ]);
     }
@@ -793,7 +793,7 @@ export const qaDBActions = {
     const resolveIfValid = (): Promise<any> => {
       return Promise.all([
         kleen.validModel(tidbitPointerSchema)(tidbitPointer),
-        kleen.validModel(mongoStringIDSchema(malformedFieldError("questionID")))(questionID),
+        kleen.validModel(mongoIDSchema(malformedFieldError("questionID")))(questionID),
         kleen.validModel(commentTextSchema)(commentText)
       ]);
     }
@@ -847,7 +847,7 @@ export const qaDBActions = {
       return Promise.all([
         kleen.validModel(tidbitPointerSchema)(tidbitPointer),
         kleen.validModel(commentTextSchema)(commentText),
-        kleen.validModel(mongoStringIDSchema(malformedFieldError("commentID")))(commentID)
+        kleen.validModel(mongoIDSchema(malformedFieldError("commentID")))(commentID)
       ]);
     }
 
@@ -895,7 +895,7 @@ export const qaDBActions = {
     const resolveIfValid = (): Promise<any> => {
       return Promise.all([
         kleen.validModel(tidbitPointerSchema)(tidbitPointer),
-        kleen.validModel(mongoStringIDSchema(malformedFieldError("commentID")))(commentID)
+        kleen.validModel(mongoIDSchema(malformedFieldError("commentID")))(commentID)
       ]);
     }
 
@@ -935,8 +935,8 @@ export const qaDBActions = {
     const resolveIfValid = (): Promise<any> => {
       return Promise.all([
         kleen.validModel(tidbitPointerSchema)(tidbitPointer),
-        kleen.validModel(mongoStringIDSchema(malformedFieldError("questionID")))(questionID),
-        kleen.validModel(mongoStringIDSchema(malformedFieldError("answerID")))(answerID),
+        kleen.validModel(mongoIDSchema(malformedFieldError("questionID")))(questionID),
+        kleen.validModel(mongoIDSchema(malformedFieldError("answerID")))(answerID),
         kleen.validModel(commentTextSchema)(commentText)
       ]);
     }
@@ -994,7 +994,7 @@ export const qaDBActions = {
     const resolveIfValid = (): Promise<any> => {
       return Promise.all([
         kleen.validModel(tidbitPointerSchema)(tidbitPointer),
-        kleen.validModel(mongoStringIDSchema(malformedFieldError("commentID")))(commentID),
+        kleen.validModel(mongoIDSchema(malformedFieldError("commentID")))(commentID),
         kleen.validModel(commentTextSchema)(commentText)
       ]);
     }
@@ -1043,7 +1043,7 @@ export const qaDBActions = {
     const resolveIfValid = (): Promise<any> => {
       return Promise.all([
         kleen.validModel(tidbitPointerSchema)(tidbitPointer),
-        kleen.validModel(mongoStringIDSchema(malformedFieldError("commentID")))(commentID)
+        kleen.validModel(mongoIDSchema(malformedFieldError("commentID")))(commentID)
       ]);
     }
 

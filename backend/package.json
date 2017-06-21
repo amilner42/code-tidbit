@@ -28,7 +28,7 @@
     "connect-mongo": "^1.2.0",
     "express": "^4.13.4",
     "express-session": "^1.13.0",
-    "kleen": "^2.0.0",
+    "kleen": "^3.0.0",
     "moment": "^2.17.1",
     "mongodb": "^2.1.7",
     "passport": "^0.3.2",

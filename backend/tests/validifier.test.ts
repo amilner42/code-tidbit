@@ -3,7 +3,7 @@
 import assert from 'assert';
 import R from "ramda";
 
-import { validPhone, validEmail, validPassword, validMongoID } from '../src/validifier';
+import { validPhone, validEmail, validPassword } from '../src/validifier';
 
 
 describe('Validifier', function() {
@@ -90,33 +90,6 @@ describe('Validifier', function() {
 
     it('should return false if the password is <= 6 chars', function() {
       assert.equal(false, validPassword("123456"));
-    });
-  });
-
-  describe('#validMongoID', function() {
-
-    it('should return false if the ID is undefined', function() {
-      assert.equal(false, validMongoID(undefined));
-    });
-
-    it('should return false if the ID is null', function() {
-      assert.equal(false, validMongoID(null));
-    });
-
-    it('should return false if the ID is not 24 hex chars', function() {
-      const invalidMongoIDs = ["23", "12345678901234567890123-", "12345678901234567890123G"];
-
-      R.map((invalidMongoID) => {
-        assert.equal(false, validMongoID(invalidMongoID));
-      }, invalidMongoIDs);
-    });
-
-    it('should return true if the ID is 24 hex chars ', function() {
-      const validMongoIDs = ["123456789012345678901234", "12a456F890a2345d78901234"];
-
-      R.map((aValidMongoID) => {
-        assert.equal(true, validMongoID(aValidMongoID));
-      }, validMongoIDs);
     });
   });
 });
