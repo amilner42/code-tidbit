@@ -207,16 +207,17 @@ update ((Common common) as commonUtil) msg model shared =
                     else
                         common.doNothing
 
-                -- We need to check if the new input is a valid email, unless the new input is an empty string.
+                -- If the email is valid, check the database to see if a user exists with that email. If it's an
+                -- invalid email we don't even need to check the database.
                 , \(Common common) ( model, shared ) ->
-                    if String.isEmpty newAuthorInput then
-                        common.doNothing
-                    else
+                    if Util.isValidEmail newAuthorInput then
                         common.justProduceCmd <|
-                            common.api.get.userExists
+                            common.api.post.userExists
                                 newAuthorInput
                                 OnGetUserExistsFailure
                                 (OnGetUserExistsSuccess << (,) newAuthorInput)
+                    else
+                        common.doNothing
                 ]
 
         OnGetUserExistsFailure apiError ->

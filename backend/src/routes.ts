@@ -26,7 +26,7 @@ import { internalError, combineArrays, maybeMap } from './util';
 export const authlessRoutes: AppRoutesAuth = {
   '/register': { post: true },
   '/login': { post: true },
-  '/userID/:email': { get: true },
+  '/userID': { post: true },
   '/snipbits': { get: true },
   '/snipbits/:id': { get: true },
   '/bigbits/': { get: true },
@@ -135,13 +135,12 @@ export const routes: AppRoutes = {
     }
   },
 
-  '/userID/:email': {
+  '/userID': {
     /**
      * @refer `userDBActions.getUserID`.
      */
-    get: (req, res): Promise<MongoID> => {
-      const params = req.params;
-      const email = params.email;
+    post: (req, res): Promise<MongoID> => {
+      const { email } = req.body;
 
       return userDBActions.getUserID(email);
     }
