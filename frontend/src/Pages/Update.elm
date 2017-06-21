@@ -93,7 +93,7 @@ updateCacheIf msg model shouldCache =
                     {- If the state was properly cached in localStorage, we simply load the cached model and refresh
                        the page to trigger route hooks.
                     -}
-                    ( newModel, Route.navigateTo shared.route )
+                    ( newModel, Route.modifyTo shared.route )
 
                 OnLoadModelFromLocalStorageFailure err ->
                     {- If the state wasn't cached in localStorage, we attempt to get the user (for the narrow
@@ -107,10 +107,10 @@ updateCacheIf msg model shouldCache =
                         newModel =
                             { model | shared = { shared | user = Just user } }
                     in
-                    ( newModel, Route.navigateTo shared.route )
+                    ( newModel, Route.modifyTo shared.route )
 
                 OnGetUserAndThenRefreshFailure newApiError ->
-                    ( model, Route.navigateTo shared.route )
+                    ( model, Route.modifyTo shared.route )
 
                 WelcomeMessage subMsg ->
                     let
