@@ -13,7 +13,7 @@ type Msg
     = NoOp
     | GoTo Route
     | OnRouteHit Route
-    | OnGetContentSuccess SearchSettings (List Content)
+    | OnGetContentSuccess SearchSettings ( Bool, List Content )
     | OnGetContentFailure SearchSettings ApiError
     | LoadMoreContent
     | OnUpdateSearch String

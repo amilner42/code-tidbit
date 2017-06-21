@@ -7,7 +7,7 @@ import * as R from "ramda";
 
 import { opinionDBActions } from "./opinion.model";
 import { malformedFieldError, asyncIdentity, isNullOrUndefined, dropNullAndUndefinedProperties } from '../util';
-import { collection, renameIDField, toMongoObjectID, paginateResults } from '../db';
+import { collection, renameIDField, toMongoObjectID } from '../db';
 import { MongoID, MongoObjectID, ErrorCode, TargetID } from '../types';
 import { Range } from './range.model';
 import { ContentSearchFilter, ContentResultManipulation, ContentType, ContentPointer, getContent } from "./content.model";
@@ -194,7 +194,7 @@ export const bigbitDBActions = {
   /**
    * Gets bigbits, customizable through the `BigbitSearchFilter` and `BigbitSearchResultManipulation`.
    */
-  getBigbits: (filter: BigbitSearchFilter, resultManipulation: BigbitSearchResultManipulation): Promise<Bigbit[]> => {
+  getBigbits: (filter: BigbitSearchFilter, resultManipulation: BigbitSearchResultManipulation): Promise<[boolean, Bigbit[]]> => {
     return getContent<Bigbit>(ContentType.Bigbit, filter, resultManipulation, prepareBigbitForResponse);
   },
 

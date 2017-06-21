@@ -6,7 +6,7 @@ import R from "ramda";
 
 import { opinionDBActions } from "./opinion.model";
 import { malformedFieldError, isNullOrUndefined, dropNullAndUndefinedProperties } from '../util';
-import { collection, renameIDField, toMongoObjectID, paginateResults } from '../db';
+import { collection, renameIDField, toMongoObjectID } from '../db';
 import { MongoID, MongoObjectID, ErrorCode, TargetID } from '../types';
 import { ContentSearchFilter, ContentResultManipulation, ContentType, ContentPointer, getContent } from "./content.model";
 import { Range, emptyRange } from './range.model';
@@ -159,7 +159,7 @@ export const snipbitDBActions = {
   /**
    * Gets snipbits, customizable through the `SnipbitSearchFilter` and `SnipbitResultManipulation`.
    */
-  getSnipbits: (filter: SnipbitSearchFilter, resultManipulation: SnipbitResultManipulation): Promise<Snipbit[]> => {
+  getSnipbits: (filter: SnipbitSearchFilter, resultManipulation: SnipbitResultManipulation): Promise<[boolean, Snipbit[]]> => {
     return getContent(ContentType.Snipbit, filter, resultManipulation, prepareSnipbitForResponse);
   },
 

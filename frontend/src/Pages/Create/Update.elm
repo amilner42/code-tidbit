@@ -27,7 +27,7 @@ update (Common common) msg model shared =
                                     common.api.get.stories
                                         [ ( "author", Just id ), ( "includeEmptyStories", Just "true" ) ]
                                         OnGetAccountStoriesFailure
-                                        OnGetAccountStoriesSuccess
+                                        (Tuple.second >> OnGetAccountStoriesSuccess)
                             else
                                 common.doNothing
                         )

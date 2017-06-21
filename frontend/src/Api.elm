@@ -65,7 +65,7 @@ type alias API msg =
           account : Endpoint User.User msg
 
         -- Gets stories, you can use query params to customize the search. Refer to the backend to see the options.
-        , stories : QueryParams -> Endpoint (List Story.Story) msg
+        , stories : QueryParams -> Endpoint ( Bool, List Story.Story ) msg
 
         -- Gets a single story.
         , story : StoryID -> Endpoint Story.Story msg
@@ -86,10 +86,10 @@ type alias API msg =
         , bigbit : BigbitID -> Endpoint Bigbit.Bigbit msg
 
         -- Gets tidbits, you can use query params to customize the search. Refer to the backend to see the options.
-        , tidbits : QueryParams -> Endpoint (List Tidbit.Tidbit) msg
+        , tidbits : QueryParams -> Endpoint ( Bool, List Tidbit.Tidbit ) msg
 
         -- Get's content, you can use query params to customize the search. Refer to the backend to see the options.
-        , content : QueryParams -> Endpoint (List Content.Content) msg
+        , content : QueryParams -> Endpoint ( Bool, List Content.Content ) msg
 
         -- Get's a user's opinion.
         , opinion : ContentPointer.ContentPointer -> Endpoint (Maybe Rating.Rating) msg
@@ -229,7 +229,9 @@ api apiBaseUrl =
             makeGETEndpoint "account" JSON.User.decoder
         , stories =
             \queryParams ->
-                makeGETEndpoint ("stories" ++ Util.queryParamsToString queryParams) (Decode.list <| JSON.Story.decoder)
+                makeGETEndpoint
+                    ("stories" ++ Util.queryParamsToString queryParams)
+                    (Util.decodePair Decode.bool (Decode.list <| JSON.Story.decoder))
         , story =
             \storyID -> makeGETEndpoint ("stories" :/: storyID) JSON.Story.decoder
         , expandedStory =
@@ -258,12 +260,12 @@ api apiBaseUrl =
             \queryParams ->
                 makeGETEndpoint
                     ("tidbits" ++ Util.queryParamsToString queryParams)
-                    (Decode.list JSON.Tidbit.decoder)
+                    (Util.decodePair Decode.bool (Decode.list JSON.Tidbit.decoder))
         , content =
             \queryParams ->
                 makeGETEndpoint
                     ("content" ++ Util.queryParamsToString queryParams)
-                    (Decode.list JSON.Content.decoder)
+                    (Util.decodePair Decode.bool (Decode.list JSON.Content.decoder))
         , opinion =
             \contentPointer ->
                 makeGETEndpoint

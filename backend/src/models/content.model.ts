@@ -5,7 +5,7 @@ import * as R from "ramda";
 import * as kleen from "kleen";
 
 import { mongoIDSchema } from "./kleen-schemas";
-import { toMongoObjectID, paginateResults, collection } from "../db";
+import { toMongoObjectID, getPaginatedResults, collection } from "../db";
 import { combineArrays, isNullOrUndefined, dropNullAndUndefinedProperties, getTime, sortByAll, SortOrder, isBlankString, malformedFieldError }  from "../util";
 import { MongoID, MongoObjectID } from "../types"
 import { Bigbit, bigbitDBActions } from "./bigbit.model";
@@ -99,7 +99,7 @@ export const contentDBActions = {
     ( generalSearchConfig: GeneralSearchConfiguration
     , filter: ContentSearchFilter | StorySearchFilter
     , resultManipulation: ContentResultManipulation
-    ): Promise<Content[]> => {
+    ): Promise<[boolean, Content[]]> => {
 
     // So we don't mutate function parameters.
     const searchFilter = R.clone(filter);
@@ -126,33 +126,44 @@ export const contentDBActions = {
     }
 
     return Promise.all([
-      generalSearchConfig.includeSnipbits ? snipbitDBActions.getSnipbits(searchFilter, resultManipulation) : [],
-      generalSearchConfig.includeBigbits ? bigbitDBActions.getBigbits(searchFilter, resultManipulation) : [],
-      generalSearchConfig.includeStories ? storyDBActions.getStories(searchFilter, resultManipulation) : []
+      generalSearchConfig.includeSnipbits ? snipbitDBActions.getSnipbits(searchFilter, resultManipulation) : [ false, [] ],
+      generalSearchConfig.includeBigbits ? bigbitDBActions.getBigbits(searchFilter, resultManipulation) : [ false, [] ],
+      generalSearchConfig.includeStories ? storyDBActions.getStories(searchFilter, resultManipulation) : [ false, [] ]
     ])
-    .then<Content[]>(([ snipbits, bigbits, stories ]) => {
-      let contentArray = combineArrays(combineArrays(snipbits, bigbits), stories);
+    .then<[boolean, Content[]]>((
+      [
+        [ isMoreSnipbits, snipbits ],
+        [ isMoreBigbits, bigbits ],
+        [ isMoreStories, stories ]
+      ]
+    ) => {
 
-      if(resultManipulation.sortByLastModified) {
-        return sortByAll<Content>(
-          [
-            [ SortOrder.Descending, R.prop("lastModified")],
-            [ SortOrder.Ascending, R.pipe(R.prop("name"), R.toLower) ]
-          ],
-          contentArray
-        );
-      } else if(resultManipulation.sortByTextScore) {
+      const getSortedContentArray = (): Content[] => {
+        let contentArray: Content[] = combineArrays(combineArrays(snipbits, bigbits), stories);
 
-        return sortByAll<Content>(
-          [
-            [ SortOrder.Descending, R.prop("textScore")],
-            [ SortOrder.Ascending, R.pipe(R.prop("name"), R.toLower) ]
-          ],
-          contentArray
-        );
-      }
+        if(resultManipulation.sortByLastModified) {
+          return sortByAll<Content>(
+            [
+              [ SortOrder.Descending, R.prop("lastModified")],
+              [ SortOrder.Ascending, R.pipe(R.prop("name"), R.toLower) ]
+            ],
+            contentArray
+          );
+        } else if(resultManipulation.sortByTextScore) {
 
-      return contentArray;
+          return sortByAll<Content>(
+            [
+              [ SortOrder.Descending, R.prop("textScore")],
+              [ SortOrder.Ascending, R.pipe(R.prop("name"), R.toLower) ]
+            ],
+            contentArray
+          );
+        }
+
+        return contentArray;
+      };
+
+        return [isMoreSnipbits || isMoreBigbits || isMoreStories, getSortedContentArray() ];
     });
   },
 
@@ -195,7 +206,7 @@ export const getContent = <Content>
     filter: ContentSearchFilter | StorySearchFilter,
     resultManipulation: ContentResultManipulation,
     prepareForResponse: (content: Content) => Content | Promise<Content>
-  ): Promise<Content[]> => {
+  ): Promise<[boolean, Content[]]> => {
 
   let collectionName;
   const mongoQuery: {
@@ -272,13 +283,19 @@ export const getContent = <Content>
       const pageNumber = resultManipulation.pageNumber || 1;
       const pageSize = resultManipulation.pageSize || 10;
 
-      cursor = paginateResults(pageNumber, pageSize, cursor);
+      return getPaginatedResults(pageNumber, pageSize, cursor);
     }
 
-    return cursor.toArray();
+    return cursor.toArray()
+    .then((results) => {
+      return [false, results];
+    });
   })
-  .then((arrayOfContent) => {
-    return Promise.all(arrayOfContent.map(prepareForResponse));
+  .then(([areMoreResults, arrayOfContent]) => {
+    return Promise.all(arrayOfContent.map(prepareForResponse))
+    .then((readyArrayOfContent) => {
+      return [ areMoreResults, readyArrayOfContent ];
+    });
   });
 }
 
