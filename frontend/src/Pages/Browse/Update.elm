@@ -212,7 +212,7 @@ update ((Common common) as commonUtil) msg model shared =
                 , \(Common common) ( model, shared ) ->
                     if Util.isValidEmail newAuthorInput then
                         common.justProduceCmd <|
-                            common.api.get.userExists
+                            common.api.post.userExists
                                 newAuthorInput
                                 OnGetUserExistsFailure
                                 (OnGetUserExistsSuccess << (,) newAuthorInput)

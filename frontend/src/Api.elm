@@ -61,11 +61,8 @@ type alias Endpoint response msg =
 -}
 type alias API msg =
     { get :
-        { -- Gets the ID of the user that exists with that email (if one exists, otherwise returns `Nothing`).
-          userExists : Email -> Endpoint (Maybe UserID) msg
-
-        -- Gets the users account, or an error if unauthenticated.
-        , account : Endpoint User.User msg
+        { -- Gets the users account, or an error if unauthenticated.
+          account : Endpoint User.User msg
 
         -- Gets stories, you can use query params to customize the search. Refer to the backend to see the options.
         , stories : QueryParams -> Endpoint (List Story.Story) msg
@@ -109,6 +106,9 @@ type alias API msg =
 
         -- Registers the user and returns the user, unless invalid new credentials.
         , register : User.UserForRegistration -> Endpoint User.User msg
+
+        -- Gets the ID of the user that exists with that email (if one exists, otherwise returns `Nothing`).
+        , userExists : Email -> Endpoint (Maybe UserID) msg
 
         -- Creates a new snipbit.
         , createSnipbit : CreateSnipbitModel.SnipbitForPublication -> Endpoint IDResponse.IDResponse msg
@@ -225,9 +225,7 @@ api apiBaseUrl =
             HttpService.post (apiBaseUrl ++ url)
     in
     { get =
-        { userExists =
-            \email -> makeGETEndpoint ("userID" :/: email) (Decode.maybe Decode.string)
-        , account =
+        { account =
             makeGETEndpoint "account" JSON.User.decoder
         , stories =
             \queryParams ->
@@ -290,6 +288,12 @@ api apiBaseUrl =
             \user -> makePOSTEndpoint "login" JSON.User.decoder (JSON.User.loginEncoder user)
         , register =
             \user -> makePOSTEndpoint "register" JSON.User.decoder (JSON.User.registerEncoder user)
+        , userExists =
+            \email ->
+                makePOSTEndpoint
+                    "userID"
+                    (Decode.maybe Decode.string)
+                    (Encode.object [ ( "email", Encode.string email ) ])
         , createSnipbit =
             \snipbit ->
                 makePOSTEndpoint
