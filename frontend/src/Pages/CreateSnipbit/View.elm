@@ -29,7 +29,7 @@ view model shared =
         viewMenu : Html Msg
         viewMenu =
             div
-                [ classList [ ( "hidden", String.isEmpty model.languageQuery || Util.isNotNothing model.language ) ]
+                [ classList [ ( "hidden", not <| languageACActive shared.route model ) ]
                 ]
                 [ Html.map
                     OnUpdateACState
@@ -188,7 +188,7 @@ view model shared =
                             model.language
                     , Util.onKeydownPreventDefault
                         (\key ->
-                            if key == KK.Tab then
+                            if key == KK.Tab || key == KK.ArrowUp || key == KK.ArrowDown then
                                 Just NoOp
                             else
                                 Nothing

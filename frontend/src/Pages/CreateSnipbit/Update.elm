@@ -326,7 +326,11 @@ update (Common common) msg model shared =
                     common.doNothing
 
         OnUpdateLanguageQuery newLanguageQuery ->
-            common.justSetModel { model | languageQuery = newLanguageQuery }
+            common.justSetModel
+                { model
+                    | languageQuery = newLanguageQuery
+                    , languageQueryACState = AC.reset acUpdateConfig model.languageQueryACState
+                }
 
         SelectLanguage maybeEncodedLang ->
             let
