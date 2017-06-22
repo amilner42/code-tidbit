@@ -144,12 +144,12 @@ export const snipbitDBActions = {
       // After inserting snipbit, we initialize the QA for that snipbit and return the ID of the new snipbit.
       .then((insertSnipbitResult) => {
         return qaDBActions.newBlankQAForTidbit(
-          false,
           {
             targetID: insertSnipbitResult.insertedId,
             tidbitType: TidbitType.Snipbit
           },
-          toMongoObjectID(userID)
+          toMongoObjectID(userID),
+          false
         )
         .then(R.always({ targetID: insertSnipbitResult.insertedId }));
       });

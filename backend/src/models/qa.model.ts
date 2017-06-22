@@ -143,9 +143,9 @@ export const qaDBActions = {
    * Resolves if a new QA document was successfully created.
    */
   newBlankQAForTidbit:
-    ( doValidation: boolean
-    , tidbitPointer: TidbitPointer
+    ( tidbitPointer: TidbitPointer
     , tidbitAuthor: MongoObjectID
+    , doValidation = true
     ) : Promise<void> => {
 
     return (doValidation ? kleen.validModel(tidbitPointerSchema)(tidbitPointer) : Promise.resolve())
@@ -180,9 +180,10 @@ export const qaDBActions = {
    * for the `userID`. This action does not require authentication.
    */
   getQAForTidbit: <CodePointer>
-    ( doValidation: boolean
-    , tidbitPointer: TidbitPointer
+    ( tidbitPointer: TidbitPointer
     , userID: MongoObjectID
+    , doValidation = true
+
     ): Promise<QA<CodePointer>> => {
 
     return (doValidation ? kleen.validModel(tidbitPointerSchema)(tidbitPointer) : Promise.resolve())
@@ -211,12 +212,12 @@ export const qaDBActions = {
    *       first if we wanted to validate that the `codePointer` points to something meaningful.
    */
   askQuestion: <CodePointer>
-    ( doValidation: boolean
-    , tidbitPointer: TidbitPointer
+    ( tidbitPointer: TidbitPointer
     , questionText: string
     , codePointer: CodePointer
     , authorID: MongoObjectID
     , authorEmail: string
+    , doValidation = true
     ) : Promise<Question<CodePointer>> => {
 
     // Check all user input: `tidbitPointer`, `codePointer` , and `questionText`.
@@ -271,12 +272,12 @@ export const qaDBActions = {
    * the question to match the one in the DB (without having to send the full question over the wire).
    */
   editQuestion: <CodePointer>
-    ( doValidation: boolean
-    , tidbitPointer: TidbitPointer
+    ( tidbitPointer: TidbitPointer
     , questionID : MongoID
     , questionText: string
     , codePointer: CodePointer
     , userID: MongoObjectID
+    , doValidation = true
     ) : Promise<Date> => {
 
     // Checks user input: `tidbitPointer`, `questionText`, `questionID`, and `codePointer`.
@@ -328,10 +329,10 @@ export const qaDBActions = {
    * Resolves if question and related data were deleted successfully.
    */
   deleteQuestion:
-    ( doValidation: boolean
-    , tidbitPointer: TidbitPointer
+    ( tidbitPointer: TidbitPointer
     , questionID: MongoID
     , userID: MongoObjectID
+    , doValidation = true
     ) : Promise<void> => {
 
     // Checks user input: `tidbitPointer` and `questionID`.
@@ -376,11 +377,11 @@ export const qaDBActions = {
    * Resolves if the question exists and the query was successful.
    */
   rateQuestion:
-    ( doValidation: boolean
-    , vote: Vote
+    ( vote: Vote
     , tidbitPointer: TidbitPointer
     , questionID: MongoID
     , userID: MongoObjectID
+    , doValidation = true
     ) : Promise<void> => {
 
     // Checks user input: `vote`, `tidbitPointer`, and `questionID`.
@@ -424,10 +425,10 @@ export const qaDBActions = {
    * Resolves if the question exists and the query was successful.
    */
   removeQuestionRating:
-    ( doValidation: boolean
-    , tidbitPointer: TidbitPointer
+    ( tidbitPointer: TidbitPointer
     , questionID: MongoID
     , userID: MongoObjectID
+    , doValidation = true
     ) : Promise<void> => {
 
     // Checks user input: `tidbitPointer` and `questionID`.
@@ -460,11 +461,11 @@ export const qaDBActions = {
    * Resolves if the user is the author of the tidbit and the question exists and the query was successful.
    */
   pinQuestion:
-    ( doValidation: boolean
-    , tidbitPointer: TidbitPointer
+    ( tidbitPointer: TidbitPointer
     , questionID: MongoID
     , pin: boolean
     , userID: MongoObjectID
+    , doValidation = true
     ) : Promise<void>  => {
 
     // Checks user input: `tidbitPointer` and `questionID`, and `pin`.
@@ -502,12 +503,12 @@ export const qaDBActions = {
    * Returns the answer if it was added successfully.
    */
   answerQuestion:
-    ( doValidation: boolean
-    , tidbitPointer: TidbitPointer
+    ( tidbitPointer: TidbitPointer
     , questionID: MongoID
     , answerText: string
     , authorID: MongoObjectID
     , authorEmail: string
+    , doValidation = true
     ) : Promise<Answer> => {
 
     // Validate user input: `tidbitPointer`, `questionID`, `answerText`.
@@ -558,10 +559,10 @@ export const qaDBActions = {
    * Resolves if the answer and related data were all deleted successfully.
    */
   deleteAnswer:
-    ( doValidation: boolean
-    , tidbitPointer: TidbitPointer
+    ( tidbitPointer: TidbitPointer
     , answerID: MongoID
     , userID: MongoObjectID
+    , doValidation = true
     ) : Promise<void> => {
 
     // Checks user input: `tidbitPointer` and `answerID`.
@@ -605,11 +606,11 @@ export const qaDBActions = {
    * update the answer to match the one in the DB (without having to send the full answer over the wire).
    */
   editAnswer:
-    ( doValidation: boolean
-    , tidbitPointer: TidbitPointer
+    ( tidbitPointer: TidbitPointer
     , answerID: MongoID
     , answerText: string
     , userID: MongoObjectID
+    , doValidation = true
     ) : Promise<Date> => {
 
     // Checks user input: `tidbitPointer`, `answerID`, and `answerText`.
@@ -655,11 +656,11 @@ export const qaDBActions = {
    * Resolves if answer exists and the query was successful.
    */
   rateAnswer:
-    ( doValidation: boolean
-    , vote: Vote
+    ( vote: Vote
     , tidbitPointer: TidbitPointer
     , answerID: MongoID
     , userID: MongoObjectID
+    , doValidation = true
     ) : Promise<void> => {
 
     // Checks user input: `tidbitPointer`, `vote`, and `answerID`.
@@ -703,10 +704,10 @@ export const qaDBActions = {
    * Resolves if the answer exists and the query was successful.
    */
   removeAnswerRating:
-    ( doValidation: boolean
-    , tidbitPointer: TidbitPointer
+    ( tidbitPointer: TidbitPointer
     , answerID: MongoID
     , userID: MongoObjectID
+    , doValidation = true
     ) : Promise<void> => {
 
     // Checks user input: `tidbitPointer` and `answerID`.
@@ -739,11 +740,11 @@ export const qaDBActions = {
    * Resolves if the user is the author of the tidbit and the answer exists and the query was successful.
    */
   pinAnswer:
-    ( doValidation: boolean
-    , tidbitPointer: TidbitPointer
+    ( tidbitPointer: TidbitPointer
     , answerID: MongoID
     , pin: boolean
     , userID: MongoObjectID
+    , doValidation = true
     ) : Promise<void> => {
 
     // Checks user input: `tidbitPointer`, `answerID`, and `pin`.
@@ -781,12 +782,12 @@ export const qaDBActions = {
    * Returns the comment if it was added successfully.
    */
   commentOnQuestion:
-    ( doValidation: boolean
-    , tidbitPointer: TidbitPointer
+    ( tidbitPointer: TidbitPointer
     , questionID: MongoID
     , commentText: string
     , userID: MongoObjectID
-    , userEmail: string,
+    , userEmail: string
+    , doValidation = true
     ) : Promise<QuestionComment> => {
 
     // Checks user input: `tidbitPointer`, `questionID`, and `commentText`.
@@ -835,11 +836,11 @@ export const qaDBActions = {
    * it's copy of the question comment to match the one in the DB (without having to send it over the wire).
    */
   editQuestionComment:
-    ( doValidation: boolean
-    , tidbitPointer: TidbitPointer
+    ( tidbitPointer: TidbitPointer
     , commentID: MongoID
     , commentText: string
     , userID: MongoObjectID
+    , doValidation = true
     ) : Promise<Date> => {
 
     // Checks user input: `tidbitPointer`, `commentID`, and `commentText`
@@ -885,10 +886,10 @@ export const qaDBActions = {
    * Resolves if the comment was deleted successfully.
    */
   deleteQuestionComment:
-    ( doValidation: boolean
-    , tidbitPointer: TidbitPointer
+    ( tidbitPointer: TidbitPointer
     , commentID: MongoID
     , userID: MongoObjectID
+    , doValidation = true
     ) : Promise<void> => {
 
     // Checks user input: `tidbitPointer` and `commentID`.
@@ -922,13 +923,13 @@ export const qaDBActions = {
    * Returns the comment if it was added successfully.
    */
   commentOnAnswer:
-    ( doValidation: boolean
-    , tidbitPointer: TidbitPointer
+    ( tidbitPointer: TidbitPointer
     , questionID
     , answerID: MongoID
     , commentText: string
     , userID: MongoObjectID
     , userEmail: string
+    , doValidation = true
     ) : Promise<AnswerComment> => {
 
     // Checks user input: `tidbitPointer`, `questionID`, `answerID`, and `commentText`.
@@ -983,11 +984,11 @@ export const qaDBActions = {
    * update the answer comment to match the DB (without having to send the full answer comment over the wire).
    */
   editAnswerComment:
-    ( doValidation: boolean
-    , tidbitPointer: TidbitPointer
+    ( tidbitPointer: TidbitPointer
     , commentID: MongoID
     , commentText: string
     , userID: MongoObjectID
+    , doValidation = true
     ) : Promise<Date> => {
 
     // Checks user input: `tidbitPointer`, `commentID`, and `commentText`.
@@ -1033,10 +1034,10 @@ export const qaDBActions = {
    * Resolves if comment was deleted successfully.
    */
   deleteAnswerComment:
-    ( doValidation: boolean
-    , tidbitPointer: TidbitPointer
+    ( tidbitPointer: TidbitPointer
     , commentID: MongoID
     , userID: MongoObjectID
+    , doValidation = true
     ) : Promise<void> => {
 
     // Checks user input: `tidbitPointer` and `commentID`.

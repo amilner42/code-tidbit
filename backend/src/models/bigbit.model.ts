@@ -179,12 +179,12 @@ export const bigbitDBActions = {
       // After inserting bigbit, we initialize the QA for that bigbit and return the ID of the new bigbit.
       .then((insertBigbitResult) => {
         return qaDBActions.newBlankQAForTidbit(
-          false,
           {
             tidbitType: TidbitType.Bigbit ,
             targetID: insertBigbitResult.insertedId
           },
-          toMongoObjectID(userID)
+          toMongoObjectID(userID),
+          false
         )
         .then(R.always({ targetID: insertBigbitResult.insertedId }));
       });
