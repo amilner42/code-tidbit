@@ -222,7 +222,7 @@ export const storyDBActions = {
     .then((storyCollection) => {
       const dateNow = moment.utc().toDate();
 
-      return storyCollection.findOneAndUpdate(
+      return storyCollection.updateOne(
         { _id: toMongoObjectID(storyID),
           author: toMongoObjectID(userID)
         },
@@ -231,8 +231,8 @@ export const storyDBActions = {
       );
     })
     .then((updateStoryResult) => {
-      if(updateStoryResult.value) {
-        return Promise.resolve({ targetID: updateStoryResult.value._id });
+      if(updateStoryResult.modifiedCount === 1) {
+        return Promise.resolve({ targetID: storyID });
       }
 
       return Promise.reject({

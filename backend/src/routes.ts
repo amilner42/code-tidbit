@@ -169,7 +169,7 @@ export const routes: AppRoutes = {
     /**
      * @refer `completedDBActions.addCompleted`.
      */
-    post: (req, res): Promise<TargetID> => {
+    post: (req, res): Promise<boolean> => {
       const userID = req.user._id;
       const completed = req.body;
 
