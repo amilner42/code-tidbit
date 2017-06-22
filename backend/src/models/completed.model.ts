@@ -73,32 +73,22 @@ export const completedDBActions = {
   /**
    * Marks a tidbit as completed for a user. Does validation and permission checks.
    *
-   * Returns the ID of the completed document if successful.
+   * Returns `true` if the completed was upserted, and `false` if it was already in the db.
    */
-  addCompleted: (completed: Completed, userMakingRequest: MongoID, doValidation = true): Promise<TargetID> => {
+  addCompleted: (completed: Completed, userMakingRequest: MongoID, doValidation = true): Promise<boolean> => {
     return validCompletedAndUserPermission(completed, userMakingRequest, doValidation)
     .then(() => {
       return collection("completed");
     })
     .then((completedCollection) => {
-      return completedCollection.findOneAndUpdate(
+      return completedCollection.updateOne(
         completedToDBSearchForm(completed),
         completedToDBSearchForm(completed),
-        {
-          upsert: true,
-          returnOriginal: false
-        }
+        { upsert: true }
       );
     })
-    .then((findAndModifyResult) => {
-      if(findAndModifyResult.value) {
-        return Promise.resolve({ targetID: findAndModifyResult.value._id });
-      }
-
-      return Promise.reject({
-        errorCode: ErrorCode.internalError,
-        message: "There was an internal error when marking tidbit as complete"
-      });
+    .then((updateResult) => {
+      return updateResult.upsertedCount === 1;
     });
   },
 
@@ -114,16 +104,12 @@ export const completedDBActions = {
       return collection("completed");
     })
     .then((completedCollection) => {
-      return completedCollection.findOneAndDelete(
+      return completedCollection.deleteOne(
         completedToDBSearchForm(completed)
       );
     })
     .then((deleteResult) => {
-      if(deleteResult.value) {
-        return true;
-      }
-
-      return false;
+      return deleteResult.deletedCount === 1;
     });
   },
 

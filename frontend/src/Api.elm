@@ -129,7 +129,7 @@ type alias API msg =
         , addTidbitsToStory : StoryID -> List TidbitPointer.TidbitPointer -> Endpoint Story.ExpandedStory msg
 
         -- Adds a new `Completed` to the list of things the user has completed.
-        , addCompleted : Completed.Completed -> Endpoint IDResponse.IDResponse msg
+        , addCompleted : Completed.Completed -> Endpoint Bool msg
 
         -- Removes a `Completed` from the users list of completed tidbits.
         , removeCompleted : Completed.Completed -> Endpoint Bool msg
@@ -336,7 +336,7 @@ api apiBaseUrl =
             \completed ->
                 makePOSTEndpoint
                     "account/addCompleted"
-                    JSON.IDResponse.decoder
+                    Decode.bool
                     (JSON.Completed.encoder completed)
         , removeCompleted =
             \completed ->
