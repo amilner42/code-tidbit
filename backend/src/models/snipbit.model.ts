@@ -98,11 +98,11 @@ const snipbitSchema: kleen.objectSchema = {
 const prepareSnipbitForResponse = (snipbit: Snipbit): Promise<Snipbit> => {
   const snipbitCopy = R.clone(snipbit);
   const contentPointer: ContentPointer = {
-    contentID: snipbitCopy._id.toString(),
+    contentID: snipbitCopy._id,
     contentType: ContentType.Snipbit
   };
 
-  return opinionDBActions.getAllOpinionsOnContent(contentPointer)
+  return opinionDBActions.getAllOpinionsOnContent(contentPointer, false)
   .then(({ likes }) => {
     snipbitCopy.likes = likes;
 
@@ -126,8 +126,8 @@ export const snipbitDBActions = {
    *
    * Returns the ID of the newly created snipbit.
    */
-  addNewSnipbit: (userID: MongoID, userEmail: string, snipbit: Snipbit): Promise<TargetID> => {
-    return kleen.validModel(snipbitSchema)(snipbit)
+  addNewSnipbit: (userID: MongoID, userEmail: string, snipbit: Snipbit, doValidation = true): Promise<TargetID> => {
+    return (doValidation ? kleen.validModel(snipbitSchema)(snipbit) : Promise.resolve())
     .then(() => {
       const dateNow = moment.utc().toDate();
       const validSnipbit = R.clone(snipbit);
@@ -144,12 +144,12 @@ export const snipbitDBActions = {
       // After inserting snipbit, we initialize the QA for that snipbit and return the ID of the new snipbit.
       .then((insertSnipbitResult) => {
         return qaDBActions.newBlankQAForTidbit(
-          false,
           {
             targetID: insertSnipbitResult.insertedId,
             tidbitType: TidbitType.Snipbit
           },
-          toMongoObjectID(userID)
+          toMongoObjectID(userID),
+          false
         )
         .then(R.always({ targetID: insertSnipbitResult.insertedId }));
       });

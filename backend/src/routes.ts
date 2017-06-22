@@ -439,7 +439,7 @@ export const routes: AppRoutes = {
       // Auth is optional, changes results (but not result type).
       const userID = req.user ? req.user._id : null;
 
-      return qaDBActions.getQAForTidbit(true, { tidbitType: parseInt(tidbitType), targetID: tidbitID }, userID);
+      return qaDBActions.getQAForTidbit({ tidbitType: parseInt(tidbitType), targetID: tidbitID }, userID);
     }
   },
 
@@ -453,7 +453,6 @@ export const routes: AppRoutes = {
       const { _id, email } = req.user;
 
       return qaDBActions.askQuestion(
-        true,
         { tidbitType: parseInt(tidbitType), targetID: tidbitID },
         questionText,
         codePointer,
@@ -473,7 +472,6 @@ export const routes: AppRoutes = {
       const { _id } = req.user;
 
       return qaDBActions.editQuestion(
-        true,
         { tidbitType: parseInt(tidbitType), targetID: tidbitID },
         questionID,
         questionText,
@@ -493,7 +491,6 @@ export const routes: AppRoutes = {
       const { _id } = req.user;
 
       return qaDBActions.deleteQuestion(
-        true,
         { tidbitType: parseInt(tidbitType), targetID: tidbitID },
         questionID,
         _id
@@ -511,7 +508,6 @@ export const routes: AppRoutes = {
       const { _id } = req.user;
 
       return qaDBActions.rateQuestion(
-        true,
         vote,
         { tidbitType: parseInt(tidbitType), targetID: tidbitID },
         questionID,
@@ -530,7 +526,6 @@ export const routes: AppRoutes = {
       const { _id } = req.user;
 
       return qaDBActions.removeQuestionRating(
-        true,
         { tidbitType: parseInt(tidbitType), targetID: tidbitID },
         questionID,
         _id
@@ -548,7 +543,6 @@ export const routes: AppRoutes = {
       const { _id } = req.user;
 
       return qaDBActions.pinQuestion(
-        true,
         { tidbitType: parseInt(tidbitType), targetID: tidbitID },
         questionID,
         pin,
@@ -567,7 +561,6 @@ export const routes: AppRoutes = {
       const { _id, email } = req.user;
 
       return qaDBActions.answerQuestion(
-        true,
         { tidbitType: parseInt(tidbitType), targetID: tidbitID },
         questionID,
         answerText,
@@ -587,7 +580,6 @@ export const routes: AppRoutes = {
       const { _id } = req.user;
 
       return qaDBActions.editAnswer(
-        true,
         { tidbitType: parseInt(tidbitType), targetID: tidbitID },
         answerID,
         answerText,
@@ -606,7 +598,6 @@ export const routes: AppRoutes = {
       const { _id } = req.user;
 
       return qaDBActions.deleteAnswer(
-        true,
         { tidbitType: parseInt(tidbitType), targetID: tidbitID },
         answerID,
         _id
@@ -624,7 +615,6 @@ export const routes: AppRoutes = {
       const { _id } = req.user;
 
       return qaDBActions.rateAnswer(
-        true,
         vote,
         { tidbitType: parseInt(tidbitType), targetID: tidbitID },
         answerID,
@@ -643,7 +633,6 @@ export const routes: AppRoutes = {
       const { _id } = req.user;
 
       return qaDBActions.removeAnswerRating(
-        true,
         { tidbitType: parseInt(tidbitType), targetID: tidbitID },
         answerID,
         _id
@@ -661,7 +650,6 @@ export const routes: AppRoutes = {
       const { _id } = req.user;
 
       return qaDBActions.pinAnswer(
-        true,
         { tidbitType: parseInt(tidbitType), targetID: tidbitID },
         answerID,
         pin,
@@ -680,7 +668,6 @@ export const routes: AppRoutes = {
       const { _id, email } = req.user;
 
       return qaDBActions.commentOnQuestion(
-        true,
         { tidbitType: parseInt(tidbitType), targetID: tidbitID },
         questionID,
         commentText,
@@ -700,7 +687,6 @@ export const routes: AppRoutes = {
       const { _id } = req.user;
 
       return qaDBActions.editQuestionComment(
-        true,
         { tidbitType: parseInt(tidbitType), targetID: tidbitID },
         commentID,
         commentText,
@@ -719,7 +705,6 @@ export const routes: AppRoutes = {
       const { _id } = req.user;
 
       return qaDBActions.deleteQuestionComment(
-        true,
         { tidbitType: parseInt(tidbitType), targetID: tidbitID },
         commentID,
         _id
@@ -737,7 +722,6 @@ export const routes: AppRoutes = {
       const { _id, email } = req.user;
 
       return qaDBActions.commentOnAnswer(
-        true,
         { tidbitType: parseInt(tidbitType), targetID: tidbitID },
         questionID,
         answerID,
@@ -758,7 +742,6 @@ export const routes: AppRoutes = {
       const { _id } = req.user;
 
       return qaDBActions.editAnswerComment(
-        true,
         { tidbitType: parseInt(tidbitType), targetID: tidbitID },
         commentID,
         commentText,
@@ -777,7 +760,6 @@ export const routes: AppRoutes = {
       const { _id } = req.user;
 
       return qaDBActions.deleteAnswerComment(
-        true,
         { tidbitType: parseInt(tidbitType), targetID: tidbitID },
         commentID,
         _id

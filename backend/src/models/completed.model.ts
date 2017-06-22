@@ -48,8 +48,13 @@ const completedSchema: kleen.objectSchema = {
  *  - `completed` from user input is valid.
  *  - `userMakingRequest` is same as `user` in `completed`.
  */
-const validCompletedAndUserPermission = (completed: Completed, userMakingRequest: MongoID): Promise<void> => {
-  return kleen.validModel(completedSchema)(completed)
+const validCompletedAndUserPermission =
+  ( completed: Completed
+  , userMakingRequest: MongoID
+  , doValidation: boolean
+  ): Promise<void> => {
+
+  return (doValidation ? kleen.validModel(completedSchema)(completed) : Promise.resolve())
   .then(() => {
     if(!sameID(userMakingRequest, completed.user)) {
       return Promise.reject({
@@ -70,8 +75,8 @@ export const completedDBActions = {
    *
    * Returns the ID of the completed document if successful.
    */
-  addCompleted: (completed: Completed, userMakingRequest: MongoID): Promise<TargetID> => {
-    return validCompletedAndUserPermission(completed, userMakingRequest)
+  addCompleted: (completed: Completed, userMakingRequest: MongoID, doValidation = true): Promise<TargetID> => {
+    return validCompletedAndUserPermission(completed, userMakingRequest, doValidation)
     .then(() => {
       return collection("completed");
     })
@@ -103,8 +108,8 @@ export const completedDBActions = {
    *
    * Returns [A promise to] true if the db was modified otherwise returns false.
    */
-  removeCompleted: (completed: Completed, userMakingRequest: MongoID): Promise<boolean> => {
-    return validCompletedAndUserPermission(completed, userMakingRequest)
+  removeCompleted: (completed: Completed, userMakingRequest: MongoID, doValidation = true): Promise<boolean> => {
+    return validCompletedAndUserPermission(completed, userMakingRequest, doValidation)
     .then(() => {
       return collection("completed");
     })
@@ -126,8 +131,8 @@ export const completedDBActions = {
    * Returns [a promise to] true if the user has completed that tidbit. Does
    * validation and permission checks.
    */
-  isCompleted: (completed: Completed, userMakingRequest: MongoID): Promise<boolean> => {
-    return validCompletedAndUserPermission(completed, userMakingRequest)
+  isCompleted: (completed: Completed, userMakingRequest: MongoID, doValidation = true): Promise<boolean> => {
+    return validCompletedAndUserPermission(completed, userMakingRequest, doValidation)
     .then(() => {
       return collection("completed");
     })
