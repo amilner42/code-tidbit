@@ -188,7 +188,7 @@ view model shared =
                             model.language
                     , Util.onKeydownPreventDefault
                         (\key ->
-                            if key == KK.Tab then
+                            if key == KK.Tab || key == KK.ArrowUp || key == KK.ArrowDown then
                                 Just NoOp
                             else
                                 Nothing
