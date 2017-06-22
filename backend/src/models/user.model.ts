@@ -91,8 +91,8 @@ export const userDBActions = {
    *
    * Returns the updated user.
    */
-  updateUser: (userID: MongoID, userUpdateObject: UserUpdateObject): Promise<User> => {
-    return kleen.validModel(updateUserSchema)(userUpdateObject)
+  updateUser: (userID: MongoID, userUpdateObject: UserUpdateObject, doValidation = true): Promise<User> => {
+    return (doValidation ? kleen.validModel(updateUserSchema)(userUpdateObject) : Promise.resolve())
     .then(() => {
       return collection("users");
     })

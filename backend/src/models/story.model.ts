@@ -92,11 +92,11 @@ const newStorySchema: kleen.objectSchema = {
 const prepareStoryForResponse = (story: Story | ExpandedStory): Promise<Story | ExpandedStory> => {
   const storyCopy = R.clone(story);
   const contentPointer: ContentPointer = {
-    contentID: storyCopy._id.toString(),
+    contentID: storyCopy._id,
     contentType: ContentType.Story
   };
 
-  return opinionDBActions.getAllOpinionsOnContent(contentPointer)
+  return opinionDBActions.getAllOpinionsOnContent(contentPointer, false)
   .then(({ likes }) => {
     storyCopy.likes = likes;
 
@@ -159,7 +159,8 @@ export const storyDBActions = {
               tidbitPointer: tidbitPointer,
               user: withCompletedForUser
             },
-            withCompletedForUser
+            withCompletedForUser,
+            false
           );
         })
       )
@@ -183,8 +184,8 @@ export const storyDBActions = {
    *
    * Returns the ID of the newly created story.
    */
-  createNewStory: (userID: MongoID, userEmail: string, newStory: NewStory): Promise<TargetID> => {
-    return kleen.validModel(newStorySchema)(newStory)
+  createNewStory: (userID: MongoID, userEmail: string, newStory: NewStory, doValidation = true): Promise<TargetID> => {
+    return (doValidation ? kleen.validModel(newStorySchema)(newStory) : Promise.resolve())
     .then(() => {
       return collection("stories");
     })
@@ -213,8 +214,8 @@ export const storyDBActions = {
    *
    * Returns the ID of the edited story (same as `storyID`).
    */
-  updateStoryInfo: (userID: MongoID, storyID: MongoID, editedInfo: NewStory): Promise<TargetID> => {
-    return kleen.validModel(newStorySchema)(editedInfo)
+  updateStoryInfo: (userID: MongoID, storyID: MongoID, editedInfo: NewStory, doValidation = true): Promise<TargetID> => {
+    return (doValidation ? kleen.validModel(newStorySchema)(editedInfo) : Promise.resolve())
     .then(() => {
       return collection('stories')
     })
@@ -253,6 +254,7 @@ export const storyDBActions = {
     ( userID: MongoID
     , storyID: MongoID
     , newTidbitPointers: TidbitPointer[]
+    , doValidation = true
     ): Promise<ExpandedStory> => {
 
     const nonEmptyTidbitPointersSchema = nonEmptyArraySchema(
@@ -264,7 +266,7 @@ export const storyDBActions = {
       malformedFieldError("New stories")
     );
 
-    return kleen.validModel(nonEmptyTidbitPointersSchema)(newTidbitPointers)
+    return (doValidation ? kleen.validModel(nonEmptyTidbitPointersSchema)(newTidbitPointers) : Promise.resolve())
     .then(() => {
       return storyDBActions.getStory(storyID, false, null);
     })

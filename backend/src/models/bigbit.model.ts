@@ -114,12 +114,12 @@ const prepareBigbitForResponse = (bigbit: Bigbit): Promise<Bigbit> => {
   const bigbitCopy = R.clone(bigbit);
   const contentPointer: ContentPointer = {
     contentType: ContentType.Bigbit,
-    contentID: bigbitCopy._id.toString()
+    contentID: bigbitCopy._id
   };
 
   bigbitCopy.fs = swapPeriodsWithStars(false, bigbitCopy.fs);
 
-  return opinionDBActions.getAllOpinionsOnContent(contentPointer)
+  return opinionDBActions.getAllOpinionsOnContent(contentPointer, false)
   .then(({ likes }) => {
     bigbitCopy.likes = likes;
 
@@ -157,8 +157,8 @@ export const bigbitDBActions = {
    *
    * Returns the ID of the newly created bigbit.
    */
-  addNewBigbit: (userID: MongoID, userEmail: string, bigbit: Bigbit): Promise<TargetID> => {
-    return kleen.validModel(bigbitSchema)(bigbit)
+  addNewBigbit: (userID: MongoID, userEmail: string, bigbit: Bigbit, doValidation = true): Promise<TargetID> => {
+    return (doValidation ? kleen.validModel(bigbitSchema)(bigbit) : Promise.resolve())
     .then(() => {
       bigbit.fs = swapPeriodsWithStars(true, bigbit.fs);
       return bigbit;

@@ -54,8 +54,8 @@ export const opinionDBActions = {
    *
    * NOTE: If the contentPointer doesn't point to existant content it will just return 0 for all `Rating`s.
    */
-  getAllOpinionsOnContent: (contentPointer: ContentPointer): Promise<Ratings> => {
-    return kleen.validModel(contentPointerSchema)(contentPointer)
+  getAllOpinionsOnContent: (contentPointer: ContentPointer, doValidation = true): Promise<Ratings> => {
+    return (doValidation ? kleen.validModel(contentPointerSchema)(contentPointer) : Promise.resolve())
     .then(() => {
       return collection("opinions");
     })
@@ -80,8 +80,8 @@ export const opinionDBActions = {
    *
    * NOTE: Returns `null` if the `user` has no opinion yet or if the `contentPointer`/`user` don't exist.
    */
-  getUsersOpinionOnContent: (contentPointer: ContentPointer, userID: MongoObjectID): Promise<Rating> => {
-    return kleen.validModel(contentPointerSchema)(contentPointer)
+  getUsersOpinionOnContent: (contentPointer: ContentPointer, userID: MongoObjectID, doValidation = true): Promise<Rating> => {
+    return (doValidation ? kleen.validModel(contentPointerSchema)(contentPointer) : Promise.resolve())
     .then(() => {
       return collection("opinions");
     })
@@ -105,11 +105,13 @@ export const opinionDBActions = {
    *
    * NOTE: will overwrite the previous opinion if one existed.
    */
-  addOpinion: (contentPointer: ContentPointer, rating: Rating, userID: MongoObjectID): Promise<boolean> => {
-    return Promise.all([
+  addOpinion: (contentPointer: ContentPointer, rating: Rating, userID: MongoObjectID, doValidation = true): Promise<boolean> => {
+    const validation = Promise.all([
       kleen.validModel(contentPointerSchema)(contentPointer),
       kleen.validModel(ratingSchema)(rating)
-    ])
+    ]);
+
+    return (doValidation ? validation : Promise.resolve([]))
     .then(() => {
       return contentDBActions.contentPointerExists(contentPointer);
     })
@@ -147,11 +149,13 @@ export const opinionDBActions = {
    * Removes an opinion, opposite to `addOpinion`. Will return true if the opinion existed and was deleted, otherwise
    * if it didn't exist to begin with will return false.
    */
-  removeOpinion: (contentPointer: ContentPointer, rating: Rating, userID: MongoObjectID): Promise<boolean> => {
-    return Promise.all([
+  removeOpinion: (contentPointer: ContentPointer, rating: Rating, userID: MongoObjectID, doValidation = true): Promise<boolean> => {
+    const validation = Promise.all([
       kleen.validModel(contentPointerSchema)(contentPointer),
       kleen.validModel(ratingSchema)(rating)
-    ])
+    ]);
+
+    return (doValidation ? validation : Promise.resolve([]))
     .then(() => {
       return collection("opinions");
     })
