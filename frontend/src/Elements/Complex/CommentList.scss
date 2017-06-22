@@ -84,6 +84,7 @@
     min-height: 50px;
     margin: 0 0 10px 9px; // box-shadow has the 1px offset, that's why 9px and not 10px.
     cursor: default;
+    white-space: pre-wrap;
 
     .comment-box-text {
         position: relative;
@@ -101,6 +102,8 @@
         padding: 10px;
         border: none !important;
         border-bottom: 1px solid $color9 !important;
+        min-height: 100px;
+        resize: vertical;
 
         &:focus {
             outline: none !important;
