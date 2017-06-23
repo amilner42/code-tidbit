@@ -17,7 +17,7 @@ const DB_PROMISE = MongoClient.connect(APP_CONFIG.dbUrl);
 /**
  * The max page size that can be queried at once.
  */
-const MAX_PAGE_SIZE = 50;
+const MAX_PAGE_SIZE = 100;
 
 /**
  * Get a mongodb collection using the existing mongo connection.
