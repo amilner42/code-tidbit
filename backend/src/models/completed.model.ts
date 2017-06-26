@@ -2,7 +2,8 @@
 
 import * as kleen from "kleen";
 
-import { TidbitPointer, tidbitPointerSchema } from "./tidbit.model";
+import { TidbitCompletedCountData, NotificationType, notificationDBActions, isCountNotificationWorthy, makeNotification } from "./notification.model";
+import { TidbitPointer, tidbitPointerSchema, tidbitDBActions } from "./tidbit.model";
 import { MongoID, MongoObjectID, ErrorCode, TargetID } from '../types';
 import { mongoIDSchema } from './kleen-schemas';
 import { collection, toMongoObjectID, sameID } from '../db';
@@ -88,6 +89,35 @@ export const completedDBActions = {
       );
     })
     .then((updateResult) => {
+      // Create a notification if needed.
+      // TODO Re-try creating notification upon failure
+      {
+        const attemptToCreateCompletedNotification = () => {
+          if(updateResult.upsertedCount === 1) {
+            return Promise.all([
+              completedDBActions.countCompleted(completed.tidbitPointer, false),
+              tidbitDBActions.expandTidbitPointer(completed.tidbitPointer)
+            ])
+            .then(([ completedCount, tidbit ]) => {
+              if(isCountNotificationWorthy(completedCount)) {
+                const notificationData: TidbitCompletedCountData = {
+                  type: NotificationType.TidbitCompletedCount,
+                  count: completedCount,
+                  tidbitName: tidbit.name,
+                  tidbitPointer: completed.tidbitPointer
+                }
+
+                return notificationDBActions.addNotification(makeNotification(notificationData)(tidbit.author));
+              }
+            });
+          }
+        };
+        attemptToCreateCompletedNotification()
+        .catch((err) => {
+          console.log(`Failed to create notification`, err);
+        });
+      }
+
       return updateResult.upsertedCount === 1;
     });
   },
@@ -133,6 +163,27 @@ export const completedDBActions = {
       }
 
       return false;
+    });
+  },
+
+  /**
+   * Counts the number of completions for a given tidbit.
+   *
+   * TODO May need to rethink indexing, which is currently compound on [user,tidbitPointer] which means it won't work
+   *      for this query (we don't specify user). Perhaps compound on [tidbitPointer, user] would be better.
+   */
+  countCompleted: (tidbitPointer: TidbitPointer, doValidation = true): Promise<number> => {
+    return (doValidation ? kleen.validModel(tidbitPointerSchema)(tidbitPointer) : Promise.resolve())
+    .then(() => {
+      return collection("completed");
+    })
+    .then((completedCollection) => {
+      return completedCollection.count({
+        tidbitPointer: {
+          tidbitType: tidbitPointer.tidbitType,
+          targetID: toMongoObjectID(tidbitPointer.targetID)
+        }
+      });
     });
   }
 }

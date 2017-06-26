@@ -2,6 +2,7 @@
 
 import * as kleen from "kleen";
 import moment from "moment";
+import * as R from "ramda";
 
 import { Rating } from "./opinion.model";
 import { ContentPointer, ContentType } from "./content.model";
@@ -182,6 +183,17 @@ export interface TidbitNewAnswerCommentData {
 // Type-aliases for clarity.
 type Link = string;
 type LinkName = string;
+
+/**
+ * Returns true if the count should trigger a notification (the count could be for completions, likes, etc...).
+ */
+export const isCountNotificationWorthy = (count: number): boolean => {
+  if(count <= 1000) {
+    return R.contains(count, [ 5, 10, 25, 50, 75, 100, 200, 300, 400, 500, 750, 1000 ]);
+  }
+
+  return count % 1000 === 0;
+};
 
 /**
  * Prepares the notification for the frontend:
