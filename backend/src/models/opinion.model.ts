@@ -29,6 +29,11 @@ export interface Ratings {
  * All ways to rate content.
  *
  * Currently we only allow to "like" content.
+ *
+ * WARNING: Because of a bug with typescript enums, https://github.com/Microsoft/TypeScript/issues/12771, this enum
+ *          does not properly type check everywhere. Be very careful when adding a new Rating.
+ *            - When using this enum unsafely, add a link to the issue
+ *            - If adding a value to the enum ctrl-f the link and manually find the type errors...
  */
 export enum Rating {
   Like = 1

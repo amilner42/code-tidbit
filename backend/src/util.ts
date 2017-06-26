@@ -173,3 +173,12 @@ export const randomDelay = (callback: () => void, minDelay = 500, maxDelay = 200
 export const getRandomInt = (min: number, max: number): number => {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 };
+
+/**
+ * When you want to assert that a branch of a case never happens, particularly helpful for tagged unions.
+ *
+ * @REFER https://www.typescriptlang.org/docs/handbook/advanced-types.html#discriminated-unions
+ */
+export const assertNever = (x: never): never => {
+  throw new Error("Unexpected branch:" + x);
+};
