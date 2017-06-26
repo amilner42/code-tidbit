@@ -111,12 +111,14 @@ export const opinionDBActions = {
    * NOTE: will overwrite the previous opinion if one existed.
    */
   addOpinion: (contentPointer: ContentPointer, rating: Rating, userID: MongoObjectID, doValidation = true): Promise<boolean> => {
-    const validation = Promise.all([
-      kleen.validModel(contentPointerSchema)(contentPointer),
-      kleen.validModel(ratingSchema)(rating)
-    ]);
+    const validation = () => {
+      return Promise.all([
+        kleen.validModel(contentPointerSchema)(contentPointer),
+        kleen.validModel(ratingSchema)(rating)
+      ]);
+    };
 
-    return (doValidation ? validation : Promise.resolve([]))
+    return (doValidation ? validation() : Promise.resolve([]))
     .then(() => {
       return contentDBActions.contentPointerExists(contentPointer);
     })
@@ -155,12 +157,14 @@ export const opinionDBActions = {
    * if it didn't exist to begin with will return false.
    */
   removeOpinion: (contentPointer: ContentPointer, rating: Rating, userID: MongoObjectID, doValidation = true): Promise<boolean> => {
-    const validation = Promise.all([
-      kleen.validModel(contentPointerSchema)(contentPointer),
-      kleen.validModel(ratingSchema)(rating)
-    ]);
+    const validation = () => {
+      return Promise.all([
+        kleen.validModel(contentPointerSchema)(contentPointer),
+        kleen.validModel(ratingSchema)(rating)
+      ]);
+    };
 
-    return (doValidation ? validation : Promise.resolve([]))
+    return (doValidation ? validation() : Promise.resolve([]))
     .then(() => {
       return collection("opinions");
     })
