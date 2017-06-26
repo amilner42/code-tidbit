@@ -442,7 +442,7 @@ export const routes: AppRoutes = {
 
   '/opinions/:contentType/:contentID': {
     /**
-    * @refer `opinionDBActions.getAllOpinionsOnContent`.
+    * @refer `opinionDBActions.getOpinionsCountOnContent`.
     */
     get: (req, res): Promise<Ratings> => {
       const params = req.params;
@@ -451,7 +451,7 @@ export const routes: AppRoutes = {
         contentID: params.contentID
       };
 
-      return opinionDBActions.getAllOpinionsOnContent(contentPointer);
+      return opinionDBActions.getOpinionsCountOnContent(contentPointer);
     }
   },
 

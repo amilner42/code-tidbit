@@ -96,7 +96,7 @@ const prepareStoryForResponse = (story: Story | ExpandedStory): Promise<Story | 
     contentType: ContentType.Story
   };
 
-  return opinionDBActions.getAllOpinionsOnContent(contentPointer, false)
+  return opinionDBActions.getOpinionsCountOnContent(contentPointer, false)
   .then(({ likes }) => {
     storyCopy.likes = likes;
 

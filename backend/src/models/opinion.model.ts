@@ -55,28 +55,42 @@ export const ratingSchema: kleen.primitiveSchema = {
  */
 export const opinionDBActions = {
   /**
-   * Returns `Rating`s for specific content.
+   * Returns the # of each rating that the content has.
    *
    * NOTE: If the contentPointer doesn't point to existant content it will just return 0 for all `Rating`s.
    */
-  getAllOpinionsOnContent: (contentPointer: ContentPointer, doValidation = true): Promise<Ratings> => {
+  getOpinionsCountOnContent: (contentPointer: ContentPointer, doValidation = true): Promise<Ratings> => {
     return (doValidation ? kleen.validModel(contentPointerSchema)(contentPointer) : Promise.resolve())
     .then(() => {
-      return collection("opinions");
-    })
-    .then((opinions) => {
-      // Count how many ratings the content (`contentPointer`) has for a specific `Rating`.
-      const countWithRating = (rating: Rating): PromiseLike<number> => {
-        return opinions.find({
-          contentPointer: contentPointerToDBQueryForm(contentPointer),
-          rating
-        }).count(false);
-      }
-
-      return Promise.all([ countWithRating(Rating.Like) ]);
+      return Promise.all([ opinionDBActions.getOpinionCountOnContent(contentPointer, Rating.Like, false) ]);
     })
     .then(([ likes ]) => {
       return { likes };
+    });
+  },
+
+  /**
+   * Returns the # of one specific rating that the content has.
+   *
+   * NOTE: If the contentPointer doesn't point to existant content, it will just return 0.
+   */
+  getOpinionCountOnContent: (contentPointer: ContentPointer, rating: Rating, doValidation = true): Promise<number> => {
+    const validation = () => {
+      return Promise.all([
+        kleen.validModel(contentPointerSchema)(contentPointer),
+        kleen.validModel(ratingSchema)(rating)
+      ]);
+    };
+
+    return (doValidation ? validation() : Promise.resolve([]))
+    .then(() => {
+      return collection("opinions");
+    })
+    .then((opinionCollection) => {
+      return opinionCollection.count({
+        contentPointer: contentPointerToDBQueryForm(contentPointer),
+        rating
+      });
     });
   },
 
