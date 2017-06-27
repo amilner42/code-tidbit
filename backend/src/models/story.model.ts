@@ -6,7 +6,7 @@ import { Collection } from 'mongodb';
 import moment from "moment";
 
 import { opinionDBActions } from "./opinion.model";
-import { renameIDField, collection, toMongoObjectID, sameID } from '../db';
+import { renameIDField, collection, toMongoObjectID, sameID, rejectIfResultNotOK } from '../db';
 import { malformedFieldError, isNullOrUndefined, dropNullAndUndefinedProperties } from '../util';
 import { nameSchema, descriptionSchema, optional, tagsSchema, nonEmptyArraySchema } from "./kleen-schemas";
 import { MongoID, MongoObjectID, ErrorCode, TargetID } from '../types';
@@ -230,6 +230,7 @@ export const storyDBActions = {
         {}
       );
     })
+    .then(rejectIfResultNotOK)
     .then((updateStoryResult) => {
       if(updateStoryResult.modifiedCount === 1) {
         return Promise.resolve({ targetID: storyID });

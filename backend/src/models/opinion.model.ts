@@ -5,7 +5,7 @@ import { Collection } from "mongodb";
 
 import { NotificationType, ContentOpinionCountData, notificationDBActions, makeNotification, isCountNotificationWorthy } from "./notification.model";
 import { malformedFieldError, internalError } from "../util";
-import { collection, toMongoObjectID } from "../db";
+import { collection, toMongoObjectID, rejectIfResultNotOK } from "../db";
 import { MongoID, MongoObjectID  } from "../types";
 import { ContentPointer, contentPointerToDBQueryForm, ContentType, contentPointerSchema, contentDBActions } from "./content.model";
 
@@ -165,6 +165,7 @@ export const opinionDBActions = {
         }
       );
     })
+    .then(rejectIfResultNotOK)
     .then((updateResult) => {
       // Create a notification if needed.
       {
