@@ -7,7 +7,7 @@ import * as R from "ramda";
 
 import { internalError, isNullOrUndefined, malformedFieldError } from '../util';
 import { MongoObjectID, MongoID, ErrorCode } from "../types";
-import { collection, toMongoObjectID, renameIDField, rejectIfResultNotOK, rejectIfNoneModified, rejectIfNoneMatched, rejectIfNoneUpserted } from "../db";
+import { collection, toMongoObjectID, renameIDField, updateOneResultHandlers } from "../db";
 import { Range } from "./range.model";
 import { TidbitPointer, TidbitType, tidbitPointerSchema } from "./tidbit.model";
 import { stringInRange, rangeSchema, nonEmptyStringSchema, mongoIDSchema, booleanSchema } from "./kleen-schemas";
@@ -161,7 +161,7 @@ export const qaDBActions = {
         { upsert: true }
       );
     })
-    .then(rejectIfResultNotOK)
+    .then(updateOneResultHandlers.rejectIfResultNotOK)
     .then((updateWriteOpResult) => {
       if(updateWriteOpResult.matchedCount === 1) {
         return Promise.reject(
@@ -171,7 +171,7 @@ export const qaDBActions = {
 
       return Promise.resolve(updateWriteOpResult);
     })
-    .then(rejectIfNoneUpserted)
+    .then(updateOneResultHandlers.rejectIfNoneUpserted)
     .then(R.always(null));
   },
 
@@ -259,8 +259,8 @@ export const qaDBActions = {
         { $push: { questions: question } },
         { upsert: false }
       )
-      .then(rejectIfResultNotOK)
-      .then(rejectIfNoneModified)
+      .then(updateOneResultHandlers.rejectIfResultNotOK)
+      .then(updateOneResultHandlers.rejectIfNoneModified)
       .then(R.always(prepareQuestionOrAnswerForResponse(authorID, question)));
     });
   },
@@ -313,9 +313,9 @@ export const qaDBActions = {
         },
         { upsert: false }
       )
-      .then(rejectIfResultNotOK)
-      .then(rejectIfNoneMatched)
-      .then(rejectIfNoneModified)
+      .then(updateOneResultHandlers.rejectIfResultNotOK)
+      .then(updateOneResultHandlers.rejectIfNoneMatched)
+      .then(updateOneResultHandlers.rejectIfNoneModified)
       .then(R.always(dateNow));
     });
   },
@@ -364,9 +364,9 @@ export const qaDBActions = {
         },
         { upsert: false }
       )
-      .then(rejectIfResultNotOK)
-      .then(rejectIfNoneMatched)
-      .then(rejectIfNoneModified)
+      .then(updateOneResultHandlers.rejectIfResultNotOK)
+      .then(updateOneResultHandlers.rejectIfNoneMatched)
+      .then(updateOneResultHandlers.rejectIfNoneModified)
       .then(R.always(null));
     });
   },
@@ -414,8 +414,8 @@ export const qaDBActions = {
         { upsert: false }
       );
     })
-    .then(rejectIfResultNotOK)
-    .then(rejectIfNoneMatched)
+    .then(updateOneResultHandlers.rejectIfResultNotOK)
+    .then(updateOneResultHandlers.rejectIfNoneMatched)
     .then(R.always(null));
   },
 
@@ -450,8 +450,8 @@ export const qaDBActions = {
         { upsert: false }
       );
     })
-    .then(rejectIfResultNotOK)
-    .then(rejectIfNoneMatched)
+    .then(updateOneResultHandlers.rejectIfResultNotOK)
+    .then(updateOneResultHandlers.rejectIfNoneMatched)
     .then(R.always(null));
   },
 
@@ -492,8 +492,8 @@ export const qaDBActions = {
         { upsert: false }
       );
     })
-    .then(rejectIfResultNotOK)
-    .then(rejectIfNoneMatched)
+    .then(updateOneResultHandlers.rejectIfResultNotOK)
+    .then(updateOneResultHandlers.rejectIfNoneMatched)
     .then(R.always(null))
   },
 
@@ -546,9 +546,9 @@ export const qaDBActions = {
         { $push: { answers: answer } },
         { upsert: false }
       )
-      .then(rejectIfResultNotOK)
-      .then(rejectIfNoneMatched)
-      .then(rejectIfNoneModified)
+      .then(updateOneResultHandlers.rejectIfResultNotOK)
+      .then(updateOneResultHandlers.rejectIfNoneMatched)
+      .then(updateOneResultHandlers.rejectIfNoneModified)
       .then(R.always(prepareQuestionOrAnswerForResponse(authorID, answer)));
     });
   },
@@ -593,9 +593,9 @@ export const qaDBActions = {
         { upsert: false }
       );
     })
-    .then(rejectIfResultNotOK)
-    .then(rejectIfNoneMatched)
-    .then(rejectIfNoneModified)
+    .then(updateOneResultHandlers.rejectIfResultNotOK)
+    .then(updateOneResultHandlers.rejectIfNoneMatched)
+    .then(updateOneResultHandlers.rejectIfNoneModified)
     .then(R.always(null));
   },
 
@@ -643,9 +643,9 @@ export const qaDBActions = {
         },
         { upsert: false }
       )
-      .then(rejectIfResultNotOK)
-      .then(rejectIfNoneMatched)
-      .then(rejectIfNoneModified)
+      .then(updateOneResultHandlers.rejectIfResultNotOK)
+      .then(updateOneResultHandlers.rejectIfNoneMatched)
+      .then(updateOneResultHandlers.rejectIfNoneModified)
       .then(R.always(dateNow));
     });
   },
@@ -693,8 +693,8 @@ export const qaDBActions = {
         { upsert: false }
       );
     })
-    .then(rejectIfResultNotOK)
-    .then(rejectIfNoneMatched)
+    .then(updateOneResultHandlers.rejectIfResultNotOK)
+    .then(updateOneResultHandlers.rejectIfNoneMatched)
     .then(R.always(null));
   },
 
@@ -729,8 +729,8 @@ export const qaDBActions = {
         { upsert: false }
       );
     })
-    .then(rejectIfResultNotOK)
-    .then(rejectIfNoneMatched)
+    .then(updateOneResultHandlers.rejectIfResultNotOK)
+    .then(updateOneResultHandlers.rejectIfNoneMatched)
     .then(R.always(null));
   },
 
@@ -771,8 +771,8 @@ export const qaDBActions = {
         { upsert: false }
       );
     })
-    .then(rejectIfResultNotOK)
-    .then(rejectIfNoneMatched)
+    .then(updateOneResultHandlers.rejectIfResultNotOK)
+    .then(updateOneResultHandlers.rejectIfNoneMatched)
     .then(R.always(null));
   },
 
@@ -822,9 +822,9 @@ export const qaDBActions = {
         { $push: { "questionComments": newComment }},
         { upsert: false }
       )
-      .then(rejectIfResultNotOK)
-      .then(rejectIfNoneMatched)
-      .then(rejectIfNoneModified)
+      .then(updateOneResultHandlers.rejectIfResultNotOK)
+      .then(updateOneResultHandlers.rejectIfNoneMatched)
+      .then(updateOneResultHandlers.rejectIfNoneModified)
       .then(R.always(newComment));
     });
   },
@@ -873,9 +873,9 @@ export const qaDBActions = {
         },
         { upsert: false }
       )
-      .then(rejectIfResultNotOK)
-      .then(rejectIfNoneMatched)
-      .then(rejectIfNoneModified)
+      .then(updateOneResultHandlers.rejectIfResultNotOK)
+      .then(updateOneResultHandlers.rejectIfNoneMatched)
+      .then(updateOneResultHandlers.rejectIfNoneModified)
       .then(R.always(dateNow));
     });
   },
@@ -911,9 +911,9 @@ export const qaDBActions = {
         { upsert: false }
       );
     })
-    .then(rejectIfResultNotOK)
-    .then(rejectIfNoneMatched)
-    .then(rejectIfNoneModified)
+    .then(updateOneResultHandlers.rejectIfResultNotOK)
+    .then(updateOneResultHandlers.rejectIfNoneMatched)
+    .then(updateOneResultHandlers.rejectIfNoneModified)
     .then(R.always(null));
   },
 
@@ -970,9 +970,9 @@ export const qaDBActions = {
         { $push: { "answerComments": newComment }},
         { upsert: false }
       )
-      .then(rejectIfResultNotOK)
-      .then(rejectIfNoneMatched)
-      .then(rejectIfNoneModified)
+      .then(updateOneResultHandlers.rejectIfResultNotOK)
+      .then(updateOneResultHandlers.rejectIfNoneMatched)
+      .then(updateOneResultHandlers.rejectIfNoneModified)
       .then(R.always(newComment));
     });
   },
@@ -1021,9 +1021,9 @@ export const qaDBActions = {
         },
         { upsert: false }
       )
-      .then(rejectIfResultNotOK)
-      .then(rejectIfNoneMatched)
-      .then(rejectIfNoneModified)
+      .then(updateOneResultHandlers.rejectIfResultNotOK)
+      .then(updateOneResultHandlers.rejectIfNoneMatched)
+      .then(updateOneResultHandlers.rejectIfNoneModified)
       .then(R.always(dateNow));
     });
   },
@@ -1059,9 +1059,9 @@ export const qaDBActions = {
         { upsert: false }
       );
     })
-    .then(rejectIfResultNotOK)
-    .then(rejectIfNoneMatched)
-    .then(rejectIfNoneModified)
+    .then(updateOneResultHandlers.rejectIfResultNotOK)
+    .then(updateOneResultHandlers.rejectIfNoneMatched)
+    .then(updateOneResultHandlers.rejectIfNoneModified)
     .then(R.always(null));
   }
 }

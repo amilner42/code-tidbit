@@ -3,7 +3,7 @@
 import { omit } from "ramda";
 import * as kleen from "kleen";
 
-import { renameIDField, collection, toMongoObjectID } from '../db';
+import { renameIDField, collection, toMongoObjectID, findOneAndUpdateResultHandlers } from '../db';
 import { malformedFieldError, dropNullAndUndefinedProperties } from "../util";
 import { nonEmptyStringSchema, optional } from "./kleen-schemas";
 import { MongoID, MongoObjectID, ErrorCode } from '../types';
@@ -103,15 +103,10 @@ export const userDBActions = {
         { returnOriginal: false }
       );
     })
+    .then(findOneAndUpdateResultHandlers.rejectIfResultNotOK)
+    .then(findOneAndUpdateResultHandlers.rejectIfValueNotPresent)
     .then((updatedUserResult) => {
-      if(updatedUserResult.value) {
-        return Promise.resolve(prepareUserForResponse(updatedUserResult.value));
-      }
-
-      return Promise.reject({
-        errorCode: ErrorCode.internalError,
-        message: "We couldn't find your account."
-      });
+      return prepareUserForResponse(updatedUserResult.value);
     });
   },
 

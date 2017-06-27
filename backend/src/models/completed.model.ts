@@ -6,7 +6,7 @@ import { TidbitCompletedCountData, NotificationType, notificationDBActions, isCo
 import { TidbitPointer, tidbitPointerSchema, tidbitDBActions } from "./tidbit.model";
 import { MongoID, MongoObjectID, ErrorCode, TargetID } from '../types';
 import { mongoIDSchema } from './kleen-schemas';
-import { collection, toMongoObjectID, sameID, rejectIfResultNotOK } from '../db';
+import { collection, toMongoObjectID, sameID, updateOneResultHandlers } from '../db';
 import { malformedFieldError } from '../util';
 
 
@@ -88,7 +88,7 @@ export const completedDBActions = {
         { upsert: true }
       );
     })
-    .then(rejectIfResultNotOK)
+    .then(updateOneResultHandlers.rejectIfResultNotOK)
     .then((updateResult) => {
       // Create a notification if needed.
       {

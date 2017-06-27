@@ -6,7 +6,7 @@ import { Collection } from 'mongodb';
 import moment from "moment";
 
 import { opinionDBActions } from "./opinion.model";
-import { renameIDField, collection, toMongoObjectID, sameID, rejectIfResultNotOK } from '../db';
+import { renameIDField, collection, toMongoObjectID, sameID, updateOneResultHandlers, findOneAndUpdateResultHandlers } from '../db';
 import { malformedFieldError, isNullOrUndefined, dropNullAndUndefinedProperties } from '../util';
 import { nameSchema, descriptionSchema, optional, tagsSchema, nonEmptyArraySchema } from "./kleen-schemas";
 import { MongoID, MongoObjectID, ErrorCode, TargetID } from '../types';
@@ -230,7 +230,7 @@ export const storyDBActions = {
         {}
       );
     })
-    .then(rejectIfResultNotOK)
+    .then(updateOneResultHandlers.rejectIfResultNotOK)
     .then((updateStoryResult) => {
       if(updateStoryResult.modifiedCount === 1) {
         return Promise.resolve({ targetID: storyID });
@@ -315,15 +315,10 @@ export const storyDBActions = {
         { returnOriginal: false }
       );
     })
+    .then(findOneAndUpdateResultHandlers.rejectIfResultNotOK)
+    .then(findOneAndUpdateResultHandlers.rejectIfValueNotPresent)
     .then<ExpandedStory>((updatedStoryResult) => {
-      if(updatedStoryResult.value) {
-        return storyDBActions.expandStory(updatedStoryResult.value);
-      }
-
-      return Promise.reject({
-        errorCode: ErrorCode.internalError,
-        message: "There was an internal error when updating your story"
-      });
+      return storyDBActions.expandStory(updatedStoryResult.value);
     });
   }
 };

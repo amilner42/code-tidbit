@@ -10,7 +10,7 @@ import { TidbitPointer, TidbitType, toContentType, toContentPointer } from "./ti
 import { mongoIDSchema } from "./kleen-schemas";
 import { MongoObjectID, MongoID } from "../types";
 import { malformedFieldError, internalError, assertNever, isNullOrUndefined } from "../util";
-import { toMongoObjectID, toMongoStringID, collection, getPaginatedResults, renameIDField, rejectIfResultNotOK } from "../db";
+import { toMongoObjectID, toMongoStringID, collection, getPaginatedResults, renameIDField, updateOneResultHandlers } from "../db";
 
 
 /**
@@ -226,7 +226,7 @@ export const notificationDBActions = {
         { upsert: true }
       );
     })
-    .then(rejectIfResultNotOK)
+    .then(updateOneResultHandlers.rejectIfResultNotOK)
     .then((updateResult) => {
       return updateResult.upsertedCount;
     });
@@ -284,7 +284,7 @@ export const notificationDBActions = {
         { upsert: false }
       );
     })
-    .then(rejectIfResultNotOK)
+    .then(updateOneResultHandlers.rejectIfResultNotOK)
     .then((updateResult) => {
       if(updateResult.modifiedCount === 1) {
         return;
