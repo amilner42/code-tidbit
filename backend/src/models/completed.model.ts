@@ -90,9 +90,8 @@ export const completedDBActions = {
     })
     .then((updateResult) => {
       // Create a notification if needed.
-      // TODO Re-try creating notification upon failure
       {
-        const attemptToCreateCompletedNotification = () => {
+        const createCompletedNotification = () => {
           if(updateResult.upsertedCount === 1) {
             return Promise.all([
               completedDBActions.countCompleted(completed.tidbitPointer, false),
@@ -107,15 +106,15 @@ export const completedDBActions = {
                   tidbitPointer: completed.tidbitPointer
                 }
 
-                return notificationDBActions.addNotification(makeNotification(notificationData)(tidbit.author));
+                return makeNotification(notificationData)(tidbit.author);
               }
             });
           }
+
+          return Promise.resolve(null);
         };
-        attemptToCreateCompletedNotification()
-        .catch((err) => {
-          console.log(`Failed to create notification`, err);
-        });
+
+        notificationDBActions.addNotificationWrapper(createCompletedNotification);
       }
 
       return updateResult.upsertedCount === 1;

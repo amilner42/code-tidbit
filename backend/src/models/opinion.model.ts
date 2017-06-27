@@ -167,28 +167,29 @@ export const opinionDBActions = {
     })
     .then((updateResult) => {
       // Create a notification if needed.
-      // TODO Re-try creating notification upon failure
       {
-        const attemptToCreateOpinionNotification = () => {
-          return opinionDBActions.getOpinionCountOnContent(contentPointer, rating, false)
-          .then((opinionCount) => {
-            if(isCountNotificationWorthy(opinionCount)) {
-              const notificationData: ContentOpinionCountData = {
-                type: NotificationType.ContentOpinionCount,
-                count: opinionCount,
-                rating,
-                contentPointer,
-                contentName
-              };
+        const createOpinionNotification = () => {
+          if(updateResult.upsertedCount === 1) {
+            return opinionDBActions.getOpinionCountOnContent(contentPointer, rating, false)
+            .then((opinionCount) => {
+              if(isCountNotificationWorthy(opinionCount)) {
+                const notificationData: ContentOpinionCountData = {
+                  type: NotificationType.ContentOpinionCount,
+                  count: opinionCount,
+                  rating,
+                  contentPointer,
+                  contentName
+                };
 
-              return notificationDBActions.addNotification(makeNotification(notificationData)(contentAuthorID));
-            }
-          });
+                return makeNotification(notificationData)(contentAuthorID);
+              }
+            });
+          }
+
+          return Promise.resolve(null);
         };
-        attemptToCreateOpinionNotification()
-        .catch((err) => {
-          console.log(`Failed to create notification`, err);
-        });
+
+        notificationDBActions.addNotificationWrapper(createOpinionNotification);
       }
 
       if(updateResult.upsertedCount === 1) {

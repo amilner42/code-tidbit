@@ -9,7 +9,7 @@ import { ContentPointer, ContentType } from "./content.model";
 import { TidbitPointer, TidbitType, toContentType, toContentPointer } from "./tidbit.model";
 import { mongoIDSchema } from "./kleen-schemas";
 import { MongoObjectID, MongoID } from "../types";
-import { malformedFieldError, internalError, assertNever } from "../util";
+import { malformedFieldError, internalError, assertNever, isNullOrUndefined } from "../util";
 import { toMongoObjectID, toMongoStringID, collection, getPaginatedResults, renameIDField } from "../db";
 
 
@@ -229,6 +229,37 @@ export const notificationDBActions = {
     .then((updateResult) => {
       return updateResult.upsertedCount;
     });
+  },
+
+  /**
+   * Use this to wrap your promise which creates the notification. This will handle adding the notification to the DB,
+   * logging notification errors and also retrying to create the notification a couple times if it fails the first time.
+   *
+   * NOTE: If `createNotification` returns `null`/`undefined` instead of a `Notification`, then no notification will be
+   *       created. You can use this if your `createNotification` is conditional.
+   */
+  addNotificationWrapper: (createNotification: () => Promise<Notification>): void => {
+
+    const go = (attemptsLeft: number, errors: any[]) => {
+      if(attemptsLeft <= 0) {
+        console.log("Failed to create notification, here are the errors from each attempt: ", errors);
+        return;
+      }
+
+      createNotification()
+      .then((notification) => {
+        if(isNullOrUndefined(notification)) { return; }
+
+        return notificationDBActions.addNotification(notification);
+      })
+      .catch((err) => {
+        console.log("Failed an attempt to create notification, error: ", err);
+        console.log("Remaining attempts: ", attemptsLeft - 1);
+        go(attemptsLeft - 1, errors.concat([err]));
+      });
+    };
+
+    go(3, []);
   },
 
   /**
