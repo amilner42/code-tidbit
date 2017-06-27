@@ -3,6 +3,7 @@
 import * as kleen from "kleen";
 import { Collection } from "mongodb";
 
+import { NotificationType, ContentOpinionCountData, notificationDBActions, makeNotification, isCountNotificationWorthy } from "./notification.model";
 import { malformedFieldError, internalError } from "../util";
 import { collection, toMongoObjectID } from "../db";
 import { MongoID, MongoObjectID  } from "../types";
@@ -132,15 +133,21 @@ export const opinionDBActions = {
       ]);
     };
 
+    // To avoid re-querying the db if we want to send a notiication, we capture the contentName in an earier db query.
+    let contentName: string;
+    let contentAuthorID: MongoID;
+
     return (doValidation ? validation() : Promise.resolve([]))
     .then(() => {
-      return contentDBActions.contentPointerExists(contentPointer);
+      return contentDBActions.expandContentPointer(contentPointer, false);
     })
-    .then<Collection>((contentExists) => {
-      if(!contentExists) {
+    .then<Collection>((content) => {
+      if(content === null) {
         return Promise.reject(internalError("Pointing to non-existant content"));
       }
 
+      contentName = content.name;
+      contentAuthorID = content.author;
       return collection("opinions");
     })
     .then((opinions) => {
@@ -159,6 +166,31 @@ export const opinionDBActions = {
       );
     })
     .then((updateResult) => {
+      // Create a notification if needed.
+      // TODO Re-try creating notification upon failure
+      {
+        const attemptToCreateOpinionNotification = () => {
+          return opinionDBActions.getOpinionCountOnContent(contentPointer, rating, false)
+          .then((opinionCount) => {
+            if(isCountNotificationWorthy(opinionCount)) {
+              const notificationData: ContentOpinionCountData = {
+                type: NotificationType.ContentOpinionCount,
+                count: opinionCount,
+                rating,
+                contentPointer,
+                contentName
+              };
+
+              return notificationDBActions.addNotification(makeNotification(notificationData)(contentAuthorID));
+            }
+          });
+        };
+        attemptToCreateOpinionNotification()
+        .catch((err) => {
+          console.log(`Failed to create notification`, err);
+        });
+      }
+
       if(updateResult.upsertedCount === 1) {
         return true;
       }

@@ -170,7 +170,17 @@ export const contentDBActions = {
   /**
    * Returns true if the `contentPointer` is pointing to actual content.
    */
-  contentPointerExists: (contentPointer: ContentPointer): Promise<boolean> => {
+  contentPointerExists: (contentPointer: ContentPointer, doValidation = true): Promise<boolean> => {
+    return contentDBActions.expandContentPointer(contentPointer, doValidation)
+    .then((content) => {
+      return content !== null;
+    });
+  },
+
+  /**
+   * Expands a contentPointer to the actual content. Returns `null` if the contentPointer points to nothing.
+   */
+  expandContentPointer: (contentPointer: ContentPointer, doValidation = true): Promise<Content> => {
     const collectionName = (() => {
       switch(contentPointer.contentType) {
         case ContentType.Snipbit:
@@ -184,16 +194,19 @@ export const contentDBActions = {
       }
     })();
 
-    return collection(collectionName)
+    return (doValidation ? kleen.validModel(contentPointerSchema)(contentPointer) : Promise.resolve())
+    .then(() => {
+      return collection(collectionName);
+    })
     .then((collectionX) => {
       return collectionX.findOne({ _id: toMongoObjectID(contentPointer.contentID) })
     })
     .then((x) => {
       if(x) {
-        return true;
+        return x;
       }
 
-      return false;
+      return null;
     });
   }
 }
