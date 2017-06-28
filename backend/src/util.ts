@@ -182,3 +182,29 @@ export const getRandomInt = (min: number, max: number): number => {
 export const assertNever = (x: never): never => {
   throw new Error("Unexpected branch:" + x);
 };
+
+/**
+ * Runs a promise, upon success everything behaves as usual, but upon failure it will rerun the promise `x` times. If
+ * it fails `x` times, then it rejects.
+ */
+export const createRegenerativePromise = <T1>
+  ( runPromise: () => Promise<T1>
+  , x: number
+  , logErrors: (errors: any[]) => void
+  , rejectWith: (errors: any[]) => any
+  ): () => Promise<T1> => {
+
+  const go = (remainingAttempts: number, errors: any[]): Promise<T1> => {
+    if(remainingAttempts <= 0) {
+      logErrors(errors);
+      return Promise.reject(rejectWith(errors));
+    }
+
+    return runPromise()
+    .catch((err) => {
+      return Promise.resolve(go(remainingAttempts - 1, errors.concat([err])));
+    });
+  };
+
+  return () => { return go(x, []) };
+};

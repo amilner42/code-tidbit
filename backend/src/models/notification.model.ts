@@ -9,7 +9,7 @@ import { ContentPointer, ContentType } from "./content.model";
 import { TidbitPointer, TidbitType, toContentType, toContentPointer } from "./tidbit.model";
 import { mongoIDSchema } from "./kleen-schemas";
 import { MongoObjectID, MongoID } from "../types";
-import { malformedFieldError, internalError, assertNever, isNullOrUndefined } from "../util";
+import { malformedFieldError, internalError, assertNever, isNullOrUndefined, createRegenerativePromise } from "../util";
 import { toMongoObjectID, toMongoStringID, collection, getPaginatedResults, renameIDField, updateOneResultHandlers } from "../db";
 
 
@@ -239,28 +239,38 @@ export const notificationDBActions = {
    * NOTE: If `createNotification` returns `null`/`undefined` instead of a `Notification`, then no notification will be
    *       created. You can use this if your `createNotification` is conditional.
    */
-  addNotificationWrapper: (createNotification: () => Promise<Notification>): void => {
+  addNotificationWrapper: (createNotification: () => Promise<Notification | Notification[]>): void => {
 
-    const go = (attemptsLeft: number, errors: any[]) => {
-      if(attemptsLeft <= 0) {
-        console.log("Failed to create notification, here are the errors from each attempt: ", errors);
-        return;
-      }
+    const createNotificationRegenerative = createRegenerativePromise(
+      createNotification,
+      3,
+      (errors) => {
+        console.log("Failed to create notification, here are the errors for each attempt: ", errors);
+      },
+      R.always(null)
+    );
 
-      createNotification()
-      .then((notification) => {
-        if(isNullOrUndefined(notification)) { return; }
-
-        return notificationDBActions.addNotification(notification);
-      })
-      .catch((err) => {
-        console.log("Failed an attempt to create notification, error: ", err);
-        console.log("Remaining attempts: ", attemptsLeft - 1);
-        go(attemptsLeft - 1, errors.concat([err]));
-      });
+    const addNotificationRegenerative = (notification: Notification): Promise<number> => {
+      return createRegenerativePromise(
+        () => { return notificationDBActions.addNotification(notification); },
+        3,
+        (errors) => {
+          console.log("Failed to add notification, here are the errors for each attempt: ", errors);
+        },
+        R.always(null)
+      )();
     };
 
-    go(3, []);
+    createNotificationRegenerative()
+    .then((notification) => {
+      if(isNullOrUndefined(notification)) return null;
+
+      if(Array.isArray(notification)) {
+        notification.map(addNotificationRegenerative);
+      } else {
+        addNotificationRegenerative(notification);
+      }
+    });
   },
 
   /**
