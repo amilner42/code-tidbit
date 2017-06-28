@@ -5,11 +5,12 @@ import * as moment from "moment";
 import { ObjectID } from "mongodb";
 import * as R from "ramda";
 
+import { TidbitQuestionLikeCountData, NotificationType, isCountNotificationWorthy, makeNotification, notificationDBActions } from "./notification.model";
 import { internalError, isNullOrUndefined, malformedFieldError } from '../util';
 import { MongoObjectID, MongoID, ErrorCode } from "../types";
-import { collection, toMongoObjectID, renameIDField, updateOneResultHandlers } from "../db";
+import { collection, toMongoObjectID, renameIDField, updateOneResultHandlers, findOneAndUpdateResultHandlers } from "../db";
 import { Range } from "./range.model";
-import { TidbitPointer, TidbitType, tidbitPointerSchema } from "./tidbit.model";
+import { TidbitPointer, TidbitType, tidbitPointerSchema, tidbitDBActions } from "./tidbit.model";
 import { stringInRange, rangeSchema, nonEmptyStringSchema, mongoIDSchema, booleanSchema } from "./kleen-schemas";
 
 
@@ -408,15 +409,45 @@ export const qaDBActions = {
         }
       })();
 
-      return collectionX.updateOne(
+      return collectionX.findOneAndUpdate(
         { tidbitID: toMongoObjectID(tidbitPointer.targetID), "questions.id": toMongoObjectID(questionID) },
         updateObject,
-        { upsert: false }
+        { upsert: false, returnOriginal: false }
       );
     })
-    .then(updateOneResultHandlers.rejectIfResultNotOK)
-    .then(updateOneResultHandlers.rejectIfNoneMatched)
-    .then(R.always(null));
+    .then(findOneAndUpdateResultHandlers.rejectIfResultNotOK)
+    .then(findOneAndUpdateResultHandlers.rejectIfValueNotPresent)
+    .then((findOneAndUpdateResult) => {
+      // Create a notification if needed.
+      {
+        const createTidbitQuestionLikeNotification = () => {
+          const qa: QA<any> = findOneAndUpdateResult.value;
+          const question =
+            R.find<Question<any>>(R.pipe(R.prop("id"), R.equals(toMongoObjectID(questionID))))(qa.questions);
+
+          if(isNullOrUndefined(question) || vote !== Vote.Upvote || !isCountNotificationWorthy(question.upvotes.length)) {
+            return Promise.resolve(null);
+          }
+
+          return tidbitDBActions.expandTidbitPointer(tidbitPointer)
+          .then((tidbit) => {
+            const notificationData: TidbitQuestionLikeCountData = {
+              type: NotificationType.TidbitQuestionLikeCount,
+              count: question.upvotes.length,
+              questionID,
+              tidbitName: tidbit.name,
+              tidbitPointer
+            };
+
+            return makeNotification(notificationData)(question.authorID);
+          });
+        };
+
+        notificationDBActions.addNotificationWrapper(createTidbitQuestionLikeNotification);
+      }
+
+      return null;
+    });
   },
 
   /**
