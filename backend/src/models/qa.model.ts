@@ -5,7 +5,7 @@ import * as moment from "moment";
 import { ObjectID } from "mongodb";
 import * as R from "ramda";
 
-import { TidbitQuestionLikeCountData, NotificationType, isCountNotificationWorthy, makeNotification, notificationDBActions } from "./notification.model";
+import { TidbitQuestionLikeCountData, TidbitAnswerLikeCountData, NotificationType, isCountNotificationWorthy, makeNotification, notificationDBActions } from "./notification.model";
 import { internalError, isNullOrUndefined, malformedFieldError } from '../util';
 import { MongoObjectID, MongoID, ErrorCode } from "../types";
 import { collection, toMongoObjectID, renameIDField, updateOneResultHandlers, findOneAndUpdateResultHandlers } from "../db";
@@ -718,15 +718,45 @@ export const qaDBActions = {
         }
       })();
 
-      return collectionX.updateOne(
+      return collectionX.findOneAndUpdate(
         { tidbitID: toMongoObjectID(tidbitPointer.targetID), "answers.id": toMongoObjectID(answerID)  },
         updateObject,
-        { upsert: false }
+        { upsert: false, returnOriginal: false }
       );
     })
-    .then(updateOneResultHandlers.rejectIfResultNotOK)
-    .then(updateOneResultHandlers.rejectIfNoneMatched)
-    .then(R.always(null));
+    .then(findOneAndUpdateResultHandlers.rejectIfResultNotOK)
+    .then(findOneAndUpdateResultHandlers.rejectIfValueNotPresent)
+    .then((findOneAndUpdateResult) => {
+      // Create a notification if needed.
+      {
+        const createTidbitAnswerLikeNotification = () => {
+          const qa: QA<any> = findOneAndUpdateResult.value;
+          const answer =
+            R.find<Answer>(R.pipe(R.prop("id"), R.equals(toMongoObjectID(answerID))))(qa.answers);
+
+          if(isNullOrUndefined(answer) || vote !== Vote.Upvote || !isCountNotificationWorthy(answer.upvotes.length)) {
+            return Promise.resolve(null);
+          }
+
+          return tidbitDBActions.expandTidbitPointer(tidbitPointer)
+          .then((tidbit) => {
+            const notificationData: TidbitAnswerLikeCountData = {
+              type: NotificationType.TidbitAnswerLikeCount,
+              answerID,
+              tidbitPointer,
+              tidbitName: tidbit.name,
+              count: answer.upvotes.length
+            };
+
+            return makeNotification(notificationData)(answer.authorID);
+          });
+        };
+
+        notificationDBActions.addNotificationWrapper(createTidbitAnswerLikeNotification);
+      }
+
+      return null;
+    });
   },
 
   /**
