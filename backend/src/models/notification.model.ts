@@ -478,10 +478,10 @@ export const makeNotification = (nd: NotificationData): ((userID: MongoID) => No
         ]);
 
         const authorMessage =
-          `A new question was posted in your ${tidbitNameInString(nd.tidbitPointer.tidbitType, nd.tidbitName)}`;
+          `A new question was posted on your ${tidbitNameInString(nd.tidbitPointer.tidbitType, nd.tidbitName)}`;
 
         const notAuthorMessage =
-          `A new question was posted in ${tidbitNameInString(nd.tidbitPointer.tidbitType, nd.tidbitName)}`;
+          `A new question was posted on ${tidbitNameInString(nd.tidbitPointer.tidbitType, nd.tidbitName)}`;
 
         return {
           userID,

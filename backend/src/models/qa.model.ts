@@ -234,16 +234,18 @@ export const qaDBActions = {
       });
     };
 
+    // The ID of the new question.
+    const questionID = new ObjectID();
+
     return ( doValidation ? resolveIfValid() : Promise.resolve() )
     .then(() => {
       return collection(qaCollectionName(tidbitPointer.tidbitType));
     })
     .then((collectionX) => {
       const dateNow = moment.utc().toDate();
-      const id = new ObjectID();
 
       const question: Question<CodePointer> = {
-        id,
+        id: questionID,
         authorID,
         authorEmail,
         codePointer,
@@ -262,7 +264,32 @@ export const qaDBActions = {
       )
       .then(updateOneResultHandlers.rejectIfResultNotOK)
       .then(updateOneResultHandlers.rejectIfNoneModified)
-      .then(R.always(prepareQuestionOrAnswerForResponse(authorID, question)));
+      .then(() => {
+        // Create a notification if needed
+        {
+          const createNewQuestionNotification = () => {
+            return tidbitDBActions.expandTidbitPointer(tidbitPointer)
+            .then((tidbit) => {
+              // If we send notifications to people other than just the tidbit author then remove this.
+              if(sameID(authorID, tidbit.author)) return null;
+
+              const notificationData: NotificationData = {
+                type: NotificationType.TidbitNewQuestion,
+                tidbitPointer,
+                tidbitName: tidbit.name,
+                isTidbitAuthor: (userID) => { return sameID(userID, tidbit.author) },
+                questionID
+              };
+
+              return makeNotification(notificationData)(tidbit.author);
+            });
+          };
+
+          notificationDBActions.addNotificationWrapper(createNewQuestionNotification);
+        }
+
+        return prepareQuestionOrAnswerForResponse(authorID, question);
+      });
     });
   },
 
