@@ -5,10 +5,10 @@ import * as moment from "moment";
 import { ObjectID } from "mongodb";
 import * as R from "ramda";
 
-import { TidbitQuestionLikeCountData, TidbitAnswerLikeCountData, NotificationType, isCountNotificationWorthy, makeNotification, notificationDBActions } from "./notification.model";
+import { NotificationData, NotificationType, isCountNotificationWorthy, makeNotification, notificationDBActions } from "./notification.model";
 import { internalError, isNullOrUndefined, malformedFieldError } from '../util';
 import { MongoObjectID, MongoID, ErrorCode } from "../types";
-import { collection, toMongoObjectID, renameIDField, updateOneResultHandlers, findOneAndUpdateResultHandlers } from "../db";
+import { collection, toMongoObjectID, renameIDField, updateOneResultHandlers, findOneAndUpdateResultHandlers, sameID } from "../db";
 import { Range } from "./range.model";
 import { TidbitPointer, TidbitType, tidbitPointerSchema, tidbitDBActions } from "./tidbit.model";
 import { stringInRange, rangeSchema, nonEmptyStringSchema, mongoIDSchema, booleanSchema } from "./kleen-schemas";
@@ -431,7 +431,7 @@ export const qaDBActions = {
 
           return tidbitDBActions.expandTidbitPointer(tidbitPointer)
           .then((tidbit) => {
-            const notificationData: TidbitQuestionLikeCountData = {
+            const notificationData: NotificationData = {
               type: NotificationType.TidbitQuestionLikeCount,
               count: question.upvotes.length,
               questionID,
@@ -513,19 +513,48 @@ export const qaDBActions = {
       return collection(qaCollectionName(tidbitPointer.tidbitType));
     })
     .then((collectionX) => {
-      return collectionX.updateOne(
+      return collectionX.findOneAndUpdate(
         {
           tidbitID: toMongoObjectID(tidbitPointer.targetID),
           tidbitAuthor: userID,
           "questions.id": toMongoObjectID(questionID)
         },
         { $set: { "questions.$.pinned": pin } },
-        { upsert: false }
+        { upsert: false, returnOriginal: false }
       );
     })
-    .then(updateOneResultHandlers.rejectIfResultNotOK)
-    .then(updateOneResultHandlers.rejectIfNoneMatched)
-    .then(R.always(null))
+    .then(findOneAndUpdateResultHandlers.rejectIfResultNotOK)
+    .then(findOneAndUpdateResultHandlers.rejectIfValueNotPresent)
+    .then((findOneAndUpdateResult) => {
+      // Create a notification if needed.
+      {
+        const createTidbitQuestionPinnedNotification = () => {
+          const qa: QA<any> = findOneAndUpdateResult.value;
+          const question =
+            R.find<Question<any>>(R.pipe(R.prop("id"), R.equals(toMongoObjectID(questionID))))(qa.questions);
+
+          if(isNullOrUndefined(question) || !pin || sameID(userID, question.authorID)) {
+            return Promise.resolve(null);
+          }
+
+          return tidbitDBActions.expandTidbitPointer(tidbitPointer)
+          .then((tidbit) => {
+            const notificationData: NotificationData = {
+              type: NotificationType.TidbitQuestionPinned,
+              tidbitPointer,
+              questionID,
+              tidbitName: tidbit.name
+            };
+
+            return makeNotification(notificationData)(question.authorID);
+          });
+        };
+
+        notificationDBActions.addNotificationWrapper(createTidbitQuestionPinnedNotification);
+      }
+
+      return null;
+    });
   },
 
   /**
@@ -740,7 +769,7 @@ export const qaDBActions = {
 
           return tidbitDBActions.expandTidbitPointer(tidbitPointer)
           .then((tidbit) => {
-            const notificationData: TidbitAnswerLikeCountData = {
+            const notificationData: NotificationData = {
               type: NotificationType.TidbitAnswerLikeCount,
               answerID,
               tidbitPointer,
