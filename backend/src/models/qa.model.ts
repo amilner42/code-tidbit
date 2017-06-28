@@ -851,19 +851,48 @@ export const qaDBActions = {
       return collection(qaCollectionName(tidbitPointer.tidbitType));
     })
     .then((collectionX) => {
-      return collectionX.updateOne(
+      return collectionX.findOneAndUpdate(
         {
           tidbitID: toMongoObjectID(tidbitPointer.targetID),
           tidbitAuthor: userID,
           "answers.id": toMongoObjectID(answerID)
         },
         { $set: { "answers.$.pinned": pin } },
-        { upsert: false }
+        { upsert: false, returnOriginal: false }
       );
     })
-    .then(updateOneResultHandlers.rejectIfResultNotOK)
-    .then(updateOneResultHandlers.rejectIfNoneMatched)
-    .then(R.always(null));
+    .then(findOneAndUpdateResultHandlers.rejectIfResultNotOK)
+    .then(findOneAndUpdateResultHandlers.rejectIfValueNotPresent)
+    .then((findOneAndUpdateResult) => {
+      // Add notification if needed.
+      {
+        const createTidbitAnswerPinnedNotification = () => {
+          const qa: QA<any> = findOneAndUpdateResult.value;
+          const answer =
+            R.find<Answer>(R.pipe(R.prop("id"), R.equals(toMongoObjectID(answerID))))(qa.answers);
+
+          if(isNullOrUndefined(answer) || !pin || sameID(userID, answer.authorID)) {
+            return Promise.resolve(null);
+          }
+
+          return tidbitDBActions.expandTidbitPointer(tidbitPointer)
+          .then((tidbit) => {
+            const notificationData: NotificationData = {
+              type: NotificationType.TidbitAnswerPinned,
+              tidbitPointer,
+              tidbitName: tidbit.name,
+              answerID
+            };
+
+            return makeNotification(notificationData)(answer.authorID);
+          })
+        };
+
+        notificationDBActions.addNotificationWrapper(createTidbitAnswerPinnedNotification);
+      }
+
+      return null;
+    });
   },
 
   /**
