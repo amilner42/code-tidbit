@@ -556,7 +556,7 @@ export const makeNotification = (nd: NotificationData): ((userID: MongoID) => No
           type,
           createdAt,
           read,
-          message: `A thread has a new comment on ${tidbitNameInString(nd.tidbitPointer.tidbitType, nd.tidbitName)}`,
+          message: `A thread you are in has a new comment on ${tidbitNameInString(nd.tidbitPointer.tidbitType, nd.tidbitName)}`,
           actionLink: [
             "view",
             getQuestionCommentsLink(nd.tidbitPointer, nd.questionID)
@@ -577,7 +577,7 @@ export const makeNotification = (nd: NotificationData): ((userID: MongoID) => No
           type,
           createdAt,
           read,
-          message: `A thread has a new comment on ${tidbitNameInString(nd.tidbitPointer.tidbitType, nd.tidbitName)}`,
+          message: `A thread you are in has a new comment on ${tidbitNameInString(nd.tidbitPointer.tidbitType, nd.tidbitName)}`,
           actionLink: [
             "view",
             getAnswerCommentsLink(nd.tidbitPointer, nd.answerID)

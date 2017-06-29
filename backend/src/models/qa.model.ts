@@ -1001,15 +1001,46 @@ export const qaDBActions = {
         lastModified: dateNow
       };
 
-      return collectionX.updateOne(
+      return collectionX.findOneAndUpdate(
         { tidbitID: toMongoObjectID(tidbitPointer.targetID), "questions.id": toMongoObjectID(questionID) },
         { $push: { "questionComments": newComment }},
-        { upsert: false }
+        { upsert: false, returnOriginal: false }
       )
-      .then(updateOneResultHandlers.rejectIfResultNotOK)
-      .then(updateOneResultHandlers.rejectIfNoneMatched)
-      .then(updateOneResultHandlers.rejectIfNoneModified)
-      .then(R.always(newComment));
+      .then(findOneAndUpdateResultHandlers.rejectIfResultNotOK)
+      .then(findOneAndUpdateResultHandlers.rejectIfValueNotPresent)
+      .then((findOneAndUpdateResult) => {
+        // Create notifications if needed
+        {
+          const createNewQuestionCommentNotifications = () => {
+            const qa: QA<any> = findOneAndUpdateResult.value;
+            const relatedComments =
+              R.filter<QuestionComment>(R.pipe(R.prop("questionID"), R.equals(toMongoObjectID(questionID))))(qa.questionComments);
+            const relatedAuthors =
+              R.filter((id) => { return !sameID(id, userID) },R.uniq(relatedComments.map<MongoID>(R.prop("authorID"))));
+
+            if(relatedAuthors.length === 0) return Promise.resolve(null);
+
+            return tidbitDBActions.expandTidbitPointer(tidbitPointer)
+            .then((tidbit) => {
+              const notificationData: NotificationData = {
+                type: NotificationType.TidbitNewQuestionComment,
+                tidbitPointer,
+                questionID,
+                commentID: id,
+                tidbitName: tidbit.name
+              };
+
+              const createNotificationForUser = makeNotification(notificationData);
+
+              return relatedAuthors.map(createNotificationForUser);
+            });
+          };
+
+          notificationDBActions.addNotificationWrapper(createNewQuestionCommentNotifications);
+        }
+
+        return newComment;
+      });
     });
   },
 
