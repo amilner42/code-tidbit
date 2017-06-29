@@ -155,6 +155,7 @@ export interface TidbitNewAnswerData {
   answerID: MongoID;
   tidbitName: string;
   isQuestionAuthor: (userID: MongoID) => boolean;
+  isTidbitAuthor: (userID: MongoID) => boolean;
 };
 
 /**
@@ -513,18 +514,28 @@ export const makeNotification = (nd: NotificationData): ((userID: MongoID) => No
           toMongoStringID(nd.answerID)
         ]);
 
-        const questionAuthorMessage
-          = `Someone answered your question on ${tidbitNameInString(nd.tidbitPointer.tidbitType, nd.tidbitName)}!`;
+        const message = (() => {
+          const questionAuthorMessage
+            = `Someone answered your question on ${tidbitNameInString(nd.tidbitPointer.tidbitType, nd.tidbitName)}!`;
 
-        const notQuestionAuthorMessage
-          = `A new answer was posted on ${tidbitNameInString(nd.tidbitPointer.tidbitType, nd.tidbitName)}`;
+          const tidbitAuthorMessage
+            = `A new answer was posted on your ${tidbitNameInString(nd.tidbitPointer.tidbitType, nd.tidbitName)}`
+
+          const subscribedUserMessage
+            = `A new answer was posted on ${tidbitNameInString(nd.tidbitPointer.tidbitType, nd.tidbitName)}`;
+
+          if(nd.isQuestionAuthor(userID)) return questionAuthorMessage;
+          if(nd.isTidbitAuthor(userID)) return tidbitAuthorMessage;
+
+          return subscribedUserMessage;
+        })();
 
         return {
           userID,
           type,
           createdAt,
           read,
-          message: nd.isQuestionAuthor(userID) ? questionAuthorMessage : notQuestionAuthorMessage,
+          message,
           actionLink: [
             "view",
             getAnswerLink(nd.tidbitPointer, nd.answerID)

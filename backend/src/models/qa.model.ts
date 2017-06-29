@@ -605,7 +605,10 @@ export const qaDBActions = {
         kleen.validModel(mongoIDSchema(malformedFieldError("questionID")))(questionID),
         kleen.validModel(answerTextSchema)(answerText)
       ]);
-    }
+    };
+
+    // The ID of the new answer.
+    const answerID = new ObjectID();
 
     return (doValidation ? resolveIfValid() : Promise.resolve())
     .then(() => {
@@ -613,10 +616,9 @@ export const qaDBActions = {
     })
     .then((collectionX) => {
       const dateNow = moment.utc().toDate();
-      const id = new ObjectID();
 
       const answer: Answer = {
-        id,
+        id: answerID,
         answerText,
         authorEmail,
         authorID,
@@ -628,15 +630,51 @@ export const qaDBActions = {
         questionID: toMongoObjectID(questionID)
       };
 
-      return collectionX.updateOne(
+      return collectionX.findOneAndUpdate(
         { tidbitID: toMongoObjectID(tidbitPointer.targetID), "questions.id": toMongoObjectID(questionID) },
         { $push: { answers: answer } },
-        { upsert: false }
+        { upsert: false, returnOriginal: false }
       )
-      .then(updateOneResultHandlers.rejectIfResultNotOK)
-      .then(updateOneResultHandlers.rejectIfNoneMatched)
-      .then(updateOneResultHandlers.rejectIfNoneModified)
-      .then(R.always(prepareQuestionOrAnswerForResponse(authorID, answer)));
+      .then(findOneAndUpdateResultHandlers.rejectIfResultNotOK)
+      .then(findOneAndUpdateResultHandlers.rejectIfValueNotPresent)
+      .then((findOneAndUpdateResult) => {
+        // Create notifications if needed.
+        {
+          const createNewAnswerNotification = () => {
+            const qa: QA<any> = findOneAndUpdateResult.value;
+            const question =
+              R.find<Question<any>>(R.pipe(R.prop("id"), R.equals(toMongoObjectID(questionID))))(qa.questions);
+
+            if(isNullOrUndefined(question)) return Promise.resolve(null);
+
+            return tidbitDBActions.expandTidbitPointer(tidbitPointer)
+            .then((tidbit) => {
+              const notificationData: NotificationData = {
+                type: NotificationType.TidbitNewAnswer,
+                tidbitPointer,
+                answerID,
+                tidbitName: tidbit.name,
+                isQuestionAuthor: (userID) => { return sameID(userID, question.authorID) },
+                isTidbitAuthor: (userID) => { return sameID(userID, tidbit.author) }
+              };
+
+              const createNotification = makeNotification(notificationData);
+              const peopleToNotify = R.filter(
+                (userID) => { return !sameID(authorID, userID)},
+                [ tidbit.author, question.authorID ]
+              );
+
+              if(peopleToNotify.length === 0) return null;
+
+              return peopleToNotify.map(createNotification);
+            });
+          };
+
+          notificationDBActions.addNotificationWrapper(createNewAnswerNotification);
+        }
+
+        return prepareQuestionOrAnswerForResponse(authorID, answer);
+      });
     });
   },
 
