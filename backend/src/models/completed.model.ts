@@ -168,9 +168,6 @@ export const completedDBActions = {
 
   /**
    * Counts the number of completions for a given tidbit.
-   *
-   * TODO May need to rethink indexing, which is currently compound on [user,tidbitPointer] which means it won't work
-   *      for this query (we don't specify user). Perhaps compound on [tidbitPointer, user] would be better.
    */
   countCompleted: (tidbitPointer: TidbitPointer, doValidation = true): Promise<number> => {
     return (doValidation ? kleen.validModel(tidbitPointerSchema)(tidbitPointer) : Promise.resolve())
