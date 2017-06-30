@@ -1139,7 +1139,7 @@ export const qaDBActions = {
    */
   commentOnAnswer:
     ( tidbitPointer: TidbitPointer
-    , questionID
+    , questionID: MongoID
     , answerID: MongoID
     , commentText: string
     , userID: MongoObjectID
@@ -1163,10 +1163,10 @@ export const qaDBActions = {
     })
     .then((collectionX) => {
       const dateNow = moment.utc().toDate();
-      const id = new ObjectID();
+      const commentID = new ObjectID();
 
       const newComment: AnswerComment = {
-        id,
+        id: commentID,
         authorEmail: userEmail,
         authorID: userID,
         commentText,
@@ -1176,19 +1176,51 @@ export const qaDBActions = {
         answerID: toMongoObjectID(answerID)
       };
 
-      return collectionX.updateOne(
+      return collectionX.findOneAndUpdate(
         {
           tidbitID: toMongoObjectID(tidbitPointer.targetID),
           "answers.id": toMongoObjectID(answerID),
           "answers.questionID": toMongoObjectID(questionID),
         },
         { $push: { "answerComments": newComment }},
-        { upsert: false }
+        { upsert: false, returnOriginal: false }
       )
-      .then(updateOneResultHandlers.rejectIfResultNotOK)
-      .then(updateOneResultHandlers.rejectIfNoneMatched)
-      .then(updateOneResultHandlers.rejectIfNoneModified)
-      .then(R.always(newComment));
+      .then(findOneAndUpdateResultHandlers.rejectIfResultNotOK)
+      .then(findOneAndUpdateResultHandlers.rejectIfValueNotPresent)
+      .then((findOneAndUpdateResult) => {
+        // Create notifications if needed
+        {
+          const createNewAnswerCommentNotifications = () => {
+            const qa: QA<any> = findOneAndUpdateResult.value;
+            const relatedComments =
+              R.filter<AnswerComment>(R.pipe(R.prop("answerID"), R.equals(toMongoObjectID(answerID))))(qa.answerComments);
+            const relatedAuthors =
+              R.filter((id) => { return !sameID(id, userID) },R.uniq(relatedComments.map<MongoID>(R.prop("authorID"))));
+
+            if(relatedAuthors.length === 0) return Promise.resolve(null);
+
+            return tidbitDBActions.expandTidbitPointer(tidbitPointer)
+            .then((tidbit) => {
+              const notificationData: NotificationData = {
+                type: NotificationType.TidbitNewAnswerComment,
+                tidbitPointer,
+                questionID,
+                answerID,
+                commentID,
+                tidbitName: tidbit.name,
+              };
+
+              const createNotificationForUser = makeNotification(notificationData);
+
+              return relatedAuthors.map(createNotificationForUser);
+            });
+          };
+
+          notificationDBActions.addNotificationWrapper(createNewAnswerCommentNotifications);
+        }
+
+        return newComment
+      });
     });
   },
 
