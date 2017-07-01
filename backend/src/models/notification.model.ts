@@ -312,7 +312,7 @@ export const notificationDBActions = {
     .then((notificationCollection) => {
       const cursor = notificationCollection.find({ userID: toMongoObjectID(userID) }).sort({ createdAt: -1 });
 
-      return getPaginatedResults(pageNumber, pageSize, cursor);
+      return getPaginatedResults(pageNumber, Math.min(100, pageSize), cursor);
     })
     .then(([ isMoreResults, results ]) => {
       return [ isMoreResults, results.map(prepareNotificationForResponse) ]

@@ -15,11 +15,6 @@ import { MongoID, MongoObjectID, MongoStringID } from './types';
 const DB_PROMISE = MongoClient.connect(APP_CONFIG.dbUrl);
 
 /**
- * The max page size that can be queried at once.
- */
-const MAX_PAGE_SIZE = 100;
-
-/**
  * Get a mongodb collection using the existing mongo connection.
  */
 export const collection = (collectionName: string): Promise<Collection> => {
@@ -84,21 +79,20 @@ export const sameID = (id1: MongoID, id2: MongoID): boolean => {
 
 /**
  * Paginates results, assumes the results are already in some meaningful order - this just handles the `limit` and
- * `skip` to get the proper chunk of results. Also will ensure `MAX_PAGE_SIZE`.
+ * `skip` to get the proper chunk of results.
  *
  * @RETURNS A pair: [ Boolean that is `true` if there is MORE data, the results ]
  */
 export const getPaginatedResults = (pageNumber: number, pageSize: number, cursor: Cursor): PromiseLike<[boolean, any[]]> => {
-  pageSize = Math.min(pageSize, MAX_PAGE_SIZE);
   const amountToSkip = (pageNumber - 1) * pageSize;
 
   return cursor.skip(amountToSkip).limit(pageSize + 1).toArray()
   .then((results) => {
     if(results.length === (pageSize + 1)) {
-      return [true, R.dropLast(1, results) ]
+      return [ true, R.dropLast(1, results) ]
     }
 
-    return [false, results ];
+    return [ false, results ];
   });
 };
 

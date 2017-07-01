@@ -294,7 +294,7 @@ export const getContent = <Content>
       const pageNumber = resultManipulation.pageNumber || 1;
       const pageSize = resultManipulation.pageSize || 10;
 
-      return getPaginatedResults(pageNumber, pageSize, cursor);
+      return getPaginatedResults(pageNumber, Math.min(10, pageSize), cursor);
     }
 
     return cursor.toArray()
