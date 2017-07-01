@@ -2,10 +2,11 @@
 
 import * as kleen from "kleen";
 
-import { TidbitPointer, tidbitPointerSchema } from "./tidbit.model";
+import { TidbitCompletedCountData, NotificationType, notificationDBActions, isCountNotificationWorthy, makeNotification } from "./notification.model";
+import { TidbitPointer, tidbitPointerSchema, tidbitDBActions } from "./tidbit.model";
 import { MongoID, MongoObjectID, ErrorCode, TargetID } from '../types';
 import { mongoIDSchema } from './kleen-schemas';
-import { collection, toMongoObjectID, sameID } from '../db';
+import { collection, toMongoObjectID, sameID, updateOneResultHandlers } from '../db';
 import { malformedFieldError } from '../util';
 
 
@@ -87,7 +88,34 @@ export const completedDBActions = {
         { upsert: true }
       );
     })
+    .then(updateOneResultHandlers.rejectIfResultNotOK)
     .then((updateResult) => {
+      // Create a notification if needed.
+      {
+        const createCompletedNotification = () => {
+          if(updateResult.upsertedCount !== 1) return Promise.resolve(null);
+
+          return Promise.all([
+            completedDBActions.countCompleted(completed.tidbitPointer, false),
+            tidbitDBActions.expandTidbitPointer(completed.tidbitPointer)
+          ])
+          .then(([ completedCount, tidbit ]) => {
+            if(isCountNotificationWorthy(completedCount)) {
+              const notificationData: TidbitCompletedCountData = {
+                type: NotificationType.TidbitCompletedCount,
+                count: completedCount,
+                tidbitName: tidbit.name,
+                tidbitPointer: completed.tidbitPointer
+              }
+
+              return makeNotification(notificationData)(tidbit.author);
+            }
+          });
+        };
+
+        notificationDBActions.addNotificationWrapper(createCompletedNotification);
+      }
+
       return updateResult.upsertedCount === 1;
     });
   },
@@ -133,6 +161,22 @@ export const completedDBActions = {
       }
 
       return false;
+    });
+  },
+
+  /**
+   * Counts the number of completions for a given tidbit.
+   */
+  countCompleted: (tidbitPointer: TidbitPointer, doValidation = true): Promise<number> => {
+    return (doValidation ? kleen.validModel(tidbitPointerSchema)(tidbitPointer) : Promise.resolve())
+    .then(() => {
+      return collection("completed");
+    })
+    .then((completedCollection) => {
+      return completedCollection.count({
+        "tidbitPointer.tidbitType": tidbitPointer.tidbitType,
+        "tidbitPointer.targetID": toMongoObjectID(tidbitPointer.targetID)
+      });
     });
   }
 }

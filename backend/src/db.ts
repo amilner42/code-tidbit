@@ -1,7 +1,7 @@
 /// Module for interacting with the mongodb through the standard node driver.
 /// Will get the URL for the mongodb from the global config `app-config.ts`.
 
-import { MongoClient, Collection, ObjectID, Cursor, UpdateWriteOpResult } from 'mongodb';
+import { MongoClient, Collection, ObjectID, Cursor, UpdateWriteOpResult, FindAndModifyWriteOpResultObject } from 'mongodb';
 import * as R from "ramda";
 
 import { APP_CONFIG } from './app-config';
@@ -13,11 +13,6 @@ import { MongoID, MongoObjectID, MongoStringID } from './types';
  * Promise will resolve to the db.
  */
 const DB_PROMISE = MongoClient.connect(APP_CONFIG.dbUrl);
-
-/**
- * The max page size that can be queried at once.
- */
-const MAX_PAGE_SIZE = 50;
 
 /**
  * Get a mongodb collection using the existing mongo connection.
@@ -84,60 +79,99 @@ export const sameID = (id1: MongoID, id2: MongoID): boolean => {
 
 /**
  * Paginates results, assumes the results are already in some meaningful order - this just handles the `limit` and
- * `skip` to get the proper chunk of results. Also will ensure `MAX_PAGE_SIZE`.
+ * `skip` to get the proper chunk of results.
  *
  * @RETURNS A pair: [ Boolean that is `true` if there is MORE data, the results ]
  */
 export const getPaginatedResults = (pageNumber: number, pageSize: number, cursor: Cursor): PromiseLike<[boolean, any[]]> => {
-  pageSize = Math.min(pageSize, MAX_PAGE_SIZE);
   const amountToSkip = (pageNumber - 1) * pageSize;
 
   return cursor.skip(amountToSkip).limit(pageSize + 1).toArray()
   .then((results) => {
     if(results.length === (pageSize + 1)) {
-      return [true, R.dropLast(1, results) ]
+      return [ true, R.dropLast(1, results) ]
     }
 
-    return [false, results ];
+    return [ false, results ];
   });
+};
+
+/**
+ * Because these errors float up to the user, we don't really want to include much information.
+ */
+const mongoInternalError = internalError("Internal mongo error");
+
+/**
+ * Helpers for checking the results of `UpdateWriteOpResult` in a promise-chain.
+ *
+ * TODO Add logging.
+ */
+export const updateOneResultHandlers = {
+  /**
+   * Mongo can resolve even though an error occured, to avoid this behaviour we reject if the result is not ok.
+   *
+   * Returns the original `result` if it's ok so this can easily be added to promise chains.
+   *
+   * @refer: http://mongodb.github.io/node-mongodb-native/2.1/api/Collection.html#~updateWriteOpResult
+   */
+  rejectIfResultNotOK: (result: UpdateWriteOpResult): Promise<UpdateWriteOpResult> => {
+    if(result.result.ok !== 1) return Promise.reject(mongoInternalError);
+
+    return Promise.resolve(result);
+  },
+
+  /**
+   * If no modifications were made rejects with an internal error, otherwise returns the original `result`.
+   */
+  rejectIfNoneModified: (result: UpdateWriteOpResult): Promise<UpdateWriteOpResult> => {
+    if (result.modifiedCount === 0) return Promise.reject(mongoInternalError);
+
+    return Promise.resolve(result);
+  },
+
+  /**
+   * If no documents were matched rejects with an internal error, otherwise returns the original result.
+   */
+  rejectIfNoneMatched: (result: UpdateWriteOpResult): Promise<UpdateWriteOpResult> => {
+    if(result.matchedCount === 0) return Promise.reject(mongoInternalError);
+
+    return Promise.resolve(result);
+  },
+
+  /**
+   * If no documents were upserted, rejects with an internal error, otherwise returns the original result.
+   */
+  rejectIfNoneUpserted: (result: UpdateWriteOpResult): Promise<UpdateWriteOpResult> => {
+    if(result.upsertedCount === 0) return Promise.reject(mongoInternalError);
+
+    return Promise.resolve(result);
+  }
+};
+
+/**
+ * Helpers for checking the result of `FindAndModifyWriteOpResultObject` in a promise-chain.
+ *
+ * TODO Add logging.
+ */
+export const findOneAndUpdateResultHandlers = {
+  /**
+   * If not ok, rejects with `lastErrorObject` in an `internalError`, otherwise resolves the `result`.
+   */
+  rejectIfResultNotOK: (result: FindAndModifyWriteOpResultObject): Promise<FindAndModifyWriteOpResultObject> => {
+    if(result.ok !== 1) return Promise.reject(mongoInternalError);
+
+    return Promise.resolve(result);
+  },
+
+  /**
+   * If the value is not present, rejects with `internalError`, otherwise resolves the `result`.
+   *
+   * NOTE: There are many situations where it would be noraml to get `null`, for example, if you returnOriginal
+   *       and you do an uspert then `value` will be `null`. Use this when you really do expect a value.
+   */
+  rejectIfValueNotPresent: (result: FindAndModifyWriteOpResultObject): Promise<FindAndModifyWriteOpResultObject> => {
+    if(isNullOrUndefined(result.value)) return Promise.reject(mongoInternalError);
+
+    return Promise.resolve(result);
+  }
 }
-
-/**
- * Mongo can resolve even though an error occured, to avoid this behaviour we reject if the result is not ok.
- *
- * Returns the original `result` if it's ok so this can easily be added to promise chains.
- *
- * @refer: http://mongodb.github.io/node-mongodb-native/2.1/api/Collection.html#~updateWriteOpResult
- */
-export const rejectIfResultNotOK = (result: UpdateWriteOpResult): Promise<UpdateWriteOpResult> => {
-  if(result.result.ok !== 1) return Promise.reject(internalError(`Mongo query not ok: ${result.result.ok}`));
-
-  return Promise.resolve(result);
-};
-
-/**
- * If no modifications were made rejects with an internal error, otherwise returns the original `result`.
- */
-export const rejectIfNoneModified = (result: UpdateWriteOpResult): Promise<UpdateWriteOpResult> => {
-  if (result.modifiedCount === 0) return Promise.reject(internalError("No modifications were performed"));
-
-  return Promise.resolve(result);
-};
-
-/**
- * If no documents were matched rejects with an internal error, otherwise returns the original result.
- */
-export const rejectIfNoneMatched = (result: UpdateWriteOpResult): Promise<UpdateWriteOpResult> => {
-  if(result.matchedCount === 0) return Promise.reject(internalError("No matching documents were found"));
-
-  return Promise.resolve(result);
-};
-
-/**
- * If no documents were upserted, rejects with an internal error, otherwise returns the original result.
- */
-export const rejectIfNoneUpserted = (result: UpdateWriteOpResult): Promise<UpdateWriteOpResult> => {
-  if(result.upsertedCount === 0) return Promise.reject(internalError("No upserts were performed"));
-
-  return Promise.resolve(result);
-};

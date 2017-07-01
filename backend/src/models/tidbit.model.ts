@@ -3,10 +3,10 @@
 import * as kleen from "kleen";
 import * as R from "ramda";
 
-import { malformedFieldError, isNullOrUndefined, combineArrays, sortByAll, getTime, SortOrder } from '../util';
+import { malformedFieldError, isNullOrUndefined, combineArrays, sortByAll, getTime, SortOrder, assertNever } from '../util';
 import { ErrorCode, MongoID, MongoObjectID } from '../types';
 import { mongoIDSchema } from './kleen-schemas';
-import { ContentSearchFilter, ContentResultManipulation, contentDBActions } from "./content.model";
+import { ContentType, ContentPointer, ContentSearchFilter, ContentResultManipulation, contentDBActions } from "./content.model";
 import { Snipbit, snipbitDBActions } from './snipbit.model';
 import { Bigbit, bigbitDBActions } from './bigbit.model';
 
@@ -107,3 +107,29 @@ export const tidbitDBActions = {
     )
   }
 }
+
+/**
+ * Converts a `TidbitType` to it's match in the super-set `ContentType`.
+ */
+export const toContentType = (tidbitType: TidbitType): ContentType => {
+  switch(tidbitType) {
+    case TidbitType.Snipbit:
+      return ContentType.Snipbit;
+
+    case TidbitType.Bigbit:
+      return ContentType.Bigbit;
+
+    default:
+      assertNever(tidbitType);
+  }
+};
+
+/**
+ * Converts a `TidbitPointer` to it's match in the super-set `ContentPointer`.
+ */
+export const toContentPointer = ({ targetID, tidbitType }: TidbitPointer): ContentPointer => {
+  return {
+    contentID: targetID,
+    contentType: toContentType(tidbitType)
+  }
+};
