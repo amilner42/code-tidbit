@@ -184,12 +184,12 @@ export const assertNever = (x: never): never => {
 };
 
 /**
- * Runs a promise, upon success everything behaves as usual, but upon failure it will rerun the promise `x` times. If
- * it fails `x` times, then it rejects.
+ * Runs a promise, upon success everything behaves as usual, but upon failure it will rerun the promise `maxRegen`
+ * times. If it fails `maxRegen` times, then it rejects.
  */
 export const createRegenerativePromise = <T1>
   ( runPromise: () => Promise<T1>
-  , x: number
+  , maxRegens: number
   , logErrors: (errors: any[]) => void
   , rejectWith: (errors: any[]) => any
   ): () => Promise<T1> => {
@@ -206,5 +206,5 @@ export const createRegenerativePromise = <T1>
     });
   };
 
-  return () => { return go(x, []) };
+  return () => { return go(maxRegens, []) };
 };

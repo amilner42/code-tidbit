@@ -93,26 +93,24 @@ export const completedDBActions = {
       // Create a notification if needed.
       {
         const createCompletedNotification = () => {
-          if(updateResult.upsertedCount === 1) {
-            return Promise.all([
-              completedDBActions.countCompleted(completed.tidbitPointer, false),
-              tidbitDBActions.expandTidbitPointer(completed.tidbitPointer)
-            ])
-            .then(([ completedCount, tidbit ]) => {
-              if(isCountNotificationWorthy(completedCount)) {
-                const notificationData: TidbitCompletedCountData = {
-                  type: NotificationType.TidbitCompletedCount,
-                  count: completedCount,
-                  tidbitName: tidbit.name,
-                  tidbitPointer: completed.tidbitPointer
-                }
+          if(updateResult.upsertedCount !== 1) return Promise.resolve(null);
 
-                return makeNotification(notificationData)(tidbit.author);
+          return Promise.all([
+            completedDBActions.countCompleted(completed.tidbitPointer, false),
+            tidbitDBActions.expandTidbitPointer(completed.tidbitPointer)
+          ])
+          .then(([ completedCount, tidbit ]) => {
+            if(isCountNotificationWorthy(completedCount)) {
+              const notificationData: TidbitCompletedCountData = {
+                type: NotificationType.TidbitCompletedCount,
+                count: completedCount,
+                tidbitName: tidbit.name,
+                tidbitPointer: completed.tidbitPointer
               }
-            });
-          }
 
-          return Promise.resolve(null);
+              return makeNotification(notificationData)(tidbit.author);
+            }
+          });
         };
 
         notificationDBActions.addNotificationWrapper(createCompletedNotification);
@@ -176,10 +174,8 @@ export const completedDBActions = {
     })
     .then((completedCollection) => {
       return completedCollection.count({
-        tidbitPointer: {
-          tidbitType: tidbitPointer.tidbitType,
-          targetID: toMongoObjectID(tidbitPointer.targetID)
-        }
+        "tidbitPointer.tidbitType": tidbitPointer.tidbitType,
+        "tidbitPointer.targetID": toMongoObjectID(tidbitPointer.targetID)
       });
     });
   }

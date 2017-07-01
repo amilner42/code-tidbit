@@ -181,7 +181,7 @@ export const contentDBActions = {
    * Expands a contentPointer to the actual content. Returns `null` if the contentPointer points to nothing.
    */
   expandContentPointer: (contentPointer: ContentPointer, doValidation = true): Promise<Content> => {
-    const collectionName = (() => {
+    const contentCollectionName = (() => {
       switch(contentPointer.contentType) {
         case ContentType.Snipbit:
           return "snipbits"
@@ -196,15 +196,13 @@ export const contentDBActions = {
 
     return (doValidation ? kleen.validModel(contentPointerSchema)(contentPointer) : Promise.resolve())
     .then(() => {
-      return collection(collectionName);
+      return collection(contentCollectionName);
     })
-    .then((collectionX) => {
-      return collectionX.findOne({ _id: toMongoObjectID(contentPointer.contentID) })
+    .then((contentCollection) => {
+      return contentCollection.findOne({ _id: toMongoObjectID(contentPointer.contentID) })
     })
-    .then((x) => {
-      if(x) {
-        return x;
-      }
+    .then((content) => {
+      if(content) return content;
 
       return null;
     });

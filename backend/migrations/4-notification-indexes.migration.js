@@ -2,7 +2,7 @@
 // the compound index on the completed collection so that it can be used for counting completed regardless of user.
 
 db.notifications.createIndex({ hash: 1 });
-db.notifications.createIndex({ userID: 1 });
+db.notifications.createIndex({ userID: 1, createdAt: -1 });
 
 // Drop current compound index.
 db.completed.dropIndex("user_1_tidbitPointer_1");

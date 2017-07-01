@@ -640,7 +640,7 @@ export const qaDBActions = {
       .then((findOneAndUpdateResult) => {
         // Create notifications if needed.
         {
-          const createNewAnswerNotification = () => {
+          const createNewAnswerNotifications = () => {
             const qa: QA<any> = findOneAndUpdateResult.value;
             const question =
               R.find<Question<any>>(R.pipe(R.prop("id"), R.equals(toMongoObjectID(questionID))))(qa.questions);
@@ -658,19 +658,19 @@ export const qaDBActions = {
                 isTidbitAuthor: (userID) => { return sameID(userID, tidbit.author) }
               };
 
-              const createNotification = makeNotification(notificationData);
-              const peopleToNotify = R.filter(
+              const createNotificationForUser = makeNotification(notificationData);
+              const usersToNotify = R.filter(
                 (userID) => { return !sameID(authorID, userID)},
                 [ tidbit.author, question.authorID ]
               );
 
-              if(peopleToNotify.length === 0) return null;
+              if(usersToNotify.length === 0) return null;
 
-              return peopleToNotify.map(createNotification);
+              return usersToNotify.map(createNotificationForUser);
             });
           };
 
-          notificationDBActions.addNotificationWrapper(createNewAnswerNotification);
+          notificationDBActions.addNotificationWrapper(createNewAnswerNotifications);
         }
 
         return prepareQuestionOrAnswerForResponse(authorID, answer);
@@ -989,10 +989,10 @@ export const qaDBActions = {
     })
     .then((collectionX) => {
       const dateNow = moment.utc().toDate();
-      const id = new ObjectID();
+      const commentID = new ObjectID();
 
       const newComment: QuestionComment = {
-        id,
+        id: commentID,
         questionID: toMongoObjectID(questionID),
         authorID: userID,
         authorEmail: userEmail,
@@ -1026,7 +1026,7 @@ export const qaDBActions = {
                 type: NotificationType.TidbitNewQuestionComment,
                 tidbitPointer,
                 questionID,
-                commentID: id,
+                commentID,
                 tidbitName: tidbit.name
               };
 
@@ -1204,7 +1204,6 @@ export const qaDBActions = {
               const notificationData: NotificationData = {
                 type: NotificationType.TidbitNewAnswerComment,
                 tidbitPointer,
-                questionID,
                 answerID,
                 commentID,
                 tidbitName: tidbit.name,
@@ -1219,7 +1218,7 @@ export const qaDBActions = {
           notificationDBActions.addNotificationWrapper(createNewAnswerCommentNotifications);
         }
 
-        return newComment
+        return newComment;
       });
     });
   },

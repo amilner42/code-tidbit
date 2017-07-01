@@ -175,7 +175,6 @@ export interface TidbitNewQuestionCommentData {
 export interface TidbitNewAnswerCommentData {
   type: NotificationType.TidbitNewAnswerComment;
   tidbitPointer: TidbitPointer;
-  questionID: MongoID;
   answerID: MongoID;
   commentID: MongoID;
   tidbitName: string;
@@ -296,13 +295,8 @@ export const notificationDBActions = {
       );
     })
     .then(updateOneResultHandlers.rejectIfResultNotOK)
-    .then((updateResult) => {
-      if(updateResult.modifiedCount === 1) {
-        return;
-      }
-
-      return Promise.reject(internalError("Failed to set read."));
-    });
+    .then(updateOneResultHandlers.rejectIfNoneModified)
+    .then(R.always(null));
   },
 
   /**
@@ -491,7 +485,7 @@ export const makeNotification = (nd: NotificationData): ((userID: MongoID) => No
         const authorMessage =
           `A new question was posted on your ${tidbitNameInString(nd.tidbitPointer.tidbitType, nd.tidbitName)}`;
 
-        const notAuthorMessage =
+        const subscribedUserMessage =
           `A new question was posted on ${tidbitNameInString(nd.tidbitPointer.tidbitType, nd.tidbitName)}`;
 
         return {
@@ -499,7 +493,7 @@ export const makeNotification = (nd: NotificationData): ((userID: MongoID) => No
           type,
           createdAt,
           read,
-          message: nd.isTidbitAuthor(userID) ? authorMessage : notAuthorMessage,
+          message: nd.isTidbitAuthor(userID) ? authorMessage : subscribedUserMessage,
           actionLink: [
             "view",
             getQuestionLink(nd.tidbitPointer, nd.questionID)

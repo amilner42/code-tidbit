@@ -133,7 +133,7 @@ export const opinionDBActions = {
       ]);
     };
 
-    // To avoid re-querying the db if we want to send a notiication, we capture the contentName in an earier db query.
+    // To avoid re-querying the db if we want to send a notiication, we capture the contentName in an earlier db query.
     let contentName: string;
     let contentAuthorID: MongoID;
 
@@ -170,24 +170,22 @@ export const opinionDBActions = {
       // Create a notification if needed.
       {
         const createOpinionNotification = () => {
-          if(updateResult.upsertedCount === 1) {
-            return opinionDBActions.getOpinionCountOnContent(contentPointer, rating, false)
-            .then((opinionCount) => {
-              if(isCountNotificationWorthy(opinionCount)) {
-                const notificationData: ContentOpinionCountData = {
-                  type: NotificationType.ContentOpinionCount,
-                  count: opinionCount,
-                  rating,
-                  contentPointer,
-                  contentName
-                };
+          if(updateResult.upsertedCount !== 1) return Promise.resolve(null);
 
-                return makeNotification(notificationData)(contentAuthorID);
-              }
-            });
-          }
+          return opinionDBActions.getOpinionCountOnContent(contentPointer, rating, false)
+          .then((opinionCount) => {
+            if(isCountNotificationWorthy(opinionCount)) {
+              const notificationData: ContentOpinionCountData = {
+                type: NotificationType.ContentOpinionCount,
+                count: opinionCount,
+                rating,
+                contentPointer,
+                contentName
+              };
 
-          return Promise.resolve(null);
+              return makeNotification(notificationData)(contentAuthorID);
+            }
+          });
         };
 
         notificationDBActions.addNotificationWrapper(createOpinionNotification);
