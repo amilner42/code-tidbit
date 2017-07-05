@@ -43,6 +43,7 @@ type TrackedRequest
     | EditAnswerComment TidbitType CommentID
     | DeleteAnswerComment TidbitType CommentID
     | SearchForContent SearchSettings
+    | GetNotifications
 
 
 {-| A dictionary containing a count of all the requests currently in progress.

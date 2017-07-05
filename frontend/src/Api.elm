@@ -10,6 +10,7 @@ import JSON.Completed
 import JSON.Content
 import JSON.ContentPointer
 import JSON.IDResponse
+import JSON.Notification
 import JSON.Opinion
 import JSON.QA
 import JSON.Range
@@ -30,6 +31,7 @@ import Models.Completed as Completed
 import Models.Content as Content
 import Models.ContentPointer as ContentPointer
 import Models.IDResponse as IDResponse
+import Models.Notification as Notification
 import Models.Opinion as Opinion
 import Models.QA as QA
 import Models.Range as Range
@@ -99,6 +101,9 @@ type alias API msg =
 
         -- Get's the QA object for a specific bigbit.
         , bigbitQA : BigbitID -> Endpoint QA.BigbitQA msg
+
+        -- Get's the notifications for a user (must be logged-in).
+        , notifications : Endpoint ( Bool, List Notification.Notification ) msg
         }
     , post :
         { -- Logs user in and returns the user, unless invalid credentials.
@@ -284,6 +289,10 @@ api apiBaseUrl =
                 makeGETEndpoint
                     ("qa" :/: tidbitPointerToUrl { tidbitType = TidbitPointer.Bigbit, targetID = bigbitID })
                     JSON.QA.bigbitQADecoder
+        , notifications =
+            makeGETEndpoint
+                "account/notifications"
+                (Util.decodePair Decode.bool (Decode.list JSON.Notification.decoder))
         }
     , post =
         { login =

@@ -21,6 +21,8 @@ import Pages.Messages exposing (Msg(..))
 import Pages.Model exposing (Model, Shared)
 import Pages.NewStory.Model as NewStoryModel
 import Pages.NewStory.View as NewStoryView
+import Pages.Notifications.Model as NotificationsModel
+import Pages.Notifications.View as NotificationsView
 import Pages.Profile.Model as ProfileModel
 import Pages.Profile.View as ProfileView
 import Pages.ViewBigbit.Model as ViewBigbitModel
@@ -167,6 +169,9 @@ viewForRoute model =
 
         browsePage =
             browseView model.browsePage model.shared
+
+        notificationsPage =
+            notificationsView model.notificationsPage model.shared
     in
     case model.shared.route of
         Route.RegisterPage ->
@@ -316,6 +321,9 @@ viewForRoute model =
         Route.ProfilePage ->
             profilePage
 
+        Route.NotificationsPage ->
+            notificationsPage
+
 
 {-| `Welcome` view.
 -}
@@ -392,6 +400,13 @@ createBigbitView createBigbitModel shared =
 browseView : BrowseModel.Model -> Shared -> Html.Html Msg
 browseView browseModel shared =
     Html.map BrowseMessage (BrowseView.view browseModel shared)
+
+
+{-| `Notifications` view.
+-}
+notificationsView : NotificationsModel.Model -> Shared -> Html.Html Msg
+notificationsView notificationsModel shared =
+    Html.map NotificationsMessage (NotificationsView.view notificationsModel shared)
 
 
 {-| Displays the navbar if the route is not on the welcome page.
@@ -549,6 +564,9 @@ navbar model =
                         , Route.CreateBigbitDescriptionPage
                         , Route.CreateBigbitTagsPage
                         ]
+
+        notificationsViewSelected =
+            Route.NotificationsPage == shared.route
     in
     div
         [ classList
@@ -588,6 +606,15 @@ navbar model =
             , onClick <| GoTo Route.CreatePage
             ]
             [ text "Create" ]
+        , div
+            [ classList
+                [ ( "nav-btn left", True )
+                , ( "hidden", Util.isNothing shared.user )
+                , ( "selected", notificationsViewSelected )
+                ]
+            , onClick <| GoTo Route.NotificationsPage
+            ]
+            [ text "Notifications" ]
         , div
             [ classList
                 [ ( "nav-btn right", True )

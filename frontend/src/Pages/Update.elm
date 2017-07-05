@@ -25,6 +25,8 @@ import Pages.Messages exposing (Msg(..))
 import Pages.Model exposing (Model, kkUpdateWrapper, updateKeysDown, updateKeysDownWithKeys)
 import Pages.NewStory.Messages as NewStoryMessages
 import Pages.NewStory.Update as NewStoryUpdate
+import Pages.Notifications.Messages as NotificationsMessages
+import Pages.Notifications.Update as NotificationsUpdate
 import Pages.Profile.Messages as ProfileMessages
 import Pages.Profile.Update as ProfileUpdate
 import Pages.ViewBigbit.Messages as ViewBigbitMessages
@@ -309,6 +311,23 @@ updateCacheIf msg model shouldCache =
                             }
                     in
                     ( newModel, Cmd.map BrowseMessage newSubMsg )
+
+                NotificationsMessage subMsg ->
+                    let
+                        ( newNotificationsPageModel, newShared, newSubMsg ) =
+                            NotificationsUpdate.update
+                                (commonSubPageUtil model.notificationsPage model.shared)
+                                subMsg
+                                model.notificationsPage
+                                model.shared
+
+                        newModel =
+                            { model
+                                | notificationsPage = newNotificationsPageModel
+                                , shared = newShared
+                            }
+                    in
+                    ( newModel, Cmd.map NotificationsMessage newSubMsg )
 
                 CodeEditorUpdate { id, value, deltaRange, action } ->
                     case id of
@@ -686,6 +705,9 @@ handleLocationChange maybeRoute model =
 
                 triggerRouteHookOnBrowsePage =
                     triggerRouteHook <| BrowseMessage <| BrowseMessages.OnRouteHit route
+
+                triggerRouteHookOnNotificationsPage =
+                    triggerRouteHook <| NotificationsMessage <| NotificationsMessages.OnRouteHit route
             in
             -- Handle general route-logic here, routes are a great way to be
             -- able to trigger certain things (hooks).
@@ -833,6 +855,9 @@ handleLocationChange maybeRoute model =
 
                 Route.DevelopStoryPage _ ->
                     triggerRouteHookOnDevelopStoryPage
+
+                Route.NotificationsPage ->
+                    triggerRouteHookOnNotificationsPage
 
                 _ ->
                     ( newModel, newCmd )

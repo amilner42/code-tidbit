@@ -67,6 +67,7 @@ type Route
     | ProfilePage
     | LoginPage
     | RegisterPage
+    | NotificationsPage
 
 
 {-| For parsing a location (url) into a route.
@@ -271,6 +272,9 @@ matchers =
 
         login =
             s "login"
+
+        notifications =
+            s "notifications"
     in
     oneOf
         [ map BrowsePage top
@@ -322,6 +326,7 @@ matchers =
         , map ProfilePage profile
         , map RegisterPage register
         , map LoginPage login
+        , map NotificationsPage notifications
         ]
 
 
@@ -718,6 +723,9 @@ toHashUrl route =
 
                 RegisterPage ->
                     "register"
+
+                NotificationsPage ->
+                    "notifications"
            )
 
 
