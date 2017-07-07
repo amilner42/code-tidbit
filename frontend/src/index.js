@@ -11,6 +11,7 @@ require("./Pages/CreateBigbit/Styles.scss");
 require("./Pages/CreateSnipbit/Styles.scss");
 require("./Pages/DevelopStory/Styles.scss");
 require("./Pages/NewStory/Styles.scss");
+require("./Pages/Notifications/Styles.scss");
 require("./Pages/Profile/Styles.scss");
 require("./Pages/Styles.scss");
 require("./Pages/ViewBigbit/Styles.scss");

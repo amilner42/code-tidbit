@@ -13,6 +13,7 @@ import Pages.CreateSnipbit.Messages as CreateSnipbitMessages
 import Pages.DevelopStory.Messages as DevelopStoryMessages
 import Pages.Model exposing (Model)
 import Pages.NewStory.Messages as NewStoryMessages
+import Pages.Notifications.Messages as NotificationsMessages
 import Pages.Profile.Messages as ProfileMessages
 import Pages.ViewBigbit.Messages as ViewBigbitMessages
 import Pages.ViewSnipbit.Messages as ViewSnipbitMessages
@@ -42,6 +43,7 @@ type Msg
     | CreateSnipbitMessage CreateSnipbitMessages.Msg
     | CreateBigbitMessage CreateBigbitMessages.Msg
     | BrowseMessage BrowseMessages.Msg
+    | NotificationsMessage NotificationsMessages.Msg
     | CodeEditorUpdate { id : String, value : String, deltaRange : Range.Range, action : String }
     | CodeEditorSelectionUpdate { id : String, range : Range.Range }
     | KeyboardExtraMessage Keyboard.Extra.Msg

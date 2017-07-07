@@ -16,6 +16,7 @@ import Pages.CreateBigbit.Model as CreateBigbitModel
 import Pages.CreateSnipbit.Model as CreateSnipbitModel
 import Pages.DevelopStory.Model as DevelopStoryModel
 import Pages.NewStory.Model as NewStoryModel
+import Pages.Notifications.Model as NotificationsModel
 import Pages.Profile.Model as ProfileModel
 import Pages.ViewBigbit.Model as ViewBigbitModel
 import Pages.ViewSnipbit.Model as ViewSnipbitModel
@@ -42,6 +43,7 @@ type alias Model =
     , createBigbitPage : CreateBigbitModel.Model
     , browsePage : BrowseModel.Model
     , viewStoryPage : ViewStoryModel.Model
+    , notificationsPage : NotificationsModel.Model
     }
 
 

@@ -12,6 +12,7 @@ import Pages.CreateSnipbit.Init as CreateSnipbitInit
 import Pages.DevelopStory.Init as DevelopStoryInit
 import Pages.Model as Model
 import Pages.NewStory.Init as NewStoryInit
+import Pages.Notifications.Init as NotificationsInit
 import Pages.Profile.Init as ProfileInit
 import Pages.ViewBigbit.Init as ViewBigbitInit
 import Pages.ViewSnipbit.Init as ViewSnipbitInit
@@ -39,6 +40,7 @@ defaultModel route flags =
     , createBigbitPage = CreateBigbitInit.init
     , browsePage = BrowseInit.init
     , viewStoryPage = ViewStoryInit.init
+    , notificationsPage = NotificationsInit.init
     }
 
 

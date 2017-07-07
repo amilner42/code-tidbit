@@ -179,6 +179,13 @@ decodePair decodeA decodeB =
     Decode.map2 (,) (Decode.index 0 decodeA) (Decode.index 1 decodeB)
 
 
+{-| Encodes a pair into javascript-pair-format (array).
+-}
+encodePair : (a -> Encode.Value) -> (b -> Encode.Value) -> ( a, b ) -> Encode.Value
+encodePair encodeA encodeB ( a, b ) =
+    Encode.list [ encodeA a, encodeB b ]
+
+
 {-| Creates a basic hidden div.
 -}
 hiddenDiv : Html.Html msg

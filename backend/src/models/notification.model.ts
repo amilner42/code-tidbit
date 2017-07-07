@@ -359,8 +359,8 @@ export const makeNotification = (nd: NotificationData): ((userID: MongoID) => No
           read,
           message: `Your ${tidbitNameInString(nd.tidbitPointer.tidbitType, nd.tidbitName)} has been completed by ${nd.count} people!`,
           actionLink: [
-            "view",
-            getContentLink(toContentPointer(nd.tidbitPointer))
+            `view ${tidbitTypeToName(nd.tidbitPointer.tidbitType)}`,
+            getTidbitLink(nd.tidbitPointer)
           ],
           hash
         };
@@ -387,7 +387,7 @@ export const makeNotification = (nd: NotificationData): ((userID: MongoID) => No
           read,
           message: `Your ${contentNameInString(nd.contentPointer.contentType, nd.contentName)} just hit ${nd.count} ${opinionRatingToHumanReadablePluralName(nd.rating)}!`,
           actionLink: [
-            "view",
+            `view ${contentTypeToName(nd.contentPointer.contentType)}`,
             getContentLink(nd.contentPointer)
           ],
           hash
@@ -408,7 +408,7 @@ export const makeNotification = (nd: NotificationData): ((userID: MongoID) => No
           read,
           message: `Your question on ${tidbitNameInString(nd.tidbitPointer.tidbitType, nd.tidbitName)} just hit ${nd.count} likes!`,
           actionLink: [
-            "view",
+            "view question",
             getQuestionLink(nd.tidbitPointer, nd.questionID)
           ],
           hash
@@ -429,7 +429,7 @@ export const makeNotification = (nd: NotificationData): ((userID: MongoID) => No
           read,
           message: `Your answer on ${tidbitNameInString(nd.tidbitPointer.tidbitType, nd.tidbitName)} just hit ${nd.count} likes!`,
           actionLink: [
-            "view",
+            "view answer",
             getAnswerLink(nd.tidbitPointer, nd.answerID)
           ],
           hash
@@ -449,7 +449,7 @@ export const makeNotification = (nd: NotificationData): ((userID: MongoID) => No
           read,
           message: `Your question on ${tidbitNameInString(nd.tidbitPointer.tidbitType, nd.tidbitName)} just got pinned!`,
           actionLink: [
-            "view",
+            "view question",
             getQuestionLink(nd.tidbitPointer, nd.questionID)
           ],
           hash
@@ -469,7 +469,7 @@ export const makeNotification = (nd: NotificationData): ((userID: MongoID) => No
           read,
           message: `Your answer on ${tidbitNameInString(nd.tidbitPointer.tidbitType, nd.tidbitName)} just got pinned!`,
           actionLink: [
-            "view",
+            "view answer",
             getAnswerLink(nd.tidbitPointer, nd.answerID)
           ],
           hash
@@ -495,7 +495,7 @@ export const makeNotification = (nd: NotificationData): ((userID: MongoID) => No
           read,
           message: nd.isTidbitAuthor(userID) ? authorMessage : subscribedUserMessage,
           actionLink: [
-            "view",
+            "view question",
             getQuestionLink(nd.tidbitPointer, nd.questionID)
           ],
           hash
@@ -531,7 +531,7 @@ export const makeNotification = (nd: NotificationData): ((userID: MongoID) => No
           read,
           message,
           actionLink: [
-            "view",
+            "view answer",
             getAnswerLink(nd.tidbitPointer, nd.answerID)
           ],
           hash
@@ -552,7 +552,7 @@ export const makeNotification = (nd: NotificationData): ((userID: MongoID) => No
           read,
           message: `A thread you are in has a new comment on ${tidbitNameInString(nd.tidbitPointer.tidbitType, nd.tidbitName)}`,
           actionLink: [
-            "view",
+            "view thread",
             getQuestionCommentsLink(nd.tidbitPointer, nd.questionID)
           ],
           hash
@@ -573,7 +573,7 @@ export const makeNotification = (nd: NotificationData): ((userID: MongoID) => No
           read,
           message: `A thread you are in has a new comment on ${tidbitNameInString(nd.tidbitPointer.tidbitType, nd.tidbitName)}`,
           actionLink: [
-            "view",
+            "view thread",
             getAnswerCommentsLink(nd.tidbitPointer, nd.answerID)
           ],
           hash
@@ -604,6 +604,11 @@ const contentTypeToName = (contentType: ContentType): string => {
       assertNever(contentType);
   }
 };
+
+/**
+ * Get's the human-readable name for the given `TidbitType`.
+ */
+const tidbitTypeToName = R.pipe(toContentType, contentTypeToName);
 
 const viewSnipbitBaseUrl = (snipbitID: MongoID): string => {
   return `#/view/snipbit/${snipbitID}`;
@@ -648,6 +653,13 @@ const getContentLink = (contentPointer: ContentPointer): Link => {
     default: assertNever(contentPointer.contentType);
   }
 };
+
+/**
+ * Get's the [relative] link to view a tidbit.
+ *
+ * This will link to the introduction.
+ */
+const getTidbitLink = R.pipe(toContentPointer, getContentLink);
 
 /**
  * Get's the link to a question [on a tidbit].
