@@ -155,12 +155,18 @@ view model shared =
                         [ div
                             [ class "profile-card-title" ]
                             [ text "Editor" ]
+                        , div
+                            [ class "coming-soon" ]
+                            [ text "coming soon" ]
                         ]
                     , div
                         [ class "profile-card" ]
                         [ div
                             [ class "profile-card-title" ]
                             [ text "App" ]
+                        , div
+                            [ class "coming-soon" ]
+                            [ text "coming soon" ]
                         ]
                     ]
                 ]

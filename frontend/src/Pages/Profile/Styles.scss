@@ -26,6 +26,15 @@
                 display: inline-block;
             }
 
+            .coming-soon {
+                position: absolute;
+                top: 48%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                font-size: 18px;
+                color: $color14;
+            }
+
             .profile-card-title {
                 color: $color12;
                 font-size: 36px;
