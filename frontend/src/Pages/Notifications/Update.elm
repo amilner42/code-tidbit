@@ -21,8 +21,21 @@ update (Common common) msg model shared =
         NoOp ->
             common.doNothing
 
-        GoToLink link ->
-            common.justProduceCmd <| newUrl link
+        GoToNotificationLink notificationID read link ->
+            common.handleAll
+                [ \(Common common) ( model, shared ) -> common.justProduceCmd <| newUrl link
+                , \(Common common) ( model, shared ) ->
+                    if read then
+                        common.doNothing
+                    else
+                        common.makeSingletonRequest (RT.SetNotificationRead notificationID) <|
+                            common.justProduceCmd <|
+                                common.api.post.setNotificationRead
+                                    notificationID
+                                    True
+                                    (OnSetNotificationReadFailure notificationID)
+                                    (always <| OnSetNotificationReadSuccess notificationID True)
+                ]
 
         OnRouteHit route ->
             case route of

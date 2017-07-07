@@ -68,7 +68,7 @@ notificationView isMakingSetNotificationReadRequest notification =
         , div
             [ class "bottom-bar" ]
             [ button
-                [ onClick <| GoToLink <| Tuple.second notification.actionLink ]
+                [ onClick <| GoToNotificationLink notification.id notification.read <| Tuple.second notification.actionLink ]
                 [ text <| Tuple.first notification.actionLink ]
             , button
                 [ classList
