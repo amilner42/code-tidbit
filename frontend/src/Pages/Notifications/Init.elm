@@ -7,4 +7,6 @@ import Pages.Notifications.Model exposing (..)
 -}
 init : Model
 init =
-    { notifications = Nothing }
+    { notifications = Nothing
+    , pageNumber = 1
+    }

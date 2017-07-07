@@ -2,9 +2,12 @@ module Pages.Notifications.Update exposing (..)
 
 import Api
 import DefaultServices.CommonSubPageUtil exposing (CommonSubPageUtil(..))
+import DefaultServices.InfixFunctions exposing (..)
 import DefaultServices.Util as Util
+import List.Extra
 import Models.RequestTracker as RT
 import Models.Route as Route
+import Navigation exposing (newUrl)
 import Pages.Model exposing (Shared)
 import Pages.Notifications.Messages exposing (..)
 import Pages.Notifications.Model exposing (..)
@@ -18,8 +21,8 @@ update (Common common) msg model shared =
         NoOp ->
             common.doNothing
 
-        GoTo route ->
-            common.justProduceCmd <| Route.navigateTo route
+        GoToLink link ->
+            common.justProduceCmd <| newUrl link
 
         OnRouteHit route ->
             case route of
@@ -27,17 +30,73 @@ update (Common common) msg model shared =
                     if Util.isNotNothing shared.user then
                         common.makeSingletonRequest RT.GetNotifications <|
                             common.justProduceCmd <|
-                                common.api.get.notifications OnGetNotificationsFailure OnGetNotificationsSuccess
+                                common.api.get.notifications
+                                    []
+                                    OnGetInitialNotificationsFailure
+                                    OnGetInitialNotificationsSuccess
                     else
                         common.doNothing
 
                 _ ->
                     common.doNothing
 
-        OnGetNotificationsFailure apiError ->
+        OnGetInitialNotificationsFailure apiError ->
             common.justSetModalError apiError
                 |> common.andFinishRequest RT.GetNotifications
 
-        OnGetNotificationsSuccess notifications ->
-            common.justSetModel { model | notifications = Just notifications }
+        OnGetInitialNotificationsSuccess notifications ->
+            common.justSetModel
+                { model
+                    | notifications = Just notifications
+                    , pageNumber = 2
+                }
+                |> common.andFinishRequest RT.GetNotifications
+
+        SetNotificationRead notificationID read ->
+            common.makeSingletonRequest (RT.SetNotificationRead notificationID) <|
+                common.justProduceCmd <|
+                    common.api.post.setNotificationRead
+                        notificationID
+                        read
+                        (OnSetNotificationReadFailure notificationID)
+                        (always <| OnSetNotificationReadSuccess notificationID read)
+
+        OnSetNotificationReadFailure notificationID apiError ->
+            common.justSetModalError apiError
+                |> common.andFinishRequest (RT.SetNotificationRead notificationID)
+
+        OnSetNotificationReadSuccess notificationID read ->
+            common.justSetModel
+                { model
+                    | notifications =
+                        model.notifications
+                            ||> (\( isMoreNotifications, notifications ) ->
+                                    ( isMoreNotifications
+                                    , notifications
+                                        |> List.Extra.updateIf
+                                            (.id >> (==) notificationID)
+                                            (\notification -> { notification | read = read })
+                                    )
+                                )
+                }
+                |> common.andFinishRequest (RT.SetNotificationRead notificationID)
+
+        LoadMoreNotifications currentNotifications ->
+            common.makeSingletonRequest RT.GetNotifications <|
+                common.justProduceCmd <|
+                    common.api.get.notifications
+                        [ ( "pageNumber", Just <| toString model.pageNumber ) ]
+                        OnLoadMoreNotificationsFailure
+                        (OnLoadMoreNotificationsSuccess currentNotifications)
+
+        OnLoadMoreNotificationsFailure apiError ->
+            common.justSetModalError apiError
+                |> common.andFinishRequest RT.GetNotifications
+
+        OnLoadMoreNotificationsSuccess currentNotifications ( isMoreNotifications, notifications ) ->
+            common.justSetModel
+                { model
+                    | notifications = Just ( isMoreNotifications, currentNotifications ++ notifications )
+                    , pageNumber = model.pageNumber + 1
+                }
                 |> common.andFinishRequest RT.GetNotifications

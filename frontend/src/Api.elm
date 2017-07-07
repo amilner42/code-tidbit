@@ -103,7 +103,7 @@ type alias API msg =
         , bigbitQA : BigbitID -> Endpoint QA.BigbitQA msg
 
         -- Get's the notifications for a user (must be logged-in).
-        , notifications : Endpoint ( Bool, List Notification.Notification ) msg
+        , notifications : QueryParams -> Endpoint ( Bool, List Notification.Notification ) msg
         }
     , post :
         { -- Logs user in and returns the user, unless invalid credentials.
@@ -207,6 +207,9 @@ type alias API msg =
 
         -- Delete a comment on an answer.
         , deleteAnswerComment : TidbitPointer.TidbitPointer -> CommentID -> Endpoint () msg
+
+        -- Sets `read` on a notification.
+        , setNotificationRead : NotificationID -> Bool -> Endpoint () msg
         }
     }
 
@@ -290,9 +293,10 @@ api apiBaseUrl =
                     ("qa" :/: tidbitPointerToUrl { tidbitType = TidbitPointer.Bigbit, targetID = bigbitID })
                     JSON.QA.bigbitQADecoder
         , notifications =
-            makeGETEndpoint
-                "account/notifications"
-                (Util.decodePair Decode.bool (Decode.list JSON.Notification.decoder))
+            \queryParams ->
+                makeGETEndpoint
+                    ("account/notifications" ++ Util.queryParamsToString queryParams)
+                    (Util.decodePair Decode.bool (Decode.list JSON.Notification.decoder))
         }
     , post =
         { login =
@@ -550,6 +554,16 @@ api apiBaseUrl =
                     ("qa" :/: tidbitPointerToUrl tidbitPointer :/: "deleteComment/answer")
                     (decode ())
                     (Encode.object [ ( "commentID", Encode.string commentID ) ])
+        , setNotificationRead =
+            \notificationID read ->
+                makePOSTEndpoint
+                    "account/notifications/setRead"
+                    (decode ())
+                    (Encode.object
+                        [ ( "notificationID", Encode.string notificationID )
+                        , ( "read", Encode.bool read )
+                        ]
+                    )
         }
     }
 

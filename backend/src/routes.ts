@@ -248,7 +248,8 @@ export const routes: AppRoutes = {
      */
     get: (req, res): Promise<[ boolean, Notification[] ]> => {
       const userID = req.user._id;
-      const { pageNumber, pageSize } = req.query;
+      const pageNumber = getPageNumberAsInt(req.query) || 1;
+      const pageSize =  getPageSizeAsInt(req.query) || 100;
 
       return notificationDBActions.getNotifications(userID, pageNumber, pageSize);
     }

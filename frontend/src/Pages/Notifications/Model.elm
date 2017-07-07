@@ -4,4 +4,6 @@ import Models.Notification exposing (Notification)
 
 
 type alias Model =
-    { notifications : Maybe ( Bool, List Notification ) }
+    { notifications : Maybe ( Bool, List Notification )
+    , pageNumber : Int
+    }

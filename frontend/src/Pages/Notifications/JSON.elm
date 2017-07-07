@@ -18,6 +18,7 @@ encoder model =
     in
     Encode.object
         [ ( "notifications", Util.justValueOrNull encodeNotifications model.notifications )
+        , ( "pageNumber", Encode.int model.pageNumber )
         ]
 
 
@@ -27,3 +28,4 @@ decoder : Decode.Decoder Model
 decoder =
     decode Model
         |> required "notifications" (Decode.maybe <| Util.decodePair Decode.bool (Decode.list JSON.Notification.decoder))
+        |> required "pageNumber" Decode.int
