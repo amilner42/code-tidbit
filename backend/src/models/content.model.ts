@@ -170,8 +170,18 @@ export const contentDBActions = {
   /**
    * Returns true if the `contentPointer` is pointing to actual content.
    */
-  contentPointerExists: (contentPointer: ContentPointer): Promise<boolean> => {
-    const collectionName = (() => {
+  contentPointerExists: (contentPointer: ContentPointer, doValidation = true): Promise<boolean> => {
+    return contentDBActions.expandContentPointer(contentPointer, doValidation)
+    .then((content) => {
+      return content !== null;
+    });
+  },
+
+  /**
+   * Expands a contentPointer to the actual content. Returns `null` if the contentPointer points to nothing.
+   */
+  expandContentPointer: (contentPointer: ContentPointer, doValidation = true): Promise<Content> => {
+    const contentCollectionName = (() => {
       switch(contentPointer.contentType) {
         case ContentType.Snipbit:
           return "snipbits"
@@ -184,16 +194,17 @@ export const contentDBActions = {
       }
     })();
 
-    return collection(collectionName)
-    .then((collectionX) => {
-      return collectionX.findOne({ _id: toMongoObjectID(contentPointer.contentID) })
+    return (doValidation ? kleen.validModel(contentPointerSchema)(contentPointer) : Promise.resolve())
+    .then(() => {
+      return collection(contentCollectionName);
     })
-    .then((x) => {
-      if(x) {
-        return true;
-      }
+    .then((contentCollection) => {
+      return contentCollection.findOne({ _id: toMongoObjectID(contentPointer.contentID) })
+    })
+    .then((content) => {
+      if(content) return content;
 
-      return false;
+      return null;
     });
   }
 }
@@ -283,7 +294,7 @@ export const getContent = <Content>
       const pageNumber = resultManipulation.pageNumber || 1;
       const pageSize = resultManipulation.pageSize || 10;
 
-      return getPaginatedResults(pageNumber, pageSize, cursor);
+      return getPaginatedResults(pageNumber, Math.min(10, pageSize), cursor);
     }
 
     return cursor.toArray()

@@ -10,6 +10,7 @@ import { completedDBActions } from "./models/completed.model";
 import { Content, contentDBActions, ContentSearchFilter, GeneralSearchConfiguration, ContentResultManipulation, ContentPointer, ContentType } from "./models/content.model";
 import { User, userDBActions, prepareUserForResponse } from './models/user.model';
 import { Snipbit, snipbitDBActions } from './models/snipbit.model';
+import { Notification, notificationDBActions } from "./models/notification.model";
 import { Bigbit, bigbitDBActions } from './models/bigbit.model';
 import { Story, NewStory, ExpandedStory, storyDBActions, StorySearchFilter } from "./models/story.model";
 import { Tidbit, tidbitDBActions } from './models/tidbit.model';
@@ -241,6 +242,31 @@ export const routes: AppRoutes = {
     }
   },
 
+  '/account/notifications': {
+    /**
+     * @refer `notificationDBActions.getNotifications`
+     */
+    get: (req, res): Promise<[ boolean, Notification[] ]> => {
+      const userID = req.user._id;
+      const pageNumber = getPageNumberAsInt(req.query) || 1;
+      const pageSize =  getPageSizeAsInt(req.query) || 100;
+
+      return notificationDBActions.getNotifications(userID, pageNumber, pageSize);
+    }
+  },
+
+  '/account/notifications/setRead': {
+    /**
+     * @refer `notificationDBActions.setRead`
+     */
+    post: (req, res): Promise<void> => {
+      const userID = req.user._id;
+      const { notificationID, read } = req.body;
+
+      return notificationDBActions.setRead(userID, notificationID, read);
+    }
+  },
+
   '/snipbits': {
     /**
      * @refer `snipbitDBActions.getSnipbits`.
@@ -417,7 +443,7 @@ export const routes: AppRoutes = {
 
   '/opinions/:contentType/:contentID': {
     /**
-    * @refer `opinionDBActions.getAllOpinionsOnContent`.
+    * @refer `opinionDBActions.getOpinionsCountOnContent`.
     */
     get: (req, res): Promise<Ratings> => {
       const params = req.params;
@@ -426,7 +452,7 @@ export const routes: AppRoutes = {
         contentID: params.contentID
       };
 
-      return opinionDBActions.getAllOpinionsOnContent(contentPointer);
+      return opinionDBActions.getOpinionsCountOnContent(contentPointer);
     }
   },
 

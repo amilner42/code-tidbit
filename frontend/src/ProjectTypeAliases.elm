@@ -65,6 +65,18 @@ type alias UserID =
     String
 
 
+type alias NotificationID =
+    String
+
+
+type alias LinkName =
+    String
+
+
+type alias Link =
+    String
+
+
 type alias QueryParams =
     List ( String, Maybe String )
 

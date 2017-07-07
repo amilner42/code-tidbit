@@ -102,7 +102,7 @@ const prepareSnipbitForResponse = (snipbit: Snipbit): Promise<Snipbit> => {
     contentType: ContentType.Snipbit
   };
 
-  return opinionDBActions.getAllOpinionsOnContent(contentPointer, false)
+  return opinionDBActions.getOpinionsCountOnContent(contentPointer, false)
   .then(({ likes }) => {
     snipbitCopy.likes = likes;
 

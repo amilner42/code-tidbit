@@ -119,7 +119,7 @@ const prepareBigbitForResponse = (bigbit: Bigbit): Promise<Bigbit> => {
 
   bigbitCopy.fs = swapPeriodsWithStars(false, bigbitCopy.fs);
 
-  return opinionDBActions.getAllOpinionsOnContent(contentPointer, false)
+  return opinionDBActions.getOpinionsCountOnContent(contentPointer, false)
   .then(({ likes }) => {
     bigbitCopy.likes = likes;
 

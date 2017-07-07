@@ -5,11 +5,12 @@ import * as moment from "moment";
 import { ObjectID } from "mongodb";
 import * as R from "ramda";
 
+import { NotificationData, NotificationType, isCountNotificationWorthy, makeNotification, notificationDBActions } from "./notification.model";
 import { internalError, isNullOrUndefined, malformedFieldError } from '../util';
 import { MongoObjectID, MongoID, ErrorCode } from "../types";
-import { collection, toMongoObjectID, renameIDField, rejectIfResultNotOK, rejectIfNoneModified, rejectIfNoneMatched, rejectIfNoneUpserted } from "../db";
+import { collection, toMongoObjectID, renameIDField, updateOneResultHandlers, findOneAndUpdateResultHandlers, sameID } from "../db";
 import { Range } from "./range.model";
-import { TidbitPointer, TidbitType, tidbitPointerSchema } from "./tidbit.model";
+import { TidbitPointer, TidbitType, tidbitPointerSchema, tidbitDBActions } from "./tidbit.model";
 import { stringInRange, rangeSchema, nonEmptyStringSchema, mongoIDSchema, booleanSchema } from "./kleen-schemas";
 
 
@@ -161,7 +162,7 @@ export const qaDBActions = {
         { upsert: true }
       );
     })
-    .then(rejectIfResultNotOK)
+    .then(updateOneResultHandlers.rejectIfResultNotOK)
     .then((updateWriteOpResult) => {
       if(updateWriteOpResult.matchedCount === 1) {
         return Promise.reject(
@@ -171,7 +172,7 @@ export const qaDBActions = {
 
       return Promise.resolve(updateWriteOpResult);
     })
-    .then(rejectIfNoneUpserted)
+    .then(updateOneResultHandlers.rejectIfNoneUpserted)
     .then(R.always(null));
   },
 
@@ -233,16 +234,18 @@ export const qaDBActions = {
       });
     };
 
+    // The ID of the new question.
+    const questionID = new ObjectID();
+
     return ( doValidation ? resolveIfValid() : Promise.resolve() )
     .then(() => {
       return collection(qaCollectionName(tidbitPointer.tidbitType));
     })
     .then((collectionX) => {
       const dateNow = moment.utc().toDate();
-      const id = new ObjectID();
 
       const question: Question<CodePointer> = {
-        id,
+        id: questionID,
         authorID,
         authorEmail,
         codePointer,
@@ -259,9 +262,34 @@ export const qaDBActions = {
         { $push: { questions: question } },
         { upsert: false }
       )
-      .then(rejectIfResultNotOK)
-      .then(rejectIfNoneModified)
-      .then(R.always(prepareQuestionOrAnswerForResponse(authorID, question)));
+      .then(updateOneResultHandlers.rejectIfResultNotOK)
+      .then(updateOneResultHandlers.rejectIfNoneModified)
+      .then(() => {
+        // Create a notification if needed
+        {
+          const createNewQuestionNotification = () => {
+            return tidbitDBActions.expandTidbitPointer(tidbitPointer)
+            .then((tidbit) => {
+              // If we send notifications to people other than just the tidbit author then remove this.
+              if(sameID(authorID, tidbit.author)) return null;
+
+              const notificationData: NotificationData = {
+                type: NotificationType.TidbitNewQuestion,
+                tidbitPointer,
+                tidbitName: tidbit.name,
+                isTidbitAuthor: (userID) => { return sameID(userID, tidbit.author) },
+                questionID
+              };
+
+              return makeNotification(notificationData)(tidbit.author);
+            });
+          };
+
+          notificationDBActions.addNotificationWrapper(createNewQuestionNotification);
+        }
+
+        return prepareQuestionOrAnswerForResponse(authorID, question);
+      });
     });
   },
 
@@ -313,9 +341,9 @@ export const qaDBActions = {
         },
         { upsert: false }
       )
-      .then(rejectIfResultNotOK)
-      .then(rejectIfNoneMatched)
-      .then(rejectIfNoneModified)
+      .then(updateOneResultHandlers.rejectIfResultNotOK)
+      .then(updateOneResultHandlers.rejectIfNoneMatched)
+      .then(updateOneResultHandlers.rejectIfNoneModified)
       .then(R.always(dateNow));
     });
   },
@@ -364,9 +392,9 @@ export const qaDBActions = {
         },
         { upsert: false }
       )
-      .then(rejectIfResultNotOK)
-      .then(rejectIfNoneMatched)
-      .then(rejectIfNoneModified)
+      .then(updateOneResultHandlers.rejectIfResultNotOK)
+      .then(updateOneResultHandlers.rejectIfNoneMatched)
+      .then(updateOneResultHandlers.rejectIfNoneModified)
       .then(R.always(null));
     });
   },
@@ -408,15 +436,45 @@ export const qaDBActions = {
         }
       })();
 
-      return collectionX.updateOne(
+      return collectionX.findOneAndUpdate(
         { tidbitID: toMongoObjectID(tidbitPointer.targetID), "questions.id": toMongoObjectID(questionID) },
         updateObject,
-        { upsert: false }
+        { upsert: false, returnOriginal: false }
       );
     })
-    .then(rejectIfResultNotOK)
-    .then(rejectIfNoneMatched)
-    .then(R.always(null));
+    .then(findOneAndUpdateResultHandlers.rejectIfResultNotOK)
+    .then(findOneAndUpdateResultHandlers.rejectIfValueNotPresent)
+    .then((findOneAndUpdateResult) => {
+      // Create a notification if needed.
+      {
+        const createTidbitQuestionLikeNotification = () => {
+          const qa: QA<any> = findOneAndUpdateResult.value;
+          const question =
+            R.find<Question<any>>(R.pipe(R.prop("id"), R.equals(toMongoObjectID(questionID))))(qa.questions);
+
+          if(isNullOrUndefined(question) || vote !== Vote.Upvote || !isCountNotificationWorthy(question.upvotes.length)) {
+            return Promise.resolve(null);
+          }
+
+          return tidbitDBActions.expandTidbitPointer(tidbitPointer)
+          .then((tidbit) => {
+            const notificationData: NotificationData = {
+              type: NotificationType.TidbitQuestionLikeCount,
+              count: question.upvotes.length,
+              questionID,
+              tidbitName: tidbit.name,
+              tidbitPointer
+            };
+
+            return makeNotification(notificationData)(question.authorID);
+          });
+        };
+
+        notificationDBActions.addNotificationWrapper(createTidbitQuestionLikeNotification);
+      }
+
+      return null;
+    });
   },
 
   /**
@@ -450,8 +508,8 @@ export const qaDBActions = {
         { upsert: false }
       );
     })
-    .then(rejectIfResultNotOK)
-    .then(rejectIfNoneMatched)
+    .then(updateOneResultHandlers.rejectIfResultNotOK)
+    .then(updateOneResultHandlers.rejectIfNoneMatched)
     .then(R.always(null));
   },
 
@@ -482,19 +540,48 @@ export const qaDBActions = {
       return collection(qaCollectionName(tidbitPointer.tidbitType));
     })
     .then((collectionX) => {
-      return collectionX.updateOne(
+      return collectionX.findOneAndUpdate(
         {
           tidbitID: toMongoObjectID(tidbitPointer.targetID),
           tidbitAuthor: userID,
           "questions.id": toMongoObjectID(questionID)
         },
         { $set: { "questions.$.pinned": pin } },
-        { upsert: false }
+        { upsert: false, returnOriginal: false }
       );
     })
-    .then(rejectIfResultNotOK)
-    .then(rejectIfNoneMatched)
-    .then(R.always(null))
+    .then(findOneAndUpdateResultHandlers.rejectIfResultNotOK)
+    .then(findOneAndUpdateResultHandlers.rejectIfValueNotPresent)
+    .then((findOneAndUpdateResult) => {
+      // Create a notification if needed.
+      {
+        const createTidbitQuestionPinnedNotification = () => {
+          const qa: QA<any> = findOneAndUpdateResult.value;
+          const question =
+            R.find<Question<any>>(R.pipe(R.prop("id"), R.equals(toMongoObjectID(questionID))))(qa.questions);
+
+          if(isNullOrUndefined(question) || !pin || sameID(userID, question.authorID)) {
+            return Promise.resolve(null);
+          }
+
+          return tidbitDBActions.expandTidbitPointer(tidbitPointer)
+          .then((tidbit) => {
+            const notificationData: NotificationData = {
+              type: NotificationType.TidbitQuestionPinned,
+              tidbitPointer,
+              questionID,
+              tidbitName: tidbit.name
+            };
+
+            return makeNotification(notificationData)(question.authorID);
+          });
+        };
+
+        notificationDBActions.addNotificationWrapper(createTidbitQuestionPinnedNotification);
+      }
+
+      return null;
+    });
   },
 
   /**
@@ -518,7 +605,10 @@ export const qaDBActions = {
         kleen.validModel(mongoIDSchema(malformedFieldError("questionID")))(questionID),
         kleen.validModel(answerTextSchema)(answerText)
       ]);
-    }
+    };
+
+    // The ID of the new answer.
+    const answerID = new ObjectID();
 
     return (doValidation ? resolveIfValid() : Promise.resolve())
     .then(() => {
@@ -526,10 +616,9 @@ export const qaDBActions = {
     })
     .then((collectionX) => {
       const dateNow = moment.utc().toDate();
-      const id = new ObjectID();
 
       const answer: Answer = {
-        id,
+        id: answerID,
         answerText,
         authorEmail,
         authorID,
@@ -541,15 +630,51 @@ export const qaDBActions = {
         questionID: toMongoObjectID(questionID)
       };
 
-      return collectionX.updateOne(
+      return collectionX.findOneAndUpdate(
         { tidbitID: toMongoObjectID(tidbitPointer.targetID), "questions.id": toMongoObjectID(questionID) },
         { $push: { answers: answer } },
-        { upsert: false }
+        { upsert: false, returnOriginal: false }
       )
-      .then(rejectIfResultNotOK)
-      .then(rejectIfNoneMatched)
-      .then(rejectIfNoneModified)
-      .then(R.always(prepareQuestionOrAnswerForResponse(authorID, answer)));
+      .then(findOneAndUpdateResultHandlers.rejectIfResultNotOK)
+      .then(findOneAndUpdateResultHandlers.rejectIfValueNotPresent)
+      .then((findOneAndUpdateResult) => {
+        // Create notifications if needed.
+        {
+          const createNewAnswerNotifications = () => {
+            const qa: QA<any> = findOneAndUpdateResult.value;
+            const question =
+              R.find<Question<any>>(R.pipe(R.prop("id"), R.equals(toMongoObjectID(questionID))))(qa.questions);
+
+            if(isNullOrUndefined(question)) return Promise.resolve(null);
+
+            return tidbitDBActions.expandTidbitPointer(tidbitPointer)
+            .then((tidbit) => {
+              const notificationData: NotificationData = {
+                type: NotificationType.TidbitNewAnswer,
+                tidbitPointer,
+                answerID,
+                tidbitName: tidbit.name,
+                isQuestionAuthor: (userID) => { return sameID(userID, question.authorID) },
+                isTidbitAuthor: (userID) => { return sameID(userID, tidbit.author) }
+              };
+
+              const createNotificationForUser = makeNotification(notificationData);
+              const usersToNotify = R.filter(
+                (userID) => { return !sameID(authorID, userID)},
+                [ tidbit.author, question.authorID ]
+              );
+
+              if(usersToNotify.length === 0) return null;
+
+              return usersToNotify.map(createNotificationForUser);
+            });
+          };
+
+          notificationDBActions.addNotificationWrapper(createNewAnswerNotifications);
+        }
+
+        return prepareQuestionOrAnswerForResponse(authorID, answer);
+      });
     });
   },
 
@@ -593,9 +718,9 @@ export const qaDBActions = {
         { upsert: false }
       );
     })
-    .then(rejectIfResultNotOK)
-    .then(rejectIfNoneMatched)
-    .then(rejectIfNoneModified)
+    .then(updateOneResultHandlers.rejectIfResultNotOK)
+    .then(updateOneResultHandlers.rejectIfNoneMatched)
+    .then(updateOneResultHandlers.rejectIfNoneModified)
     .then(R.always(null));
   },
 
@@ -643,9 +768,9 @@ export const qaDBActions = {
         },
         { upsert: false }
       )
-      .then(rejectIfResultNotOK)
-      .then(rejectIfNoneMatched)
-      .then(rejectIfNoneModified)
+      .then(updateOneResultHandlers.rejectIfResultNotOK)
+      .then(updateOneResultHandlers.rejectIfNoneMatched)
+      .then(updateOneResultHandlers.rejectIfNoneModified)
       .then(R.always(dateNow));
     });
   },
@@ -687,15 +812,45 @@ export const qaDBActions = {
         }
       })();
 
-      return collectionX.updateOne(
+      return collectionX.findOneAndUpdate(
         { tidbitID: toMongoObjectID(tidbitPointer.targetID), "answers.id": toMongoObjectID(answerID)  },
         updateObject,
-        { upsert: false }
+        { upsert: false, returnOriginal: false }
       );
     })
-    .then(rejectIfResultNotOK)
-    .then(rejectIfNoneMatched)
-    .then(R.always(null));
+    .then(findOneAndUpdateResultHandlers.rejectIfResultNotOK)
+    .then(findOneAndUpdateResultHandlers.rejectIfValueNotPresent)
+    .then((findOneAndUpdateResult) => {
+      // Create a notification if needed.
+      {
+        const createTidbitAnswerLikeNotification = () => {
+          const qa: QA<any> = findOneAndUpdateResult.value;
+          const answer =
+            R.find<Answer>(R.pipe(R.prop("id"), R.equals(toMongoObjectID(answerID))))(qa.answers);
+
+          if(isNullOrUndefined(answer) || vote !== Vote.Upvote || !isCountNotificationWorthy(answer.upvotes.length)) {
+            return Promise.resolve(null);
+          }
+
+          return tidbitDBActions.expandTidbitPointer(tidbitPointer)
+          .then((tidbit) => {
+            const notificationData: NotificationData = {
+              type: NotificationType.TidbitAnswerLikeCount,
+              answerID,
+              tidbitPointer,
+              tidbitName: tidbit.name,
+              count: answer.upvotes.length
+            };
+
+            return makeNotification(notificationData)(answer.authorID);
+          });
+        };
+
+        notificationDBActions.addNotificationWrapper(createTidbitAnswerLikeNotification);
+      }
+
+      return null;
+    });
   },
 
   /**
@@ -729,8 +884,8 @@ export const qaDBActions = {
         { upsert: false }
       );
     })
-    .then(rejectIfResultNotOK)
-    .then(rejectIfNoneMatched)
+    .then(updateOneResultHandlers.rejectIfResultNotOK)
+    .then(updateOneResultHandlers.rejectIfNoneMatched)
     .then(R.always(null));
   },
 
@@ -761,19 +916,48 @@ export const qaDBActions = {
       return collection(qaCollectionName(tidbitPointer.tidbitType));
     })
     .then((collectionX) => {
-      return collectionX.updateOne(
+      return collectionX.findOneAndUpdate(
         {
           tidbitID: toMongoObjectID(tidbitPointer.targetID),
           tidbitAuthor: userID,
           "answers.id": toMongoObjectID(answerID)
         },
         { $set: { "answers.$.pinned": pin } },
-        { upsert: false }
+        { upsert: false, returnOriginal: false }
       );
     })
-    .then(rejectIfResultNotOK)
-    .then(rejectIfNoneMatched)
-    .then(R.always(null));
+    .then(findOneAndUpdateResultHandlers.rejectIfResultNotOK)
+    .then(findOneAndUpdateResultHandlers.rejectIfValueNotPresent)
+    .then((findOneAndUpdateResult) => {
+      // Add notification if needed.
+      {
+        const createTidbitAnswerPinnedNotification = () => {
+          const qa: QA<any> = findOneAndUpdateResult.value;
+          const answer =
+            R.find<Answer>(R.pipe(R.prop("id"), R.equals(toMongoObjectID(answerID))))(qa.answers);
+
+          if(isNullOrUndefined(answer) || !pin || sameID(userID, answer.authorID)) {
+            return Promise.resolve(null);
+          }
+
+          return tidbitDBActions.expandTidbitPointer(tidbitPointer)
+          .then((tidbit) => {
+            const notificationData: NotificationData = {
+              type: NotificationType.TidbitAnswerPinned,
+              tidbitPointer,
+              tidbitName: tidbit.name,
+              answerID
+            };
+
+            return makeNotification(notificationData)(answer.authorID);
+          })
+        };
+
+        notificationDBActions.addNotificationWrapper(createTidbitAnswerPinnedNotification);
+      }
+
+      return null;
+    });
   },
 
   /**
@@ -805,10 +989,10 @@ export const qaDBActions = {
     })
     .then((collectionX) => {
       const dateNow = moment.utc().toDate();
-      const id = new ObjectID();
+      const commentID = new ObjectID();
 
       const newComment: QuestionComment = {
-        id,
+        id: commentID,
         questionID: toMongoObjectID(questionID),
         authorID: userID,
         authorEmail: userEmail,
@@ -817,15 +1001,46 @@ export const qaDBActions = {
         lastModified: dateNow
       };
 
-      return collectionX.updateOne(
+      return collectionX.findOneAndUpdate(
         { tidbitID: toMongoObjectID(tidbitPointer.targetID), "questions.id": toMongoObjectID(questionID) },
         { $push: { "questionComments": newComment }},
-        { upsert: false }
+        { upsert: false, returnOriginal: false }
       )
-      .then(rejectIfResultNotOK)
-      .then(rejectIfNoneMatched)
-      .then(rejectIfNoneModified)
-      .then(R.always(newComment));
+      .then(findOneAndUpdateResultHandlers.rejectIfResultNotOK)
+      .then(findOneAndUpdateResultHandlers.rejectIfValueNotPresent)
+      .then((findOneAndUpdateResult) => {
+        // Create notifications if needed
+        {
+          const createNewQuestionCommentNotifications = () => {
+            const qa: QA<any> = findOneAndUpdateResult.value;
+            const relatedComments =
+              R.filter<QuestionComment>(R.pipe(R.prop("questionID"), R.equals(toMongoObjectID(questionID))))(qa.questionComments);
+            const relatedAuthors =
+              R.filter((id) => { return !sameID(id, userID) },R.uniq(relatedComments.map<MongoID>(R.prop("authorID"))));
+
+            if(relatedAuthors.length === 0) return Promise.resolve(null);
+
+            return tidbitDBActions.expandTidbitPointer(tidbitPointer)
+            .then((tidbit) => {
+              const notificationData: NotificationData = {
+                type: NotificationType.TidbitNewQuestionComment,
+                tidbitPointer,
+                questionID,
+                commentID,
+                tidbitName: tidbit.name
+              };
+
+              const createNotificationForUser = makeNotification(notificationData);
+
+              return relatedAuthors.map(createNotificationForUser);
+            });
+          };
+
+          notificationDBActions.addNotificationWrapper(createNewQuestionCommentNotifications);
+        }
+
+        return newComment;
+      });
     });
   },
 
@@ -873,9 +1088,9 @@ export const qaDBActions = {
         },
         { upsert: false }
       )
-      .then(rejectIfResultNotOK)
-      .then(rejectIfNoneMatched)
-      .then(rejectIfNoneModified)
+      .then(updateOneResultHandlers.rejectIfResultNotOK)
+      .then(updateOneResultHandlers.rejectIfNoneMatched)
+      .then(updateOneResultHandlers.rejectIfNoneModified)
       .then(R.always(dateNow));
     });
   },
@@ -911,9 +1126,9 @@ export const qaDBActions = {
         { upsert: false }
       );
     })
-    .then(rejectIfResultNotOK)
-    .then(rejectIfNoneMatched)
-    .then(rejectIfNoneModified)
+    .then(updateOneResultHandlers.rejectIfResultNotOK)
+    .then(updateOneResultHandlers.rejectIfNoneMatched)
+    .then(updateOneResultHandlers.rejectIfNoneModified)
     .then(R.always(null));
   },
 
@@ -924,7 +1139,7 @@ export const qaDBActions = {
    */
   commentOnAnswer:
     ( tidbitPointer: TidbitPointer
-    , questionID
+    , questionID: MongoID
     , answerID: MongoID
     , commentText: string
     , userID: MongoObjectID
@@ -948,10 +1163,10 @@ export const qaDBActions = {
     })
     .then((collectionX) => {
       const dateNow = moment.utc().toDate();
-      const id = new ObjectID();
+      const commentID = new ObjectID();
 
       const newComment: AnswerComment = {
-        id,
+        id: commentID,
         authorEmail: userEmail,
         authorID: userID,
         commentText,
@@ -961,19 +1176,50 @@ export const qaDBActions = {
         answerID: toMongoObjectID(answerID)
       };
 
-      return collectionX.updateOne(
+      return collectionX.findOneAndUpdate(
         {
           tidbitID: toMongoObjectID(tidbitPointer.targetID),
           "answers.id": toMongoObjectID(answerID),
           "answers.questionID": toMongoObjectID(questionID),
         },
         { $push: { "answerComments": newComment }},
-        { upsert: false }
+        { upsert: false, returnOriginal: false }
       )
-      .then(rejectIfResultNotOK)
-      .then(rejectIfNoneMatched)
-      .then(rejectIfNoneModified)
-      .then(R.always(newComment));
+      .then(findOneAndUpdateResultHandlers.rejectIfResultNotOK)
+      .then(findOneAndUpdateResultHandlers.rejectIfValueNotPresent)
+      .then((findOneAndUpdateResult) => {
+        // Create notifications if needed
+        {
+          const createNewAnswerCommentNotifications = () => {
+            const qa: QA<any> = findOneAndUpdateResult.value;
+            const relatedComments =
+              R.filter<AnswerComment>(R.pipe(R.prop("answerID"), R.equals(toMongoObjectID(answerID))))(qa.answerComments);
+            const relatedAuthors =
+              R.filter((id) => { return !sameID(id, userID) },R.uniq(relatedComments.map<MongoID>(R.prop("authorID"))));
+
+            if(relatedAuthors.length === 0) return Promise.resolve(null);
+
+            return tidbitDBActions.expandTidbitPointer(tidbitPointer)
+            .then((tidbit) => {
+              const notificationData: NotificationData = {
+                type: NotificationType.TidbitNewAnswerComment,
+                tidbitPointer,
+                answerID,
+                commentID,
+                tidbitName: tidbit.name,
+              };
+
+              const createNotificationForUser = makeNotification(notificationData);
+
+              return relatedAuthors.map(createNotificationForUser);
+            });
+          };
+
+          notificationDBActions.addNotificationWrapper(createNewAnswerCommentNotifications);
+        }
+
+        return newComment;
+      });
     });
   },
 
@@ -1021,9 +1267,9 @@ export const qaDBActions = {
         },
         { upsert: false }
       )
-      .then(rejectIfResultNotOK)
-      .then(rejectIfNoneMatched)
-      .then(rejectIfNoneModified)
+      .then(updateOneResultHandlers.rejectIfResultNotOK)
+      .then(updateOneResultHandlers.rejectIfNoneMatched)
+      .then(updateOneResultHandlers.rejectIfNoneModified)
       .then(R.always(dateNow));
     });
   },
@@ -1059,9 +1305,9 @@ export const qaDBActions = {
         { upsert: false }
       );
     })
-    .then(rejectIfResultNotOK)
-    .then(rejectIfNoneMatched)
-    .then(rejectIfNoneModified)
+    .then(updateOneResultHandlers.rejectIfResultNotOK)
+    .then(updateOneResultHandlers.rejectIfNoneMatched)
+    .then(updateOneResultHandlers.rejectIfNoneModified)
     .then(R.always(null));
   }
 }

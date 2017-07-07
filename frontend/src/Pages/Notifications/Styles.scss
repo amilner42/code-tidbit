@@ -1,0 +1,125 @@
+@import '../../Styles/global';
+
+
+.notifications-page {
+    width: 100%;
+
+    .notificatons-list {
+        position: relative;
+        width: 800px;
+        margin: 30px auto 0 auto;
+
+        .title {
+            width: 100%;
+            text-align: left;
+            font-size: 18px;
+            font-weight: 500;
+            border-bottom: 1px solid $color13;
+            color: $color10;
+        }
+
+        .list {
+            display: inline-block;
+            width: 100%;
+
+            .notification {
+                @include light-box-shadow();
+
+                position: relative;
+                display: inline-block;
+                text-align: center;
+                color: $color4;
+                background-color: $color9;
+                min-height: 40px;
+                line-height: 40px;
+                vertical-align: middle;
+                margin-top: 10px;
+                width: 100%;
+                border-radius: 3px;
+
+                .message {
+                    display: inline-block;
+                    vertical-align: middle;
+                    line-height: 16px;
+                    padding: 10px;
+                }
+
+                .bottom-bar {
+                    display: block;
+                    height: 25px;
+                    margin: 0 0 5px 0;
+
+                    button {
+                        box-sizing: border-box;
+                        float: right;
+                        display: inline-block;
+                        margin: 0 5px 0 0;
+                        background-color: white;
+                        border: 1px solid $color1;
+                        border-radius: 2px;
+                        color: $color1;
+                        cursor: pointer;
+                        height: 25px;
+                        font-size: 14px;
+                        padding: 0 10px 0 10px;
+                        min-width: 115px;
+
+                        &:hover {
+                            background-color: $color1;
+                            color: white;
+                        }
+
+                        &.toggle-read {
+                            border: 1px solid $color7;
+                            color: $color7;
+                            min-width: 60px;
+
+                            &:hover, &.is-read {
+                                background-color: $color7;
+                                color: white;
+                            }
+                        }
+                    }
+
+                    .created-date {
+                        position: absolute;
+                        color: $color4;
+                        left: 5px;
+                        font-size: 12px;
+                        bottom: -10px;
+                    }
+                }
+            }
+        }
+
+        .no-more-notifications {
+            text-align: center;
+            margin-top: 15px;
+            margin-bottom: 15px;
+            font-size: 14px;
+            color: $color4;
+        }
+
+        .load-more-notifications {
+            display: block;
+            margin: 10px auto 20px auto;
+            width: 80px;
+            height: 20px;
+            font-size: 12px;
+            line-height: 20px;
+            text-align: center;
+            border: none;
+            border-radius: 3px;
+            color: white;
+            font-weight: 600;
+            background-color: $color8;
+            opacity: 0.5;
+            cursor: pointer;
+            padding: 0 10px;
+
+            &:hover {
+                opacity: 1;
+            }
+        }
+    }
+}
