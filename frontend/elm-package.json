@@ -1,11 +1,10 @@
 {
     "version": "1.0.0",
-    "summary": "Kickstarter Elm Frontend with JWT Authentication",
-    "repository": "https://github.com/amilner42/meen-kickstarter.git",
+    "summary": "Code Tidbit",
+    "repository": "https://github.com/amilner42/code-tidbit.git",
     "license": "BSD",
     "source-directories": [
-        "src",
-        "dist"
+        "src/"
     ],
     "exposed-modules": [],
     "dependencies": {

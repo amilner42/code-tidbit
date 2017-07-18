@@ -1,64 +1,148 @@
-var path = require("path");
-var webpack = require("webpack");
-var ExtractTextPlugin = require("extract-text-webpack-plugin");
+var path = require('path');
+var webpack = require('webpack');
+var merge = require('webpack-merge');
+var HtmlWebpackPlugin = require('html-webpack-plugin');
+var autoprefixer = require('autoprefixer');
+var ExtractTextPlugin = require('extract-text-webpack-plugin');
 var CopyWebpackPlugin = require('copy-webpack-plugin');
 
 
-module.exports = {
-  entry: { app: [ './src/index.js' ] },
+const prod = 'production';
+const dev = 'development';
 
-  output: {
-    path: path.resolve(__dirname + '/dist'),
-    filename: '[name].js',
-  },
+// determine build env
+const TARGET_ENV = process.env.npm_lifecycle_event === 'build' ? prod : dev;
+const isDev = TARGET_ENV == dev;
+const isProd = TARGET_ENV == prod;
 
-  module: {
-    loaders: [
-      {
-        test: /\.(css|scss)$/,
-        loader: ExtractTextPlugin.extract('style-loader', 'css-loader!sass-loader')
-      },
-      {
-        test:    /\.html$/,
-        exclude: /node_modules/,
-        loader:  'file?name=[name].[ext]',
-      },
-      {
-        test:    /\.elm$/,
-        exclude: [/elm-stuff/, /node_modules/],
-        loader:  'elm-webpack?pathToMake=./node_modules/.bin/elm-make',
-      },
-      {
-        test: /\.woff(2)?(\?v=[0-9]\.[0-9]\.[0-9])?$/,
-        loader: 'url-loader?limit=10000&minetype=application/font-woff',
-      },
-      {
-        test: /\.(ttf|eot|svg)(\?v=[0-9]\.[0-9]\.[0-9])?$/,
-        loader: 'file-loader',
-      },
-    ],
+// entry and output path/filename variables
+const entryPath = path.join(__dirname, 'src/index.js');
+const outputPath = path.join(__dirname, 'dist');
+const outputFilename = isProd ? '[name]-[hash].js' : '[name].js'
 
-    noParse: /\.elm$/,
-  },
+console.log('WEBPACK GO! Building for ' + TARGET_ENV);
 
-  plugins: [
-    new ExtractTextPlugin("[name].css"),
-    new CopyWebpackPlugin([
-       { from: 'node_modules/ace-builds/src-min-noconflict/', to: 'ace-build/' },
-       { from: 'node_modules/highlightjs/highlight.pack.min.js', to: 'highlightjs/' },
-       { from: 'node_modules/highlightjs/styles/github.css', to: 'highlightjs/'},
-       { from: 'assets/', to: 'assets/'}
-    ]),
-    new webpack.DefinePlugin({
-        __WEBPACK_CONSTANT_API_BASE_URL__: JSON.stringify("http://localhost:3001/api/")
-    })
-  ],
+// common webpack config (valid for dev and prod)
+var commonConfig = {
+    output: {
+        path: outputPath,
+        filename: `${outputFilename}`,
+    },
+    resolve: {
+        extensions: ['.js', '.elm'],
+        modules: ['node_modules']
+    },
+    module: {
+        noParse: /\.elm$/,
+        rules: [{
+            test: /\.(eot|ttf|woff|woff2|svg)$/,
+            use: 'file-loader?publicPath=../../&name=[hash].[ext]'
+        },
+        {
+            test: /\index.js$/,
+            exclude: /(node_modules|bower_components)/,
+            use: {
+                loader: 'babel-loader',
+                options: {
+                    presets: ['es2015']
+                }
+            }
+        }]
+    },
+    plugins: [
+        new webpack.LoaderOptionsPlugin({
+            options: {
+                postcss: [autoprefixer()]
+            }
+        }),
+        new HtmlWebpackPlugin({
+            template: 'src/index.html',
+            inject: 'body',
+            filename: 'index.html'
+        })
+    ]
+}
 
-  devServer: {
-    contentBase: path.join(__dirname, "dist"),
-    inline: true,
-    stats: { colors: true },
-    port: 3000
-  },
+// additional webpack settings for local env (when invoked by 'npm start')
+if (isDev === true) {
+    module.exports = merge(commonConfig, {
+        entry: [
+            'webpack-dev-server/client?http://localhost:8080',
+            entryPath
+        ],
+        devServer: {
+            // serve index.html in place of 404 responses
+            historyApiFallback: true,
+            contentBase: './dist',
+            hot: true
+        },
+        module: {
+            rules: [{
+                test: /\.elm$/,
+                exclude: [/elm-stuff/, /node_modules/],
+                use: [{
+                    loader: 'elm-webpack-loader',
+                    options: {
+                        verbose: true,
+                        warn: true,
+                        debug: true
+                    }
+                }]
+            },{
+                test: /\.sc?ss$/,
+                use: ['style-loader', 'css-loader', 'postcss-loader', 'sass-loader']
+            }]
+        },
+        plugins: [
+            new webpack.DefinePlugin({
+            __WEBPACK_CONSTANT_API_BASE_URL__: JSON.stringify("http://localhost:3001/api/")
+            })
+        ]
+    });
+}
 
-};
+// additional webpack settings for prod env (when invoked via 'npm run build')
+if (isProd === true) {
+    module.exports = merge(commonConfig, {
+        entry: entryPath,
+        module: {
+            rules: [{
+                test: /\.elm$/,
+                exclude: [/elm-stuff/, /node_modules/],
+                use: 'elm-webpack-loader'
+            }, {
+                test: /\.sc?ss$/,
+                use: ExtractTextPlugin.extract({
+                    fallback: 'style-loader',
+                    use: ['css-loader', 'postcss-loader', 'sass-loader']
+                })
+            }]
+        },
+        plugins: [
+            new webpack.DefinePlugin({
+            __WEBPACK_CONSTANT_API_BASE_URL__: JSON.stringify("http://api.codetidbit.com/")
+            }),
+
+            new ExtractTextPlugin({
+                filename: '[name]-[hash].css',
+                allChunks: true,
+            }),
+            new CopyWebpackPlugin([
+                { from: 'node_modules/ace-builds/src-min-noconflict/', to: 'ace-build/' },
+                { from: 'node_modules/highlightjs/highlight.pack.min.js', to: 'highlightjs/' },
+                { from: 'node_modules/highlightjs/styles/github.css', to: 'highlightjs/'},
+                { from: 'assets/', to: 'assets/'}
+           ]),
+
+            // extract CSS into a separate file
+            // minify & mangle JS/CSS
+            new webpack.optimize.UglifyJsPlugin({
+                minimize: true,
+                compressor: {
+                    warnings: false
+                }
+                // mangle:  true
+            })
+        ]
+    });
+}
