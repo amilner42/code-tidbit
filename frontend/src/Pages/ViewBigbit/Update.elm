@@ -570,15 +570,15 @@ update (Common common) msg model shared =
                     common.justProduceCmd <|
                         common.api.post.addOpinion opinion OnAddOpinionFailure (always <| OnAddOpinionSuccess opinion)
             in
-            common.makeSingletonRequest (RT.AddOrRemoveOpinion TidbitPointer.Bigbit) addOpinionAction
+            common.makeSingletonRequest (RT.AddOrRemoveOpinion ContentPointer.Bigbit) addOpinionAction
 
         OnAddOpinionSuccess opinion ->
             common.justSetModel { model | possibleOpinion = Just (Opinion.toPossibleOpinion opinion) }
-                |> common.andFinishRequest (RT.AddOrRemoveOpinion TidbitPointer.Bigbit)
+                |> common.andFinishRequest (RT.AddOrRemoveOpinion ContentPointer.Bigbit)
 
         OnAddOpinionFailure apiError ->
             common.justSetModalError apiError
-                |> common.andFinishRequest (RT.AddOrRemoveOpinion TidbitPointer.Bigbit)
+                |> common.andFinishRequest (RT.AddOrRemoveOpinion ContentPointer.Bigbit)
 
         RemoveOpinion opinion ->
             let
@@ -589,18 +589,18 @@ update (Common common) msg model shared =
                             OnRemoveOpinionFailure
                             (always <| OnRemoveOpinionSuccess opinion)
             in
-            common.makeSingletonRequest (RT.AddOrRemoveOpinion TidbitPointer.Bigbit) removeOpinionAction
+            common.makeSingletonRequest (RT.AddOrRemoveOpinion ContentPointer.Bigbit) removeOpinionAction
 
         {- Currently it doesn't matter what opinion we removed because you can only have 1, but it may change in the
            future where we have multiple opinions, then use the `opinion` to figure out which to remove.
         -}
         OnRemoveOpinionSuccess { contentPointer, rating } ->
             common.justSetModel { model | possibleOpinion = Just { contentPointer = contentPointer, rating = Nothing } }
-                |> common.andFinishRequest (RT.AddOrRemoveOpinion TidbitPointer.Bigbit)
+                |> common.andFinishRequest (RT.AddOrRemoveOpinion ContentPointer.Bigbit)
 
         OnRemoveOpinionFailure apiError ->
             common.justSetModalError apiError
-                |> common.andFinishRequest (RT.AddOrRemoveOpinion TidbitPointer.Bigbit)
+                |> common.andFinishRequest (RT.AddOrRemoveOpinion ContentPointer.Bigbit)
 
         OnGetExpandedStorySuccess story ->
             common.justSetShared { shared | viewingStory = Just story }

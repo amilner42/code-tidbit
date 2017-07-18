@@ -18,6 +18,7 @@ import Html.Attributes exposing (class, classList, hidden)
 import Html.Events exposing (onClick)
 import Models.Bigbit as Bigbit
 import Models.Completed as Completed
+import Models.ContentPointer as ContentPointer
 import Models.QA as QA
 import Models.Range as Range
 import Models.Rating as Rating
@@ -79,7 +80,7 @@ view model shared =
                                         { contentPointer = possibleOpinion.contentPointer
                                         , rating = Rating.Like
                                         }
-                                    , "Love it!"
+                                    , "Love It"
                                     )
 
                                 Just rating ->
@@ -95,12 +96,19 @@ view model shared =
                             [ ( "sub-bar-button heart-button", True )
                             , ( "cursor-progress"
                               , RT.isMakingRequest shared.apiRequestTracker <|
-                                    RT.AddOrRemoveOpinion TidbitPointer.Bigbit
+                                    RT.AddOrRemoveOpinion ContentPointer.Bigbit
                               )
                             ]
                         , onClick <| newMsg
                         ]
                         [ text buttonText ]
+
+                ( Nothing, _ ) ->
+                    button
+                        [ class "sub-bar-button heart-button"
+                        , onClick <| SetUserNeedsAuthModal "We want your feedback, sign up for free and get access to all of CodeTidbit in seconds!"
+                        ]
+                        [ text "Love It" ]
 
                 _ ->
                     Util.hiddenDiv

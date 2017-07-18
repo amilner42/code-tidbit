@@ -1,10 +1,8 @@
 module Pages.ViewSnipbit.View exposing (..)
 
 import Array
-import DefaultServices.Editable as Editable
 import DefaultServices.InfixFunctions exposing (..)
 import DefaultServices.Util as Util exposing (maybeMapWithDefault)
-import Dict
 import Elements.Complex.AnswerQuestion as AnswerQuestion
 import Elements.Complex.AskQuestion as AskQuestion
 import Elements.Complex.EditAnswer as EditAnswer
@@ -17,7 +15,7 @@ import Elements.Simple.QuestionList as QuestionList
 import Html exposing (Html, button, div, i, text, textarea)
 import Html.Attributes exposing (class, classList, disabled, hidden, id, placeholder, value)
 import Html.Events exposing (onClick, onInput)
-import Models.Completed as Completed
+import Models.ContentPointer as ContentPointer
 import Models.QA as QA
 import Models.Range as Range
 import Models.Rating as Rating
@@ -52,7 +50,7 @@ view model shared =
                                         { contentPointer = possibleOpinion.contentPointer
                                         , rating = Rating.Like
                                         }
-                                    , "Love it!"
+                                    , "Love It"
                                     )
 
                                 Just rating ->
@@ -69,12 +67,19 @@ view model shared =
                             , ( "cursor-progress"
                               , RT.isMakingRequest
                                     shared.apiRequestTracker
-                                    (RT.AddOrRemoveOpinion TidbitPointer.Snipbit)
+                                    (RT.AddOrRemoveOpinion ContentPointer.Snipbit)
                               )
                             ]
                         , onClick <| newMsg
                         ]
                         [ text buttonText ]
+
+                ( Nothing, _ ) ->
+                    button
+                        [ class "sub-bar-button heart-button"
+                        , onClick <| SetUserNeedsAuthModal "We want your feedback, sign up for free and get access to all of CodeTidbit in seconds!"
+                        ]
+                        [ text "Love It" ]
 
                 _ ->
                     Util.hiddenDiv

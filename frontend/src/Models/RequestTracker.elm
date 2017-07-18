@@ -4,6 +4,7 @@ module Models.RequestTracker exposing (..)
 
 import DefaultServices.InfixFunctions exposing (..)
 import Dict
+import Models.ContentPointer exposing (ContentType)
 import Models.TidbitPointer exposing (TidbitType(..))
 import Pages.Browse.Model exposing (SearchSettings)
 import ProjectTypeAliases exposing (..)
@@ -26,7 +27,7 @@ type TrackedRequest
     | Logout
     | UpdateName
     | UpdateBio
-    | AddOrRemoveOpinion TidbitType
+    | AddOrRemoveOpinion ContentType
     | AskQuestion TidbitType
     | UpdateQuestion TidbitType
     | RateQuestion TidbitType
