@@ -7,7 +7,9 @@ import Html exposing (Html, button, div, i, text)
 import Html.Attributes exposing (class, classList)
 import Html.Events exposing (onClick)
 import Models.Content as Content
+import Models.ContentPointer as ContentPointer
 import Models.Rating as Rating
+import Models.RequestTracker as RT
 import Models.Route as Route
 import Models.Story as Story
 import Models.Tidbit as Tidbit
@@ -47,64 +49,67 @@ view model shared =
             in
             div
                 [ class "view-story-page" ]
-                [ case shared.user of
-                    Just _ ->
-                        Util.keyedDiv
-                            [ class "sub-bar" ]
-                            [ ( "view-story-next-tidbit-button"
-                              , case nextTidbitInStory of
-                                    Just ( index, routeForViewingTidbit ) ->
-                                        button
-                                            [ class "sub-bar-button next-tidbit-button"
-                                            , onClick <| GoTo routeForViewingTidbit
-                                            ]
-                                            [ text <| "Continue on Tidbit " ++ (toString <| index + 1)
-                                            ]
+                [ Util.keyedDiv
+                    [ class "sub-bar" ]
+                    [ ( "view-story-next-tidbit-button"
+                      , case nextTidbitInStory of
+                            Just ( index, routeForViewingTidbit ) ->
+                                button
+                                    [ class "sub-bar-button next-tidbit-button"
+                                    , onClick <| GoTo routeForViewingTidbit
+                                    ]
+                                    [ text <| "Continue on Tidbit " ++ (toString <| index + 1)
+                                    ]
 
-                                    _ ->
-                                        Util.hiddenDiv
-                              )
-                            , ( "view-story-opinions-button"
-                              , case model.possibleOpinion of
-                                    Just possibleOpinion ->
-                                        let
-                                            ( newMsg, buttonText ) =
-                                                case possibleOpinion.rating of
-                                                    Nothing ->
-                                                        ( AddOpinion
-                                                            { contentPointer = possibleOpinion.contentPointer
-                                                            , rating = Rating.Like
-                                                            }
-                                                        , "Love it!"
-                                                        )
+                            _ ->
+                                Util.hiddenDiv
+                      )
+                    , ( "view-story-opinions-button"
+                      , case ( shared.user, model.possibleOpinion ) of
+                            ( Just _, Just possibleOpinion ) ->
+                                let
+                                    ( newMsg, buttonText ) =
+                                        case possibleOpinion.rating of
+                                            Nothing ->
+                                                ( AddOpinion
+                                                    { contentPointer = possibleOpinion.contentPointer
+                                                    , rating = Rating.Like
+                                                    }
+                                                , "Love It"
+                                                )
 
-                                                    Just rating ->
-                                                        ( RemoveOpinion
-                                                            { contentPointer = possibleOpinion.contentPointer
-                                                            , rating = rating
-                                                            }
-                                                        , "Take Back Love"
-                                                        )
-                                        in
-                                        button
-                                            [ class "sub-bar-button heart-button"
-                                            , onClick <| newMsg
-                                            ]
-                                            [ text buttonText ]
+                                            Just rating ->
+                                                ( RemoveOpinion
+                                                    { contentPointer = possibleOpinion.contentPointer
+                                                    , rating = rating
+                                                    }
+                                                , "Take Back Love"
+                                                )
+                                in
+                                button
+                                    [ classList
+                                        [ ( "sub-bar-button heart-button", True )
+                                        , ( "cursor-progress"
+                                          , RT.isMakingRequest shared.apiRequestTracker <|
+                                                RT.AddOrRemoveOpinion ContentPointer.Story
+                                          )
+                                        ]
+                                    , onClick <| newMsg
+                                    ]
+                                    [ text buttonText ]
 
-                                    Nothing ->
-                                        Util.hiddenDiv
-                              )
-                            ]
+                            ( Nothing, _ ) ->
+                                button
+                                    [ class "sub-bar-button heart-button"
+                                    , onClick <| SetUserNeedsAuthModal "We want your feedback, sign up for free and get access to all of CodeTidbit in seconds!"
+                                    ]
+                                    [ text "Love It" ]
 
-                    _ ->
-                        Util.hiddenDiv
-                , case nextTidbitInStory of
-                    Just _ ->
-                        Util.keyedDiv [ class "sub-bar-ghost hidden" ] []
-
-                    _ ->
-                        Util.hiddenDiv
+                            _ ->
+                                Util.hiddenDiv
+                      )
+                    ]
+                , Util.keyedDiv [ class "sub-bar-ghost hidden" ] []
                 , div
                     [ class "view-story-page-content" ]
                     [ div

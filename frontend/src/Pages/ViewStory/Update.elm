@@ -4,6 +4,7 @@ import Api
 import DefaultServices.CommonSubPageUtil exposing (CommonSubPageUtil(..), commonSubPageUtil)
 import Models.ContentPointer as ContentPointer
 import Models.Opinion exposing (PossibleOpinion, toPossibleOpinion)
+import Models.RequestTracker as RT
 import Models.Route as Route
 import Pages.Model exposing (Shared)
 import Pages.ViewStory.Messages exposing (..)
@@ -94,24 +95,45 @@ update (Common common) msg model shared =
             common.justSetModalError apiError
 
         AddOpinion opinion ->
-            common.justProduceCmd <|
-                common.api.post.addOpinion opinion OnAddOpinionFailure (always <| OnAddOpinionSuccess opinion)
+            let
+                addOpinionAction =
+                    common.justProduceCmd <|
+                        common.api.post.addOpinion
+                            opinion
+                            OnAddOpinionFailure
+                            (always <| OnAddOpinionSuccess opinion)
+            in
+            common.makeSingletonRequest (RT.AddOrRemoveOpinion ContentPointer.Story) addOpinionAction
 
         OnAddOpinionSuccess opinion ->
             common.justSetModel { model | possibleOpinion = Just <| toPossibleOpinion opinion }
+                |> common.andFinishRequest (RT.AddOrRemoveOpinion ContentPointer.Story)
 
         OnAddOpinionFailure apiError ->
             common.justSetModalError apiError
+                |> common.andFinishRequest (RT.AddOrRemoveOpinion ContentPointer.Story)
 
         RemoveOpinion opinion ->
-            common.justProduceCmd <|
-                common.api.post.removeOpinion opinion OnRemoveOpinionFailure (always <| OnRemoveOpinionSuccess opinion)
+            let
+                removeOpinionAction =
+                    common.justProduceCmd <|
+                        common.api.post.removeOpinion
+                            opinion
+                            OnRemoveOpinionFailure
+                            (always <| OnRemoveOpinionSuccess opinion)
+            in
+            common.makeSingletonRequest (RT.AddOrRemoveOpinion ContentPointer.Story) removeOpinionAction
 
         OnRemoveOpinionSuccess { contentPointer } ->
             common.justSetModel
                 { model
                     | possibleOpinion = Just { contentPointer = contentPointer, rating = Nothing }
                 }
+                |> common.andFinishRequest (RT.AddOrRemoveOpinion ContentPointer.Story)
 
         OnRemoveOpinionFailure apiError ->
             common.justSetModalError apiError
+                |> common.andFinishRequest (RT.AddOrRemoveOpinion ContentPointer.Story)
+
+        SetUserNeedsAuthModal message ->
+            common.justSetUserNeedsAuthModal message
