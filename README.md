@@ -19,7 +19,7 @@ You don't _need_ these versions, but it's more likely to work properly if at lea
 codetidbit: cd backend;
 backend: npm install;
 backend: cd ../frontend;
-frontend: npm install;
+frontend: npm reinstall;
 ```
 
 ### Developing
@@ -76,7 +76,7 @@ The frontend needs to be compiled to static files so it builds to different targ
 
 ```bash
 # Note that you must be in the `frontend` directory when you build the frontend.
-frontend: npm run build:prod;
+frontend: npm run build;
 ```
 
 ### Project File Structure

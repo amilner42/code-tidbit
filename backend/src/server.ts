@@ -149,12 +149,12 @@ const createExpressServer = () => {
   // Parse requests as JSON, available on `req.body`.
   server.use(bodyParser.json());
 
-  // Allow cross domain requests from the frontend: `http://localhost:3000` in dev and `http://codetidbit.com` in prod.
+  // Allow cross domain requests from the frontend: `http://localhost:8080` in dev and `http://codetidbit.com` in prod.
   server.use(function allowCrossDomain(req, res, next) {
     res.header('Access-Control-Allow-Credentials', "true");
     switch(APP_CONFIG.mode) {
       case "dev":
-        res.header('Access-Control-Allow-Origin', 'http://localhost:3000');
+        res.header('Access-Control-Allow-Origin', 'http://localhost:8080');
         break;
 
       case "prod":

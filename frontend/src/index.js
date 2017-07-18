@@ -33,8 +33,6 @@ require("./Elements/Simple/ProgressBar.scss");
 require("./Elements/Simple/QuestionList.scss");
 require("./Elements/Simple/Tags.scss");
 
-// Require index.html so it gets copied to dist
-require('./index.html');
 var AceRange = ace.require('ace/range').Range;
 
 var flags = { apiBaseUrl: __WEBPACK_CONSTANT_API_BASE_URL__ };
