@@ -11,6 +11,7 @@ import Json.Decode as Decode
 import Json.Decode.Pipeline exposing (decode, hardcoded, optional, required)
 import Json.Encode as Encode
 import Keyboard.Extra as KK
+import Models.Route as Route
 import Pages.Browse.JSON as BrowseJSON
 import Pages.Create.JSON as CreateJSON
 import Pages.CreateBigbit.JSON as CreateBigbitJSON
@@ -77,7 +78,7 @@ sharedEncoder : Shared -> Encode.Value
 sharedEncoder shared =
     Encode.object
         [ ( "user", justValueOrNull JSON.User.safeEncoder shared.user )
-        , ( "route", JSON.Route.encoder shared.route )
+        , ( "route", Encode.null )
         , ( "languages", Encode.null )
         , ( "keysDown", Encode.null )
         , ( "userStories", Encode.null )
@@ -97,7 +98,7 @@ sharedDecoder : Shared -> Decode.Decoder Shared
 sharedDecoder shared =
     decode Shared
         |> required "user" (Decode.maybe JSON.User.decoder)
-        |> required "route" JSON.Route.decoder
+        |> hardcoded Route.BrowsePage
         |> required "languages" (Decode.succeed Editor.humanReadableListOfLanguages)
         |> required "keysDown" (Decode.succeed KK.init)
         |> hardcoded Nothing

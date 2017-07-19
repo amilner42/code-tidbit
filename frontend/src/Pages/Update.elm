@@ -712,10 +712,10 @@ handleLocationChange maybeRoute model =
             -- Handle general route-logic here, routes are a great way to be
             -- able to trigger certain things (hooks).
             case route of
-                Route.LoginPage ->
+                Route.LoginPage _ ->
                     triggerRouteHookOnWelcomePage
 
-                Route.RegisterPage ->
+                Route.RegisterPage _ ->
                     triggerRouteHookOnWelcomePage
 
                 Route.BrowsePage ->

@@ -65,8 +65,8 @@ type Route
     | CreateStoryTagsPage (Maybe EditingStoryID)
     | DevelopStoryPage StoryID
     | ProfilePage
-    | LoginPage
-    | RegisterPage
+    | LoginPage (Maybe Link)
+    | RegisterPage (Maybe Link)
     | NotificationsPage
 
 
@@ -268,10 +268,13 @@ matchers =
             s "profile"
 
         register =
-            s "register"
+            s "register" <?> qpFromLink
 
         login =
-            s "login"
+            s "login" <?> qpFromLink
+
+        qpFromLink =
+            stringParam "from"
 
         notifications =
             s "notifications"
@@ -335,10 +338,10 @@ matchers =
 routeRequiresAuth : Route -> Bool
 routeRequiresAuth route =
     case route of
-        LoginPage ->
+        LoginPage _ ->
             False
 
-        RegisterPage ->
+        RegisterPage _ ->
             False
 
         ViewSnipbitIntroductionPage _ _ ->
@@ -414,10 +417,10 @@ logged-out, these are specifically the routes that you must be logged-out to acc
 routeRequiresNotAuth : Route -> Bool
 routeRequiresNotAuth route =
     case route of
-        LoginPage ->
+        LoginPage _ ->
             True
 
-        RegisterPage ->
+        RegisterPage _ ->
             True
 
         _ ->
@@ -435,7 +438,7 @@ defaultAuthRoute =
 -}
 defaultUnauthRoute : Route
 defaultUnauthRoute =
-    RegisterPage
+    RegisterPage Nothing
 
 
 {-| Converts a route to just the part of the url after (and including) the hash.
@@ -718,11 +721,11 @@ toHashUrl route =
                 ProfilePage ->
                     "profile"
 
-                LoginPage ->
-                    "login"
+                LoginPage qpFrom ->
+                    "login" ++ Util.queryParamsToString [ ( "from", qpFrom ) ]
 
-                RegisterPage ->
-                    "register"
+                RegisterPage qpFrom ->
+                    "register" ++ Util.queryParamsToString [ ( "from", qpFrom ) ]
 
                 NotificationsPage ->
                     "notifications"
@@ -1279,3 +1282,18 @@ isOnViewBigbitQARouteWithFS route =
 
         _ ->
             False
+
+
+{-| Returns the "from" QP from the welcome pages (login and register).
+-}
+fromQPOnWelcomePage : Route -> Maybe Link
+fromQPOnWelcomePage route =
+    case route of
+        LoginPage maybeLink ->
+            maybeLink
+
+        RegisterPage maybeLink ->
+            maybeLink
+
+        _ ->
+            Nothing
