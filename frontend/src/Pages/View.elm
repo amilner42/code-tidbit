@@ -54,7 +54,7 @@ view model =
         , Util.maybeMapWithDefault errorModal Util.hiddenDiv model.shared.apiModalError
 
         -- The modal for telling the user they need to sign up (likely because they clicked something requiring auth).
-        , Util.maybeMapWithDefault signUpModal Util.hiddenDiv model.shared.userNeedsAuthModal
+        , Util.maybeMapWithDefault (signUpModal model.shared.route) Util.hiddenDiv model.shared.userNeedsAuthModal
 
         -- Used for smooth scrolling to the bottom.
         , div [ class "invisible-bottom" ] []
@@ -89,8 +89,8 @@ errorModal apiError =
 
 {-| A basic modal for telling the user that they need to log in or sign up.
 -}
-signUpModal : String -> Html Msg
-signUpModal modalMessage =
+signUpModal : Route.Route -> String -> Html Msg
+signUpModal currentRoute modalMessage =
     div
         [ class "sign-up-modal" ]
         [ -- The modal background.
@@ -113,12 +113,12 @@ signUpModal modalMessage =
                 [ class "centered-buttons" ]
                 [ div
                     [ class "login"
-                    , onClick <| GoTo <| Route.LoginPage
+                    , onClick <| GoTo <| Route.LoginPage (Just <| Route.toHashUrl currentRoute)
                     ]
                     [ text "LOGIN" ]
                 , div
                     [ class "sign-up"
-                    , onClick <| GoTo <| Route.RegisterPage
+                    , onClick <| GoTo <| Route.RegisterPage (Just <| Route.toHashUrl currentRoute)
                     ]
                     [ text "SIGN UP" ]
                 ]
@@ -174,10 +174,10 @@ viewForRoute model =
             notificationsView model.notificationsPage model.shared
     in
     case model.shared.route of
-        Route.RegisterPage ->
+        Route.RegisterPage _ ->
             welcomePage
 
-        Route.LoginPage ->
+        Route.LoginPage _ ->
             welcomePage
 
         Route.BrowsePage ->
@@ -414,10 +414,10 @@ notificationsView notificationsModel shared =
 navbarIfOnRoute : Model -> Html Msg
 navbarIfOnRoute model =
     case model.shared.route of
-        Route.LoginPage ->
+        Route.LoginPage _ ->
             Util.hiddenDiv
 
-        Route.RegisterPage ->
+        Route.RegisterPage _ ->
             Util.hiddenDiv
 
         _ ->
@@ -629,7 +629,7 @@ navbar model =
                 [ ( "nav-btn sign-up right", True )
                 , ( "hidden", Util.isNotNothing shared.user )
                 ]
-            , onClick <| GoTo Route.RegisterPage
+            , onClick <| GoTo <| Route.RegisterPage <| Just <| Route.toHashUrl shared.route
             ]
             [ text "Sign Up" ]
         , div
@@ -637,7 +637,7 @@ navbar model =
                 [ ( "nav-btn login right", True )
                 , ( "hidden", Util.isNotNothing shared.user )
                 ]
-            , onClick <| GoTo Route.LoginPage
+            , onClick <| GoTo <| Route.LoginPage <| Just <| Route.toHashUrl shared.route
             ]
             [ text "Login" ]
         ]

@@ -4,6 +4,7 @@ import DefaultServices.CommonSubPageUtil exposing (CommonSubPageUtil(..))
 import Models.ApiError as ApiError
 import Models.RequestTracker as RT
 import Models.Route as Route
+import Navigation
 import Pages.Model exposing (Shared)
 import Pages.Welcome.Init exposing (..)
 import Pages.Welcome.Messages exposing (..)
@@ -57,7 +58,16 @@ update (Common common) msg model shared =
                 |> common.andFinishRequest RT.LoginOrRegister
 
         OnRegisterSuccess newUser ->
-            ( init, { shared | user = Just newUser }, Route.navigateTo Route.BrowsePage )
+            let
+                redirectCmd =
+                    case Route.fromQPOnWelcomePage shared.route of
+                        Just link ->
+                            Navigation.newUrl link
+
+                        Nothing ->
+                            Route.navigateTo Route.BrowsePage
+            in
+            ( init, { shared | user = Just newUser }, redirectCmd )
                 |> common.andFinishRequest RT.LoginOrRegister
 
         Login ->
@@ -72,7 +82,16 @@ update (Common common) msg model shared =
             common.makeSingletonRequest RT.LoginOrRegister loginAction
 
         OnLoginSuccess newUser ->
-            ( init, { shared | user = Just newUser }, Route.navigateTo Route.BrowsePage )
+            let
+                redirectCmd =
+                    case Route.fromQPOnWelcomePage shared.route of
+                        Just link ->
+                            Navigation.newUrl link
+
+                        Nothing ->
+                            Route.navigateTo Route.BrowsePage
+            in
+            ( init, { shared | user = Just newUser }, redirectCmd )
                 |> common.andFinishRequest RT.LoginOrRegister
 
         OnLoginFailure newApiError ->

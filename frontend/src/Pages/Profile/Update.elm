@@ -120,7 +120,7 @@ update (Common common) msg model shared =
         OnLogOutSuccess basicResponse ->
             -- WARNING (unusual behaviour): The base update will check for this message and reset the entire model.
             -- Because of this there is no need to `andFinishRequest` (in fact that will do nothing).
-            common.justProduceCmd <| Route.navigateTo Route.RegisterPage
+            common.justProduceCmd <| Route.navigateTo <| Route.RegisterPage Nothing
 
         OnLogOutFailure apiError ->
             common.justSetModel { model | logOutError = Just apiError }

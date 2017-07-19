@@ -30,18 +30,18 @@ view model shared =
             [ class "logo-title-2" ]
             [ text "TIDBIT" ]
         , case shared.route of
-            Route.RegisterPage ->
+            Route.RegisterPage from ->
                 button
                     [ class "welcome-page-change-tab-button"
-                    , onClick <| GoTo Route.LoginPage
+                    , onClick <| GoTo <| Route.LoginPage from
                     ]
                     [ text "Login"
                     ]
 
-            Route.LoginPage ->
+            Route.LoginPage from ->
                 button
                     [ class "welcome-page-change-tab-button"
-                    , onClick <| GoTo Route.RegisterPage
+                    , onClick <| GoTo <| Route.RegisterPage from
                     ]
                     [ text "Register"
                     ]
@@ -56,9 +56,30 @@ view model shared =
         , div
             [ classList
                 [ ( "welcome-page", True )
-                , ( "small-box-error", (shared.route == Route.LoginPage) && Util.isNotNothing model.apiError )
-                , ( "small-box", (shared.route == Route.LoginPage) && Util.isNothing model.apiError )
-                , ( "big-box-error", (shared.route == Route.RegisterPage) && Util.isNotNothing model.apiError )
+                , ( "small-box-error"
+                  , case ( model.apiError, shared.route ) of
+                        ( Just _, Route.LoginPage _ ) ->
+                            True
+
+                        _ ->
+                            False
+                  )
+                , ( "small-box"
+                  , case ( model.apiError, shared.route ) of
+                        ( Nothing, Route.LoginPage _ ) ->
+                            True
+
+                        _ ->
+                            False
+                  )
+                , ( "big-box-error"
+                  , case ( model.apiError, shared.route ) of
+                        ( Just _, Route.RegisterPage _ ) ->
+                            True
+
+                        _ ->
+                            False
+                  )
                 ]
             ]
             [ displayViewForRoute model shared
@@ -245,10 +266,10 @@ registerView model shared =
 displayViewForRoute : Model -> Shared -> Html Msg
 displayViewForRoute model shared =
     case shared.route of
-        Route.LoginPage ->
+        Route.LoginPage _ ->
             loginView model shared
 
-        Route.RegisterPage ->
+        Route.RegisterPage _ ->
             registerView model shared
 
         _ ->
