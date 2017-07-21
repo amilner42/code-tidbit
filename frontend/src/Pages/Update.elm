@@ -85,8 +85,16 @@ updateCacheIf msg model shouldCache =
                     let
                         newRoute =
                             Route.parseLocation location
+
+                        ( newModel, newCmd ) =
+                            handleLocationChange newRoute model
                     in
-                    handleLocationChange newRoute model
+                    ( newModel
+                    , Cmd.batch
+                        [ newCmd
+                        , Ports.gaPageView <| googleAnalyticsPageName newRoute
+                        ]
+                    )
 
                 LoadModelFromLocalStorage ->
                     ( model, LocalStorage.loadModel () )
@@ -861,3 +869,187 @@ handleLocationChange maybeRoute model =
 
                 _ ->
                     ( newModel, newCmd )
+
+
+{-| Gets the page name to be used in GA from the current route.
+-}
+googleAnalyticsPageName : Maybe Route.Route -> String
+googleAnalyticsPageName maybeRoute =
+    case maybeRoute of
+        Nothing ->
+            "invalid-route"
+
+        Just Route.BrowsePage ->
+            "browse-page"
+
+        Just (Route.ViewSnipbitIntroductionPage _ _) ->
+            "view-snipbit-introduction"
+
+        Just (Route.ViewSnipbitConclusionPage _ _) ->
+            "view-snipbit-conclusion"
+
+        Just (Route.ViewSnipbitFramePage _ _ _) ->
+            "view-snipbit-frame"
+
+        Just (Route.ViewSnipbitQuestionsPage _ _) ->
+            "view-snipbit-qa"
+
+        Just (Route.ViewSnipbitQuestionPage _ _ _ _) ->
+            "view-snipbit-qa-question"
+
+        Just (Route.ViewSnipbitAnswersPage _ _ _ _) ->
+            "view-snipbit-qa-answers"
+
+        Just (Route.ViewSnipbitAnswerPage _ _ _ _) ->
+            "view-snipbit-qa-answer"
+
+        Just (Route.ViewSnipbitQuestionCommentsPage _ _ _ _ _) ->
+            "view-snipbit-qa-question-comments"
+
+        Just (Route.ViewSnipbitAnswerCommentsPage _ _ _ _ _) ->
+            "view-snipbit-qa-answer-comments"
+
+        Just (Route.ViewSnipbitAskQuestion _ _) ->
+            "view-snipbit-qa-ask"
+
+        Just (Route.ViewSnipbitAnswerQuestion _ _ _) ->
+            "view-snipbit-qa-answer-question"
+
+        Just (Route.ViewSnipbitEditQuestion _ _ _) ->
+            "view-snipbit-qa-edit-question"
+
+        Just (Route.ViewSnipbitEditAnswer _ _ _) ->
+            "view-snipbit-qa-edit-answer"
+
+        Just (Route.ViewBigbitIntroductionPage _ _ _) ->
+            "view-bigbit-introduction"
+
+        Just (Route.ViewBigbitFramePage _ _ _ _) ->
+            "view-bigbit-frame"
+
+        Just (Route.ViewBigbitConclusionPage _ _ _) ->
+            "view-bigbit-conclusion"
+
+        Just (Route.ViewBigbitQuestionsPage _ _) ->
+            "view-bigbit-qa"
+
+        Just (Route.ViewBigbitQuestionPage _ _ _ _) ->
+            "view-bigbit-qa-question"
+
+        Just (Route.ViewBigbitAnswersPage _ _ _ _) ->
+            "view-bigbit-qa-answers"
+
+        Just (Route.ViewBigbitAnswerPage _ _ _ _) ->
+            "view-bigbit-qa-answer"
+
+        Just (Route.ViewBigbitQuestionCommentsPage _ _ _ _ _) ->
+            "view-bigbit-qa-question-comments"
+
+        Just (Route.ViewBigbitAnswerCommentsPage _ _ _ _ _) ->
+            "view-bigbit-qa-answer-comments"
+
+        Just (Route.ViewBigbitAskQuestion _ _) ->
+            "view-bigbit-qa-ask"
+
+        Just (Route.ViewBigbitEditQuestion _ _ _) ->
+            "view-bigbit-qa-edit-question"
+
+        Just (Route.ViewBigbitAnswerQuestion _ _ _) ->
+            "view-bigbit-qa-answer-question"
+
+        Just (Route.ViewBigbitEditAnswer _ _ _) ->
+            "view-bigbit-qa-edit-answer"
+
+        Just (Route.ViewStoryPage _) ->
+            "view-story"
+
+        Just Route.CreatePage ->
+            "create"
+
+        Just Route.CreateSnipbitNamePage ->
+            "create-snipbit"
+
+        Just Route.CreateSnipbitDescriptionPage ->
+            "create-snipbit"
+
+        Just Route.CreateSnipbitLanguagePage ->
+            "create-snipbit"
+
+        Just Route.CreateSnipbitTagsPage ->
+            "create-snipbit"
+
+        Just Route.CreateSnipbitCodeIntroductionPage ->
+            "create-snipbit"
+
+        Just (Route.CreateSnipbitCodeFramePage _) ->
+            "create-snipbit"
+
+        Just Route.CreateSnipbitCodeConclusionPage ->
+            "create-snipbit"
+
+        Just Route.CreateBigbitNamePage ->
+            "create-bigbit"
+
+        Just Route.CreateBigbitDescriptionPage ->
+            "create-bigbit"
+
+        Just Route.CreateBigbitTagsPage ->
+            "create-bigbit"
+
+        Just (Route.CreateBigbitCodeIntroductionPage _) ->
+            "create-bigbit"
+
+        Just (Route.CreateBigbitCodeFramePage _ _) ->
+            "create-bigbit"
+
+        Just (Route.CreateBigbitCodeConclusionPage _) ->
+            "create-bigbit"
+
+        Just (Route.CreateStoryNamePage maybeEditingStory) ->
+            case maybeEditingStory of
+                Nothing ->
+                    "create-story"
+
+                Just _ ->
+                    "edit-story"
+
+        Just (Route.CreateStoryDescriptionPage maybeEditingStory) ->
+            case maybeEditingStory of
+                Nothing ->
+                    "create-story"
+
+                Just _ ->
+                    "edit-story"
+
+        Just (Route.CreateStoryTagsPage maybeEditingStory) ->
+            case maybeEditingStory of
+                Nothing ->
+                    "create-story"
+
+                Just _ ->
+                    "edit-story"
+
+        Just (Route.DevelopStoryPage _) ->
+            "develop-story"
+
+        Just Route.ProfilePage ->
+            "profile"
+
+        Just (Route.LoginPage maybeRedirectLink) ->
+            case maybeRedirectLink of
+                Nothing ->
+                    "login-direct"
+
+                Just _ ->
+                    "login-redirect"
+
+        Just (Route.RegisterPage maybeRedirectLink) ->
+            case maybeRedirectLink of
+                Nothing ->
+                    "register-direct"
+
+                Just _ ->
+                    "register-redirect"
+
+        Just Route.NotificationsPage ->
+            "notifications"

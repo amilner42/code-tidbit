@@ -88,3 +88,8 @@ port onCodeEditorSelectionUpdate : ({ id : String, range : Range } -> msg) -> Su
 options, otherwises hides the options.
 -}
 port expandSearchAdvancedOptions : Bool -> Cmd msg
+
+
+{-| This will trigger a Google Analytics page view hit. The String is the page name.
+-}
+port gaPageView : String -> Cmd msg

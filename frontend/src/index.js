@@ -385,3 +385,8 @@ app.ports.codeEditorJumpToLine.subscribe(function(jumpToLineConfig) {
     aceCodeEditor.focus();
   }
 });
+
+// Send a pageview to Google Analytics.
+app.ports.gaPageView.subscribe(function(pageName) {
+  ga("send", "pageview", pageName);
+});
