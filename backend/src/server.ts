@@ -170,7 +170,7 @@ const createExpressServer = () => {
   // Use `expressSession` to handle storing the cookies which we send to the
   // frontend
   server.use(expressSession({
-    saveUninitialized: true, // saved new sessions
+    saveUninitialized: false, // do not save sessions for anon users - too much memory
     resave: false, // do not automatically write to the session store
     store: new MONGO_STORE({url: APP_CONFIG.dbUrl}),
     secret: APP_CONFIG.sessionSecretKey,
