@@ -54,11 +54,6 @@ var commonConfig = {
             options: {
                 postcss: [autoprefixer()]
             }
-        }),
-        new HtmlWebpackPlugin({
-            template: 'src/index.html',
-            inject: 'body',
-            filename: 'index.html'
         })
     ]
 }
@@ -96,6 +91,14 @@ if (isDev === true) {
         plugins: [
             new webpack.DefinePlugin({
             __WEBPACK_CONSTANT_API_BASE_URL__: JSON.stringify("http://localhost:3001/api/")
+            }),
+
+            // Repeated because it doesn't merge with webpack-merge.
+            new HtmlWebpackPlugin({
+                template: 'src/index.html',
+                inject: 'body',
+                filename: 'index.html',
+                gaID: JSON.stringify("UA-102969432-2")
             })
         ]
     });
@@ -121,6 +124,14 @@ if (isProd === true) {
         plugins: [
             new webpack.DefinePlugin({
             __WEBPACK_CONSTANT_API_BASE_URL__: JSON.stringify("http://api.codetidbit.com/")
+            }),
+
+            // Repeated because it doesn't merge with webpack-merge.
+            new HtmlWebpackPlugin({
+                template: 'src/index.html',
+                inject: 'body',
+                filename: 'index.html',
+                gaID: JSON.stringify("UA-102969432-1")
             }),
 
             new ExtractTextPlugin({
