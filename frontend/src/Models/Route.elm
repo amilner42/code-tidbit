@@ -1308,14 +1308,14 @@ Allows you to do routing yourself in the SPA while still allowing ctrl/cmd-click
 @refer `Util.onClickPreventDefault`
 
 -}
-aPreventDefaultClick : Maybe Route -> msg -> List (Html.Attribute msg) -> List (Html.Html msg) -> Html.Html msg
-aPreventDefaultClick maybeRoute msg attributes children =
+aPreventDefaultClick : Maybe ( Route, msg ) -> List (Html.Attribute msg) -> List (Html.Html msg) -> Html.Html msg
+aPreventDefaultClick maybeRouteAndMsg attributes children =
     a
-        (case maybeRoute of
+        (case maybeRouteAndMsg of
             Nothing ->
                 attributes
 
-            Just route ->
+            Just ( route, msg ) ->
                 [ -- Can't use `href` directly until this is fixed: https://github.com/elm-lang/html/issues/142
                   attribute "href" <| toHashUrl route
                 , Util.onClickPreventDefault msg

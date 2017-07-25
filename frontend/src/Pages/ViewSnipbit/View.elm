@@ -252,14 +252,7 @@ view model shared =
 
                     arrowBack =
                         Route.aPreventDefaultClick
-                            previousFrameRoute
-                            (case previousFrameRoute of
-                                Nothing ->
-                                    NoOp
-
-                                Just route ->
-                                    GoTo route
-                            )
+                            (previousFrameRoute ||> (\route -> ( route, GoTo route )))
                             []
                             [ i
                                 [ classList
@@ -272,14 +265,7 @@ view model shared =
 
                     arrowForward =
                         Route.aPreventDefaultClick
-                            nextFrameRoute
-                            (case nextFrameRoute of
-                                Nothing ->
-                                    NoOp
-
-                                Just route ->
-                                    GoTo route
-                            )
+                            (nextFrameRoute ||> (\route -> ( route, GoTo route )))
                             []
                             [ i
                                 [ classList
@@ -293,20 +279,15 @@ view model shared =
                     introduction =
                         Route.aPreventDefaultClick
                             (if inTutorial then
-                                Just <|
-                                    Route.ViewSnipbitIntroductionPage
-                                        (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
-                                        snipbit.id
+                                let
+                                    route =
+                                        Route.ViewSnipbitIntroductionPage
+                                            (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
+                                            snipbit.id
+                                in
+                                Just ( route, GoTo route )
                              else
                                 Nothing
-                            )
-                            (if inTutorial then
-                                GoTo <|
-                                    Route.ViewSnipbitIntroductionPage
-                                        (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
-                                        snipbit.id
-                             else
-                                NoOp
                             )
                             []
                             [ div
@@ -329,20 +310,15 @@ view model shared =
                     conclusion =
                         Route.aPreventDefaultClick
                             (if inTutorial then
-                                Just <|
-                                    Route.ViewSnipbitConclusionPage
-                                        (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
-                                        snipbit.id
+                                let
+                                    route =
+                                        Route.ViewSnipbitConclusionPage
+                                            (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
+                                            snipbit.id
+                                in
+                                Just ( route, GoTo route )
                              else
                                 Nothing
-                            )
-                            (if inTutorial then
-                                GoTo <|
-                                    Route.ViewSnipbitConclusionPage
-                                        (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
-                                        snipbit.id
-                             else
-                                NoOp
                             )
                             []
                             [ div
