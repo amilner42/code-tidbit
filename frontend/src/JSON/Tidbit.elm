@@ -3,7 +3,6 @@ module JSON.Tidbit exposing (..)
 import JSON.Bigbit
 import JSON.Snipbit
 import Json.Decode as Decode
-import Json.Decode.Pipeline exposing (decode, hardcoded, optional, required)
 import Json.Encode as Encode
 import Models.Tidbit exposing (..)
 

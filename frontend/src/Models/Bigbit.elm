@@ -1,11 +1,7 @@
 module Models.Bigbit exposing (..)
 
 import Array
-import Char
 import Date
-import DefaultServices.ArrayExtra as ArrayExtra
-import DefaultServices.Util as Util exposing (maybeMapWithDefault)
-import Dict
 import Elements.Simple.Editor as Editor
 import Elements.Simple.FileStructure as FS
 import Models.Range as Range

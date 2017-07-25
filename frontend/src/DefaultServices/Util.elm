@@ -14,7 +14,6 @@ import Json.Encode as Encode
 import Keyboard.Extra as KK
 import ProjectTypeAliases exposing (..)
 import Regex
-import Set
 import Task
 
 

@@ -5,7 +5,6 @@ import Array
 import DefaultServices.CommonSubPageUtil exposing (commonSubPageUtil)
 import DefaultServices.LocalStorage as LocalStorage
 import DefaultServices.Util as Util exposing (maybeMapWithDefault)
-import Elements.Simple.Editor as Editor
 import Keyboard.Extra as KK
 import Models.Route as Route
 import Navigation
@@ -14,7 +13,6 @@ import Pages.Browse.Update as BrowseUpdate
 import Pages.Create.Messages as CreateMessages
 import Pages.Create.Update as CreateUpdate
 import Pages.CreateBigbit.Messages as CreateBigbitMessages
-import Pages.CreateBigbit.Model as CreateBigbitModel
 import Pages.CreateBigbit.Update as CreateBigbitUpdate
 import Pages.CreateSnipbit.Messages as CreateSnipbitMessages
 import Pages.CreateSnipbit.Update as CreateSnipbitUpdate
@@ -36,12 +34,10 @@ import Pages.ViewSnipbit.Messages as ViewSnipbitMessages
 import Pages.ViewSnipbit.Model as ViewSnipbitModel
 import Pages.ViewSnipbit.Update as ViewSnipbitUpdate
 import Pages.ViewStory.Messages as ViewStoryMessages
-import Pages.ViewStory.Model as ViewStoryModel
 import Pages.ViewStory.Update as ViewStoryUpdate
 import Pages.Welcome.Messages as WelcomeMessages
 import Pages.Welcome.Update as WelcomeUpdate
 import Ports
-import Task
 
 
 {-| `Base` update.

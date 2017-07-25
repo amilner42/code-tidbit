@@ -2,7 +2,6 @@ module Pages.ViewSnipbit.JSON exposing (..)
 
 import DefaultServices.Util as Util
 import Dict
-import JSON.Completed
 import JSON.QA
 import JSON.Range
 import JSON.Snipbit

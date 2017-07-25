@@ -7,7 +7,6 @@ import DefaultServices.Util as Util
 import Elements.Simple.FileStructure as FS
 import Html exposing (a)
 import Html.Attributes exposing (attribute)
-import Html.Events exposing (onClick)
 import Models.Bigbit as Bigbit
 import Models.QA as QA
 import Navigation

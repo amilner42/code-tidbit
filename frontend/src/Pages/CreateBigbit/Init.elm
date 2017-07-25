@@ -1,8 +1,6 @@
 module Pages.CreateBigbit.Init exposing (..)
 
 import Array
-import Autocomplete as AC
-import Elements.Simple.Editor as Editor
 import Elements.Simple.FileStructure as FS
 import Pages.CreateBigbit.Model exposing (..)
 

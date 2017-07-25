@@ -1,7 +1,6 @@
 module Pages.ViewSnipbit.Init exposing (..)
 
 import Dict
-import Models.QA as QA
 import Models.TutorialBookmark as TB
 import Pages.ViewSnipbit.Model exposing (..)
 

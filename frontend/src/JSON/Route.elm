@@ -1,7 +1,6 @@
 module JSON.Route exposing (..)
 
 import Json.Decode as Decode
-import Json.Decode.Pipeline exposing (decode, hardcoded, optional, required)
 import Json.Encode as Encode
 import Models.Route exposing (..)
 

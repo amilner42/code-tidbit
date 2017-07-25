@@ -1,6 +1,5 @@
 module JSON.Opinion exposing (..)
 
-import DefaultServices.Util as Util
 import JSON.ContentPointer
 import JSON.Rating
 import Json.Decode as Decode

@@ -17,7 +17,6 @@ import Html exposing (Html, button, div, i, text)
 import Html.Attributes exposing (class, classList, hidden)
 import Html.Events exposing (onClick)
 import Models.Bigbit as Bigbit
-import Models.Completed as Completed
 import Models.ContentPointer as ContentPointer
 import Models.QA as QA
 import Models.Range as Range

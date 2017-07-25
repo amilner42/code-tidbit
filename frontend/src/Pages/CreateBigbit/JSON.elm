@@ -10,7 +10,6 @@ import Json.Decode as Decode
 import Json.Decode.Pipeline exposing (decode, hardcoded, optional, required)
 import Json.Encode as Encode
 import Models.Bigbit exposing (FileMetadata, FolderMetadata)
-import Models.Range as Range
 import Pages.CreateBigbit.Model exposing (..)
 
 

@@ -4,7 +4,6 @@ import Date
 import DefaultServices.Editable as Editable
 import DefaultServices.InfixFunctions exposing (..)
 import DefaultServices.Sort as Sort
-import DefaultServices.Util as Util
 import Dict
 import Elements.Simple.FileStructure as FS
 import List.Extra

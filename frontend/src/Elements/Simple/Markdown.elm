@@ -15,6 +15,7 @@ view extraAttr markdownText =
 {-| Because our markdown is from user-input, we need to sanitize the HTML. Additionally, we keep everything
 github-styled.
 -}
+safeOptions : Markdown.Options
 safeOptions =
     { githubFlavored = Just { tables = True, breaks = True }
     , defaultHighlighting = Nothing
