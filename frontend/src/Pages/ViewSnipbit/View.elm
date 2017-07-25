@@ -12,8 +12,8 @@ import Elements.Simple.Editor as Editor
 import Elements.Simple.Markdown as Markdown
 import Elements.Simple.ProgressBar as ProgressBar exposing (State(..), TextFormat(Custom))
 import Elements.Simple.QuestionList as QuestionList
-import Html exposing (Html, button, div, i, text, textarea)
-import Html.Attributes exposing (class, classList, disabled, hidden, id, placeholder, value)
+import Html exposing (Html, a, button, div, i, text, textarea)
+import Html.Attributes exposing (class, classList, disabled, hidden, href, id, placeholder, value)
 import Html.Events exposing (onClick, onInput)
 import Models.ContentPointer as ContentPointer
 import Models.QA as QA
@@ -202,74 +202,168 @@ view model shared =
                 Util.hiddenDiv
 
             Just snipbit ->
-                div
-                    [ class "viewer" ]
-                    [ div
-                        [ class "viewer-navbar" ]
-                        [ i
-                            [ classList
-                                [ ( "material-icons action-button", True )
-                                , ( "disabled-icon"
-                                  , (case shared.route of
-                                        Route.ViewSnipbitIntroductionPage _ _ ->
-                                            True
+                let
+                    inTutorial =
+                        not <| isViewSnipbitRHCTabOpen model || Route.isOnViewSnipbitQARoute shared.route
 
-                                        _ ->
-                                            False
-                                    )
-                                        || isViewSnipbitRHCTabOpen model
-                                        || Route.isOnViewSnipbitQARoute shared.route
-                                  )
-                                ]
-                            , onClick <|
-                                if isViewSnipbitRHCTabOpen model then
+                    previousFrameRoute : Maybe Route.Route
+                    previousFrameRoute =
+                        case ( shared.route, not inTutorial ) of
+                            ( Route.ViewSnipbitIntroductionPage _ _, _ ) ->
+                                Nothing
+
+                            ( _, True ) ->
+                                Nothing
+
+                            ( Route.ViewSnipbitConclusionPage fromStoryID mongoID, False ) ->
+                                Just <|
+                                    Route.ViewSnipbitFramePage
+                                        fromStoryID
+                                        mongoID
+                                        (Array.length snipbit.highlightedComments)
+
+                            ( Route.ViewSnipbitFramePage fromStoryID mongoID frameNumber, False ) ->
+                                Just <|
+                                    Route.ViewSnipbitFramePage
+                                        fromStoryID
+                                        mongoID
+                                        (frameNumber - 1)
+
+                            _ ->
+                                Nothing
+
+                    nextFrameRoute : Maybe Route.Route
+                    nextFrameRoute =
+                        case ( shared.route, not inTutorial ) of
+                            ( Route.ViewSnipbitConclusionPage _ _, _ ) ->
+                                Nothing
+
+                            ( _, True ) ->
+                                Nothing
+
+                            ( Route.ViewSnipbitIntroductionPage fromStoryID mongoID, False ) ->
+                                Just <| Route.ViewSnipbitFramePage fromStoryID mongoID 1
+
+                            ( Route.ViewSnipbitFramePage fromStoryID mongoID frameNumber, False ) ->
+                                Just <| Route.ViewSnipbitFramePage fromStoryID mongoID (frameNumber + 1)
+
+                            _ ->
+                                Nothing
+
+                    arrowBack =
+                        Route.aPreventDefaultClick
+                            previousFrameRoute
+                            (case previousFrameRoute of
+                                Nothing ->
                                     NoOp
-                                else
-                                    case shared.route of
-                                        Route.ViewSnipbitConclusionPage fromStoryID mongoID ->
-                                            GoTo <|
-                                                Route.ViewSnipbitFramePage
-                                                    fromStoryID
-                                                    mongoID
-                                                    (Array.length snipbit.highlightedComments)
 
-                                        Route.ViewSnipbitFramePage fromStoryID mongoID frameNumber ->
-                                            GoTo <|
-                                                Route.ViewSnipbitFramePage
-                                                    fromStoryID
-                                                    mongoID
-                                                    (frameNumber - 1)
-
-                                        _ ->
-                                            NoOp
-                            ]
-                            [ text "arrow_back" ]
-                        , div
-                            [ onClick <|
-                                if isViewSnipbitRHCTabOpen model || Route.isOnViewSnipbitQARoute shared.route then
-                                    NoOp
-                                else
-                                    GoTo <|
-                                        Route.ViewSnipbitIntroductionPage
-                                            (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
-                                            snipbit.id
-                            , classList
-                                [ ( "viewer-navbar-item", True )
-                                , ( "selected"
-                                  , case shared.route of
-                                        Route.ViewSnipbitIntroductionPage _ _ ->
-                                            True
-
-                                        _ ->
-                                            False
-                                  )
-                                , ( "disabled"
-                                  , isViewSnipbitRHCTabOpen model || Route.isOnViewSnipbitQARoute shared.route
-                                  )
+                                Just route ->
+                                    GoTo route
+                            )
+                            []
+                            [ i
+                                [ classList
+                                    [ ( "material-icons action-button", True )
+                                    , ( "disabled-icon", Util.isNothing previousFrameRoute )
+                                    ]
                                 ]
+                                [ text "arrow_back" ]
                             ]
-                            [ text "Introduction" ]
-                        , ProgressBar.view
+
+                    arrowForward =
+                        Route.aPreventDefaultClick
+                            nextFrameRoute
+                            (case nextFrameRoute of
+                                Nothing ->
+                                    NoOp
+
+                                Just route ->
+                                    GoTo route
+                            )
+                            []
+                            [ i
+                                [ classList
+                                    [ ( "material-icons action-button", True )
+                                    , ( "disabled-icon", Util.isNothing nextFrameRoute )
+                                    ]
+                                ]
+                                [ text "arrow_forward" ]
+                            ]
+
+                    introduction =
+                        Route.aPreventDefaultClick
+                            (if inTutorial then
+                                Just <|
+                                    Route.ViewSnipbitIntroductionPage
+                                        (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
+                                        snipbit.id
+                             else
+                                Nothing
+                            )
+                            (if inTutorial then
+                                GoTo <|
+                                    Route.ViewSnipbitIntroductionPage
+                                        (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
+                                        snipbit.id
+                             else
+                                NoOp
+                            )
+                            []
+                            [ div
+                                [ classList
+                                    [ ( "viewer-navbar-item", True )
+                                    , ( "selected"
+                                      , case shared.route of
+                                            Route.ViewSnipbitIntroductionPage _ _ ->
+                                                True
+
+                                            _ ->
+                                                False
+                                      )
+                                    , ( "disabled", not inTutorial )
+                                    ]
+                                ]
+                                [ text "Introduction" ]
+                            ]
+
+                    conclusion =
+                        Route.aPreventDefaultClick
+                            (if inTutorial then
+                                Just <|
+                                    Route.ViewSnipbitConclusionPage
+                                        (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
+                                        snipbit.id
+                             else
+                                Nothing
+                            )
+                            (if inTutorial then
+                                GoTo <|
+                                    Route.ViewSnipbitConclusionPage
+                                        (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
+                                        snipbit.id
+                             else
+                                NoOp
+                            )
+                            []
+                            [ div
+                                [ classList
+                                    [ ( "viewer-navbar-item", True )
+                                    , ( "selected"
+                                      , case shared.route of
+                                            Route.ViewSnipbitConclusionPage _ _ ->
+                                                True
+
+                                            _ ->
+                                                False
+                                      )
+                                    , ( "disabled", not inTutorial )
+                                    ]
+                                ]
+                                [ text "Conclusion" ]
+                            ]
+
+                    progressBar =
+                        ProgressBar.view
                             { state =
                                 case model.bookmark of
                                     TB.Introduction ->
@@ -314,62 +408,16 @@ view model shared =
                                             False
                                 }
                             }
-                        , div
-                            [ onClick <|
-                                if isViewSnipbitRHCTabOpen model || Route.isOnViewSnipbitQARoute shared.route then
-                                    NoOp
-                                else
-                                    GoTo <|
-                                        Route.ViewSnipbitConclusionPage
-                                            (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
-                                            snipbit.id
-                            , classList
-                                [ ( "viewer-navbar-item", True )
-                                , ( "selected"
-                                  , case shared.route of
-                                        Route.ViewSnipbitConclusionPage _ _ ->
-                                            True
-
-                                        _ ->
-                                            False
-                                  )
-                                , ( "disabled"
-                                  , isViewSnipbitRHCTabOpen model || Route.isOnViewSnipbitQARoute shared.route
-                                  )
-                                ]
-                            ]
-                            [ text "Conclusion" ]
-                        , i
-                            [ classList
-                                [ ( "material-icons action-button", True )
-                                , ( "disabled-icon"
-                                  , (case shared.route of
-                                        Route.ViewSnipbitConclusionPage _ _ ->
-                                            True
-
-                                        _ ->
-                                            False
-                                    )
-                                        || isViewSnipbitRHCTabOpen model
-                                        || Route.isOnViewSnipbitQARoute shared.route
-                                  )
-                                ]
-                            , onClick <|
-                                if isViewSnipbitRHCTabOpen model then
-                                    NoOp
-                                else
-                                    case shared.route of
-                                        Route.ViewSnipbitIntroductionPage fromStoryID mongoID ->
-                                            GoTo <| Route.ViewSnipbitFramePage fromStoryID mongoID 1
-
-                                        Route.ViewSnipbitFramePage fromStoryID mongoID frameNumber ->
-                                            GoTo <|
-                                                Route.ViewSnipbitFramePage fromStoryID mongoID (frameNumber + 1)
-
-                                        _ ->
-                                            NoOp
-                            ]
-                            [ text "arrow_forward" ]
+                in
+                div
+                    [ class "viewer" ]
+                    [ div
+                        [ class "viewer-navbar" ]
+                        [ arrowBack
+                        , introduction
+                        , progressBar
+                        , conclusion
+                        , arrowForward
                         ]
                     , Editor.view "view-snipbit-code-editor"
                     , div

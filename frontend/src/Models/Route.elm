@@ -5,6 +5,9 @@ import DefaultServices.Editable as Editable
 import DefaultServices.InfixFunctions exposing (..)
 import DefaultServices.Util as Util
 import Elements.Simple.FileStructure as FS
+import Html exposing (a)
+import Html.Attributes exposing (attribute)
+import Html.Events exposing (onClick)
 import Models.Bigbit as Bigbit
 import Models.QA as QA
 import Navigation
@@ -1297,3 +1300,27 @@ fromQPOnWelcomePage route =
 
         _ ->
             Nothing
+
+
+{-| Creates an `a` html node for routing within the SPA.
+
+Allows you to do routing yourself in the SPA while still allowing ctrl/cmd-click to open in a new tab.
+
+@refer `Util.onClickPreventDefault`
+
+-}
+aPreventDefaultClick : Maybe Route -> msg -> List (Html.Attribute msg) -> List (Html.Html msg) -> Html.Html msg
+aPreventDefaultClick maybeRoute msg attributes children =
+    a
+        (case maybeRoute of
+            Nothing ->
+                attributes
+
+            Just route ->
+                [ -- Can't use `href` directly until this is fixed: https://github.com/elm-lang/html/issues/142
+                  attribute "href" <| toHashUrl route
+                , Util.onClickPreventDefault msg
+                ]
+                    ++ attributes
+        )
+        children

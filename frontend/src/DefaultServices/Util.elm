@@ -5,8 +5,8 @@ import DefaultServices.InfixFunctions exposing (..)
 import Dict
 import Dom
 import Elements.Simple.Markdown as Markdown
-import Html exposing (Attribute, Html, div, i, text)
-import Html.Attributes exposing (class, hidden)
+import Html exposing (Attribute, Html, a, div, i, text)
+import Html.Attributes exposing (class, hidden, href)
 import Html.Events exposing (Options, defaultOptions, keyCode, on, onWithOptions, targetValue)
 import Html.Keyed as Keyed
 import Json.Decode as Decode
@@ -477,3 +477,39 @@ limitCharsText limit string =
 maybeAttributes : List (Maybe (Attribute msg)) -> List (Attribute msg)
 maybeAttributes =
     List.filterMap identity
+
+
+{-| For an onClick event which prevents the click default (so we can handle nav in the SPA) but allows ctrl/cmd click
+so that it can be opened in a new tab (without being prevented).
+
+Copied (and slightly modified) from github issue: <https://github.com/elm-lang/html/issues/110>
+
+-}
+onClickPreventDefault : msg -> Attribute msg
+onClickPreventDefault message =
+    let
+        invertedOr : Bool -> Bool -> Bool
+        invertedOr x y =
+            not (x || y)
+
+        maybePreventDefault : msg -> Bool -> Decode.Decoder msg
+        maybePreventDefault msg preventDefault =
+            case preventDefault of
+                True ->
+                    Decode.succeed msg
+
+                False ->
+                    Decode.fail "Normal link"
+
+        preventDefault2 : Decode.Decoder Bool
+        preventDefault2 =
+            Decode.map2
+                invertedOr
+                (Decode.field "ctrlKey" Decode.bool)
+                (Decode.field "metaKey" Decode.bool)
+    in
+    onWithOptions "click"
+        { defaultOptions | preventDefault = True }
+        (preventDefault2
+            |> Decode.andThen (maybePreventDefault message)
+        )
