@@ -154,11 +154,19 @@ view model shared =
                         [ text "Browse Related Questions" ]
 
                 ( Just snipbitID, True, False, Nothing ) ->
-                    button
-                        [ class "sub-bar-button view-all-questions"
-                        , onClick <| GoToBrowseQuestionsWithCodePointer model.tutorialCodePointer
+                    Route.aPreventDefaultClick
+                        (Just
+                            ( Route.ViewSnipbitQuestionsPage
+                                (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
+                                snipbitID
+                            , GoToBrowseQuestionsWithCodePointer model.tutorialCodePointer
+                            )
+                        )
+                        []
+                        [ button
+                            [ class "sub-bar-button view-all-questions" ]
+                            [ text "Browse All Questions" ]
                         ]
-                        [ text "Browse All Questions" ]
 
                 _ ->
                     Util.hiddenDiv
