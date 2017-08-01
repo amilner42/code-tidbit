@@ -1301,6 +1301,11 @@ fromQPOnWelcomePage route =
             Nothing
 
 
+type RouteOrLink
+    = Route Route
+    | Link Link
+
+
 {-| Creates an `a` html node for routing within the SPA.
 
 Allows you to do routing yourself in the SPA while still allowing ctrl/cmd-click to open in a new tab.
@@ -1308,16 +1313,22 @@ Allows you to do routing yourself in the SPA while still allowing ctrl/cmd-click
 @refer `Util.onClickPreventDefault`
 
 -}
-aPreventDefaultClick : Maybe ( Route, msg ) -> List (Html.Attribute msg) -> List (Html.Html msg) -> Html.Html msg
-aPreventDefaultClick maybeRouteAndMsg attributes children =
+navigationNode : Maybe ( RouteOrLink, msg ) -> List (Html.Attribute msg) -> List (Html.Html msg) -> Html.Html msg
+navigationNode maybeRouteAndMsg attributes children =
     a
         (case maybeRouteAndMsg of
             Nothing ->
                 attributes
 
-            Just ( route, msg ) ->
+            Just ( routeOrLink, msg ) ->
                 [ -- Can't use `href` directly until this is fixed: https://github.com/elm-lang/html/issues/142
-                  attribute "href" <| toHashUrl route
+                  attribute "href" <|
+                    case routeOrLink of
+                        Route route ->
+                            toHashUrl route
+
+                        Link link ->
+                            link
                 , Util.onClickPreventDefault msg
                 ]
                     ++ attributes

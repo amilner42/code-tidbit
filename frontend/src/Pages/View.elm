@@ -589,15 +589,15 @@ navbar model =
             , src "assets/ct-logo-small.png"
             ]
             []
-        , Route.aPreventDefaultClick
-            (Just ( Route.BrowsePage, GoTo Route.BrowsePage ))
+        , Route.navigationNode
+            (Just ( Route.Route Route.BrowsePage, GoTo Route.BrowsePage ))
             [ classList [ ( "hidden", Util.isNotNothing shared.user ) ] ]
             [ div
                 [ class "nav-btn left code-tidbit" ]
                 [ text "Code Tidbit" ]
             ]
-        , Route.aPreventDefaultClick
-            (Just ( Route.BrowsePage, GoTo Route.BrowsePage ))
+        , Route.navigationNode
+            (Just ( Route.Route Route.BrowsePage, GoTo Route.BrowsePage ))
             [ classList [ ( "hidden", Util.isNothing shared.user ) ] ]
             [ div
                 [ classList
@@ -607,8 +607,8 @@ navbar model =
                 ]
                 [ text "Browse" ]
             ]
-        , Route.aPreventDefaultClick
-            (Just ( Route.CreatePage, GoTo Route.CreatePage ))
+        , Route.navigationNode
+            (Just ( Route.Route Route.CreatePage, GoTo Route.CreatePage ))
             [ classList [ ( "hidden", Util.isNothing shared.user ) ] ]
             [ div
                 [ classList
@@ -618,8 +618,8 @@ navbar model =
                 ]
                 [ text "Create" ]
             ]
-        , Route.aPreventDefaultClick
-            (Just ( Route.NotificationsPage, GoTo Route.NotificationsPage ))
+        , Route.navigationNode
+            (Just ( Route.Route Route.NotificationsPage, GoTo Route.NotificationsPage ))
             [ classList [ ( "hidden", Util.isNothing shared.user ) ] ]
             [ div
                 [ classList
@@ -629,8 +629,8 @@ navbar model =
                 ]
                 [ text "Notifications" ]
             ]
-        , Route.aPreventDefaultClick
-            (Just ( Route.ProfilePage, GoTo Route.ProfilePage ))
+        , Route.navigationNode
+            (Just ( Route.Route Route.ProfilePage, GoTo Route.ProfilePage ))
             [ classList [ ( "hidden", Util.isNothing shared.user ) ] ]
             [ div
                 [ classList
@@ -640,15 +640,15 @@ navbar model =
                 ]
                 [ text "Profile" ]
             ]
-        , Route.aPreventDefaultClick
-            (Just ( registerRouteWithRedirectQP, GoTo registerRouteWithRedirectQP ))
+        , Route.navigationNode
+            (Just ( Route.Route registerRouteWithRedirectQP, GoTo registerRouteWithRedirectQP ))
             [ classList [ ( "hidden", Util.isNotNothing shared.user ) ] ]
             [ div
                 [ class "nav-btn sign-up right" ]
                 [ text "Sign Up" ]
             ]
-        , Route.aPreventDefaultClick
-            (Just ( loginRouteWithRedirectQP, GoTo loginRouteWithRedirectQP ))
+        , Route.navigationNode
+            (Just ( Route.Route loginRouteWithRedirectQP, GoTo loginRouteWithRedirectQP ))
             [ classList [ ( "hidden", Util.isNotNothing shared.user ) ] ]
             [ div
                 [ class "nav-btn login right" ]

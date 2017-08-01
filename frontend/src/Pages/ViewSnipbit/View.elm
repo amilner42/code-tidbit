@@ -154,11 +154,12 @@ view model shared =
                         [ text "Browse Related Questions" ]
 
                 ( Just snipbitID, True, False, Nothing ) ->
-                    Route.aPreventDefaultClick
+                    Route.navigationNode
                         (Just
-                            ( Route.ViewSnipbitQuestionsPage
-                                (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
-                                snipbitID
+                            ( Route.Route <|
+                                Route.ViewSnipbitQuestionsPage
+                                    (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
+                                    snipbitID
                             , GoToBrowseQuestionsWithCodePointer model.tutorialCodePointer
                             )
                         )
@@ -259,8 +260,8 @@ view model shared =
                                 Nothing
 
                     arrowBack =
-                        Route.aPreventDefaultClick
-                            (previousFrameRoute ||> (\route -> ( route, GoTo route )))
+                        Route.navigationNode
+                            (previousFrameRoute ||> (\route -> ( Route.Route route, GoTo route )))
                             []
                             [ i
                                 [ classList
@@ -272,8 +273,8 @@ view model shared =
                             ]
 
                     arrowForward =
-                        Route.aPreventDefaultClick
-                            (nextFrameRoute ||> (\route -> ( route, GoTo route )))
+                        Route.navigationNode
+                            (nextFrameRoute ||> (\route -> ( Route.Route route, GoTo route )))
                             []
                             [ i
                                 [ classList
@@ -285,7 +286,7 @@ view model shared =
                             ]
 
                     introduction =
-                        Route.aPreventDefaultClick
+                        Route.navigationNode
                             (if inTutorial then
                                 let
                                     route =
@@ -293,7 +294,7 @@ view model shared =
                                             (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
                                             snipbit.id
                                 in
-                                Just ( route, GoTo route )
+                                Just ( Route.Route route, GoTo route )
                              else
                                 Nothing
                             )
@@ -316,7 +317,7 @@ view model shared =
                             ]
 
                     conclusion =
-                        Route.aPreventDefaultClick
+                        Route.navigationNode
                             (if inTutorial then
                                 let
                                     route =
@@ -324,7 +325,7 @@ view model shared =
                                             (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
                                             snipbit.id
                                 in
-                                Just ( route, GoTo route )
+                                Just ( Route.Route route, GoTo route )
                              else
                                 Nothing
                             )
