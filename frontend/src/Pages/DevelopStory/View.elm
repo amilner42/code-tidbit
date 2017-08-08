@@ -24,18 +24,27 @@ view model shared =
                 [ Util.keyedDiv
                     [ class "sub-bar" ]
                     [ ( "create-story-page-sub-bar-view-story-button"
-                      , button
-                            [ class "sub-bar-button "
-                            , onClick <| GoTo <| Route.ViewStoryPage story.id
-                            ]
-                            [ text "View Story" ]
+                      , Route.navigationNode
+                            (Just
+                                ( Route.Route <| Route.ViewStoryPage story.id
+                                , GoTo <| Route.ViewStoryPage story.id
+                                )
+                            )
+                            []
+                            [ button [ class "sub-bar-button " ] [ text "View Story" ] ]
                       )
                     , ( "create-story-page-sub-bar-edit-info-button"
-                      , button
-                            [ class "sub-bar-button edit-information"
-                            , onClick <| GoTo <| Route.CreateStoryNamePage <| Just story.id
+                      , Route.navigationNode
+                            (Just
+                                ( Route.Route <| Route.CreateStoryNamePage <| Just story.id
+                                , GoTo <| Route.CreateStoryNamePage <| Just story.id
+                                )
+                            )
+                            []
+                            [ button
+                                [ class "sub-bar-button edit-information" ]
+                                [ text "Edit Information" ]
                             ]
-                            [ text "Edit Information" ]
                       )
                     , ( "create-story-page-sub-bar-add-tidbits-button"
                       , case model.tidbitsToAdd of
