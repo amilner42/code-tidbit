@@ -532,27 +532,24 @@ viewBigbitCommentBox bigbit model shared =
                                         , onClick PreviousRelevantHC
                                         ]
                                         [ text "Previous" ]
-                                    , div
-                                        [ classList
-                                            [ ( "above-comment-block-button go-to-frame-button", True ) ]
-                                        , onClick
-                                            (Array.get index rhc.relevantHC
-                                                |> maybeMapWithDefault
-                                                    (GoTo
-                                                        << (\frameNumber ->
-                                                                Route.ViewBigbitFramePage
-                                                                    (Route.getFromStoryQueryParamOnViewBigbitRoute shared.route)
-                                                                    bigbit.id
-                                                                    frameNumber
-                                                                    Nothing
-                                                           )
-                                                        << (+) 1
-                                                        << Tuple.first
-                                                    )
-                                                    NoOp
-                                            )
+                                    , Route.navigationNode
+                                        (Array.get index rhc.relevantHC
+                                            ||> Tuple.first
+                                            ||> (+) 1
+                                            ||> (\frameNumber ->
+                                                    Route.ViewBigbitFramePage
+                                                        (Route.getFromStoryQueryParamOnViewBigbitRoute shared.route)
+                                                        bigbit.id
+                                                        frameNumber
+                                                        Nothing
+                                                )
+                                            ||> (\route -> ( Route.Route route, GoTo route ))
+                                        )
+                                        []
+                                        [ div
+                                            [ class "above-comment-block-button go-to-frame-button" ]
+                                            [ text "Jump To Frame" ]
                                         ]
-                                        [ text "Jump To Frame" ]
                                     , div
                                         [ classList
                                             [ ( "above-comment-block-button next-button", True )
