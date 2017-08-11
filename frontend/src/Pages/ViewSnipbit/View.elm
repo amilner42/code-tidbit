@@ -218,12 +218,6 @@ view model shared =
                     previousFrameRoute : Maybe Route.Route
                     previousFrameRoute =
                         case ( shared.route, not inTutorial ) of
-                            ( Route.ViewSnipbitIntroductionPage _ _, _ ) ->
-                                Nothing
-
-                            ( _, True ) ->
-                                Nothing
-
                             ( Route.ViewSnipbitConclusionPage fromStoryID mongoID, False ) ->
                                 Just <|
                                     Route.ViewSnipbitFramePage
@@ -244,12 +238,6 @@ view model shared =
                     nextFrameRoute : Maybe Route.Route
                     nextFrameRoute =
                         case ( shared.route, not inTutorial ) of
-                            ( Route.ViewSnipbitConclusionPage _ _, _ ) ->
-                                Nothing
-
-                            ( _, True ) ->
-                                Nothing
-
                             ( Route.ViewSnipbitIntroductionPage fromStoryID mongoID, False ) ->
                                 Just <| Route.ViewSnipbitFramePage fromStoryID mongoID 1
 
