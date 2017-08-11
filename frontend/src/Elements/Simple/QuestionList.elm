@@ -5,6 +5,7 @@ import Html exposing (Html, div, hr, i, text)
 import Html.Attributes exposing (class, classList)
 import Html.Events exposing (onClick)
 import Models.QA as QA
+import Models.Route as Route
 
 
 type alias RenderConfig codePointer msg =
@@ -18,7 +19,7 @@ type alias RenderConfig codePointer msg =
 
 
 type alias QuestionBoxRenderConfig codePointer msg =
-    { onClickQuestionBox : QA.Question codePointer -> msg }
+    { questionND : QA.Question codePointer -> Route.NavigationData msg }
 
 
 view : RenderConfig codePointer msg -> List (QA.Question codePointer) -> Html msg
@@ -55,39 +56,41 @@ view ({ questionBoxRenderConfig, askQuestion, isHighlighting, allQuestionText } 
 
 
 questionBoxView : QuestionBoxRenderConfig codePointer msg -> QA.Question codePointer -> Html msg
-questionBoxView { onClickQuestionBox } question =
-    div
-        [ class "question-box"
-        , onClick <| onClickQuestionBox question
-        ]
-        [ div [ class "question-text" ] [ text question.questionText ]
-        , div
-            [ class "upvotes-and-downvotes" ]
-            [ div [ class "email" ] [ text question.authorEmail ]
+questionBoxView { questionND } question =
+    Route.navigationNode
+        (Just <| questionND question)
+        []
+        [ div
+            [ class "question-box" ]
+            [ div [ class "question-text" ] [ text question.questionText ]
             , div
-                [ classList
-                    [ ( "downvotes", True )
-                    , ( "user-downvoted", Tuple.first question.downvotes )
+                [ class "upvotes-and-downvotes" ]
+                [ div [ class "email" ] [ text question.authorEmail ]
+                , div
+                    [ classList
+                        [ ( "downvotes", True )
+                        , ( "user-downvoted", Tuple.first question.downvotes )
+                        ]
                     ]
-                ]
-                [ i [ class "material-icons" ] [ text "thumb_down" ]
-                , text <| toString <| Tuple.second question.downvotes
-                ]
-            , div
-                [ classList
-                    [ ( "upvotes", True )
-                    , ( "user-upvoted", Tuple.first question.upvotes )
+                    [ i [ class "material-icons" ] [ text "thumb_down" ]
+                    , text <| toString <| Tuple.second question.downvotes
                     ]
-                ]
-                [ i [ class "material-icons" ] [ text "thumb_up" ]
-                , text <| toString <| Tuple.second question.upvotes
-                ]
-            , div
-                [ classList
-                    [ ( "pinned", True )
-                    , ( "hidden", not question.pinned )
+                , div
+                    [ classList
+                        [ ( "upvotes", True )
+                        , ( "user-upvoted", Tuple.first question.upvotes )
+                        ]
                     ]
+                    [ i [ class "material-icons" ] [ text "thumb_up" ]
+                    , text <| toString <| Tuple.second question.upvotes
+                    ]
+                , div
+                    [ classList
+                        [ ( "pinned", True )
+                        , ( "hidden", not question.pinned )
+                        ]
+                    ]
+                    [ i [ class "material-icons" ] [ text "star" ] ]
                 ]
-                [ i [ class "material-icons" ] [ text "star" ] ]
             ]
         ]

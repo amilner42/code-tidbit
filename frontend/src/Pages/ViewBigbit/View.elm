@@ -753,14 +753,17 @@ viewBigbitCommentBox bigbit model shared =
                         [ class "view-questions" ]
                         [ QuestionList.view
                             { questionBoxRenderConfig =
-                                { onClickQuestionBox =
+                                { questionND =
                                     \question ->
-                                        GoTo <|
-                                            Route.ViewBigbitQuestionPage
-                                                (Route.getFromStoryQueryParamOnViewBigbitRoute shared.route)
-                                                (Route.getTouringQuestionsQueryParamOnViewBigbitQARoute shared.route)
-                                                bigbitID
-                                                question.id
+                                        let
+                                            route =
+                                                Route.ViewBigbitQuestionPage
+                                                    (Route.getFromStoryQueryParamOnViewBigbitRoute shared.route)
+                                                    (Route.getTouringQuestionsQueryParamOnViewBigbitQARoute shared.route)
+                                                    bigbitID
+                                                    question.id
+                                        in
+                                        ( Route.Route route, GoTo route )
                                 }
                             , isHighlighting = isHighlighting
                             , allQuestionText =

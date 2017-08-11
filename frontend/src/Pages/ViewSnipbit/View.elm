@@ -667,14 +667,17 @@ commentBox snipbit model shared =
                         [ class "view-questions" ]
                         [ QuestionList.view
                             { questionBoxRenderConfig =
-                                { onClickQuestionBox =
+                                { questionND =
                                     \question ->
-                                        GoTo <|
-                                            Route.ViewSnipbitQuestionPage
-                                                (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
-                                                Nothing
-                                                snipbitID
-                                                question.id
+                                        let
+                                            route =
+                                                Route.ViewSnipbitQuestionPage
+                                                    (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
+                                                    Nothing
+                                                    snipbitID
+                                                    question.id
+                                        in
+                                        ( Route.Route route, GoTo route )
                                 }
                             , isHighlighting = isHighlighting
                             , allQuestionText = "All Questions"
