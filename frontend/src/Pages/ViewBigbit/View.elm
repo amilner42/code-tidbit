@@ -802,10 +802,12 @@ viewBigbitCommentBox bigbit model shared =
                     RT.isMakingRequest shared.apiRequestTracker (RT.AskQuestion TidbitPointer.Bigbit)
                 , askQuestion = AskQuestion bigbitID
                 , isReadyCodePointer = .range >> Range.isEmptyRange >> not
-                , goToAllQuestions =
-                    GoToBrowseQuestionsWithCodePointer
+                , allQuestionsND =
+                    ( Route.Route <| Route.ViewBigbitQuestionsPage maybeStoryID bigbitID
+                    , GoToBrowseQuestionsWithCodePointer
                         bigbitID
                         (QA.getNewQuestion bigbitID model.qaState |||> .codePointer)
+                    )
                 }
                 (QA.getNewQuestion bigbitID model.qaState ?> QA.defaultNewQuestion)
 
@@ -846,13 +848,9 @@ viewBigbitCommentBox bigbit model shared =
                             RT.isMakingRequest
                                 shared.apiRequestTracker
                                 (RT.AnswerQuestion TidbitPointer.Bigbit)
-                        , goToAllAnswers =
-                            GoTo <|
-                                Route.ViewBigbitAnswersPage
-                                    maybeStoryID
-                                    Nothing
-                                    bigbitID
-                                    questionID
+                        , allAnswersND =
+                            Route.ViewBigbitAnswersPage maybeStoryID Nothing bigbitID questionID
+                                |> (\route -> ( Route.Route route, GoTo route ))
                         , answerQuestion = AnswerQuestion bigbitID questionID
                         }
                         newAnswer

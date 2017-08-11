@@ -7,6 +7,7 @@ import Html exposing (Html, div, text)
 import Html.Attributes exposing (class, classList, defaultValue, disabled, placeholder)
 import Html.Events exposing (onClick, onInput)
 import Models.QA exposing (..)
+import Models.Route as Route
 import ProjectTypeAliases exposing (..)
 
 
@@ -25,7 +26,7 @@ type alias RenderConfig codePointer msg =
     , textFieldKeyTracker : TextFields.KeyTracker
     , forQuestion : Question codePointer
     , answerQuestionRequestInProgress : Bool
-    , goToAllAnswers : msg
+    , allAnswersND : Route.NavigationData msg
     , answerQuestion : AnswerText -> msg
     }
 
@@ -41,11 +42,13 @@ view config { previewMarkdown, showQuestion, answerText } =
     in
     div
         [ class "answer-question" ]
-        [ div
-            [ class "link qa-top-right-link"
-            , onClick config.goToAllAnswers
+        [ Route.navigationNode
+            (Just config.allAnswersND)
+            []
+            [ div
+                [ class "link qa-top-right-link" ]
+                [ text "see all answers" ]
             ]
-            [ text "see all answers" ]
         , div
             [ classList
                 [ ( "display-question", True )

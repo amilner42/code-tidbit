@@ -775,9 +775,11 @@ commentBox snipbit model shared =
                     RT.isMakingRequest shared.apiRequestTracker (RT.AskQuestion TidbitPointer.Snipbit)
                 , askQuestion = AskQuestion snipbitID
                 , isReadyCodePointer = not << Range.isEmptyRange
-                , goToAllQuestions =
-                    GoToBrowseQuestionsWithCodePointer <|
+                , allQuestionsND =
+                    ( Route.Route <| Route.ViewSnipbitQuestionsPage maybeStoryID snipbitID
+                    , GoToBrowseQuestionsWithCodePointer <|
                         (QA.getNewQuestion snipbitID model.qaState |||> .codePointer)
+                    )
                 }
                 newQuestion
 
@@ -793,13 +795,13 @@ commentBox snipbit model shared =
                                 shared.apiRequestTracker
                                 (RT.AnswerQuestion TidbitPointer.Snipbit)
                         , answerQuestion = AnswerQuestion snipbitID questionID
-                        , goToAllAnswers =
-                            GoTo <|
-                                Route.ViewSnipbitAnswersPage
-                                    (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
-                                    (Route.getTouringQuestionsQueryParamOnViewSnipbitQARoute shared.route)
-                                    snipbitID
-                                    questionID
+                        , allAnswersND =
+                            Route.ViewSnipbitAnswersPage
+                                (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
+                                (Route.getTouringQuestionsQueryParamOnViewSnipbitQARoute shared.route)
+                                snipbitID
+                                questionID
+                                |> (\route -> ( Route.Route route, GoTo route ))
                         }
                         (QA.getNewAnswer snipbitID questionID model.qaState
                             ?> QA.defaultNewAnswer

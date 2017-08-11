@@ -72,6 +72,15 @@ type Route
     | NotificationsPage
 
 
+{-| Data required for making navigation elements which support both internal/external navigation.
+
+@REFER `navigationNode`
+
+-}
+type alias NavigationData msg =
+    ( RouteOrLink, msg )
+
+
 {-| For parsing a location (url) into a route.
 -}
 matchers : Parser (Route -> a) a
@@ -1313,10 +1322,10 @@ Allows you to do routing yourself in the SPA while still allowing ctrl/cmd-click
 @refer `Util.onClickPreventDefault`
 
 -}
-navigationNode : Maybe ( RouteOrLink, msg ) -> List (Html.Attribute msg) -> List (Html.Html msg) -> Html.Html msg
-navigationNode maybeRouteAndMsg attributes children =
+navigationNode : Maybe (NavigationData msg) -> List (Html.Attribute msg) -> List (Html.Html msg) -> Html.Html msg
+navigationNode navigationData attributes children =
     a
-        (case maybeRouteAndMsg of
+        (case navigationData of
             Nothing ->
                 attributes
 
