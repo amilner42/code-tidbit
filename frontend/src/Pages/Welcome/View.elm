@@ -31,28 +31,32 @@ view model shared =
             [ text "TIDBIT" ]
         , case shared.route of
             Route.RegisterPage from ->
-                button
-                    [ class "welcome-page-change-tab-button"
-                    , onClick <| GoTo <| Route.LoginPage from
-                    ]
-                    [ text "Login"
+                Route.navigationNode
+                    (Route.LoginPage from |> (\route -> Just ( Route.Route route, GoTo route )))
+                    []
+                    [ button
+                        [ class "welcome-page-change-tab-button" ]
+                        [ text "Login" ]
                     ]
 
             Route.LoginPage from ->
-                button
-                    [ class "welcome-page-change-tab-button"
-                    , onClick <| GoTo <| Route.RegisterPage from
-                    ]
-                    [ text "Register"
+                Route.navigationNode
+                    (Route.RegisterPage from |> (\route -> Just ( Route.Route route, GoTo route )))
+                    []
+                    [ button
+                        [ class "welcome-page-change-tab-button" ]
+                        [ text "Register" ]
                     ]
 
             _ ->
                 Util.hiddenDiv
-        , button
-            [ class "welcome-page-change-tab-button welcome-page-browse-button"
-            , onClick <| GoTo Route.BrowsePage
+        , Route.navigationNode
+            (Just ( Route.Route Route.BrowsePage, GoTo Route.BrowsePage ))
+            []
+            [ button
+                [ class "welcome-page-change-tab-button welcome-page-browse-button" ]
+                [ text "Browse Tutorials" ]
             ]
-            [ text "Browse Tutorials" ]
         , div
             [ classList
                 [ ( "welcome-page", True )
