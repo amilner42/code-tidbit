@@ -580,6 +580,12 @@ textarea {
     }
 }
 
+.link-nav-node:focus {
+    .link {
+        color: blue;
+    }
+}
+
 .link {
     font-size: 12px;
     color: $color1;
@@ -587,6 +593,10 @@ textarea {
     cursor: pointer;
     opacity: 0.75;
     text-decoration: underline;
+
+    &:hover {
+        color: blue;
+    }
 
     &.qa-top-right-link {
         position: absolute !important;

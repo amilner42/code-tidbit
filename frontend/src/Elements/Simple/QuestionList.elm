@@ -59,7 +59,7 @@ questionBoxView : QuestionBoxRenderConfig codePointer msg -> QA.Question codePoi
 questionBoxView { questionND } question =
     Route.navigationNode
         (Just <| questionND question)
-        []
+        [ class "question-box-nav-node" ]
         [ div
             [ class "question-box" ]
             [ div [ class "question-text" ] [ text question.questionText ]

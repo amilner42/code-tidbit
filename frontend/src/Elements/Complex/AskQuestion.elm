@@ -52,7 +52,7 @@ view config model =
         [ class "ask-question" ]
         [ Route.navigationNode
             (Just config.allQuestionsND)
-            []
+            [ class "link-nav-node" ]
             [ div
                 [ class "link qa-top-right-link" ]
                 [ text "see all questions" ]

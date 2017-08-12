@@ -64,6 +64,14 @@
     }
 }
 
+.question-box-nav-node:focus {
+    outline: none;
+
+    .question-box {
+        @include strong-box-shadow();
+    }
+}
+
 .question-box {
     @include  light-box-shadow();
 

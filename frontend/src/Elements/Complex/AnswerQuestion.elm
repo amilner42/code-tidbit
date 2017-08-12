@@ -44,7 +44,7 @@ view config { previewMarkdown, showQuestion, answerText } =
         [ class "answer-question" ]
         [ Route.navigationNode
             (Just config.allAnswersND)
-            []
+            [ class "link-nav-node" ]
             [ div
                 [ class "link qa-top-right-link" ]
                 [ text "see all answers" ]

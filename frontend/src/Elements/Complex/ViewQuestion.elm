@@ -123,7 +123,7 @@ view config model =
     div [ class "view-question" ] <|
         [ Route.navigationNode
             (Just config.allQuestionsND)
-            []
+            [ class "link-nav-node" ]
             [ div
                 [ class "link qa-top-right-link" ]
                 [ text "see all questions" ]
@@ -368,7 +368,7 @@ answerBoxView : (Answer -> Route.NavigationData msg) -> Answer -> Html msg
 answerBoxView answerND answer =
     Route.navigationNode
         (Just <| answerND answer)
-        []
+        [ class "answer-box-nav-node" ]
         [ div
             [ class "answer-box" ]
             [ div [ class "answer-text" ] [ text <| answer.answerText ]
