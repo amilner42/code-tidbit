@@ -595,51 +595,62 @@ viewBigbitCommentBox bigbit model shared =
                     RT.EditAnswerComment TidbitPointer.Bigbit >> RT.isMakingRequest shared.apiRequestTracker
                 , editQuestionCommentRequestInProgress =
                     RT.EditQuestionComment TidbitPointer.Bigbit >> RT.isMakingRequest shared.apiRequestTracker
-                , goToBrowseAllQuestions =
-                    GoToBrowseQuestionsWithCodePointer
+                , allQuestionsND =
+                    ( Route.Route <|
+                        Route.ViewBigbitQuestionsPage
+                            (Route.getFromStoryQueryParamOnViewBigbitRoute shared.route)
+                            bigbit.id
+                    , GoToBrowseQuestionsWithCodePointer
                         bigbit.id
                         (Route.viewBigbitPageCurrentActiveFile shared.route bigbit (Just qa) qaState
                             ||> (\file -> { file = file, range = Range.zeroRange })
                         )
-                , goToQuestionTab =
-                    GoTo <|
-                        Route.ViewBigbitQuestionPage
-                            (Route.getFromStoryQueryParamOnViewBigbitRoute shared.route)
-                            (Route.getTouringQuestionsQueryParamOnViewBigbitQARoute shared.route)
-                            bigbit.id
-                            question.id
-                , goToAnswersTab =
-                    GoTo <|
-                        Route.ViewBigbitAnswersPage
-                            (Route.getFromStoryQueryParamOnViewBigbitRoute shared.route)
-                            (Route.getTouringQuestionsQueryParamOnViewBigbitQARoute shared.route)
-                            bigbit.id
-                            question.id
-                , goToQuestionCommentsTab =
-                    GoTo <|
-                        Route.ViewBigbitQuestionCommentsPage
-                            (Route.getFromStoryQueryParamOnViewBigbitRoute shared.route)
-                            (Route.getTouringQuestionsQueryParamOnViewBigbitQARoute shared.route)
-                            bigbit.id
-                            question.id
-                            Nothing
-                , goToAnswerTab =
+                    )
+                , questionND =
+                    Route.ViewBigbitQuestionPage
+                        (Route.getFromStoryQueryParamOnViewBigbitRoute shared.route)
+                        (Route.getTouringQuestionsQueryParamOnViewBigbitQARoute shared.route)
+                        bigbit.id
+                        question.id
+                        |> (\route -> ( Route.Route route, GoTo route ))
+                , allAnswersND =
+                    Route.ViewBigbitAnswersPage
+                        (Route.getFromStoryQueryParamOnViewBigbitRoute shared.route)
+                        (Route.getTouringQuestionsQueryParamOnViewBigbitQARoute shared.route)
+                        bigbit.id
+                        question.id
+                        |> (\route -> ( Route.Route route, GoTo route ))
+                , questionCommentsND =
+                    Route.ViewBigbitQuestionCommentsPage
+                        (Route.getFromStoryQueryParamOnViewBigbitRoute shared.route)
+                        (Route.getTouringQuestionsQueryParamOnViewBigbitQARoute shared.route)
+                        bigbit.id
+                        question.id
+                        Nothing
+                        |> (\route -> ( Route.Route route, GoTo route ))
+                , answerND =
                     \answer ->
-                        GoTo <|
-                            Route.ViewBigbitAnswerPage
-                                (Route.getFromStoryQueryParamOnViewBigbitRoute shared.route)
-                                (Route.getTouringQuestionsQueryParamOnViewBigbitQARoute shared.route)
-                                bigbit.id
-                                answer.id
-                , goToAnswerCommentsTab =
+                        let
+                            route =
+                                Route.ViewBigbitAnswerPage
+                                    (Route.getFromStoryQueryParamOnViewBigbitRoute shared.route)
+                                    (Route.getTouringQuestionsQueryParamOnViewBigbitQARoute shared.route)
+                                    bigbit.id
+                                    answer.id
+                        in
+                        ( Route.Route route, GoTo route )
+                , answerCommentsND =
                     \answer ->
-                        GoTo <|
-                            Route.ViewBigbitAnswerCommentsPage
-                                (Route.getFromStoryQueryParamOnViewBigbitRoute shared.route)
-                                (Route.getTouringQuestionsQueryParamOnViewBigbitQARoute shared.route)
-                                bigbit.id
-                                answer.id
-                                Nothing
+                        let
+                            route =
+                                Route.ViewBigbitAnswerCommentsPage
+                                    (Route.getFromStoryQueryParamOnViewBigbitRoute shared.route)
+                                    (Route.getTouringQuestionsQueryParamOnViewBigbitQARoute shared.route)
+                                    bigbit.id
+                                    answer.id
+                                    Nothing
+                        in
+                        ( Route.Route route, GoTo route )
                 , goToQuestionComment =
                     \questionComment ->
                         GoTo <|

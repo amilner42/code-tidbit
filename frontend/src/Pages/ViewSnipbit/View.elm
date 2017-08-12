@@ -517,50 +517,56 @@ commentBox snipbit model shared =
                     RT.EditAnswerComment TidbitPointer.Snipbit >> RT.isMakingRequest shared.apiRequestTracker
                 , editQuestionCommentRequestInProgress =
                     RT.EditQuestionComment TidbitPointer.Snipbit >> RT.isMakingRequest shared.apiRequestTracker
-                , goToBrowseAllQuestions =
-                    GoTo <|
-                        Route.ViewSnipbitQuestionsPage
-                            (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
-                            snipbit.id
-                , goToQuestionTab =
-                    GoTo <|
-                        Route.ViewSnipbitQuestionPage
-                            (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
-                            (Route.getTouringQuestionsQueryParamOnViewSnipbitQARoute shared.route)
-                            snipbit.id
-                            question.id
-                , goToAnswersTab =
-                    GoTo <|
-                        Route.ViewSnipbitAnswersPage
-                            (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
-                            (Route.getTouringQuestionsQueryParamOnViewSnipbitQARoute shared.route)
-                            snipbit.id
-                            question.id
-                , goToQuestionCommentsTab =
-                    GoTo <|
-                        Route.ViewSnipbitQuestionCommentsPage
-                            (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
-                            (Route.getTouringQuestionsQueryParamOnViewSnipbitQARoute shared.route)
-                            snipbit.id
-                            question.id
-                            Nothing
-                , goToAnswerTab =
+                , allQuestionsND =
+                    Route.ViewSnipbitQuestionsPage
+                        (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
+                        snipbit.id
+                        |> (\route -> ( Route.Route route, GoTo route ))
+                , questionND =
+                    Route.ViewSnipbitQuestionPage
+                        (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
+                        (Route.getTouringQuestionsQueryParamOnViewSnipbitQARoute shared.route)
+                        snipbit.id
+                        question.id
+                        |> (\route -> ( Route.Route route, GoTo route ))
+                , allAnswersND =
+                    Route.ViewSnipbitAnswersPage
+                        (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
+                        (Route.getTouringQuestionsQueryParamOnViewSnipbitQARoute shared.route)
+                        snipbit.id
+                        question.id
+                        |> (\route -> ( Route.Route route, GoTo route ))
+                , questionCommentsND =
+                    Route.ViewSnipbitQuestionCommentsPage
+                        (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
+                        (Route.getTouringQuestionsQueryParamOnViewSnipbitQARoute shared.route)
+                        snipbit.id
+                        question.id
+                        Nothing
+                        |> (\route -> ( Route.Route route, GoTo route ))
+                , answerND =
                     \answer ->
-                        GoTo <|
-                            Route.ViewSnipbitAnswerPage
-                                (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
-                                (Route.getTouringQuestionsQueryParamOnViewSnipbitQARoute shared.route)
-                                snipbit.id
-                                answer.id
-                , goToAnswerCommentsTab =
+                        let
+                            route =
+                                Route.ViewSnipbitAnswerPage
+                                    (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
+                                    (Route.getTouringQuestionsQueryParamOnViewSnipbitQARoute shared.route)
+                                    snipbit.id
+                                    answer.id
+                        in
+                        ( Route.Route route, GoTo route )
+                , answerCommentsND =
                     \answer ->
-                        GoTo <|
-                            Route.ViewSnipbitAnswerCommentsPage
-                                (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
-                                (Route.getTouringQuestionsQueryParamOnViewSnipbitQARoute shared.route)
-                                snipbit.id
-                                answer.id
-                                Nothing
+                        let
+                            route =
+                                Route.ViewSnipbitAnswerCommentsPage
+                                    (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
+                                    (Route.getTouringQuestionsQueryParamOnViewSnipbitQARoute shared.route)
+                                    snipbit.id
+                                    answer.id
+                                    Nothing
+                        in
+                        ( Route.Route route, GoTo route )
                 , goToQuestionComment =
                     \questionComment ->
                         GoTo <|

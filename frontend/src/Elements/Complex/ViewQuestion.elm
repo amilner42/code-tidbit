@@ -11,6 +11,7 @@ import Html exposing (Html, button, div, i, span, text)
 import Html.Attributes exposing (class, classList)
 import Html.Events exposing (onClick)
 import Models.QA exposing (..)
+import Models.Route as Route
 import ProjectTypeAliases exposing (..)
 import Set
 
@@ -52,12 +53,12 @@ type alias RenderConfig msg codePointer =
     , deleteQuestionCommentRequestInProgress : CommentID -> Bool
     , editAnswerCommentRequestInProgress : CommentID -> Bool
     , editQuestionCommentRequestInProgress : CommentID -> Bool
-    , goToBrowseAllQuestions : msg
-    , goToQuestionTab : msg
-    , goToAnswersTab : msg
-    , goToQuestionCommentsTab : msg
-    , goToAnswerTab : Answer -> msg
-    , goToAnswerCommentsTab : Answer -> msg
+    , allQuestionsND : Route.NavigationData msg
+    , questionND : Route.NavigationData msg
+    , allAnswersND : Route.NavigationData msg
+    , questionCommentsND : Route.NavigationData msg
+    , answerND : Answer -> Route.NavigationData msg
+    , answerCommentsND : Answer -> Route.NavigationData msg
     , goToQuestionComment : QuestionComment -> msg
     , goToAnswerComment : AnswerComment -> msg
     , goToAnswerQuestion : msg
@@ -92,59 +93,76 @@ view config model =
         extendedTopBar isAnswerTab answer =
             div
                 [ class "extended-top-bar" ]
-                [ div
-                    [ classList
-                        [ ( "tab left-tab", True )
-                        , ( "selected", isAnswerTab )
+                [ Route.navigationNode
+                    (Just <| config.answerND answer)
+                    []
+                    [ div
+                        [ classList
+                            [ ( "tab left-tab", True )
+                            , ( "selected", isAnswerTab )
+                            ]
                         ]
-                    , onClick <| config.goToAnswerTab answer
+                        [ text "ANSWER" ]
                     ]
-                    [ text "ANSWER" ]
-                , div
-                    [ classList
-                        [ ( "tab right-tab", True )
-                        , ( "selected", not isAnswerTab )
+                , Route.navigationNode
+                    (Just <| config.answerCommentsND answer)
+                    []
+                    [ div
+                        [ classList
+                            [ ( "tab right-tab", True )
+                            , ( "selected", not isAnswerTab )
+                            ]
                         ]
-                    , onClick <| config.goToAnswerCommentsTab answer
+                        [ text "COMMENTS" ]
                     ]
-                    [ text "COMMENTS" ]
                 ]
 
         unauthMessageForUpvoteAndDownvote =
             "We want your feedback, sign up for free and get access to all of CodeTidbit in seconds!"
     in
     div [ class "view-question" ] <|
-        [ div
-            [ class "link qa-top-right-link"
-            , onClick config.goToBrowseAllQuestions
+        [ Route.navigationNode
+            (Just config.allQuestionsND)
+            []
+            [ div
+                [ class "link qa-top-right-link" ]
+                [ text "see all questions" ]
             ]
-            [ text "see all questions" ]
         , div
             [ class "top-bar" ]
-            [ div
-                [ classList
-                    [ ( "tab", True )
-                    , ( "selected", config.tab == QuestionTab )
+            [ Route.navigationNode
+                (Just config.questionND)
+                []
+                [ div
+                    [ classList
+                        [ ( "tab", True )
+                        , ( "selected", config.tab == QuestionTab )
+                        ]
                     ]
-                , onClick config.goToQuestionTab
+                    [ text "QUESTION" ]
                 ]
-                [ text "QUESTION" ]
-            , div
-                [ classList
-                    [ ( "tab center-tab", True )
-                    , ( "selected", isQuestionCommentsTab config.tab )
+            , Route.navigationNode
+                (Just config.questionCommentsND)
+                []
+                [ div
+                    [ classList
+                        [ ( "tab center-tab", True )
+                        , ( "selected", isQuestionCommentsTab config.tab )
+                        ]
                     ]
-                , onClick config.goToQuestionCommentsTab
+                    [ text "COMMENTS" ]
                 ]
-                [ text "COMMENTS" ]
-            , div
-                [ classList
-                    [ ( "tab", True )
-                    , ( "selected", AnswersTab == config.tab )
+            , Route.navigationNode
+                (Just config.allAnswersND)
+                []
+                [ div
+                    [ classList
+                        [ ( "tab", True )
+                        , ( "selected", AnswersTab == config.tab )
+                        ]
                     ]
-                , onClick config.goToAnswersTab
+                    [ text "ANSWERS" ]
                 ]
-                [ text "ANSWERS" ]
             ]
         , case config.tab of
             QuestionTab ->
@@ -213,7 +231,7 @@ view config model =
                             div [ class "no-answers-text" ] [ text "Be the first to answer the question" ]
                           else
                             div [ class "answers" ] <|
-                                List.map (answerBoxView config.goToAnswerTab) config.answers
+                                List.map (answerBoxView config.answerND) config.answers
                         ]
                     , div
                         [ class "answer-question"
@@ -346,27 +364,29 @@ update msg model =
             ( { model | deletingAnswers = Set.insert answerID model.deletingAnswers }, Cmd.none )
 
 
-answerBoxView : (Answer -> msg) -> Answer -> Html msg
-answerBoxView goToAnswer answer =
-    div
-        [ class "answer-box"
-        , onClick <| goToAnswer answer
-        ]
-        [ div [ class "answer-text" ] [ text <| answer.answerText ]
-        , div
-            [ class "bottom-bar" ]
-            [ div [ class "email" ] [ text <| answer.authorEmail ]
-            , span [ class "dislike-count" ] [ text <| toString <| Tuple.second <| answer.downvotes ]
-            , i [ class "material-icons dislike" ] [ text "thumb_down" ]
-            , span [ class "like-count" ] [ text <| toString <| Tuple.second <| answer.upvotes ]
-            , i [ class "material-icons like" ] [ text "thumb_up" ]
-            , i
-                [ classList
-                    [ ( "material-icons pinned", True )
-                    , ( "hidden", not answer.pinned )
+answerBoxView : (Answer -> Route.NavigationData msg) -> Answer -> Html msg
+answerBoxView answerND answer =
+    Route.navigationNode
+        (Just <| answerND answer)
+        []
+        [ div
+            [ class "answer-box" ]
+            [ div [ class "answer-text" ] [ text <| answer.answerText ]
+            , div
+                [ class "bottom-bar" ]
+                [ div [ class "email" ] [ text <| answer.authorEmail ]
+                , span [ class "dislike-count" ] [ text <| toString <| Tuple.second <| answer.downvotes ]
+                , i [ class "material-icons dislike" ] [ text "thumb_down" ]
+                , span [ class "like-count" ] [ text <| toString <| Tuple.second <| answer.upvotes ]
+                , i [ class "material-icons like" ] [ text "thumb_up" ]
+                , i
+                    [ classList
+                        [ ( "material-icons pinned", True )
+                        , ( "hidden", not answer.pinned )
+                        ]
                     ]
+                    [ text "star" ]
                 ]
-                [ text "star" ]
             ]
         ]
 
