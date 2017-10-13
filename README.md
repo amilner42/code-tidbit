@@ -48,19 +48,23 @@ I use Atom (auto-completion on frontend and backend!). Plugins:
   - elm-format : Allows you to run elm-format on save, very convenient.
   - atom-typescript : the only typescript plugin you will ever need.
 
-### Production
+##### Contributing
 
-TODO @nateabele add your side of the story
-  - How are we actually calling the node process (to make it restarts if it crashes for instance)
-  - How are we gonna deploy the frontend/backend/migrations
-  - A mention of the DB
-  - Just document everything...documentation is a priority on CodeTidbit
+If you'd like to help work on CodeTidbit, it's worth shooting me an email
+first (amilner42@gmail.com) and I can definitely help figure out what
+you should do.
+
+You're absolutely free to fork this project and do things your own way
+as well (I encourage it!), but it is licensed under the GPL3.0 so you
+must keep your modifications/extensions open source as well.
+
+### Production
 
 ##### Backend
 
-Currently the backend does not build to different targets, it takes in configuration through flags, so build it normally
-and then just call it in prod mode with the required flags.
-
+Currently the backend does not build to different targets, it takes in
+configuration through flags, so build it normally and then just call it
+in prod mode with the required flags.
 ```bash
 # Note that you must be in the `backend` directory when building the backend.
 backend: npm run build;
@@ -71,8 +75,8 @@ It will throw an error if you forget to pass the required flags and you ran in "
 
 ##### Frontend
 
-The frontend needs to be compiled to static files so it builds to different targets. It's all built with
-[webpack 1.x](http://webpack.github.io/docs/), to build for production do:
+The frontend needs to be compiled to static files so it builds to different targets.
+It's all built with [webpack 2.x](https://webpack.js.org/concepts/), to build for production do:
 
 ```bash
 # Note that you must be in the `frontend` directory when you build the frontend.
@@ -84,7 +88,6 @@ frontend: npm run build;
 Let's keep it simple...
   - frontend in `/frontend`
   - backend in `/backend`
-  - bash tooling scripts in `/bin`
 
-As well, the [frontend README](/frontend/README.md) and the [backend README](/backend/README.md) each have a segment on
-their file structure.
+As well, the [frontend README](/frontend/README.md) and the [backend README](/backend/README.md)
+each have a segment on their file structure.
