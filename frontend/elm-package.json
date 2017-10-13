@@ -2,7 +2,7 @@
     "version": "1.0.0",
     "summary": "Code Tidbit",
     "repository": "https://github.com/amilner42/code-tidbit.git",
-    "license": "BSD",
+    "license": "GPL-3.0",
     "source-directories": [
         "src/"
     ],

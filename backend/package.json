@@ -19,7 +19,7 @@
     "start": "concurrently --raw --kill-others \"npm run watch\" \"nodemon --ignore ./src --delay 1 lib/src/main.js\""
   },
   "author": "Arie Milner",
-  "license": "MIT",
+  "license": "GPL-3.0",
   "dependencies": {
     "babel-polyfill": "^6.9.1",
     "bcryptjs": "^2.3.0",
