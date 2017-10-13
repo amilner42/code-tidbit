@@ -1,18 +1,15 @@
 {
-  "name": "frontend",
-  "version": "0.1.0",
+  "name": "Frontend",
+  "version": "1.0.0",
   "author": "Arie Milner",
-  "description": "Basic Elm Kickstarter",
+  "description": "CodeTidbit Frontend",
   "repository": {
     "type": "git",
-    "url": "https://github.com/amilner42/mee"
+    "url": "https://github.com/amilner42/code-tidbit.git"
   },
-  "keywords": [
-    "elm"
-  ],
   "license": "GPL-3.0",
   "bugs": {
-    "url": "https://github.com/amilner42/meen-kickstarter/issues"
+    "url": "https://github.com/amilner42/code-tidbit/issues"
   },
   "scripts": {
     "start": "webpack-dev-server --hot --inline",
@@ -20,7 +17,6 @@
     "build": "webpack -p",
     "reinstall": "npm i rimraf && rimraf node_modules && npm uninstall -g elm && npm i -g elm && npm i && elm package install"
   },
-  "homepage": "https://github.com/amilner42/meen-kickstarter",
   "dependencies": {
     "highlightjs": "^9.8.0"
   },
