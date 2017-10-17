@@ -1,6 +1,15 @@
 # Code Tidbit
 Browse and Create Powerful Tutorials
 
+> [ PROJECT STATUS UPDATE ]
+>
+> CodeTidbit is no longer being hosted on codetidbit.com, I unfortunately don't
+> have the money to keep it running, and I don't have the time to keep working on it as
+> I'm back in school and finishing my degree. If you're interested in forking the project
+> or donating to help the keep project online, please contact me. A small donation could
+> go a long way to keeping this project alive. Together we can make sharing code knowledge more
+> effective!
+
 ### Set Up
 
 ##### Local Dependencies
