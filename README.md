@@ -8,7 +8,7 @@ Browse and Create Powerful Tutorials
 The project only has 3 local dependencies, `node` and `npm`, and `mongodb`.
   - node ~ V6.0.0
   - npm ~ V3.10.3
-  - monodb ~ V3.2.9
+  - mongodb ~ V3.2.9
 
 You don't _need_ these versions, but it's more likely to work properly if at least the major versions are correct.
 
