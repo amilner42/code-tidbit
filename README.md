@@ -28,7 +28,7 @@ You don't _need_ these versions, but it's more likely to work properly if at lea
 codetidbit: cd backend;
 backend: npm install;
 backend: cd ../frontend;
-frontend: npm reinstall;
+frontend: npm run reinstall;
 ```
 
 ### Developing
