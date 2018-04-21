@@ -12,8 +12,8 @@ import Elements.Simple.Editor as Editor
 import Elements.Simple.Markdown as Markdown
 import Elements.Simple.ProgressBar as ProgressBar exposing (State(..), TextFormat(Custom))
 import Elements.Simple.QuestionList as QuestionList
-import Html exposing (Html, button, div, i, text, textarea)
-import Html.Attributes exposing (class, classList, disabled, hidden, id, placeholder, value)
+import Html exposing (Html, a, button, div, i, text, textarea)
+import Html.Attributes exposing (class, classList, disabled, hidden, href, id, placeholder, value)
 import Html.Events exposing (onClick, onInput)
 import Models.ContentPointer as ContentPointer
 import Models.QA as QA
@@ -154,11 +154,20 @@ view model shared =
                         [ text "Browse Related Questions" ]
 
                 ( Just snipbitID, True, False, Nothing ) ->
-                    button
-                        [ class "sub-bar-button view-all-questions"
-                        , onClick <| GoToBrowseQuestionsWithCodePointer model.tutorialCodePointer
+                    Route.navigationNode
+                        (Just
+                            ( Route.Route <|
+                                Route.ViewSnipbitQuestionsPage
+                                    (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
+                                    snipbitID
+                            , GoToBrowseQuestionsWithCodePointer model.tutorialCodePointer
+                            )
+                        )
+                        []
+                        [ button
+                            [ class "sub-bar-button view-all-questions" ]
+                            [ text "Browse All Questions" ]
                         ]
-                        [ text "Browse All Questions" ]
 
                 _ ->
                     Util.hiddenDiv
@@ -202,74 +211,132 @@ view model shared =
                 Util.hiddenDiv
 
             Just snipbit ->
-                div
-                    [ class "viewer" ]
-                    [ div
-                        [ class "viewer-navbar" ]
-                        [ i
-                            [ classList
-                                [ ( "material-icons action-button", True )
-                                , ( "disabled-icon"
-                                  , (case shared.route of
-                                        Route.ViewSnipbitIntroductionPage _ _ ->
-                                            True
+                let
+                    inTutorial =
+                        not <| isViewSnipbitRHCTabOpen model || Route.isOnViewSnipbitQARoute shared.route
 
-                                        _ ->
-                                            False
-                                    )
-                                        || isViewSnipbitRHCTabOpen model
-                                        || Route.isOnViewSnipbitQARoute shared.route
-                                  )
+                    previousFrameRoute : Maybe Route.Route
+                    previousFrameRoute =
+                        case ( shared.route, not inTutorial ) of
+                            ( Route.ViewSnipbitConclusionPage fromStoryID mongoID, False ) ->
+                                Just <|
+                                    Route.ViewSnipbitFramePage
+                                        fromStoryID
+                                        mongoID
+                                        (Array.length snipbit.highlightedComments)
+
+                            ( Route.ViewSnipbitFramePage fromStoryID mongoID frameNumber, False ) ->
+                                Just <|
+                                    Route.ViewSnipbitFramePage
+                                        fromStoryID
+                                        mongoID
+                                        (frameNumber - 1)
+
+                            _ ->
+                                Nothing
+
+                    nextFrameRoute : Maybe Route.Route
+                    nextFrameRoute =
+                        case ( shared.route, not inTutorial ) of
+                            ( Route.ViewSnipbitIntroductionPage fromStoryID mongoID, False ) ->
+                                Just <| Route.ViewSnipbitFramePage fromStoryID mongoID 1
+
+                            ( Route.ViewSnipbitFramePage fromStoryID mongoID frameNumber, False ) ->
+                                Just <| Route.ViewSnipbitFramePage fromStoryID mongoID (frameNumber + 1)
+
+                            _ ->
+                                Nothing
+
+                    arrowBack =
+                        Route.navigationNode
+                            (previousFrameRoute ||> (\route -> ( Route.Route route, GoTo route )))
+                            []
+                            [ i
+                                [ classList
+                                    [ ( "material-icons action-button", True )
+                                    , ( "disabled-icon", Util.isNothing previousFrameRoute )
+                                    ]
                                 ]
-                            , onClick <|
-                                if isViewSnipbitRHCTabOpen model then
-                                    NoOp
-                                else
-                                    case shared.route of
-                                        Route.ViewSnipbitConclusionPage fromStoryID mongoID ->
-                                            GoTo <|
-                                                Route.ViewSnipbitFramePage
-                                                    fromStoryID
-                                                    mongoID
-                                                    (Array.length snipbit.highlightedComments)
-
-                                        Route.ViewSnipbitFramePage fromStoryID mongoID frameNumber ->
-                                            GoTo <|
-                                                Route.ViewSnipbitFramePage
-                                                    fromStoryID
-                                                    mongoID
-                                                    (frameNumber - 1)
-
-                                        _ ->
-                                            NoOp
+                                [ text "arrow_back" ]
                             ]
-                            [ text "arrow_back" ]
-                        , div
-                            [ onClick <|
-                                if isViewSnipbitRHCTabOpen model || Route.isOnViewSnipbitQARoute shared.route then
-                                    NoOp
-                                else
-                                    GoTo <|
+
+                    arrowForward =
+                        Route.navigationNode
+                            (nextFrameRoute ||> (\route -> ( Route.Route route, GoTo route )))
+                            []
+                            [ i
+                                [ classList
+                                    [ ( "material-icons action-button", True )
+                                    , ( "disabled-icon", Util.isNothing nextFrameRoute )
+                                    ]
+                                ]
+                                [ text "arrow_forward" ]
+                            ]
+
+                    introduction =
+                        Route.navigationNode
+                            (if inTutorial then
+                                let
+                                    route =
                                         Route.ViewSnipbitIntroductionPage
                                             (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
                                             snipbit.id
-                            , classList
-                                [ ( "viewer-navbar-item", True )
-                                , ( "selected"
-                                  , case shared.route of
-                                        Route.ViewSnipbitIntroductionPage _ _ ->
-                                            True
+                                in
+                                Just ( Route.Route route, GoTo route )
+                             else
+                                Nothing
+                            )
+                            []
+                            [ div
+                                [ classList
+                                    [ ( "viewer-navbar-item", True )
+                                    , ( "selected"
+                                      , case shared.route of
+                                            Route.ViewSnipbitIntroductionPage _ _ ->
+                                                True
 
-                                        _ ->
-                                            False
-                                  )
-                                , ( "disabled"
-                                  , isViewSnipbitRHCTabOpen model || Route.isOnViewSnipbitQARoute shared.route
-                                  )
+                                            _ ->
+                                                False
+                                      )
+                                    , ( "disabled", not inTutorial )
+                                    ]
                                 ]
+                                [ text "Introduction" ]
                             ]
-                            [ text "Introduction" ]
-                        , ProgressBar.view
+
+                    conclusion =
+                        Route.navigationNode
+                            (if inTutorial then
+                                let
+                                    route =
+                                        Route.ViewSnipbitConclusionPage
+                                            (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
+                                            snipbit.id
+                                in
+                                Just ( Route.Route route, GoTo route )
+                             else
+                                Nothing
+                            )
+                            []
+                            [ div
+                                [ classList
+                                    [ ( "viewer-navbar-item", True )
+                                    , ( "selected"
+                                      , case shared.route of
+                                            Route.ViewSnipbitConclusionPage _ _ ->
+                                                True
+
+                                            _ ->
+                                                False
+                                      )
+                                    , ( "disabled", not inTutorial )
+                                    ]
+                                ]
+                                [ text "Conclusion" ]
+                            ]
+
+                    progressBar =
+                        ProgressBar.view
                             { state =
                                 case model.bookmark of
                                     TB.Introduction ->
@@ -314,62 +381,16 @@ view model shared =
                                             False
                                 }
                             }
-                        , div
-                            [ onClick <|
-                                if isViewSnipbitRHCTabOpen model || Route.isOnViewSnipbitQARoute shared.route then
-                                    NoOp
-                                else
-                                    GoTo <|
-                                        Route.ViewSnipbitConclusionPage
-                                            (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
-                                            snipbit.id
-                            , classList
-                                [ ( "viewer-navbar-item", True )
-                                , ( "selected"
-                                  , case shared.route of
-                                        Route.ViewSnipbitConclusionPage _ _ ->
-                                            True
-
-                                        _ ->
-                                            False
-                                  )
-                                , ( "disabled"
-                                  , isViewSnipbitRHCTabOpen model || Route.isOnViewSnipbitQARoute shared.route
-                                  )
-                                ]
-                            ]
-                            [ text "Conclusion" ]
-                        , i
-                            [ classList
-                                [ ( "material-icons action-button", True )
-                                , ( "disabled-icon"
-                                  , (case shared.route of
-                                        Route.ViewSnipbitConclusionPage _ _ ->
-                                            True
-
-                                        _ ->
-                                            False
-                                    )
-                                        || isViewSnipbitRHCTabOpen model
-                                        || Route.isOnViewSnipbitQARoute shared.route
-                                  )
-                                ]
-                            , onClick <|
-                                if isViewSnipbitRHCTabOpen model then
-                                    NoOp
-                                else
-                                    case shared.route of
-                                        Route.ViewSnipbitIntroductionPage fromStoryID mongoID ->
-                                            GoTo <| Route.ViewSnipbitFramePage fromStoryID mongoID 1
-
-                                        Route.ViewSnipbitFramePage fromStoryID mongoID frameNumber ->
-                                            GoTo <|
-                                                Route.ViewSnipbitFramePage fromStoryID mongoID (frameNumber + 1)
-
-                                        _ ->
-                                            NoOp
-                            ]
-                            [ text "arrow_forward" ]
+                in
+                div
+                    [ class "viewer" ]
+                    [ div
+                        [ class "viewer-navbar" ]
+                        [ arrowBack
+                        , introduction
+                        , progressBar
+                        , conclusion
+                        , arrowForward
                         ]
                     , Editor.view "view-snipbit-code-editor"
                     , div
@@ -433,23 +454,20 @@ commentBox snipbit model shared =
                                     , onClick PreviousRelevantHC
                                     ]
                                     [ text "Previous" ]
-                                , div
-                                    [ classList
-                                        [ ( "above-comment-block-button go-to-frame-button", True ) ]
-                                    , onClick
-                                        (Array.get index relevantHC
-                                            |> Maybe.map
-                                                (GoTo
-                                                    << Route.ViewSnipbitFramePage
-                                                        (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
-                                                        snipbit.id
-                                                    << (+) 1
-                                                    << Tuple.first
-                                                )
-                                            |> Maybe.withDefault NoOp
-                                        )
+                                , Route.navigationNode
+                                    (Array.get index relevantHC
+                                        ||> Tuple.first
+                                        ||> (+) 1
+                                        ||> Route.ViewSnipbitFramePage
+                                                (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
+                                                snipbit.id
+                                        ||> (\route -> ( Route.Route route, GoTo route ))
+                                    )
+                                    []
+                                    [ div
+                                        [ class "above-comment-block-button go-to-frame-button" ]
+                                        [ text "Jump To Frame" ]
                                     ]
-                                    [ text "Jump To Frame" ]
                                 , div
                                     [ classList
                                         [ ( "above-comment-block-button next-button", True )
@@ -499,50 +517,56 @@ commentBox snipbit model shared =
                     RT.EditAnswerComment TidbitPointer.Snipbit >> RT.isMakingRequest shared.apiRequestTracker
                 , editQuestionCommentRequestInProgress =
                     RT.EditQuestionComment TidbitPointer.Snipbit >> RT.isMakingRequest shared.apiRequestTracker
-                , goToBrowseAllQuestions =
-                    GoTo <|
-                        Route.ViewSnipbitQuestionsPage
-                            (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
-                            snipbit.id
-                , goToQuestionTab =
-                    GoTo <|
-                        Route.ViewSnipbitQuestionPage
-                            (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
-                            (Route.getTouringQuestionsQueryParamOnViewSnipbitQARoute shared.route)
-                            snipbit.id
-                            question.id
-                , goToAnswersTab =
-                    GoTo <|
-                        Route.ViewSnipbitAnswersPage
-                            (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
-                            (Route.getTouringQuestionsQueryParamOnViewSnipbitQARoute shared.route)
-                            snipbit.id
-                            question.id
-                , goToQuestionCommentsTab =
-                    GoTo <|
-                        Route.ViewSnipbitQuestionCommentsPage
-                            (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
-                            (Route.getTouringQuestionsQueryParamOnViewSnipbitQARoute shared.route)
-                            snipbit.id
-                            question.id
-                            Nothing
-                , goToAnswerTab =
+                , allQuestionsND =
+                    Route.ViewSnipbitQuestionsPage
+                        (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
+                        snipbit.id
+                        |> (\route -> ( Route.Route route, GoTo route ))
+                , questionND =
+                    Route.ViewSnipbitQuestionPage
+                        (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
+                        (Route.getTouringQuestionsQueryParamOnViewSnipbitQARoute shared.route)
+                        snipbit.id
+                        question.id
+                        |> (\route -> ( Route.Route route, GoTo route ))
+                , allAnswersND =
+                    Route.ViewSnipbitAnswersPage
+                        (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
+                        (Route.getTouringQuestionsQueryParamOnViewSnipbitQARoute shared.route)
+                        snipbit.id
+                        question.id
+                        |> (\route -> ( Route.Route route, GoTo route ))
+                , questionCommentsND =
+                    Route.ViewSnipbitQuestionCommentsPage
+                        (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
+                        (Route.getTouringQuestionsQueryParamOnViewSnipbitQARoute shared.route)
+                        snipbit.id
+                        question.id
+                        Nothing
+                        |> (\route -> ( Route.Route route, GoTo route ))
+                , answerND =
                     \answer ->
-                        GoTo <|
-                            Route.ViewSnipbitAnswerPage
-                                (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
-                                (Route.getTouringQuestionsQueryParamOnViewSnipbitQARoute shared.route)
-                                snipbit.id
-                                answer.id
-                , goToAnswerCommentsTab =
+                        let
+                            route =
+                                Route.ViewSnipbitAnswerPage
+                                    (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
+                                    (Route.getTouringQuestionsQueryParamOnViewSnipbitQARoute shared.route)
+                                    snipbit.id
+                                    answer.id
+                        in
+                        ( Route.Route route, GoTo route )
+                , answerCommentsND =
                     \answer ->
-                        GoTo <|
-                            Route.ViewSnipbitAnswerCommentsPage
-                                (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
-                                (Route.getTouringQuestionsQueryParamOnViewSnipbitQARoute shared.route)
-                                snipbit.id
-                                answer.id
-                                Nothing
+                        let
+                            route =
+                                Route.ViewSnipbitAnswerCommentsPage
+                                    (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
+                                    (Route.getTouringQuestionsQueryParamOnViewSnipbitQARoute shared.route)
+                                    snipbit.id
+                                    answer.id
+                                    Nothing
+                        in
+                        ( Route.Route route, GoTo route )
                 , goToQuestionComment =
                     \questionComment ->
                         GoTo <|
@@ -649,14 +673,17 @@ commentBox snipbit model shared =
                         [ class "view-questions" ]
                         [ QuestionList.view
                             { questionBoxRenderConfig =
-                                { onClickQuestionBox =
+                                { questionND =
                                     \question ->
-                                        GoTo <|
-                                            Route.ViewSnipbitQuestionPage
-                                                (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
-                                                Nothing
-                                                snipbitID
-                                                question.id
+                                        let
+                                            route =
+                                                Route.ViewSnipbitQuestionPage
+                                                    (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
+                                                    Nothing
+                                                    snipbitID
+                                                    question.id
+                                        in
+                                        ( Route.Route route, GoTo route )
                                 }
                             , isHighlighting = isHighlighting
                             , allQuestionText = "All Questions"
@@ -757,9 +784,11 @@ commentBox snipbit model shared =
                     RT.isMakingRequest shared.apiRequestTracker (RT.AskQuestion TidbitPointer.Snipbit)
                 , askQuestion = AskQuestion snipbitID
                 , isReadyCodePointer = not << Range.isEmptyRange
-                , goToAllQuestions =
-                    GoToBrowseQuestionsWithCodePointer <|
+                , allQuestionsND =
+                    ( Route.Route <| Route.ViewSnipbitQuestionsPage maybeStoryID snipbitID
+                    , GoToBrowseQuestionsWithCodePointer <|
                         (QA.getNewQuestion snipbitID model.qaState |||> .codePointer)
+                    )
                 }
                 newQuestion
 
@@ -775,13 +804,13 @@ commentBox snipbit model shared =
                                 shared.apiRequestTracker
                                 (RT.AnswerQuestion TidbitPointer.Snipbit)
                         , answerQuestion = AnswerQuestion snipbitID questionID
-                        , goToAllAnswers =
-                            GoTo <|
-                                Route.ViewSnipbitAnswersPage
-                                    (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
-                                    (Route.getTouringQuestionsQueryParamOnViewSnipbitQARoute shared.route)
-                                    snipbitID
-                                    questionID
+                        , allAnswersND =
+                            Route.ViewSnipbitAnswersPage
+                                (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
+                                (Route.getTouringQuestionsQueryParamOnViewSnipbitQARoute shared.route)
+                                snipbitID
+                                questionID
+                                |> (\route -> ( Route.Route route, GoTo route ))
                         }
                         (QA.getNewAnswer snipbitID questionID model.qaState
                             ?> QA.defaultNewAnswer

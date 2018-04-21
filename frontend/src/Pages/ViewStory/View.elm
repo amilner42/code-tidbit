@@ -54,11 +54,12 @@ view model shared =
                     [ ( "view-story-next-tidbit-button"
                       , case nextTidbitInStory of
                             Just ( index, routeForViewingTidbit ) ->
-                                button
-                                    [ class "sub-bar-button next-tidbit-button"
-                                    , onClick <| GoTo routeForViewingTidbit
-                                    ]
-                                    [ text <| "Continue on Tidbit " ++ (toString <| index + 1)
+                                Route.navigationNode
+                                    (Just ( Route.Route routeForViewingTidbit, GoTo routeForViewingTidbit ))
+                                    []
+                                    [ button
+                                        [ class "sub-bar-button next-tidbit-button" ]
+                                        [ text <| "Continue on Tidbit " ++ (toString <| index + 1) ]
                                     ]
 
                             _ ->

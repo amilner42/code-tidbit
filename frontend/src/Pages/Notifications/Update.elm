@@ -1,6 +1,5 @@
 module Pages.Notifications.Update exposing (..)
 
-import Api
 import DefaultServices.CommonSubPageUtil exposing (CommonSubPageUtil(..))
 import DefaultServices.InfixFunctions exposing (..)
 import DefaultServices.Util as Util

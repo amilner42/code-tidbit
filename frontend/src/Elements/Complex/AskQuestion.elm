@@ -8,6 +8,7 @@ import Html exposing (Html, div, text)
 import Html.Attributes exposing (class, classList, defaultValue, disabled, placeholder)
 import Html.Events exposing (onClick, onInput)
 import Models.QA exposing (..)
+import Models.Route as Route
 import ProjectTypeAliases exposing (..)
 
 
@@ -24,7 +25,7 @@ type alias RenderConfig msg codePointer =
     { msgTagger : Msg -> msg
     , textFieldKeyTracker : TextFields.KeyTracker
     , askQuestionRequestInProgress : Bool
-    , goToAllQuestions : msg
+    , allQuestionsND : Route.NavigationData msg
     , askQuestion : codePointer -> QuestionText -> msg
     , isReadyCodePointer : codePointer -> Bool
     }
@@ -49,11 +50,13 @@ view config model =
     in
     div
         [ class "ask-question" ]
-        [ div
-            [ class "link qa-top-right-link"
-            , onClick config.goToAllQuestions
+        [ Route.navigationNode
+            (Just config.allQuestionsND)
+            [ class "link-nav-node" ]
+            [ div
+                [ class "link qa-top-right-link" ]
+                [ text "see all questions" ]
             ]
-            [ text "see all questions" ]
         , div
             [ class "preview-markdown"
             , onClick <| config.msgTagger TogglePreviewMarkdown

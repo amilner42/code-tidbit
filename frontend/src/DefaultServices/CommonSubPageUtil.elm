@@ -1,7 +1,6 @@
 module DefaultServices.CommonSubPageUtil exposing (..)
 
 import Api
-import Flags exposing (Flags)
 import Models.ApiError as ApiError
 import Models.RequestTracker as RT
 import Pages.Model exposing (Shared)

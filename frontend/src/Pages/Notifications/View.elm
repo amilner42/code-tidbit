@@ -7,6 +7,7 @@ import Html.Attributes exposing (class, classList)
 import Html.Events exposing (onClick)
 import Models.Notification exposing (Notification)
 import Models.RequestTracker as RT
+import Models.Route as Route
 import Pages.Model exposing (Shared)
 import Pages.Notifications.Messages exposing (..)
 import Pages.Notifications.Model exposing (..)
@@ -67,9 +68,17 @@ notificationView isMakingSetNotificationReadRequest notification =
         [ div [ class "message" ] [ text notification.message ]
         , div
             [ class "bottom-bar" ]
-            [ button
-                [ onClick <| GoToNotificationLink notification.id notification.read <| Tuple.second notification.actionLink ]
-                [ text <| Tuple.first notification.actionLink ]
+            [ Route.navigationNode
+                (Just
+                    ( Route.Link <| Tuple.second notification.actionLink
+                    , GoToNotificationLink notification.id notification.read <| Tuple.second notification.actionLink
+                    )
+                )
+                []
+                [ button
+                    []
+                    [ text <| Tuple.first notification.actionLink ]
+                ]
             , button
                 [ classList
                     [ ( "toggle-read", True )

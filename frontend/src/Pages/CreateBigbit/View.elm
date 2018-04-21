@@ -1,11 +1,8 @@
 module Pages.CreateBigbit.View exposing (..)
 
 import Array
-import Autocomplete as AC
-import DefaultServices.Editable as Editable
 import DefaultServices.TextFields as TextFields
 import DefaultServices.Util as Util exposing (maybeMapWithDefault, togglePreviewMarkdown)
-import Dict
 import Elements.Simple.Editor as Editor
 import Elements.Simple.FileStructure as FS
 import Elements.Simple.Tags as Tags
@@ -14,15 +11,8 @@ import Html.Attributes exposing (class, classList, defaultValue, disabled, hidde
 import Html.Events exposing (onClick, onInput)
 import Keyboard.Extra as KK
 import Models.Bigbit as Bigbit
-import Models.Completed as Completed
-import Models.Range as Range
 import Models.RequestTracker as RT
 import Models.Route as Route exposing (createBigbitPageCurrentActiveFile)
-import Models.Snipbit as Snipbit
-import Models.Story as Story
-import Models.Tidbit as Tidbit
-import Models.TidbitType exposing (TidbitType(..))
-import Models.ViewerRelevantHC as ViewerRelevantHC
 import Pages.CreateBigbit.Messages exposing (..)
 import Pages.CreateBigbit.Model exposing (..)
 import Pages.Model exposing (Shared, kkUpdateWrapper)

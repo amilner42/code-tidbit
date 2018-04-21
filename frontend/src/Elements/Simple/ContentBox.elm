@@ -4,7 +4,6 @@ import DefaultServices.Util as Util
 import Elements.Simple.Editor exposing (prettyPrintLanguages)
 import Html exposing (Html, div, i, text)
 import Html.Attributes exposing (class, classList)
-import Html.Events exposing (onClick)
 import Models.Content exposing (..)
 import Models.Route as Route
 
@@ -18,14 +17,18 @@ type alias RenderConfig msg =
 
 view : RenderConfig msg -> Content -> Html msg
 view { goToMsg, darkenBox, forStory } content =
-    div
+    let
+        contentRoute =
+            getRouteForViewing content forStory
+    in
+    Route.navigationNode
+        (Just ( Route.Route contentRoute, goToMsg contentRoute ))
         [ classList
             [ ( "content-box", True )
             , ( "snipbit", isSnipbit content )
             , ( "bigbit", isBigbit content )
             , ( "story", isStory content )
             ]
-        , onClick <| goToMsg <| getRouteForViewing content forStory
         ]
         [ div [ classList [ ( "darkener", darkenBox ) ] ] []
         , div

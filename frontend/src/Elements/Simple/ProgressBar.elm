@@ -1,6 +1,5 @@
 module Elements.Simple.ProgressBar exposing (..)
 
-import DefaultServices.Util as Util
 import Html exposing (Html, div, i, text)
 import Html.Attributes exposing (class, classList, style)
 import Html.Events exposing (onClick)

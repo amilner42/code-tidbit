@@ -17,7 +17,6 @@ import Html exposing (Html, button, div, i, text)
 import Html.Attributes exposing (class, classList, hidden)
 import Html.Events exposing (onClick)
 import Models.Bigbit as Bigbit
-import Models.Completed as Completed
 import Models.ContentPointer as ContentPointer
 import Models.QA as QA
 import Models.Range as Range
@@ -182,12 +181,15 @@ view model shared =
                         [ text "Browse Related Questions" ]
 
                 ( Just bigbit, True, False, Nothing ) ->
-                    button
-                        [ class "sub-bar-button view-all-questions"
-                        , onClick <|
-                            -- We keep the codePointer the same, and if their is no codePointer, we make sure to
-                            -- load the same file if they are looking at a file.
-                            GoToBrowseQuestionsWithCodePointer
+                    Route.navigationNode
+                        (Just
+                            ( Route.Route <|
+                                Route.ViewBigbitQuestionsPage
+                                    (Route.getFromStoryQueryParamOnViewBigbitRoute shared.route)
+                                    bigbit.id
+                              -- We keep the codePointer the same, and if their is no codePointer, we make sure to
+                              -- load the same file if they are looking at a file.
+                            , GoToBrowseQuestionsWithCodePointer
                                 bigbit.id
                                 (case model.tutorialCodePointer of
                                     Just _ ->
@@ -207,8 +209,13 @@ view model shared =
                                             Nothing ->
                                                 Nothing
                                 )
+                            )
+                        )
+                        []
+                        [ button
+                            [ class "sub-bar-button view-all-questions" ]
+                            [ text "Browse All Questions" ]
                         ]
-                        [ text "Browse All Questions" ]
 
                 _ ->
                     Util.hiddenDiv
@@ -252,75 +259,83 @@ view model shared =
                 Util.hiddenDiv
 
             Just bigbit ->
-                div
-                    [ class "viewer" ]
-                    [ div
-                        [ class "viewer-navbar" ]
-                        [ i
-                            [ classList
-                                [ ( "material-icons action-button", True )
-                                , ( "disabled-icon"
-                                  , if not goingThroughTutorial then
-                                        True
-                                    else
-                                        case currentRoute of
+                let
+                    previousFrameRoute =
+                        case ( currentRoute, goingThroughTutorial ) of
+                            ( Route.ViewBigbitConclusionPage fromStoryID mongoID _, True ) ->
+                                Just <|
+                                    Route.ViewBigbitFramePage
+                                        fromStoryID
+                                        mongoID
+                                        (Array.length bigbit.highlightedComments)
+                                        Nothing
+
+                            ( Route.ViewBigbitFramePage fromStoryID mongoID frameNumber _, True ) ->
+                                Just <|
+                                    Route.ViewBigbitFramePage
+                                        fromStoryID
+                                        mongoID
+                                        (frameNumber - 1)
+                                        Nothing
+
+                            _ ->
+                                Nothing
+
+                    nextFrameRoute =
+                        case ( currentRoute, goingThroughTutorial ) of
+                            ( Route.ViewBigbitIntroductionPage fromStoryID mongoID _, True ) ->
+                                Just <| Route.ViewBigbitFramePage fromStoryID mongoID 1 Nothing
+
+                            ( Route.ViewBigbitFramePage fromStoryID mongoID frameNumber _, True ) ->
+                                Just <| Route.ViewBigbitFramePage fromStoryID mongoID (frameNumber + 1) Nothing
+
+                            _ ->
+                                Nothing
+
+                    arrowBack =
+                        Route.navigationNode
+                            (previousFrameRoute ||> (\route -> ( Route.Route route, GoTo route )))
+                            []
+                            [ i
+                                [ classList
+                                    [ ( "material-icons action-button", True )
+                                    , ( "disabled-icon", Util.isNothing previousFrameRoute )
+                                    ]
+                                ]
+                                [ text "arrow_back" ]
+                            ]
+
+                    introduction =
+                        Route.navigationNode
+                            (if goingThroughTutorial then
+                                Route.ViewBigbitIntroductionPage
+                                    (Route.getFromStoryQueryParamOnViewBigbitRoute currentRoute)
+                                    bigbit.id
+                                    Nothing
+                                    |> (\route -> Just ( Route.Route route, GoTo route ))
+                             else
+                                Nothing
+                            )
+                            []
+                            [ div
+                                [ classList
+                                    [ ( "viewer-navbar-item", True )
+                                    , ( "selected"
+                                      , case currentRoute of
                                             Route.ViewBigbitIntroductionPage _ _ _ ->
                                                 True
 
                                             _ ->
                                                 False
-                                  )
+                                      )
+                                    , ( "disabled", not goingThroughTutorial )
+                                    ]
                                 ]
-                            , onClick <|
-                                if goingThroughTutorial then
-                                    case currentRoute of
-                                        Route.ViewBigbitConclusionPage fromStoryID mongoID _ ->
-                                            GoTo <|
-                                                Route.ViewBigbitFramePage
-                                                    fromStoryID
-                                                    mongoID
-                                                    (Array.length bigbit.highlightedComments)
-                                                    Nothing
-
-                                        Route.ViewBigbitFramePage fromStoryID mongoID frameNumber _ ->
-                                            GoTo <|
-                                                Route.ViewBigbitFramePage
-                                                    fromStoryID
-                                                    mongoID
-                                                    (frameNumber - 1)
-                                                    Nothing
-
-                                        _ ->
-                                            NoOp
-                                else
-                                    NoOp
+                                [ text "Introduction" ]
                             ]
-                            [ text "arrow_back" ]
-                        , div
-                            [ onClick <|
-                                if goingThroughTutorial then
-                                    GoTo <|
-                                        Route.ViewBigbitIntroductionPage
-                                            (Route.getFromStoryQueryParamOnViewBigbitRoute currentRoute)
-                                            bigbit.id
-                                            Nothing
-                                else
-                                    NoOp
-                            , classList
-                                [ ( "viewer-navbar-item", True )
-                                , ( "selected"
-                                  , case currentRoute of
-                                        Route.ViewBigbitIntroductionPage _ _ _ ->
-                                            True
 
-                                        _ ->
-                                            False
-                                  )
-                                , ( "disabled", not goingThroughTutorial )
-                                ]
-                            ]
-                            [ text "Introduction" ]
-                        , ProgressBar.view
+                    progressBar =
+                        ProgressBar.view
                             { state =
                                 case model.bookmark of
                                     TB.Introduction ->
@@ -352,66 +367,58 @@ view model shared =
                             , shiftLeft = True
                             , alreadyComplete = { complete = userDoneBigbit, for = ProgressBar.Tidbit }
                             }
-                        , div
-                            [ onClick <|
-                                if goingThroughTutorial then
-                                    GoTo <|
-                                        Route.ViewBigbitConclusionPage
-                                            (Route.getFromStoryQueryParamOnViewBigbitRoute currentRoute)
-                                            bigbit.id
-                                            Nothing
-                                else
-                                    NoOp
-                            , classList
-                                [ ( "viewer-navbar-item", True )
-                                , ( "selected"
-                                  , case currentRoute of
-                                        Route.ViewBigbitConclusionPage _ _ _ ->
-                                            True
 
-                                        _ ->
-                                            False
-                                  )
-                                , ( "disabled", not goingThroughTutorial )
-                                ]
-                            ]
-                            [ text "Conclusion" ]
-                        , i
-                            [ classList
-                                [ ( "material-icons action-button", True )
-                                , ( "disabled-icon"
-                                  , if not goingThroughTutorial then
-                                        True
-                                    else
-                                        case currentRoute of
+                    conclusion =
+                        Route.navigationNode
+                            (if goingThroughTutorial then
+                                Route.ViewBigbitConclusionPage
+                                    (Route.getFromStoryQueryParamOnViewBigbitRoute currentRoute)
+                                    bigbit.id
+                                    Nothing
+                                    |> (\route -> Just ( Route.Route route, GoTo route ))
+                             else
+                                Nothing
+                            )
+                            []
+                            [ div
+                                [ classList
+                                    [ ( "viewer-navbar-item", True )
+                                    , ( "selected"
+                                      , case currentRoute of
                                             Route.ViewBigbitConclusionPage _ _ _ ->
                                                 True
 
                                             _ ->
                                                 False
-                                  )
+                                      )
+                                    , ( "disabled", not goingThroughTutorial )
+                                    ]
                                 ]
-                            , onClick <|
-                                if goingThroughTutorial then
-                                    case currentRoute of
-                                        Route.ViewBigbitIntroductionPage fromStoryID mongoID _ ->
-                                            GoTo <|
-                                                Route.ViewBigbitFramePage fromStoryID mongoID 1 Nothing
-
-                                        Route.ViewBigbitFramePage fromStoryID mongoID frameNumber _ ->
-                                            GoTo <|
-                                                Route.ViewBigbitFramePage
-                                                    fromStoryID
-                                                    mongoID
-                                                    (frameNumber + 1)
-                                                    Nothing
-
-                                        _ ->
-                                            NoOp
-                                else
-                                    NoOp
+                                [ text "Conclusion" ]
                             ]
-                            [ text "arrow_forward" ]
+
+                    arrowForward =
+                        Route.navigationNode
+                            (nextFrameRoute ||> (\route -> ( Route.Route route, GoTo route )))
+                            []
+                            [ i
+                                [ classList
+                                    [ ( "material-icons action-button", True )
+                                    , ( "disabled-icon", Util.isNothing nextFrameRoute )
+                                    ]
+                                ]
+                                [ text "arrow_forward" ]
+                            ]
+                in
+                div
+                    [ class "viewer" ]
+                    [ div
+                        [ class "viewer-navbar" ]
+                        [ arrowBack
+                        , introduction
+                        , progressBar
+                        , conclusion
+                        , arrowForward
                         ]
                     , div
                         [ class "view-bigbit-fs" ]
@@ -525,27 +532,24 @@ viewBigbitCommentBox bigbit model shared =
                                         , onClick PreviousRelevantHC
                                         ]
                                         [ text "Previous" ]
-                                    , div
-                                        [ classList
-                                            [ ( "above-comment-block-button go-to-frame-button", True ) ]
-                                        , onClick
-                                            (Array.get index rhc.relevantHC
-                                                |> maybeMapWithDefault
-                                                    (GoTo
-                                                        << (\frameNumber ->
-                                                                Route.ViewBigbitFramePage
-                                                                    (Route.getFromStoryQueryParamOnViewBigbitRoute shared.route)
-                                                                    bigbit.id
-                                                                    frameNumber
-                                                                    Nothing
-                                                           )
-                                                        << (+) 1
-                                                        << Tuple.first
-                                                    )
-                                                    NoOp
-                                            )
+                                    , Route.navigationNode
+                                        (Array.get index rhc.relevantHC
+                                            ||> Tuple.first
+                                            ||> (+) 1
+                                            ||> (\frameNumber ->
+                                                    Route.ViewBigbitFramePage
+                                                        (Route.getFromStoryQueryParamOnViewBigbitRoute shared.route)
+                                                        bigbit.id
+                                                        frameNumber
+                                                        Nothing
+                                                )
+                                            ||> (\route -> ( Route.Route route, GoTo route ))
+                                        )
+                                        []
+                                        [ div
+                                            [ class "above-comment-block-button go-to-frame-button" ]
+                                            [ text "Jump To Frame" ]
                                         ]
-                                        [ text "Jump To Frame" ]
                                     , div
                                         [ classList
                                             [ ( "above-comment-block-button next-button", True )
@@ -591,51 +595,62 @@ viewBigbitCommentBox bigbit model shared =
                     RT.EditAnswerComment TidbitPointer.Bigbit >> RT.isMakingRequest shared.apiRequestTracker
                 , editQuestionCommentRequestInProgress =
                     RT.EditQuestionComment TidbitPointer.Bigbit >> RT.isMakingRequest shared.apiRequestTracker
-                , goToBrowseAllQuestions =
-                    GoToBrowseQuestionsWithCodePointer
+                , allQuestionsND =
+                    ( Route.Route <|
+                        Route.ViewBigbitQuestionsPage
+                            (Route.getFromStoryQueryParamOnViewBigbitRoute shared.route)
+                            bigbit.id
+                    , GoToBrowseQuestionsWithCodePointer
                         bigbit.id
                         (Route.viewBigbitPageCurrentActiveFile shared.route bigbit (Just qa) qaState
                             ||> (\file -> { file = file, range = Range.zeroRange })
                         )
-                , goToQuestionTab =
-                    GoTo <|
-                        Route.ViewBigbitQuestionPage
-                            (Route.getFromStoryQueryParamOnViewBigbitRoute shared.route)
-                            (Route.getTouringQuestionsQueryParamOnViewBigbitQARoute shared.route)
-                            bigbit.id
-                            question.id
-                , goToAnswersTab =
-                    GoTo <|
-                        Route.ViewBigbitAnswersPage
-                            (Route.getFromStoryQueryParamOnViewBigbitRoute shared.route)
-                            (Route.getTouringQuestionsQueryParamOnViewBigbitQARoute shared.route)
-                            bigbit.id
-                            question.id
-                , goToQuestionCommentsTab =
-                    GoTo <|
-                        Route.ViewBigbitQuestionCommentsPage
-                            (Route.getFromStoryQueryParamOnViewBigbitRoute shared.route)
-                            (Route.getTouringQuestionsQueryParamOnViewBigbitQARoute shared.route)
-                            bigbit.id
-                            question.id
-                            Nothing
-                , goToAnswerTab =
+                    )
+                , questionND =
+                    Route.ViewBigbitQuestionPage
+                        (Route.getFromStoryQueryParamOnViewBigbitRoute shared.route)
+                        (Route.getTouringQuestionsQueryParamOnViewBigbitQARoute shared.route)
+                        bigbit.id
+                        question.id
+                        |> (\route -> ( Route.Route route, GoTo route ))
+                , allAnswersND =
+                    Route.ViewBigbitAnswersPage
+                        (Route.getFromStoryQueryParamOnViewBigbitRoute shared.route)
+                        (Route.getTouringQuestionsQueryParamOnViewBigbitQARoute shared.route)
+                        bigbit.id
+                        question.id
+                        |> (\route -> ( Route.Route route, GoTo route ))
+                , questionCommentsND =
+                    Route.ViewBigbitQuestionCommentsPage
+                        (Route.getFromStoryQueryParamOnViewBigbitRoute shared.route)
+                        (Route.getTouringQuestionsQueryParamOnViewBigbitQARoute shared.route)
+                        bigbit.id
+                        question.id
+                        Nothing
+                        |> (\route -> ( Route.Route route, GoTo route ))
+                , answerND =
                     \answer ->
-                        GoTo <|
-                            Route.ViewBigbitAnswerPage
-                                (Route.getFromStoryQueryParamOnViewBigbitRoute shared.route)
-                                (Route.getTouringQuestionsQueryParamOnViewBigbitQARoute shared.route)
-                                bigbit.id
-                                answer.id
-                , goToAnswerCommentsTab =
+                        let
+                            route =
+                                Route.ViewBigbitAnswerPage
+                                    (Route.getFromStoryQueryParamOnViewBigbitRoute shared.route)
+                                    (Route.getTouringQuestionsQueryParamOnViewBigbitQARoute shared.route)
+                                    bigbit.id
+                                    answer.id
+                        in
+                        ( Route.Route route, GoTo route )
+                , answerCommentsND =
                     \answer ->
-                        GoTo <|
-                            Route.ViewBigbitAnswerCommentsPage
-                                (Route.getFromStoryQueryParamOnViewBigbitRoute shared.route)
-                                (Route.getTouringQuestionsQueryParamOnViewBigbitQARoute shared.route)
-                                bigbit.id
-                                answer.id
-                                Nothing
+                        let
+                            route =
+                                Route.ViewBigbitAnswerCommentsPage
+                                    (Route.getFromStoryQueryParamOnViewBigbitRoute shared.route)
+                                    (Route.getTouringQuestionsQueryParamOnViewBigbitQARoute shared.route)
+                                    bigbit.id
+                                    answer.id
+                                    Nothing
+                        in
+                        ( Route.Route route, GoTo route )
                 , goToQuestionComment =
                     \questionComment ->
                         GoTo <|
@@ -749,14 +764,17 @@ viewBigbitCommentBox bigbit model shared =
                         [ class "view-questions" ]
                         [ QuestionList.view
                             { questionBoxRenderConfig =
-                                { onClickQuestionBox =
+                                { questionND =
                                     \question ->
-                                        GoTo <|
-                                            Route.ViewBigbitQuestionPage
-                                                (Route.getFromStoryQueryParamOnViewBigbitRoute shared.route)
-                                                (Route.getTouringQuestionsQueryParamOnViewBigbitQARoute shared.route)
-                                                bigbitID
-                                                question.id
+                                        let
+                                            route =
+                                                Route.ViewBigbitQuestionPage
+                                                    (Route.getFromStoryQueryParamOnViewBigbitRoute shared.route)
+                                                    (Route.getTouringQuestionsQueryParamOnViewBigbitQARoute shared.route)
+                                                    bigbitID
+                                                    question.id
+                                        in
+                                        ( Route.Route route, GoTo route )
                                 }
                             , isHighlighting = isHighlighting
                             , allQuestionText =
@@ -798,10 +816,12 @@ viewBigbitCommentBox bigbit model shared =
                     RT.isMakingRequest shared.apiRequestTracker (RT.AskQuestion TidbitPointer.Bigbit)
                 , askQuestion = AskQuestion bigbitID
                 , isReadyCodePointer = .range >> Range.isEmptyRange >> not
-                , goToAllQuestions =
-                    GoToBrowseQuestionsWithCodePointer
+                , allQuestionsND =
+                    ( Route.Route <| Route.ViewBigbitQuestionsPage maybeStoryID bigbitID
+                    , GoToBrowseQuestionsWithCodePointer
                         bigbitID
                         (QA.getNewQuestion bigbitID model.qaState |||> .codePointer)
+                    )
                 }
                 (QA.getNewQuestion bigbitID model.qaState ?> QA.defaultNewQuestion)
 
@@ -842,13 +862,9 @@ viewBigbitCommentBox bigbit model shared =
                             RT.isMakingRequest
                                 shared.apiRequestTracker
                                 (RT.AnswerQuestion TidbitPointer.Bigbit)
-                        , goToAllAnswers =
-                            GoTo <|
-                                Route.ViewBigbitAnswersPage
-                                    maybeStoryID
-                                    Nothing
-                                    bigbitID
-                                    questionID
+                        , allAnswersND =
+                            Route.ViewBigbitAnswersPage maybeStoryID Nothing bigbitID questionID
+                                |> (\route -> ( Route.Route route, GoTo route ))
                         , answerQuestion = AnswerQuestion bigbitID questionID
                         }
                         newAnswer

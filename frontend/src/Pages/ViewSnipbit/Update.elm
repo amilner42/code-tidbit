@@ -25,12 +25,10 @@ import Models.TidbitPointer as TidbitPointer
 import Models.TutorialBookmark as TB
 import Models.User as User
 import Models.ViewerRelevantHC as ViewerRelevantHC
-import Models.Vote as Vote
 import Pages.Model exposing (Shared)
 import Pages.ViewSnipbit.Messages exposing (Msg(..))
 import Pages.ViewSnipbit.Model exposing (..)
 import Ports
-import ProjectTypeAliases exposing (..)
 import Set
 
 

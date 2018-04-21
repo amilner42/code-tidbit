@@ -5,8 +5,8 @@ import DefaultServices.InfixFunctions exposing (..)
 import Dict
 import Dom
 import Elements.Simple.Markdown as Markdown
-import Html exposing (Attribute, Html, div, i, text)
-import Html.Attributes exposing (class, hidden)
+import Html exposing (Attribute, Html, a, div, i, text)
+import Html.Attributes exposing (class, hidden, href)
 import Html.Events exposing (Options, defaultOptions, keyCode, on, onWithOptions, targetValue)
 import Html.Keyed as Keyed
 import Json.Decode as Decode
@@ -14,7 +14,6 @@ import Json.Encode as Encode
 import Keyboard.Extra as KK
 import ProjectTypeAliases exposing (..)
 import Regex
-import Set
 import Task
 
 
@@ -477,3 +476,35 @@ limitCharsText limit string =
 maybeAttributes : List (Maybe (Attribute msg)) -> List (Attribute msg)
 maybeAttributes =
     List.filterMap identity
+
+
+{-| For an onClick event which prevents the click default (so we can handle nav in the SPA) but allows ctrl/cmd click
+so that it can be opened in a new tab (without being prevented). In the case of a new tab being opened, we do not
+trigger the msg.
+
+Copied (and slightly modified) from github issue: <https://github.com/elm-lang/html/issues/110>
+
+-}
+onClickPreventDefault : msg -> Attribute msg
+onClickPreventDefault message =
+    let
+        maybePreventDefault : msg -> Bool -> Decode.Decoder msg
+        maybePreventDefault msg openInNewTab =
+            if openInNewTab then
+                -- So it won't prevent default.
+                Decode.fail "Normal link"
+            else
+                -- Prevents default and handles nav internally.
+                Decode.succeed msg
+
+        decodeIfOpenInNewTabClicked : Decode.Decoder Bool
+        decodeIfOpenInNewTabClicked =
+            Decode.map2 (||)
+                (Decode.field "ctrlKey" Decode.bool)
+                (Decode.field "metaKey" Decode.bool)
+    in
+    onWithOptions "click"
+        { defaultOptions | preventDefault = True }
+        (decodeIfOpenInNewTabClicked
+            |> Decode.andThen (maybePreventDefault message)
+        )

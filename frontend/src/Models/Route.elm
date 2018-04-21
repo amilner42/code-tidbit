@@ -5,6 +5,8 @@ import DefaultServices.Editable as Editable
 import DefaultServices.InfixFunctions exposing (..)
 import DefaultServices.Util as Util
 import Elements.Simple.FileStructure as FS
+import Html exposing (a)
+import Html.Attributes exposing (attribute)
 import Models.Bigbit as Bigbit
 import Models.QA as QA
 import Navigation
@@ -68,6 +70,15 @@ type Route
     | LoginPage (Maybe Link)
     | RegisterPage (Maybe Link)
     | NotificationsPage
+
+
+{-| Data required for making navigation elements which support both internal/external navigation.
+
+@REFER `navigationNode`
+
+-}
+type alias NavigationData msg =
+    ( RouteOrLink, msg )
 
 
 {-| For parsing a location (url) into a route.
@@ -1297,3 +1308,38 @@ fromQPOnWelcomePage route =
 
         _ ->
             Nothing
+
+
+type RouteOrLink
+    = Route Route
+    | Link Link
+
+
+{-| Creates an `a` html node for routing within the SPA.
+
+Allows you to do routing yourself in the SPA while still allowing ctrl/cmd-click to open in a new tab.
+
+@refer `Util.onClickPreventDefault`
+
+-}
+navigationNode : Maybe (NavigationData msg) -> List (Html.Attribute msg) -> List (Html.Html msg) -> Html.Html msg
+navigationNode navigationData attributes children =
+    a
+        (case navigationData of
+            Nothing ->
+                attributes
+
+            Just ( routeOrLink, msg ) ->
+                [ -- Can't use `href` directly until this is fixed: https://github.com/elm-lang/html/issues/142
+                  attribute "href" <|
+                    case routeOrLink of
+                        Route route ->
+                            toHashUrl route
+
+                        Link link ->
+                            link
+                , Util.onClickPreventDefault msg
+                ]
+                    ++ attributes
+        )
+        children

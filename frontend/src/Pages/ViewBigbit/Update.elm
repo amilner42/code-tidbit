@@ -26,7 +26,6 @@ import Models.TidbitPointer as TidbitPointer
 import Models.TutorialBookmark as TB
 import Models.User as User
 import Models.ViewerRelevantHC as ViewerRelevantHC
-import Models.Vote as Vote
 import Pages.Model exposing (Shared)
 import Pages.ViewBigbit.Messages exposing (..)
 import Pages.ViewBigbit.Model exposing (..)

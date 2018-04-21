@@ -567,6 +567,15 @@ navbar model =
 
         notificationsViewSelected =
             Route.NotificationsPage == shared.route
+
+        currentURLHash =
+            Route.toHashUrl shared.route
+
+        registerRouteWithRedirectQP =
+            Route.RegisterPage <| Just currentURLHash
+
+        loginRouteWithRedirectQP =
+            Route.LoginPage <| Just currentURLHash
     in
     div
         [ classList
@@ -580,66 +589,71 @@ navbar model =
             , src "assets/ct-logo-small.png"
             ]
             []
-        , div
-            [ classList
-                [ ( "nav-btn left code-tidbit", True )
-                , ( "hidden", Util.isNotNothing shared.user )
-                ]
-            , onClick <| GoTo Route.BrowsePage
+        , Route.navigationNode
+            (Just ( Route.Route Route.BrowsePage, GoTo Route.BrowsePage ))
+            [ classList [ ( "hidden", Util.isNotNothing shared.user ) ] ]
+            [ div
+                [ class "nav-btn left code-tidbit" ]
+                [ text "Code Tidbit" ]
             ]
-            [ text "Code Tidbit" ]
-        , div
-            [ classList
-                [ ( "nav-btn left", True )
-                , ( "hidden", Util.isNothing shared.user )
-                , ( "selected", browseViewSelected )
+        , Route.navigationNode
+            (Just ( Route.Route Route.BrowsePage, GoTo Route.BrowsePage ))
+            [ classList [ ( "hidden", Util.isNothing shared.user ) ] ]
+            [ div
+                [ classList
+                    [ ( "nav-btn left", True )
+                    , ( "selected", browseViewSelected )
+                    ]
                 ]
-            , onClick <| GoTo Route.BrowsePage
+                [ text "Browse" ]
             ]
-            [ text "Browse" ]
-        , div
-            [ classList
-                [ ( "nav-btn left", True )
-                , ( "hidden", Util.isNothing shared.user )
-                , ( "selected", createViewSelected )
+        , Route.navigationNode
+            (Just ( Route.Route Route.CreatePage, GoTo Route.CreatePage ))
+            [ classList [ ( "hidden", Util.isNothing shared.user ) ] ]
+            [ div
+                [ classList
+                    [ ( "nav-btn left", True )
+                    , ( "selected", createViewSelected )
+                    ]
                 ]
-            , onClick <| GoTo Route.CreatePage
+                [ text "Create" ]
             ]
-            [ text "Create" ]
-        , div
-            [ classList
-                [ ( "nav-btn left", True )
-                , ( "hidden", Util.isNothing shared.user )
-                , ( "selected", notificationsViewSelected )
+        , Route.navigationNode
+            (Just ( Route.Route Route.NotificationsPage, GoTo Route.NotificationsPage ))
+            [ classList [ ( "hidden", Util.isNothing shared.user ) ] ]
+            [ div
+                [ classList
+                    [ ( "nav-btn left", True )
+                    , ( "selected", notificationsViewSelected )
+                    ]
                 ]
-            , onClick <| GoTo Route.NotificationsPage
+                [ text "Notifications" ]
             ]
-            [ text "Notifications" ]
-        , div
-            [ classList
-                [ ( "nav-btn right", True )
-                , ( "hidden", Util.isNothing shared.user )
-                , ( "selected", profileViewSelected )
+        , Route.navigationNode
+            (Just ( Route.Route Route.ProfilePage, GoTo Route.ProfilePage ))
+            [ classList [ ( "hidden", Util.isNothing shared.user ) ] ]
+            [ div
+                [ classList
+                    [ ( "nav-btn right", True )
+                    , ( "selected", profileViewSelected )
+                    ]
                 ]
-            , onClick <| GoTo Route.ProfilePage
+                [ text "Profile" ]
             ]
-            [ text "Profile" ]
-        , div
-            [ classList
-                [ ( "nav-btn sign-up right", True )
-                , ( "hidden", Util.isNotNothing shared.user )
-                ]
-            , onClick <| GoTo <| Route.RegisterPage <| Just <| Route.toHashUrl shared.route
+        , Route.navigationNode
+            (Just ( Route.Route registerRouteWithRedirectQP, GoTo registerRouteWithRedirectQP ))
+            [ classList [ ( "hidden", Util.isNotNothing shared.user ) ] ]
+            [ div
+                [ class "nav-btn sign-up right" ]
+                [ text "Sign Up" ]
             ]
-            [ text "Sign Up" ]
-        , div
-            [ classList
-                [ ( "nav-btn login right", True )
-                , ( "hidden", Util.isNotNothing shared.user )
-                ]
-            , onClick <| GoTo <| Route.LoginPage <| Just <| Route.toHashUrl shared.route
+        , Route.navigationNode
+            (Just ( Route.Route loginRouteWithRedirectQP, GoTo loginRouteWithRedirectQP ))
+            [ classList [ ( "hidden", Util.isNotNothing shared.user ) ] ]
+            [ div
+                [ class "nav-btn login right" ]
+                [ text "Login" ]
             ]
-            [ text "Login" ]
         ]
 
 

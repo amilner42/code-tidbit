@@ -1,6 +1,5 @@
 module Pages.ViewStory.Update exposing (..)
 
-import Api
 import DefaultServices.CommonSubPageUtil exposing (CommonSubPageUtil(..), commonSubPageUtil)
 import Models.ContentPointer as ContentPointer
 import Models.Opinion exposing (PossibleOpinion, toPossibleOpinion)

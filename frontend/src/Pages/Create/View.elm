@@ -35,8 +35,8 @@ view model shared =
             folders in a directed fashion while still letting them explore themselves.
             """
 
-        makeTidbitTypeBox : String -> String -> String -> Msg -> TidbitType -> Html Msg
-        makeTidbitTypeBox title subTitle description onClickMsg tidbitType =
+        makeTidbitTypeBox : String -> String -> String -> ( Route.Route, Msg ) -> TidbitType -> Html Msg
+        makeTidbitTypeBox title subTitle description ( route, onClickMsg ) tidbitType =
             div
                 [ class "create-select-tidbit-type" ]
                 (if model.showInfoFor == Just tidbitType then
@@ -47,7 +47,7 @@ view model shared =
                         [ class "back-button"
                         , onClick <| ShowInfoFor Nothing
                         ]
-                        [ text "Back" ]
+                        [ text "BACK" ]
                     ]
                  else
                     [ div
@@ -61,10 +61,9 @@ view model shared =
                         , onClick <| ShowInfoFor <| Just tidbitType
                         ]
                         [ text "help_outline" ]
-                    , button
-                        [ class "select-button"
-                        , onClick onClickMsg
-                        ]
+                    , Route.navigationNode
+                        (Just ( Route.Route route, onClickMsg ))
+                        [ class "select-button" ]
                         [ text "CREATE" ]
                     ]
                 )
@@ -72,7 +71,6 @@ view model shared =
         yourStoriesHtml : Html Msg
         yourStoriesHtml =
             case shared.userStories of
-                -- Should never happen.
                 Nothing ->
                     Util.hiddenDiv
 
@@ -82,10 +80,13 @@ view model shared =
                         [ div
                             [ classList [ ( "flex-box space-around", True ) ]
                             ]
-                            ([ div
-                                [ class "create-story-box"
-                                , onClick <| GoTo <| Route.CreateStoryNamePage Nothing
-                                ]
+                            ([ Route.navigationNode
+                                (Just
+                                    ( Route.Route <| Route.CreateStoryNamePage Nothing
+                                    , GoTo <| Route.CreateStoryNamePage Nothing
+                                    )
+                                )
+                                [ class "create-story-box" ]
                                 [ i
                                     [ class "material-icons add-story-box-icon" ]
                                     [ text "add" ]
@@ -93,10 +94,13 @@ view model shared =
                              ]
                                 ++ List.map
                                     (\story ->
-                                        div
-                                            [ class "story-box"
-                                            , onClick <| GoTo <| Route.DevelopStoryPage story.id
-                                            ]
+                                        Route.navigationNode
+                                            (Just
+                                                ( Route.Route <| Route.DevelopStoryPage story.id
+                                                , GoTo <| Route.DevelopStoryPage story.id
+                                                )
+                                            )
+                                            [ class "story-box" ]
                                             [ div
                                                 [ class "story-box-name" ]
                                                 [ text story.name ]
@@ -130,13 +134,13 @@ view model shared =
                 "SnipBit"
                 "Explain a chunk of code"
                 snipBitDescription
-                (GoTo Route.CreateSnipbitNamePage)
+                ( Route.CreateSnipbitNamePage, GoTo Route.CreateSnipbitNamePage )
                 SnipBit
             , makeTidbitTypeBox
                 "BigBit"
                 "Explain a full project"
                 bigBitInfo
-                (GoTo Route.CreateBigbitNamePage)
+                ( Route.CreateBigbitNamePage, GoTo Route.CreateBigbitNamePage )
                 BigBit
             , div
                 [ class "create-select-tidbit-type-coming-soon" ]

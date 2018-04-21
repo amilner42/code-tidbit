@@ -1,6 +1,5 @@
 module Elements.Complex.CommentList exposing (..)
 
-import Date
 import Date.Format
 import DefaultServices.Editable as Editable
 import DefaultServices.InfixFunctions exposing (..)
