@@ -113,6 +113,13 @@ type InvalidRemoveFolderName
     | RemoveFolderDoesNotExist
 
 
+{-| Reset all "confirms" for buttons.
+-}
+resetConfirmState : Model -> Model
+resetConfirmState model =
+    { model | confirmedReset = False, confirmedRemoveFrame = False }
+
+
 {-| Checks if the path has invalid characters.
 
 NOTE: Only the following are valid characters: a-Z 1-9 - _ . /

@@ -27,16 +27,18 @@ update (Common common) msg model shared =
         currentBigbitHighlightedComments =
             model.highlightedComments
 
+        focusOn =
+            Util.domFocus (always NoOp)
+
         focusOnActionInputBox =
-            Util.domFocus (always NoOp) "fs-action-input-box"
+            focusOn "fs-action-input-box"
     in
     case msg of
         NoOp ->
             common.doNothing
 
         GoTo route ->
-            {- On top of navigation, we reset all "confirm" states. -}
-            ( { model | confirmedRemoveFrame = False, confirmedReset = False }, shared, Route.navigateTo route )
+            common.justProduceCmd <| Route.navigateTo route
 
         OnRouteHit route ->
             let
@@ -75,35 +77,40 @@ update (Common common) msg model shared =
                                             }
                         , Ports.smoothScrollToBottom
                         ]
-
-                focusOn theID =
-                    common.justProduceCmd <| Util.domFocus (\_ -> NoOp) theID
             in
             case route of
                 Route.CreateBigbitNamePage ->
-                    focusOn "name-input"
+                    ( resetConfirmState model, shared, focusOn "name-input" )
 
                 Route.CreateBigbitDescriptionPage ->
-                    focusOn "description-input"
+                    ( resetConfirmState model, shared, focusOn "description-input" )
 
                 Route.CreateBigbitTagsPage ->
-                    focusOn "tags-input"
+                    ( resetConfirmState model, shared, focusOn "tags-input" )
 
                 Route.CreateBigbitCodeIntroductionPage maybeFilePath ->
-                    common.justProduceCmd <|
-                        Cmd.batch
-                            [ createCreateBigbitEditorForCurrentFile
-                                Nothing
-                                maybeFilePath
-                                (Route.CreateBigbitCodeIntroductionPage Nothing)
-                            , Util.domFocus (\_ -> NoOp) "introduction-input"
-                            ]
+                    ( resetConfirmState model
+                    , shared
+                    , Cmd.batch
+                        [ createCreateBigbitEditorForCurrentFile
+                            Nothing
+                            maybeFilePath
+                            (Route.CreateBigbitCodeIntroductionPage Nothing)
+                        , focusOn "introduction-input"
+                        ]
+                    )
 
                 Route.CreateBigbitCodeFramePage frameNumber maybeFilePath ->
                     if frameNumber < 1 then
-                        common.justProduceCmd <| Route.modifyTo <| Route.CreateBigbitCodeIntroductionPage Nothing
+                        ( resetConfirmState model
+                        , shared
+                        , Route.modifyTo <| Route.CreateBigbitCodeIntroductionPage Nothing
+                        )
                     else if frameNumber > Array.length currentBigbitHighlightedComments then
-                        common.justProduceCmd <| Route.modifyTo <| Route.CreateBigbitCodeConclusionPage Nothing
+                        ( resetConfirmState model
+                        , shared
+                        , Route.modifyTo <| Route.CreateBigbitCodeConclusionPage Nothing
+                        )
                     else
                         let
                             -- Update the HC if the route has a file path.
@@ -148,6 +155,7 @@ update (Common common) msg model shared =
 
                             newModel =
                                 updateHCAtIndex model (frameNumber - 1) hcUpdater
+                                    |> resetConfirmState
 
                             maybeRangeToHighlight =
                                 Array.get (frameNumber - 1) newModel.highlightedComments
@@ -161,19 +169,21 @@ update (Common common) msg model shared =
                                 maybeRangeToHighlight
                                 maybeFilePath
                                 (Route.CreateBigbitCodeFramePage frameNumber Nothing)
-                            , Util.domFocus (\_ -> NoOp) "frame-input"
+                            , focusOn "frame-input"
                             ]
                         )
 
                 Route.CreateBigbitCodeConclusionPage maybeFilePath ->
-                    common.justProduceCmd <|
-                        Cmd.batch
-                            [ createCreateBigbitEditorForCurrentFile
-                                Nothing
-                                maybeFilePath
-                                (Route.CreateBigbitCodeConclusionPage Nothing)
-                            , Util.domFocus (\_ -> NoOp) "conclusion-input"
-                            ]
+                    ( resetConfirmState model
+                    , shared
+                    , Cmd.batch
+                        [ createCreateBigbitEditorForCurrentFile
+                            Nothing
+                            maybeFilePath
+                            (Route.CreateBigbitCodeConclusionPage Nothing)
+                        , focusOn "conclusion-input"
+                        ]
+                    )
 
                 _ ->
                     common.doNothing
@@ -395,7 +405,7 @@ update (Common common) msg model shared =
                 , tagInput = ""
               }
             , { shared | textFieldKeyTracker = TextFields.changeKey shared.textFieldKeyTracker "create-bigbit-tags" }
-            , Util.domFocus (always NoOp) "tags-input"
+            , focusOn "tags-input"
             )
 
         RemoveTag tagName ->
@@ -439,7 +449,7 @@ update (Common common) msg model shared =
                             )
               }
             , shared
-            , Util.domFocus (always NoOp) "fs-action-input-box"
+            , focusOn "fs-action-input-box"
             )
 
         OnUpdateActionInput newActionButtonInput ->

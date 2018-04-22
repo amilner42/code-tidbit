@@ -44,6 +44,13 @@ type alias SnipbitForPublication =
     }
 
 
+{-| Reset all "confirms" for buttons.
+-}
+resetConfirmState : Model -> Model
+resetConfirmState model =
+    { model | confirmedReset = False, confirmedRemoveFrame = False }
+
+
 {-| Returns the filled-in name or `Nothing`.
 -}
 nameFilledIn : Model -> Maybe String

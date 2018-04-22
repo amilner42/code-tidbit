@@ -27,14 +27,16 @@ update (Common common) msg model shared =
     let
         currentHighlightedComments =
             model.highlightedComments
+
+        focusOn =
+            Util.domFocus (always NoOp)
     in
     case msg of
         NoOp ->
             common.doNothing
 
         GoTo route ->
-            {- On top of navigation, we reset all "confirm" states. -}
-            ( { model | confirmedRemoveFrame = False, confirmedReset = False }, shared, Route.navigateTo route )
+            common.justProduceCmd <| Route.navigateTo route
 
         OnRouteHit route ->
             let
@@ -60,29 +62,28 @@ update (Common common) msg model shared =
                             }
                         , Ports.smoothScrollToBottom
                         ]
-
-                focusOn theID =
-                    common.justProduceCmd <| Util.domFocus (\_ -> NoOp) theID
             in
             case route of
                 Route.CreateSnipbitNamePage ->
-                    focusOn "name-input"
+                    ( resetConfirmState model, shared, focusOn "name-input" )
 
                 Route.CreateSnipbitDescriptionPage ->
-                    focusOn "description-input"
+                    ( resetConfirmState model, shared, focusOn "description-input" )
 
                 Route.CreateSnipbitLanguagePage ->
-                    focusOn "language-query-input"
+                    ( resetConfirmState model, shared, focusOn "language-query-input" )
 
                 Route.CreateSnipbitTagsPage ->
-                    focusOn "tags-input"
+                    ( resetConfirmState model, shared, focusOn "tags-input" )
 
                 Route.CreateSnipbitCodeIntroductionPage ->
-                    common.justProduceCmd <|
-                        Cmd.batch
-                            [ createCreateSnipbitEditor Nothing
-                            , Util.domFocus (\_ -> NoOp) "introduction-input"
-                            ]
+                    ( resetConfirmState model
+                    , shared
+                    , Cmd.batch
+                        [ createCreateSnipbitEditor Nothing
+                        , focusOn "introduction-input"
+                        ]
+                    )
 
                 Route.CreateSnipbitCodeFramePage frameNumber ->
                     let
@@ -97,9 +98,9 @@ update (Common common) msg model shared =
                             frameIndex < 0
                     in
                     if frameIndexTooLow then
-                        common.justProduceCmd <| Route.modifyTo Route.CreateSnipbitCodeIntroductionPage
+                        ( resetConfirmState model, shared, Route.modifyTo Route.CreateSnipbitCodeIntroductionPage )
                     else if frameIndexTooHigh then
-                        common.justProduceCmd <| Route.modifyTo Route.CreateSnipbitCodeConclusionPage
+                        ( resetConfirmState model, shared, Route.modifyTo Route.CreateSnipbitCodeConclusionPage )
                     else
                         let
                             -- Either the existing range, the range from
@@ -124,19 +125,22 @@ update (Common common) msg model shared =
                                     (\currentHC -> { currentHC | range = newHCRange })
                                     model.highlightedComments
                           }
+                            |> resetConfirmState
                         , shared
                         , Cmd.batch
                             [ createCreateSnipbitEditor newHCRange
-                            , Util.domFocus (\_ -> NoOp) "frame-input"
+                            , focusOn "frame-input"
                             ]
                         )
 
                 Route.CreateSnipbitCodeConclusionPage ->
-                    common.justProduceCmd <|
-                        Cmd.batch
-                            [ createCreateSnipbitEditor Nothing
-                            , Util.domFocus (\_ -> NoOp) "conclusion-input"
-                            ]
+                    ( resetConfirmState model
+                    , shared
+                    , Cmd.batch
+                        [ createCreateSnipbitEditor Nothing
+                        , focusOn "conclusion-input"
+                        ]
+                    )
 
                 _ ->
                     common.doNothing
@@ -360,7 +364,7 @@ update (Common common) msg model shared =
                 -- If the user wants to select a new language, we help them by focussing the input box.
                 newCmd =
                     if Util.isNothing language then
-                        Util.domFocus (always NoOp) "language-query-input"
+                        focusOn "language-query-input"
                     else
                         Cmd.none
 
@@ -403,7 +407,7 @@ update (Common common) msg model shared =
                 , tagInput = ""
               }
             , { shared | textFieldKeyTracker = TextFields.changeKey shared.textFieldKeyTracker "create-snipbit-tags" }
-            , Util.domFocus (always NoOp) "tags-input"
+            , focusOn "tags-input"
             )
 
         OnUpdateFrameComment index newComment ->
