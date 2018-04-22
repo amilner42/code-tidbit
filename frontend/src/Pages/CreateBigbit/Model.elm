@@ -24,6 +24,7 @@ type alias Model =
     , highlightedComments : Array.Array HighlightedCommentForCreate
     , previewMarkdown : Bool
     , confirmedRemoveFrame : Bool
+    , confirmedReset : Bool
     }
 
 
@@ -110,6 +111,13 @@ type InvalidRemoveFolderName
     = RemoveFolderIsEmpty
     | RemoveFolderIsRootFolder
     | RemoveFolderDoesNotExist
+
+
+{-| Reset all "confirms" for buttons.
+-}
+resetConfirmState : Model -> Model
+resetConfirmState model =
+    { model | confirmedReset = False, confirmedRemoveFrame = False }
 
 
 {-| Checks if the path has invalid characters.

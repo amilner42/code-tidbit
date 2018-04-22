@@ -32,6 +32,7 @@ encoder model =
         , ( "conclusion", Encode.string model.conclusion )
         , ( "previewMarkdown", Encode.bool model.previewMarkdown )
         , ( "confirmedRemoveFrame", Encode.bool False )
+        , ( "confirmedReset", Encode.bool False )
         ]
 
 
@@ -54,6 +55,7 @@ decoder =
         |> required "conclusion" Decode.string
         |> required "previewMarkdown" Decode.bool
         |> required "confirmedRemoveFrame" Decode.bool
+        |> required "confirmedReset" Decode.bool
 
 
 {-| `SnipbitForPublication` encoder.
