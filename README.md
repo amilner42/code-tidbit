@@ -1,7 +1,9 @@
 # Code Tidbit
 Browse and Create Powerful Tutorials
 
-> [ PROJECT STATUS UPDATE ]
+> [ PROJECT STATUS UPDATES ]
+>
+> October 27th, 2017
 >
 > CodeTidbit is no longer being hosted on codetidbit.com, I unfortunately don't
 > have the money to keep it running, and I don't have the time to keep working on it as
@@ -9,6 +11,11 @@ Browse and Create Powerful Tutorials
 > or donating to help the keep project online, please contact me. A small donation could
 > go a long way to keeping this project alive. Together we can make sharing code knowledge more
 > effective!
+>
+> April 22nd, 2018
+>
+> I'm still in school but will have a bit of time this summer to continue working on
+> CodeTidbit. I probably won't put it back online but I will continue adding features.
 
 ### Set Up
 
