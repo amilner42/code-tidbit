@@ -23,4 +23,5 @@ init =
     , introduction = ""
     , conclusion = ""
     , previewMarkdown = False
+    , confirmedRemoveFrame = False
     }

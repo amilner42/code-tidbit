@@ -562,6 +562,10 @@ textarea {
             &:hover {
                 opacity: 0.9;
             }
+
+            &.confirmed {
+                background-color: $error-color1;
+            }
         }
 
         hr {

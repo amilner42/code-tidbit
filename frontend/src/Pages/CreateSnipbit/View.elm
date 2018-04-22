@@ -414,7 +414,10 @@ view model shared =
                             ]
                             [ text "+" ]
                         , button
-                            [ class "add-or-remove-frame-button"
+                            [ classList
+                                [ ( "add-or-remove-frame-button", True )
+                                , ( "confirmed", model.confirmedRemoveFrame )
+                                ]
                             , onClick <| RemoveFrame
                             , disabled <| Array.length model.highlightedComments <= 1
                             ]
