@@ -26,6 +26,7 @@ init =
             { isExpanded = True }
     , highlightedComments = Array.fromList [ emptyHighlightCommentForCreate ]
     , previewMarkdown = False
+    , confirmedRemoveFrame = False
     }
 
 

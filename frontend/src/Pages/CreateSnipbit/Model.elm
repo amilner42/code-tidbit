@@ -25,6 +25,7 @@ type alias Model =
     , introduction : String
     , conclusion : String
     , previewMarkdown : Bool
+    , confirmedRemoveFrame : Bool
     }
 
 

@@ -35,7 +35,7 @@ update (Common common) msg model shared =
             common.doNothing
 
         GoTo route ->
-            common.justProduceCmd <| Route.navigateTo route
+            ( { model | confirmedRemoveFrame = False }, shared, Route.navigateTo route )
 
         OnRouteHit route ->
             let
@@ -283,6 +283,7 @@ update (Common common) msg model shared =
                     { model
                         | highlightedComments =
                             Array.push emptyHighlightCommentForCreate currentBigbitHighlightedComments
+                        , confirmedRemoveFrame = False
                     }
 
                 newCmd =
@@ -294,6 +295,8 @@ update (Common common) msg model shared =
         RemoveFrame ->
             if Array.length currentBigbitHighlightedComments == 1 then
                 common.doNothing
+            else if not model.confirmedRemoveFrame then
+                common.justSetModel { model | confirmedRemoveFrame = True }
             else
                 let
                     newHighlightedComments =
@@ -303,7 +306,7 @@ update (Common common) msg model shared =
                             currentBigbitHighlightedComments
 
                     newModel =
-                        { model | highlightedComments = newHighlightedComments }
+                        { model | highlightedComments = newHighlightedComments, confirmedRemoveFrame = False }
 
                     -- Have to make sure if they are on the last frame it pushes them down one frame.
                     newRoute =

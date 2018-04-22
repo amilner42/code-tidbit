@@ -33,7 +33,7 @@ update (Common common) msg model shared =
             common.doNothing
 
         GoTo route ->
-            common.justProduceCmd <| Route.navigateTo route
+            ( { model | confirmedRemoveFrame = False }, shared, Route.navigateTo route )
 
         OnRouteHit route ->
             let
@@ -260,50 +260,55 @@ update (Common common) msg model shared =
                 newModel =
                     { model
                         | highlightedComments =
-                            Array.push { range = Nothing, comment = Nothing } currentHighlightedComments
+                            currentHighlightedComments
+                                |> Array.push { range = Nothing, comment = Nothing }
+                        , confirmedRemoveFrame = False
                     }
 
-                newMsg =
-                    GoTo <| Route.CreateSnipbitCodeFramePage <| Array.length newModel.highlightedComments
+                newCmd =
+                    Route.navigateTo <| Route.CreateSnipbitCodeFramePage <| Array.length newModel.highlightedComments
             in
-            update (commonSubPageUtil newModel shared) newMsg newModel shared
+            ( newModel, shared, newCmd )
 
         RemoveFrame ->
-            let
-                newHighlightedComments =
-                    Array.slice 0 (Array.length currentHighlightedComments - 1) currentHighlightedComments
+            if not model.confirmedRemoveFrame then
+                common.justSetModel { model | confirmedRemoveFrame = True }
+            else
+                let
+                    newHighlightedComments =
+                        Array.slice 0 (Array.length currentHighlightedComments - 1) currentHighlightedComments
 
-                newModel =
-                    { model | highlightedComments = newHighlightedComments }
-            in
-            case shared.route of
-                Route.CreateSnipbitCodeIntroductionPage ->
-                    common.justSetModel newModel
-
-                Route.CreateSnipbitCodeConclusionPage ->
-                    common.justSetModel newModel
-
-                -- We need to go "down" a tab if the user was on the last tab and they removed a tab.
-                Route.CreateSnipbitCodeFramePage frameNumber ->
-                    let
-                        frameIndex =
-                            frameNumber - 1
-                    in
-                    if frameIndex >= Array.length newHighlightedComments then
-                        update
-                            (commonSubPageUtil newModel shared)
-                            (GoTo <|
-                                Route.CreateSnipbitCodeFramePage <|
-                                    Array.length newHighlightedComments
-                            )
-                            newModel
-                            shared
-                    else
+                    newModel =
+                        { model | highlightedComments = newHighlightedComments, confirmedRemoveFrame = False }
+                in
+                case shared.route of
+                    Route.CreateSnipbitCodeIntroductionPage ->
                         common.justSetModel newModel
 
-                -- Should never happen.
-                _ ->
-                    common.justSetModel newModel
+                    Route.CreateSnipbitCodeConclusionPage ->
+                        common.justSetModel newModel
+
+                    -- We need to go "down" a tab if the user was on the last tab and they removed a tab.
+                    Route.CreateSnipbitCodeFramePage frameNumber ->
+                        let
+                            frameIndex =
+                                frameNumber - 1
+                        in
+                        if frameIndex >= Array.length newHighlightedComments then
+                            update
+                                (commonSubPageUtil newModel shared)
+                                (GoTo <|
+                                    Route.CreateSnipbitCodeFramePage <|
+                                        Array.length newHighlightedComments
+                                )
+                                newModel
+                                shared
+                        else
+                            common.justSetModel newModel
+
+                    -- Should never happen.
+                    _ ->
+                        common.justSetModel newModel
 
         TogglePreviewMarkdown ->
             common.justSetModel <| Util.togglePreviewMarkdown model

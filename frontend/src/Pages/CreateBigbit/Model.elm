@@ -23,6 +23,7 @@ type alias Model =
     , fs : FS.FileStructure FSMetadata FolderMetadata FileMetadata
     , highlightedComments : Array.Array HighlightedCommentForCreate
     , previewMarkdown : Bool
+    , confirmedRemoveFrame : Bool
     }
 
 
