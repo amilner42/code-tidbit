@@ -682,7 +682,7 @@ view model shared =
         [ div
             [ class "sub-bar" ]
             [ button
-                [ class "sub-bar-button"
+                [ classList [ ( "sub-bar-button", True ), ( "confirmed", model.confirmedReset ) ]
                 , onClick <| Reset
                 ]
                 [ text "Reset" ]

@@ -47,6 +47,7 @@ encoder model =
           )
         , ( "previewMarkdown", Encode.bool model.previewMarkdown )
         , ( "confirmedRemoveFrame", Encode.bool False )
+        , ( "confirmedReset", Encode.bool False )
         ]
 
 
@@ -82,6 +83,7 @@ decoder =
         |> required "highlightedComments" (Decode.array createHighlightedCommentDecoder)
         |> required "previewMarkdown" Decode.bool
         |> required "confirmedRemoveFrame" Decode.bool
+        |> required "confirmedReset" Decode.bool
 
 
 {-| `FSActionButtonState` encoder.

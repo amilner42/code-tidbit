@@ -489,7 +489,7 @@ view model shared =
         [ div
             [ class "sub-bar" ]
             [ button
-                [ class "create-snipbit-reset-button"
+                [ classList [ ( "create-snipbit-reset-button", True ), ( "confirmed", model.confirmedReset ) ]
                 , onClick <| Reset
                 ]
                 [ text "Reset" ]

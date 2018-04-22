@@ -24,4 +24,5 @@ init =
     , conclusion = ""
     , previewMarkdown = False
     , confirmedRemoveFrame = False
+    , confirmedReset = False
     }

@@ -27,6 +27,7 @@ init =
     , highlightedComments = Array.fromList [ emptyHighlightCommentForCreate ]
     , previewMarkdown = False
     , confirmedRemoveFrame = False
+    , confirmedReset = False
     }
 
 

@@ -33,7 +33,8 @@ update (Common common) msg model shared =
             common.doNothing
 
         GoTo route ->
-            ( { model | confirmedRemoveFrame = False }, shared, Route.navigateTo route )
+            {- On top of navigation, we reset all "confirm" states. -}
+            ( { model | confirmedRemoveFrame = False, confirmedReset = False }, shared, Route.navigateTo route )
 
         OnRouteHit route ->
             let
@@ -250,10 +251,13 @@ update (Common common) msg model shared =
             )
 
         Reset ->
-            ( init
-            , { shared | textFieldKeyTracker = TextFields.changeKey shared.textFieldKeyTracker "create-snipbit-name" }
-            , Route.navigateTo Route.CreateSnipbitNamePage
-            )
+            if model.confirmedReset then
+                ( init
+                , { shared | textFieldKeyTracker = TextFields.changeKey shared.textFieldKeyTracker "create-snipbit-name" }
+                , Route.navigateTo Route.CreateSnipbitNamePage
+                )
+            else
+                common.justSetModel { model | confirmedReset = True }
 
         AddFrame ->
             let

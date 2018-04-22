@@ -24,6 +24,7 @@ type alias Model =
     , highlightedComments : Array.Array HighlightedCommentForCreate
     , previewMarkdown : Bool
     , confirmedRemoveFrame : Bool
+    , confirmedReset : Bool
     }
 
 

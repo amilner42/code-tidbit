@@ -176,6 +176,11 @@ textarea {
         background-color: white;
         cursor: pointer;
 
+        &.confirmed {
+            background-color: $error-color1;
+            color: white;
+        }
+
         &:hover {
             @include strong-box-shadow();
         }
