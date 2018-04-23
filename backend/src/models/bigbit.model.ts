@@ -14,7 +14,7 @@ import { ContentSearchFilter, ContentResultManipulation, ContentType, ContentPoi
 import { FileStructure, swapPeriodsWithStars, fileFold } from './file-structure.model';
 import * as KS from './kleen-schemas';
 import { qaDBActions } from "./qa.model";
-import { TidbitType } from "./tidbit.model";
+import { TidbitType, updateCommentAbsoluteLinks } from "./tidbit.model";
 
 
 /**
@@ -44,8 +44,8 @@ export interface Bigbit {
  * A highlighted comment in a bigbit.
  */
 export interface BigbitHighlightedComment {
-  file: String;
-  comment: String;
+  file: string;
+  comment: string;
   range: Range;
 };
 
@@ -161,6 +161,7 @@ export const bigbitDBActions = {
     return (doValidation ? kleen.validModel(bigbitSchema)(bigbit) : Promise.resolve())
     .then(() => {
       bigbit.fs = swapPeriodsWithStars(true, bigbit.fs);
+      updateCommentAbsoluteLinks(bigbit);
       return bigbit;
     })
     .then((updatedBigbit: Bigbit) => {

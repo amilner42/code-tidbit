@@ -29,7 +29,7 @@ export interface Notification {
   _id?: MongoObjectID;
   userID: MongoObjectID;
   type: NotificationType;
-  message: String;
+  message: string;
   actionLink?: [ LinkName, Link ];
   read: boolean;
   createdAt: Date;
