@@ -72,7 +72,7 @@ update (Common common) msg model shared =
                                             , value = content
                                             , range = maybeRange
                                             , useMarker = False
-                                            , readOnly = False
+                                            , readOnly = model.codeLocked
                                             , selectAllowed = True
                                             }
                         , Ports.smoothScrollToBottom
@@ -663,3 +663,6 @@ update (Common common) msg model shared =
         OnPublishFailure apiError ->
             common.justSetModalError apiError
                 |> common.andFinishRequest RT.PublishBigbit
+
+        ToggleLockCode ->
+            ( { model | codeLocked = not model.codeLocked }, shared, Route.modifyTo shared.route )

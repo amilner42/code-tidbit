@@ -418,6 +418,18 @@ view model shared =
                             ]
                             [ text <| Maybe.withDefault "No File Selected" currentActiveFile ]
                         , div
+                            [ classList [ ( "lock-icon", True ), ( "hidden", Util.isNothing currentActiveFile ) ]
+                            , onClick <| ToggleLockCode
+                            ]
+                            [ i [ class "material-icons" ]
+                                [ text <|
+                                    if model.codeLocked then
+                                        "lock_outline"
+                                    else
+                                        "lock_open"
+                                ]
+                            ]
+                        , div
                             [ class "create-tidbit-code" ]
                             [ Editor.view "create-bigbit-code-editor"
                             ]

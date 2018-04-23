@@ -24,6 +24,10 @@
                 .current-file {
                     left: 0;
                 }
+
+                .lock-icon {
+                    right: 366px;
+                }
             }
 
             .bigbit-fs {
@@ -121,6 +125,15 @@
                 font-size: 16px;
                 color: $color4;
                 @include no-select();
+                cursor: pointer;
+            }
+
+            .lock-icon {
+                position: absolute;
+                top: -25px;
+                font-size: 16px;
+                right: 368px;
+                color: $color4;
                 cursor: pointer;
             }
         }
