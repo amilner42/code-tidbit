@@ -12,7 +12,7 @@ import { ContentSearchFilter, ContentResultManipulation, ContentType, ContentPoi
 import { Range, emptyRange } from './range.model';
 import * as KS from './kleen-schemas';
 import { qaDBActions } from "./qa.model";
-import { TidbitType } from "./tidbit.model";
+import { TidbitType, updateCommentAbsoluteLinks } from "./tidbit.model";
 
 
 /**
@@ -136,6 +136,8 @@ export const snipbitDBActions = {
       validSnipbit.authorEmail = userEmail;
       validSnipbit.createdAt = dateNow;
       validSnipbit.lastModified = dateNow;
+
+      updateCommentAbsoluteLinks(validSnipbit);
 
       return collection("snipbits")
       .then((snipbitCollection) => {

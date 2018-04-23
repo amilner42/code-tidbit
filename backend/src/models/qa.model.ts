@@ -59,7 +59,7 @@ export interface Question<CodePointer> {
 export interface Answer {
   id: MongoObjectID,
   questionID: MongoObjectID,
-  answerText: String,
+  answerText: string,
   authorID: MongoObjectID,
   authorEmail: string,
   upvotes: MongoObjectID[] | [boolean, number],

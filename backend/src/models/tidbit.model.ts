@@ -7,8 +7,8 @@ import { malformedFieldError, isNullOrUndefined, combineArrays, sortByAll, getTi
 import { ErrorCode, MongoID, MongoObjectID } from '../types';
 import { mongoIDSchema } from './kleen-schemas';
 import { ContentType, ContentPointer, ContentSearchFilter, ContentResultManipulation, contentDBActions } from "./content.model";
-import { Snipbit, snipbitDBActions } from './snipbit.model';
-import { Bigbit, bigbitDBActions } from './bigbit.model';
+import { Snipbit, SnipbitHighlightedComment, snipbitDBActions } from './snipbit.model';
+import { Bigbit, BigbitHighlightedComment, bigbitDBActions } from './bigbit.model';
 
 
 /**
@@ -133,3 +133,27 @@ export const toContentPointer = ({ targetID, tidbitType }: TidbitPointer): Conte
     contentType: toContentType(tidbitType)
   }
 };
+
+/**
+ * Updates tidbit comments to not include absolute links.
+ *
+ * @WARNING mutation.
+ */
+export const updateCommentAbsoluteLinks = (tidbit: Tidbit): Tidbit => {
+
+  const updateLinks = (str: string): string => {
+    str = str.replace(/\(http:\/\/codetidbit.com\/#/g, "(#");
+    str = str.replace(/\(https:\/\/codetidbit.com\/#/g, "(#");
+
+    return str;
+  }
+
+  tidbit.introduction = updateLinks(tidbit.introduction);
+  tidbit.conclusion = updateLinks(tidbit.conclusion);
+
+  for(let hc of tidbit.highlightedComments) {
+    hc.comment = updateLinks(hc.comment);
+  }
+
+  return tidbit;
+}
