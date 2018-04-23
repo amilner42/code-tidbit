@@ -37,3 +37,4 @@ type Msg
     | Publish SnipbitForPublication
     | OnPublishSuccess IDResponse
     | OnPublishFailure ApiError
+    | ToggleLockCode

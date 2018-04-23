@@ -115,6 +115,7 @@
 
     .create-snipbit-code {
         @extend .create-tidbit-code;
+        position: relative;
         width: 995px;
 
         .preview-markdown {
@@ -124,6 +125,15 @@
 
         #code-editor-wrapper {
             padding-left: 0;
+        }
+
+        .lock-icon {
+            color: $color4;
+            position: absolute;
+            top: -25px;
+            right: 366px;
+            cursor: pointer;
+            font-size: 16px;
         }
     }
 

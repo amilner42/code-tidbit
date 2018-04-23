@@ -6,7 +6,7 @@ import DefaultServices.TextFields as TextFields
 import DefaultServices.Util as Util
 import Elements.Simple.Editor as Editor
 import Elements.Simple.Tags as Tags
-import Html exposing (Html, button, div, hr, text)
+import Html exposing (Html, button, div, hr, i, text)
 import Html.Attributes exposing (class, classList, defaultValue, disabled, hidden, id, placeholder)
 import Html.Events exposing (onClick, onInput)
 import Keyboard.Extra as KK
@@ -429,6 +429,18 @@ view model shared =
             div
                 [ class "create-snipbit-code" ]
                 [ Editor.view "create-snipbit-code-editor"
+                , div
+                    [ classList [ ( "lock-icon", True ) ]
+                    , onClick ToggleLockCode
+                    ]
+                    [ i [ class "material-icons" ]
+                        [ text <|
+                            if model.codeLocked then
+                                "lock_outline"
+                            else
+                                "lock_open"
+                        ]
+                    ]
                 , div
                     [ class "comment-creator" ]
                     [ body
