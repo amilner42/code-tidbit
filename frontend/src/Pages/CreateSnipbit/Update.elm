@@ -57,7 +57,7 @@ update (Common common) msg model shared =
                             , value = model.code
                             , range = aceRange
                             , useMarker = False
-                            , readOnly = False
+                            , readOnly = model.codeLocked
                             , selectAllowed = True
                             }
                         , Ports.smoothScrollToBottom
@@ -448,6 +448,9 @@ update (Common common) msg model shared =
         OnPublishFailure apiError ->
             common.justSetModalError apiError
                 |> common.andFinishRequest RT.PublishSnipbit
+
+        ToggleLockCode ->
+            ( { model | codeLocked = not model.codeLocked }, shared, Route.modifyTo <| shared.route )
 
 
 {-| Config for language-list auto-complete (used in snipbit creation).

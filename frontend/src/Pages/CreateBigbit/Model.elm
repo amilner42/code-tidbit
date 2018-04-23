@@ -25,6 +25,7 @@ type alias Model =
     , previewMarkdown : Bool
     , confirmedRemoveFrame : Bool
     , confirmedReset : Bool
+    , codeLocked : Bool
     }
 
 

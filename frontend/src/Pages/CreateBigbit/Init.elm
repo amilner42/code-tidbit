@@ -28,6 +28,7 @@ init =
     , previewMarkdown = False
     , confirmedRemoveFrame = False
     , confirmedReset = False
+    , codeLocked = False
     }
 
 
