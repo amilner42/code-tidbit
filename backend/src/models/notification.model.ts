@@ -637,15 +637,15 @@ const tidbitBaseUrl = (tidbitPointer: TidbitPointer) => {
 /**
  * Get's the [relative] link to view some content.
  *
- * For tidbits this will link to the introduction.
+ * For tidbits this will link to the first frame.
  */
 const getContentLink = (contentPointer: ContentPointer): Link => {
   switch(contentPointer.contentType) {
     case ContentType.Snipbit:
-      return `${viewSnipbitBaseUrl(contentPointer.contentID)}/introduction`;
+      return `${viewSnipbitBaseUrl(contentPointer.contentID)}/frame/1`;
 
     case ContentType.Bigbit:
-      return `${viewBigbitBaseUrl(contentPointer.contentID)}/introduction`;
+      return `${viewBigbitBaseUrl(contentPointer.contentID)}/frame/1`;
 
     case ContentType.Story:
       return viewStoryBaseUrl(contentPointer.contentID);
@@ -657,7 +657,7 @@ const getContentLink = (contentPointer: ContentPointer): Link => {
 /**
  * Get's the [relative] link to view a tidbit.
  *
- * This will link to the introduction.
+ * This will link to the first frame.
  */
 const getTidbitLink = R.pipe(toContentPointer, getContentLink);
 

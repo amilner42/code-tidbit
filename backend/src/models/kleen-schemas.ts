@@ -250,26 +250,6 @@ export const codeSchema = (codeEmptyErrorCode: ErrorCode): kleen.primitiveSchema
 };
 
 /**
- * For validifying an introduction, makes sure it isn't empty.
- */
-export const introductionSchema = (emptyIntroErrorCode: ErrorCode): kleen.primitiveSchema => {
-  return nonEmptyStringSchema(
-    { errorCode: emptyIntroErrorCode, message: "You must have a non-empty introduction." },
-     malformedFieldError("introduction")
-  );
-};
-
-/**
- * For validifying a conclusion, makes sure that it isn't empty.
- */
-export const conclusionSchema = (emptyConclusionErrorCode: ErrorCode): kleen.primitiveSchema => {
-  return nonEmptyStringSchema(
-    { errorCode: emptyConclusionErrorCode, message: "You must have a non-empty conclusion." },
-     malformedFieldError("conclusion")
-  );
-};
-
-/**
  * For validifying a FileStructure.
  *
  * On top of expected checks, also makes sure that no file/folder names have a

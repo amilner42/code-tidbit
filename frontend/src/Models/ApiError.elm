@@ -25,8 +25,6 @@ type ApiError
     | SnipbitEmptyRange
     | SnipbitEmptyComment
     | SnipbitNoHighlightedComments
-    | SnipbitEmptyConclusion
-    | SnipbitEmptyIntroduction
     | SnipbitEmptyCode
     | SnipbitNoTags
     | SnipbitEmptyTag
@@ -44,8 +42,6 @@ type ApiError
     | BigbitEmptyDescription
     | BigbitEmptyTag
     | BigbitNoTags
-    | BigbitEmptyIntroduction
-    | BigbitEmptyConclusion
     | BigbitNoHighlightedComments
     | BigbitInvalidLanguage
     | BigbitDoesNotExist
@@ -127,12 +123,6 @@ humanReadable apiError =
         SnipbitNoHighlightedComments ->
             "You must have at least one explanatory frame!"
 
-        SnipbitEmptyConclusion ->
-            "You must have a conclusion!"
-
-        SnipbitEmptyIntroduction ->
-            "You must have a introduction!"
-
         SnipbitEmptyCode ->
             "You must have code!"
 
@@ -183,12 +173,6 @@ humanReadable apiError =
 
         BigbitNoTags ->
             "Your bigbit must have at least one tag!"
-
-        BigbitEmptyIntroduction ->
-            "Your bigbit must have an introduction!"
-
-        BigbitEmptyConclusion ->
-            "Your bigbit must have a conclusion!"
 
         BigbitNoHighlightedComments ->
             "You must have at least one frame!"
