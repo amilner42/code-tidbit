@@ -53,9 +53,7 @@ type Route
     | CreateSnipbitDescriptionPage
     | CreateSnipbitLanguagePage
     | CreateSnipbitTagsPage
-    | CreateSnipbitCodeIntroductionPage
     | CreateSnipbitCodeFramePage FrameNumber
-    | CreateSnipbitCodeConclusionPage
     | CreateBigbitNamePage
     | CreateBigbitDescriptionPage
     | CreateBigbitTagsPage
@@ -210,14 +208,8 @@ matchers =
         createSnipbitCode =
             createSnipbit </> s "code"
 
-        createSnipbitCodeIntroduction =
-            createSnipbitCode </> s "introduction"
-
         createSnipbitCodeFrame =
             createSnipbitCode </> s "frame" </> int
-
-        createSnipbitCodeConclusion =
-            createSnipbitCode </> s "conclusion"
 
         -- Abstract.
         createBigbit =
@@ -324,9 +316,7 @@ matchers =
         , map CreateSnipbitDescriptionPage createSnipbitDescription
         , map CreateSnipbitLanguagePage createSnipbitLanguage
         , map CreateSnipbitTagsPage createSnipbitTags
-        , map CreateSnipbitCodeIntroductionPage createSnipbitCodeIntroduction
         , map CreateSnipbitCodeFramePage createSnipbitCodeFrame
-        , map CreateSnipbitCodeConclusionPage createSnipbitCodeConclusion
         , map CreateBigbitNamePage createBigbitName
         , map CreateBigbitDescriptionPage createBigbitDescription
         , map CreateBigbitTagsPage createBigbitTags
@@ -682,14 +672,8 @@ toHashUrl route =
                 CreateSnipbitTagsPage ->
                     "create/snipbit/tags"
 
-                CreateSnipbitCodeIntroductionPage ->
-                    "create/snipbit/code/introduction"
-
                 CreateSnipbitCodeFramePage frameNumber ->
                     "create/snipbit/code/frame/" ++ toString frameNumber
-
-                CreateSnipbitCodeConclusionPage ->
-                    "create/snipbit/code/conclusion"
 
                 CreateBigbitNamePage ->
                     "create/bigbit/name"

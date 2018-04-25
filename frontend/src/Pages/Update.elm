@@ -821,12 +821,6 @@ handleLocationChange maybeRoute model =
                 Route.CreateSnipbitTagsPage ->
                     triggerRouteHookOnCreateSnipbitPage
 
-                Route.CreateSnipbitCodeIntroductionPage ->
-                    triggerRouteHookOnCreateSnipbitPage
-
-                Route.CreateSnipbitCodeConclusionPage ->
-                    triggerRouteHookOnCreateSnipbitPage
-
                 Route.CreateSnipbitCodeFramePage _ ->
                     triggerRouteHookOnCreateSnipbitPage
 
@@ -974,13 +968,7 @@ googleAnalyticsPageName maybeRoute =
         Just Route.CreateSnipbitTagsPage ->
             "create-snipbit"
 
-        Just Route.CreateSnipbitCodeIntroductionPage ->
-            "create-snipbit"
-
         Just (Route.CreateSnipbitCodeFramePage _) ->
-            "create-snipbit"
-
-        Just Route.CreateSnipbitCodeConclusionPage ->
             "create-snipbit"
 
         Just Route.CreateBigbitNamePage ->

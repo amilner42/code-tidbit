@@ -279,13 +279,7 @@ viewForRoute model =
         Route.CreateSnipbitTagsPage ->
             createSnipbitPage
 
-        Route.CreateSnipbitCodeIntroductionPage ->
-            createSnipbitPage
-
         Route.CreateSnipbitCodeFramePage _ ->
-            createSnipbitPage
-
-        Route.CreateSnipbitCodeConclusionPage ->
             createSnipbitPage
 
         Route.CreateBigbitNamePage ->
@@ -558,8 +552,6 @@ navbar model =
                         , Route.CreateSnipbitDescriptionPage
                         , Route.CreateSnipbitLanguagePage
                         , Route.CreateSnipbitTagsPage
-                        , Route.CreateSnipbitCodeIntroductionPage
-                        , Route.CreateSnipbitCodeConclusionPage
                         , Route.CreateBigbitNamePage
                         , Route.CreateBigbitDescriptionPage
                         , Route.CreateBigbitTagsPage

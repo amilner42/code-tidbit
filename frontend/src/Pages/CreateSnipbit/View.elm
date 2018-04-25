@@ -108,12 +108,6 @@ view model shared =
                         [ ( "create-tidbit-tab", True )
                         , ( "create-tidbit-selected-tab"
                           , case currentRoute of
-                                Route.CreateSnipbitCodeIntroductionPage ->
-                                    True
-
-                                Route.CreateSnipbitCodeConclusionPage ->
-                                    True
-
                                 Route.CreateSnipbitCodeFramePage _ ->
                                     True
 
@@ -245,38 +239,6 @@ view model shared =
                                 text "Markdown Preview"
                             ]
                         , case shared.route of
-                            Route.CreateSnipbitCodeIntroductionPage ->
-                                Util.markdownOr
-                                    markdownOpen
-                                    model.introduction
-                                    (TextFields.textarea
-                                        shared.textFieldKeyTracker
-                                        "create-snipbit-introduction"
-                                        [ placeholder "General Introduction"
-                                        , id "introduction-input"
-                                        , onInput <| OnUpdateIntroduction
-                                        , defaultValue model.introduction
-                                        , Util.onKeydownPreventDefault
-                                            (\key ->
-                                                let
-                                                    newKeysDown =
-                                                        kkUpdateWrapper (KK.Down <| KK.toCode key) shared.keysDown
-                                                in
-                                                if key == KK.Tab then
-                                                    if newKeysDown == shared.keysDown then
-                                                        Just NoOp
-                                                    else if KK.isOneKeyPressed KK.Tab newKeysDown then
-                                                        Just <| GoTo <| Route.CreateSnipbitCodeFramePage 1
-                                                    else if KK.isTwoKeysPressed KK.Tab KK.Shift newKeysDown then
-                                                        Just <| GoTo <| Route.CreateSnipbitTagsPage
-                                                    else
-                                                        Nothing
-                                                else
-                                                    Nothing
-                                            )
-                                        ]
-                                    )
-
                             Route.CreateSnipbitCodeFramePage frameNumber ->
                                 let
                                     frameIndex =
@@ -328,41 +290,6 @@ view model shared =
                                         ]
                                     )
 
-                            Route.CreateSnipbitCodeConclusionPage ->
-                                Util.markdownOr
-                                    markdownOpen
-                                    model.conclusion
-                                    (TextFields.textarea
-                                        shared.textFieldKeyTracker
-                                        "create-snipbit-conclusion"
-                                        [ placeholder "General Conclusion"
-                                        , id "conclusion-input"
-                                        , onInput <| OnUpdateConclusion
-                                        , defaultValue model.conclusion
-                                        , Util.onKeydownPreventDefault
-                                            (\key ->
-                                                let
-                                                    newKeysDown =
-                                                        kkUpdateWrapper (KK.Down <| KK.toCode key) shared.keysDown
-                                                in
-                                                if key == KK.Tab then
-                                                    if newKeysDown == shared.keysDown then
-                                                        Just NoOp
-                                                    else if KK.isOneKeyPressed KK.Tab newKeysDown then
-                                                        Just NoOp
-                                                    else if KK.isTwoKeysPressed KK.Tab KK.Shift newKeysDown then
-                                                        Just <|
-                                                            GoTo <|
-                                                                Route.CreateSnipbitCodeFramePage
-                                                                    (Array.length model.highlightedComments)
-                                                    else
-                                                        Nothing
-                                                else
-                                                    Nothing
-                                            )
-                                        ]
-                                    )
-
                             _ ->
                                 Util.hiddenDiv
                         ]
@@ -393,22 +320,6 @@ view model shared =
                         , hidden <| markdownOpen
                         ]
                         [ button
-                            [ onClick <| GoTo Route.CreateSnipbitCodeIntroductionPage
-                            , classList
-                                [ ( "selected-frame", shared.route == Route.CreateSnipbitCodeIntroductionPage )
-                                , ( "introduction-button", True )
-                                ]
-                            ]
-                            [ text "Introduction" ]
-                        , button
-                            [ onClick <| GoTo Route.CreateSnipbitCodeConclusionPage
-                            , classList
-                                [ ( "selected-frame", shared.route == Route.CreateSnipbitCodeConclusionPage )
-                                , ( "conclusion-button", True )
-                                ]
-                            ]
-                            [ text "Conclusion" ]
-                        , button
                             [ class "add-or-remove-frame-button"
                             , onClick <| AddFrame
                             ]
@@ -462,12 +373,6 @@ view model shared =
 
                 Route.CreateSnipbitTagsPage ->
                     tagsView
-
-                Route.CreateSnipbitCodeIntroductionPage ->
-                    tidbitView
-
-                Route.CreateSnipbitCodeConclusionPage ->
-                    tidbitView
 
                 Route.CreateSnipbitCodeFramePage _ ->
                     tidbitView
