@@ -15,8 +15,6 @@ type alias Snipbit =
     , description : String
     , tags : List String
     , code : String
-    , introduction : String
-    , conclusion : String
     , highlightedComments : Array.Array HighlightedComment
     , author : String
     , authorEmail : String

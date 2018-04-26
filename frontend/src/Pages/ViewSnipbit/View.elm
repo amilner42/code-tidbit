@@ -24,7 +24,6 @@ import Models.Route as Route
 import Models.Snipbit as Snipbit
 import Models.Story as Story
 import Models.TidbitPointer as TidbitPointer
-import Models.TutorialBookmark as TB
 import Models.ViewerRelevantHC as ViewerRelevantHC
 import Models.Vote as Vote
 import Pages.Model exposing (Shared)
@@ -218,19 +217,15 @@ view model shared =
                     previousFrameRoute : Maybe Route.Route
                     previousFrameRoute =
                         case ( shared.route, not inTutorial ) of
-                            ( Route.ViewSnipbitConclusionPage fromStoryID mongoID, False ) ->
-                                Just <|
-                                    Route.ViewSnipbitFramePage
-                                        fromStoryID
-                                        mongoID
-                                        (Array.length snipbit.highlightedComments)
-
                             ( Route.ViewSnipbitFramePage fromStoryID mongoID frameNumber, False ) ->
-                                Just <|
-                                    Route.ViewSnipbitFramePage
-                                        fromStoryID
-                                        mongoID
-                                        (frameNumber - 1)
+                                if frameNumber == 1 then
+                                    Nothing
+                                else
+                                    Just <|
+                                        Route.ViewSnipbitFramePage
+                                            fromStoryID
+                                            mongoID
+                                            (frameNumber - 1)
 
                             _ ->
                                 Nothing
@@ -238,11 +233,11 @@ view model shared =
                     nextFrameRoute : Maybe Route.Route
                     nextFrameRoute =
                         case ( shared.route, not inTutorial ) of
-                            ( Route.ViewSnipbitIntroductionPage fromStoryID mongoID, False ) ->
-                                Just <| Route.ViewSnipbitFramePage fromStoryID mongoID 1
-
                             ( Route.ViewSnipbitFramePage fromStoryID mongoID frameNumber, False ) ->
-                                Just <| Route.ViewSnipbitFramePage fromStoryID mongoID (frameNumber + 1)
+                                if frameNumber == Array.length snipbit.highlightedComments then
+                                    Nothing
+                                else
+                                    Just <| Route.ViewSnipbitFramePage fromStoryID mongoID (frameNumber + 1)
 
                             _ ->
                                 Nothing
@@ -273,80 +268,9 @@ view model shared =
                                 [ text "arrow_forward" ]
                             ]
 
-                    introduction =
-                        Route.navigationNode
-                            (if inTutorial then
-                                let
-                                    route =
-                                        Route.ViewSnipbitIntroductionPage
-                                            (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
-                                            snipbit.id
-                                in
-                                Just ( Route.Route route, GoTo route )
-                             else
-                                Nothing
-                            )
-                            []
-                            [ div
-                                [ classList
-                                    [ ( "viewer-navbar-item", True )
-                                    , ( "selected"
-                                      , case shared.route of
-                                            Route.ViewSnipbitIntroductionPage _ _ ->
-                                                True
-
-                                            _ ->
-                                                False
-                                      )
-                                    , ( "disabled", not inTutorial )
-                                    ]
-                                ]
-                                [ text "Introduction" ]
-                            ]
-
-                    conclusion =
-                        Route.navigationNode
-                            (if inTutorial then
-                                let
-                                    route =
-                                        Route.ViewSnipbitConclusionPage
-                                            (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
-                                            snipbit.id
-                                in
-                                Just ( Route.Route route, GoTo route )
-                             else
-                                Nothing
-                            )
-                            []
-                            [ div
-                                [ classList
-                                    [ ( "viewer-navbar-item", True )
-                                    , ( "selected"
-                                      , case shared.route of
-                                            Route.ViewSnipbitConclusionPage _ _ ->
-                                                True
-
-                                            _ ->
-                                                False
-                                      )
-                                    , ( "disabled", not inTutorial )
-                                    ]
-                                ]
-                                [ text "Conclusion" ]
-                            ]
-
                     progressBar =
                         ProgressBar.view
-                            { state =
-                                case model.bookmark of
-                                    TB.Introduction ->
-                                        NotStarted
-
-                                    TB.FrameNumber frameNumber ->
-                                        Started frameNumber
-
-                                    TB.Conclusion ->
-                                        Completed
+                            { state = Started model.bookmark
                             , maxPosition = Array.length snipbit.highlightedComments
                             , disabledStyling =
                                 isViewSnipbitRHCTabOpen model || Route.isOnViewSnipbitQARoute shared.route
@@ -369,7 +293,7 @@ view model shared =
                                     , started = \frameNumber -> "Frame " ++ toString frameNumber
                                     , done = "100%"
                                     }
-                            , shiftLeft = True
+                            , shiftLeft = False
                             , alreadyComplete =
                                 { for = ProgressBar.Tidbit
                                 , complete =
@@ -387,9 +311,7 @@ view model shared =
                     [ div
                         [ class "viewer-navbar" ]
                         [ arrowBack
-                        , introduction
                         , progressBar
-                        , conclusion
                         , arrowForward
                         ]
                     , Editor.view "view-snipbit-code-editor"
@@ -400,7 +322,7 @@ view model shared =
         ]
 
 
-{-| Gets the comment box for the view snipbit page, can be the markdown for the intro/conclusion/frame or the markdown
+{-| Gets the comment box for the view snipbit page, can be the markdown for the code frame or the markdown
 with a few extra buttons for a selected range.
 -}
 commentBox : Snipbit.Snipbit -> Model -> Shared -> Html Msg
@@ -410,12 +332,6 @@ commentBox snipbit model shared =
         htmlIfNoRelevantHC =
             Markdown.view [] <|
                 case shared.route of
-                    Route.ViewSnipbitIntroductionPage _ _ ->
-                        snipbit.introduction
-
-                    Route.ViewSnipbitConclusionPage _ _ ->
-                        snipbit.conclusion
-
                     Route.ViewSnipbitFramePage _ _ frameNumber ->
                         Array.get
                             (frameNumber - 1)
@@ -641,12 +557,6 @@ commentBox snipbit model shared =
                 }
     in
     case shared.route of
-        Route.ViewSnipbitIntroductionPage _ _ ->
-            tutorialRoute
-
-        Route.ViewSnipbitConclusionPage _ _ ->
-            tutorialRoute
-
         Route.ViewSnipbitFramePage _ _ _ ->
             tutorialRoute
 

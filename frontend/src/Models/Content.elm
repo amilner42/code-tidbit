@@ -146,10 +146,10 @@ getRouteForViewing : Content -> Maybe String -> Route.Route
 getRouteForViewing content maybeStoryID =
     case content of
         Snipbit { id } ->
-            Route.ViewSnipbitIntroductionPage maybeStoryID id
+            Route.ViewSnipbitFramePage maybeStoryID id 1
 
         Bigbit { id } ->
-            Route.ViewBigbitIntroductionPage maybeStoryID id Nothing
+            Route.ViewBigbitFramePage maybeStoryID id 1 Nothing
 
         Story { id } ->
             Route.ViewStoryPage id

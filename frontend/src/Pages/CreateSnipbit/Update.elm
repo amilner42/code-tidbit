@@ -76,15 +76,6 @@ update (Common common) msg model shared =
                 Route.CreateSnipbitTagsPage ->
                     ( resetConfirmState model, shared, focusOn "tags-input" )
 
-                Route.CreateSnipbitCodeIntroductionPage ->
-                    ( resetConfirmState model
-                    , shared
-                    , Cmd.batch
-                        [ createCreateSnipbitEditor Nothing
-                        , focusOn "introduction-input"
-                        ]
-                    )
-
                 Route.CreateSnipbitCodeFramePage frameNumber ->
                     let
                         -- 0 based indexing.
@@ -98,9 +89,14 @@ update (Common common) msg model shared =
                             frameIndex < 0
                     in
                     if frameIndexTooLow then
-                        ( resetConfirmState model, shared, Route.modifyTo Route.CreateSnipbitCodeIntroductionPage )
+                        ( resetConfirmState model, shared, Route.modifyTo <| Route.CreateSnipbitTagsPage )
                     else if frameIndexTooHigh then
-                        ( resetConfirmState model, shared, Route.modifyTo Route.CreateSnipbitCodeConclusionPage )
+                        ( resetConfirmState model
+                        , shared
+                        , Array.length model.highlightedComments
+                            |> Route.CreateSnipbitCodeFramePage
+                            |> Route.modifyTo
+                        )
                     else
                         let
                             -- Either the existing range, the range from
@@ -133,26 +129,11 @@ update (Common common) msg model shared =
                             ]
                         )
 
-                Route.CreateSnipbitCodeConclusionPage ->
-                    ( resetConfirmState model
-                    , shared
-                    , Cmd.batch
-                        [ createCreateSnipbitEditor Nothing
-                        , focusOn "conclusion-input"
-                        ]
-                    )
-
                 _ ->
                     common.doNothing
 
         OnRangeSelected newRange ->
             case shared.route of
-                Route.CreateSnipbitCodeIntroductionPage ->
-                    common.doNothing
-
-                Route.CreateSnipbitCodeConclusionPage ->
-                    common.doNothing
-
                 Route.CreateSnipbitCodeFramePage frameNumber ->
                     let
                         frameIndex =
@@ -251,7 +232,7 @@ update (Common common) msg model shared =
         GoToCodeTab ->
             ( { model | previewMarkdown = False }
             , shared
-            , Route.navigateTo Route.CreateSnipbitCodeIntroductionPage
+            , Route.navigateTo <| Route.CreateSnipbitCodeFramePage 1
             )
 
         Reset ->
@@ -290,12 +271,6 @@ update (Common common) msg model shared =
                         { model | highlightedComments = newHighlightedComments, confirmedRemoveFrame = False }
                 in
                 case shared.route of
-                    Route.CreateSnipbitCodeIntroductionPage ->
-                        common.justSetModel newModel
-
-                    Route.CreateSnipbitCodeConclusionPage ->
-                        common.justSetModel newModel
-
                     -- We need to go "down" a tab if the user was on the last tab and they removed a tab.
                     Route.CreateSnipbitCodeFramePage frameNumber ->
                         let
@@ -425,12 +400,6 @@ update (Common common) msg model shared =
                     in
                     common.justSetModel { model | highlightedComments = newHighlightedComments }
 
-        OnUpdateIntroduction newIntro ->
-            common.justSetModel { model | introduction = newIntro }
-
-        OnUpdateConclusion newConclusion ->
-            common.justSetModel { model | conclusion = newConclusion }
-
         Publish snipbit ->
             let
                 publishSnipbitAction =
@@ -441,7 +410,7 @@ update (Common common) msg model shared =
         OnPublishSuccess { targetID } ->
             ( init
             , { shared | userTidbits = Nothing }
-            , Route.navigateTo <| Route.ViewSnipbitIntroductionPage Nothing targetID
+            , Route.navigateTo <| Route.ViewSnipbitFramePage Nothing targetID 1
             )
                 |> common.andFinishRequest RT.PublishSnipbit
 

@@ -32,8 +32,6 @@ type Msg
     | RemoveTag String
     | AddTag String
     | OnUpdateFrameComment Int String
-    | OnUpdateIntroduction String
-    | OnUpdateConclusion String
     | Publish SnipbitForPublication
     | OnPublishSuccess IDResponse
     | OnPublishFailure ApiError

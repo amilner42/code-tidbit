@@ -183,12 +183,6 @@ viewForRoute model =
         Route.BrowsePage ->
             browsePage
 
-        Route.ViewSnipbitIntroductionPage _ _ ->
-            viewSnipbitPage
-
-        Route.ViewSnipbitConclusionPage _ _ ->
-            viewSnipbitPage
-
         Route.ViewSnipbitFramePage _ _ _ ->
             viewSnipbitPage
 
@@ -222,13 +216,7 @@ viewForRoute model =
         Route.ViewSnipbitEditAnswer _ _ _ ->
             viewSnipbitPage
 
-        Route.ViewBigbitIntroductionPage _ _ _ ->
-            viewBigbitPage
-
         Route.ViewBigbitFramePage _ _ _ _ ->
-            viewBigbitPage
-
-        Route.ViewBigbitConclusionPage _ _ _ ->
             viewBigbitPage
 
         Route.ViewBigbitQuestionsPage _ _ ->
@@ -279,13 +267,7 @@ viewForRoute model =
         Route.CreateSnipbitTagsPage ->
             createSnipbitPage
 
-        Route.CreateSnipbitCodeIntroductionPage ->
-            createSnipbitPage
-
         Route.CreateSnipbitCodeFramePage _ ->
-            createSnipbitPage
-
-        Route.CreateSnipbitCodeConclusionPage ->
             createSnipbitPage
 
         Route.CreateBigbitNamePage ->
@@ -297,13 +279,7 @@ viewForRoute model =
         Route.CreateBigbitTagsPage ->
             createBigbitPage
 
-        Route.CreateBigbitCodeIntroductionPage _ ->
-            createBigbitPage
-
         Route.CreateBigbitCodeFramePage _ _ ->
-            createBigbitPage
-
-        Route.CreateBigbitCodeConclusionPage _ ->
             createBigbitPage
 
         Route.CreateStoryNamePage _ ->
@@ -437,13 +413,7 @@ navbar model =
                 Route.BrowsePage ->
                     True
 
-                Route.ViewSnipbitIntroductionPage _ _ ->
-                    True
-
                 Route.ViewSnipbitFramePage _ _ _ ->
-                    True
-
-                Route.ViewSnipbitConclusionPage _ _ ->
                     True
 
                 Route.ViewSnipbitQuestionsPage _ _ ->
@@ -476,13 +446,7 @@ navbar model =
                 Route.ViewSnipbitEditAnswer _ _ _ ->
                     True
 
-                Route.ViewBigbitIntroductionPage _ _ _ ->
-                    True
-
                 Route.ViewBigbitFramePage _ _ _ _ ->
-                    True
-
-                Route.ViewBigbitConclusionPage _ _ _ ->
                     True
 
                 Route.ViewBigbitQuestionsPage _ _ ->
@@ -532,12 +496,6 @@ navbar model =
                 Route.CreateBigbitCodeFramePage _ _ ->
                     True
 
-                Route.CreateBigbitCodeIntroductionPage _ ->
-                    True
-
-                Route.CreateBigbitCodeConclusionPage _ ->
-                    True
-
                 Route.DevelopStoryPage _ ->
                     True
 
@@ -558,8 +516,6 @@ navbar model =
                         , Route.CreateSnipbitDescriptionPage
                         , Route.CreateSnipbitLanguagePage
                         , Route.CreateSnipbitTagsPage
-                        , Route.CreateSnipbitCodeIntroductionPage
-                        , Route.CreateSnipbitCodeConclusionPage
                         , Route.CreateBigbitNamePage
                         , Route.CreateBigbitDescriptionPage
                         , Route.CreateBigbitTagsPage
@@ -669,13 +625,7 @@ isWideNav2 model =
             ViewBigbitModel.isBigbitFSOpen model.viewBigbitPage.bigbit
     in
     case model.shared.route of
-        Route.ViewBigbitIntroductionPage _ _ _ ->
-            viewBigbitFSOpen
-
         Route.ViewBigbitFramePage _ _ _ _ ->
-            viewBigbitFSOpen
-
-        Route.ViewBigbitConclusionPage _ _ _ ->
             viewBigbitFSOpen
 
         _ ->
@@ -689,19 +639,9 @@ Currently wide-mode-3 is required for creating bigbits when the fs is expanded.
 -}
 isWideNav3 : Model -> Bool
 isWideNav3 model =
-    let
-        createBigbitFSOpen =
-            Bigbit.isFSOpen model.createBigbitPage.fs
-    in
     case model.shared.route of
-        Route.CreateBigbitCodeIntroductionPage _ ->
-            createBigbitFSOpen
-
         Route.CreateBigbitCodeFramePage _ _ ->
-            createBigbitFSOpen
-
-        Route.CreateBigbitCodeConclusionPage _ ->
-            createBigbitFSOpen
+            Bigbit.isFSOpen model.createBigbitPage.fs
 
         _ ->
             False

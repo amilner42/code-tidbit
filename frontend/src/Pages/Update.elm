@@ -528,50 +528,15 @@ handleKeyPress model =
                 (Util.cmdFromMsg <| CreateSnipbitMessage CreateSnipbitMessages.GoToCodeTab)
                 (Route.navigateTo Route.CreateSnipbitLanguagePage)
 
-        Route.ViewSnipbitIntroductionPage fromStoryID mongoID ->
-            viewSnipbitWatchForLeftAndRightArrow
-                Cmd.none
-                (Route.navigateTo <| Route.ViewSnipbitFramePage fromStoryID mongoID 1)
-
         Route.ViewSnipbitFramePage fromStoryID mongoID frameNumber ->
             viewSnipbitWatchForLeftAndRightArrow
                 (Route.navigateTo <| Route.ViewSnipbitFramePage fromStoryID mongoID (frameNumber - 1))
                 (Route.navigateTo <| Route.ViewSnipbitFramePage fromStoryID mongoID (frameNumber + 1))
 
-        Route.ViewSnipbitConclusionPage fromStoryID mongoID ->
-            viewSnipbitWatchForLeftAndRightArrow
-                (Route.navigateTo <|
-                    Route.ViewSnipbitFramePage
-                        fromStoryID
-                        mongoID
-                        (model.viewSnipbitPage.snipbit
-                            |> maybeMapWithDefault (.highlightedComments >> Array.length) 0
-                        )
-                )
-                Cmd.none
-
-        Route.ViewBigbitIntroductionPage fromStoryID mongoID _ ->
-            viewBigbitWatchForLeftAndRightArrow
-                Cmd.none
-                (Route.navigateTo <| Route.ViewBigbitFramePage fromStoryID mongoID 1 Nothing)
-
         Route.ViewBigbitFramePage fromStoryID mongoID frameNumber _ ->
             viewBigbitWatchForLeftAndRightArrow
                 (Route.navigateTo <| Route.ViewBigbitFramePage fromStoryID mongoID (frameNumber - 1) Nothing)
                 (Route.navigateTo <| Route.ViewBigbitFramePage fromStoryID mongoID (frameNumber + 1) Nothing)
-
-        Route.ViewBigbitConclusionPage fromStoryID mongoID _ ->
-            viewBigbitWatchForLeftAndRightArrow
-                (Route.navigateTo <|
-                    Route.ViewBigbitFramePage
-                        fromStoryID
-                        mongoID
-                        (model.viewBigbitPage.bigbit
-                            |> maybeMapWithDefault (.highlightedComments >> Array.length) 0
-                        )
-                        Nothing
-                )
-                Cmd.none
 
         Route.CreateStoryNamePage qpEditingStory ->
             watchForTabAndShiftTab
@@ -728,12 +693,6 @@ handleLocationChange maybeRoute model =
                 Route.CreatePage ->
                     triggerRouteHookOnCreatePage
 
-                Route.ViewSnipbitIntroductionPage _ _ ->
-                    triggerRouteHookOnViewSnipbitPage
-
-                Route.ViewSnipbitConclusionPage _ _ ->
-                    triggerRouteHookOnViewSnipbitPage
-
                 Route.ViewSnipbitFramePage _ _ _ ->
                     triggerRouteHookOnViewSnipbitPage
 
@@ -767,13 +726,7 @@ handleLocationChange maybeRoute model =
                 Route.ViewSnipbitEditAnswer _ _ _ ->
                     triggerRouteHookOnViewSnipbitPage
 
-                Route.ViewBigbitIntroductionPage _ _ _ ->
-                    triggerRouteHookOnViewBigbitPage
-
                 Route.ViewBigbitFramePage _ _ _ _ ->
-                    triggerRouteHookOnViewBigbitPage
-
-                Route.ViewBigbitConclusionPage _ _ _ ->
                     triggerRouteHookOnViewBigbitPage
 
                 Route.ViewBigbitQuestionsPage _ _ ->
@@ -821,12 +774,6 @@ handleLocationChange maybeRoute model =
                 Route.CreateSnipbitTagsPage ->
                     triggerRouteHookOnCreateSnipbitPage
 
-                Route.CreateSnipbitCodeIntroductionPage ->
-                    triggerRouteHookOnCreateSnipbitPage
-
-                Route.CreateSnipbitCodeConclusionPage ->
-                    triggerRouteHookOnCreateSnipbitPage
-
                 Route.CreateSnipbitCodeFramePage _ ->
                     triggerRouteHookOnCreateSnipbitPage
 
@@ -839,13 +786,7 @@ handleLocationChange maybeRoute model =
                 Route.CreateBigbitTagsPage ->
                     triggerRouteHookOnCreateBigbitPage
 
-                Route.CreateBigbitCodeIntroductionPage _ ->
-                    triggerRouteHookOnCreateBigbitPage
-
                 Route.CreateBigbitCodeFramePage _ _ ->
-                    triggerRouteHookOnCreateBigbitPage
-
-                Route.CreateBigbitCodeConclusionPage _ ->
                     triggerRouteHookOnCreateBigbitPage
 
                 Route.CreateStoryNamePage _ ->
@@ -877,12 +818,6 @@ googleAnalyticsPageName maybeRoute =
 
         Just Route.BrowsePage ->
             "browse-page"
-
-        Just (Route.ViewSnipbitIntroductionPage _ _) ->
-            "view-snipbit-introduction"
-
-        Just (Route.ViewSnipbitConclusionPage _ _) ->
-            "view-snipbit-conclusion"
 
         Just (Route.ViewSnipbitFramePage _ _ _) ->
             "view-snipbit-frame"
@@ -917,14 +852,8 @@ googleAnalyticsPageName maybeRoute =
         Just (Route.ViewSnipbitEditAnswer _ _ _) ->
             "view-snipbit-qa-edit-answer"
 
-        Just (Route.ViewBigbitIntroductionPage _ _ _) ->
-            "view-bigbit-introduction"
-
         Just (Route.ViewBigbitFramePage _ _ _ _) ->
             "view-bigbit-frame"
-
-        Just (Route.ViewBigbitConclusionPage _ _ _) ->
-            "view-bigbit-conclusion"
 
         Just (Route.ViewBigbitQuestionsPage _ _) ->
             "view-bigbit-qa"
@@ -974,13 +903,7 @@ googleAnalyticsPageName maybeRoute =
         Just Route.CreateSnipbitTagsPage ->
             "create-snipbit"
 
-        Just Route.CreateSnipbitCodeIntroductionPage ->
-            "create-snipbit"
-
         Just (Route.CreateSnipbitCodeFramePage _) ->
-            "create-snipbit"
-
-        Just Route.CreateSnipbitCodeConclusionPage ->
             "create-snipbit"
 
         Just Route.CreateBigbitNamePage ->
@@ -992,13 +915,7 @@ googleAnalyticsPageName maybeRoute =
         Just Route.CreateBigbitTagsPage ->
             "create-bigbit"
 
-        Just (Route.CreateBigbitCodeIntroductionPage _) ->
-            "create-bigbit"
-
         Just (Route.CreateBigbitCodeFramePage _ _) ->
-            "create-bigbit"
-
-        Just (Route.CreateBigbitCodeConclusionPage _) ->
             "create-bigbit"
 
         Just (Route.CreateStoryNamePage maybeEditingStory) ->

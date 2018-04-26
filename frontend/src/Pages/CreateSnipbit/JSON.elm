@@ -28,8 +28,6 @@ encoder model =
         , ( "highlightedComments"
           , Encode.array <| Array.map JSON.Snipbit.maybeHCEncoder model.highlightedComments
           )
-        , ( "introduction", Encode.string model.introduction )
-        , ( "conclusion", Encode.string model.conclusion )
         , ( "previewMarkdown", Encode.bool model.previewMarkdown )
         , ( "confirmedRemoveFrame", Encode.bool False )
         , ( "confirmedReset", Encode.bool False )
@@ -52,8 +50,6 @@ decoder =
         |> required "tagInput" Decode.string
         |> required "code" Decode.string
         |> required "highlightedComments" (Decode.array JSON.Snipbit.maybeHCDecoder)
-        |> required "introduction" Decode.string
-        |> required "conclusion" Decode.string
         |> required "previewMarkdown" Decode.bool
         |> required "confirmedRemoveFrame" Decode.bool
         |> required "confirmedReset" Decode.bool
@@ -70,8 +66,6 @@ publicationEncoder snipbitForPublication =
         , ( "description", Encode.string snipbitForPublication.description )
         , ( "tags", Encode.list <| List.map Encode.string snipbitForPublication.tags )
         , ( "code", Encode.string snipbitForPublication.code )
-        , ( "introduction", Encode.string snipbitForPublication.introduction )
-        , ( "conclusion", Encode.string snipbitForPublication.conclusion )
         , ( "highlightedComments"
           , Encode.array <| Array.map JSON.Snipbit.hcEncoder snipbitForPublication.highlightedComments
           )
@@ -88,6 +82,4 @@ publicationDecoder =
         |> required "description" Decode.string
         |> required "tags" (Decode.list Decode.string)
         |> required "code" Decode.string
-        |> required "introduction" Decode.string
-        |> required "conclusion" Decode.string
         |> required "highlightedComments" (Decode.array JSON.Snipbit.hcDecoder)

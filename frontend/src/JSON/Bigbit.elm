@@ -27,8 +27,6 @@ encoder bigbit =
         [ ( "name", Encode.string bigbit.name )
         , ( "description", Encode.string bigbit.description )
         , ( "tags", Encode.list <| List.map Encode.string bigbit.tags )
-        , ( "introduction", Encode.string bigbit.introduction )
-        , ( "conclusion", Encode.string bigbit.conclusion )
         , ( "fs", fsEncoder bigbit.fs )
         , ( "highlightedComments", Encode.array <| Array.map highlightedCommentEncoder bigbit.highlightedComments )
         , ( "author", Encode.string bigbit.author )
@@ -62,8 +60,6 @@ decoder =
         |> required "name" Decode.string
         |> required "description" Decode.string
         |> required "tags" (Decode.list Decode.string)
-        |> required "introduction" Decode.string
-        |> required "conclusion" Decode.string
         |> required "fs" fsDecoder
         |> required "highlightedComments" (Decode.array highlightedCommentDecoder)
         |> required "author" Decode.string

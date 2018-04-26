@@ -148,9 +148,6 @@ export const updateCommentAbsoluteLinks = (tidbit: Tidbit): Tidbit => {
     return str;
   }
 
-  tidbit.introduction = updateLinks(tidbit.introduction);
-  tidbit.conclusion = updateLinks(tidbit.conclusion);
-
   for(let hc of tidbit.highlightedComments) {
     hc.comment = updateLinks(hc.comment);
   }

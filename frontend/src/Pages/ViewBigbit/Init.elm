@@ -1,7 +1,6 @@
 module Pages.ViewBigbit.Init exposing (..)
 
 import Dict
-import Models.TutorialBookmark as TB
 import Pages.ViewBigbit.Model exposing (Model)
 
 
@@ -15,7 +14,7 @@ init =
     , relevantHC = Nothing
     , qa = Nothing
     , relevantQuestions = Nothing
-    , bookmark = TB.Introduction
+    , bookmark = 1
     , qaState = Dict.empty
     , tutorialCodePointer = Nothing
     }

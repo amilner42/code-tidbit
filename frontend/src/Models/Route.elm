@@ -21,8 +21,6 @@ NOTE: When creating routes, use type aliases to make sure that the purpose of ea
 -}
 type Route
     = BrowsePage
-    | ViewSnipbitIntroductionPage (Maybe StoryID) SnipbitID
-    | ViewSnipbitConclusionPage (Maybe StoryID) SnipbitID
     | ViewSnipbitFramePage (Maybe StoryID) SnipbitID FrameNumber
     | ViewSnipbitQuestionsPage (Maybe StoryID) SnipbitID
     | ViewSnipbitQuestionPage (Maybe StoryID) (Maybe MeaninglessString) SnipbitID QuestionID
@@ -34,9 +32,7 @@ type Route
     | ViewSnipbitAnswerQuestion (Maybe StoryID) SnipbitID QuestionID
     | ViewSnipbitEditQuestion (Maybe StoryID) SnipbitID QuestionID
     | ViewSnipbitEditAnswer (Maybe StoryID) SnipbitID AnswerID
-    | ViewBigbitIntroductionPage (Maybe StoryID) BigbitID (Maybe FS.Path)
     | ViewBigbitFramePage (Maybe StoryID) BigbitID FrameNumber (Maybe FS.Path)
-    | ViewBigbitConclusionPage (Maybe StoryID) BigbitID (Maybe FS.Path)
     | ViewBigbitQuestionsPage (Maybe StoryID) BigbitID
     | ViewBigbitQuestionPage (Maybe StoryID) (Maybe MeaninglessString) BigbitID QuestionID
     | ViewBigbitAnswersPage (Maybe StoryID) (Maybe MeaninglessString) BigbitID QuestionID
@@ -53,15 +49,11 @@ type Route
     | CreateSnipbitDescriptionPage
     | CreateSnipbitLanguagePage
     | CreateSnipbitTagsPage
-    | CreateSnipbitCodeIntroductionPage
     | CreateSnipbitCodeFramePage FrameNumber
-    | CreateSnipbitCodeConclusionPage
     | CreateBigbitNamePage
     | CreateBigbitDescriptionPage
     | CreateBigbitTagsPage
-    | CreateBigbitCodeIntroductionPage (Maybe FS.Path)
     | CreateBigbitCodeFramePage FrameNumber (Maybe FS.Path)
-    | CreateBigbitCodeConclusionPage (Maybe FS.Path)
     | CreateStoryNamePage (Maybe EditingStoryID)
     | CreateStoryDescriptionPage (Maybe EditingStoryID)
     | CreateStoryTagsPage (Maybe EditingStoryID)
@@ -100,12 +92,6 @@ matchers =
         -- Abstract
         viewSnipbitTouringQuestions =
             view </> s "snipbit" <?> qpFromStory <?> qpTouringQuestions </> string
-
-        viewSnipbitIntroduction =
-            viewSnipbit </> s "introduction"
-
-        viewSnipbitConclusion =
-            viewSnipbit </> s "conclusion"
 
         viewSnipbitFrame =
             viewSnipbit </> s "frame" </> int
@@ -148,14 +134,8 @@ matchers =
         viewBigbitTouringQuestions =
             view </> s "bigbit" <?> qpFromStory <?> qpTouringQuestions </> string
 
-        viewBigbitIntroduction =
-            viewBigbit </> s "introduction" <?> qpFile
-
         viewBigbitFrame =
             viewBigbit </> s "frame" </> int <?> qpFile
-
-        viewBigbitConclusion =
-            viewBigbit </> s "conclusion" <?> qpFile
 
         viewBigbitQuestionsPage =
             viewBigbit </> s "questions"
@@ -210,14 +190,8 @@ matchers =
         createSnipbitCode =
             createSnipbit </> s "code"
 
-        createSnipbitCodeIntroduction =
-            createSnipbitCode </> s "introduction"
-
         createSnipbitCodeFrame =
             createSnipbitCode </> s "frame" </> int
-
-        createSnipbitCodeConclusion =
-            createSnipbitCode </> s "conclusion"
 
         -- Abstract.
         createBigbit =
@@ -236,14 +210,8 @@ matchers =
         createBigbitCode =
             createBigbit </> s "code"
 
-        createBigbitCodeIntroduction =
-            (createBigbitCode </> s "introduction") <?> qpFile
-
         createBigbitCodeFrame =
             createBigbitCode </> s "frame" </> int <?> qpFile
-
-        createBigbitCodeConclusion =
-            createBigbitCode </> s "conclusion" <?> qpFile
 
         createStory =
             create </> s "story"
@@ -292,8 +260,6 @@ matchers =
     in
     oneOf
         [ map BrowsePage top
-        , map ViewSnipbitIntroductionPage viewSnipbitIntroduction
-        , map ViewSnipbitConclusionPage viewSnipbitConclusion
         , map ViewSnipbitFramePage viewSnipbitFrame
         , map ViewSnipbitQuestionsPage viewSnipbitQuestionsPage
         , map ViewSnipbitQuestionPage viewSnipbitQuestionPage
@@ -305,9 +271,7 @@ matchers =
         , map ViewSnipbitAnswerQuestion viewSnipbitAnswerQuestion
         , map ViewSnipbitEditQuestion viewSnipbitEditQuestion
         , map ViewSnipbitEditAnswer viewSnipbitEditAnswer
-        , map ViewBigbitIntroductionPage viewBigbitIntroduction
         , map ViewBigbitFramePage viewBigbitFrame
-        , map ViewBigbitConclusionPage viewBigbitConclusion
         , map ViewBigbitQuestionsPage viewBigbitQuestionsPage
         , map ViewBigbitQuestionPage viewBigbitQuestionPage
         , map ViewBigbitAnswersPage viewBigbitAnswersPage
@@ -324,15 +288,11 @@ matchers =
         , map CreateSnipbitDescriptionPage createSnipbitDescription
         , map CreateSnipbitLanguagePage createSnipbitLanguage
         , map CreateSnipbitTagsPage createSnipbitTags
-        , map CreateSnipbitCodeIntroductionPage createSnipbitCodeIntroduction
         , map CreateSnipbitCodeFramePage createSnipbitCodeFrame
-        , map CreateSnipbitCodeConclusionPage createSnipbitCodeConclusion
         , map CreateBigbitNamePage createBigbitName
         , map CreateBigbitDescriptionPage createBigbitDescription
         , map CreateBigbitTagsPage createBigbitTags
-        , map CreateBigbitCodeIntroductionPage createBigbitCodeIntroduction
         , map CreateBigbitCodeFramePage createBigbitCodeFrame
-        , map CreateBigbitCodeConclusionPage createBigbitCodeConclusion
         , map CreateStoryNamePage createStoryName
         , map CreateStoryDescriptionPage createStoryDescription
         , map CreateStoryTagsPage createStoryTags
@@ -355,13 +315,7 @@ routeRequiresAuth route =
         RegisterPage _ ->
             False
 
-        ViewSnipbitIntroductionPage _ _ ->
-            False
-
         ViewSnipbitFramePage _ _ _ ->
-            False
-
-        ViewSnipbitConclusionPage _ _ ->
             False
 
         ViewSnipbitQuestionsPage _ _ ->
@@ -382,13 +336,7 @@ routeRequiresAuth route =
         ViewSnipbitAnswerCommentsPage _ _ _ _ _ ->
             False
 
-        ViewBigbitIntroductionPage _ _ _ ->
-            False
-
         ViewBigbitFramePage _ _ _ _ ->
-            False
-
-        ViewBigbitConclusionPage _ _ _ ->
             False
 
         ViewBigbitQuestionsPage _ _ ->
@@ -463,18 +411,6 @@ toHashUrl route =
 
                 CreatePage ->
                     "create"
-
-                ViewSnipbitIntroductionPage qpStoryID mongoID ->
-                    "view/snipbit/"
-                        ++ mongoID
-                        ++ "/introduction"
-                        ++ Util.queryParamsToString [ ( "fromStory", qpStoryID ) ]
-
-                ViewSnipbitConclusionPage qpStoryID mongoID ->
-                    "view/snipbit/"
-                        ++ mongoID
-                        ++ "/conclusion"
-                        ++ Util.queryParamsToString [ ( "fromStory", qpStoryID ) ]
 
                 ViewSnipbitFramePage qpStoryID mongoID frameNumber ->
                     "view/snipbit/"
@@ -564,18 +500,6 @@ toHashUrl route =
                         ++ "/editAnswer/"
                         ++ answerID
                         ++ Util.queryParamsToString [ ( "fromStory", qpStoryID ) ]
-
-                ViewBigbitIntroductionPage qpStoryID mongoID qpFile ->
-                    "view/bigbit/"
-                        ++ mongoID
-                        ++ "/introduction/"
-                        ++ Util.queryParamsToString [ ( "file", qpFile ), ( "fromStory", qpStoryID ) ]
-
-                ViewBigbitConclusionPage qpStoryID mongoID qpFile ->
-                    "view/bigbit/"
-                        ++ mongoID
-                        ++ "/conclusion/"
-                        ++ Util.queryParamsToString [ ( "file", qpFile ), ( "fromStory", qpStoryID ) ]
 
                 ViewBigbitFramePage qpStoryID mongoID frameNumber qpFile ->
                     "view/bigbit/"
@@ -682,14 +606,8 @@ toHashUrl route =
                 CreateSnipbitTagsPage ->
                     "create/snipbit/tags"
 
-                CreateSnipbitCodeIntroductionPage ->
-                    "create/snipbit/code/introduction"
-
                 CreateSnipbitCodeFramePage frameNumber ->
                     "create/snipbit/code/frame/" ++ toString frameNumber
-
-                CreateSnipbitCodeConclusionPage ->
-                    "create/snipbit/code/conclusion"
 
                 CreateBigbitNamePage ->
                     "create/bigbit/name"
@@ -700,18 +618,10 @@ toHashUrl route =
                 CreateBigbitTagsPage ->
                     "create/bigbit/tags"
 
-                CreateBigbitCodeIntroductionPage qpFile ->
-                    "create/bigbit/code/introduction/"
-                        ++ Util.queryParamsToString [ ( "file", qpFile ) ]
-
                 CreateBigbitCodeFramePage frameNumber qpFile ->
                     "create/bigbit/code/frame/"
                         ++ toString frameNumber
                         ++ "/"
-                        ++ Util.queryParamsToString [ ( "file", qpFile ) ]
-
-                CreateBigbitCodeConclusionPage qpFile ->
-                    "create/bigbit/code/conclusion/"
                         ++ Util.queryParamsToString [ ( "file", qpFile ) ]
 
                 CreateStoryNamePage qpStory ->
@@ -788,23 +698,11 @@ query param, otheriwse will do nothing.
 navigateToSameUrlWithFilePath : Maybe FS.Path -> Route -> Cmd msg
 navigateToSameUrlWithFilePath maybePath route =
     case route of
-        ViewBigbitIntroductionPage fromStoryID mongoID _ ->
-            navigateTo <| ViewBigbitIntroductionPage fromStoryID mongoID maybePath
-
         ViewBigbitFramePage fromStoryID mongoID frameNumber _ ->
             navigateTo <| ViewBigbitFramePage fromStoryID mongoID frameNumber maybePath
 
-        ViewBigbitConclusionPage fromStoryID mongoID _ ->
-            navigateTo <| ViewBigbitConclusionPage fromStoryID mongoID maybePath
-
-        CreateBigbitCodeIntroductionPage _ ->
-            navigateTo <| CreateBigbitCodeIntroductionPage maybePath
-
         CreateBigbitCodeFramePage frameNumber _ ->
             navigateTo <| CreateBigbitCodeFramePage frameNumber maybePath
-
-        CreateBigbitCodeConclusionPage _ ->
-            navigateTo <| CreateBigbitCodeConclusionPage maybePath
 
         _ ->
             Cmd.none
@@ -833,13 +731,7 @@ getEditingStoryQueryParamOnCreateNewStoryRoute route =
 getFromStoryQueryParamOnViewSnipbitRoute : Route -> Maybe StoryID
 getFromStoryQueryParamOnViewSnipbitRoute route =
     case route of
-        ViewSnipbitIntroductionPage fromStoryID _ ->
-            fromStoryID
-
         ViewSnipbitFramePage fromStoryID _ _ ->
-            fromStoryID
-
-        ViewSnipbitConclusionPage fromStoryID _ ->
             fromStoryID
 
         ViewSnipbitQuestionsPage fromStoryID _ ->
@@ -905,13 +797,7 @@ getTouringQuestionsQueryParamOnViewSnipbitQARoute route =
 getFromStoryQueryParamOnViewBigbitRoute : Route -> Maybe StoryID
 getFromStoryQueryParamOnViewBigbitRoute route =
     case route of
-        ViewBigbitIntroductionPage fromStoryID _ _ ->
-            fromStoryID
-
         ViewBigbitFramePage fromStoryID _ _ _ ->
-            fromStoryID
-
-        ViewBigbitConclusionPage fromStoryID _ _ ->
             fromStoryID
 
         ViewBigbitQuestionsPage fromStoryID _ ->
@@ -977,13 +863,7 @@ getTouringQuestionsQueryParamOnViewBigbitQARoute route =
 createBigbitPageCurrentActiveFile : Route -> Maybe FS.Path
 createBigbitPageCurrentActiveFile route =
     case route of
-        CreateBigbitCodeIntroductionPage maybePath ->
-            maybePath
-
         CreateBigbitCodeFramePage _ maybePath ->
-            maybePath
-
-        CreateBigbitCodeConclusionPage maybePath ->
             maybePath
 
         _ ->
@@ -1009,18 +889,12 @@ viewBigbitPageCurrentActiveFile route bigbit maybeQA qaState =
                 ||> .file
     in
     case route of
-        ViewBigbitIntroductionPage _ _ maybePath ->
-            maybePath
-
         ViewBigbitFramePage _ _ frameNumber maybePath ->
             if Util.isNotNothing maybePath then
                 maybePath
             else
                 Array.get (frameNumber - 1) bigbit.highlightedComments
                     ||> .file
-
-        ViewBigbitConclusionPage _ _ maybePath ->
-            maybePath
 
         ViewBigbitQuestionsPage _ bigbitID ->
             qaState
@@ -1078,12 +952,6 @@ viewBigbitPageCurrentActiveFile route bigbit maybeQA qaState =
 getViewingContentID : Route -> Maybe ContentID
 getViewingContentID route =
     case route of
-        ViewSnipbitIntroductionPage _ snipbitID ->
-            Just snipbitID
-
-        ViewSnipbitConclusionPage _ snipbitID ->
-            Just snipbitID
-
         ViewSnipbitFramePage _ snipbitID _ ->
             Just snipbitID
 
@@ -1117,13 +985,7 @@ getViewingContentID route =
         ViewSnipbitEditAnswer _ snipbitID _ ->
             Just snipbitID
 
-        ViewBigbitIntroductionPage _ bigbitID _ ->
-            Just bigbitID
-
         ViewBigbitFramePage _ bigbitID _ _ ->
-            Just bigbitID
-
-        ViewBigbitConclusionPage _ bigbitID _ ->
             Just bigbitID
 
         ViewBigbitQuestionsPage _ bigbitID ->
@@ -1207,13 +1069,7 @@ isOnViewSnipbitQARoute route =
 isOnViewSnipbitTutorialRoute : Route -> Bool
 isOnViewSnipbitTutorialRoute route =
     case route of
-        ViewSnipbitIntroductionPage _ _ ->
-            True
-
         ViewSnipbitFramePage _ _ _ ->
-            True
-
-        ViewSnipbitConclusionPage _ _ ->
             True
 
         _ ->
@@ -1264,13 +1120,7 @@ isOnViewBigbitQARoute route =
 isOnViewBigbitTutorialRoute : Route -> Bool
 isOnViewBigbitTutorialRoute route =
     case route of
-        ViewBigbitIntroductionPage _ _ _ ->
-            True
-
         ViewBigbitFramePage _ _ _ _ ->
-            True
-
-        ViewBigbitConclusionPage _ _ _ ->
             True
 
         _ ->

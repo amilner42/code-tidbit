@@ -50,114 +50,102 @@ fromErrorCode errorCode =
             SnipbitNoHighlightedComments
 
         14 ->
-            SnipbitEmptyConclusion
-
-        15 ->
-            SnipbitEmptyIntroduction
-
-        16 ->
             SnipbitEmptyCode
 
-        17 ->
+        15 ->
             SnipbitNoTags
 
-        18 ->
+        16 ->
             SnipbitEmptyTag
 
-        19 ->
+        17 ->
             SnipbitEmptyDescription
 
-        20 ->
+        18 ->
             SnipbitEmptyName
 
-        21 ->
+        19 ->
             SnipbitNameTooLong
 
-        22 ->
+        20 ->
             SnipbitInvalidLanguage
 
-        23 ->
+        21 ->
             InvalidName
 
-        24 ->
+        22 ->
             SnipbitDoesNotExist
 
-        25 ->
+        23 ->
             BigbitEmptyRange
 
-        26 ->
+        24 ->
             BigbitEmptyComment
 
-        27 ->
+        25 ->
             BigbitEmptyFilePath
 
-        28 ->
+        26 ->
             BigbitEmptyName
 
-        29 ->
+        27 ->
             BigbitNameTooLong
 
-        30 ->
+        28 ->
             BigbitEmptyDescription
 
-        31 ->
+        29 ->
             BigbitEmptyTag
 
-        32 ->
+        30 ->
             BigbitNoTags
 
-        33 ->
-            BigbitEmptyIntroduction
-
-        34 ->
-            BigbitEmptyConclusion
-
-        35 ->
+        31 ->
             BigbitNoHighlightedComments
 
-        36 ->
+        32 ->
             BigbitInvalidLanguage
 
-        37 ->
+        33 ->
             BigbitDoesNotExist
 
-        38 ->
+        34 ->
             InvalidBio
 
-        39 ->
+        35 ->
             StoryNameEmpty
 
-        40 ->
+        36 ->
             StoryNameTooLong
 
-        41 ->
+        37 ->
             StoryDescriptionEmpty
 
-        42 ->
+        38 ->
             StoryDescriptionTooLong
 
-        43 ->
+        39 ->
             StoryInvalidTidbitType
 
-        44 ->
+        40 ->
             StoryEmptyTag
 
-        45 ->
+        41 ->
             StoryNoTags
 
-        46 ->
+        42 ->
             StoryDoesNotExist
 
-        47 ->
+        43 ->
             StoryEditorMustBeAuthor
 
-        48 ->
+        44 ->
             StoryAddingNonExistantTidbit
 
-        49 ->
+        45 ->
             SnipbitDescriptionTooLong
 
-        50 ->
+        46 ->
             BigbitDescriptionTooLong
 
         _ ->

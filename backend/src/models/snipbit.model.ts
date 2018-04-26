@@ -23,8 +23,6 @@ export interface Snipbit {
   description: string;
   tags: string[];
   code: string;
-  introduction: string;
-  conclusion: string;
   highlightedComments: SnipbitHighlightedComment[];
 
   // Added/modified by the backend.
@@ -76,8 +74,6 @@ const snipbitSchema: kleen.objectSchema = {
     "description": KS.descriptionSchema(ErrorCode.snipbitEmptyDescription, ErrorCode.snipbitDescriptionTooLong),
     "tags": KS.tagsSchema(ErrorCode.snipbitEmptyTag, ErrorCode.snipbitNoTags),
     "code": KS.codeSchema(ErrorCode.snipbitEmptyCode),
-    "introduction": KS.introductionSchema(ErrorCode.snipbitEmptyIntroduction),
-    "conclusion": KS.conclusionSchema(ErrorCode.snipbitEmptyConclusion),
     "highlightedComments": KS.nonEmptyArraySchema(
       snipbitHighlightedCommentSchema,
       {

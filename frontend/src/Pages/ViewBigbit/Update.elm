@@ -23,7 +23,6 @@ import Models.Range as Range
 import Models.RequestTracker as RT
 import Models.Route as Route
 import Models.TidbitPointer as TidbitPointer
-import Models.TutorialBookmark as TB
 import Models.User as User
 import Models.ViewerRelevantHC as ViewerRelevantHC
 import Pages.Model exposing (Shared)
@@ -93,9 +92,9 @@ update (Common common) msg model shared =
                     common.justSetModel
                         { model | qaState = model.qaState |> QA.updateDeletingAnswers bigbitID (always Set.empty) }
 
-                setBookmark tb (Common common) ( model, shared ) =
+                setBookmark bookMarkedFrameNumber (Common common) ( model, shared ) =
                     common.justSetModel
-                        { model | bookmark = tb }
+                        { model | bookmark = bookMarkedFrameNumber }
 
                 {- Get's data for viewing bigbit as required:
                    - May need to fetch tidbit itself                                    [Cache level: localStorage]
@@ -267,24 +266,10 @@ update (Common common) msg model shared =
                         ]
             in
             case route of
-                Route.ViewBigbitIntroductionPage _ bigbitID _ ->
-                    common.handleAll
-                        [ clearStateOnRouteHit
-                        , setBookmark TB.Introduction
-                        , fetchOrRenderViewBigbitData False bigbitID
-                        ]
-
                 Route.ViewBigbitFramePage _ bigbitID frameNumber _ ->
                     common.handleAll
                         [ clearStateOnRouteHit
-                        , setBookmark <| TB.FrameNumber frameNumber
-                        , fetchOrRenderViewBigbitData False bigbitID
-                        ]
-
-                Route.ViewBigbitConclusionPage _ bigbitID _ ->
-                    common.handleAll
-                        [ clearStateOnRouteHit
-                        , setBookmark TB.Conclusion
+                        , setBookmark frameNumber
                         , fetchOrRenderViewBigbitData False bigbitID
 
                         -- Setting completed if not already complete.
@@ -295,8 +280,15 @@ update (Common common) msg model shared =
                                         let
                                             completed =
                                                 Completed.completedFromIsCompleted isCompleted user.id
+
+                                            isLastFrame =
+                                                model.bigbit
+                                                    ||> .highlightedComments
+                                                    ||> Array.length
+                                                    ||> (==) frameNumber
+                                                    ?> False
                                         in
-                                        if isCompleted.complete == False then
+                                        if isCompleted.complete == False && isLastFrame then
                                             common.api.post.addCompleted
                                                 completed
                                                 OnMarkAsCompleteFailure
@@ -439,21 +431,7 @@ update (Common common) msg model shared =
                             common.doNothing
             in
             case ( maybeCurrentActiveFile, shared.route ) of
-                ( Just currentActiveFile, Route.ViewBigbitIntroductionPage _ _ _ ) ->
-                    common.handleAll
-                        [ handleSetTutorialCodePointer currentActiveFile
-                        , handleFindRelevantFrames currentActiveFile
-                        , handleFindRelevantQuestions currentActiveFile
-                        ]
-
                 ( Just currentActiveFile, Route.ViewBigbitFramePage _ _ _ _ ) ->
-                    common.handleAll
-                        [ handleSetTutorialCodePointer currentActiveFile
-                        , handleFindRelevantFrames currentActiveFile
-                        , handleFindRelevantQuestions currentActiveFile
-                        ]
-
-                ( Just currentActiveFile, Route.ViewBigbitConclusionPage _ _ _ ) ->
                     common.handleAll
                         [ handleSetTutorialCodePointer currentActiveFile
                         , handleFindRelevantFrames currentActiveFile
@@ -640,13 +618,7 @@ update (Common common) msg model shared =
                     Route.modifyTo shared.route
             in
             case shared.route of
-                Route.ViewBigbitIntroductionPage _ _ _ ->
-                    handleFileSelectOnTutorialRoute
-
                 Route.ViewBigbitFramePage _ _ _ _ ->
-                    handleFileSelectOnTutorialRoute
-
-                Route.ViewBigbitConclusionPage _ _ _ ->
                     handleFileSelectOnTutorialRoute
 
                 Route.ViewBigbitQuestionsPage _ bigbitID ->
@@ -1466,7 +1438,7 @@ createViewBigbitCodeEditor bigbit { route, user } =
                 Just somePath ->
                     case FS.getFile bigbit.fs somePath of
                         Nothing ->
-                            Route.modifyTo <| Route.ViewBigbitIntroductionPage fromStoryID bigbit.id Nothing
+                            Route.modifyTo <| Route.ViewBigbitFramePage fromStoryID bigbit.id 1 Nothing
 
                         Just (FS.File content { language }) ->
                             bigbitEditor
@@ -1479,16 +1451,19 @@ createViewBigbitCodeEditor bigbit { route, user } =
     in
     Cmd.batch
         [ case route of
-            Route.ViewBigbitIntroductionPage fromStoryID _ maybePath ->
-                loadFileWithNoHighlight fromStoryID maybePath
-
             Route.ViewBigbitFramePage fromStoryID _ frameNumber maybePath ->
                 case Array.get (frameNumber - 1) bigbit.highlightedComments of
                     Nothing ->
-                        if frameNumber > Array.length bigbit.highlightedComments then
-                            Route.modifyTo <| Route.ViewBigbitConclusionPage fromStoryID bigbit.id Nothing
-                        else
-                            Route.modifyTo <| Route.ViewBigbitIntroductionPage fromStoryID bigbit.id Nothing
+                        Route.modifyTo <|
+                            Route.ViewBigbitFramePage
+                                fromStoryID
+                                bigbit.id
+                                (if frameNumber > Array.length bigbit.highlightedComments then
+                                    Array.length bigbit.highlightedComments
+                                 else
+                                    1
+                                )
+                                Nothing
 
                     Just hc ->
                         case maybePath of
@@ -1510,9 +1485,6 @@ createViewBigbitCodeEditor bigbit { route, user } =
                             Just absolutePath ->
                                 loadFileWithNoHighlight fromStoryID maybePath
 
-            Route.ViewBigbitConclusionPage fromStoryID _ maybePath ->
-                loadFileWithNoHighlight fromStoryID maybePath
-
             _ ->
                 Cmd.none
         , Ports.smoothScrollToBottom
@@ -1527,7 +1499,7 @@ theirs). Will redirect to the appropriate route based on the bookmark (same as r
 -}
 createViewBigbitQACodeEditor :
     ( Bigbit.Bigbit, QA.BigbitQA, QA.BigbitQAState )
-    -> TB.TutorialBookmark
+    -> Int
     -> Shared
     -> Cmd msg
 createViewBigbitQACodeEditor ( bigbit, qa, qaState ) bookmark { user, route } =

@@ -22,8 +22,6 @@ type alias Model =
     , tagInput : String
     , code : String
     , highlightedComments : Array.Array MaybeHighlightedComment
-    , introduction : String
-    , conclusion : String
     , previewMarkdown : Bool
     , confirmedRemoveFrame : Bool
     , confirmedReset : Bool
@@ -39,8 +37,6 @@ type alias SnipbitForPublication =
     , description : String
     , tags : List String
     , code : String
-    , introduction : String
-    , conclusion : String
     , highlightedComments : Array.Array HighlightedComment
     }
 
@@ -80,20 +76,6 @@ codeFilledIn =
     .code >> Util.justNonEmptyString
 
 
-{-| Returns the filled-in introduction or `Nothing`.
--}
-introductionFilledIn : Model -> Maybe String
-introductionFilledIn =
-    .introduction >> Util.justNonEmptyString
-
-
-{-| Returns the filled-in conclusion or `Nothing`.
--}
-conclusionFilledIn : Model -> Maybe String
-conclusionFilledIn =
-    .conclusion >> Util.justNonEmptyString
-
-
 {-| Returns the filled in highlighted comments or `Nothing`.
 -}
 highlightedCommentsFilledIn : Model -> Maybe (Array.Array HighlightedComment)
@@ -120,13 +102,8 @@ highlightedCommentsFilledIn =
 {-| Checks if all the data in the code tab is filled in.
 -}
 codeTabFilledIn : Model -> Bool
-codeTabFilledIn model =
-    case ( introductionFilledIn model, conclusionFilledIn model, highlightedCommentsFilledIn model ) of
-        ( Just _, Just _, Just _ ) ->
-            True
-
-        _ ->
-            False
+codeTabFilledIn =
+    Util.isNotNothing << highlightedCommentsFilledIn
 
 
 {-| Returns true if the AC is currently active.
@@ -152,14 +129,12 @@ toPublicationData model =
         , model.language
         , tagsFilledIn model
         , codeFilledIn model
-        , introductionFilledIn model
-        , conclusionFilledIn model
         , highlightedCommentsFilledIn model
         )
     of
-        ( Just name, Just description, Just language, Just tags, Just code, Just introduction, Just conclusion, Just highlightedComments ) ->
+        ( Just name, Just description, Just language, Just tags, Just code, Just highlightedComments ) ->
             Just <|
-                SnipbitForPublication language name description tags code introduction conclusion highlightedComments
+                SnipbitForPublication language name description tags code highlightedComments
 
         _ ->
             Nothing

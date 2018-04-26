@@ -20,8 +20,6 @@ init =
     , tagInput = ""
     , code = ""
     , highlightedComments = Array.fromList [ { comment = Nothing, range = Nothing } ]
-    , introduction = ""
-    , conclusion = ""
     , previewMarkdown = False
     , confirmedRemoveFrame = False
     , confirmedReset = False

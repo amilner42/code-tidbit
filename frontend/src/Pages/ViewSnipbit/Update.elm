@@ -22,7 +22,6 @@ import Models.RequestTracker as RT
 import Models.Route as Route
 import Models.Snipbit as Snipbit
 import Models.TidbitPointer as TidbitPointer
-import Models.TutorialBookmark as TB
 import Models.User as User
 import Models.ViewerRelevantHC as ViewerRelevantHC
 import Pages.Model exposing (Shared)
@@ -76,13 +75,7 @@ update (Common common) msg model shared =
                         { model | qaState = QA.setBrowsingCodePointer snipbitID Nothing model.qaState }
             in
             case shared.route of
-                Route.ViewSnipbitIntroductionPage maybeStoryID snipbitID ->
-                    common.handleAll [ navigateToAskQuestionWithRange maybeStoryID snipbitID tutorialCodePointer ]
-
                 Route.ViewSnipbitFramePage maybeStoryID snipbitID _ ->
-                    common.handleAll [ navigateToAskQuestionWithRange maybeStoryID snipbitID tutorialCodePointer ]
-
-                Route.ViewSnipbitConclusionPage maybeStoryID snipbitID ->
                     common.handleAll [ navigateToAskQuestionWithRange maybeStoryID snipbitID tutorialCodePointer ]
 
                 Route.ViewSnipbitQuestionsPage maybeStoryID snipbitID ->
@@ -297,27 +290,11 @@ update (Common common) msg model shared =
                         ]
             in
             case route of
-                Route.ViewSnipbitIntroductionPage _ snipbitID ->
-                    common.handleAll
-                        [ clearStateOnRouteHit
-                        , \(Common common) ( model, shared ) ->
-                            common.justSetModel { model | bookmark = TB.Introduction }
-                        , fetchOrRenderViewSnipbitData snipbitID False
-                        ]
-
                 Route.ViewSnipbitFramePage _ snipbitID frameNumber ->
                     common.handleAll
                         [ clearStateOnRouteHit
                         , \(Common common) ( model, shared ) ->
-                            common.justSetModel { model | bookmark = TB.FrameNumber frameNumber }
-                        , fetchOrRenderViewSnipbitData snipbitID False
-                        ]
-
-                Route.ViewSnipbitConclusionPage _ snipbitID ->
-                    common.handleAll
-                        [ clearStateOnRouteHit
-                        , \(Common common) ( model, shared ) ->
-                            common.justSetModel { model | bookmark = TB.Conclusion }
+                            common.justSetModel { model | bookmark = frameNumber }
                         , fetchOrRenderViewSnipbitData snipbitID False
                         , \(Common common) ( model, shared ) ->
                             common.justProduceCmd <|
@@ -328,8 +305,16 @@ update (Common common) msg model shared =
                                                 Completed.completedFromIsCompleted
                                                     isCompleted
                                                     user.id
+
+                                            -- We consider a snipbit complete if you are on the last frame.
+                                            onLastFrame =
+                                                model.snipbit
+                                                    ||> .highlightedComments
+                                                    ||> Array.length
+                                                    ||> (==) frameNumber
+                                                    ?> False
                                         in
-                                        if isCompleted.complete == False then
+                                        if isCompleted.complete == False && onLastFrame then
                                             common.api.post.addCompleted
                                                 completed
                                                 OnMarkAsCompleteFailure
@@ -558,21 +543,7 @@ update (Common common) msg model shared =
                                        )
             in
             case shared.route of
-                Route.ViewSnipbitIntroductionPage _ _ ->
-                    common.handleAll
-                        [ handleSetTutorialCodePointer
-                        , handleFindRelevantFrames
-                        , handleFindRelevantQuestions
-                        ]
-
                 Route.ViewSnipbitFramePage _ _ _ ->
-                    common.handleAll
-                        [ handleSetTutorialCodePointer
-                        , handleFindRelevantFrames
-                        , handleFindRelevantQuestions
-                        ]
-
-                Route.ViewSnipbitConclusionPage _ _ ->
                     common.handleAll
                         [ handleSetTutorialCodePointer
                         , handleFindRelevantFrames
@@ -1280,19 +1251,12 @@ createViewSnipbitCodeEditor snipbit { route, user } =
     in
     Cmd.batch
         [ case route of
-            Route.ViewSnipbitIntroductionPage _ _ ->
-                editorWithRange Nothing
-
-            Route.ViewSnipbitConclusionPage _ _ ->
-                editorWithRange Nothing
-
             Route.ViewSnipbitFramePage fromStoryID mongoID frameNumber ->
                 if frameNumber > Array.length snipbit.highlightedComments then
                     Route.modifyTo <|
-                        Route.ViewSnipbitConclusionPage fromStoryID mongoID
+                        Route.ViewSnipbitFramePage fromStoryID mongoID (Array.length snipbit.highlightedComments)
                 else if frameNumber < 1 then
-                    Route.modifyTo <|
-                        Route.ViewSnipbitIntroductionPage fromStoryID mongoID
+                    Route.modifyTo <| Route.ViewSnipbitFramePage fromStoryID mongoID 1
                 else
                     Array.get
                         (frameNumber - 1)
@@ -1314,7 +1278,7 @@ theirs). Will redirect to the appropriate route based on the bookmark (same as r
 -}
 createViewSnipbitQACodeEditor :
     ( Snipbit.Snipbit, QA.SnipbitQA, QA.SnipbitQAState )
-    -> TB.TutorialBookmark
+    -> Int
     -> Shared
     -> Cmd msg
 createViewSnipbitQACodeEditor ( snipbit, qa, qaState ) bookmark { route, user } =
