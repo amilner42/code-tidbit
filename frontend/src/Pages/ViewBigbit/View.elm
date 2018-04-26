@@ -25,7 +25,6 @@ import Models.RequestTracker as RT
 import Models.Route as Route
 import Models.Story as Story
 import Models.TidbitPointer as TidbitPointer
-import Models.TutorialBookmark as TB
 import Models.ViewerRelevantHC as ViewerRelevantHC
 import Models.Vote as Vote
 import Pages.Model exposing (Shared)
@@ -336,16 +335,8 @@ view model shared =
 
                     progressBar =
                         ProgressBar.view
-                            { state =
-                                case model.bookmark of
-                                    TB.Introduction ->
-                                        NotStarted
-
-                                    TB.FrameNumber frameNumber ->
-                                        Started frameNumber
-
-                                    TB.Conclusion ->
-                                        Completed
+                            { -- TODO  we may need to update the progress bar for completion percentages since intro is gone
+                              state = Started model.bookmark
                             , maxPosition = Array.length bigbit.highlightedComments
                             , disabledStyling = not goingThroughTutorial
                             , onClickMsg = BackToTutorialSpot

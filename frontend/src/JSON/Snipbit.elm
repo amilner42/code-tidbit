@@ -20,8 +20,6 @@ encoder snipbit =
         , ( "description", Encode.string snipbit.description )
         , ( "tags", Encode.list <| List.map Encode.string snipbit.tags )
         , ( "code", Encode.string snipbit.code )
-        , ( "introduction", Encode.string snipbit.introduction )
-        , ( "conclusion", Encode.string snipbit.conclusion )
         , ( "highlightedComments", Encode.array <| Array.map hcEncoder snipbit.highlightedComments )
         , ( "id", Encode.string snipbit.id )
         , ( "author", Encode.string snipbit.author )
@@ -43,8 +41,6 @@ decoder =
         |> required "description" Decode.string
         |> required "tags" (Decode.list Decode.string)
         |> required "code" Decode.string
-        |> required "introduction" Decode.string
-        |> required "conclusion" Decode.string
         |> required "highlightedComments" (Decode.array hcDecoder)
         |> required "author" Decode.string
         |> required "authorEmail" Decode.string

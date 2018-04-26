@@ -21,8 +21,6 @@ NOTE: When creating routes, use type aliases to make sure that the purpose of ea
 -}
 type Route
     = BrowsePage
-    | ViewSnipbitIntroductionPage (Maybe StoryID) SnipbitID
-    | ViewSnipbitConclusionPage (Maybe StoryID) SnipbitID
     | ViewSnipbitFramePage (Maybe StoryID) SnipbitID FrameNumber
     | ViewSnipbitQuestionsPage (Maybe StoryID) SnipbitID
     | ViewSnipbitQuestionPage (Maybe StoryID) (Maybe MeaninglessString) SnipbitID QuestionID
@@ -98,12 +96,6 @@ matchers =
         -- Abstract
         viewSnipbitTouringQuestions =
             view </> s "snipbit" <?> qpFromStory <?> qpTouringQuestions </> string
-
-        viewSnipbitIntroduction =
-            viewSnipbit </> s "introduction"
-
-        viewSnipbitConclusion =
-            viewSnipbit </> s "conclusion"
 
         viewSnipbitFrame =
             viewSnipbit </> s "frame" </> int
@@ -284,8 +276,6 @@ matchers =
     in
     oneOf
         [ map BrowsePage top
-        , map ViewSnipbitIntroductionPage viewSnipbitIntroduction
-        , map ViewSnipbitConclusionPage viewSnipbitConclusion
         , map ViewSnipbitFramePage viewSnipbitFrame
         , map ViewSnipbitQuestionsPage viewSnipbitQuestionsPage
         , map ViewSnipbitQuestionPage viewSnipbitQuestionPage
@@ -345,13 +335,7 @@ routeRequiresAuth route =
         RegisterPage _ ->
             False
 
-        ViewSnipbitIntroductionPage _ _ ->
-            False
-
         ViewSnipbitFramePage _ _ _ ->
-            False
-
-        ViewSnipbitConclusionPage _ _ ->
             False
 
         ViewSnipbitQuestionsPage _ _ ->
@@ -453,18 +437,6 @@ toHashUrl route =
 
                 CreatePage ->
                     "create"
-
-                ViewSnipbitIntroductionPage qpStoryID mongoID ->
-                    "view/snipbit/"
-                        ++ mongoID
-                        ++ "/introduction"
-                        ++ Util.queryParamsToString [ ( "fromStory", qpStoryID ) ]
-
-                ViewSnipbitConclusionPage qpStoryID mongoID ->
-                    "view/snipbit/"
-                        ++ mongoID
-                        ++ "/conclusion"
-                        ++ Util.queryParamsToString [ ( "fromStory", qpStoryID ) ]
 
                 ViewSnipbitFramePage qpStoryID mongoID frameNumber ->
                     "view/snipbit/"
@@ -817,13 +789,7 @@ getEditingStoryQueryParamOnCreateNewStoryRoute route =
 getFromStoryQueryParamOnViewSnipbitRoute : Route -> Maybe StoryID
 getFromStoryQueryParamOnViewSnipbitRoute route =
     case route of
-        ViewSnipbitIntroductionPage fromStoryID _ ->
-            fromStoryID
-
         ViewSnipbitFramePage fromStoryID _ _ ->
-            fromStoryID
-
-        ViewSnipbitConclusionPage fromStoryID _ ->
             fromStoryID
 
         ViewSnipbitQuestionsPage fromStoryID _ ->
@@ -1062,12 +1028,6 @@ viewBigbitPageCurrentActiveFile route bigbit maybeQA qaState =
 getViewingContentID : Route -> Maybe ContentID
 getViewingContentID route =
     case route of
-        ViewSnipbitIntroductionPage _ snipbitID ->
-            Just snipbitID
-
-        ViewSnipbitConclusionPage _ snipbitID ->
-            Just snipbitID
-
         ViewSnipbitFramePage _ snipbitID _ ->
             Just snipbitID
 
@@ -1191,13 +1151,7 @@ isOnViewSnipbitQARoute route =
 isOnViewSnipbitTutorialRoute : Route -> Bool
 isOnViewSnipbitTutorialRoute route =
     case route of
-        ViewSnipbitIntroductionPage _ _ ->
-            True
-
         ViewSnipbitFramePage _ _ _ ->
-            True
-
-        ViewSnipbitConclusionPage _ _ ->
             True
 
         _ ->

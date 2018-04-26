@@ -6,7 +6,6 @@ import Models.Completed exposing (IsCompleted)
 import Models.Opinion exposing (Opinion, PossibleOpinion)
 import Models.QA exposing (BigbitCodePointer, BigbitQA, BigbitQAState, BigbitQuestion)
 import Models.Route as Route
-import Models.TutorialBookmark as TB
 import Models.ViewerRelevantHC exposing (ViewerRelevantHC, browsingFrames)
 
 
@@ -19,7 +18,7 @@ type alias Model =
     , relevantHC : Maybe ViewingBigbitRelevantHC
     , qa : Maybe BigbitQA
     , relevantQuestions : Maybe (List BigbitQuestion)
-    , bookmark : TB.TutorialBookmark
+    , bookmark : Int
     , qaState : BigbitQAState
     , tutorialCodePointer : Maybe BigbitCodePointer
     }
@@ -92,14 +91,6 @@ isBigbitFSOpen =
 Resumes to the tutorial itself, not the browsing-file state, so the current file is set to `Nothing`.
 
 -}
-routeForBookmark : Maybe String -> String -> TB.TutorialBookmark -> Route.Route
-routeForBookmark maybeStoryID bigbitID bookmark =
-    case bookmark of
-        TB.Introduction ->
-            Route.ViewBigbitIntroductionPage maybeStoryID bigbitID Nothing
-
-        TB.FrameNumber frameNumber ->
-            Route.ViewBigbitFramePage maybeStoryID bigbitID frameNumber Nothing
-
-        TB.Conclusion ->
-            Route.ViewBigbitConclusionPage maybeStoryID bigbitID Nothing
+routeForBookmark : Maybe String -> String -> Int -> Route.Route
+routeForBookmark maybeStoryID bigbitID bookMarkedFrameNumber =
+    Route.ViewBigbitFramePage maybeStoryID bigbitID bookMarkedFrameNumber Nothing

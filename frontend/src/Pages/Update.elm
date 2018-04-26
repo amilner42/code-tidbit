@@ -528,27 +528,10 @@ handleKeyPress model =
                 (Util.cmdFromMsg <| CreateSnipbitMessage CreateSnipbitMessages.GoToCodeTab)
                 (Route.navigateTo Route.CreateSnipbitLanguagePage)
 
-        Route.ViewSnipbitIntroductionPage fromStoryID mongoID ->
-            viewSnipbitWatchForLeftAndRightArrow
-                Cmd.none
-                (Route.navigateTo <| Route.ViewSnipbitFramePage fromStoryID mongoID 1)
-
         Route.ViewSnipbitFramePage fromStoryID mongoID frameNumber ->
             viewSnipbitWatchForLeftAndRightArrow
                 (Route.navigateTo <| Route.ViewSnipbitFramePage fromStoryID mongoID (frameNumber - 1))
                 (Route.navigateTo <| Route.ViewSnipbitFramePage fromStoryID mongoID (frameNumber + 1))
-
-        Route.ViewSnipbitConclusionPage fromStoryID mongoID ->
-            viewSnipbitWatchForLeftAndRightArrow
-                (Route.navigateTo <|
-                    Route.ViewSnipbitFramePage
-                        fromStoryID
-                        mongoID
-                        (model.viewSnipbitPage.snipbit
-                            |> maybeMapWithDefault (.highlightedComments >> Array.length) 0
-                        )
-                )
-                Cmd.none
 
         Route.ViewBigbitIntroductionPage fromStoryID mongoID _ ->
             viewBigbitWatchForLeftAndRightArrow
@@ -728,12 +711,6 @@ handleLocationChange maybeRoute model =
                 Route.CreatePage ->
                     triggerRouteHookOnCreatePage
 
-                Route.ViewSnipbitIntroductionPage _ _ ->
-                    triggerRouteHookOnViewSnipbitPage
-
-                Route.ViewSnipbitConclusionPage _ _ ->
-                    triggerRouteHookOnViewSnipbitPage
-
                 Route.ViewSnipbitFramePage _ _ _ ->
                     triggerRouteHookOnViewSnipbitPage
 
@@ -871,12 +848,6 @@ googleAnalyticsPageName maybeRoute =
 
         Just Route.BrowsePage ->
             "browse-page"
-
-        Just (Route.ViewSnipbitIntroductionPage _ _) ->
-            "view-snipbit-introduction"
-
-        Just (Route.ViewSnipbitConclusionPage _ _) ->
-            "view-snipbit-conclusion"
 
         Just (Route.ViewSnipbitFramePage _ _ _) ->
             "view-snipbit-frame"

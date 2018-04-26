@@ -183,12 +183,6 @@ viewForRoute model =
         Route.BrowsePage ->
             browsePage
 
-        Route.ViewSnipbitIntroductionPage _ _ ->
-            viewSnipbitPage
-
-        Route.ViewSnipbitConclusionPage _ _ ->
-            viewSnipbitPage
-
         Route.ViewSnipbitFramePage _ _ _ ->
             viewSnipbitPage
 
@@ -431,13 +425,7 @@ navbar model =
                 Route.BrowsePage ->
                     True
 
-                Route.ViewSnipbitIntroductionPage _ _ ->
-                    True
-
                 Route.ViewSnipbitFramePage _ _ _ ->
-                    True
-
-                Route.ViewSnipbitConclusionPage _ _ ->
                     True
 
                 Route.ViewSnipbitQuestionsPage _ _ ->

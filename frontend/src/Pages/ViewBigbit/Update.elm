@@ -23,7 +23,6 @@ import Models.Range as Range
 import Models.RequestTracker as RT
 import Models.Route as Route
 import Models.TidbitPointer as TidbitPointer
-import Models.TutorialBookmark as TB
 import Models.User as User
 import Models.ViewerRelevantHC as ViewerRelevantHC
 import Pages.Model exposing (Shared)
@@ -93,9 +92,9 @@ update (Common common) msg model shared =
                     common.justSetModel
                         { model | qaState = model.qaState |> QA.updateDeletingAnswers bigbitID (always Set.empty) }
 
-                setBookmark tb (Common common) ( model, shared ) =
+                setBookmark bookMarkedFrameNumber (Common common) ( model, shared ) =
                     common.justSetModel
-                        { model | bookmark = tb }
+                        { model | bookmark = bookMarkedFrameNumber }
 
                 {- Get's data for viewing bigbit as required:
                    - May need to fetch tidbit itself                                    [Cache level: localStorage]
@@ -267,24 +266,26 @@ update (Common common) msg model shared =
                         ]
             in
             case route of
+                -- TODO remove
                 Route.ViewBigbitIntroductionPage _ bigbitID _ ->
                     common.handleAll
                         [ clearStateOnRouteHit
-                        , setBookmark TB.Introduction
+                        , setBookmark 1
                         , fetchOrRenderViewBigbitData False bigbitID
                         ]
 
                 Route.ViewBigbitFramePage _ bigbitID frameNumber _ ->
                     common.handleAll
                         [ clearStateOnRouteHit
-                        , setBookmark <| TB.FrameNumber frameNumber
+                        , setBookmark frameNumber
                         , fetchOrRenderViewBigbitData False bigbitID
                         ]
 
+                -- TODO remove
                 Route.ViewBigbitConclusionPage _ bigbitID _ ->
                     common.handleAll
                         [ clearStateOnRouteHit
-                        , setBookmark TB.Conclusion
+                        , setBookmark 1
                         , fetchOrRenderViewBigbitData False bigbitID
 
                         -- Setting completed if not already complete.
@@ -1527,7 +1528,7 @@ theirs). Will redirect to the appropriate route based on the bookmark (same as r
 -}
 createViewBigbitQACodeEditor :
     ( Bigbit.Bigbit, QA.BigbitQA, QA.BigbitQAState )
-    -> TB.TutorialBookmark
+    -> Int
     -> Shared
     -> Cmd msg
 createViewBigbitQACodeEditor ( bigbit, qa, qaState ) bookmark { user, route } =

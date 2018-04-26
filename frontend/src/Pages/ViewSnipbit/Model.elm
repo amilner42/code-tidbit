@@ -7,7 +7,6 @@ import Models.QA exposing (SnipbitQA, SnipbitQAState, SnipbitQuestion)
 import Models.Range exposing (Range)
 import Models.Route as Route
 import Models.Snipbit exposing (HighlightedComment, Snipbit)
-import Models.TutorialBookmark as TB
 import Models.ViewerRelevantHC exposing (ViewerRelevantHC, browsingFrames)
 
 
@@ -20,7 +19,7 @@ type alias Model =
     , relevantHC : Maybe ViewingSnipbitRelevantHC
     , qa : Maybe SnipbitQA
     , relevantQuestions : Maybe (List SnipbitQuestion)
-    , bookmark : TB.TutorialBookmark
+    , bookmark : Int
     , qaState : SnipbitQAState
     , tutorialCodePointer : Maybe Range
     }
@@ -86,14 +85,6 @@ setViewingSnipbitRelevantHC maybeRelevantHC model =
 
 {-| Get's the route from the bookmark.
 -}
-routeForBookmark : Maybe String -> String -> TB.TutorialBookmark -> Route.Route
-routeForBookmark maybeStoryID snipbitID bookmark =
-    case bookmark of
-        TB.Introduction ->
-            Route.ViewSnipbitIntroductionPage maybeStoryID snipbitID
-
-        TB.FrameNumber frameNumber ->
-            Route.ViewSnipbitFramePage maybeStoryID snipbitID frameNumber
-
-        TB.Conclusion ->
-            Route.ViewSnipbitConclusionPage maybeStoryID snipbitID
+routeForBookmark : Maybe String -> String -> Int -> Route.Route
+routeForBookmark maybeStoryID snipbitID bookMarkedFrameNumber =
+    Route.ViewSnipbitFramePage maybeStoryID snipbitID bookMarkedFrameNumber

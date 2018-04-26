@@ -410,7 +410,7 @@ update (Common common) msg model shared =
         OnPublishSuccess { targetID } ->
             ( init
             , { shared | userTidbits = Nothing }
-            , Route.navigateTo <| Route.ViewSnipbitIntroductionPage Nothing targetID
+            , Route.navigateTo <| Route.ViewSnipbitFramePage Nothing targetID 1
             )
                 |> common.andFinishRequest RT.PublishSnipbit
 
