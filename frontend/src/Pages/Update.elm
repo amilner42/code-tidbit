@@ -1,7 +1,6 @@
 module Pages.Update exposing (update, updateCacheIf)
 
 import Api
-import Array
 import DefaultServices.CommonSubPageUtil exposing (commonSubPageUtil)
 import DefaultServices.LocalStorage as LocalStorage
 import DefaultServices.Util as Util exposing (maybeMapWithDefault)
@@ -460,6 +459,21 @@ handleKeyPress model =
         rightArrowPressed =
             KK.isOneKeyPressed KK.ArrowRight keysDown
 
+        controlEqualsPressed =
+            KK.isTwoKeysPressed KK.Control KK.Equals keysDown
+
+        controlMinusPressed =
+            KK.isTwoKeysPressed KK.Control KK.HyphenMinus keysDown
+
+        -- Basic helper for handling ctrl- ctrl= situations.
+        watchForControlEqualsAndControlMinus onControlEquals onControlMinus =
+            if controlEqualsPressed then
+                onControlEquals
+            else if controlMinusPressed then
+                onControlMinus
+            else
+                doNothing
+
         -- Basic helper for handling tab/shift-tab situations.
         watchForTabAndShiftTab onTab onShiftTab =
             if tabPressed then
@@ -508,6 +522,11 @@ handleKeyPress model =
                 (Util.cmdFromMsg <| CreateBigbitMessage CreateBigbitMessages.GoToCodeTab)
                 (Route.navigateTo Route.CreateBigbitDescriptionPage)
 
+        Route.CreateBigbitCodeFramePage _ _ ->
+            watchForControlEqualsAndControlMinus
+                (update (CreateBigbitMessage CreateBigbitMessages.AddFrame) model)
+                (update (CreateBigbitMessage CreateBigbitMessages.RemoveFrame) model)
+
         Route.CreateSnipbitNamePage ->
             watchForTabAndShiftTab
                 (Route.navigateTo Route.CreateSnipbitDescriptionPage)
@@ -527,6 +546,11 @@ handleKeyPress model =
             watchForTabAndShiftTab
                 (Util.cmdFromMsg <| CreateSnipbitMessage CreateSnipbitMessages.GoToCodeTab)
                 (Route.navigateTo Route.CreateSnipbitLanguagePage)
+
+        Route.CreateSnipbitCodeFramePage _ ->
+            watchForControlEqualsAndControlMinus
+                (update (CreateSnipbitMessage CreateSnipbitMessages.AddFrame) model)
+                (update (CreateSnipbitMessage CreateSnipbitMessages.RemoveFrame) model)
 
         Route.ViewSnipbitFramePage fromStoryID mongoID frameNumber ->
             viewSnipbitWatchForLeftAndRightArrow

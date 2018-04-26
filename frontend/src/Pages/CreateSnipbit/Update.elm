@@ -260,7 +260,9 @@ update (Common common) msg model shared =
             ( newModel, shared, newCmd )
 
         RemoveFrame ->
-            if not model.confirmedRemoveFrame then
+            if Array.length currentHighlightedComments == 1 then
+                common.doNothing
+            else if not model.confirmedRemoveFrame then
                 common.justSetModel { model | confirmedRemoveFrame = True }
             else
                 let
