@@ -88,28 +88,17 @@ update (Common common) msg model shared =
                 Route.CreateBigbitTagsPage ->
                     ( resetConfirmState model, shared, focusOn "tags-input" )
 
-                Route.CreateBigbitCodeIntroductionPage maybeFilePath ->
-                    ( resetConfirmState model
-                    , shared
-                    , Cmd.batch
-                        [ createCreateBigbitEditorForCurrentFile
-                            Nothing
-                            maybeFilePath
-                            (Route.CreateBigbitCodeIntroductionPage Nothing)
-                        , focusOn "introduction-input"
-                        ]
-                    )
-
                 Route.CreateBigbitCodeFramePage frameNumber maybeFilePath ->
                     if frameNumber < 1 then
                         ( resetConfirmState model
                         , shared
-                        , Route.modifyTo <| Route.CreateBigbitCodeIntroductionPage Nothing
+                        , Route.modifyTo <| Route.CreateBigbitCodeFramePage 1 Nothing
                         )
                     else if frameNumber > Array.length currentBigbitHighlightedComments then
                         ( resetConfirmState model
                         , shared
-                        , Route.modifyTo <| Route.CreateBigbitCodeConclusionPage Nothing
+                        , Route.modifyTo <|
+                            Route.CreateBigbitCodeFramePage (Array.length currentBigbitHighlightedComments) Nothing
                         )
                     else
                         let
@@ -172,18 +161,6 @@ update (Common common) msg model shared =
                             , focusOn "frame-input"
                             ]
                         )
-
-                Route.CreateBigbitCodeConclusionPage maybeFilePath ->
-                    ( resetConfirmState model
-                    , shared
-                    , Cmd.batch
-                        [ createCreateBigbitEditorForCurrentFile
-                            Nothing
-                            maybeFilePath
-                            (Route.CreateBigbitCodeConclusionPage Nothing)
-                        , focusOn "conclusion-input"
-                        ]
-                    )
 
                 _ ->
                     common.doNothing
@@ -276,7 +253,7 @@ update (Common common) msg model shared =
         GoToCodeTab ->
             ( { model | previewMarkdown = False }
             , shared
-            , Route.navigateTo <| Route.CreateBigbitCodeIntroductionPage Nothing
+            , Route.navigateTo <| Route.CreateBigbitCodeFramePage 1 Nothing
             )
 
         Reset ->
@@ -411,9 +388,6 @@ update (Common common) msg model shared =
         RemoveTag tagName ->
             common.justSetModel { model | tags = List.filter (\tag -> tag /= tagName) model.tags }
 
-        OnUpdateIntroduction newIntro ->
-            common.justSetModel { model | introduction = newIntro }
-
         OnUpdateFrameComment frameNumber newComment ->
             case Array.get (frameNumber - 1) currentBigbitHighlightedComments of
                 Nothing ->
@@ -428,9 +402,6 @@ update (Common common) msg model shared =
                                     { highlightedComment | comment = newComment }
                                     currentBigbitHighlightedComments
                         }
-
-        OnUpdateConclusion newConclusion ->
-            common.justSetModel { model | conclusion = newConclusion }
 
         UpdateActionButtonState newActionState ->
             ( { model
@@ -511,8 +482,8 @@ update (Common common) msg model shared =
                 -}
                 navigateIfRouteNowInvalid newFS newHighlightedComments =
                     let
-                        redirectToIntro =
-                            Route.modifyTo <| Route.CreateBigbitCodeIntroductionPage Nothing
+                        redirectToFirstFrame =
+                            Route.modifyTo <| Route.CreateBigbitCodeFramePage 1 Nothing
 
                         redirectIfFileRemoved =
                             case createBigbitPageCurrentActiveFile shared.route of
@@ -523,12 +494,12 @@ update (Common common) msg model shared =
                                     if FS.hasFile filePath newFS then
                                         Cmd.none
                                     else
-                                        redirectToIntro
+                                        redirectToFirstFrame
                     in
                     case shared.route of
                         Route.CreateBigbitCodeFramePage frameNumber _ ->
                             if frameNumber > Array.length newHighlightedComments then
-                                redirectToIntro
+                                redirectToFirstFrame
                             else
                                 redirectIfFileRemoved
 

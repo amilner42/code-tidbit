@@ -94,12 +94,6 @@ view model shared =
                                 Route.CreateBigbitCodeFramePage _ _ ->
                                     True
 
-                                Route.CreateBigbitCodeIntroductionPage _ ->
-                                    True
-
-                                Route.CreateBigbitCodeConclusionPage _ ->
-                                    True
-
                                 _ ->
                                     False
                           )
@@ -119,19 +113,13 @@ view model shared =
                     Maybe.map (FS.isSameFilePath absolutePath) currentActiveFile
                         |> Maybe.withDefault False
 
-                ( introTab, conclusionTab, frameTab ) =
+                frameTab =
                     case shared.route of
-                        Route.CreateBigbitCodeIntroductionPage _ ->
-                            ( True, False, Nothing )
-
                         Route.CreateBigbitCodeFramePage frameNumber _ ->
-                            ( False, False, Just frameNumber )
-
-                        Route.CreateBigbitCodeConclusionPage _ ->
-                            ( False, True, Nothing )
+                            Just frameNumber
 
                         _ ->
-                            ( False, False, Nothing )
+                            Nothing
 
                 bigbitFS =
                     let
@@ -453,42 +441,6 @@ view model shared =
                                         text "Preview Markdown"
                                     ]
                                 , case shared.route of
-                                    Route.CreateBigbitCodeIntroductionPage _ ->
-                                        Util.markdownOr
-                                            markdownOpen
-                                            model.introduction
-                                            (TextFields.textarea
-                                                shared.textFieldKeyTracker
-                                                "create-bigbit-introduction"
-                                                [ placeholder "General Introduction"
-                                                , id "introduction-input"
-                                                , onInput <| OnUpdateIntroduction
-                                                , defaultValue model.introduction
-                                                , Util.onKeydownPreventDefault
-                                                    (\key ->
-                                                        let
-                                                            newKeysDown =
-                                                                kkUpdateWrapper (KK.Down <| KK.toCode key) shared.keysDown
-                                                        in
-                                                        if key == KK.Tab then
-                                                            if newKeysDown == shared.keysDown then
-                                                                Just NoOp
-                                                            else if KK.isOneKeyPressed KK.Tab newKeysDown then
-                                                                Just <|
-                                                                    GoTo <|
-                                                                        Route.CreateBigbitCodeFramePage
-                                                                            1
-                                                                            (getActiveFileForFrame 1 model)
-                                                            else if KK.isTwoKeysPressed KK.Tab KK.Shift newKeysDown then
-                                                                Just <| GoTo <| Route.CreateBigbitTagsPage
-                                                            else
-                                                                Nothing
-                                                        else
-                                                            Nothing
-                                                    )
-                                                ]
-                                            )
-
                                     Route.CreateBigbitCodeFramePage frameNumber _ ->
                                         let
                                             frameText =
@@ -523,61 +475,28 @@ view model shared =
                                                                 Just NoOp
                                                             else if KK.isOneKeyPressed KK.Tab newKeysDown then
                                                                 Just <|
-                                                                    GoTo <|
-                                                                        Route.CreateBigbitCodeFramePage
-                                                                            (frameNumber + 1)
-                                                                            (getActiveFileForFrame
+                                                                    if Array.length model.highlightedComments == frameNumber then
+                                                                        NoOp
+                                                                    else
+                                                                        GoTo <|
+                                                                            Route.CreateBigbitCodeFramePage
                                                                                 (frameNumber + 1)
-                                                                                model
-                                                                            )
+                                                                                (getActiveFileForFrame
+                                                                                    (frameNumber + 1)
+                                                                                    model
+                                                                                )
                                                             else if KK.isTwoKeysPressed KK.Tab KK.Shift newKeysDown then
                                                                 Just <|
                                                                     GoTo <|
-                                                                        Route.CreateBigbitCodeFramePage
-                                                                            (frameNumber - 1)
-                                                                            (getActiveFileForFrame
+                                                                        if frameNumber == 1 then
+                                                                            Route.CreateBigbitTagsPage
+                                                                        else
+                                                                            Route.CreateBigbitCodeFramePage
                                                                                 (frameNumber - 1)
-                                                                                model
-                                                                            )
-                                                            else
-                                                                Nothing
-                                                        else
-                                                            Nothing
-                                                    )
-                                                ]
-                                            )
-
-                                    Route.CreateBigbitCodeConclusionPage _ ->
-                                        Util.markdownOr
-                                            markdownOpen
-                                            model.conclusion
-                                            (TextFields.textarea
-                                                shared.textFieldKeyTracker
-                                                "create-bigbit-conclusion"
-                                                [ placeholder "General Conclusion"
-                                                , id "conclusion-input"
-                                                , onInput OnUpdateConclusion
-                                                , defaultValue model.conclusion
-                                                , Util.onKeydownPreventDefault
-                                                    (\key ->
-                                                        let
-                                                            newKeysDown =
-                                                                kkUpdateWrapper (KK.Down <| KK.toCode key) shared.keysDown
-                                                        in
-                                                        if key == KK.Tab then
-                                                            if newKeysDown == shared.keysDown then
-                                                                Just NoOp
-                                                            else if KK.isOneKeyPressed KK.Tab newKeysDown then
-                                                                Just <| NoOp
-                                                            else if KK.isTwoKeysPressed KK.Tab KK.Shift newKeysDown then
-                                                                Just <|
-                                                                    GoTo <|
-                                                                        Route.CreateBigbitCodeFramePage
-                                                                            (Array.length model.highlightedComments)
-                                                                            (getActiveFileForFrame
-                                                                                (Array.length model.highlightedComments)
-                                                                                model
-                                                                            )
+                                                                                (getActiveFileForFrame
+                                                                                    (frameNumber - 1)
+                                                                                    model
+                                                                                )
                                                             else
                                                                 Nothing
                                                         else
@@ -620,22 +539,6 @@ view model shared =
                                 , hidden markdownOpen
                                 ]
                                 [ button
-                                    [ onClick <| GoTo <| Route.CreateBigbitCodeIntroductionPage Nothing
-                                    , classList
-                                        [ ( "introduction-button", True )
-                                        , ( "selected-frame", introTab )
-                                        ]
-                                    ]
-                                    [ text "Introduction" ]
-                                , button
-                                    [ onClick <| GoTo <| Route.CreateBigbitCodeConclusionPage Nothing
-                                    , classList
-                                        [ ( "conclusion-button", True )
-                                        , ( "selected-frame", conclusionTab )
-                                        ]
-                                    ]
-                                    [ text "Conclusion" ]
-                                , button
                                     [ class "add-or-remove-frame-button"
                                     , onClick <| AddFrame
                                     ]
@@ -677,13 +580,7 @@ view model shared =
             , ( "fs-closed", not fsOpen )
             , ( "viewing-fs-open"
               , case shared.route of
-                    Route.CreateBigbitCodeIntroductionPage _ ->
-                        fsOpen
-
                     Route.CreateBigbitCodeFramePage _ _ ->
-                        fsOpen
-
-                    Route.CreateBigbitCodeConclusionPage _ ->
                         fsOpen
 
                     _ ->
@@ -777,13 +674,7 @@ view model shared =
                     , Tags.view RemoveTag model.tags
                     ]
 
-            Route.CreateBigbitCodeIntroductionPage _ ->
-                bigbitCodeTab
-
-            Route.CreateBigbitCodeFramePage frameNumber _ ->
-                bigbitCodeTab
-
-            Route.CreateBigbitCodeConclusionPage _ ->
+            Route.CreateBigbitCodeFramePage _ _ ->
                 bigbitCodeTab
 
             -- Should never happen

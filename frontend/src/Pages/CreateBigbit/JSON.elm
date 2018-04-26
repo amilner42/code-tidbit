@@ -39,8 +39,6 @@ encoder model =
         , ( "description", Encode.string model.description )
         , ( "tags", Encode.list <| List.map Encode.string model.tags )
         , ( "tagInput", Encode.string model.tagInput )
-        , ( "introduction", Encode.string model.introduction )
-        , ( "conclusion", Encode.string model.conclusion )
         , ( "fs", fsEncoder model.fs )
         , ( "highlightedComments"
           , Encode.array <| Array.map createHighlightedCommentEncoder model.highlightedComments
@@ -78,8 +76,6 @@ decoder =
         |> required "description" Decode.string
         |> required "tags" (Decode.list Decode.string)
         |> required "tagInput" Decode.string
-        |> required "introduction" Decode.string
-        |> required "conclusion" Decode.string
         |> required "fs" fsDecoder
         |> required "highlightedComments" (Decode.array createHighlightedCommentDecoder)
         |> required "previewMarkdown" Decode.bool
@@ -137,8 +133,6 @@ publicationEncoder bigbit =
         [ ( "name", Encode.string bigbit.name )
         , ( "description", Encode.string bigbit.description )
         , ( "tags", Encode.list <| List.map Encode.string bigbit.tags )
-        , ( "introduction", Encode.string bigbit.introduction )
-        , ( "conclusion", Encode.string bigbit.conclusion )
         , ( "fs", fsEncoder bigbit.fs )
         , ( "highlightedComments", Encode.list <| List.map highlightedCommentEncoder bigbit.highlightedComments )
         ]

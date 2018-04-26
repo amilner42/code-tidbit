@@ -810,13 +810,7 @@ handleLocationChange maybeRoute model =
                 Route.CreateBigbitTagsPage ->
                     triggerRouteHookOnCreateBigbitPage
 
-                Route.CreateBigbitCodeIntroductionPage _ ->
-                    triggerRouteHookOnCreateBigbitPage
-
                 Route.CreateBigbitCodeFramePage _ _ ->
-                    triggerRouteHookOnCreateBigbitPage
-
-                Route.CreateBigbitCodeConclusionPage _ ->
                     triggerRouteHookOnCreateBigbitPage
 
                 Route.CreateStoryNamePage _ ->
@@ -951,13 +945,7 @@ googleAnalyticsPageName maybeRoute =
         Just Route.CreateBigbitTagsPage ->
             "create-bigbit"
 
-        Just (Route.CreateBigbitCodeIntroductionPage _) ->
-            "create-bigbit"
-
         Just (Route.CreateBigbitCodeFramePage _ _) ->
-            "create-bigbit"
-
-        Just (Route.CreateBigbitCodeConclusionPage _) ->
             "create-bigbit"
 
         Just (Route.CreateStoryNamePage maybeEditingStory) ->

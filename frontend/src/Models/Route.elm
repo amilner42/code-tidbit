@@ -55,9 +55,7 @@ type Route
     | CreateBigbitNamePage
     | CreateBigbitDescriptionPage
     | CreateBigbitTagsPage
-    | CreateBigbitCodeIntroductionPage (Maybe FS.Path)
     | CreateBigbitCodeFramePage FrameNumber (Maybe FS.Path)
-    | CreateBigbitCodeConclusionPage (Maybe FS.Path)
     | CreateStoryNamePage (Maybe EditingStoryID)
     | CreateStoryDescriptionPage (Maybe EditingStoryID)
     | CreateStoryTagsPage (Maybe EditingStoryID)
@@ -220,14 +218,8 @@ matchers =
         createBigbitCode =
             createBigbit </> s "code"
 
-        createBigbitCodeIntroduction =
-            (createBigbitCode </> s "introduction") <?> qpFile
-
         createBigbitCodeFrame =
             createBigbitCode </> s "frame" </> int <?> qpFile
-
-        createBigbitCodeConclusion =
-            createBigbitCode </> s "conclusion" <?> qpFile
 
         createStory =
             create </> s "story"
@@ -310,9 +302,7 @@ matchers =
         , map CreateBigbitNamePage createBigbitName
         , map CreateBigbitDescriptionPage createBigbitDescription
         , map CreateBigbitTagsPage createBigbitTags
-        , map CreateBigbitCodeIntroductionPage createBigbitCodeIntroduction
         , map CreateBigbitCodeFramePage createBigbitCodeFrame
-        , map CreateBigbitCodeConclusionPage createBigbitCodeConclusion
         , map CreateStoryNamePage createStoryName
         , map CreateStoryDescriptionPage createStoryDescription
         , map CreateStoryTagsPage createStoryTags
@@ -656,18 +646,10 @@ toHashUrl route =
                 CreateBigbitTagsPage ->
                     "create/bigbit/tags"
 
-                CreateBigbitCodeIntroductionPage qpFile ->
-                    "create/bigbit/code/introduction/"
-                        ++ Util.queryParamsToString [ ( "file", qpFile ) ]
-
                 CreateBigbitCodeFramePage frameNumber qpFile ->
                     "create/bigbit/code/frame/"
                         ++ toString frameNumber
                         ++ "/"
-                        ++ Util.queryParamsToString [ ( "file", qpFile ) ]
-
-                CreateBigbitCodeConclusionPage qpFile ->
-                    "create/bigbit/code/conclusion/"
                         ++ Util.queryParamsToString [ ( "file", qpFile ) ]
 
                 CreateStoryNamePage qpStory ->
@@ -753,14 +735,8 @@ navigateToSameUrlWithFilePath maybePath route =
         ViewBigbitConclusionPage fromStoryID mongoID _ ->
             navigateTo <| ViewBigbitConclusionPage fromStoryID mongoID maybePath
 
-        CreateBigbitCodeIntroductionPage _ ->
-            navigateTo <| CreateBigbitCodeIntroductionPage maybePath
-
         CreateBigbitCodeFramePage frameNumber _ ->
             navigateTo <| CreateBigbitCodeFramePage frameNumber maybePath
-
-        CreateBigbitCodeConclusionPage _ ->
-            navigateTo <| CreateBigbitCodeConclusionPage maybePath
 
         _ ->
             Cmd.none
@@ -927,13 +903,7 @@ getTouringQuestionsQueryParamOnViewBigbitQARoute route =
 createBigbitPageCurrentActiveFile : Route -> Maybe FS.Path
 createBigbitPageCurrentActiveFile route =
     case route of
-        CreateBigbitCodeIntroductionPage maybePath ->
-            maybePath
-
         CreateBigbitCodeFramePage _ maybePath ->
-            maybePath
-
-        CreateBigbitCodeConclusionPage maybePath ->
             maybePath
 
         _ ->

@@ -285,13 +285,7 @@ viewForRoute model =
         Route.CreateBigbitTagsPage ->
             createBigbitPage
 
-        Route.CreateBigbitCodeIntroductionPage _ ->
-            createBigbitPage
-
         Route.CreateBigbitCodeFramePage _ _ ->
-            createBigbitPage
-
-        Route.CreateBigbitCodeConclusionPage _ ->
             createBigbitPage
 
         Route.CreateStoryNamePage _ ->
@@ -514,12 +508,6 @@ navbar model =
                 Route.CreateBigbitCodeFramePage _ _ ->
                     True
 
-                Route.CreateBigbitCodeIntroductionPage _ ->
-                    True
-
-                Route.CreateBigbitCodeConclusionPage _ ->
-                    True
-
                 Route.DevelopStoryPage _ ->
                     True
 
@@ -669,19 +657,9 @@ Currently wide-mode-3 is required for creating bigbits when the fs is expanded.
 -}
 isWideNav3 : Model -> Bool
 isWideNav3 model =
-    let
-        createBigbitFSOpen =
-            Bigbit.isFSOpen model.createBigbitPage.fs
-    in
     case model.shared.route of
-        Route.CreateBigbitCodeIntroductionPage _ ->
-            createBigbitFSOpen
-
         Route.CreateBigbitCodeFramePage _ _ ->
-            createBigbitFSOpen
-
-        Route.CreateBigbitCodeConclusionPage _ ->
-            createBigbitFSOpen
+            Bigbit.isFSOpen model.createBigbitPage.fs
 
         _ ->
             False

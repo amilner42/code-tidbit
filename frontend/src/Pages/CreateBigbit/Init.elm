@@ -13,8 +13,6 @@ init =
     , description = ""
     , tags = []
     , tagInput = ""
-    , introduction = ""
-    , conclusion = ""
     , fs =
         FS.emptyFS
             { activeFile = Nothing

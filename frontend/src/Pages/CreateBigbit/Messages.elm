@@ -32,9 +32,7 @@ type Msg
     | OnUpdateTagInput String
     | AddTag String
     | RemoveTag String
-    | OnUpdateIntroduction String
     | OnUpdateFrameComment Int String
-    | OnUpdateConclusion String
     | UpdateActionButtonState (Maybe FSActionButtonState)
     | OnUpdateActionInput String
     | SubmitActionInput

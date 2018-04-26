@@ -18,8 +18,6 @@ type alias Model =
     , description : String
     , tags : List String
     , tagInput : String
-    , introduction : String
-    , conclusion : String
     , fs : FS.FileStructure FSMetadata FolderMetadata FileMetadata
     , highlightedComments : Array.Array HighlightedCommentForCreate
     , previewMarkdown : Bool
@@ -62,8 +60,6 @@ type alias BigbitForPublication =
     { name : String
     , description : String
     , tags : List String
-    , introduction : String
-    , conclusion : String
     , fs : FS.FileStructure () () { language : Editor.Language }
     , highlightedComments : List HighlightedComment
     }
@@ -260,20 +256,6 @@ tagsFilledIn =
     .tags >> Util.justNonEmptyList
 
 
-{-| Returns the filled-in introduction or `Nothing`.
--}
-introductionFilledIn : Model -> Maybe String
-introductionFilledIn =
-    .introduction >> Util.justNonEmptyString
-
-
-{-| Returns the filled-in conclusion or `Nothing`.
--}
-conclusionFilledIn : Model -> Maybe String
-conclusionFilledIn =
-    .conclusion >> Util.justNonEmptyString
-
-
 {-| Returns the filled-in highlighted comments [in publication form] or `Nothing`.
 -}
 highlightedCommentsFilledIn : Model -> Maybe (List HighlightedComment)
@@ -313,8 +295,8 @@ highlightedCommentsFilledIn =
 -}
 codeTabFilledIn : Model -> Bool
 codeTabFilledIn model =
-    case ( introductionFilledIn model, conclusionFilledIn model, highlightedCommentsFilledIn model ) of
-        ( Just _, Just _, Just _ ) ->
+    case highlightedCommentsFilledIn model of
+        Just _ ->
             True
 
         _ ->
@@ -329,19 +311,15 @@ toPublicationData model =
         ( nameFilledIn model
         , descriptionFilledIn model
         , tagsFilledIn model
-        , introductionFilledIn model
-        , conclusionFilledIn model
         , highlightedCommentsFilledIn model
         )
     of
-        ( Just name, Just description, Just tags, Just introduction, Just conclusion, Just hc ) ->
+        ( Just name, Just description, Just tags, Just hc ) ->
             Just <|
                 BigbitForPublication
                     name
                     description
                     tags
-                    introduction
-                    conclusion
                     (model.fs |> FS.metaMap (always ()) (always ()) identity)
                     hc
 
