@@ -266,26 +266,10 @@ update (Common common) msg model shared =
                         ]
             in
             case route of
-                -- TODO remove
-                Route.ViewBigbitIntroductionPage _ bigbitID _ ->
-                    common.handleAll
-                        [ clearStateOnRouteHit
-                        , setBookmark 1
-                        , fetchOrRenderViewBigbitData False bigbitID
-                        ]
-
                 Route.ViewBigbitFramePage _ bigbitID frameNumber _ ->
                     common.handleAll
                         [ clearStateOnRouteHit
                         , setBookmark frameNumber
-                        , fetchOrRenderViewBigbitData False bigbitID
-                        ]
-
-                -- TODO remove
-                Route.ViewBigbitConclusionPage _ bigbitID _ ->
-                    common.handleAll
-                        [ clearStateOnRouteHit
-                        , setBookmark 1
                         , fetchOrRenderViewBigbitData False bigbitID
 
                         -- Setting completed if not already complete.
@@ -296,8 +280,15 @@ update (Common common) msg model shared =
                                         let
                                             completed =
                                                 Completed.completedFromIsCompleted isCompleted user.id
+
+                                            isLastFrame =
+                                                model.bigbit
+                                                    ||> .highlightedComments
+                                                    ||> Array.length
+                                                    ||> (==) frameNumber
+                                                    ?> False
                                         in
-                                        if isCompleted.complete == False then
+                                        if isCompleted.complete == False && isLastFrame then
                                             common.api.post.addCompleted
                                                 completed
                                                 OnMarkAsCompleteFailure
@@ -440,21 +431,7 @@ update (Common common) msg model shared =
                             common.doNothing
             in
             case ( maybeCurrentActiveFile, shared.route ) of
-                ( Just currentActiveFile, Route.ViewBigbitIntroductionPage _ _ _ ) ->
-                    common.handleAll
-                        [ handleSetTutorialCodePointer currentActiveFile
-                        , handleFindRelevantFrames currentActiveFile
-                        , handleFindRelevantQuestions currentActiveFile
-                        ]
-
                 ( Just currentActiveFile, Route.ViewBigbitFramePage _ _ _ _ ) ->
-                    common.handleAll
-                        [ handleSetTutorialCodePointer currentActiveFile
-                        , handleFindRelevantFrames currentActiveFile
-                        , handleFindRelevantQuestions currentActiveFile
-                        ]
-
-                ( Just currentActiveFile, Route.ViewBigbitConclusionPage _ _ _ ) ->
                     common.handleAll
                         [ handleSetTutorialCodePointer currentActiveFile
                         , handleFindRelevantFrames currentActiveFile
@@ -641,13 +618,7 @@ update (Common common) msg model shared =
                     Route.modifyTo shared.route
             in
             case shared.route of
-                Route.ViewBigbitIntroductionPage _ _ _ ->
-                    handleFileSelectOnTutorialRoute
-
                 Route.ViewBigbitFramePage _ _ _ _ ->
-                    handleFileSelectOnTutorialRoute
-
-                Route.ViewBigbitConclusionPage _ _ _ ->
                     handleFileSelectOnTutorialRoute
 
                 Route.ViewBigbitQuestionsPage _ bigbitID ->
@@ -1467,7 +1438,7 @@ createViewBigbitCodeEditor bigbit { route, user } =
                 Just somePath ->
                     case FS.getFile bigbit.fs somePath of
                         Nothing ->
-                            Route.modifyTo <| Route.ViewBigbitIntroductionPage fromStoryID bigbit.id Nothing
+                            Route.modifyTo <| Route.ViewBigbitFramePage fromStoryID bigbit.id 1 Nothing
 
                         Just (FS.File content { language }) ->
                             bigbitEditor
@@ -1480,16 +1451,19 @@ createViewBigbitCodeEditor bigbit { route, user } =
     in
     Cmd.batch
         [ case route of
-            Route.ViewBigbitIntroductionPage fromStoryID _ maybePath ->
-                loadFileWithNoHighlight fromStoryID maybePath
-
             Route.ViewBigbitFramePage fromStoryID _ frameNumber maybePath ->
                 case Array.get (frameNumber - 1) bigbit.highlightedComments of
                     Nothing ->
-                        if frameNumber > Array.length bigbit.highlightedComments then
-                            Route.modifyTo <| Route.ViewBigbitConclusionPage fromStoryID bigbit.id Nothing
-                        else
-                            Route.modifyTo <| Route.ViewBigbitIntroductionPage fromStoryID bigbit.id Nothing
+                        Route.modifyTo <|
+                            Route.ViewBigbitFramePage
+                                fromStoryID
+                                bigbit.id
+                                (if frameNumber > Array.length bigbit.highlightedComments then
+                                    Array.length bigbit.highlightedComments
+                                 else
+                                    1
+                                )
+                                Nothing
 
                     Just hc ->
                         case maybePath of
@@ -1510,9 +1484,6 @@ createViewBigbitCodeEditor bigbit { route, user } =
 
                             Just absolutePath ->
                                 loadFileWithNoHighlight fromStoryID maybePath
-
-            Route.ViewBigbitConclusionPage fromStoryID _ maybePath ->
-                loadFileWithNoHighlight fromStoryID maybePath
 
             _ ->
                 Cmd.none

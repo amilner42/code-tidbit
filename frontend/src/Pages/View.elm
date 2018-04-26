@@ -216,13 +216,7 @@ viewForRoute model =
         Route.ViewSnipbitEditAnswer _ _ _ ->
             viewSnipbitPage
 
-        Route.ViewBigbitIntroductionPage _ _ _ ->
-            viewBigbitPage
-
         Route.ViewBigbitFramePage _ _ _ _ ->
-            viewBigbitPage
-
-        Route.ViewBigbitConclusionPage _ _ _ ->
             viewBigbitPage
 
         Route.ViewBigbitQuestionsPage _ _ ->
@@ -452,13 +446,7 @@ navbar model =
                 Route.ViewSnipbitEditAnswer _ _ _ ->
                     True
 
-                Route.ViewBigbitIntroductionPage _ _ _ ->
-                    True
-
                 Route.ViewBigbitFramePage _ _ _ _ ->
-                    True
-
-                Route.ViewBigbitConclusionPage _ _ _ ->
                     True
 
                 Route.ViewBigbitQuestionsPage _ _ ->
@@ -637,13 +625,7 @@ isWideNav2 model =
             ViewBigbitModel.isBigbitFSOpen model.viewBigbitPage.bigbit
     in
     case model.shared.route of
-        Route.ViewBigbitIntroductionPage _ _ _ ->
-            viewBigbitFSOpen
-
         Route.ViewBigbitFramePage _ _ _ _ ->
-            viewBigbitFSOpen
-
-        Route.ViewBigbitConclusionPage _ _ _ ->
             viewBigbitFSOpen
 
         _ ->

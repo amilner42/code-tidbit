@@ -261,32 +261,27 @@ view model shared =
                 let
                     previousFrameRoute =
                         case ( currentRoute, goingThroughTutorial ) of
-                            ( Route.ViewBigbitConclusionPage fromStoryID mongoID _, True ) ->
-                                Just <|
-                                    Route.ViewBigbitFramePage
-                                        fromStoryID
-                                        mongoID
-                                        (Array.length bigbit.highlightedComments)
-                                        Nothing
-
                             ( Route.ViewBigbitFramePage fromStoryID mongoID frameNumber _, True ) ->
-                                Just <|
-                                    Route.ViewBigbitFramePage
-                                        fromStoryID
-                                        mongoID
-                                        (frameNumber - 1)
-                                        Nothing
+                                if frameNumber == 1 then
+                                    Nothing
+                                else
+                                    Just <|
+                                        Route.ViewBigbitFramePage
+                                            fromStoryID
+                                            mongoID
+                                            (frameNumber - 1)
+                                            Nothing
 
                             _ ->
                                 Nothing
 
                     nextFrameRoute =
                         case ( currentRoute, goingThroughTutorial ) of
-                            ( Route.ViewBigbitIntroductionPage fromStoryID mongoID _, True ) ->
-                                Just <| Route.ViewBigbitFramePage fromStoryID mongoID 1 Nothing
-
                             ( Route.ViewBigbitFramePage fromStoryID mongoID frameNumber _, True ) ->
-                                Just <| Route.ViewBigbitFramePage fromStoryID mongoID (frameNumber + 1) Nothing
+                                if frameNumber == Array.length bigbit.highlightedComments then
+                                    Nothing
+                                else
+                                    Just <| Route.ViewBigbitFramePage fromStoryID mongoID (frameNumber + 1) Nothing
 
                             _ ->
                                 Nothing
@@ -302,35 +297,6 @@ view model shared =
                                     ]
                                 ]
                                 [ text "arrow_back" ]
-                            ]
-
-                    introduction =
-                        Route.navigationNode
-                            (if goingThroughTutorial then
-                                Route.ViewBigbitIntroductionPage
-                                    (Route.getFromStoryQueryParamOnViewBigbitRoute currentRoute)
-                                    bigbit.id
-                                    Nothing
-                                    |> (\route -> Just ( Route.Route route, GoTo route ))
-                             else
-                                Nothing
-                            )
-                            []
-                            [ div
-                                [ classList
-                                    [ ( "viewer-navbar-item", True )
-                                    , ( "selected"
-                                      , case currentRoute of
-                                            Route.ViewBigbitIntroductionPage _ _ _ ->
-                                                True
-
-                                            _ ->
-                                                False
-                                      )
-                                    , ( "disabled", not goingThroughTutorial )
-                                    ]
-                                ]
-                                [ text "Introduction" ]
                             ]
 
                     progressBar =
@@ -355,38 +321,9 @@ view model shared =
                                     , started = \frameNumber -> "Frame " ++ toString frameNumber
                                     , done = "100%"
                                     }
-                            , shiftLeft = True
+                            , shiftLeft = False
                             , alreadyComplete = { complete = userDoneBigbit, for = ProgressBar.Tidbit }
                             }
-
-                    conclusion =
-                        Route.navigationNode
-                            (if goingThroughTutorial then
-                                Route.ViewBigbitConclusionPage
-                                    (Route.getFromStoryQueryParamOnViewBigbitRoute currentRoute)
-                                    bigbit.id
-                                    Nothing
-                                    |> (\route -> Just ( Route.Route route, GoTo route ))
-                             else
-                                Nothing
-                            )
-                            []
-                            [ div
-                                [ classList
-                                    [ ( "viewer-navbar-item", True )
-                                    , ( "selected"
-                                      , case currentRoute of
-                                            Route.ViewBigbitConclusionPage _ _ _ ->
-                                                True
-
-                                            _ ->
-                                                False
-                                      )
-                                    , ( "disabled", not goingThroughTutorial )
-                                    ]
-                                ]
-                                [ text "Conclusion" ]
-                            ]
 
                     arrowForward =
                         Route.navigationNode
@@ -406,9 +343,7 @@ view model shared =
                     [ div
                         [ class "viewer-navbar" ]
                         [ arrowBack
-                        , introduction
                         , progressBar
-                        , conclusion
                         , arrowForward
                         ]
                     , div
@@ -477,12 +412,6 @@ viewBigbitCommentBox bigbit model shared =
                 []
                 [ Markdown.view [ hidden <| not <| tutorialOpen ] <|
                     case shared.route of
-                        Route.ViewBigbitIntroductionPage _ _ _ ->
-                            bigbit.introduction
-
-                        Route.ViewBigbitConclusionPage _ _ _ ->
-                            bigbit.conclusion
-
                         Route.ViewBigbitFramePage _ _ frameNumber _ ->
                             Array.get (frameNumber - 1) bigbit.highlightedComments
                                 ||> .comment
@@ -717,13 +646,7 @@ viewBigbitCommentBox bigbit model shared =
                 }
     in
     case shared.route of
-        Route.ViewBigbitIntroductionPage _ _ _ ->
-            tutorialRoute
-
         Route.ViewBigbitFramePage _ _ _ _ ->
-            tutorialRoute
-
-        Route.ViewBigbitConclusionPage _ _ _ ->
             tutorialRoute
 
         Route.ViewBigbitQuestionsPage _ bigbitID ->

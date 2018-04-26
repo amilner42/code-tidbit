@@ -84,7 +84,7 @@ getTidbitRoute fromStoryID tidbit =
             Route.ViewSnipbitFramePage fromStoryID id 1
 
         Bigbit { id } ->
-            Route.ViewBigbitIntroductionPage fromStoryID id Nothing
+            Route.ViewBigbitFramePage fromStoryID id 1 Nothing
 
 
 {-| Returns true if a tidbit is a snipbit.

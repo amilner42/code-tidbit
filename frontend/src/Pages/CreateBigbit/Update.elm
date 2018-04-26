@@ -627,7 +627,7 @@ update (Common common) msg model shared =
         OnPublishSuccess { targetID } ->
             ( init
             , { shared | userTidbits = Nothing }
-            , Route.navigateTo <| Route.ViewBigbitIntroductionPage Nothing targetID Nothing
+            , Route.navigateTo <| Route.ViewBigbitFramePage Nothing targetID 1 Nothing
             )
                 |> common.andFinishRequest RT.PublishBigbit
 

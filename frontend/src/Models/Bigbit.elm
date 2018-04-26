@@ -13,8 +13,6 @@ type alias Bigbit =
     { name : String
     , description : String
     , tags : List String
-    , introduction : String
-    , conclusion : String
     , fs : FS.FileStructure FSMetadata FolderMetadata FileMetadata
     , highlightedComments : Array.Array HighlightedComment
     , author : String

@@ -533,28 +533,10 @@ handleKeyPress model =
                 (Route.navigateTo <| Route.ViewSnipbitFramePage fromStoryID mongoID (frameNumber - 1))
                 (Route.navigateTo <| Route.ViewSnipbitFramePage fromStoryID mongoID (frameNumber + 1))
 
-        Route.ViewBigbitIntroductionPage fromStoryID mongoID _ ->
-            viewBigbitWatchForLeftAndRightArrow
-                Cmd.none
-                (Route.navigateTo <| Route.ViewBigbitFramePage fromStoryID mongoID 1 Nothing)
-
         Route.ViewBigbitFramePage fromStoryID mongoID frameNumber _ ->
             viewBigbitWatchForLeftAndRightArrow
                 (Route.navigateTo <| Route.ViewBigbitFramePage fromStoryID mongoID (frameNumber - 1) Nothing)
                 (Route.navigateTo <| Route.ViewBigbitFramePage fromStoryID mongoID (frameNumber + 1) Nothing)
-
-        Route.ViewBigbitConclusionPage fromStoryID mongoID _ ->
-            viewBigbitWatchForLeftAndRightArrow
-                (Route.navigateTo <|
-                    Route.ViewBigbitFramePage
-                        fromStoryID
-                        mongoID
-                        (model.viewBigbitPage.bigbit
-                            |> maybeMapWithDefault (.highlightedComments >> Array.length) 0
-                        )
-                        Nothing
-                )
-                Cmd.none
 
         Route.CreateStoryNamePage qpEditingStory ->
             watchForTabAndShiftTab
@@ -744,13 +726,7 @@ handleLocationChange maybeRoute model =
                 Route.ViewSnipbitEditAnswer _ _ _ ->
                     triggerRouteHookOnViewSnipbitPage
 
-                Route.ViewBigbitIntroductionPage _ _ _ ->
-                    triggerRouteHookOnViewBigbitPage
-
                 Route.ViewBigbitFramePage _ _ _ _ ->
-                    triggerRouteHookOnViewBigbitPage
-
-                Route.ViewBigbitConclusionPage _ _ _ ->
                     triggerRouteHookOnViewBigbitPage
 
                 Route.ViewBigbitQuestionsPage _ _ ->
@@ -876,14 +852,8 @@ googleAnalyticsPageName maybeRoute =
         Just (Route.ViewSnipbitEditAnswer _ _ _) ->
             "view-snipbit-qa-edit-answer"
 
-        Just (Route.ViewBigbitIntroductionPage _ _ _) ->
-            "view-bigbit-introduction"
-
         Just (Route.ViewBigbitFramePage _ _ _ _) ->
             "view-bigbit-frame"
-
-        Just (Route.ViewBigbitConclusionPage _ _ _) ->
-            "view-bigbit-conclusion"
 
         Just (Route.ViewBigbitQuestionsPage _ _) ->
             "view-bigbit-qa"
