@@ -274,9 +274,15 @@ view model shared =
                                                         Just NoOp
                                                     else if KK.isOneKeyPressed KK.Tab newKeysDown then
                                                         Just <|
-                                                            GoTo <|
-                                                                Route.CreateSnipbitCodeFramePage
-                                                                    (frameNumber + 1)
+                                                            if
+                                                                frameNumber
+                                                                    == Array.length model.highlightedComments
+                                                            then
+                                                                NoOp
+                                                            else
+                                                                GoTo <|
+                                                                    Route.CreateSnipbitCodeFramePage
+                                                                        (frameNumber + 1)
                                                     else if KK.isTwoKeysPressed KK.Tab KK.Shift newKeysDown then
                                                         Just <|
                                                             GoTo <|
