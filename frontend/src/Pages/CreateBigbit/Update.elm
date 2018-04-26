@@ -478,7 +478,7 @@ update (Common common) msg model shared =
                            )
 
                 {- After removing files/folders the current URL can become invalid, this function redirects to
-                   intro if needed.
+                   the first frame if needed.
                 -}
                 navigateIfRouteNowInvalid newFS newHighlightedComments =
                     let

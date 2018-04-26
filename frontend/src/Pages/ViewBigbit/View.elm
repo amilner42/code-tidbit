@@ -301,8 +301,7 @@ view model shared =
 
                     progressBar =
                         ProgressBar.view
-                            { -- TODO  we may need to update the progress bar for completion percentages since intro is gone
-                              state = Started model.bookmark
+                            { state = Started model.bookmark
                             , maxPosition = Array.length bigbit.highlightedComments
                             , disabledStyling = not goingThroughTutorial
                             , onClickMsg = BackToTutorialSpot
@@ -394,7 +393,7 @@ view model shared =
         ]
 
 
-{-| Gets the comment box for the view bigbit page, can be the markdown for the intro/conclusion/frame, the FS, or the
+{-| Gets the comment box for the view bigbit page, can be the markdown for the code frame, the FS, or the
 markdown with a few extra buttons for a selected range.
 -}
 viewBigbitCommentBox : Bigbit.Bigbit -> Model -> Shared -> Html Msg

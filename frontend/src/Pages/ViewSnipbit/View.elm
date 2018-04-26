@@ -322,7 +322,7 @@ view model shared =
         ]
 
 
-{-| Gets the comment box for the view snipbit page, can be the markdown for the intro/conclusion/frame or the markdown
+{-| Gets the comment box for the view snipbit page, can be the markdown for the code frame or the markdown
 with a few extra buttons for a selected range.
 -}
 commentBox : Snipbit.Snipbit -> Model -> Shared -> Html Msg
