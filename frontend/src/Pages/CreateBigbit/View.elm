@@ -15,7 +15,7 @@ import Models.RequestTracker as RT
 import Models.Route as Route exposing (createBigbitPageCurrentActiveFile)
 import Pages.CreateBigbit.Messages exposing (..)
 import Pages.CreateBigbit.Model exposing (..)
-import Pages.Model exposing (Shared, kkUpdateWrapper)
+import Pages.Model exposing (Shared)
 
 
 {-| `CreateBigbit` view.
@@ -468,39 +468,44 @@ view model shared =
                                                     (\key ->
                                                         let
                                                             newKeysDown =
-                                                                kkUpdateWrapper (KK.Down <| KK.toCode key) shared.keysDown
-                                                        in
-                                                        if key == KK.Tab then
-                                                            if newKeysDown == shared.keysDown then
-                                                                Just NoOp
-                                                            else if KK.isOneKeyPressed KK.Tab newKeysDown then
-                                                                Just <|
-                                                                    if Array.length model.highlightedComments == frameNumber then
-                                                                        NoOp
+                                                                KK.update (KK.Down <| KK.toCode key) shared.keysDown
+
+                                                            action =
+                                                                if key == KK.Tab then
+                                                                    if newKeysDown == shared.keysDown then
+                                                                        Just NoOp
                                                                     else
-                                                                        GoTo <|
-                                                                            Route.CreateBigbitCodeFramePage
-                                                                                (frameNumber + 1)
-                                                                                (getActiveFileForFrame
-                                                                                    (frameNumber + 1)
-                                                                                    model
-                                                                                )
-                                                            else if KK.isTwoKeysPressed KK.Tab KK.Shift newKeysDown then
-                                                                Just <|
-                                                                    GoTo <|
-                                                                        if frameNumber == 1 then
-                                                                            Route.CreateBigbitTagsPage
-                                                                        else
-                                                                            Route.CreateBigbitCodeFramePage
-                                                                                (frameNumber - 1)
-                                                                                (getActiveFileForFrame
-                                                                                    (frameNumber - 1)
-                                                                                    model
-                                                                                )
-                                                            else
-                                                                Nothing
-                                                        else
-                                                            Nothing
+                                                                        KK.getHotkeyAction
+                                                                            [ ( [ KK.Tab ]
+                                                                              , if Array.length model.highlightedComments == frameNumber then
+                                                                                    NoOp
+                                                                                else
+                                                                                    GoTo <|
+                                                                                        Route.CreateBigbitCodeFramePage
+                                                                                            (frameNumber + 1)
+                                                                                            (getActiveFileForFrame
+                                                                                                (frameNumber + 1)
+                                                                                                model
+                                                                                            )
+                                                                              )
+                                                                            , ( [ KK.Tab, KK.Shift ]
+                                                                              , GoTo <|
+                                                                                    if frameNumber == 1 then
+                                                                                        Route.CreateBigbitTagsPage
+                                                                                    else
+                                                                                        Route.CreateBigbitCodeFramePage
+                                                                                            (frameNumber - 1)
+                                                                                            (getActiveFileForFrame
+                                                                                                (frameNumber - 1)
+                                                                                                model
+                                                                                            )
+                                                                              )
+                                                                            ]
+                                                                            newKeysDown
+                                                                else
+                                                                    Nothing
+                                                        in
+                                                        action
                                                     )
                                                 ]
                                             )
