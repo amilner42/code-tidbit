@@ -451,8 +451,8 @@ handleKeyPress model =
         -- Basic helper for handling ctrl- ctrl= situations.
         watchForControlEqualsAndControlMinus onControlEquals onControlMinus =
             KK.getHotkeyAction
-                [ ( [ KK.Control, KK.Equals ], onControlEquals )
-                , ( [ KK.Control, KK.HyphenMinus ], onControlMinus )
+                [ ( [ KK.Control, KK.Period ], onControlEquals )
+                , ( [ KK.Control, KK.Comma ], onControlMinus )
                 ]
                 keysDown
                 ?> doNothing
