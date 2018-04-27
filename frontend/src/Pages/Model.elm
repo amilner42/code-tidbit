@@ -68,33 +68,6 @@ type alias Shared =
     }
 
 
-{-| A wrapper around KK.update to handle extra logic.
-
-Extra Logic: When someone clicks shift-tab, they could let go of the tab but keep their hand on the shift and click the
-tab again to "double-shift-tab" to allow this behaviour, every shift tab we reset it as if it was the first shift-tab
-clicked.
-
--}
-kkUpdateWrapper : KK.Msg -> KK.Model -> KK.Model
-kkUpdateWrapper keyMsg keysDown =
-    let
-        newKeysDown =
-            KK.update keyMsg keysDown
-    in
-    case newKeysDown of
-        [ Just key1, Nothing, Just key2 ] ->
-            if
-                (KK.fromCode key1 == KK.Tab)
-                    && (KK.fromCode key2 == KK.Shift)
-            then
-                [ Just key1, Just key2 ]
-            else
-                newKeysDown
-
-        _ ->
-            newKeysDown
-
-
 {-| Updates `keysDown`.
 -}
 updateKeysDown : KK.Model -> Model -> Model
@@ -109,10 +82,3 @@ updateKeysDown newKeysDown model =
                 | keysDown = newKeysDown
             }
     }
-
-
-{-| Updates 'keysDown' with the given list of `Key`s.
--}
-updateKeysDownWithKeys : List KK.Key -> Model -> Model
-updateKeysDownWithKeys newKeys =
-    updateKeysDown (List.map (Just << KK.toCode) newKeys)

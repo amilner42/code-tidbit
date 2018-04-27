@@ -14,7 +14,7 @@ import Models.RequestTracker as RT
 import Models.Route as Route
 import Pages.CreateSnipbit.Messages exposing (..)
 import Pages.CreateSnipbit.Model exposing (..)
-import Pages.Model exposing (Shared, kkUpdateWrapper)
+import Pages.Model exposing (Shared)
 
 
 {-| `CreateSnipbit` view.
@@ -267,31 +267,36 @@ view model shared =
                                             (\key ->
                                                 let
                                                     newKeysDown =
-                                                        kkUpdateWrapper (KK.Down <| KK.toCode key) shared.keysDown
-                                                in
-                                                if key == KK.Tab then
-                                                    if newKeysDown == shared.keysDown then
-                                                        Just NoOp
-                                                    else if KK.isOneKeyPressed KK.Tab newKeysDown then
-                                                        Just <|
-                                                            if
-                                                                frameNumber
-                                                                    == Array.length model.highlightedComments
-                                                            then
-                                                                NoOp
+                                                        KK.update (KK.Down <| KK.toCode key) shared.keysDown
+
+                                                    action =
+                                                        if key == KK.Tab then
+                                                            if newKeysDown == shared.keysDown then
+                                                                Just NoOp
                                                             else
-                                                                GoTo <|
-                                                                    Route.CreateSnipbitCodeFramePage
-                                                                        (frameNumber + 1)
-                                                    else if KK.isTwoKeysPressed KK.Tab KK.Shift newKeysDown then
-                                                        Just <|
-                                                            GoTo <|
-                                                                Route.CreateSnipbitCodeFramePage
-                                                                    (frameNumber - 1)
-                                                    else
-                                                        Nothing
-                                                else
-                                                    Nothing
+                                                                KK.getHotkeyAction
+                                                                    [ ( [ KK.Tab ]
+                                                                      , if
+                                                                            frameNumber
+                                                                                == Array.length model.highlightedComments
+                                                                        then
+                                                                            NoOp
+                                                                        else
+                                                                            GoTo <|
+                                                                                Route.CreateSnipbitCodeFramePage
+                                                                                    (frameNumber + 1)
+                                                                      )
+                                                                    , ( [ KK.Tab, KK.Shift ]
+                                                                      , GoTo <|
+                                                                            Route.CreateSnipbitCodeFramePage
+                                                                                (frameNumber - 1)
+                                                                      )
+                                                                    ]
+                                                                    newKeysDown
+                                                        else
+                                                            Nothing
+                                                in
+                                                action
                                             )
                                         ]
                                     )

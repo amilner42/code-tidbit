@@ -1,8 +1,8 @@
 module Pages.Update exposing (update, updateCacheIf)
 
 import Api
-import Array
 import DefaultServices.CommonSubPageUtil exposing (commonSubPageUtil)
+import DefaultServices.InfixFunctions exposing (..)
 import DefaultServices.LocalStorage as LocalStorage
 import DefaultServices.Util as Util exposing (maybeMapWithDefault)
 import Keyboard.Extra as KK
@@ -20,7 +20,7 @@ import Pages.DefaultModel exposing (defaultModel)
 import Pages.DevelopStory.Messages as DevelopStoryMessages
 import Pages.DevelopStory.Update as DevelopStoryUpdate
 import Pages.Messages exposing (Msg(..))
-import Pages.Model exposing (Model, kkUpdateWrapper, updateKeysDown, updateKeysDownWithKeys)
+import Pages.Model exposing (Model, updateKeysDown)
 import Pages.NewStory.Messages as NewStoryMessages
 import Pages.NewStory.Update as NewStoryUpdate
 import Pages.Notifications.Messages as NotificationsMessages
@@ -394,7 +394,7 @@ updateCacheIf msg model shouldCache =
                 KeyboardExtraMessage msg ->
                     let
                         newKeysDown =
-                            kkUpdateWrapper msg model.shared.keysDown
+                            KK.update msg model.shared.keysDown
 
                         modelWithNewKeys =
                             updateKeysDown newKeysDown model
@@ -448,35 +448,32 @@ handleKeyPress model =
         doNothing =
             ( model, Cmd.none )
 
-        tabPressed =
-            KK.isOneKeyPressed KK.Tab keysDown
-
-        shiftTabPressed =
-            KK.isTwoKeysPressed KK.Tab KK.Shift keysDown
-
-        leftArrowPressed =
-            KK.isOneKeyPressed KK.ArrowLeft keysDown
-
-        rightArrowPressed =
-            KK.isOneKeyPressed KK.ArrowRight keysDown
+        -- Basic helper for handling ctrl- ctrl= situations.
+        watchForControlEqualsAndControlMinus onControlEquals onControlMinus =
+            KK.getHotkeyAction
+                [ ( [ KK.Control, KK.Period ], onControlEquals )
+                , ( [ KK.Control, KK.Comma ], onControlMinus )
+                ]
+                keysDown
+                ?> doNothing
 
         -- Basic helper for handling tab/shift-tab situations.
         watchForTabAndShiftTab onTab onShiftTab =
-            if tabPressed then
-                ( model, onTab )
-            else if shiftTabPressed then
-                ( model, onShiftTab )
-            else
-                doNothing
+            KK.getHotkeyAction
+                [ ( [ KK.Tab ], ( model, onTab ) )
+                , ( [ KK.Tab, KK.Shift ], ( model, onShiftTab ) )
+                ]
+                keysDown
+                ?> doNothing
 
         -- Basic helper for left/right arrow situations.
         watchForLeftAndRightArrow onLeft onRight =
-            if leftArrowPressed then
-                ( model, onLeft )
-            else if rightArrowPressed then
-                ( model, onRight )
-            else
-                doNothing
+            KK.getHotkeyAction
+                [ ( [ KK.ArrowLeft ], ( model, onLeft ) )
+                , ( [ KK.ArrowRight ], ( model, onRight ) )
+                ]
+                keysDown
+                ?> doNothing
 
         -- Makes sure to only activate arrow keys if in the tutorial.
         viewSnipbitWatchForLeftAndRightArrow onLeft onRight =
@@ -508,6 +505,11 @@ handleKeyPress model =
                 (Util.cmdFromMsg <| CreateBigbitMessage CreateBigbitMessages.GoToCodeTab)
                 (Route.navigateTo Route.CreateBigbitDescriptionPage)
 
+        Route.CreateBigbitCodeFramePage _ _ ->
+            watchForControlEqualsAndControlMinus
+                (update (CreateBigbitMessage CreateBigbitMessages.AddFrame) model)
+                (update (CreateBigbitMessage CreateBigbitMessages.RemoveFrame) model)
+
         Route.CreateSnipbitNamePage ->
             watchForTabAndShiftTab
                 (Route.navigateTo Route.CreateSnipbitDescriptionPage)
@@ -527,6 +529,11 @@ handleKeyPress model =
             watchForTabAndShiftTab
                 (Util.cmdFromMsg <| CreateSnipbitMessage CreateSnipbitMessages.GoToCodeTab)
                 (Route.navigateTo Route.CreateSnipbitLanguagePage)
+
+        Route.CreateSnipbitCodeFramePage _ ->
+            watchForControlEqualsAndControlMinus
+                (update (CreateSnipbitMessage CreateSnipbitMessages.AddFrame) model)
+                (update (CreateSnipbitMessage CreateSnipbitMessages.RemoveFrame) model)
 
         Route.ViewSnipbitFramePage fromStoryID mongoID frameNumber ->
             viewSnipbitWatchForLeftAndRightArrow
