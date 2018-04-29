@@ -2,6 +2,7 @@ module Pages.Create.View exposing (..)
 
 import DefaultServices.Util as Util
 import Elements.Simple.Editor exposing (prettyPrintLanguages)
+import ExplanatoryBlurbs exposing (bigbitInfo, snipbitInfo)
 import Html exposing (Html, button, div, i, text)
 import Html.Attributes exposing (class, classList)
 import Html.Events exposing (onClick)
@@ -17,24 +18,6 @@ import Pages.Model exposing (Shared)
 view : Model -> Shared -> Html Msg
 view model shared =
     let
-        snipBitDescription : String
-        snipBitDescription =
-            """SnipBits are uni-language snippets of code that are targetted at explaining simple individual concepts or
-            answering questions.
-
-            You highlight chunks of the code with attached comments, taking your viewers through your code explaining
-            everything one step at a time.
-            """
-
-        bigBitInfo : String
-        bigBitInfo =
-            """BigBits are multi-language projects of code targetted at simplifying larger tutorials which require their
-            own file structure.
-
-            You highlight chunks of code and attach comments automatically taking your user through all the files and
-            folders in a directed fashion while still letting them explore themselves.
-            """
-
         makeTidbitTypeBox : String -> String -> String -> ( Route.Route, Msg ) -> TidbitType -> Html Msg
         makeTidbitTypeBox title subTitle description ( route, onClickMsg ) tidbitType =
             div
@@ -133,13 +116,13 @@ view model shared =
             [ makeTidbitTypeBox
                 "SnipBit"
                 "Explain a chunk of code"
-                snipBitDescription
+                snipbitInfo
                 ( Route.CreateSnipbitNamePage, GoTo Route.CreateSnipbitNamePage )
                 SnipBit
             , makeTidbitTypeBox
                 "BigBit"
                 "Explain a full project"
-                bigBitInfo
+                bigbitInfo
                 ( Route.CreateBigbitNamePage, GoTo Route.CreateBigbitNamePage )
                 BigBit
             , div

@@ -64,3 +64,27 @@ markdownExplanatoryText =
         ++ "...\n"
         ++ "```\n\n"
         ++ "> indented text"
+
+
+{-| Used on the `Create` page.
+-}
+snipbitInfo : String
+snipbitInfo =
+    """SnipBits are uni-language snippets of code that are targetted at explaining simple individual concepts or
+    answering questions.
+
+    You highlight chunks of the code with attached comments, taking your viewers through your code explaining
+    everything one step at a time.
+    """
+
+
+{-| Used on the `Create` page.
+-}
+bigbitInfo : String
+bigbitInfo =
+    """BigBits are multi-language projects of code targetted at simplifying larger tutorials which require their
+    own file structure.
+
+    You highlight chunks of code and attach comments automatically taking your user through all the files and
+    folders in a directed fashion while still letting them explore themselves.
+    """
