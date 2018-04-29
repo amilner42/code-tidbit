@@ -6,6 +6,7 @@ import DefaultServices.TextFields as TextFields
 import DefaultServices.Util as Util
 import Elements.Simple.Editor as Editor
 import Elements.Simple.Tags as Tags
+import ExplanatoryBlurbs exposing (markdownFramePlaceholder)
 import Html exposing (Html, button, div, hr, i, text)
 import Html.Attributes exposing (class, classList, defaultValue, disabled, hidden, id, placeholder)
 import Html.Events exposing (onClick, onInput)
@@ -255,11 +256,7 @@ view model shared =
                                     (TextFields.textarea
                                         shared.textFieldKeyTracker
                                         ("create-snipbit-frame-" ++ toString frameNumber)
-                                        [ placeholder <|
-                                            "Frame "
-                                                ++ toString frameNumber
-                                                ++ "\n\n"
-                                                ++ "Highlight a chunk of code and explain it..."
+                                        [ placeholder <| markdownFramePlaceholder frameNumber
                                         , id "frame-input"
                                         , onInput <| OnUpdateFrameComment frameIndex
                                         , defaultValue frameText

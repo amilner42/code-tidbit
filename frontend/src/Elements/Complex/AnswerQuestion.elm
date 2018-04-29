@@ -3,6 +3,7 @@ module Elements.Complex.AnswerQuestion exposing (..)
 import DefaultServices.TextFields as TextFields
 import DefaultServices.Util as Util
 import Elements.Simple.Markdown as Markdown
+import ExplanatoryBlurbs exposing (answerQuestionPlaceholder)
 import Html exposing (Html, div, text)
 import Html.Attributes exposing (class, classList, defaultValue, disabled, placeholder)
 import Html.Events exposing (onClick, onInput)
@@ -95,7 +96,7 @@ view config { previewMarkdown, showQuestion, answerText } =
                         [ ( "hiding-question", not showQuestion )
                         , ( "cursor-progress", config.answerQuestionRequestInProgress )
                         ]
-                    , placeholder "Answer Question"
+                    , placeholder answerQuestionPlaceholder
                     , disabled config.answerQuestionRequestInProgress
                     , onInput (config.msgTagger << OnAnswerTextInput)
                     , defaultValue answerText
