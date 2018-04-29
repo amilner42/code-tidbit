@@ -4,6 +4,7 @@ import DefaultServices.InfixFunctions exposing (..)
 import DefaultServices.TextFields as TextFields
 import DefaultServices.Util as Util
 import Elements.Simple.Markdown as Markdown
+import ExplanatoryBlurbs exposing (askQuestionPlaceholder)
 import Html exposing (Html, div, text)
 import Html.Attributes exposing (class, classList, defaultValue, disabled, placeholder)
 import Html.Events exposing (onClick, onInput)
@@ -76,7 +77,7 @@ view config model =
                     config.textFieldKeyTracker
                     "ask-question"
                     [ classList [ ( "cursor-progress", config.askQuestionRequestInProgress ) ]
-                    , placeholder "Highlight code and ask your question..."
+                    , placeholder askQuestionPlaceholder
                     , onInput (OnQuestionTextInput >> config.msgTagger)
                     , defaultValue model.questionText
                     , disabled <| config.askQuestionRequestInProgress

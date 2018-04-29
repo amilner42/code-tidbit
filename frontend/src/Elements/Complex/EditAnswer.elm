@@ -4,6 +4,7 @@ import DefaultServices.Editable as Editable
 import DefaultServices.TextFields as TextFields
 import DefaultServices.Util as Util
 import Elements.Simple.Markdown as Markdown
+import ExplanatoryBlurbs exposing (editAnswerPlaceholder)
 import Html exposing (Html, div, text)
 import Html.Attributes exposing (class, classList, defaultValue, disabled, placeholder)
 import Html.Events exposing (onClick, onInput)
@@ -90,7 +91,7 @@ view config ({ previewMarkdown, showQuestion } as model) =
                         [ ( "hiding-question", not showQuestion )
                         , ( "cursor-progress", config.editAnswerRequestInProgress )
                         ]
-                    , placeholder "Edit Answer Text"
+                    , placeholder editAnswerPlaceholder
                     , disabled config.editAnswerRequestInProgress
                     , defaultValue answerText
                     , onInput (config.msgTagger << OnAnswerTextInput)

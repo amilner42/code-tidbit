@@ -6,6 +6,7 @@ import DefaultServices.Util as Util exposing (maybeMapWithDefault, togglePreview
 import Elements.Simple.Editor as Editor
 import Elements.Simple.FileStructure as FS
 import Elements.Simple.Tags as Tags
+import ExplanatoryBlurbs exposing (markdownFramePlaceholder)
 import Html exposing (Html, button, div, h1, h3, hr, i, img, text)
 import Html.Attributes exposing (class, classList, defaultValue, disabled, hidden, id, placeholder, src, style)
 import Html.Events exposing (onClick, onInput)
@@ -456,11 +457,7 @@ view model shared =
                                             (TextFields.textarea
                                                 shared.textFieldKeyTracker
                                                 ("create-bigbit-frame-" ++ toString frameNumber)
-                                                [ placeholder <|
-                                                    "Frame "
-                                                        ++ toString frameNumber
-                                                        ++ "\n\n"
-                                                        ++ "Highlight a chunk of code and explain it..."
+                                                [ placeholder <| markdownFramePlaceholder frameNumber
                                                 , id "frame-input"
                                                 , onInput <| OnUpdateFrameComment frameNumber
                                                 , defaultValue frameText

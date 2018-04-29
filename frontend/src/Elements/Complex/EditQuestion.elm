@@ -4,6 +4,7 @@ import DefaultServices.Editable as Editable
 import DefaultServices.InfixFunctions exposing (..)
 import DefaultServices.TextFields as TextFields
 import DefaultServices.Util as Util
+import ExplanatoryBlurbs exposing (editQuestionPlaceholder)
 import Html exposing (Html, div, text)
 import Html.Attributes exposing (class, classList, defaultValue, disabled, placeholder)
 import Html.Events exposing (onClick, onInput)
@@ -70,7 +71,7 @@ view config model =
                     config.textFieldKeyTracker
                     "edit-question"
                     [ classList [ ( "cursor-progress", config.editQuestionRequestInProgress ) ]
-                    , placeholder "Edit question text..."
+                    , placeholder editQuestionPlaceholder
                     , defaultValue questionText
                     , onInput (OnQuestionTextInput >> config.msgTagger)
                     , disabled <| config.editQuestionRequestInProgress
