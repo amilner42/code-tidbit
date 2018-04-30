@@ -1,6 +1,7 @@
 module Pages.Update exposing (update, updateCacheIf)
 
 import Api
+import Array
 import DefaultServices.CommonSubPageUtil exposing (commonSubPageUtil)
 import DefaultServices.InfixFunctions exposing (..)
 import DefaultServices.LocalStorage as LocalStorage
@@ -13,6 +14,7 @@ import Pages.Browse.Update as BrowseUpdate
 import Pages.Create.Messages as CreateMessages
 import Pages.Create.Update as CreateUpdate
 import Pages.CreateBigbit.Messages as CreateBigbitMessages
+import Pages.CreateBigbit.Model as CreateBigbitModel
 import Pages.CreateBigbit.Update as CreateBigbitUpdate
 import Pages.CreateSnipbit.Messages as CreateSnipbitMessages
 import Pages.CreateSnipbit.Update as CreateSnipbitUpdate
@@ -448,8 +450,8 @@ handleKeyPress model =
         doNothing =
             ( model, Cmd.none )
 
-        -- Basic helper for handling ctrl- ctrl= situations.
-        watchForControlEqualsAndControlMinus onControlEquals onControlMinus =
+        -- Basic helper for handling ctrl-, ctrl-. situations.
+        watchForControlPeriodAndControlComma onControlEquals onControlMinus =
             KK.getHotkeyAction
                 [ ( [ KK.Control, KK.Period ], onControlEquals )
                 , ( [ KK.Control, KK.Comma ], onControlMinus )
@@ -505,10 +507,27 @@ handleKeyPress model =
                 (Util.cmdFromMsg <| CreateBigbitMessage CreateBigbitMessages.GoToCodeTab)
                 (Route.navigateTo Route.CreateBigbitDescriptionPage)
 
-        Route.CreateBigbitCodeFramePage _ _ ->
-            watchForControlEqualsAndControlMinus
-                (update (CreateBigbitMessage CreateBigbitMessages.AddFrame) model)
-                (update (CreateBigbitMessage CreateBigbitMessages.RemoveFrame) model)
+        Route.CreateBigbitCodeFramePage frameNumber _ ->
+            if model.createBigbitPage.previewMarkdown then
+                watchForLeftAndRightArrow
+                    (if frameNumber == 1 then
+                        Cmd.none
+                     else
+                        Route.navigateTo <|
+                            Route.CreateBigbitCodeFramePage (frameNumber - 1) <|
+                                CreateBigbitModel.getActiveFileForFrame (frameNumber - 1) model.createBigbitPage
+                    )
+                    (if frameNumber == Array.length model.createBigbitPage.highlightedComments then
+                        Cmd.none
+                     else
+                        Route.navigateTo <|
+                            Route.CreateBigbitCodeFramePage (frameNumber + 1) <|
+                                CreateBigbitModel.getActiveFileForFrame (frameNumber + 1) model.createBigbitPage
+                    )
+            else
+                watchForControlPeriodAndControlComma
+                    (update (CreateBigbitMessage CreateBigbitMessages.AddFrame) model)
+                    (update (CreateBigbitMessage CreateBigbitMessages.RemoveFrame) model)
 
         Route.CreateSnipbitNamePage ->
             watchForTabAndShiftTab
@@ -530,10 +549,23 @@ handleKeyPress model =
                 (Util.cmdFromMsg <| CreateSnipbitMessage CreateSnipbitMessages.GoToCodeTab)
                 (Route.navigateTo Route.CreateSnipbitLanguagePage)
 
-        Route.CreateSnipbitCodeFramePage _ ->
-            watchForControlEqualsAndControlMinus
-                (update (CreateSnipbitMessage CreateSnipbitMessages.AddFrame) model)
-                (update (CreateSnipbitMessage CreateSnipbitMessages.RemoveFrame) model)
+        Route.CreateSnipbitCodeFramePage frameNumber ->
+            if model.createSnipbitPage.previewMarkdown then
+                watchForLeftAndRightArrow
+                    (if frameNumber == 1 then
+                        Cmd.none
+                     else
+                        Route.navigateTo <| Route.CreateSnipbitCodeFramePage <| frameNumber - 1
+                    )
+                    (if frameNumber == Array.length model.createSnipbitPage.highlightedComments then
+                        Cmd.none
+                     else
+                        Route.navigateTo <| Route.CreateSnipbitCodeFramePage <| frameNumber + 1
+                    )
+            else
+                watchForControlPeriodAndControlComma
+                    (update (CreateSnipbitMessage CreateSnipbitMessages.AddFrame) model)
+                    (update (CreateSnipbitMessage CreateSnipbitMessages.RemoveFrame) model)
 
         Route.ViewSnipbitFramePage fromStoryID mongoID frameNumber ->
             viewSnipbitWatchForLeftAndRightArrow
