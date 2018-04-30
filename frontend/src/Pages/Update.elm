@@ -529,25 +529,10 @@ handleKeyPress model =
                     (update (CreateBigbitMessage CreateBigbitMessages.AddFrame) model)
                     (update (CreateBigbitMessage CreateBigbitMessages.RemoveFrame) model)
 
-        Route.CreateSnipbitNamePage ->
+        Route.CreateSnipbitInfoPage ->
             watchForTabAndShiftTab
-                (Route.navigateTo Route.CreateSnipbitDescriptionPage)
+                (Route.navigateTo <| Route.CreateSnipbitCodeFramePage 1)
                 Cmd.none
-
-        Route.CreateSnipbitDescriptionPage ->
-            watchForTabAndShiftTab
-                (Route.navigateTo Route.CreateSnipbitLanguagePage)
-                (Route.navigateTo Route.CreateSnipbitNamePage)
-
-        Route.CreateSnipbitLanguagePage ->
-            watchForTabAndShiftTab
-                (Route.navigateTo Route.CreateSnipbitTagsPage)
-                (Route.navigateTo Route.CreateSnipbitDescriptionPage)
-
-        Route.CreateSnipbitTagsPage ->
-            watchForTabAndShiftTab
-                (Util.cmdFromMsg <| CreateSnipbitMessage CreateSnipbitMessages.GoToCodeTab)
-                (Route.navigateTo Route.CreateSnipbitLanguagePage)
 
         Route.CreateSnipbitCodeFramePage frameNumber ->
             if model.createSnipbitPage.previewMarkdown then
@@ -801,16 +786,7 @@ handleLocationChange maybeRoute model =
                 Route.ViewStoryPage _ ->
                     triggerRouteHookOnViewStoryPage
 
-                Route.CreateSnipbitNamePage ->
-                    triggerRouteHookOnCreateSnipbitPage
-
-                Route.CreateSnipbitDescriptionPage ->
-                    triggerRouteHookOnCreateSnipbitPage
-
-                Route.CreateSnipbitLanguagePage ->
-                    triggerRouteHookOnCreateSnipbitPage
-
-                Route.CreateSnipbitTagsPage ->
+                Route.CreateSnipbitInfoPage ->
                     triggerRouteHookOnCreateSnipbitPage
 
                 Route.CreateSnipbitCodeFramePage _ ->
@@ -930,16 +906,7 @@ googleAnalyticsPageName maybeRoute =
         Just Route.CreatePage ->
             "create"
 
-        Just Route.CreateSnipbitNamePage ->
-            "create-snipbit"
-
-        Just Route.CreateSnipbitDescriptionPage ->
-            "create-snipbit"
-
-        Just Route.CreateSnipbitLanguagePage ->
-            "create-snipbit"
-
-        Just Route.CreateSnipbitTagsPage ->
+        Just Route.CreateSnipbitInfoPage ->
             "create-snipbit"
 
         Just (Route.CreateSnipbitCodeFramePage _) ->

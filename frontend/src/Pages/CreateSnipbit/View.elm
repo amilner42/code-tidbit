@@ -71,39 +71,12 @@ view model shared =
                 [ div
                     [ classList
                         [ ( "create-tidbit-tab", True )
-                        , ( "create-tidbit-selected-tab", currentRoute == Route.CreateSnipbitNamePage )
+                        , ( "create-tidbit-selected-tab", currentRoute == Route.CreateSnipbitInfoPage )
                         , ( "filled-in", Util.isNotNothing <| nameFilledIn model )
                         ]
-                    , onClick <| GoTo Route.CreateSnipbitNamePage
+                    , onClick <| GoTo Route.CreateSnipbitInfoPage
                     ]
-                    [ text "Name" ]
-                , div
-                    [ classList
-                        [ ( "create-tidbit-tab", True )
-                        , ( "create-tidbit-selected-tab", currentRoute == Route.CreateSnipbitDescriptionPage )
-                        , ( "filled-in", Util.isNotNothing <| descriptionFilledIn model )
-                        ]
-                    , onClick <| GoTo Route.CreateSnipbitDescriptionPage
-                    ]
-                    [ text "Description" ]
-                , div
-                    [ classList
-                        [ ( "create-tidbit-tab", True )
-                        , ( "create-tidbit-selected-tab", currentRoute == Route.CreateSnipbitLanguagePage )
-                        , ( "filled-in", Util.isNotNothing <| model.language )
-                        ]
-                    , onClick <| GoTo Route.CreateSnipbitLanguagePage
-                    ]
-                    [ text "Language" ]
-                , div
-                    [ classList
-                        [ ( "create-tidbit-tab", True )
-                        , ( "create-tidbit-selected-tab", currentRoute == Route.CreateSnipbitTagsPage )
-                        , ( "filled-in", Util.isNotNothing <| tagsFilledIn model )
-                        ]
-                    , onClick <| GoTo Route.CreateSnipbitTagsPage
-                    ]
-                    [ text "Tags" ]
+                    [ text "Info" ]
                 , div
                     [ classList
                         [ ( "create-tidbit-tab", True )
@@ -120,10 +93,20 @@ view model shared =
                     , onClick <| GoToCodeTab
                     ]
                     [ text "Code" ]
+                , div
+                    [ classList
+                        [ ( "create-tidbit-tab", True )
+
+                        -- TODO Change
+                        , ( "create-tidbit-selected-tab", False )
+                        , ( "filled-in", False )
+                        ]
+                    ]
+                    [ text "Quiz" ]
                 ]
 
-        nameView : Html Msg
-        nameView =
+        infoView : Html Msg
+        infoView =
             div
                 [ class "create-snipbit-name" ]
                 [ TextFields.input
@@ -142,83 +125,6 @@ view model shared =
                         )
                     ]
                 , Util.limitCharsText 50 model.name
-                ]
-
-        descriptionView : Html Msg
-        descriptionView =
-            div
-                [ class "create-snipbit-description" ]
-                [ TextFields.textarea
-                    shared.textFieldKeyTracker
-                    "create-snipbit-description"
-                    [ class "create-snipbit-description-box"
-                    , placeholder "Description"
-                    , id "description-input"
-                    , onInput OnUpdateDescription
-                    , defaultValue model.description
-                    , Util.onKeydownPreventDefault
-                        (\key ->
-                            if key == KK.Tab then
-                                Just NoOp
-                            else
-                                Nothing
-                        )
-                    ]
-                , Util.limitCharsText 300 model.description
-                ]
-
-        languageView : Html Msg
-        languageView =
-            div
-                [ class "create-snipbit-language" ]
-                [ TextFields.input
-                    shared.textFieldKeyTracker
-                    "create-snipbit-language"
-                    [ placeholder "Language"
-                    , id "language-query-input"
-                    , onInput OnUpdateLanguageQuery
-                    , defaultValue model.languageQuery
-                    , disabled <|
-                        Util.isNotNothing
-                            model.language
-                    , Util.onKeydownPreventDefault
-                        (\key ->
-                            if key == KK.Tab || key == KK.ArrowUp || key == KK.ArrowDown then
-                                Just NoOp
-                            else
-                                Nothing
-                        )
-                    ]
-                , viewMenu
-                , button
-                    [ onClick <| SelectLanguage Nothing
-                    , classList [ ( "hidden", Util.isNothing model.language ) ]
-                    ]
-                    [ text "change language" ]
-                ]
-
-        tagsView : Html Msg
-        tagsView =
-            div
-                [ class "create-tidbit-tags" ]
-                [ TextFields.input
-                    shared.textFieldKeyTracker
-                    "create-snipbit-tags"
-                    [ placeholder "Tags"
-                    , id "tags-input"
-                    , onInput OnUpdateTagInput
-                    , defaultValue model.tagInput
-                    , Util.onKeydownPreventDefault
-                        (\key ->
-                            if key == KK.Enter || key == KK.Space then
-                                Just <| AddTag model.tagInput
-                            else if key == KK.Tab then
-                                Just <| NoOp
-                            else
-                                Nothing
-                        )
-                    ]
-                , Tags.view RemoveTag model.tags
                 ]
 
         tidbitView : Html Msg
@@ -370,24 +276,15 @@ view model shared =
         viewForTab : Html Msg
         viewForTab =
             case currentRoute of
-                Route.CreateSnipbitNamePage ->
-                    nameView
-
-                Route.CreateSnipbitDescriptionPage ->
-                    descriptionView
-
-                Route.CreateSnipbitLanguagePage ->
-                    languageView
-
-                Route.CreateSnipbitTagsPage ->
-                    tagsView
+                Route.CreateSnipbitInfoPage ->
+                    infoView
 
                 Route.CreateSnipbitCodeFramePage _ ->
                     tidbitView
 
                 -- Default to name view.
                 _ ->
-                    nameView
+                    infoView
 
         {- It should be disabled unles everything is filled out. -}
         publishButton =

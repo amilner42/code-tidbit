@@ -255,16 +255,7 @@ viewForRoute model =
         Route.CreatePage ->
             createPage
 
-        Route.CreateSnipbitNamePage ->
-            createSnipbitPage
-
-        Route.CreateSnipbitDescriptionPage ->
-            createSnipbitPage
-
-        Route.CreateSnipbitLanguagePage ->
-            createSnipbitPage
-
-        Route.CreateSnipbitTagsPage ->
+        Route.CreateSnipbitInfoPage ->
             createSnipbitPage
 
         Route.CreateSnipbitCodeFramePage _ ->
@@ -512,10 +503,7 @@ navbar model =
                     List.member
                         shared.route
                         [ Route.CreatePage
-                        , Route.CreateSnipbitNamePage
-                        , Route.CreateSnipbitDescriptionPage
-                        , Route.CreateSnipbitLanguagePage
-                        , Route.CreateSnipbitTagsPage
+                        , Route.CreateSnipbitInfoPage
                         , Route.CreateBigbitNamePage
                         , Route.CreateBigbitDescriptionPage
                         , Route.CreateBigbitTagsPage

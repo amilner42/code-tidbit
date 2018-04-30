@@ -45,10 +45,7 @@ type Route
     | ViewBigbitEditAnswer (Maybe StoryID) BigbitID AnswerID
     | ViewStoryPage StoryID
     | CreatePage
-    | CreateSnipbitNamePage
-    | CreateSnipbitDescriptionPage
-    | CreateSnipbitLanguagePage
-    | CreateSnipbitTagsPage
+    | CreateSnipbitInfoPage
     | CreateSnipbitCodeFramePage FrameNumber
     | CreateBigbitNamePage
     | CreateBigbitDescriptionPage
@@ -174,17 +171,8 @@ matchers =
         createSnipbit =
             create </> s "snipbit"
 
-        createSnipbitName =
-            createSnipbit </> s "name"
-
-        createSnipbitDescription =
-            createSnipbit </> s "description"
-
-        createSnipbitLanguage =
-            createSnipbit </> s "language"
-
-        createSnipbitTags =
-            createSnipbit </> s "tags"
+        createSnipbitInfo =
+            createSnipbit </> s "info"
 
         -- Abstract.
         createSnipbitCode =
@@ -284,10 +272,7 @@ matchers =
         , map ViewBigbitEditAnswer viewBigbitEditAnswer
         , map ViewStoryPage viewStory
         , map CreatePage create
-        , map CreateSnipbitNamePage createSnipbitName
-        , map CreateSnipbitDescriptionPage createSnipbitDescription
-        , map CreateSnipbitLanguagePage createSnipbitLanguage
-        , map CreateSnipbitTagsPage createSnipbitTags
+        , map CreateSnipbitInfoPage createSnipbitInfo
         , map CreateSnipbitCodeFramePage createSnipbitCodeFrame
         , map CreateBigbitNamePage createBigbitName
         , map CreateBigbitDescriptionPage createBigbitDescription
@@ -594,17 +579,8 @@ toHashUrl route =
                 ViewStoryPage mongoID ->
                     "view/story/" ++ mongoID
 
-                CreateSnipbitNamePage ->
-                    "create/snipbit/name"
-
-                CreateSnipbitDescriptionPage ->
-                    "create/snipbit/description"
-
-                CreateSnipbitLanguagePage ->
-                    "create/snipbit/language"
-
-                CreateSnipbitTagsPage ->
-                    "create/snipbit/tags"
+                CreateSnipbitInfoPage ->
+                    "create/snipbit/info"
 
                 CreateSnipbitCodeFramePage frameNumber ->
                     "create/snipbit/code/frame/" ++ toString frameNumber

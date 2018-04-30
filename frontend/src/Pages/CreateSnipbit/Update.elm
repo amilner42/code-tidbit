@@ -64,17 +64,8 @@ update (Common common) msg model shared =
                         ]
             in
             case route of
-                Route.CreateSnipbitNamePage ->
+                Route.CreateSnipbitInfoPage ->
                     ( resetConfirmState model, shared, focusOn "name-input" )
-
-                Route.CreateSnipbitDescriptionPage ->
-                    ( resetConfirmState model, shared, focusOn "description-input" )
-
-                Route.CreateSnipbitLanguagePage ->
-                    ( resetConfirmState model, shared, focusOn "language-query-input" )
-
-                Route.CreateSnipbitTagsPage ->
-                    ( resetConfirmState model, shared, focusOn "tags-input" )
 
                 Route.CreateSnipbitCodeFramePage frameNumber ->
                     let
@@ -89,7 +80,7 @@ update (Common common) msg model shared =
                             frameIndex < 0
                     in
                     if frameIndexTooLow then
-                        ( resetConfirmState model, shared, Route.modifyTo <| Route.CreateSnipbitTagsPage )
+                        ( resetConfirmState model, shared, Route.modifyTo <| Route.CreateSnipbitInfoPage )
                     else if frameIndexTooHigh then
                         ( resetConfirmState model
                         , shared
@@ -239,7 +230,7 @@ update (Common common) msg model shared =
             if model.confirmedReset then
                 ( init
                 , { shared | textFieldKeyTracker = TextFields.changeKey shared.textFieldKeyTracker "create-snipbit-name" }
-                , Route.navigateTo Route.CreateSnipbitNamePage
+                , Route.navigateTo Route.CreateSnipbitInfoPage
                 )
             else
                 common.justSetModel { model | confirmedReset = True }

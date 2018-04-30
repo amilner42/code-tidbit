@@ -117,7 +117,7 @@ view model shared =
                 "SnipBit"
                 "Explain a chunk of code"
                 snipbitInfo
-                ( Route.CreateSnipbitNamePage, GoTo Route.CreateSnipbitNamePage )
+                ( Route.CreateSnipbitInfoPage, GoTo Route.CreateSnipbitInfoPage )
                 SnipBit
             , makeTidbitTypeBox
                 "BigBit"

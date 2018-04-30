@@ -114,7 +114,8 @@ subscription if the AC is active.
 -}
 languageACActive : Route.Route -> Model -> Bool
 languageACActive route { languageQuery, language } =
-    (route == Route.CreateSnipbitLanguagePage)
+    -- TODO check if this makes sense.
+    (route == Route.CreateSnipbitInfoPage)
         && (not <| String.isEmpty languageQuery)
         && Util.isNothing language
 
