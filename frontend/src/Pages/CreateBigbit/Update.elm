@@ -253,7 +253,7 @@ update (Common common) msg model shared =
         GoToCodeTab ->
             ( { model | previewMarkdown = False }
             , shared
-            , Route.navigateTo <| Route.CreateBigbitCodeFramePage 1 Nothing
+            , Route.navigateTo <| Route.CreateBigbitCodeFramePage 1 <| getActiveFileForFrame 1 model
             )
 
         Reset ->
