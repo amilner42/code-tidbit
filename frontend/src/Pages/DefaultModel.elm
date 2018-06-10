@@ -4,6 +4,7 @@ import Dict
 import Elements.Simple.Editor as Editor
 import Flags exposing (Flags)
 import Keyboard.Extra as KK
+import Material
 import Models.Route as Route
 import Pages.Browse.Init as BrowseInit
 import Pages.Create.Init as CreateInit
@@ -60,4 +61,5 @@ defaultShared route flags =
     , userNeedsAuthModal = Nothing
     , apiRequestTracker = Dict.empty
     , textFieldKeyTracker = Dict.empty
+    , mdlModel = Material.model
     }

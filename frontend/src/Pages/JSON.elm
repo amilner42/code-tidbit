@@ -8,6 +8,7 @@ import Json.Decode as Decode
 import Json.Decode.Pipeline exposing (decode, hardcoded, optional, required)
 import Json.Encode as Encode
 import Keyboard.Extra as KK
+import Material
 import Models.Route as Route
 import Pages.Browse.JSON as BrowseJSON
 import Pages.Create.JSON as CreateJSON
@@ -85,6 +86,7 @@ sharedEncoder shared =
         , ( "userNeedsAuthModal", Encode.null )
         , ( "apiRequestTracker", Encode.null )
         , ( "textFieldKeyTracker", Encode.null )
+        , ( "mdlModel", Encode.null )
         ]
 
 
@@ -105,3 +107,4 @@ sharedDecoder shared =
         |> hardcoded Nothing
         |> hardcoded Dict.empty
         |> hardcoded Dict.empty
+        |> hardcoded Material.model

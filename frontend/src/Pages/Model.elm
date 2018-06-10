@@ -4,6 +4,7 @@ import DefaultServices.TextFields as TextFields
 import Elements.Simple.Editor as Editor
 import Flags exposing (Flags)
 import Keyboard.Extra as KK
+import Material
 import Models.ApiError as ApiError
 import Models.RequestTracker as RT
 import Models.Route as Route
@@ -65,6 +66,7 @@ type alias Shared =
     , userNeedsAuthModal : Maybe String
     , apiRequestTracker : RT.RequestTracker
     , textFieldKeyTracker : TextFields.KeyTracker
+    , mdlModel : Material.Model
     }
 
 
