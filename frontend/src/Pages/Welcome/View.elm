@@ -7,6 +7,7 @@ import Html.Events exposing (onClick, onInput)
 import Models.ApiError as ApiError
 import Models.RequestTracker as RT
 import Models.Route as Route
+import Pages.Messages as BaseMessage
 import Pages.Model exposing (Shared)
 import Pages.Welcome.Messages exposing (..)
 import Pages.Welcome.Model exposing (..)
@@ -14,8 +15,8 @@ import Pages.Welcome.Model exposing (..)
 
 {-| `Welcome` view.
 -}
-view : Model -> Shared -> Html Msg
-view model shared =
+view : (Msg -> BaseMessage.Msg) -> Model -> Shared -> Html BaseMessage.Msg
+view tagMsg model shared =
     div
         [ class "welcome-page-wrapper" ]
         [ img
@@ -32,7 +33,9 @@ view model shared =
         , case shared.route of
             Route.RegisterPage from ->
                 Route.navigationNode
-                    (Route.LoginPage from |> (\route -> Just ( Route.Route route, GoTo route )))
+                    (Route.LoginPage from
+                        |> (\route -> Just ( Route.Route route, tagMsg <| GoToAndClearWelcomeError route ))
+                    )
                     []
                     [ button
                         [ class "welcome-page-change-tab-button" ]
@@ -41,7 +44,9 @@ view model shared =
 
             Route.LoginPage from ->
                 Route.navigationNode
-                    (Route.RegisterPage from |> (\route -> Just ( Route.Route route, GoTo route )))
+                    (Route.RegisterPage from
+                        |> (\route -> Just ( Route.Route route, tagMsg <| GoToAndClearWelcomeError route ))
+                    )
                     []
                     [ button
                         [ class "welcome-page-change-tab-button" ]
@@ -51,7 +56,7 @@ view model shared =
             _ ->
                 Util.hiddenDiv
         , Route.navigationNode
-            (Just ( Route.Route Route.BrowsePage, GoTo Route.BrowsePage ))
+            (Just ( Route.Route Route.BrowsePage, tagMsg <| GoToAndClearWelcomeError Route.BrowsePage ))
             []
             [ button
                 [ class "welcome-page-change-tab-button welcome-page-browse-button" ]
@@ -86,14 +91,14 @@ view model shared =
                   )
                 ]
             ]
-            [ displayViewForRoute model shared
+            [ displayViewForRoute tagMsg model shared
             ]
         ]
 
 
 {-| Creates an error box with an appropriate message if there is an error, otherwise simply stays hidden.
 -}
-errorBox : Maybe ApiError.ApiError -> Html Msg
+errorBox : Maybe ApiError.ApiError -> Html BaseMessage.Msg
 errorBox maybeApiError =
     let
         humanReadable maybeApiError =
@@ -114,8 +119,8 @@ errorBox maybeApiError =
 
 {-| The welcome login view
 -}
-loginView : Model -> Shared -> Html Msg
-loginView model shared =
+loginView : (Msg -> BaseMessage.Msg) -> Model -> Shared -> Html BaseMessage.Msg
+loginView tagMsg model shared =
     let
         currentError =
             model.apiError
@@ -149,7 +154,7 @@ loginView model shared =
             , input
                 [ classList [ ( "input-error-highlight", highlightEmail ) ]
                 , placeholder "Email"
-                , onInput OnEmailInput
+                , onInput <| tagMsg << OnEmailInput
                 , value model.email
                 ]
                 []
@@ -160,7 +165,7 @@ loginView model shared =
                 [ classList [ ( "input-error-highlight", hightlightPassword ) ]
                 , placeholder "Password"
                 , type_ "password"
-                , onInput OnPasswordInput
+                , onInput <| tagMsg << OnPasswordInput
                 , value model.password
                 ]
                 []
@@ -168,7 +173,7 @@ loginView model shared =
             , button
                 [ classList
                     [ ( "cursor-progress", RT.isMakingRequest shared.apiRequestTracker RT.LoginOrRegister ) ]
-                , onClick Login
+                , onClick <| tagMsg Login
                 , disabled invalidForm
                 ]
                 [ text "Login" ]
@@ -178,8 +183,8 @@ loginView model shared =
 
 {-| The welcome register view
 -}
-registerView : Model -> Shared -> Html Msg
-registerView model shared =
+registerView : (Msg -> BaseMessage.Msg) -> Model -> Shared -> Html BaseMessage.Msg
+registerView tagMsg model shared =
     let
         currentError =
             model.apiError
@@ -221,7 +226,7 @@ registerView model shared =
         , input
             [ classList [ ( "input-error-highlight", False ) ]
             , placeholder "Preferred Name"
-            , onInput OnNameInput
+            , onInput <| tagMsg << OnNameInput
             , value model.name
             ]
             []
@@ -231,7 +236,7 @@ registerView model shared =
         , input
             [ classList [ ( "input-error-highlight", highlightEmail ) ]
             , placeholder "Email"
-            , onInput OnEmailInput
+            , onInput <| tagMsg << OnEmailInput
             , value model.email
             ]
             []
@@ -239,7 +244,7 @@ registerView model shared =
             [ classList [ ( "input-error-highlight", hightlightPassword ) ]
             , placeholder "Password"
             , type_ "password"
-            , onInput OnPasswordInput
+            , onInput <| tagMsg << OnPasswordInput
             , value model.password
             ]
             []
@@ -250,7 +255,7 @@ registerView model shared =
             [ classList [ ( "input-error-highlight", hightlightPassword ) ]
             , placeholder "Confirm Password"
             , type_ "password"
-            , onInput OnConfirmPasswordInput
+            , onInput <| tagMsg << OnConfirmPasswordInput
             , value model.confirmPassword
             ]
             []
@@ -258,7 +263,7 @@ registerView model shared =
         , button
             [ classList
                 [ ( "cursor-progress", RT.isMakingRequest shared.apiRequestTracker RT.LoginOrRegister ) ]
-            , onClick Register
+            , onClick <| tagMsg Register
             , disabled invalidForm
             ]
             [ text "Start learning" ]
@@ -267,14 +272,14 @@ registerView model shared =
 
 {-| Displays the welcome sub-view based on the sub-route (login or register)
 -}
-displayViewForRoute : Model -> Shared -> Html Msg
-displayViewForRoute model shared =
+displayViewForRoute : (Msg -> BaseMessage.Msg) -> Model -> Shared -> Html BaseMessage.Msg
+displayViewForRoute tagMsg model shared =
     case shared.route of
         Route.LoginPage _ ->
-            loginView model shared
+            loginView tagMsg model shared
 
         Route.RegisterPage _ ->
-            registerView model shared
+            registerView tagMsg model shared
 
         _ ->
             Util.hiddenDiv

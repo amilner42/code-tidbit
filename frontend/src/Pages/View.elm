@@ -113,12 +113,12 @@ signUpModal currentRoute modalMessage =
                 [ class "centered-buttons" ]
                 [ div
                     [ class "login"
-                    , onClick <| GoTo <| Route.LoginPage (Just <| Route.toHashUrl currentRoute)
+                    , onClick <| GoTo { wipeModalError = False } <| Route.LoginPage (Just <| Route.toHashUrl currentRoute)
                     ]
                     [ text "LOGIN" ]
                 , div
                     [ class "sign-up"
-                    , onClick <| GoTo <| Route.RegisterPage (Just <| Route.toHashUrl currentRoute)
+                    , onClick <| GoTo { wipeModalError = False } <| Route.RegisterPage (Just <| Route.toHashUrl currentRoute)
                     ]
                     [ text "SIGN UP" ]
                 ]
@@ -305,7 +305,7 @@ viewForRoute model =
 -}
 welcomeView : WelcomeModel.Model -> Shared -> Html.Html Msg
 welcomeView welcomeModel shared =
-    Html.map WelcomeMessage (WelcomeView.view welcomeModel shared)
+    WelcomeView.view WelcomeMessage welcomeModel shared
 
 
 {-| `ViewSnipbit` view.
@@ -546,14 +546,14 @@ navbar model =
             ]
             []
         , Route.navigationNode
-            (Just ( Route.Route Route.BrowsePage, GoTo Route.BrowsePage ))
+            (Just ( Route.Route Route.BrowsePage, GoTo { wipeModalError = False } Route.BrowsePage ))
             [ classList [ ( "hidden", Util.isNotNothing shared.user ) ] ]
             [ div
                 [ class "nav-btn left code-tidbit" ]
                 [ text "Code Tidbit" ]
             ]
         , Route.navigationNode
-            (Just ( Route.Route Route.BrowsePage, GoTo Route.BrowsePage ))
+            (Just ( Route.Route Route.BrowsePage, GoTo { wipeModalError = False } Route.BrowsePage ))
             [ classList [ ( "hidden", Util.isNothing shared.user ) ] ]
             [ div
                 [ classList
@@ -564,7 +564,7 @@ navbar model =
                 [ text "Browse" ]
             ]
         , Route.navigationNode
-            (Just ( Route.Route Route.CreatePage, GoTo Route.CreatePage ))
+            (Just ( Route.Route Route.CreatePage, GoTo { wipeModalError = False } Route.CreatePage ))
             [ classList [ ( "hidden", Util.isNothing shared.user ) ] ]
             [ div
                 [ classList
@@ -575,7 +575,7 @@ navbar model =
                 [ text "Create" ]
             ]
         , Route.navigationNode
-            (Just ( Route.Route Route.NotificationsPage, GoTo Route.NotificationsPage ))
+            (Just ( Route.Route Route.NotificationsPage, GoTo { wipeModalError = False } Route.NotificationsPage ))
             [ classList [ ( "hidden", Util.isNothing shared.user ) ] ]
             [ div
                 [ classList
@@ -586,7 +586,7 @@ navbar model =
                 [ text "Notifications" ]
             ]
         , Route.navigationNode
-            (Just ( Route.Route Route.ProfilePage, GoTo Route.ProfilePage ))
+            (Just ( Route.Route Route.ProfilePage, GoTo { wipeModalError = False } Route.ProfilePage ))
             [ classList [ ( "hidden", Util.isNothing shared.user ) ] ]
             [ div
                 [ classList
@@ -597,14 +597,14 @@ navbar model =
                 [ text "Profile" ]
             ]
         , Route.navigationNode
-            (Just ( Route.Route registerRouteWithRedirectQP, GoTo registerRouteWithRedirectQP ))
+            (Just ( Route.Route registerRouteWithRedirectQP, GoTo { wipeModalError = False } registerRouteWithRedirectQP ))
             [ classList [ ( "hidden", Util.isNotNothing shared.user ) ] ]
             [ div
                 [ class "nav-btn sign-up right" ]
                 [ text "Sign Up" ]
             ]
         , Route.navigationNode
-            (Just ( Route.Route loginRouteWithRedirectQP, GoTo loginRouteWithRedirectQP ))
+            (Just ( Route.Route loginRouteWithRedirectQP, GoTo { wipeModalError = False } loginRouteWithRedirectQP ))
             [ classList [ ( "hidden", Util.isNotNothing shared.user ) ] ]
             [ div
                 [ class "nav-btn login right" ]
