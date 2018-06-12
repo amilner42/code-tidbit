@@ -25,7 +25,7 @@ import Pages.Welcome.Messages as WelcomeMessages
 -}
 type Msg
     = NoOp
-    | GoTo Route.Route
+    | GoTo { wipeModalError : Bool } Route.Route
     | OnLocationChange Navigation.Location
     | LoadModelFromLocalStorage
     | OnLoadModelFromLocalStorageSuccess Model

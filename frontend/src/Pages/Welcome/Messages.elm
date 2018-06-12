@@ -8,7 +8,7 @@ import Models.User exposing (User)
 {-| `Welcome` msg.
 -}
 type Msg
-    = GoTo Route
+    = GoToAndClearWelcomeError Route
     | OnRouteHit Route
     | Register
     | OnRegisterSuccess User

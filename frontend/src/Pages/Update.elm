@@ -76,8 +76,19 @@ updateCacheIf msg model shouldCache =
                 NoOp ->
                     doNothing
 
-                GoTo route ->
-                    ( model, Route.navigateTo route )
+                GoTo { wipeModalError } route ->
+                    ( { model
+                        | shared =
+                            { shared
+                                | apiModalError =
+                                    if wipeModalError then
+                                        Nothing
+                                    else
+                                        shared.apiModalError
+                            }
+                      }
+                    , Route.navigateTo route
+                    )
 
                 OnLocationChange location ->
                     let

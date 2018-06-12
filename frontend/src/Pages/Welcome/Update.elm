@@ -16,8 +16,9 @@ import Pages.Welcome.Model exposing (..)
 update : CommonSubPageUtil Model Shared Msg -> Msg -> Model -> Shared -> ( Model, Shared, Cmd Msg )
 update (Common common) msg model shared =
     case msg of
-        -- On top of going to a route, wipes the errors on the welcome page.
-        GoTo route ->
+        -- On top of going to a route, wipes the errors on the welcome page. This is not the error in
+        -- `shared.apiModalError`
+        GoToAndClearWelcomeError route ->
             ( wipeError model, shared, Route.navigateTo route )
 
         OnRouteHit route ->
