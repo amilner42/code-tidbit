@@ -22,8 +22,7 @@ import ProjectTypeAliases exposing (..)
 {-| `ViewBigbit` msg.
 -}
 type Msg
-    = SetUserNeedsAuthModal String
-    | GoToAskQuestionWithCodePointer BigbitID (Maybe BigbitCodePointer)
+    = GoToAskQuestionWithCodePointer BigbitID (Maybe BigbitCodePointer)
     | GoToBrowseQuestionsWithCodePointer BigbitID (Maybe BigbitCodePointer)
     | OnRouteHit Route
     | OnRangeSelected Range

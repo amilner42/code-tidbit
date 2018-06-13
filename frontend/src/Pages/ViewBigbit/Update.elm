@@ -37,9 +37,6 @@ import Set
 update : CommonSubPageUtil Model Shared Msg -> Msg -> Model -> Shared -> ( Model, Shared, Cmd Msg )
 update (Common common) msg model shared =
     case msg of
-        SetUserNeedsAuthModal message ->
-            common.justSetUserNeedsAuthModal message
-
         GoToAskQuestionWithCodePointer bigbitID maybeCodePointer ->
             ( { model
                 | qaState =

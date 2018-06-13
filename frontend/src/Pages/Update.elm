@@ -432,6 +432,11 @@ updateCacheIf msg model shouldCache =
                     ( { model | shared = { shared | userNeedsAuthModal = Nothing } }
                     , Cmd.none
                     )
+
+                SetUserNeedsAuthModal message ->
+                    ( { model | shared = { shared | userNeedsAuthModal = Just message } }
+                    , Cmd.none
+                    )
     in
     case shouldCache of
         True ->
