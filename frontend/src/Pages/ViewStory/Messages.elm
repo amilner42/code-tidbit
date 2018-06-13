@@ -9,9 +9,7 @@ import Models.Story exposing (ExpandedStory)
 {-| `ViewStory` msg.
 -}
 type Msg
-    = NoOp
-    | GoTo Route
-    | OnRouteHit Route
+    = OnRouteHit Route
     | OnGetOpinionSuccess PossibleOpinion
     | OnGetOpinionFailure ApiError
     | AddOpinion Opinion
@@ -22,4 +20,3 @@ type Msg
     | OnRemoveOpinionFailure ApiError
     | OnGetExpandedStorySuccess ExpandedStory
     | OnGetExpandedStoryFailure ApiError
-    | SetUserNeedsAuthModal String -- TODO delete

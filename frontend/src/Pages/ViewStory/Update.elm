@@ -16,12 +16,6 @@ import Ports
 update : CommonSubPageUtil Model Shared Msg -> Msg -> Model -> Shared -> ( Model, Shared, Cmd Msg )
 update (Common common) msg model shared =
     case msg of
-        NoOp ->
-            common.doNothing
-
-        GoTo route ->
-            common.justProduceCmd <| Route.navigateTo route
-
         OnRouteHit route ->
             case route of
                 {- We:
@@ -133,6 +127,3 @@ update (Common common) msg model shared =
         OnRemoveOpinionFailure apiError ->
             common.justSetModalError apiError
                 |> common.andFinishRequest (RT.AddOrRemoveOpinion ContentPointer.Story)
-
-        SetUserNeedsAuthModal message ->
-            common.justSetUserNeedsAuthModal message
