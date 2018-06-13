@@ -22,4 +22,4 @@ type Msg
     | OnRemoveOpinionFailure ApiError
     | OnGetExpandedStorySuccess ExpandedStory
     | OnGetExpandedStoryFailure ApiError
-    | SetUserNeedsAuthModal String
+    | SetUserNeedsAuthModal String -- TODO delete

@@ -96,4 +96,3 @@ type Msg
     | EditCommentOnAnswer SnipbitID CommentID CommentText
     | OnEditCommentOnAnswerSuccess SnipbitID CommentID CommentText Date.Date
     | OnEditCommentOnAnswerFailure CommentID ApiError
-    | SetUserNeedsAuthModal String

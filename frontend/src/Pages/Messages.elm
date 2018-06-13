@@ -49,3 +49,4 @@ type Msg
     | KeyboardExtraMessage Keyboard.Extra.Msg
     | CloseErrorModal
     | CloseSignUpModal
+    | SetUserNeedsAuthModal String

@@ -106,8 +106,8 @@ view tagMsg model shared =
                     button
                         [ class "sub-bar-button heart-button"
                         , onClick <|
-                            tagMsg <|
-                                SetUserNeedsAuthModal "We want your feedback, sign up for free and get access to all of CodeTidbit in seconds!"
+                            BaseMessage.SetUserNeedsAuthModal
+                                "We want your feedback, sign up for free and get access to all of CodeTidbit in seconds!"
                         ]
                         [ text "Love It" ]
 
@@ -164,15 +164,15 @@ view tagMsg model shared =
                     button
                         [ class "sub-bar-button ask-question"
                         , onClick <|
-                            tagMsg <|
-                                case shared.user of
-                                    Just _ ->
+                            case shared.user of
+                                Just _ ->
+                                    tagMsg <|
                                         GoToAskQuestionWithCodePointer bigbit.id model.tutorialCodePointer
 
-                                    Nothing ->
-                                        SetUserNeedsAuthModal <|
-                                            "We want to answer your question, sign up for free and get access to all of"
-                                                ++ " CodeTidbit in seconds!"
+                                Nothing ->
+                                    BaseMessage.SetUserNeedsAuthModal <|
+                                        "We want to answer your question, sign up for free and get access to all of"
+                                            ++ " CodeTidbit in seconds!"
                         ]
                         [ text "Ask Question" ]
 
@@ -620,11 +620,10 @@ viewBigbitCommentBox tagMsg bigbit model shared =
                                     question.id
 
                         Nothing ->
-                            tagMsg <|
-                                SetUserNeedsAuthModal
-                                    ("Want to share your knowledge? Sign up for free and get access to all of CodeTidbit"
-                                        ++ " in seconds!"
-                                    )
+                            BaseMessage.SetUserNeedsAuthModal
+                                ("Want to share your knowledge? Sign up for free and get access to all of CodeTidbit"
+                                    ++ " in seconds!"
+                                )
                 , goToEditQuestion =
                     BaseMessage.GoTo { wipeModalError = False } <|
                         Route.ViewBigbitEditQuestion
@@ -657,7 +656,7 @@ viewBigbitCommentBox tagMsg bigbit model shared =
                 , deleteAnswerComment = tagMsg << DeleteCommentOnAnswer bigbit.id
                 , editQuestionComment = tagMsg <<< EditCommentOnQuestion bigbit.id
                 , editAnswerComment = tagMsg <<< EditCommentOnAnswer bigbit.id
-                , handleUnauthAction = tagMsg << SetUserNeedsAuthModal
+                , handleUnauthAction = BaseMessage.SetUserNeedsAuthModal
                 }
                 { questionCommentEdits = QA.getQuestionCommentEdits bigbit.id qaState
                 , newQuestionComment = QA.getNewQuestionComment bigbit.id question.id qaState
@@ -729,15 +728,14 @@ viewBigbitCommentBox tagMsg bigbit model shared =
                                     Just _ ->
                                         "None found"
                             , askQuestion =
-                                tagMsg <|
-                                    case shared.user of
-                                        Nothing ->
-                                            SetUserNeedsAuthModal <|
-                                                "We want to answer your question, sign up for free and get access"
-                                                    ++ " to all of CodeTidbit in seconds!"
+                                case shared.user of
+                                    Nothing ->
+                                        BaseMessage.SetUserNeedsAuthModal <|
+                                            "We want to answer your question, sign up for free and get access"
+                                                ++ " to all of CodeTidbit in seconds!"
 
-                                        Just _ ->
-                                            GoToAskQuestionWithCodePointer bigbitID browseCodePointer
+                                    Just _ ->
+                                        tagMsg <| GoToAskQuestionWithCodePointer bigbitID browseCodePointer
                             }
                             remainingQuestions
                         ]

@@ -1228,9 +1228,6 @@ update (Common common) msg model shared =
             common.justSetModalError apiError
                 |> common.andFinishRequest (RT.EditAnswerComment TidbitPointer.Snipbit commentID)
 
-        SetUserNeedsAuthModal message ->
-            common.justSetUserNeedsAuthModal message
-
 
 {-| Creates the editor for the snipbit.
 

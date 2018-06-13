@@ -78,8 +78,7 @@ view tagMsg model shared =
                     button
                         [ class "sub-bar-button heart-button"
                         , onClick <|
-                            tagMsg <|
-                                SetUserNeedsAuthModal "We want your feedback, sign up for free and get access to all of CodeTidbit in seconds!"
+                            BaseMessage.SetUserNeedsAuthModal "We want your feedback, sign up for free and get access to all of CodeTidbit in seconds!"
                         ]
                         [ text "Love It" ]
 
@@ -136,16 +135,15 @@ view tagMsg model shared =
                     button
                         [ class "sub-bar-button ask-question"
                         , onClick <|
-                            tagMsg <|
-                                case shared.user of
-                                    Just _ ->
-                                        GoToAskQuestion
+                            case shared.user of
+                                Just _ ->
+                                    tagMsg <| GoToAskQuestion
 
-                                    Nothing ->
-                                        SetUserNeedsAuthModal
-                                            ("We want to answer your question, sign up for free and get access to all of"
-                                                ++ " CodeTidbit in seconds!"
-                                            )
+                                Nothing ->
+                                    BaseMessage.SetUserNeedsAuthModal
+                                        ("We want to answer your question, sign up for free and get access to all of"
+                                            ++ " CodeTidbit in seconds!"
+                                        )
                         ]
                         [ text "Ask Question" ]
 
@@ -531,11 +529,10 @@ commentBox tagMsg snipbit model shared =
                                     question.id
 
                         Nothing ->
-                            tagMsg <|
-                                SetUserNeedsAuthModal
-                                    ("Want to share your knowledge? Sign up for free and get access to all of CodeTidbit"
-                                        ++ " in seconds!"
-                                    )
+                            BaseMessage.SetUserNeedsAuthModal
+                                ("Want to share your knowledge? Sign up for free and get access to all of CodeTidbit"
+                                    ++ " in seconds!"
+                                )
                 , goToEditQuestion =
                     BaseMessage.GoTo { wipeModalError = False } <|
                         Route.ViewSnipbitEditQuestion
@@ -567,7 +564,7 @@ commentBox tagMsg snipbit model shared =
                 , deleteAnswerComment = tagMsg << DeleteCommentOnAnswer snipbit.id
                 , editQuestionComment = tagMsg <<< EditCommentOnQuestion snipbit.id
                 , editAnswerComment = tagMsg <<< EditCommentOnAnswer snipbit.id
-                , handleUnauthAction = tagMsg << SetUserNeedsAuthModal
+                , handleUnauthAction = BaseMessage.SetUserNeedsAuthModal
                 }
                 { questionCommentEdits = QA.getQuestionCommentEdits snipbit.id qaState
                 , newQuestionComment = QA.getNewQuestionComment snipbit.id question.id qaState
@@ -626,11 +623,10 @@ commentBox tagMsg snipbit model shared =
                                         tagMsg <| GoToAskQuestion
 
                                     Nothing ->
-                                        SetUserNeedsAuthModal
+                                        BaseMessage.SetUserNeedsAuthModal
                                             ("We want to answer your question, sign up for free and get access"
                                                 ++ " to all of CodeTidbit in seconds!"
                                             )
-                                            |> tagMsg
                             }
                             remainingQuestions
                         ]
