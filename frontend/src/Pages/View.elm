@@ -303,7 +303,7 @@ welcomeView welcomeModel shared =
 -}
 viewSnipbitView : ViewSnipbitModel.Model -> Shared -> Html.Html Msg
 viewSnipbitView viewSnipbitModel shared =
-    Html.map ViewSnipbitMessage <| ViewSnipbitView.view viewSnipbitModel shared
+    ViewSnipbitView.view ViewSnipbitMessage viewSnipbitModel shared
 
 
 {-| `ViewBigbit` view.
