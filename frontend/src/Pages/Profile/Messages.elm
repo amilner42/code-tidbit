@@ -18,6 +18,3 @@ type Msg
     | SaveEditedBio
     | OnSaveEditedBioSuccess User
     | OnSaveBioEditedFailure ApiError
-    | LogOut
-    | OnLogOutSuccess BasicResponse
-    | OnLogOutFailure ApiError

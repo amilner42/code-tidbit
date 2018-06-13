@@ -9,5 +9,4 @@ init : Model
 init =
     { accountName = Nothing
     , accountBio = Nothing
-    , logOutError = Nothing
     }

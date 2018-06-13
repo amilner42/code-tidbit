@@ -7,6 +7,7 @@ import Html exposing (Html, button, div, i, text)
 import Html.Attributes exposing (class, classList, defaultValue, disabled, hidden, placeholder)
 import Html.Events exposing (onClick, onInput)
 import Models.RequestTracker as RT
+import Pages.Messages as BaseMessage
 import Pages.Model exposing (Shared)
 import Pages.Profile.Messages exposing (..)
 import Pages.Profile.Model exposing (..)
@@ -14,8 +15,8 @@ import Pages.Profile.Model exposing (..)
 
 {-| `Profile` view.
 -}
-view : Model -> Shared -> Html Msg
-view model shared =
+view : (Msg -> BaseMessage.Msg) -> Model -> Shared -> Html BaseMessage.Msg
+view tagMsg model shared =
     case shared.user of
         Nothing ->
             Util.hiddenDiv
@@ -54,7 +55,7 @@ view model shared =
                                     ]
                                 , placeholder "Preferred name..."
                                 , defaultValue <| getNameWithDefault model user.name
-                                , onInput <| OnEditName user.name
+                                , onInput <| tagMsg << OnEditName user.name
                                 , disabled <| RT.isMakingRequest shared.apiRequestTracker RT.UpdateName
                                 ]
                             , i
@@ -63,7 +64,7 @@ view model shared =
                                     , ( "hidden", not <| isEditingName model )
                                     , ( "cursor-progress", RT.isMakingRequest shared.apiRequestTracker RT.UpdateName )
                                     ]
-                                , onClick CancelEditedName
+                                , onClick <| tagMsg CancelEditedName
                                 ]
                                 [ text "cancel" ]
                             , i
@@ -78,7 +79,7 @@ view model shared =
                                             model.accountName
                                       )
                                     ]
-                                , onClick SaveEditedName
+                                , onClick <| tagMsg SaveEditedName
                                 ]
                                 [ text "check_circle" ]
                             ]
@@ -99,7 +100,7 @@ view model shared =
                                     ]
                                 , placeholder "Tell everyone about yourself..."
                                 , defaultValue <| getBioWithDefault model user.bio
-                                , onInput <| OnEditBio user.bio
+                                , onInput <| tagMsg << OnEditBio user.bio
                                 , disabled <| RT.isMakingRequest shared.apiRequestTracker RT.UpdateBio
                                 ]
                             , div
@@ -112,7 +113,7 @@ view model shared =
                                           , RT.isMakingRequest shared.apiRequestTracker RT.UpdateBio
                                           )
                                         ]
-                                    , onClick CancelEditedBio
+                                    , onClick <| tagMsg CancelEditedBio
                                     ]
                                     [ text "cancel" ]
                                 , i
@@ -129,7 +130,7 @@ view model shared =
                                           , RT.isMakingRequest shared.apiRequestTracker RT.UpdateBio
                                           )
                                         ]
-                                    , onClick SaveEditedBio
+                                    , onClick <| tagMsg SaveEditedBio
                                     ]
                                     [ text "check_circle" ]
                                 ]
@@ -139,13 +140,13 @@ view model shared =
                                 [ ( "logout-button", True )
                                 , ( "cursor-progress", RT.isMakingRequest shared.apiRequestTracker RT.Logout )
                                 ]
-                            , onClick LogOut
+                            , onClick BaseMessage.LogOut
                             ]
                             [ text "Log Out" ]
                         , div
                             [ classList
                                 [ ( "logout-error", True )
-                                , ( "hidden", Util.isNothing model.logOutError )
+                                , ( "hidden", Util.isNothing shared.logoutError )
                                 ]
                             ]
                             [ text "Cannot log out right now, try again shortly." ]

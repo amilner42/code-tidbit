@@ -67,6 +67,7 @@ type alias Shared =
     , apiRequestTracker : RT.RequestTracker
     , textFieldKeyTracker : TextFields.KeyTracker
     , mdlModel : Material.Model
+    , logoutError : Maybe ApiError.ApiError
     }
 
 

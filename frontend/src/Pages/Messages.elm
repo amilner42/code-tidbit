@@ -2,6 +2,7 @@ module Pages.Messages exposing (..)
 
 import Keyboard.Extra
 import Models.ApiError as ApiError
+import Models.BasicResponse as BasicResponse
 import Models.Range as Range
 import Models.Route as Route
 import Models.User exposing (User)
@@ -50,3 +51,6 @@ type Msg
     | CloseErrorModal
     | CloseSignUpModal
     | SetUserNeedsAuthModal String
+    | LogOut
+    | OnLogOutSuccess BasicResponse.BasicResponse
+    | OnLogOutFailure ApiError.ApiError

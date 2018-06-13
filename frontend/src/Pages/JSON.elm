@@ -87,6 +87,7 @@ sharedEncoder shared =
         , ( "apiRequestTracker", Encode.null )
         , ( "textFieldKeyTracker", Encode.null )
         , ( "mdlModel", Encode.null )
+        , ( "logoutError", Encode.null )
         ]
 
 
@@ -108,3 +109,4 @@ sharedDecoder shared =
         |> hardcoded Dict.empty
         |> hardcoded Dict.empty
         |> hardcoded Material.model
+        |> hardcoded Nothing

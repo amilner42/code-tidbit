@@ -10,7 +10,6 @@ import Models.ApiError as ApiError
 type alias Model =
     { accountName : Maybe (Editable.Editable String)
     , accountBio : Maybe (Editable.Editable String)
-    , logOutError : Maybe ApiError.ApiError
     }
 
 

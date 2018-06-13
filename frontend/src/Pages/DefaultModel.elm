@@ -62,4 +62,5 @@ defaultShared route flags =
     , apiRequestTracker = Dict.empty
     , textFieldKeyTracker = Dict.empty
     , mdlModel = Material.model
+    , logoutError = Nothing
     }

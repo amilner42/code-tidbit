@@ -1,12 +1,13 @@
 module Pages.Update exposing (update, updateCacheIf)
 
-import Api
 import Array
+import DefaultServices.BasePageUtil as BasePageUtil
 import DefaultServices.CommonSubPageUtil exposing (commonSubPageUtil)
 import DefaultServices.InfixFunctions exposing (..)
 import DefaultServices.LocalStorage as LocalStorage
 import DefaultServices.Util as Util exposing (maybeMapWithDefault)
 import Keyboard.Extra as KK
+import Models.RequestTracker as RT
 import Models.Route as Route
 import Navigation
 import Pages.Browse.Messages as BrowseMessages
@@ -27,7 +28,6 @@ import Pages.NewStory.Messages as NewStoryMessages
 import Pages.NewStory.Update as NewStoryUpdate
 import Pages.Notifications.Messages as NotificationsMessages
 import Pages.Notifications.Update as NotificationsUpdate
-import Pages.Profile.Messages as ProfileMessages
 import Pages.Profile.Update as ProfileUpdate
 import Pages.ViewBigbit.Messages as ViewBigbitMessages
 import Pages.ViewBigbit.Model as ViewBigbitModel
@@ -62,19 +62,13 @@ updateCacheIf msg model shouldCache =
         shared =
             model.shared
 
-        api =
-            Api.api shared.flags.apiBaseUrl
-
-        getUserAndThenRefresh () =
-            api.get.account OnGetUserAndThenRefreshFailure OnGetUserAndThenRefreshSuccess
-
-        doNothing =
-            ( model, Cmd.none )
+        (BasePageUtil.BasePageUtil basePageUtil) =
+            BasePageUtil.basePageUtil model
 
         ( newModel, newCmd ) =
             case msg of
                 NoOp ->
-                    doNothing
+                    basePageUtil.doNothing
 
                 GoTo { wipeModalError } route ->
                     ( { model
@@ -106,7 +100,7 @@ updateCacheIf msg model shouldCache =
                     )
 
                 LoadModelFromLocalStorage ->
-                    ( model, LocalStorage.loadModel () )
+                    basePageUtil.justProduceCmd <| LocalStorage.loadModel ()
 
                 OnLoadModelFromLocalStorageSuccess newModel ->
                     {- If the state was properly cached in localStorage, we simply load the cached model and refresh
@@ -119,7 +113,8 @@ updateCacheIf msg model shouldCache =
                        use-case where they have the cookies to be logged in but they cleared their localStorage), and
                        then regardless we trigger a page refresh to trigger route hooks.
                     -}
-                    ( model, getUserAndThenRefresh () )
+                    basePageUtil.justProduceCmd <|
+                        basePageUtil.api.get.account OnGetUserAndThenRefreshFailure OnGetUserAndThenRefreshSuccess
 
                 OnGetUserAndThenRefreshSuccess user ->
                     let
@@ -129,7 +124,7 @@ updateCacheIf msg model shouldCache =
                     ( newModel, Route.modifyTo shared.route )
 
                 OnGetUserAndThenRefreshFailure newApiError ->
-                    ( model, Route.modifyTo shared.route )
+                    basePageUtil.justProduceCmd <| Route.modifyTo shared.route
 
                 WelcomeMessage subMsg ->
                     let
@@ -208,22 +203,11 @@ updateCacheIf msg model shouldCache =
                                 model.profilePage
                                 model.shared
 
-                        justLoggedOut =
-                            case subMsg of
-                                ProfileMessages.OnLogOutSuccess _ ->
-                                    True
-
-                                _ ->
-                                    False
-
                         newModel =
-                            if justLoggedOut then
-                                defaultModel newShared.route newShared.flags
-                            else
-                                { model
-                                    | profilePage = newProfileModel
-                                    , shared = newShared
-                                }
+                            { model
+                                | profilePage = newProfileModel
+                                , shared = newShared
+                            }
                     in
                     ( newModel, Cmd.map ProfileMessage newSubMsg )
 
@@ -373,7 +357,7 @@ updateCacheIf msg model shouldCache =
                                 shouldCache
 
                         _ ->
-                            doNothing
+                            basePageUtil.doNothing
 
                 CodeEditorSelectionUpdate { id, range } ->
                     case id of
@@ -402,7 +386,7 @@ updateCacheIf msg model shouldCache =
                                 shouldCache
 
                         _ ->
-                            doNothing
+                            basePageUtil.doNothing
 
                 KeyboardExtraMessage msg ->
                     let
@@ -414,7 +398,7 @@ updateCacheIf msg model shouldCache =
                     in
                     -- Key held, but no new key clicked. Get rid of this if we need hotkeys with key-holds.
                     if model.shared.keysDown == newKeysDown then
-                        doNothing
+                        basePageUtil.doNothing
                     else
                         case msg of
                             KK.Down keyCode ->
@@ -424,19 +408,28 @@ updateCacheIf msg model shouldCache =
                                 handleKeyRelease (KK.fromCode keyCode) modelWithNewKeys
 
                 CloseErrorModal ->
-                    ( { model | shared = { shared | apiModalError = Nothing } }
-                    , Cmd.none
-                    )
+                    basePageUtil.justSetShared { shared | apiModalError = Nothing }
 
                 CloseSignUpModal ->
-                    ( { model | shared = { shared | userNeedsAuthModal = Nothing } }
-                    , Cmd.none
-                    )
+                    basePageUtil.justSetShared { shared | userNeedsAuthModal = Nothing }
 
                 SetUserNeedsAuthModal message ->
-                    ( { model | shared = { shared | userNeedsAuthModal = Just message } }
-                    , Cmd.none
+                    basePageUtil.justSetShared { shared | userNeedsAuthModal = Just message }
+
+                LogOut ->
+                    basePageUtil.makeSingletonRequest
+                        RT.Logout
+                        ( model, basePageUtil.api.get.logOut OnLogOutFailure OnLogOutSuccess )
+
+                OnLogOutSuccess basicResponse ->
+                    ( defaultModel model.shared.route model.shared.flags
+                    , Route.navigateTo <| Route.RegisterPage Nothing
                     )
+                        |> basePageUtil.andFinishRequest RT.Logout
+
+                OnLogOutFailure apiError ->
+                    basePageUtil.justSetShared { shared | logoutError = Just apiError }
+                        |> basePageUtil.andFinishRequest RT.Logout
     in
     case shouldCache of
         True ->
