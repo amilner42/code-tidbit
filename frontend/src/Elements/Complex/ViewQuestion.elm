@@ -7,6 +7,7 @@ import DefaultServices.Util as Util
 import Dict
 import Elements.Complex.CommentList as CommentList
 import Elements.Simple.Markdown as Markdown
+import ExplanatoryBlurbs
 import Html exposing (Html, button, div, i, span, text)
 import Html.Attributes exposing (class, classList)
 import Html.Events exposing (onClick)
@@ -116,9 +117,6 @@ view config model =
                         [ text "COMMENTS" ]
                     ]
                 ]
-
-        unauthMessageForUpvoteAndDownvote =
-            "We want your feedback, sign up for free and get access to all of CodeTidbit in seconds!"
     in
     div [ class "view-question" ] <|
         [ Route.navigationNode
@@ -185,7 +183,7 @@ view config model =
                                     config.upvoteQuestion
 
                                 Nothing ->
-                                    config.handleUnauthAction unauthMessageForUpvoteAndDownvote
+                                    config.handleUnauthAction ExplanatoryBlurbs.needAuthSignUpMessage
                         , removeUpvote = config.removeUpvoteQuestion
                         , downvote =
                             case config.userID of
@@ -193,7 +191,7 @@ view config model =
                                     config.downvoteQuestion
 
                                 Nothing ->
-                                    config.handleUnauthAction unauthMessageForUpvoteAndDownvote
+                                    config.handleUnauthAction ExplanatoryBlurbs.needAuthSignUpMessage
                         , removeDownvote = config.removeDownvoteQuestion
                         , pin = config.pinQuestion
                         , unpin = config.unpinQuestion
@@ -263,7 +261,7 @@ view config model =
                                             config.upvoteAnswer answer
 
                                         Nothing ->
-                                            config.handleUnauthAction unauthMessageForUpvoteAndDownvote
+                                            config.handleUnauthAction ExplanatoryBlurbs.needAuthSignUpMessage
                                 , removeUpvote = config.removeUpvoteAnswer answer
                                 , downvote =
                                     case config.userID of
@@ -271,7 +269,7 @@ view config model =
                                             config.downvoteAnswer answer
 
                                         Nothing ->
-                                            config.handleUnauthAction unauthMessageForUpvoteAndDownvote
+                                            config.handleUnauthAction ExplanatoryBlurbs.needAuthSignUpMessage
                                 , removeDownvote = config.removeDownvoteAnswer answer
                                 , pin = config.pinAnswer answer
                                 , unpin = config.unpinAnswer answer

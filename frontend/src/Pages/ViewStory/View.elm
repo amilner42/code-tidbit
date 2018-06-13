@@ -3,6 +3,7 @@ module Pages.ViewStory.View exposing (..)
 import DefaultServices.Util as Util
 import Elements.Simple.ContentBox as ContentBox
 import Elements.Simple.ProgressBar as ProgressBar exposing (State(..), TextFormat(Percentage))
+import ExplanatoryBlurbs
 import Html exposing (Html, button, div, i, text)
 import Html.Attributes exposing (class, classList)
 import Html.Events exposing (onClick)
@@ -102,7 +103,7 @@ view model shared =
                             ( Nothing, _ ) ->
                                 button
                                     [ class "sub-bar-button heart-button"
-                                    , onClick <| SetUserNeedsAuthModal "We want your feedback, sign up for free and get access to all of CodeTidbit in seconds!"
+                                    , onClick <| SetUserNeedsAuthModal ExplanatoryBlurbs.needAuthSignUpMessage
                                     ]
                                     [ text "Love It" ]
 
