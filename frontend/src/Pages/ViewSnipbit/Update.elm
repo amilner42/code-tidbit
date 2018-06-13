@@ -36,12 +36,6 @@ import Set
 update : CommonSubPageUtil Model Shared Msg -> Msg -> Model -> Shared -> ( Model, Shared, Cmd Msg )
 update (Common common) msg model shared =
     case msg of
-        NoOp ->
-            common.doNothing
-
-        GoTo route ->
-            common.justProduceCmd <| Route.navigateTo route
-
         -- Handles going to `AskQuestion` from different routes individually.
         GoToAskQuestion ->
             let

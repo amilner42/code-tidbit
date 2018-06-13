@@ -81,3 +81,31 @@ infixr 0 <?
 (:/:) str1 str2 =
     str1 ++ "/" ++ str2
 infixl 0 :/:
+
+
+{-| Similar to << but the function accepts 2 arguments.
+-}
+(<<<) : (c -> d) -> (a -> b -> c) -> a -> b -> d
+(<<<) post pre =
+    \a b -> pre a b |> post
+
+
+{-| Similar to >> but the function accepts 2 arguments.
+-}
+(>>>) : (a -> b -> c) -> (c -> d) -> a -> b -> d
+(>>>) pre post =
+    \a b -> pre a b |> post
+
+
+{-| Similar to << but the function accepts 3 arguments.
+-}
+(<<<<) : (d -> e) -> (a -> b -> c -> d) -> a -> b -> c -> e
+(<<<<) post pre =
+    \a b c -> pre a b c |> post
+
+
+{-| Similar to >> but the function accepts 3 arguments.
+-}
+(>>>>) : (a -> b -> c -> d) -> (d -> e) -> a -> b -> c -> e
+(>>>>) pre post =
+    \a b c -> pre a b c |> post

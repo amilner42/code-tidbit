@@ -21,9 +21,7 @@ import ProjectTypeAliases exposing (..)
 {-| `ViewSnipbit` msg.
 -}
 type Msg
-    = NoOp
-    | GoTo Route
-    | GoToAskQuestion
+    = GoToAskQuestion
     | GoToBrowseQuestionsWithCodePointer (Maybe Range)
     | OnRouteHit Route
     | OnGetCompletedSuccess IsCompleted
