@@ -310,7 +310,7 @@ viewSnipbitView viewSnipbitModel shared =
 -}
 viewBigbitView : ViewBigbitModel.Model -> Shared -> Html.Html Msg
 viewBigbitView viewBigbitModel shared =
-    Html.map ViewBigbitMessage <| ViewBigbitView.view viewBigbitModel shared
+    ViewBigbitView.view ViewBigbitMessage viewBigbitModel shared
 
 
 {-| `ViewStory` view.

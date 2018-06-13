@@ -37,14 +37,8 @@ import Set
 update : CommonSubPageUtil Model Shared Msg -> Msg -> Model -> Shared -> ( Model, Shared, Cmd Msg )
 update (Common common) msg model shared =
     case msg of
-        NoOp ->
-            common.doNothing
-
         SetUserNeedsAuthModal message ->
             common.justSetUserNeedsAuthModal message
-
-        GoTo route ->
-            ( model, shared, Route.navigateTo route )
 
         GoToAskQuestionWithCodePointer bigbitID maybeCodePointer ->
             ( { model
