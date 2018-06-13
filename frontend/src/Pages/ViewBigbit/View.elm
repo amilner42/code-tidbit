@@ -13,6 +13,7 @@ import Elements.Simple.FileStructure as FS
 import Elements.Simple.Markdown as Markdown
 import Elements.Simple.ProgressBar as ProgressBar exposing (State(..), TextFormat(Custom))
 import Elements.Simple.QuestionList as QuestionList
+import ExplanatoryBlurbs
 import Html exposing (Html, button, div, i, text)
 import Html.Attributes exposing (class, classList, hidden)
 import Html.Events exposing (onClick)
@@ -105,9 +106,7 @@ view tagMsg model shared =
                 ( Nothing, _ ) ->
                     button
                         [ class "sub-bar-button heart-button"
-                        , onClick <|
-                            BaseMessage.SetUserNeedsAuthModal
-                                "We want your feedback, sign up for free and get access to all of CodeTidbit in seconds!"
+                        , onClick <| BaseMessage.SetUserNeedsAuthModal ExplanatoryBlurbs.needAuthSignUpMessage
                         ]
                         [ text "Love It" ]
 
