@@ -326,7 +326,7 @@ viewBigbitView viewBigbitModel shared =
 -}
 viewStoryView : ViewStoryModel.Model -> Shared -> Html.Html Msg
 viewStoryView viewStoryModel shared =
-    Html.map ViewStoryMessage <| ViewStoryView.view viewStoryModel shared
+    ViewStoryView.view ViewStoryMessage viewStoryModel shared
 
 
 {-| `Profile` view.
