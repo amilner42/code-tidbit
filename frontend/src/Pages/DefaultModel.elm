@@ -60,4 +60,5 @@ defaultShared route flags =
     , userNeedsAuthModal = Nothing
     , apiRequestTracker = Dict.empty
     , textFieldKeyTracker = Dict.empty
+    , logoutError = Nothing
     }

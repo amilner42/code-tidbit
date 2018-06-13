@@ -109,19 +109,3 @@ update (Common common) msg model shared =
         OnSaveBioEditedFailure apiError ->
             common.justSetModalError apiError
                 |> common.andFinishRequest RT.UpdateBio
-
-        LogOut ->
-            let
-                logoutAction =
-                    common.justProduceCmd <| common.api.get.logOut OnLogOutFailure OnLogOutSuccess
-            in
-            common.makeSingletonRequest RT.Logout logoutAction
-
-        OnLogOutSuccess basicResponse ->
-            -- WARNING (unusual behaviour): The base update will check for this message and reset the entire model.
-            -- Because of this there is no need to `andFinishRequest` (in fact that will do nothing).
-            common.justProduceCmd <| Route.navigateTo <| Route.RegisterPage Nothing
-
-        OnLogOutFailure apiError ->
-            common.justSetModel { model | logOutError = Just apiError }
-                |> common.andFinishRequest RT.Logout

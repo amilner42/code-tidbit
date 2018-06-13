@@ -65,6 +65,7 @@ type alias Shared =
     , userNeedsAuthModal : Maybe String
     , apiRequestTracker : RT.RequestTracker
     , textFieldKeyTracker : TextFields.KeyTracker
+    , logoutError : Maybe ApiError.ApiError
     }
 
 

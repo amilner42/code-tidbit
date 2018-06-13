@@ -85,6 +85,7 @@ sharedEncoder shared =
         , ( "userNeedsAuthModal", Encode.null )
         , ( "apiRequestTracker", Encode.null )
         , ( "textFieldKeyTracker", Encode.null )
+        , ( "logoutError", Encode.null )
         ]
 
 
@@ -105,3 +106,4 @@ sharedDecoder shared =
         |> hardcoded Nothing
         |> hardcoded Dict.empty
         |> hardcoded Dict.empty
+        |> hardcoded Nothing
