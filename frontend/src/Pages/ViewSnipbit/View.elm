@@ -36,7 +36,7 @@ import Pages.ViewSnipbit.Model exposing (..)
 {-| `ViewSnipbit` view.
 -}
 view : (Msg -> BaseMessage.Msg) -> Model -> Shared -> Html BaseMessage.Msg
-view tagMsg model shared =
+view subMsg model shared =
     div
         [ class "view-snipbit-page" ]
         [ div
@@ -71,7 +71,7 @@ view tagMsg model shared =
                                     (RT.AddOrRemoveOpinion ContentPointer.Snipbit)
                               )
                             ]
-                        , onClick <| tagMsg newMsg
+                        , onClick <| subMsg newMsg
                         ]
                         [ text buttonText ]
 
@@ -137,7 +137,7 @@ view tagMsg model shared =
                         , onClick <|
                             case shared.user of
                                 Just _ ->
-                                    tagMsg <| GoToAskQuestion
+                                    subMsg <| GoToAskQuestion
 
                                 Nothing ->
                                     BaseMessage.SetUserNeedsAuthModal
@@ -150,7 +150,7 @@ view tagMsg model shared =
                 ( Just snipbitID, True, False, Just _ ) ->
                     button
                         [ class "sub-bar-button view-relevant-questions"
-                        , onClick <| tagMsg <| GoToBrowseQuestionsWithCodePointer model.tutorialCodePointer
+                        , onClick <| subMsg <| GoToBrowseQuestionsWithCodePointer model.tutorialCodePointer
                         ]
                         [ text "Browse Related Questions" ]
 
@@ -161,7 +161,7 @@ view tagMsg model shared =
                                 Route.ViewSnipbitQuestionsPage
                                     (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
                                     snipbitID
-                            , tagMsg <| GoToBrowseQuestionsWithCodePointer model.tutorialCodePointer
+                            , subMsg <| GoToBrowseQuestionsWithCodePointer model.tutorialCodePointer
                             )
                         )
                         []
@@ -183,7 +183,7 @@ view tagMsg model shared =
                                 model.relevantHC
                       )
                     ]
-                , onClick <| tagMsg <| BrowseRelevantHC
+                , onClick <| subMsg <| BrowseRelevantHC
                 ]
                 [ text "Browse Related Frames" ]
             , case Route.getViewingContentID shared.route of
@@ -331,7 +331,7 @@ view tagMsg model shared =
                     , Editor.view "view-snipbit-code-editor"
                     , div
                         [ class "comment-block" ]
-                        [ commentBox tagMsg snipbit model shared ]
+                        [ commentBox subMsg snipbit model shared ]
                     ]
         ]
 
@@ -340,7 +340,7 @@ view tagMsg model shared =
 with a few extra buttons for a selected range.
 -}
 commentBox : (Msg -> BaseMessage.Msg) -> Snipbit.Snipbit -> Model -> Shared -> Html BaseMessage.Msg
-commentBox tagMsg snipbit model shared =
+commentBox subMsg snipbit model shared =
     let
         -- To display if no relevant HC.
         htmlIfNoRelevantHC =
@@ -381,7 +381,7 @@ commentBox tagMsg snipbit model shared =
                                         [ ( "above-comment-block-button", True )
                                         , ( "disabled", ViewerRelevantHC.onFirstFrame viewerRelevantHC )
                                         ]
-                                    , onClick <| tagMsg PreviousRelevantHC
+                                    , onClick <| subMsg PreviousRelevantHC
                                     ]
                                     [ text "Previous" ]
                                 , Route.navigationNode
@@ -407,7 +407,7 @@ commentBox tagMsg snipbit model shared =
                                         [ ( "above-comment-block-button next-button", True )
                                         , ( "disabled", ViewerRelevantHC.onLastFrame viewerRelevantHC )
                                         ]
-                                    , onClick <| tagMsg NextRelevantHC
+                                    , onClick <| subMsg NextRelevantHC
                                     ]
                                     [ text "Next" ]
                                 , Markdown.view
@@ -420,7 +420,7 @@ commentBox tagMsg snipbit model shared =
 
         viewQuestionView qa qaState tab question =
             ViewQuestion.view
-                { msgTagger = tagMsg << ViewQuestionMsg snipbit.id question.id
+                { msgTagger = subMsg << ViewQuestionMsg snipbit.id question.id
                 , textFieldKeyTracker = shared.textFieldKeyTracker
                 , userID = shared.user ||> .id
                 , tidbitAuthorID = qa.tidbitAuthor
@@ -545,25 +545,25 @@ commentBox tagMsg snipbit model shared =
                             (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
                             snipbit.id
                         << .id
-                , upvoteQuestion = tagMsg <| RateQuestion snipbit.id question.id (Just Vote.Upvote)
-                , removeUpvoteQuestion = tagMsg <| RateQuestion snipbit.id question.id Nothing
-                , downvoteQuestion = tagMsg <| RateQuestion snipbit.id question.id (Just Vote.Downvote)
-                , removeDownvoteQuestion = tagMsg <| RateQuestion snipbit.id question.id Nothing
-                , upvoteAnswer = \answer -> tagMsg <| RateAnswer snipbit.id answer.id (Just Vote.Upvote)
-                , removeUpvoteAnswer = \answer -> tagMsg <| RateAnswer snipbit.id answer.id Nothing
-                , downvoteAnswer = \answer -> tagMsg <| RateAnswer snipbit.id answer.id (Just Vote.Downvote)
-                , removeDownvoteAnswer = \answer -> tagMsg <| RateAnswer snipbit.id answer.id Nothing
-                , pinQuestion = tagMsg <| PinQuestion snipbit.id question.id True
-                , unpinQuestion = tagMsg <| PinQuestion snipbit.id question.id False
-                , pinAnswer = \answer -> tagMsg <| PinAnswer snipbit.id answer.id True
-                , unpinAnswer = \answer -> tagMsg <| PinAnswer snipbit.id answer.id False
-                , deleteAnswer = .id >> DeleteAnswer snipbit.id question.id >> tagMsg
-                , commentOnQuestion = tagMsg << SubmitCommentOnQuestion snipbit.id question.id
-                , commentOnAnswer = tagMsg <<< SubmitCommentOnAnswer snipbit.id question.id
-                , deleteQuestionComment = tagMsg << DeleteCommentOnQuestion snipbit.id
-                , deleteAnswerComment = tagMsg << DeleteCommentOnAnswer snipbit.id
-                , editQuestionComment = tagMsg <<< EditCommentOnQuestion snipbit.id
-                , editAnswerComment = tagMsg <<< EditCommentOnAnswer snipbit.id
+                , upvoteQuestion = subMsg <| RateQuestion snipbit.id question.id (Just Vote.Upvote)
+                , removeUpvoteQuestion = subMsg <| RateQuestion snipbit.id question.id Nothing
+                , downvoteQuestion = subMsg <| RateQuestion snipbit.id question.id (Just Vote.Downvote)
+                , removeDownvoteQuestion = subMsg <| RateQuestion snipbit.id question.id Nothing
+                , upvoteAnswer = \answer -> subMsg <| RateAnswer snipbit.id answer.id (Just Vote.Upvote)
+                , removeUpvoteAnswer = \answer -> subMsg <| RateAnswer snipbit.id answer.id Nothing
+                , downvoteAnswer = \answer -> subMsg <| RateAnswer snipbit.id answer.id (Just Vote.Downvote)
+                , removeDownvoteAnswer = \answer -> subMsg <| RateAnswer snipbit.id answer.id Nothing
+                , pinQuestion = subMsg <| PinQuestion snipbit.id question.id True
+                , unpinQuestion = subMsg <| PinQuestion snipbit.id question.id False
+                , pinAnswer = \answer -> subMsg <| PinAnswer snipbit.id answer.id True
+                , unpinAnswer = \answer -> subMsg <| PinAnswer snipbit.id answer.id False
+                , deleteAnswer = .id >> DeleteAnswer snipbit.id question.id >> subMsg
+                , commentOnQuestion = subMsg << SubmitCommentOnQuestion snipbit.id question.id
+                , commentOnAnswer = subMsg <<< SubmitCommentOnAnswer snipbit.id question.id
+                , deleteQuestionComment = subMsg << DeleteCommentOnQuestion snipbit.id
+                , deleteAnswerComment = subMsg << DeleteCommentOnAnswer snipbit.id
+                , editQuestionComment = subMsg <<< EditCommentOnQuestion snipbit.id
+                , editAnswerComment = subMsg <<< EditCommentOnAnswer snipbit.id
                 , handleUnauthAction = BaseMessage.SetUserNeedsAuthModal
                 }
                 { questionCommentEdits = QA.getQuestionCommentEdits snipbit.id qaState
@@ -620,7 +620,7 @@ commentBox tagMsg snipbit model shared =
                             , askQuestion =
                                 case shared.user of
                                     Just _ ->
-                                        tagMsg <| GoToAskQuestion
+                                        subMsg <| GoToAskQuestion
 
                                     Nothing ->
                                         BaseMessage.SetUserNeedsAuthModal
@@ -706,15 +706,15 @@ commentBox tagMsg snipbit model shared =
                         |> Maybe.withDefault QA.defaultNewQuestion
             in
             AskQuestion.view
-                { msgTagger = tagMsg << AskQuestionMsg snipbitID
+                { msgTagger = subMsg << AskQuestionMsg snipbitID
                 , textFieldKeyTracker = shared.textFieldKeyTracker
                 , askQuestionRequestInProgress =
                     RT.isMakingRequest shared.apiRequestTracker (RT.AskQuestion TidbitPointer.Snipbit)
-                , askQuestion = tagMsg <<< AskQuestion snipbitID
+                , askQuestion = subMsg <<< AskQuestion snipbitID
                 , isReadyCodePointer = not << Range.isEmptyRange
                 , allQuestionsND =
                     ( Route.Route <| Route.ViewSnipbitQuestionsPage maybeStoryID snipbitID
-                    , tagMsg <|
+                    , subMsg <|
                         GoToBrowseQuestionsWithCodePointer <|
                             (QA.getNewQuestion snipbitID model.qaState |||> .codePointer)
                     )
@@ -725,14 +725,14 @@ commentBox tagMsg snipbit model shared =
             case model.qa ||> .questions |||> QA.getQuestion questionID of
                 Just question ->
                     AnswerQuestion.view
-                        { msgTagger = tagMsg << AnswerQuestionMsg snipbitID question
+                        { msgTagger = subMsg << AnswerQuestionMsg snipbitID question
                         , textFieldKeyTracker = shared.textFieldKeyTracker
                         , forQuestion = question
                         , answerQuestionRequestInProgress =
                             RT.isMakingRequest
                                 shared.apiRequestTracker
                                 (RT.AnswerQuestion TidbitPointer.Snipbit)
-                        , answerQuestion = tagMsg << AnswerQuestion snipbitID questionID
+                        , answerQuestion = subMsg << AnswerQuestion snipbitID questionID
                         , allAnswersND =
                             Route.ViewSnipbitAnswersPage
                                 (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
@@ -758,14 +758,14 @@ commentBox tagMsg snipbit model shared =
                                 ?> QA.questionEditFromQuestion question
                     in
                     EditQuestion.view
-                        { msgTagger = tagMsg << EditQuestionMsg snipbitID question
+                        { msgTagger = subMsg << EditQuestionMsg snipbitID question
                         , textFieldKeyTracker = shared.textFieldKeyTracker
                         , editQuestionRequestInProgress =
                             RT.isMakingRequest
                                 shared.apiRequestTracker
                                 (RT.UpdateQuestion TidbitPointer.Snipbit)
                         , isReadyCodePointer = not << Range.isEmptyRange
-                        , editQuestion = tagMsg <<< EditQuestion snipbitID questionID
+                        , editQuestion = subMsg <<< EditQuestion snipbitID questionID
                         }
                         questionEdit
 
@@ -781,11 +781,11 @@ commentBox tagMsg snipbit model shared =
             of
                 ( Just answer, Just question ) ->
                     EditAnswer.view
-                        { msgTagger = tagMsg << EditAnswerMsg snipbitID answerID answer
+                        { msgTagger = subMsg << EditAnswerMsg snipbitID answerID answer
                         , textFieldKeyTracker = shared.textFieldKeyTracker
                         , editAnswerRequestInProgress =
                             RT.isMakingRequest shared.apiRequestTracker (RT.UpdateAnswer TidbitPointer.Snipbit)
-                        , editAnswer = tagMsg << EditAnswer snipbitID question.id answerID
+                        , editAnswer = subMsg << EditAnswer snipbitID question.id answerID
                         , forQuestion = question
                         }
                         (QA.getAnswerEdit snipbitID answerID model.qaState

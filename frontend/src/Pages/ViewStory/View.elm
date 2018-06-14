@@ -23,7 +23,7 @@ import Pages.ViewStory.Model exposing (..)
 {-| `ViewStory` view.
 -}
 view : (Msg -> BaseMessage.Msg) -> Model -> Shared -> Html BaseMessage.Msg
-view tagMsg model shared =
+view subMsg model shared =
     case shared.viewingStory of
         Nothing ->
             Util.hiddenDiv
@@ -101,7 +101,7 @@ view tagMsg model shared =
                                                 RT.AddOrRemoveOpinion ContentPointer.Story
                                           )
                                         ]
-                                    , onClick <| tagMsg newMsg
+                                    , onClick <| subMsg newMsg
                                     ]
                                     [ text buttonText ]
 

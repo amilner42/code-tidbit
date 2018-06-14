@@ -37,7 +37,7 @@ import Pages.ViewBigbit.Model exposing (..)
 {-| `ViewBigbit` view.
 -}
 view : (Msg -> BaseMessage.Msg) -> Model -> Shared -> Html BaseMessage.Msg
-view tagMsg model shared =
+view subMsg model shared =
     let
         rhcTabOpen =
             isBigbitRHCTabOpen model.relevantHC
@@ -99,7 +99,7 @@ view tagMsg model shared =
                                     RT.AddOrRemoveOpinion ContentPointer.Bigbit
                               )
                             ]
-                        , onClick <| tagMsg newMsg
+                        , onClick <| subMsg newMsg
                         ]
                         [ text buttonText ]
 
@@ -165,7 +165,7 @@ view tagMsg model shared =
                         , onClick <|
                             case shared.user of
                                 Just _ ->
-                                    tagMsg <|
+                                    subMsg <|
                                         GoToAskQuestionWithCodePointer bigbit.id model.tutorialCodePointer
 
                                 Nothing ->
@@ -178,7 +178,7 @@ view tagMsg model shared =
                 ( Just bigbit, True, False, Just _ ) ->
                     button
                         [ class "sub-bar-button view-relevant-questions"
-                        , onClick <| tagMsg <| GoToBrowseQuestionsWithCodePointer bigbit.id model.tutorialCodePointer
+                        , onClick <| subMsg <| GoToBrowseQuestionsWithCodePointer bigbit.id model.tutorialCodePointer
                         ]
                         [ text "Browse Related Questions" ]
 
@@ -191,7 +191,7 @@ view tagMsg model shared =
                                     bigbit.id
                               -- We keep the codePointer the same, and if their is no codePointer, we make sure to
                               -- load the same file if they are looking at a file.
-                            , tagMsg <|
+                            , subMsg <|
                                 GoToBrowseQuestionsWithCodePointer
                                     bigbit.id
                                     (case model.tutorialCodePointer of
@@ -233,7 +233,7 @@ view tagMsg model shared =
                                 model.relevantHC
                       )
                     ]
-                , onClick <| tagMsg BrowseRelevantHC
+                , onClick <| subMsg BrowseRelevantHC
                 ]
                 [ text "Browse Related Frames" ]
             , case Route.getViewingContentID shared.route of
@@ -314,7 +314,7 @@ view tagMsg model shared =
                             { state = Started model.bookmark
                             , maxPosition = Array.length bigbit.highlightedComments
                             , disabledStyling = not goingThroughTutorial
-                            , onClickMsg = tagMsg BackToTutorialSpot
+                            , onClickMsg = subMsg BackToTutorialSpot
                             , allowClick =
                                 goingThroughTutorial
                                     && (case shared.route of
@@ -369,13 +369,13 @@ view tagMsg model shared =
                                     Route.viewBigbitPageCurrentActiveFile currentRoute bigbit model.qa model.qaState
                                         |> Maybe.map (FS.isSameFilePath absolutePath)
                                         |> Maybe.withDefault False
-                            , fileSelectedMsg = tagMsg << SelectFile
-                            , folderSelectedMsg = tagMsg << ToggleFolder
+                            , fileSelectedMsg = subMsg << SelectFile
+                            , folderSelectedMsg = subMsg << ToggleFolder
                             }
                             bigbit.fs
                         , i
                             [ class "close-fs-icon material-icons"
-                            , onClick <| tagMsg ToggleFS
+                            , onClick <| subMsg ToggleFS
                             ]
                             [ text "close" ]
                         , div
@@ -388,7 +388,7 @@ view tagMsg model shared =
                                 if fsOpen || not fsAllowed then
                                     BaseMessage.NoOp
                                 else
-                                    tagMsg <| ToggleFS
+                                    subMsg <| ToggleFS
                             ]
                             [ text <|
                                 case
@@ -404,7 +404,7 @@ view tagMsg model shared =
                     , Editor.view "view-bigbit-code-editor"
                     , div
                         [ class "comment-block" ]
-                        [ viewBigbitCommentBox tagMsg bigbit model shared ]
+                        [ viewBigbitCommentBox subMsg bigbit model shared ]
                     ]
         ]
 
@@ -413,7 +413,7 @@ view tagMsg model shared =
 markdown with a few extra buttons for a selected range.
 -}
 viewBigbitCommentBox : (Msg -> BaseMessage.Msg) -> Bigbit.Bigbit -> Model -> Shared -> Html BaseMessage.Msg
-viewBigbitCommentBox tagMsg bigbit model shared =
+viewBigbitCommentBox subMsg bigbit model shared =
     let
         tutorialRoute =
             let
@@ -464,7 +464,7 @@ viewBigbitCommentBox tagMsg bigbit model shared =
                                             [ ( "above-comment-block-button", True )
                                             , ( "disabled", ViewerRelevantHC.onFirstFrame rhc )
                                             ]
-                                        , onClick <| tagMsg PreviousRelevantHC
+                                        , onClick <| subMsg PreviousRelevantHC
                                         ]
                                         [ text "Previous" ]
                                     , Route.navigationNode
@@ -494,7 +494,7 @@ viewBigbitCommentBox tagMsg bigbit model shared =
                                             [ ( "above-comment-block-button next-button", True )
                                             , ( "disabled", ViewerRelevantHC.onLastFrame rhc )
                                             ]
-                                        , onClick <| tagMsg NextRelevantHC
+                                        , onClick <| subMsg NextRelevantHC
                                         ]
                                         [ text "Next" ]
                                     ]
@@ -503,7 +503,7 @@ viewBigbitCommentBox tagMsg bigbit model shared =
 
         viewQuestionView qa qaState tab question =
             ViewQuestion.view
-                { msgTagger = tagMsg << ViewQuestionMsg bigbit.id question.id
+                { msgTagger = subMsg << ViewQuestionMsg bigbit.id question.id
                 , textFieldKeyTracker = shared.textFieldKeyTracker
                 , userID = shared.user ||> .id
                 , tidbitAuthorID = bigbit.author
@@ -539,7 +539,7 @@ viewBigbitCommentBox tagMsg bigbit model shared =
                         Route.ViewBigbitQuestionsPage
                             (Route.getFromStoryQueryParamOnViewBigbitRoute shared.route)
                             bigbit.id
-                    , tagMsg <|
+                    , subMsg <|
                         GoToBrowseQuestionsWithCodePointer
                             bigbit.id
                             (Route.viewBigbitPageCurrentActiveFile shared.route bigbit (Just qa) qaState
@@ -636,25 +636,25 @@ viewBigbitCommentBox tagMsg bigbit model shared =
                                 (Route.getFromStoryQueryParamOnViewBigbitRoute shared.route)
                                 bigbit.id
                                 answer.id
-                , upvoteQuestion = tagMsg <| RateQuestion bigbit.id question.id (Just Vote.Upvote)
-                , removeUpvoteQuestion = tagMsg <| RateQuestion bigbit.id question.id Nothing
-                , downvoteQuestion = tagMsg <| RateQuestion bigbit.id question.id (Just Vote.Downvote)
-                , removeDownvoteQuestion = tagMsg <| RateQuestion bigbit.id question.id Nothing
-                , upvoteAnswer = \answer -> tagMsg <| RateAnswer bigbit.id answer.id (Just Vote.Upvote)
-                , removeUpvoteAnswer = \answer -> tagMsg <| RateAnswer bigbit.id answer.id Nothing
-                , downvoteAnswer = \answer -> tagMsg <| RateAnswer bigbit.id answer.id (Just Vote.Downvote)
-                , removeDownvoteAnswer = \answer -> tagMsg <| RateAnswer bigbit.id answer.id Nothing
-                , pinQuestion = tagMsg <| PinQuestion bigbit.id question.id True
-                , unpinQuestion = tagMsg <| PinQuestion bigbit.id question.id False
-                , pinAnswer = \answer -> tagMsg <| PinAnswer bigbit.id answer.id True
-                , unpinAnswer = \answer -> tagMsg <| PinAnswer bigbit.id answer.id False
-                , deleteAnswer = .id >> DeleteAnswer bigbit.id question.id >> tagMsg
-                , commentOnQuestion = tagMsg << SubmitCommentOnQuestion bigbit.id question.id
-                , commentOnAnswer = tagMsg <<< SubmitCommentOnAnswer bigbit.id question.id
-                , deleteQuestionComment = tagMsg << DeleteCommentOnQuestion bigbit.id
-                , deleteAnswerComment = tagMsg << DeleteCommentOnAnswer bigbit.id
-                , editQuestionComment = tagMsg <<< EditCommentOnQuestion bigbit.id
-                , editAnswerComment = tagMsg <<< EditCommentOnAnswer bigbit.id
+                , upvoteQuestion = subMsg <| RateQuestion bigbit.id question.id (Just Vote.Upvote)
+                , removeUpvoteQuestion = subMsg <| RateQuestion bigbit.id question.id Nothing
+                , downvoteQuestion = subMsg <| RateQuestion bigbit.id question.id (Just Vote.Downvote)
+                , removeDownvoteQuestion = subMsg <| RateQuestion bigbit.id question.id Nothing
+                , upvoteAnswer = \answer -> subMsg <| RateAnswer bigbit.id answer.id (Just Vote.Upvote)
+                , removeUpvoteAnswer = \answer -> subMsg <| RateAnswer bigbit.id answer.id Nothing
+                , downvoteAnswer = \answer -> subMsg <| RateAnswer bigbit.id answer.id (Just Vote.Downvote)
+                , removeDownvoteAnswer = \answer -> subMsg <| RateAnswer bigbit.id answer.id Nothing
+                , pinQuestion = subMsg <| PinQuestion bigbit.id question.id True
+                , unpinQuestion = subMsg <| PinQuestion bigbit.id question.id False
+                , pinAnswer = \answer -> subMsg <| PinAnswer bigbit.id answer.id True
+                , unpinAnswer = \answer -> subMsg <| PinAnswer bigbit.id answer.id False
+                , deleteAnswer = .id >> DeleteAnswer bigbit.id question.id >> subMsg
+                , commentOnQuestion = subMsg << SubmitCommentOnQuestion bigbit.id question.id
+                , commentOnAnswer = subMsg <<< SubmitCommentOnAnswer bigbit.id question.id
+                , deleteQuestionComment = subMsg << DeleteCommentOnQuestion bigbit.id
+                , deleteAnswerComment = subMsg << DeleteCommentOnAnswer bigbit.id
+                , editQuestionComment = subMsg <<< EditCommentOnQuestion bigbit.id
+                , editAnswerComment = subMsg <<< EditCommentOnAnswer bigbit.id
                 , handleUnauthAction = BaseMessage.SetUserNeedsAuthModal
                 }
                 { questionCommentEdits = QA.getQuestionCommentEdits bigbit.id qaState
@@ -734,7 +734,7 @@ viewBigbitCommentBox tagMsg bigbit model shared =
                                                 ++ " to all of CodeTidbit in seconds!"
 
                                     Just _ ->
-                                        tagMsg <| GoToAskQuestionWithCodePointer bigbitID browseCodePointer
+                                        subMsg <| GoToAskQuestionWithCodePointer bigbitID browseCodePointer
                             }
                             remainingQuestions
                         ]
@@ -744,15 +744,15 @@ viewBigbitCommentBox tagMsg bigbit model shared =
 
         Route.ViewBigbitAskQuestion maybeStoryID bigbitID ->
             AskQuestion.view
-                { msgTagger = tagMsg << AskQuestionMsg bigbitID
+                { msgTagger = subMsg << AskQuestionMsg bigbitID
                 , textFieldKeyTracker = shared.textFieldKeyTracker
                 , askQuestionRequestInProgress =
                     RT.isMakingRequest shared.apiRequestTracker (RT.AskQuestion TidbitPointer.Bigbit)
-                , askQuestion = tagMsg <<< AskQuestion bigbitID
+                , askQuestion = subMsg <<< AskQuestion bigbitID
                 , isReadyCodePointer = .range >> Range.isEmptyRange >> not
                 , allQuestionsND =
                     ( Route.Route <| Route.ViewBigbitQuestionsPage maybeStoryID bigbitID
-                    , tagMsg <|
+                    , subMsg <|
                         GoToBrowseQuestionsWithCodePointer
                             bigbitID
                             (QA.getNewQuestion bigbitID model.qaState |||> .codePointer)
@@ -769,12 +769,12 @@ viewBigbitCommentBox tagMsg bigbit model shared =
                                 ?> QA.questionEditFromQuestion question
                     in
                     EditQuestion.view
-                        { msgTagger = tagMsg << EditQuestionMsg bigbitID question
+                        { msgTagger = subMsg << EditQuestionMsg bigbitID question
                         , textFieldKeyTracker = shared.textFieldKeyTracker
                         , editQuestionRequestInProgress =
                             RT.isMakingRequest shared.apiRequestTracker (RT.UpdateQuestion TidbitPointer.Bigbit)
                         , isReadyCodePointer = .range >> Range.isEmptyRange >> not
-                        , editQuestion = tagMsg <<< EditQuestion bigbitID questionID
+                        , editQuestion = subMsg <<< EditQuestion bigbitID questionID
                         }
                         questionEdit
 
@@ -790,7 +790,7 @@ viewBigbitCommentBox tagMsg bigbit model shared =
                                 ?> QA.defaultNewAnswer
                     in
                     AnswerQuestion.view
-                        { msgTagger = tagMsg << AnswerQuestionMsg bigbitID question
+                        { msgTagger = subMsg << AnswerQuestionMsg bigbitID question
                         , textFieldKeyTracker = shared.textFieldKeyTracker
                         , forQuestion = question
                         , answerQuestionRequestInProgress =
@@ -800,7 +800,7 @@ viewBigbitCommentBox tagMsg bigbit model shared =
                         , allAnswersND =
                             Route.ViewBigbitAnswersPage maybeStoryID Nothing bigbitID questionID
                                 |> (\route -> ( Route.Route route, BaseMessage.GoTo { wipeModalError = False } route ))
-                        , answerQuestion = tagMsg << AnswerQuestion bigbitID questionID
+                        , answerQuestion = subMsg << AnswerQuestion bigbitID questionID
                         }
                         newAnswer
 
@@ -821,11 +821,11 @@ viewBigbitCommentBox tagMsg bigbit model shared =
                                 ?> QA.answerEditFromAnswer answer
                     in
                     EditAnswer.view
-                        { msgTagger = tagMsg << EditAnswerMsg bigbitID answer
+                        { msgTagger = subMsg << EditAnswerMsg bigbitID answer
                         , textFieldKeyTracker = shared.textFieldKeyTracker
                         , editAnswerRequestInProgress =
                             RT.isMakingRequest shared.apiRequestTracker (RT.UpdateAnswer TidbitPointer.Bigbit)
-                        , editAnswer = tagMsg << EditAnswer bigbitID answerID
+                        , editAnswer = subMsg << EditAnswer bigbitID answerID
                         , forQuestion = question
                         }
                         answerEdit
