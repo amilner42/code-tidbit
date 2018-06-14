@@ -16,13 +16,14 @@ import Models.RequestTracker as RT
 import Models.Route as Route exposing (createBigbitPageCurrentActiveFile)
 import Pages.CreateBigbit.Messages exposing (..)
 import Pages.CreateBigbit.Model exposing (..)
+import Pages.Messages as BaseMessage
 import Pages.Model exposing (Shared)
 
 
 {-| `CreateBigbit` view.
 -}
-view : Model -> Shared -> Html Msg
-view model shared =
+view : (Msg -> BaseMessage.Msg) -> Model -> Shared -> Html BaseMessage.Msg
+view subMsg model shared =
     let
         currentRoute =
             shared.route
@@ -46,11 +47,11 @@ view model shared =
                             [ ( "create-bigbit-publish-button", True )
                             , ( "cursor-progress", RT.isMakingRequest shared.apiRequestTracker RT.PublishBigbit )
                             ]
-                        , onClick <| Publish bigbitForPublicaton
+                        , onClick <| subMsg <| Publish bigbitForPublicaton
                         ]
                         [ text "Publish" ]
 
-        createBigbitNavbar : Html Msg
+        createBigbitNavbar : Html BaseMessage.Msg
         createBigbitNavbar =
             div
                 [ classList [ ( "create-tidbit-navbar", True ) ] ]
@@ -62,7 +63,7 @@ view model shared =
                           )
                         , ( "filled-in", Util.isNotNothing <| nameFilledIn model )
                         ]
-                    , onClick <| GoTo Route.CreateBigbitNamePage
+                    , onClick <| BaseMessage.GoTo { wipeModalError = False } Route.CreateBigbitNamePage
                     ]
                     [ text "Name" ]
                 , div
@@ -73,7 +74,7 @@ view model shared =
                           )
                         , ( "filled-in", Util.isNotNothing <| descriptionFilledIn model )
                         ]
-                    , onClick <| GoTo Route.CreateBigbitDescriptionPage
+                    , onClick <| BaseMessage.GoTo { wipeModalError = False } Route.CreateBigbitDescriptionPage
                     ]
                     [ text "Description" ]
                 , div
@@ -84,7 +85,7 @@ view model shared =
                           )
                         , ( "filled-in", Util.isNotNothing <| tagsFilledIn model )
                         ]
-                    , onClick <| GoTo Route.CreateBigbitTagsPage
+                    , onClick <| BaseMessage.GoTo { wipeModalError = False } Route.CreateBigbitTagsPage
                     ]
                     [ text "Tags" ]
                 , div
@@ -100,7 +101,7 @@ view model shared =
                           )
                         , ( "filled-in", codeTabFilledIn model )
                         ]
-                    , onClick <| GoToCodeTab
+                    , onClick <| subMsg <| GoToCodeTab
                     ]
                     [ text "Code" ]
                 ]
@@ -166,8 +167,8 @@ view model shared =
                                 [ class "file-structure" ]
                                 [ FS.view
                                     { isFileSelected = viewingFile
-                                    , fileSelectedMsg = SelectFile
-                                    , folderSelectedMsg = ToggleFolder
+                                    , fileSelectedMsg = subMsg << SelectFile
+                                    , folderSelectedMsg = subMsg << ToggleFolder
                                     }
                                     model.fs
                                 , div
@@ -238,7 +239,7 @@ view model shared =
                                                                                     |> List.map
                                                                                         (\language ->
                                                                                             button
-                                                                                                [ onClick <| AddFile actionInput language ]
+                                                                                                [ onClick <| subMsg <| AddFile actionInput language ]
                                                                                                 [ text <| toString language ]
                                                                                         )
                                                                                 )
@@ -284,11 +285,11 @@ view model shared =
                                         "create-bigbit-fs-action-input-box"
                                         [ id "fs-action-input-box"
                                         , placeholder "Absolute Path"
-                                        , onInput OnUpdateActionInput
+                                        , onInput <| subMsg << OnUpdateActionInput
                                         , Util.onKeydown
                                             (\key ->
                                                 if key == KK.Enter then
-                                                    Just SubmitActionInput
+                                                    Just <| subMsg SubmitActionInput
                                                 else
                                                     Nothing
                                             )
@@ -315,7 +316,7 @@ view model shared =
                                                                         |> .actionButtonSubmitConfirmed
                                                                   )
                                                                 ]
-                                                            , onClick <| SubmitActionInput
+                                                            , onClick <| subMsg SubmitActionInput
                                                             ]
                                                             [ text <|
                                                                 if isPlus then
@@ -346,7 +347,7 @@ view model shared =
                                           , fsActionStateEquals (Just AddingFile) model.fs
                                           )
                                         ]
-                                    , onClick <| UpdateActionButtonState <| Just AddingFile
+                                    , onClick <| subMsg <| UpdateActionButtonState <| Just AddingFile
                                     ]
                                     [ text "Add File" ]
                                 , button
@@ -356,7 +357,7 @@ view model shared =
                                           , fsActionStateEquals (Just AddingFolder) model.fs
                                           )
                                         ]
-                                    , onClick <| UpdateActionButtonState <| Just AddingFolder
+                                    , onClick <| subMsg <| UpdateActionButtonState <| Just AddingFolder
                                     ]
                                     [ text "Add Folder" ]
                                 , button
@@ -366,7 +367,7 @@ view model shared =
                                           , fsActionStateEquals (Just RemovingFile) model.fs
                                           )
                                         ]
-                                    , onClick <| UpdateActionButtonState <| Just RemovingFile
+                                    , onClick <| subMsg <| UpdateActionButtonState <| Just RemovingFile
                                     ]
                                     [ text "Remove File" ]
                                 , button
@@ -376,7 +377,7 @@ view model shared =
                                           , fsActionStateEquals (Just RemovingFolder) model.fs
                                           )
                                         ]
-                                    , onClick <| UpdateActionButtonState <| Just RemovingFolder
+                                    , onClick <| subMsg <| UpdateActionButtonState <| Just RemovingFolder
                                     ]
                                     [ text "Remove Folder" ]
                                 ]
@@ -389,7 +390,7 @@ view model shared =
                                 [ ( "close-fs material-icons", True )
                                 , ( "hidden", not fsOpen )
                                 ]
-                            , onClick ToggleFS
+                            , onClick <| subMsg ToggleFS
                             ]
                             [ text "close" ]
                         ]
@@ -401,14 +402,14 @@ view model shared =
                             [ class "current-file"
                             , onClick <|
                                 if not fsOpen then
-                                    ToggleFS
+                                    subMsg ToggleFS
                                 else
-                                    NoOp
+                                    BaseMessage.NoOp
                             ]
                             [ text <| Maybe.withDefault "No File Selected" currentActiveFile ]
                         , div
                             [ classList [ ( "lock-icon", True ), ( "hidden", Util.isNothing currentActiveFile ) ]
-                            , onClick <| ToggleLockCode
+                            , onClick <| subMsg ToggleLockCode
                             ]
                             [ i [ class "material-icons" ]
                                 [ text <|
@@ -434,7 +435,7 @@ view model shared =
                                 [ class "comment-body" ]
                                 [ div
                                     [ class "preview-markdown"
-                                    , onClick TogglePreviewMarkdown
+                                    , onClick <| subMsg TogglePreviewMarkdown
                                     ]
                                     [ if markdownOpen then
                                         text "Close Preview"
@@ -459,7 +460,7 @@ view model shared =
                                                 ("create-bigbit-frame-" ++ toString frameNumber)
                                                 [ placeholder <| markdownFramePlaceholder frameNumber
                                                 , id "frame-input"
-                                                , onInput <| OnUpdateFrameComment frameNumber
+                                                , onInput <| subMsg << OnUpdateFrameComment frameNumber
                                                 , defaultValue frameText
                                                 , Util.onKeydownPreventDefault
                                                     (\key ->
@@ -470,14 +471,14 @@ view model shared =
                                                             action =
                                                                 if key == KK.Tab then
                                                                     if newKeysDown == shared.keysDown then
-                                                                        Just NoOp
+                                                                        Just BaseMessage.NoOp
                                                                     else
                                                                         KK.getHotkeyAction
                                                                             [ ( [ KK.Tab ]
                                                                               , if Array.length model.highlightedComments == frameNumber then
-                                                                                    NoOp
+                                                                                    BaseMessage.NoOp
                                                                                 else
-                                                                                    GoTo <|
+                                                                                    BaseMessage.GoTo { wipeModalError = False } <|
                                                                                         Route.CreateBigbitCodeFramePage
                                                                                             (frameNumber + 1)
                                                                                             (getActiveFileForFrame
@@ -486,7 +487,7 @@ view model shared =
                                                                                             )
                                                                               )
                                                                             , ( [ KK.Tab, KK.Shift ]
-                                                                              , GoTo <|
+                                                                              , BaseMessage.GoTo { wipeModalError = False } <|
                                                                                     if frameNumber == 1 then
                                                                                         Route.CreateBigbitTagsPage
                                                                                     else
@@ -522,7 +523,7 @@ view model shared =
                                                 button
                                                     [ classList [ ( "selected-frame", (Just <| index + 1) == frameTab ) ]
                                                     , onClick <|
-                                                        GoTo <|
+                                                        BaseMessage.GoTo { wipeModalError = False } <|
                                                             Route.CreateBigbitCodeFramePage
                                                                 (index + 1)
                                                                 (getActiveFileForFrame
@@ -542,12 +543,12 @@ view model shared =
                                 ]
                                 [ button
                                     [ class "add-or-remove-frame-button"
-                                    , onClick <| AddFrame
+                                    , onClick <| subMsg AddFrame
                                     ]
                                     [ text "+" ]
                                 , button
                                     [ classList [ ( "add-or-remove-frame-button", True ), ( "confirmed", model.confirmedRemoveFrame ) ]
-                                    , onClick <| RemoveFrame
+                                    , onClick <| subMsg RemoveFrame
                                     , disabled <|
                                         Array.length model.highlightedComments
                                             <= 1
@@ -594,7 +595,7 @@ view model shared =
             [ class "sub-bar" ]
             [ button
                 [ classList [ ( "sub-bar-button", True ), ( "confirmed", model.confirmedReset ) ]
-                , onClick <| Reset
+                , onClick <| subMsg Reset
                 ]
                 [ text "Reset" ]
             , case previousFrameRange model shared.route of
@@ -604,7 +605,7 @@ view model shared =
                 Just ( filePath, _ ) ->
                     button
                         [ class "sub-bar-button previous-frame-location"
-                        , onClick <| JumpToLineFromPreviousFrame filePath
+                        , onClick <| subMsg <| JumpToLineFromPreviousFrame filePath
                         ]
                         [ text "Previous Frame Location" ]
             , publishButton
@@ -619,12 +620,12 @@ view model shared =
                         "create-bigbit-name"
                         [ placeholder "Name"
                         , id "name-input"
-                        , onInput OnUpdateName
+                        , onInput <| subMsg << OnUpdateName
                         , defaultValue model.name
                         , Util.onKeydownPreventDefault
                             (\key ->
                                 if key == KK.Tab then
-                                    Just NoOp
+                                    Just <| BaseMessage.NoOp
                                 else
                                     Nothing
                             )
@@ -640,12 +641,12 @@ view model shared =
                         "create-bigbit-description"
                         [ placeholder "Description"
                         , id "description-input"
-                        , onInput OnUpdateDescription
+                        , onInput <| subMsg << OnUpdateDescription
                         , defaultValue model.description
                         , Util.onKeydownPreventDefault
                             (\key ->
                                 if key == KK.Tab then
-                                    Just NoOp
+                                    Just BaseMessage.NoOp
                                 else
                                     Nothing
                             )
@@ -661,19 +662,19 @@ view model shared =
                         "create-bigbit-tags"
                         [ placeholder "Tags"
                         , id "tags-input"
-                        , onInput OnUpdateTagInput
+                        , onInput <| subMsg << OnUpdateTagInput
                         , defaultValue model.tagInput
                         , Util.onKeydownPreventDefault
                             (\key ->
                                 if key == KK.Enter || key == KK.Space then
-                                    Just <| AddTag model.tagInput
+                                    Just <| subMsg <| AddTag model.tagInput
                                 else if key == KK.Tab then
-                                    Just <| NoOp
+                                    Just BaseMessage.NoOp
                                 else
                                     Nothing
                             )
                         ]
-                    , Tags.view RemoveTag model.tags
+                    , Tags.view (subMsg << RemoveTag) model.tags
                     ]
 
             Route.CreateBigbitCodeFramePage _ _ ->
