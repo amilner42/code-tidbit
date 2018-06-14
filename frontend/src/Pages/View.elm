@@ -361,7 +361,7 @@ developStoryView developStoryModel shared =
 -}
 createSnipbitView : CreateSnipbitModel.Model -> Shared -> Html.Html Msg
 createSnipbitView createSnipbitModel shared =
-    Html.map CreateSnipbitMessage <| CreateSnipbitView.view createSnipbitModel shared
+    CreateSnipbitView.view CreateSnipbitMessage createSnipbitModel shared
 
 
 {-| `CreateBigbit` view.
