@@ -10,13 +10,14 @@ import Html.Events exposing (onClick, onInput)
 import Keyboard.Extra as KK
 import Pages.Browse.Messages exposing (..)
 import Pages.Browse.Model exposing (..)
+import Pages.Messages as BaseMessage
 import Pages.Model exposing (Shared)
 
 
 {-| `Browse` view.
 -}
-view : Model -> Shared -> Html Msg
-view model shared =
+view : (Msg -> BaseMessage.Msg) -> Model -> Shared -> Html BaseMessage.Msg
+view subMsg model shared =
     div
         [ class "browse-page" ]
         [ div
@@ -29,18 +30,18 @@ view model shared =
                 , id "search-bar"
                 , placeholder "search"
                 , defaultValue model.searchQuery
-                , onInput OnUpdateSearch
+                , onInput <| subMsg << OnUpdateSearch
                 , Util.onKeydown
                     (\key ->
                         if key == KK.Enter then
-                            Just Search
+                            Just <| subMsg Search
                         else
                             Nothing
                     )
                 ]
             , div
                 [ class "advanced-search-options-toggle"
-                , onClick ToggleAdvancedOptions
+                , onClick <| subMsg ToggleAdvancedOptions
                 ]
                 [ if model.showAdvancedSearchOptions then
                     text "hide advanced search options"
@@ -56,16 +57,16 @@ view model shared =
                 [ div
                     [ class "content-filter" ]
                     [ span [ class "content-filter-title" ] [ text "Filter Content Type" ]
-                    , contentFilterType model.contentFilterSnipbits "snipbits" ToggleContentFilterSnipbits
-                    , contentFilterType model.contentFilterBigbits "bigbits" ToggleContentFilterBigbits
-                    , contentFilterType model.contentFilterStories "stories" ToggleContentFilterStories
+                    , contentFilterType model.contentFilterSnipbits "snipbits" <| subMsg ToggleContentFilterSnipbits
+                    , contentFilterType model.contentFilterBigbits "bigbits" <| subMsg ToggleContentFilterBigbits
+                    , contentFilterType model.contentFilterStories "stories" <| subMsg ToggleContentFilterStories
                     ]
                 , div
                     [ class "empty-story-filter" ]
                     [ span [ class "empty-story-title" ] [ text "Include Empty Stories" ]
                     , div
                         [ class "empty-story-filter-option"
-                        , onClick <| SetIncludeEmptyStories True
+                        , onClick <| subMsg <| SetIncludeEmptyStories True
                         ]
                         [ i
                             [ class "material-icons" ]
@@ -79,7 +80,7 @@ view model shared =
                         ]
                     , div
                         [ class "empty-story-filter-option"
-                        , onClick <| SetIncludeEmptyStories False
+                        , onClick <| subMsg <| SetIncludeEmptyStories False
                         ]
                         [ i
                             [ class "material-icons" ]
@@ -96,7 +97,7 @@ view model shared =
                     [ class "language-filter" ]
                     [ span [ class "language-filter-title" ] [ text "Select Language" ]
                     , select
-                        [ Util.onChange (Editor.languageFromHumanReadableName >> SelectLanguage) ]
+                        [ Util.onChange (Editor.languageFromHumanReadableName >> SelectLanguage >> subMsg) ]
                         (option
                             [ selected <| Util.isNothing model.contentFilterLanguage ]
                             [ text "All" ]
@@ -121,7 +122,7 @@ view model shared =
                             ]
                         , placeholder "email"
                         , defaultValue <| Tuple.first model.contentFilterAuthor
-                        , onInput OnUpdateContentFilterAuthor
+                        , onInput <| subMsg << OnUpdateContentFilterAuthor
                         ]
                     , div
                         [ classList
@@ -153,7 +154,13 @@ view model shared =
                     , div
                         [ class "all-content" ]
                         (content
-                            |> List.map (ContentBox.view { goToMsg = GoTo, darkenBox = False, forStory = Nothing })
+                            |> List.map
+                                (ContentBox.view
+                                    { goToMsg = BaseMessage.GoTo { wipeModalError = False }
+                                    , darkenBox = False
+                                    , forStory = Nothing
+                                    }
+                                )
                             |> flip (++) Util.emptyFlexBoxesForAlignment
                         )
                     , button
@@ -161,7 +168,7 @@ view model shared =
                             [ ( "load-more-content-button", True )
                             , ( "hidden", model.noMoreContent )
                             ]
-                        , onClick LoadMoreContent
+                        , onClick <| subMsg LoadMoreContent
                         ]
                         [ text "load more" ]
                     , div
@@ -186,7 +193,7 @@ view model shared =
 
 {-| For staying DRY, used in the advanced options.
 -}
-contentFilterType : Bool -> String -> Msg -> Html Msg
+contentFilterType : Bool -> String -> BaseMessage.Msg -> Html BaseMessage.Msg
 contentFilterType currentlyIncluded name msg =
     div
         [ class <| "content-filter-type " ++ name

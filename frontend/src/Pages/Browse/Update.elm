@@ -19,9 +19,6 @@ update ((Common common) as commonUtil) msg model shared =
         NoOp ->
             common.doNothing
 
-        GoTo route ->
-            common.justProduceCmd <| Route.navigateTo route
-
         OnRouteHit route ->
             case route of
                 Route.BrowsePage ->
