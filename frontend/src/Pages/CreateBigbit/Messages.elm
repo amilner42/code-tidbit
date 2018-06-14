@@ -12,8 +12,7 @@ import Pages.CreateBigbit.Model exposing (..)
 {-| `CreateBigbit` msg.
 -}
 type Msg
-    = NoOp
-    | OnRouteHit Route
+    = OnRouteHit Route
     | OnUpdateCode { newCode : String, deltaRange : Range, action : String }
     | OnRangeSelected Range
     | GoToCodeTab

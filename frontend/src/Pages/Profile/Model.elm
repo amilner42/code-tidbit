@@ -2,7 +2,6 @@ module Pages.Profile.Model exposing (..)
 
 import DefaultServices.Editable as Editable
 import DefaultServices.Util as Util
-import Models.ApiError as ApiError
 
 
 {-| `Profile` model.
