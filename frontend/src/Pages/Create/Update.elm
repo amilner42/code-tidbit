@@ -13,9 +13,6 @@ import Pages.Model exposing (Shared)
 update : CommonSubPageUtil Model Shared Msg -> Msg -> Model -> Shared -> ( Model, Shared, Cmd Msg )
 update (Common common) msg model shared =
     case msg of
-        GoTo route ->
-            common.justProduceCmd <| Route.navigateTo route
-
         OnRouteHit route ->
             case route of
                 -- Only fetch user stories if we don't already have them.

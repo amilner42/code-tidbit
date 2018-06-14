@@ -338,7 +338,7 @@ newStoryView newStoryModel shared =
 -}
 createView : CreateModel.Model -> Shared -> Html.Html Msg
 createView createModel shared =
-    Html.map CreateMessage <| CreateView.view createModel shared
+    CreateView.view CreateMessage createModel shared
 
 
 {-| `DevelopStory` view.

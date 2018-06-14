@@ -10,15 +10,16 @@ import Models.Route as Route
 import Models.TidbitType exposing (TidbitType(..))
 import Pages.Create.Messages exposing (..)
 import Pages.Create.Model exposing (..)
+import Pages.Messages as BaseMessage
 import Pages.Model exposing (Shared)
 
 
 {-| `Create` view.
 -}
-view : Model -> Shared -> Html Msg
-view model shared =
+view : (Msg -> BaseMessage.Msg) -> Model -> Shared -> Html BaseMessage.Msg
+view subMsg model shared =
     let
-        makeTidbitTypeBox : String -> String -> String -> ( Route.Route, Msg ) -> TidbitType -> Html Msg
+        makeTidbitTypeBox : String -> String -> String -> ( Route.Route, BaseMessage.Msg ) -> TidbitType -> Html BaseMessage.Msg
         makeTidbitTypeBox title subTitle description ( route, onClickMsg ) tidbitType =
             div
                 [ class "create-select-tidbit-type" ]
@@ -28,7 +29,7 @@ view model shared =
                         [ text description ]
                     , button
                         [ class "back-button"
-                        , onClick <| ShowInfoFor Nothing
+                        , onClick <| subMsg <| ShowInfoFor Nothing
                         ]
                         [ text "BACK" ]
                     ]
@@ -41,7 +42,7 @@ view model shared =
                         [ text subTitle ]
                     , i
                         [ class "material-icons info-icon"
-                        , onClick <| ShowInfoFor <| Just tidbitType
+                        , onClick <| subMsg <| ShowInfoFor <| Just tidbitType
                         ]
                         [ text "help_outline" ]
                     , Route.navigationNode
@@ -51,7 +52,7 @@ view model shared =
                     ]
                 )
 
-        yourStoriesHtml : Html Msg
+        yourStoriesHtml : Html BaseMessage.Msg
         yourStoriesHtml =
             case shared.userStories of
                 Nothing ->
@@ -66,7 +67,7 @@ view model shared =
                             ([ Route.navigationNode
                                 (Just
                                     ( Route.Route <| Route.CreateStoryNamePage Nothing
-                                    , GoTo <| Route.CreateStoryNamePage Nothing
+                                    , BaseMessage.GoTo { wipeModalError = False } <| Route.CreateStoryNamePage Nothing
                                     )
                                 )
                                 [ class "create-story-box" ]
@@ -80,7 +81,8 @@ view model shared =
                                         Route.navigationNode
                                             (Just
                                                 ( Route.Route <| Route.DevelopStoryPage story.id
-                                                , GoTo <| Route.DevelopStoryPage story.id
+                                                , BaseMessage.GoTo { wipeModalError = False } <|
+                                                    Route.DevelopStoryPage story.id
                                                 )
                                             )
                                             [ class "story-box" ]
@@ -117,13 +119,13 @@ view model shared =
                 "SnipBit"
                 "Explain a chunk of code"
                 snipbitInfo
-                ( Route.CreateSnipbitInfoPage, GoTo Route.CreateSnipbitInfoPage )
+                ( Route.CreateSnipbitInfoPage, BaseMessage.GoTo { wipeModalError = False } Route.CreateSnipbitInfoPage )
                 SnipBit
             , makeTidbitTypeBox
                 "BigBit"
                 "Explain a full project"
                 bigbitInfo
-                ( Route.CreateBigbitNamePage, GoTo Route.CreateBigbitNamePage )
+                ( Route.CreateBigbitNamePage, BaseMessage.GoTo { wipeModalError = False } Route.CreateBigbitNamePage )
                 BigBit
             , div
                 [ class "create-select-tidbit-type-coming-soon" ]
