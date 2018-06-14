@@ -17,7 +17,7 @@ import Pages.Notifications.Model exposing (..)
 {-| `Notifications` view.
 -}
 view : (Msg -> BaseMessage.Msg) -> Model -> Shared -> Html BaseMessage.Msg
-view tagMsg model shared =
+view subMsg model shared =
     div
         [ class "notifications-page" ]
         [ case model.notifications of
@@ -32,7 +32,7 @@ view tagMsg model shared =
                         List.map
                             (\notification ->
                                 notificationView
-                                    tagMsg
+                                    subMsg
                                     (RT.isMakingRequest shared.apiRequestTracker <|
                                         RT.SetNotificationRead notification.id
                                     )
@@ -45,7 +45,7 @@ view tagMsg model shared =
                                 [ ( "load-more-notifications", True )
                                 , ( "cursor-progress", RT.isMakingRequest shared.apiRequestTracker RT.GetNotifications )
                                 ]
-                            , onClick <| tagMsg <| LoadMoreNotifications notifications
+                            , onClick <| subMsg <| LoadMoreNotifications notifications
                             ]
                             [ text "load more" ]
                       else
@@ -64,7 +64,7 @@ view tagMsg model shared =
 {-| The view for rendering a single `Notification`.
 -}
 notificationView : (Msg -> BaseMessage.Msg) -> Bool -> Notification -> Html BaseMessage.Msg
-notificationView tagMsg isMakingSetNotificationReadRequest notification =
+notificationView subMsg isMakingSetNotificationReadRequest notification =
     div
         [ class "notification" ]
         [ div [ class "message" ] [ text notification.message ]
@@ -73,7 +73,7 @@ notificationView tagMsg isMakingSetNotificationReadRequest notification =
             [ Route.navigationNode
                 (Just
                     ( Route.Link <| Tuple.second notification.actionLink
-                    , tagMsg <| GoToNotificationLink notification.id notification.read <| Tuple.second notification.actionLink
+                    , subMsg <| GoToNotificationLink notification.id notification.read <| Tuple.second notification.actionLink
                     )
                 )
                 []
@@ -87,7 +87,7 @@ notificationView tagMsg isMakingSetNotificationReadRequest notification =
                     , ( "is-read", notification.read )
                     , ( "cursor-progress", isMakingSetNotificationReadRequest )
                     ]
-                , onClick <| tagMsg <| SetNotificationRead notification.id (not notification.read)
+                , onClick <| subMsg <| SetNotificationRead notification.id (not notification.read)
                 ]
                 [ text <|
                     if notification.read then

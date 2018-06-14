@@ -16,7 +16,7 @@ import Pages.Profile.Model exposing (..)
 {-| `Profile` view.
 -}
 view : (Msg -> BaseMessage.Msg) -> Model -> Shared -> Html BaseMessage.Msg
-view tagMsg model shared =
+view subMsg model shared =
     case shared.user of
         Nothing ->
             Util.hiddenDiv
@@ -55,7 +55,7 @@ view tagMsg model shared =
                                     ]
                                 , placeholder "Preferred name..."
                                 , defaultValue <| getNameWithDefault model user.name
-                                , onInput <| tagMsg << OnEditName user.name
+                                , onInput <| subMsg << OnEditName user.name
                                 , disabled <| RT.isMakingRequest shared.apiRequestTracker RT.UpdateName
                                 ]
                             , i
@@ -64,7 +64,7 @@ view tagMsg model shared =
                                     , ( "hidden", not <| isEditingName model )
                                     , ( "cursor-progress", RT.isMakingRequest shared.apiRequestTracker RT.UpdateName )
                                     ]
-                                , onClick <| tagMsg CancelEditedName
+                                , onClick <| subMsg CancelEditedName
                                 ]
                                 [ text "cancel" ]
                             , i
@@ -79,7 +79,7 @@ view tagMsg model shared =
                                             model.accountName
                                       )
                                     ]
-                                , onClick <| tagMsg SaveEditedName
+                                , onClick <| subMsg SaveEditedName
                                 ]
                                 [ text "check_circle" ]
                             ]
@@ -100,7 +100,7 @@ view tagMsg model shared =
                                     ]
                                 , placeholder "Tell everyone about yourself..."
                                 , defaultValue <| getBioWithDefault model user.bio
-                                , onInput <| tagMsg << OnEditBio user.bio
+                                , onInput <| subMsg << OnEditBio user.bio
                                 , disabled <| RT.isMakingRequest shared.apiRequestTracker RT.UpdateBio
                                 ]
                             , div
@@ -113,7 +113,7 @@ view tagMsg model shared =
                                           , RT.isMakingRequest shared.apiRequestTracker RT.UpdateBio
                                           )
                                         ]
-                                    , onClick <| tagMsg CancelEditedBio
+                                    , onClick <| subMsg CancelEditedBio
                                     ]
                                     [ text "cancel" ]
                                 , i
@@ -130,7 +130,7 @@ view tagMsg model shared =
                                           , RT.isMakingRequest shared.apiRequestTracker RT.UpdateBio
                                           )
                                         ]
-                                    , onClick <| tagMsg SaveEditedBio
+                                    , onClick <| subMsg SaveEditedBio
                                     ]
                                     [ text "check_circle" ]
                                 ]
