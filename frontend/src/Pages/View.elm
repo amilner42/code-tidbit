@@ -368,7 +368,7 @@ createSnipbitView createSnipbitModel shared =
 -}
 createBigbitView : CreateBigbitModel.Model -> Shared -> Html.Html Msg
 createBigbitView createBigbitModel shared =
-    Html.map CreateBigbitMessage (CreateBigbitView.view createBigbitModel shared)
+    CreateBigbitView.view CreateBigbitMessage createBigbitModel shared
 
 
 {-| `Browse` view.

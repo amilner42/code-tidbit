@@ -13,7 +13,6 @@ import Pages.CreateBigbit.Model exposing (..)
 -}
 type Msg
     = NoOp
-    | GoTo Route
     | OnRouteHit Route
     | OnUpdateCode { newCode : String, deltaRange : Range, action : String }
     | OnRangeSelected Range
