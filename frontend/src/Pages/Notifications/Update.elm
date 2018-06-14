@@ -7,6 +7,7 @@ import List.Extra
 import Models.RequestTracker as RT
 import Models.Route as Route
 import Navigation exposing (newUrl)
+import Pages.Messages as BaseMessage
 import Pages.Model exposing (Shared)
 import Pages.Notifications.Messages exposing (..)
 import Pages.Notifications.Model exposing (..)
@@ -14,7 +15,7 @@ import Pages.Notifications.Model exposing (..)
 
 {-| `Notifications` update.
 -}
-update : CommonSubPageUtil Model Shared Msg -> Msg -> Model -> Shared -> ( Model, Shared, Cmd Msg )
+update : CommonSubPageUtil Model Shared Msg BaseMessage.Msg -> Msg -> Model -> Shared -> ( Model, Shared, Cmd BaseMessage.Msg )
 update (Common common) msg model shared =
     case msg of
         GoToNotificationLink notificationID read link ->
@@ -29,8 +30,8 @@ update (Common common) msg model shared =
                                 common.api.post.setNotificationRead
                                     notificationID
                                     True
-                                    (OnSetNotificationReadFailure notificationID)
-                                    (always <| OnSetNotificationReadSuccess notificationID True)
+                                    (common.subMsg << OnSetNotificationReadFailure notificationID)
+                                    (always <| common.subMsg <| OnSetNotificationReadSuccess notificationID True)
                 ]
 
         OnRouteHit route ->
@@ -41,8 +42,8 @@ update (Common common) msg model shared =
                             common.justProduceCmd <|
                                 common.api.get.notifications
                                     []
-                                    OnGetInitialNotificationsFailure
-                                    OnGetInitialNotificationsSuccess
+                                    (common.subMsg << OnGetInitialNotificationsFailure)
+                                    (common.subMsg << OnGetInitialNotificationsSuccess)
                     else
                         common.doNothing
 
@@ -67,8 +68,8 @@ update (Common common) msg model shared =
                     common.api.post.setNotificationRead
                         notificationID
                         read
-                        (OnSetNotificationReadFailure notificationID)
-                        (always <| OnSetNotificationReadSuccess notificationID read)
+                        (common.subMsg << OnSetNotificationReadFailure notificationID)
+                        (always <| common.subMsg <| OnSetNotificationReadSuccess notificationID read)
 
         OnSetNotificationReadFailure notificationID apiError ->
             common.justSetModalError apiError
@@ -95,8 +96,8 @@ update (Common common) msg model shared =
                 common.justProduceCmd <|
                     common.api.get.notifications
                         [ ( "pageNumber", Just <| toString model.pageNumber ) ]
-                        OnLoadMoreNotificationsFailure
-                        (OnLoadMoreNotificationsSuccess currentNotifications)
+                        (common.subMsg << OnLoadMoreNotificationsFailure)
+                        (common.subMsg << OnLoadMoreNotificationsSuccess currentNotifications)
 
         OnLoadMoreNotificationsFailure apiError ->
             common.justSetModalError apiError

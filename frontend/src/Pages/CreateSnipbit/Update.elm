@@ -16,25 +16,23 @@ import Models.User as User
 import Pages.CreateSnipbit.Init exposing (..)
 import Pages.CreateSnipbit.Messages exposing (..)
 import Pages.CreateSnipbit.Model exposing (..)
+import Pages.Messages as BaseMessage
 import Pages.Model exposing (Shared)
 import Ports
 
 
 {-| `CreateSnipbit` update.
 -}
-update : CommonSubPageUtil Model Shared Msg -> Msg -> Model -> Shared -> ( Model, Shared, Cmd Msg )
+update : CommonSubPageUtil Model Shared Msg BaseMessage.Msg -> Msg -> Model -> Shared -> ( Model, Shared, Cmd BaseMessage.Msg )
 update (Common common) msg model shared =
     let
         currentHighlightedComments =
             model.highlightedComments
 
         focusOn =
-            Util.domFocus (always NoOp)
+            Util.domFocus (always BaseMessage.NoOp)
     in
     case msg of
-        NoOp ->
-            common.doNothing
-
         GoTo route ->
             common.justProduceCmd <| Route.navigateTo route
 
@@ -178,7 +176,7 @@ update (Common common) msg model shared =
                     common.justSetModel newModel
 
                 Just updateMsg ->
-                    update (commonSubPageUtil newModel shared) updateMsg newModel shared
+                    update (commonSubPageUtil common.subMsg newModel shared) updateMsg newModel shared
 
         OnUpdateACWrap toTop ->
             common.justSetModel
@@ -281,7 +279,7 @@ update (Common common) msg model shared =
                         in
                         if frameIndex >= Array.length newHighlightedComments then
                             update
-                                (commonSubPageUtil newModel shared)
+                                (commonSubPageUtil common.subMsg newModel shared)
                                 (GoTo <|
                                     Route.CreateSnipbitCodeFramePage <|
                                         Array.length newHighlightedComments
@@ -405,7 +403,11 @@ update (Common common) msg model shared =
         Publish snipbit ->
             let
                 publishSnipbitAction =
-                    common.justProduceCmd <| common.api.post.createSnipbit snipbit OnPublishFailure OnPublishSuccess
+                    common.justProduceCmd <|
+                        common.api.post.createSnipbit
+                            snipbit
+                            (common.subMsg << OnPublishFailure)
+                            (common.subMsg << OnPublishSuccess)
             in
             common.makeSingletonRequest RT.PublishSnipbit publishSnipbitAction
 

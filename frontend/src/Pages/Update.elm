@@ -128,9 +128,9 @@ updateCacheIf msg model shouldCache =
 
                 WelcomeMessage subMsg ->
                     let
-                        ( newWelcomeModel, newShared, newSubMsg ) =
+                        ( newWelcomeModel, newShared, newMsg ) =
                             WelcomeUpdate.update
-                                (commonSubPageUtil model.welcomePage model.shared)
+                                (commonSubPageUtil WelcomeMessage model.welcomePage model.shared)
                                 subMsg
                                 model.welcomePage
                                 model.shared
@@ -141,13 +141,13 @@ updateCacheIf msg model shouldCache =
                                 , shared = newShared
                             }
                     in
-                    ( newModel, Cmd.map WelcomeMessage newSubMsg )
+                    ( newModel, newMsg )
 
                 ViewSnipbitMessage subMsg ->
                     let
-                        ( newViewSnipbitModel, newShared, newSubMsg ) =
+                        ( newViewSnipbitModel, newShared, newMsg ) =
                             ViewSnipbitUpdate.update
-                                (commonSubPageUtil model.viewSnipbitPage model.shared)
+                                (commonSubPageUtil ViewSnipbitMessage model.viewSnipbitPage model.shared)
                                 subMsg
                                 model.viewSnipbitPage
                                 model.shared
@@ -158,13 +158,13 @@ updateCacheIf msg model shouldCache =
                                 , shared = newShared
                             }
                     in
-                    ( newModel, Cmd.map ViewSnipbitMessage newSubMsg )
+                    ( newModel, newMsg )
 
                 ViewBigbitMessage subMsg ->
                     let
-                        ( newViewBigbitModel, newShared, newSubMsg ) =
+                        ( newViewBigbitModel, newShared, newMsg ) =
                             ViewBigbitUpdate.update
-                                (commonSubPageUtil model.viewBigbitPage model.shared)
+                                (commonSubPageUtil ViewBigbitMessage model.viewBigbitPage model.shared)
                                 subMsg
                                 model.viewBigbitPage
                                 model.shared
@@ -175,13 +175,13 @@ updateCacheIf msg model shouldCache =
                                 , shared = newShared
                             }
                     in
-                    ( newModel, Cmd.map ViewBigbitMessage newSubMsg )
+                    ( newModel, newMsg )
 
                 ViewStoryMessage subMsg ->
                     let
-                        ( newViewStoryModel, newShared, newSubMsg ) =
+                        ( newViewStoryModel, newShared, newMsg ) =
                             ViewStoryUpdate.update
-                                (commonSubPageUtil model.viewStoryPage model.shared)
+                                (commonSubPageUtil ViewStoryMessage model.viewStoryPage model.shared)
                                 subMsg
                                 model.viewStoryPage
                                 model.shared
@@ -192,13 +192,13 @@ updateCacheIf msg model shouldCache =
                                 , shared = newShared
                             }
                     in
-                    ( newModel, Cmd.map ViewStoryMessage newSubMsg )
+                    ( newModel, newMsg )
 
                 ProfileMessage subMsg ->
                     let
-                        ( newProfileModel, newShared, newSubMsg ) =
+                        ( newProfileModel, newShared, newMsg ) =
                             ProfileUpdate.update
-                                (commonSubPageUtil model.profilePage model.shared)
+                                (commonSubPageUtil ProfileMessage model.profilePage model.shared)
                                 subMsg
                                 model.profilePage
                                 model.shared
@@ -209,13 +209,13 @@ updateCacheIf msg model shouldCache =
                                 , shared = newShared
                             }
                     in
-                    ( newModel, Cmd.map ProfileMessage newSubMsg )
+                    ( newModel, newMsg )
 
                 NewStoryMessage subMsg ->
                     let
-                        ( newNewStoryModel, newShared, newSubMsg ) =
+                        ( newNewStoryModel, newShared, newMsg ) =
                             NewStoryUpdate.update
-                                (commonSubPageUtil model.newStoryPage model.shared)
+                                (commonSubPageUtil NewStoryMessage model.newStoryPage model.shared)
                                 subMsg
                                 model.newStoryPage
                                 model.shared
@@ -226,13 +226,13 @@ updateCacheIf msg model shouldCache =
                                 , shared = newShared
                             }
                     in
-                    ( newModel, Cmd.map NewStoryMessage newSubMsg )
+                    ( newModel, newMsg )
 
                 CreateMessage subMsg ->
                     let
-                        ( newCreateModel, newShared, newSubMsg ) =
+                        ( newCreateModel, newShared, newMsg ) =
                             CreateUpdate.update
-                                (commonSubPageUtil model.createPage model.shared)
+                                (commonSubPageUtil CreateMessage model.createPage model.shared)
                                 subMsg
                                 model.createPage
                                 model.shared
@@ -243,13 +243,13 @@ updateCacheIf msg model shouldCache =
                                 , shared = newShared
                             }
                     in
-                    ( newModel, Cmd.map CreateMessage newSubMsg )
+                    ( newModel, newMsg )
 
                 DevelopStoryMessage subMsg ->
                     let
-                        ( newDevelopStoryModel, newShared, newSubMsg ) =
+                        ( newDevelopStoryModel, newShared, newMsg ) =
                             DevelopStoryUpdate.update
-                                (commonSubPageUtil model.developStoryPage model.shared)
+                                (commonSubPageUtil DevelopStoryMessage model.developStoryPage model.shared)
                                 subMsg
                                 model.developStoryPage
                                 model.shared
@@ -260,13 +260,13 @@ updateCacheIf msg model shouldCache =
                                 , shared = newShared
                             }
                     in
-                    ( newModel, Cmd.map DevelopStoryMessage newSubMsg )
+                    ( newModel, newMsg )
 
                 CreateSnipbitMessage subMsg ->
                     let
-                        ( newCreateSnipbitModel, newShared, newSubMsg ) =
+                        ( newCreateSnipbitModel, newShared, newMsg ) =
                             CreateSnipbitUpdate.update
-                                (commonSubPageUtil model.createSnipbitPage model.shared)
+                                (commonSubPageUtil CreateSnipbitMessage model.createSnipbitPage model.shared)
                                 subMsg
                                 model.createSnipbitPage
                                 model.shared
@@ -277,13 +277,13 @@ updateCacheIf msg model shouldCache =
                                 , shared = newShared
                             }
                     in
-                    ( newModel, Cmd.map CreateSnipbitMessage newSubMsg )
+                    ( newModel, newMsg )
 
                 CreateBigbitMessage subMsg ->
                     let
-                        ( newCreateBigbitModel, newShared, newSubMsg ) =
+                        ( newCreateBigbitModel, newShared, newMsg ) =
                             CreateBigbitUpdate.update
-                                (commonSubPageUtil model.createBigbitPage model.shared)
+                                (commonSubPageUtil CreateBigbitMessage model.createBigbitPage model.shared)
                                 subMsg
                                 model.createBigbitPage
                                 model.shared
@@ -294,13 +294,13 @@ updateCacheIf msg model shouldCache =
                                 , shared = newShared
                             }
                     in
-                    ( newModel, Cmd.map CreateBigbitMessage newSubMsg )
+                    ( newModel, newMsg )
 
                 BrowseMessage subMsg ->
                     let
-                        ( newBrowsePageModel, newShared, newSubMsg ) =
+                        ( newBrowsePageModel, newShared, newMsg ) =
                             BrowseUpdate.update
-                                (commonSubPageUtil model.browsePage model.shared)
+                                (commonSubPageUtil BrowseMessage model.browsePage model.shared)
                                 subMsg
                                 model.browsePage
                                 model.shared
@@ -311,13 +311,13 @@ updateCacheIf msg model shouldCache =
                                 , shared = newShared
                             }
                     in
-                    ( newModel, Cmd.map BrowseMessage newSubMsg )
+                    ( newModel, newMsg )
 
                 NotificationsMessage subMsg ->
                     let
-                        ( newNotificationsPageModel, newShared, newSubMsg ) =
+                        ( newNotificationsPageModel, newShared, newMsg ) =
                             NotificationsUpdate.update
-                                (commonSubPageUtil model.notificationsPage model.shared)
+                                (commonSubPageUtil NotificationsMessage model.notificationsPage model.shared)
                                 subMsg
                                 model.notificationsPage
                                 model.shared
@@ -328,7 +328,7 @@ updateCacheIf msg model shouldCache =
                                 , shared = newShared
                             }
                     in
-                    ( newModel, Cmd.map NotificationsMessage newSubMsg )
+                    ( newModel, newMsg )
 
                 CodeEditorUpdate { id, value, deltaRange, action } ->
                     case id of

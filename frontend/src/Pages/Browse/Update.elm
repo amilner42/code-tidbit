@@ -6,6 +6,7 @@ import Models.RequestTracker as RT
 import Models.Route as Route
 import Pages.Browse.Messages exposing (..)
 import Pages.Browse.Model exposing (..)
+import Pages.Messages as BaseMessage
 import Pages.Model exposing (Shared)
 import Ports
 import ProjectTypeAliases exposing (..)
@@ -13,12 +14,9 @@ import ProjectTypeAliases exposing (..)
 
 {-| `Browse` update.
 -}
-update : CommonSubPageUtil Model Shared Msg -> Msg -> Model -> Shared -> ( Model, Shared, Cmd Msg )
-update ((Common common) as commonUtil) msg model shared =
+update : CommonSubPageUtil Model Shared Msg BaseMessage.Msg -> Msg -> Model -> Shared -> ( Model, Shared, Cmd BaseMessage.Msg )
+update (Common common) msg model shared =
     case msg of
-        NoOp ->
-            common.doNothing
-
         OnRouteHit route ->
             case route of
                 Route.BrowsePage ->
@@ -28,7 +26,7 @@ update ((Common common) as commonUtil) msg model shared =
                         , \(Common common) ( model, shared ) ->
                             common.justProduceCmd <|
                                 Cmd.batch
-                                    [ Util.domFocus (always NoOp) "search-bar"
+                                    [ Util.domFocus (always BaseMessage.NoOp) "search-bar"
                                     , if model.showAdvancedSearchOptions then
                                         Ports.expandSearchAdvancedOptions True
                                       else
@@ -208,8 +206,8 @@ update ((Common common) as commonUtil) msg model shared =
                         common.justProduceCmd <|
                             common.api.post.userExists
                                 newAuthorInput
-                                OnGetUserExistsFailure
-                                (OnGetUserExistsSuccess << (,) newAuthorInput)
+                                (common.subMsg << OnGetUserExistsFailure)
+                                (common.subMsg << OnGetUserExistsSuccess << (,) newAuthorInput)
                     else
                         common.doNothing
                 ]
@@ -250,7 +248,7 @@ Will also update `mostRecentSearchSettings` to keep track of what the most recen
 to know what results from the server are still meaningful.
 
 -}
-performSearch : CommonSubPageUtil Model Shared Msg -> ( Model, Shared ) -> ( Model, Shared, Cmd Msg )
+performSearch : CommonSubPageUtil Model Shared Msg BaseMessage.Msg -> ( Model, Shared ) -> ( Model, Shared, Cmd BaseMessage.Msg )
 performSearch (Common common) ( model, shared ) =
     let
         searchSettings : SearchSettings
@@ -258,12 +256,12 @@ performSearch (Common common) ( model, shared ) =
             extractSearchSettingsFromModel model
 
         {- Get's the content with specific query params. -}
-        getContent : QueryParams -> Cmd Msg
+        getContent : QueryParams -> Cmd BaseMessage.Msg
         getContent queryParams =
             common.api.get.content
                 queryParams
-                (OnGetContentFailure searchSettings)
-                (OnGetContentSuccess searchSettings)
+                (common.subMsg << OnGetContentFailure searchSettings)
+                (common.subMsg << OnGetContentSuccess searchSettings)
 
         commonQueryParams =
             [ ( "includeSnipbits", Just <| Util.toJSBool searchSettings.includeSnipbits )
@@ -310,6 +308,6 @@ performSearch (Common common) ( model, shared ) =
 
 {-| Resets the page number back to 1.
 -}
-resetPageNumber : CommonSubPageUtil Model Shared Msg -> ( Model, Shared ) -> ( Model, Shared, Cmd Msg )
+resetPageNumber : CommonSubPageUtil Model Shared Msg BaseMessage.Msg -> ( Model, Shared ) -> ( Model, Shared, Cmd BaseMessage.Msg )
 resetPageNumber (Common common) ( model, shared ) =
     common.justSetModel { model | pageNumber = 1 }
