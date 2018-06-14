@@ -9,9 +9,7 @@ import Models.Tidbit exposing (Tidbit)
 {-| `DevelopStory` msg.
 -}
 type Msg
-    = NoOp
-    | GoTo Route
-    | OnRouteHit Route
+    = OnRouteHit Route
     | OnGetStorySuccess ExpandedStory
     | OnGetStoryFailure ApiError
     | OnGetTidbitsSuccess (List Tidbit)

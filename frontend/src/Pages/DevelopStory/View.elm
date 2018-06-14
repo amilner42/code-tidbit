@@ -10,13 +10,14 @@ import Models.Route as Route
 import Models.Tidbit as Tidbit
 import Pages.DevelopStory.Messages exposing (..)
 import Pages.DevelopStory.Model exposing (..)
+import Pages.Messages as BaseMessage
 import Pages.Model exposing (Shared)
 
 
 {-| `DevelopStory` view.
 -}
-view : Model -> Shared -> Html Msg
-view model shared =
+view : (Msg -> BaseMessage.Msg) -> Model -> Shared -> Html BaseMessage.Msg
+view subMsg model shared =
     case ( model.story, shared.userTidbits ) of
         ( Just story, Just userTidbits ) ->
             div
@@ -27,7 +28,7 @@ view model shared =
                       , Route.navigationNode
                             (Just
                                 ( Route.Route <| Route.ViewStoryPage story.id
-                                , GoTo <| Route.ViewStoryPage story.id
+                                , BaseMessage.GoTo { wipeModalError = False } <| Route.ViewStoryPage story.id
                                 )
                             )
                             []
@@ -37,7 +38,9 @@ view model shared =
                       , Route.navigationNode
                             (Just
                                 ( Route.Route <| Route.CreateStoryNamePage <| Just story.id
-                                , GoTo <| Route.CreateStoryNamePage <| Just story.id
+                                , BaseMessage.GoTo { wipeModalError = False } <|
+                                    Route.CreateStoryNamePage <|
+                                        Just story.id
                                 )
                             )
                             []
@@ -61,7 +64,7 @@ view model shared =
                                           , RT.isMakingRequest shared.apiRequestTracker RT.PublishNewTidbitsToStory
                                           )
                                         ]
-                                    , onClick <| PublishAddedTidbits story.id tidbits
+                                    , onClick <| subMsg <| PublishAddedTidbits story.id tidbits
                                     ]
                                     [ text "Add Tidbits" ]
                       )
@@ -86,8 +89,9 @@ view model shared =
                     , div
                         [ class "flex-box space-around" ]
                         (story.tidbits
-                            |> List.indexedMap (\index tidbit -> tidbitBox { state = Finalized index } tidbit)
-                            |> flip (++) (List.map (tidbitBox { state = Added }) model.tidbitsToAdd)
+                            |> List.indexedMap
+                                (\index tidbit -> tidbitBox { state = Finalized index, subMsg = subMsg } tidbit)
+                            |> flip (++) (List.map (tidbitBox { state = Added, subMsg = subMsg }) model.tidbitsToAdd)
                             |> flip (++) Util.emptyFlexBoxesForAlignment
                         )
                     , div
@@ -108,7 +112,7 @@ view model shared =
                             |> remainingTidbits (story.tidbits ++ model.tidbitsToAdd)
                             |> Util.sortByDate Tidbit.getLastModified
                             |> List.reverse
-                            |> List.map (tidbitBox { state = NotYetAdded })
+                            |> List.map (tidbitBox { state = NotYetAdded, subMsg = subMsg })
                             |> flip (++) Util.emptyFlexBoxesForAlignment
                         )
                     ]
@@ -128,14 +132,15 @@ type TidbitBoxState
 
 {-| Config for rendering a tidbit box.
 -}
-type alias TidbitBoxRenderConfig =
+type alias TidbitBoxRenderConfig subMsg baseMsg =
     { state : TidbitBoxState
+    , subMsg : subMsg -> baseMsg
     }
 
 
 {-| Returns true if the config is set to the `NotYetAdded` state.
 -}
-isNotYetAdded : TidbitBoxRenderConfig -> Bool
+isNotYetAdded : TidbitBoxRenderConfig subMsg baseMsg -> Bool
 isNotYetAdded config =
     case config.state of
         NotYetAdded ->
@@ -147,7 +152,7 @@ isNotYetAdded config =
 
 {-| Returns true if the config is set to the `Added` state.
 -}
-isAdded : TidbitBoxRenderConfig -> Bool
+isAdded : TidbitBoxRenderConfig subMsg baseMsg -> Bool
 isAdded config =
     case config.state of
         Added ->
@@ -159,7 +164,7 @@ isAdded config =
 
 {-| Returns true if the config is set to the `Finalized` state.
 -}
-isFinalized : TidbitBoxRenderConfig -> Bool
+isFinalized : TidbitBoxRenderConfig subMsg baseMsg -> Bool
 isFinalized config =
     case config.state of
         Finalized _ ->
@@ -171,7 +176,7 @@ isFinalized config =
 
 {-| The tidbit boxes.
 -}
-tidbitBox : TidbitBoxRenderConfig -> Tidbit.Tidbit -> Html Msg
+tidbitBox : TidbitBoxRenderConfig Msg BaseMessage.Msg -> Tidbit.Tidbit -> Html BaseMessage.Msg
 tidbitBox renderConfig tidbit =
     div
         [ classList
@@ -185,13 +190,13 @@ tidbitBox renderConfig tidbit =
         , onClick <|
             case renderConfig.state of
                 NotYetAdded ->
-                    AddTidbit tidbit
+                    renderConfig.subMsg <| AddTidbit tidbit
 
                 Added ->
-                    RemoveTidbit tidbit
+                    renderConfig.subMsg <| RemoveTidbit tidbit
 
                 _ ->
-                    NoOp
+                    BaseMessage.NoOp
         ]
         [ case renderConfig.state of
             Finalized index ->
@@ -206,7 +211,9 @@ tidbitBox renderConfig tidbit =
             [ text <| Tidbit.getName tidbit ]
         , i
             [ class "view-tidbit material-icons"
-            , Util.onClickWithoutPropigation <| GoTo <| Tidbit.getTidbitRoute Nothing tidbit
+            , Util.onClickWithoutPropigation <|
+                BaseMessage.GoTo { wipeModalError = False } <|
+                    Tidbit.getTidbitRoute Nothing tidbit
             ]
             [ text "open_in_new" ]
         , div

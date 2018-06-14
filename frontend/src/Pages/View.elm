@@ -354,7 +354,7 @@ createView createModel shared =
 -}
 developStoryView : DevelopStoryModel.Model -> Shared -> Html.Html Msg
 developStoryView developStoryModel shared =
-    Html.map DevelopStoryMessage <| DevelopStoryView.view developStoryModel shared
+    DevelopStoryView.view DevelopStoryMessage developStoryModel shared
 
 
 {-| `CreateSnipbit` view.
