@@ -382,7 +382,7 @@ browseView browseModel shared =
 -}
 notificationsView : NotificationsModel.Model -> Shared -> Html.Html Msg
 notificationsView notificationsModel shared =
-    Html.map NotificationsMessage (NotificationsView.view notificationsModel shared)
+    NotificationsView.view NotificationsMessage notificationsModel shared
 
 
 {-| Displays the navbar if the route is not on the welcome page.
