@@ -10,7 +10,6 @@ import Models.Story exposing (Story)
 -}
 type Msg
     = NoOp
-    | GoTo Route
     | OnRouteHit Route
     | OnGetEditingStorySuccess Story
     | OnGetEditingStoryFailure ApiError

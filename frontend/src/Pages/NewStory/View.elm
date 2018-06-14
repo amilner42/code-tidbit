@@ -9,6 +9,7 @@ import Html.Events exposing (onClick, onInput)
 import Keyboard.Extra as KK
 import Models.RequestTracker as RT
 import Models.Route as Route
+import Pages.Messages as BaseMessage
 import Pages.Model exposing (Shared)
 import Pages.NewStory.Messages exposing (..)
 import Pages.NewStory.Model exposing (..)
@@ -16,8 +17,8 @@ import Pages.NewStory.Model exposing (..)
 
 {-| The view for creating a new story.
 -}
-view : Model -> Shared -> Html Msg
-view model shared =
+view : (Msg -> BaseMessage.Msg) -> Model -> Shared -> Html BaseMessage.Msg
+view tagMsg model shared =
     let
         currentRoute =
             shared.route
@@ -41,7 +42,7 @@ view model shared =
                 Nothing ->
                     [ button
                         [ class "sub-bar-button"
-                        , onClick Reset
+                        , onClick <| tagMsg Reset
                         ]
                         [ text "Reset" ]
                     , button
@@ -51,7 +52,7 @@ view model shared =
                             , ( "disabled-publish-button", not <| newStoryDataReadyForPublication model )
                             , ( "cursor-progress", RT.isMakingRequest shared.apiRequestTracker RT.PublishNewStory )
                             ]
-                        , onClick Publish
+                        , onClick <| tagMsg Publish
                         ]
                         [ text "Proceed to Tidbit Selection" ]
                     ]
@@ -59,7 +60,7 @@ view model shared =
                 Just storyID ->
                     [ button
                         [ class "sub-bar-button"
-                        , onClick <| CancelEdits storyID
+                        , onClick <| tagMsg <| CancelEdits storyID
                         ]
                         [ text "Cancel" ]
                     , button
@@ -69,7 +70,7 @@ view model shared =
                             , ( "disabled-publish-button", not <| editingStoryDataReadyForSave model )
                             , ( "cursor-progress", RT.isMakingRequest shared.apiRequestTracker RT.UpdateStoryInfo )
                             ]
-                        , onClick <| SaveEdits storyID
+                        , onClick <| tagMsg <| SaveEdits storyID
                         ]
                         [ text "Save Changes" ]
                     ]
@@ -94,7 +95,9 @@ view model shared =
                             nameTabFilledIn model
                       )
                     ]
-                , onClick <| GoTo <| Route.CreateStoryNamePage editingStoryQueryParam
+                , onClick <|
+                    BaseMessage.GoTo { wipeModalError = False } <|
+                        Route.CreateStoryNamePage editingStoryQueryParam
                 ]
                 [ text "Name" ]
             , div
@@ -115,7 +118,9 @@ view model shared =
                             descriptionTabFilledIn model
                       )
                     ]
-                , onClick <| GoTo <| Route.CreateStoryDescriptionPage editingStoryQueryParam
+                , onClick <|
+                    BaseMessage.GoTo { wipeModalError = False } <|
+                        Route.CreateStoryDescriptionPage editingStoryQueryParam
                 ]
                 [ text "Description" ]
             , div
@@ -136,7 +141,9 @@ view model shared =
                             tagsTabFilledIn model
                       )
                     ]
-                , onClick <| GoTo <| Route.CreateStoryTagsPage editingStoryQueryParam
+                , onClick <|
+                    BaseMessage.GoTo { wipeModalError = False } <|
+                        Route.CreateStoryTagsPage editingStoryQueryParam
                 ]
                 [ text "Tags" ]
             ]
@@ -151,12 +158,12 @@ view model shared =
                                 "create-story-name"
                                 [ placeholder "Name"
                                 , id "name-input"
-                                , onInput OnUpdateName
+                                , onInput <| tagMsg << OnUpdateName
                                 , defaultValue model.newStory.name
                                 , Util.onKeydownPreventDefault
                                     (\key ->
                                         if key == KK.Tab then
-                                            Just NoOp
+                                            Just BaseMessage.NoOp
                                         else
                                             Nothing
                                     )
@@ -170,12 +177,12 @@ view model shared =
                                 "edit-story-name"
                                 [ placeholder "Edit Story Name"
                                 , id "name-input"
-                                , onInput OnEditingUpdateName
+                                , onInput <| tagMsg << OnEditingUpdateName
                                 , defaultValue model.editingStory.name
                                 , Util.onKeydownPreventDefault
                                     (\key ->
                                         if key == KK.Tab then
-                                            Just NoOp
+                                            Just BaseMessage.NoOp
                                         else
                                             Nothing
                                     )
@@ -194,12 +201,12 @@ view model shared =
                                 "create-story-description"
                                 [ placeholder "Description"
                                 , id "description-input"
-                                , onInput OnUpdateDescription
+                                , onInput <| tagMsg << OnUpdateDescription
                                 , defaultValue model.newStory.description
                                 , Util.onKeydownPreventDefault
                                     (\key ->
                                         if key == KK.Tab then
-                                            Just NoOp
+                                            Just BaseMessage.NoOp
                                         else
                                             Nothing
                                     )
@@ -213,12 +220,12 @@ view model shared =
                                 "edit-story-description"
                                 [ placeholder "Edit Story Description"
                                 , id "description-input"
-                                , onInput OnEditingUpdateDescription
+                                , onInput <| tagMsg << OnEditingUpdateDescription
                                 , defaultValue model.editingStory.description
                                 , Util.onKeydownPreventDefault
                                     (\key ->
                                         if key == KK.Tab then
-                                            Just NoOp
+                                            Just BaseMessage.NoOp
                                         else
                                             Nothing
                                     )
@@ -237,19 +244,19 @@ view model shared =
                                 "create-story-tags"
                                 [ placeholder "Tags"
                                 , id "tags-input"
-                                , onInput OnUpdateTagInput
+                                , onInput <| tagMsg << OnUpdateTagInput
                                 , defaultValue model.tagInput
                                 , Util.onKeydownPreventDefault
                                     (\key ->
                                         if key == KK.Enter || key == KK.Space then
-                                            Just <| AddTag model.tagInput
+                                            Just <| tagMsg <| AddTag model.tagInput
                                         else if key == KK.Tab then
-                                            Just <| NoOp
+                                            Just <| BaseMessage.NoOp
                                         else
                                             Nothing
                                     )
                                 ]
-                            , Tags.view RemoveTag model.newStory.tags
+                            , Tags.view (tagMsg << RemoveTag) model.newStory.tags
                             ]
 
                         Just _ ->
@@ -258,19 +265,19 @@ view model shared =
                                 "edit-story-tags"
                                 [ placeholder "Edit Story Tags"
                                 , id "tags-input"
-                                , onInput OnEditingUpdateTagInput
+                                , onInput <| tagMsg << OnEditingUpdateTagInput
                                 , defaultValue model.editingStoryTagInput
                                 , Util.onKeydownPreventDefault
                                     (\key ->
                                         if key == KK.Enter || key == KK.Space then
-                                            Just <| EditingAddTag model.editingStoryTagInput
+                                            Just <| tagMsg <| EditingAddTag model.editingStoryTagInput
                                         else if key == KK.Tab then
-                                            Just <| NoOp
+                                            Just <| BaseMessage.NoOp
                                         else
                                             Nothing
                                     )
                                 ]
-                            , Tags.view EditingRemoveTag model.editingStory.tags
+                            , Tags.view (tagMsg << EditingRemoveTag) model.editingStory.tags
                             ]
                     )
 
