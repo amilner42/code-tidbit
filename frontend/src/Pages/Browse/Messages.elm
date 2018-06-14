@@ -11,7 +11,6 @@ import Pages.Browse.Model exposing (..)
 -}
 type Msg
     = NoOp
-    | GoTo Route
     | OnRouteHit Route
     | OnGetContentSuccess SearchSettings ( Bool, List Content )
     | OnGetContentFailure SearchSettings ApiError

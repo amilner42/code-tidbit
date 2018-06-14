@@ -366,7 +366,7 @@ createBigbitView createBigbitModel shared =
 -}
 browseView : BrowseModel.Model -> Shared -> Html.Html Msg
 browseView browseModel shared =
-    Html.map BrowseMessage (BrowseView.view browseModel shared)
+    BrowseView.view BrowseMessage browseModel shared
 
 
 {-| `Notifications` view.
