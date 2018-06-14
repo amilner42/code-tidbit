@@ -17,9 +17,6 @@ import Pages.Notifications.Model exposing (..)
 update : CommonSubPageUtil Model Shared Msg -> Msg -> Model -> Shared -> ( Model, Shared, Cmd Msg )
 update (Common common) msg model shared =
     case msg of
-        NoOp ->
-            common.doNothing
-
         GoToNotificationLink notificationID read link ->
             common.handleAll
                 [ \(Common common) ( model, shared ) -> common.justProduceCmd <| newUrl link
