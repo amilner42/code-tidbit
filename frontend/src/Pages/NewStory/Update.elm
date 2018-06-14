@@ -20,9 +20,6 @@ update (Common common) msg model shared =
         NoOp ->
             common.doNothing
 
-        GoTo route ->
-            common.justProduceCmd <| Route.navigateTo route
-
         OnRouteHit route ->
             let
                 getEditingStoryAndFocusOn theID qpEditingStory =

@@ -340,7 +340,7 @@ profileView profileModel shared =
 -}
 newStoryView : NewStoryModel.Model -> Shared -> Html.Html Msg
 newStoryView newStoryModel shared =
-    Html.map NewStoryMessage <| NewStoryView.view newStoryModel shared
+    NewStoryView.view NewStoryMessage newStoryModel shared
 
 
 {-| `Create` view.
