@@ -5,17 +5,15 @@ import DefaultServices.Util as Util
 import Models.Route as Route
 import Pages.Create.Messages exposing (..)
 import Pages.Create.Model exposing (..)
+import Pages.Messages as BaseMessage
 import Pages.Model exposing (Shared)
 
 
 {-| `Create` update.
 -}
-update : CommonSubPageUtil Model Shared Msg -> Msg -> Model -> Shared -> ( Model, Shared, Cmd Msg )
+update : CommonSubPageUtil Model Shared Msg BaseMessage.Msg -> Msg -> Model -> Shared -> ( Model, Shared, Cmd BaseMessage.Msg )
 update (Common common) msg model shared =
     case msg of
-        GoTo route ->
-            common.justProduceCmd <| Route.navigateTo route
-
         OnRouteHit route ->
             case route of
                 -- Only fetch user stories if we don't already have them.
@@ -26,8 +24,8 @@ update (Common common) msg model shared =
                                 common.justProduceCmd <|
                                     common.api.get.stories
                                         [ ( "author", Just id ), ( "includeEmptyStories", Just "true" ) ]
-                                        OnGetAccountStoriesFailure
-                                        (Tuple.second >> OnGetAccountStoriesSuccess)
+                                        (common.subMsg << OnGetAccountStoriesFailure)
+                                        (common.subMsg << OnGetAccountStoriesSuccess << Tuple.second)
                             else
                                 common.doNothing
                         )

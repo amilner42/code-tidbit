@@ -2,7 +2,6 @@ module Pages.Profile.Model exposing (..)
 
 import DefaultServices.Editable as Editable
 import DefaultServices.Util as Util
-import Models.ApiError as ApiError
 
 
 {-| `Profile` model.
@@ -10,7 +9,6 @@ import Models.ApiError as ApiError
 type alias Model =
     { accountName : Maybe (Editable.Editable String)
     , accountBio : Maybe (Editable.Editable String)
-    , logOutError : Maybe ApiError.ApiError
     }
 
 

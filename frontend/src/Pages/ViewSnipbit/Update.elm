@@ -24,6 +24,7 @@ import Models.Snipbit as Snipbit
 import Models.TidbitPointer as TidbitPointer
 import Models.User as User
 import Models.ViewerRelevantHC as ViewerRelevantHC
+import Pages.Messages as BaseMessage
 import Pages.Model exposing (Shared)
 import Pages.ViewSnipbit.Messages exposing (Msg(..))
 import Pages.ViewSnipbit.Model exposing (..)
@@ -33,15 +34,9 @@ import Set
 
 {-| `ViewSnipbit` update.
 -}
-update : CommonSubPageUtil Model Shared Msg -> Msg -> Model -> Shared -> ( Model, Shared, Cmd Msg )
+update : CommonSubPageUtil Model Shared Msg BaseMessage.Msg -> Msg -> Model -> Shared -> ( Model, Shared, Cmd BaseMessage.Msg )
 update (Common common) msg model shared =
     case msg of
-        NoOp ->
-            common.doNothing
-
-        GoTo route ->
-            common.justProduceCmd <| Route.navigateTo route
-
         -- Handles going to `AskQuestion` from different routes individually.
         GoToAskQuestion ->
             let
@@ -143,8 +138,8 @@ update (Common common) msg model shared =
                                     , shared
                                     , common.api.get.snipbit
                                         mongoID
-                                        OnGetSnipbitFailure
-                                        (OnGetSnipbitSuccess requireLoadingQAPreRender)
+                                        (common.subMsg << OnGetSnipbitFailure)
+                                        (common.subMsg << OnGetSnipbitSuccess requireLoadingQAPreRender)
                                     )
                             in
                             case model.snipbit of
@@ -177,8 +172,8 @@ update (Common common) msg model shared =
                                     , shared
                                     , common.api.post.checkCompleted
                                         (Completed.Completed currentTidbitPointer userID)
-                                        OnGetCompletedFailure
-                                        (OnGetCompletedSuccess << Completed.IsCompleted currentTidbitPointer)
+                                        (common.subMsg << OnGetCompletedFailure)
+                                        (common.subMsg << OnGetCompletedSuccess << Completed.IsCompleted currentTidbitPointer)
                                     )
                             in
                             case ( shared.user, model.isCompleted ) of
@@ -206,8 +201,8 @@ update (Common common) msg model shared =
                                     , shared
                                     , common.api.get.opinion
                                         contentPointer
-                                        OnGetOpinionFailure
-                                        (OnGetOpinionSuccess << Opinion.PossibleOpinion contentPointer)
+                                        (common.subMsg << OnGetOpinionFailure)
+                                        (common.subMsg << OnGetOpinionSuccess << Opinion.PossibleOpinion contentPointer)
                                     )
                             in
                             case ( shared.user, model.possibleOpinion ) of
@@ -232,8 +227,8 @@ update (Common common) msg model shared =
                                 getStory storyID =
                                     common.api.get.expandedStoryWithCompleted
                                         storyID
-                                        OnGetExpandedStoryFailure
-                                        OnGetExpandedStorySuccess
+                                        (common.subMsg << OnGetExpandedStoryFailure)
+                                        (common.subMsg << OnGetExpandedStorySuccess)
                             in
                             case Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route of
                                 Just storyID ->
@@ -255,8 +250,8 @@ update (Common common) msg model shared =
                                     , shared
                                     , common.api.get.snipbitQA
                                         mongoID
-                                        OnGetQAFailure
-                                        (OnGetQASuccess requireLoadingQAPreRender)
+                                        (common.subMsg << OnGetQAFailure)
+                                        (common.subMsg << OnGetQASuccess requireLoadingQAPreRender)
                                     )
                             in
                             case model.qa of
@@ -317,10 +312,11 @@ update (Common common) msg model shared =
                                         if isCompleted.complete == False && onLastFrame then
                                             common.api.post.addCompleted
                                                 completed
-                                                OnMarkAsCompleteFailure
+                                                (common.subMsg << OnMarkAsCompleteFailure)
                                                 (always <|
-                                                    OnMarkAsCompleteSuccess <|
-                                                        Completed.IsCompleted completed.tidbitPointer True
+                                                    common.subMsg <|
+                                                        OnMarkAsCompleteSuccess <|
+                                                            Completed.IsCompleted completed.tidbitPointer True
                                                 )
                                         else
                                             Cmd.none
@@ -457,7 +453,10 @@ update (Common common) msg model shared =
             let
                 addOpinionAction =
                     common.justProduceCmd <|
-                        common.api.post.addOpinion opinion OnAddOpinionFailure (always <| OnAddOpinionSuccess opinion)
+                        common.api.post.addOpinion
+                            opinion
+                            (common.subMsg << OnAddOpinionFailure)
+                            (always <| common.subMsg <| OnAddOpinionSuccess opinion)
             in
             common.makeSingletonRequest (RT.AddOrRemoveOpinion ContentPointer.Snipbit) addOpinionAction
 
@@ -475,8 +474,8 @@ update (Common common) msg model shared =
                     common.justProduceCmd <|
                         common.api.post.removeOpinion
                             opinion
-                            OnRemoveOpinionFailure
-                            (always <| OnRemoveOpinionSuccess opinion)
+                            (common.subMsg << OnRemoveOpinionFailure)
+                            (always <| common.subMsg <| OnRemoveOpinionSuccess opinion)
             in
             common.makeSingletonRequest (RT.AddOrRemoveOpinion ContentPointer.Snipbit) removeOpinionAction
 
@@ -650,8 +649,8 @@ update (Common common) msg model shared =
                             snipbitID
                             questionText
                             codePointer
-                            OnAskQuestionFailure
-                            (OnAskQuestionSuccess snipbitID)
+                            (common.subMsg << OnAskQuestionFailure)
+                            (common.subMsg << OnAskQuestionSuccess snipbitID)
             in
             common.makeSingletonRequest (RT.AskQuestion TidbitPointer.Snipbit) askQuestionAction
 
@@ -689,8 +688,8 @@ update (Common common) msg model shared =
                             questionID
                             questionText
                             range
-                            OnEditQuestionFailure
-                            (OnEditQuestionSuccess snipbitID questionID questionText range)
+                            (common.subMsg << OnEditQuestionFailure)
+                            (common.subMsg << OnEditQuestionSuccess snipbitID questionID questionText range)
             in
             common.makeSingletonRequest (RT.UpdateQuestion TidbitPointer.Snipbit) editQuestionAction
 
@@ -734,8 +733,8 @@ update (Common common) msg model shared =
                             { tidbitType = TidbitPointer.Snipbit, targetID = snipbitID }
                             questionID
                             answerText
-                            OnAnswerFailure
-                            (OnAnswerQuestionSuccess snipbitID questionID)
+                            (common.subMsg << OnAnswerFailure)
+                            (common.subMsg << OnAnswerQuestionSuccess snipbitID questionID)
             in
             common.makeSingletonRequest (RT.AnswerQuestion TidbitPointer.Snipbit) answerQuestionAction
 
@@ -769,8 +768,8 @@ update (Common common) msg model shared =
                             { tidbitType = TidbitPointer.Snipbit, targetID = snipbitID }
                             answerID
                             answerText
-                            OnEditAnswerFailure
-                            (OnEditAnswerSuccess snipbitID questionID answerID answerText)
+                            (common.subMsg << OnEditAnswerFailure)
+                            (common.subMsg << OnEditAnswerSuccess snipbitID questionID answerID answerText)
             in
             common.makeSingletonRequest (RT.UpdateAnswer TidbitPointer.Snipbit) updateAnswerAction
 
@@ -809,8 +808,8 @@ update (Common common) msg model shared =
                         common.api.post.deleteAnswer
                             { tidbitType = TidbitPointer.Snipbit, targetID = snipbitID }
                             answerID
-                            OnDeleteAnswerFailure
-                            (always <| OnDeleteAnswerSuccess snipbitID questionID answerID)
+                            (common.subMsg << OnDeleteAnswerFailure)
+                            (always <| common.subMsg <| OnDeleteAnswerSuccess snipbitID questionID answerID)
             in
             common.makeSingletonRequest (RT.DeleteAnswer TidbitPointer.Snipbit) deleteAnswerAction
 
@@ -861,8 +860,8 @@ update (Common common) msg model shared =
                                 common.api.post.removeQuestionRating
                                     { tidbitType = TidbitPointer.Snipbit, targetID = snipbitID }
                                     questionID
-                                    OnRateQuestionFailure
-                                    (always <| OnRateQuestionSuccess questionID maybeVote)
+                                    (common.subMsg << OnRateQuestionFailure)
+                                    (always <| common.subMsg <| OnRateQuestionSuccess questionID maybeVote)
 
                         Just vote ->
                             common.justProduceCmd <|
@@ -870,8 +869,8 @@ update (Common common) msg model shared =
                                     { tidbitType = TidbitPointer.Snipbit, targetID = snipbitID }
                                     questionID
                                     vote
-                                    OnRateQuestionFailure
-                                    (always <| OnRateQuestionSuccess questionID maybeVote)
+                                    (common.subMsg << OnRateQuestionFailure)
+                                    (always <| common.subMsg <| OnRateQuestionSuccess questionID maybeVote)
             in
             common.makeSingletonRequest (RT.RateQuestion TidbitPointer.Snipbit) rateQuestionAction
 
@@ -892,8 +891,8 @@ update (Common common) msg model shared =
                                 common.api.post.removeAnswerRating
                                     { tidbitType = TidbitPointer.Snipbit, targetID = snipbitID }
                                     answerID
-                                    OnRateAnswerFailure
-                                    (always <| OnRateAnswerSuccess answerID maybeVote)
+                                    (common.subMsg << OnRateAnswerFailure)
+                                    (always <| common.subMsg <| OnRateAnswerSuccess answerID maybeVote)
 
                         Just vote ->
                             common.justProduceCmd <|
@@ -901,8 +900,8 @@ update (Common common) msg model shared =
                                     { tidbitType = TidbitPointer.Snipbit, targetID = snipbitID }
                                     answerID
                                     vote
-                                    OnRateAnswerFailure
-                                    (always <| OnRateAnswerSuccess answerID maybeVote)
+                                    (common.subMsg << OnRateAnswerFailure)
+                                    (always <| common.subMsg <| OnRateAnswerSuccess answerID maybeVote)
             in
             if RT.isNotMakingRequest shared.apiRequestTracker (RT.DeleteAnswer TidbitPointer.Snipbit) then
                 common.makeSingletonRequest (RT.RateAnswer TidbitPointer.Snipbit) rateAnswerAction
@@ -928,7 +927,7 @@ update (Common common) msg model shared =
             in
             ( { model | qaState = QA.updateNewQuestion snipbitID (always newAskQuestionModel) model.qaState }
             , shared
-            , Cmd.map (AskQuestionMsg snipbitID) newAskQuestionMsg
+            , Cmd.map (common.subMsg << AskQuestionMsg snipbitID) newAskQuestionMsg
             )
 
         EditQuestionMsg snipbitID question editQuestionMsg ->
@@ -949,7 +948,7 @@ update (Common common) msg model shared =
                         model.qaState
               }
             , shared
-            , Cmd.map (EditQuestionMsg snipbitID question) newEditQuestionMsg
+            , Cmd.map (common.subMsg << EditQuestionMsg snipbitID question) newEditQuestionMsg
             )
 
         AnswerQuestionMsg snipbitID question answerQuestionMsg ->
@@ -970,7 +969,7 @@ update (Common common) msg model shared =
                         model.qaState
               }
             , shared
-            , Cmd.map (AnswerQuestionMsg snipbitID question) newAnswerQuestionMsg
+            , Cmd.map (common.subMsg << AnswerQuestionMsg snipbitID question) newAnswerQuestionMsg
             )
 
         EditAnswerMsg snipbitID answerID answer editAnswerMsg ->
@@ -991,7 +990,7 @@ update (Common common) msg model shared =
                         model.qaState
               }
             , shared
-            , Cmd.map (EditAnswerMsg snipbitID answerID answer) newEditAnswerMsg
+            , Cmd.map (common.subMsg << EditAnswerMsg snipbitID answerID answer) newEditAnswerMsg
             )
 
         PinQuestion snipbitID questionID pinQuestion ->
@@ -1002,8 +1001,8 @@ update (Common common) msg model shared =
                             { targetID = snipbitID, tidbitType = TidbitPointer.Snipbit }
                             questionID
                             pinQuestion
-                            OnPinQuestionFailure
-                            (always <| OnPinQuestionSuccess questionID pinQuestion)
+                            (common.subMsg << OnPinQuestionFailure)
+                            (always <| common.subMsg <| OnPinQuestionSuccess questionID pinQuestion)
             in
             common.makeSingletonRequest (RT.PinQuestion TidbitPointer.Snipbit) pinQuestionAction
 
@@ -1023,8 +1022,8 @@ update (Common common) msg model shared =
                             { targetID = snipbitID, tidbitType = TidbitPointer.Snipbit }
                             answerID
                             pinAnswer
-                            OnPinAnswerFailure
-                            (always <| OnPinAnswerSuccess answerID pinAnswer)
+                            (common.subMsg << OnPinAnswerFailure)
+                            (always <| common.subMsg <| OnPinAnswerSuccess answerID pinAnswer)
             in
             if RT.isNotMakingRequest shared.apiRequestTracker (RT.DeleteAnswer TidbitPointer.Snipbit) then
                 common.makeSingletonRequest (RT.PinAnswer TidbitPointer.Snipbit) pinAnswerAction
@@ -1064,7 +1063,7 @@ update (Common common) msg model shared =
                         |> QA.updateDeletingAnswers snipbitID (always newViewQuestionModel.deletingAnswers)
               }
             , shared
-            , Cmd.map (ViewQuestionMsg snipbitID questionID) newViewQuestionMsg
+            , Cmd.map (common.subMsg << ViewQuestionMsg snipbitID questionID) newViewQuestionMsg
             )
 
         SubmitCommentOnQuestion snipbitID questionID commentText ->
@@ -1075,8 +1074,8 @@ update (Common common) msg model shared =
                             { tidbitType = TidbitPointer.Snipbit, targetID = snipbitID }
                             questionID
                             commentText
-                            OnSubmitCommentOnQuestionFailure
-                            (OnSubmitCommentOnQuestionSuccess snipbitID questionID)
+                            (common.subMsg << OnSubmitCommentOnQuestionFailure)
+                            (common.subMsg << OnSubmitCommentOnQuestionSuccess snipbitID questionID)
             in
             common.makeSingletonRequest (RT.SubmitQuestionComment TidbitPointer.Snipbit) submitQuestionCommentAction
 
@@ -1103,8 +1102,8 @@ update (Common common) msg model shared =
                             questionID
                             answerID
                             commentText
-                            SubmitCommentOnAnswerFailure
-                            (SubmitCommentOnAnswerSuccess snipbitID questionID answerID)
+                            (common.subMsg << SubmitCommentOnAnswerFailure)
+                            (common.subMsg << SubmitCommentOnAnswerSuccess snipbitID questionID answerID)
             in
             common.makeSingletonRequest (RT.SubmitAnswerComment TidbitPointer.Snipbit) submitAnswerCommentAction
 
@@ -1129,8 +1128,8 @@ update (Common common) msg model shared =
                         common.api.post.deleteQuestionComment
                             { tidbitType = TidbitPointer.Snipbit, targetID = snipbitID }
                             commentID
-                            (OnDeleteCommentOnQuestionFailure commentID)
-                            (always <| OnDeleteCommentOnQuestionSuccess snipbitID commentID)
+                            (common.subMsg << OnDeleteCommentOnQuestionFailure commentID)
+                            (always <| common.subMsg <| OnDeleteCommentOnQuestionSuccess snipbitID commentID)
             in
             common.makeSingletonRequest
                 (RT.DeleteQuestionComment TidbitPointer.Snipbit commentID)
@@ -1155,8 +1154,8 @@ update (Common common) msg model shared =
                         common.api.post.deleteAnswerComment
                             { tidbitType = TidbitPointer.Snipbit, targetID = snipbitID }
                             commentID
-                            (OnDeleteCommentOnAnswerFailure commentID)
-                            (always <| OnDeleteCommentOnAnswerSuccess snipbitID commentID)
+                            (common.subMsg << OnDeleteCommentOnAnswerFailure commentID)
+                            (always <| common.subMsg <| OnDeleteCommentOnAnswerSuccess snipbitID commentID)
             in
             common.makeSingletonRequest
                 (RT.DeleteAnswerComment TidbitPointer.Snipbit commentID)
@@ -1182,8 +1181,8 @@ update (Common common) msg model shared =
                             { tidbitType = TidbitPointer.Snipbit, targetID = snipbitID }
                             commentID
                             commentText
-                            (OnEditCommentOnQuestionFailure commentID)
-                            (OnEditCommentOnQuestionSuccess snipbitID commentID commentText)
+                            (common.subMsg << OnEditCommentOnQuestionFailure commentID)
+                            (common.subMsg << OnEditCommentOnQuestionSuccess snipbitID commentID commentText)
             in
             common.makeSingletonRequest
                 (RT.EditQuestionComment TidbitPointer.Snipbit commentID)
@@ -1212,8 +1211,8 @@ update (Common common) msg model shared =
                             { tidbitType = TidbitPointer.Snipbit, targetID = snipbitID }
                             commentID
                             commentText
-                            (OnEditCommentOnAnswerFailure commentID)
-                            (OnEditCommentOnAnswerSuccess snipbitID commentID commentText)
+                            (common.subMsg << OnEditCommentOnAnswerFailure commentID)
+                            (common.subMsg << OnEditCommentOnAnswerSuccess snipbitID commentID commentText)
             in
             common.makeSingletonRequest
                 (RT.EditAnswerComment TidbitPointer.Snipbit commentID)
@@ -1233,9 +1232,6 @@ update (Common common) msg model shared =
         OnEditCommentOnAnswerFailure commentID apiError ->
             common.justSetModalError apiError
                 |> common.andFinishRequest (RT.EditAnswerComment TidbitPointer.Snipbit commentID)
-
-        SetUserNeedsAuthModal message ->
-            common.justSetUserNeedsAuthModal message
 
 
 {-| Creates the editor for the snipbit.

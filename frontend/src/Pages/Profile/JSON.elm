@@ -15,7 +15,6 @@ encoder model =
     Encode.object
         [ ( "accountName", Util.justValueOrNull (Editable.encoder Encode.string) model.accountName )
         , ( "accountBio", Util.justValueOrNull (Editable.encoder Encode.string) model.accountBio )
-        , ( "logOutError", Encode.null )
         ]
 
 
@@ -26,4 +25,3 @@ decoder =
     decode Model
         |> required "accountName" (Decode.maybe <| Editable.decoder Decode.string)
         |> required "accountBio" (Decode.maybe <| Editable.decoder Decode.string)
-        |> required "logOutError" (Decode.succeed Nothing)

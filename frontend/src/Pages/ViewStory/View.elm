@@ -3,6 +3,7 @@ module Pages.ViewStory.View exposing (..)
 import DefaultServices.Util as Util
 import Elements.Simple.ContentBox as ContentBox
 import Elements.Simple.ProgressBar as ProgressBar exposing (State(..), TextFormat(Percentage))
+import ExplanatoryBlurbs
 import Html exposing (Html, button, div, i, text)
 import Html.Attributes exposing (class, classList)
 import Html.Events exposing (onClick)
@@ -13,6 +14,7 @@ import Models.RequestTracker as RT
 import Models.Route as Route
 import Models.Story as Story
 import Models.Tidbit as Tidbit
+import Pages.Messages as BaseMessage
 import Pages.Model exposing (Shared)
 import Pages.ViewStory.Messages exposing (..)
 import Pages.ViewStory.Model exposing (..)
@@ -20,8 +22,8 @@ import Pages.ViewStory.Model exposing (..)
 
 {-| `ViewStory` view.
 -}
-view : Model -> Shared -> Html Msg
-view model shared =
+view : (Msg -> BaseMessage.Msg) -> Model -> Shared -> Html BaseMessage.Msg
+view subMsg model shared =
     case shared.viewingStory of
         Nothing ->
             Util.hiddenDiv
@@ -55,7 +57,11 @@ view model shared =
                       , case nextTidbitInStory of
                             Just ( index, routeForViewingTidbit ) ->
                                 Route.navigationNode
-                                    (Just ( Route.Route routeForViewingTidbit, GoTo routeForViewingTidbit ))
+                                    (Just
+                                        ( Route.Route routeForViewingTidbit
+                                        , BaseMessage.GoTo { wipeModalError = False } routeForViewingTidbit
+                                        )
+                                    )
                                     []
                                     [ button
                                         [ class "sub-bar-button next-tidbit-button" ]
@@ -95,14 +101,15 @@ view model shared =
                                                 RT.AddOrRemoveOpinion ContentPointer.Story
                                           )
                                         ]
-                                    , onClick <| newMsg
+                                    , onClick <| subMsg newMsg
                                     ]
                                     [ text buttonText ]
 
                             ( Nothing, _ ) ->
                                 button
                                     [ class "sub-bar-button heart-button"
-                                    , onClick <| SetUserNeedsAuthModal "We want your feedback, sign up for free and get access to all of CodeTidbit in seconds!"
+                                    , onClick <|
+                                        BaseMessage.SetUserNeedsAuthModal ExplanatoryBlurbs.needAuthSignUpMessage
                                     ]
                                     [ text "Love It" ]
 
@@ -159,7 +166,7 @@ view model shared =
                                                 Started totalCompleted
                                         , maxPosition = totalTidbits
                                         , disabledStyling = False
-                                        , onClickMsg = NoOp
+                                        , onClickMsg = BaseMessage.NoOp
                                         , allowClick = False
                                         , textFormat = Percentage
                                         , shiftLeft = False
@@ -183,7 +190,7 @@ view model shared =
                                     (\index tidbit ->
                                         Content.fromTidbit tidbit
                                             |> ContentBox.view
-                                                { goToMsg = GoTo
+                                                { goToMsg = BaseMessage.GoTo { wipeModalError = False }
                                                 , darkenBox = Story.tidbitCompletedAtIndex index story
                                                 , forStory = Just story.id
                                                 }

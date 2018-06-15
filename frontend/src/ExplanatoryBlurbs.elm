@@ -88,3 +88,10 @@ bigbitInfo =
     You highlight chunks of code and attach comments automatically taking your user through all the files and
     folders in a directed fashion while still letting them explore themselves.
     """
+
+
+{-| Used when un-auth users try to perform an auth-required action.
+-}
+needAuthSignUpMessage : String
+needAuthSignUpMessage =
+    "We want your feedback, sign up for free and get access to all of CodeTidbit in seconds!"

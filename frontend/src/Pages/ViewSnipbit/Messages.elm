@@ -21,9 +21,7 @@ import ProjectTypeAliases exposing (..)
 {-| `ViewSnipbit` msg.
 -}
 type Msg
-    = NoOp
-    | GoTo Route
-    | GoToAskQuestion
+    = GoToAskQuestion
     | GoToBrowseQuestionsWithCodePointer (Maybe Range)
     | OnRouteHit Route
     | OnGetCompletedSuccess IsCompleted
@@ -98,4 +96,3 @@ type Msg
     | EditCommentOnAnswer SnipbitID CommentID CommentText
     | OnEditCommentOnAnswerSuccess SnipbitID CommentID CommentText Date.Date
     | OnEditCommentOnAnswerFailure CommentID ApiError
-    | SetUserNeedsAuthModal String

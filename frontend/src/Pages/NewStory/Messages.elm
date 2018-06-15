@@ -9,9 +9,7 @@ import Models.Story exposing (Story)
 {-| `NewStory` msg.
 -}
 type Msg
-    = NoOp
-    | GoTo Route
-    | OnRouteHit Route
+    = OnRouteHit Route
     | OnGetEditingStorySuccess Story
     | OnGetEditingStoryFailure ApiError
     | OnUpdateName String

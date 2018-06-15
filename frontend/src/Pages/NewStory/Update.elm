@@ -6,6 +6,7 @@ import DefaultServices.Util as Util
 import Models.RequestTracker as RT
 import Models.Route as Route
 import Models.Story as Story
+import Pages.Messages as BaseMessage
 import Pages.Model exposing (Shared)
 import Pages.NewStory.Init exposing (..)
 import Pages.NewStory.Messages exposing (..)
@@ -14,21 +15,15 @@ import Pages.NewStory.Model exposing (..)
 
 {-| `NewStory` update.
 -}
-update : CommonSubPageUtil Model Shared Msg -> Msg -> Model -> Shared -> ( Model, Shared, Cmd Msg )
+update : CommonSubPageUtil Model Shared Msg BaseMessage.Msg -> Msg -> Model -> Shared -> ( Model, Shared, Cmd BaseMessage.Msg )
 update (Common common) msg model shared =
     case msg of
-        NoOp ->
-            common.doNothing
-
-        GoTo route ->
-            common.justProduceCmd <| Route.navigateTo route
-
         OnRouteHit route ->
             let
                 getEditingStoryAndFocusOn theID qpEditingStory =
                     case qpEditingStory of
                         Nothing ->
-                            common.justProduceCmd <| Util.domFocus (\_ -> NoOp) theID
+                            common.justProduceCmd <| Util.domFocus (\_ -> BaseMessage.NoOp) theID
 
                         Just storyID ->
                             {- If we already loaded the story we want to edit, we don't re-query because it
@@ -38,13 +33,15 @@ update (Common common) msg model shared =
                                current edits.
                             -}
                             if storyID == model.editingStory.id then
-                                common.justProduceCmd <| Util.domFocus (\_ -> NoOp) theID
+                                common.justProduceCmd <| Util.domFocus (\_ -> BaseMessage.NoOp) theID
                             else
                                 ( { model | editingStory = Story.blankStory }
                                 , shared
                                 , Cmd.batch
-                                    [ Util.domFocus (\_ -> NoOp) theID
-                                    , common.api.get.story storyID OnGetEditingStoryFailure OnGetEditingStorySuccess
+                                    [ Util.domFocus (\_ -> BaseMessage.NoOp) theID
+                                    , common.api.get.story storyID
+                                        (common.subMsg << OnGetEditingStoryFailure)
+                                        (common.subMsg << OnGetEditingStorySuccess)
                                     ]
                                 )
             in
@@ -96,13 +93,13 @@ update (Common common) msg model shared =
         AddTag tagName ->
             ( newTag tagName model
             , { shared | textFieldKeyTracker = TextFields.changeKey shared.textFieldKeyTracker "create-story-tags" }
-            , Util.domFocus (always NoOp) "tags-input"
+            , Util.domFocus (always BaseMessage.NoOp) "tags-input"
             )
 
         EditingAddTag tagName ->
             ( newEditTag tagName model
             , { shared | textFieldKeyTracker = TextFields.changeKey shared.textFieldKeyTracker "edit-story-tags" }
-            , Util.domFocus (always NoOp) "tags-input"
+            , Util.domFocus (always BaseMessage.NoOp) "tags-input"
             )
 
         RemoveTag tagName ->
@@ -124,8 +121,8 @@ update (Common common) msg model shared =
                     common.justProduceCmd <|
                         common.api.post.createNewStory
                             model.newStory
-                            OnPublishFailure
-                            OnPublishSuccess
+                            (common.subMsg << OnPublishFailure)
+                            (common.subMsg << OnPublishSuccess)
             in
             if newStoryDataReadyForPublication model then
                 common.makeSingletonRequest RT.PublishNewStory publishAction
@@ -165,8 +162,8 @@ update (Common common) msg model shared =
                         common.api.post.updateStoryInformation
                             storyID
                             editingStoryInformation
-                            OnSaveEditsFailure
-                            OnSaveEditsSuccess
+                            (common.subMsg << OnSaveEditsFailure)
+                            (common.subMsg << OnSaveEditsSuccess)
             in
             if editingStoryDataReadyForSave model then
                 common.makeSingletonRequest RT.UpdateStoryInfo saveEditsAction

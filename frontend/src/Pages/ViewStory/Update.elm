@@ -5,6 +5,7 @@ import Models.ContentPointer as ContentPointer
 import Models.Opinion exposing (PossibleOpinion, toPossibleOpinion)
 import Models.RequestTracker as RT
 import Models.Route as Route
+import Pages.Messages as BaseMessage
 import Pages.Model exposing (Shared)
 import Pages.ViewStory.Messages exposing (..)
 import Pages.ViewStory.Model exposing (..)
@@ -13,15 +14,9 @@ import Ports
 
 {-| `ViewStory` update.
 -}
-update : CommonSubPageUtil Model Shared Msg -> Msg -> Model -> Shared -> ( Model, Shared, Cmd Msg )
+update : CommonSubPageUtil Model Shared Msg BaseMessage.Msg -> Msg -> Model -> Shared -> ( Model, Shared, Cmd BaseMessage.Msg )
 update (Common common) msg model shared =
     case msg of
-        NoOp ->
-            common.doNothing
-
-        GoTo route ->
-            common.justProduceCmd <| Route.navigateTo route
-
         OnRouteHit route ->
             case route of
                 {- We:
@@ -38,8 +33,8 @@ update (Common common) msg model shared =
                                 [ Ports.smoothScrollToSubBar
                                 , common.api.get.expandedStoryWithCompleted
                                     mongoID
-                                    OnGetExpandedStoryFailure
-                                    OnGetExpandedStorySuccess
+                                    (common.subMsg << OnGetExpandedStoryFailure)
+                                    (common.subMsg << OnGetExpandedStorySuccess)
                                 ]
                             )
 
@@ -56,8 +51,8 @@ update (Common common) msg model shared =
                                     , shared
                                     , common.api.get.opinion
                                         contentPointer
-                                        OnGetOpinionFailure
-                                        (OnGetOpinionSuccess << PossibleOpinion contentPointer)
+                                        (common.subMsg << OnGetOpinionFailure)
+                                        (common.subMsg << OnGetOpinionSuccess << PossibleOpinion contentPointer)
                                     )
                             in
                             case ( shared.user, model.possibleOpinion ) of
@@ -99,8 +94,8 @@ update (Common common) msg model shared =
                     common.justProduceCmd <|
                         common.api.post.addOpinion
                             opinion
-                            OnAddOpinionFailure
-                            (always <| OnAddOpinionSuccess opinion)
+                            (common.subMsg << OnAddOpinionFailure)
+                            (always <| common.subMsg <| OnAddOpinionSuccess opinion)
             in
             common.makeSingletonRequest (RT.AddOrRemoveOpinion ContentPointer.Story) addOpinionAction
 
@@ -118,8 +113,8 @@ update (Common common) msg model shared =
                     common.justProduceCmd <|
                         common.api.post.removeOpinion
                             opinion
-                            OnRemoveOpinionFailure
-                            (always <| OnRemoveOpinionSuccess opinion)
+                            (common.subMsg << OnRemoveOpinionFailure)
+                            (always <| common.subMsg <| OnRemoveOpinionSuccess opinion)
             in
             common.makeSingletonRequest (RT.AddOrRemoveOpinion ContentPointer.Story) removeOpinionAction
 
@@ -133,6 +128,3 @@ update (Common common) msg model shared =
         OnRemoveOpinionFailure apiError ->
             common.justSetModalError apiError
                 |> common.andFinishRequest (RT.AddOrRemoveOpinion ContentPointer.Story)
-
-        SetUserNeedsAuthModal message ->
-            common.justSetUserNeedsAuthModal message

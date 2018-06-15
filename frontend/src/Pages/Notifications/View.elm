@@ -8,6 +8,7 @@ import Html.Events exposing (onClick)
 import Models.Notification exposing (Notification)
 import Models.RequestTracker as RT
 import Models.Route as Route
+import Pages.Messages as BaseMessage
 import Pages.Model exposing (Shared)
 import Pages.Notifications.Messages exposing (..)
 import Pages.Notifications.Model exposing (..)
@@ -15,8 +16,8 @@ import Pages.Notifications.Model exposing (..)
 
 {-| `Notifications` view.
 -}
-view : Model -> Shared -> Html Msg
-view model shared =
+view : (Msg -> BaseMessage.Msg) -> Model -> Shared -> Html BaseMessage.Msg
+view subMsg model shared =
     div
         [ class "notifications-page" ]
         [ case model.notifications of
@@ -31,6 +32,7 @@ view model shared =
                         List.map
                             (\notification ->
                                 notificationView
+                                    subMsg
                                     (RT.isMakingRequest shared.apiRequestTracker <|
                                         RT.SetNotificationRead notification.id
                                     )
@@ -43,7 +45,7 @@ view model shared =
                                 [ ( "load-more-notifications", True )
                                 , ( "cursor-progress", RT.isMakingRequest shared.apiRequestTracker RT.GetNotifications )
                                 ]
-                            , onClick <| LoadMoreNotifications notifications
+                            , onClick <| subMsg <| LoadMoreNotifications notifications
                             ]
                             [ text "load more" ]
                       else
@@ -61,8 +63,8 @@ view model shared =
 
 {-| The view for rendering a single `Notification`.
 -}
-notificationView : Bool -> Notification -> Html Msg
-notificationView isMakingSetNotificationReadRequest notification =
+notificationView : (Msg -> BaseMessage.Msg) -> Bool -> Notification -> Html BaseMessage.Msg
+notificationView subMsg isMakingSetNotificationReadRequest notification =
     div
         [ class "notification" ]
         [ div [ class "message" ] [ text notification.message ]
@@ -71,7 +73,7 @@ notificationView isMakingSetNotificationReadRequest notification =
             [ Route.navigationNode
                 (Just
                     ( Route.Link <| Tuple.second notification.actionLink
-                    , GoToNotificationLink notification.id notification.read <| Tuple.second notification.actionLink
+                    , subMsg <| GoToNotificationLink notification.id notification.read <| Tuple.second notification.actionLink
                     )
                 )
                 []
@@ -85,7 +87,7 @@ notificationView isMakingSetNotificationReadRequest notification =
                     , ( "is-read", notification.read )
                     , ( "cursor-progress", isMakingSetNotificationReadRequest )
                     ]
-                , onClick <| SetNotificationRead notification.id (not notification.read)
+                , onClick <| subMsg <| SetNotificationRead notification.id (not notification.read)
                 ]
                 [ text <|
                     if notification.read then

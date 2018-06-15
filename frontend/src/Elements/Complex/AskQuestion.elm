@@ -23,7 +23,7 @@ type alias Model codePointer =
 
 
 type alias RenderConfig msg codePointer =
-    { msgTagger : Msg -> msg
+    { subMsg : Msg -> msg
     , textFieldKeyTracker : TextFields.KeyTracker
     , askQuestionRequestInProgress : Bool
     , allQuestionsND : Route.NavigationData msg
@@ -60,7 +60,7 @@ view config model =
             ]
         , div
             [ class "preview-markdown"
-            , onClick <| config.msgTagger TogglePreviewMarkdown
+            , onClick <| config.subMsg TogglePreviewMarkdown
             ]
             [ text <|
                 if model.previewMarkdown then
@@ -78,7 +78,7 @@ view config model =
                     "ask-question"
                     [ classList [ ( "cursor-progress", config.askQuestionRequestInProgress ) ]
                     , placeholder askQuestionPlaceholder
-                    , onInput (OnQuestionTextInput >> config.msgTagger)
+                    , onInput (OnQuestionTextInput >> config.subMsg)
                     , defaultValue model.questionText
                     , disabled <| config.askQuestionRequestInProgress
                     ]

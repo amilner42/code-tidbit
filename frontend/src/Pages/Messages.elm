@@ -2,6 +2,7 @@ module Pages.Messages exposing (..)
 
 import Keyboard.Extra
 import Models.ApiError as ApiError
+import Models.BasicResponse as BasicResponse
 import Models.Range as Range
 import Models.Route as Route
 import Models.User exposing (User)
@@ -25,7 +26,7 @@ import Pages.Welcome.Messages as WelcomeMessages
 -}
 type Msg
     = NoOp
-    | GoTo Route.Route
+    | GoTo { wipeModalError : Bool } Route.Route
     | OnLocationChange Navigation.Location
     | LoadModelFromLocalStorage
     | OnLoadModelFromLocalStorageSuccess Model
@@ -49,3 +50,7 @@ type Msg
     | KeyboardExtraMessage Keyboard.Extra.Msg
     | CloseErrorModal
     | CloseSignUpModal
+    | SetUserNeedsAuthModal String
+    | LogOut
+    | OnLogOutSuccess BasicResponse.BasicResponse
+    | OnLogOutFailure ApiError.ApiError

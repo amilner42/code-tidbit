@@ -13,6 +13,7 @@ import Elements.Simple.FileStructure as FS
 import Elements.Simple.Markdown as Markdown
 import Elements.Simple.ProgressBar as ProgressBar exposing (State(..), TextFormat(Custom))
 import Elements.Simple.QuestionList as QuestionList
+import ExplanatoryBlurbs
 import Html exposing (Html, button, div, i, text)
 import Html.Attributes exposing (class, classList, hidden)
 import Html.Events exposing (onClick)
@@ -27,6 +28,7 @@ import Models.Story as Story
 import Models.TidbitPointer as TidbitPointer
 import Models.ViewerRelevantHC as ViewerRelevantHC
 import Models.Vote as Vote
+import Pages.Messages as BaseMessage
 import Pages.Model exposing (Shared)
 import Pages.ViewBigbit.Messages exposing (..)
 import Pages.ViewBigbit.Model exposing (..)
@@ -34,8 +36,8 @@ import Pages.ViewBigbit.Model exposing (..)
 
 {-| `ViewBigbit` view.
 -}
-view : Model -> Shared -> Html Msg
-view model shared =
+view : (Msg -> BaseMessage.Msg) -> Model -> Shared -> Html BaseMessage.Msg
+view subMsg model shared =
     let
         rhcTabOpen =
             isBigbitRHCTabOpen model.relevantHC
@@ -97,14 +99,14 @@ view model shared =
                                     RT.AddOrRemoveOpinion ContentPointer.Bigbit
                               )
                             ]
-                        , onClick <| newMsg
+                        , onClick <| subMsg newMsg
                         ]
                         [ text buttonText ]
 
                 ( Nothing, _ ) ->
                     button
                         [ class "sub-bar-button heart-button"
-                        , onClick <| SetUserNeedsAuthModal "We want your feedback, sign up for free and get access to all of CodeTidbit in seconds!"
+                        , onClick <| BaseMessage.SetUserNeedsAuthModal ExplanatoryBlurbs.needAuthSignUpMessage
                         ]
                         [ text "Love It" ]
 
@@ -116,7 +118,7 @@ view model shared =
                         Just previousTidbitRoute ->
                             button
                                 [ class "sub-bar-button traverse-tidbit-button"
-                                , onClick <| GoTo previousTidbitRoute
+                                , onClick <| BaseMessage.GoTo { wipeModalError = False } previousTidbitRoute
                                 ]
                                 [ text "Previous Tidbit" ]
 
@@ -129,7 +131,7 @@ view model shared =
                 Just story ->
                     button
                         [ class "sub-bar-button back-to-story-button"
-                        , onClick <| GoTo <| Route.ViewStoryPage story.id
+                        , onClick <| BaseMessage.GoTo { wipeModalError = False } <| Route.ViewStoryPage story.id
                         ]
                         [ text "View Story" ]
 
@@ -141,7 +143,7 @@ view model shared =
                         Just nextTidbitRoute ->
                             button
                                 [ class "sub-bar-button traverse-tidbit-button"
-                                , onClick <| GoTo nextTidbitRoute
+                                , onClick <| BaseMessage.GoTo { wipeModalError = False } nextTidbitRoute
                                 ]
                                 [ text "Next Tidbit" ]
 
@@ -163,10 +165,11 @@ view model shared =
                         , onClick <|
                             case shared.user of
                                 Just _ ->
-                                    GoToAskQuestionWithCodePointer bigbit.id model.tutorialCodePointer
+                                    subMsg <|
+                                        GoToAskQuestionWithCodePointer bigbit.id model.tutorialCodePointer
 
                                 Nothing ->
-                                    SetUserNeedsAuthModal <|
+                                    BaseMessage.SetUserNeedsAuthModal <|
                                         "We want to answer your question, sign up for free and get access to all of"
                                             ++ " CodeTidbit in seconds!"
                         ]
@@ -175,7 +178,7 @@ view model shared =
                 ( Just bigbit, True, False, Just _ ) ->
                     button
                         [ class "sub-bar-button view-relevant-questions"
-                        , onClick <| GoToBrowseQuestionsWithCodePointer bigbit.id model.tutorialCodePointer
+                        , onClick <| subMsg <| GoToBrowseQuestionsWithCodePointer bigbit.id model.tutorialCodePointer
                         ]
                         [ text "Browse Related Questions" ]
 
@@ -188,26 +191,27 @@ view model shared =
                                     bigbit.id
                               -- We keep the codePointer the same, and if their is no codePointer, we make sure to
                               -- load the same file if they are looking at a file.
-                            , GoToBrowseQuestionsWithCodePointer
-                                bigbit.id
-                                (case model.tutorialCodePointer of
-                                    Just _ ->
-                                        model.tutorialCodePointer
+                            , subMsg <|
+                                GoToBrowseQuestionsWithCodePointer
+                                    bigbit.id
+                                    (case model.tutorialCodePointer of
+                                        Just _ ->
+                                            model.tutorialCodePointer
 
-                                    Nothing ->
-                                        case
-                                            Route.viewBigbitPageCurrentActiveFile
-                                                shared.route
-                                                bigbit
-                                                model.qa
-                                                model.qaState
-                                        of
-                                            Just file ->
-                                                Just { file = file, range = Range.zeroRange }
+                                        Nothing ->
+                                            case
+                                                Route.viewBigbitPageCurrentActiveFile
+                                                    shared.route
+                                                    bigbit
+                                                    model.qa
+                                                    model.qaState
+                                            of
+                                                Just file ->
+                                                    Just { file = file, range = Range.zeroRange }
 
-                                            Nothing ->
-                                                Nothing
-                                )
+                                                Nothing ->
+                                                    Nothing
+                                    )
                             )
                         )
                         []
@@ -229,7 +233,7 @@ view model shared =
                                 model.relevantHC
                       )
                     ]
-                , onClick BrowseRelevantHC
+                , onClick <| subMsg BrowseRelevantHC
                 ]
                 [ text "Browse Related Frames" ]
             , case Route.getViewingContentID shared.route of
@@ -242,7 +246,7 @@ view model shared =
                               )
                             ]
                         , onClick <|
-                            GoTo <|
+                            BaseMessage.GoTo { wipeModalError = False } <|
                                 routeForBookmark
                                     (Route.getFromStoryQueryParamOnViewBigbitRoute shared.route)
                                     bigbitID
@@ -288,7 +292,13 @@ view model shared =
 
                     arrowBack =
                         Route.navigationNode
-                            (previousFrameRoute ||> (\route -> ( Route.Route route, GoTo route )))
+                            (previousFrameRoute
+                                ||> (\route ->
+                                        ( Route.Route route
+                                        , BaseMessage.GoTo { wipeModalError = False } route
+                                        )
+                                    )
+                            )
                             []
                             [ i
                                 [ classList
@@ -304,7 +314,7 @@ view model shared =
                             { state = Started model.bookmark
                             , maxPosition = Array.length bigbit.highlightedComments
                             , disabledStyling = not goingThroughTutorial
-                            , onClickMsg = BackToTutorialSpot
+                            , onClickMsg = subMsg BackToTutorialSpot
                             , allowClick =
                                 goingThroughTutorial
                                     && (case shared.route of
@@ -326,7 +336,13 @@ view model shared =
 
                     arrowForward =
                         Route.navigationNode
-                            (nextFrameRoute ||> (\route -> ( Route.Route route, GoTo route )))
+                            (nextFrameRoute
+                                ||> (\route ->
+                                        ( Route.Route route
+                                        , BaseMessage.GoTo { wipeModalError = False } route
+                                        )
+                                    )
+                            )
                             []
                             [ i
                                 [ classList
@@ -353,13 +369,13 @@ view model shared =
                                     Route.viewBigbitPageCurrentActiveFile currentRoute bigbit model.qa model.qaState
                                         |> Maybe.map (FS.isSameFilePath absolutePath)
                                         |> Maybe.withDefault False
-                            , fileSelectedMsg = SelectFile
-                            , folderSelectedMsg = ToggleFolder
+                            , fileSelectedMsg = subMsg << SelectFile
+                            , folderSelectedMsg = subMsg << ToggleFolder
                             }
                             bigbit.fs
                         , i
                             [ class "close-fs-icon material-icons"
-                            , onClick ToggleFS
+                            , onClick <| subMsg ToggleFS
                             ]
                             [ text "close" ]
                         , div
@@ -370,9 +386,9 @@ view model shared =
                                 ]
                             , onClick <|
                                 if fsOpen || not fsAllowed then
-                                    NoOp
+                                    BaseMessage.NoOp
                                 else
-                                    ToggleFS
+                                    subMsg <| ToggleFS
                             ]
                             [ text <|
                                 case
@@ -388,7 +404,7 @@ view model shared =
                     , Editor.view "view-bigbit-code-editor"
                     , div
                         [ class "comment-block" ]
-                        [ viewBigbitCommentBox bigbit model shared ]
+                        [ viewBigbitCommentBox subMsg bigbit model shared ]
                     ]
         ]
 
@@ -396,8 +412,8 @@ view model shared =
 {-| Gets the comment box for the view bigbit page, can be the markdown for the code frame, the FS, or the
 markdown with a few extra buttons for a selected range.
 -}
-viewBigbitCommentBox : Bigbit.Bigbit -> Model -> Shared -> Html Msg
-viewBigbitCommentBox bigbit model shared =
+viewBigbitCommentBox : (Msg -> BaseMessage.Msg) -> Bigbit.Bigbit -> Model -> Shared -> Html BaseMessage.Msg
+viewBigbitCommentBox subMsg bigbit model shared =
     let
         tutorialRoute =
             let
@@ -448,7 +464,7 @@ viewBigbitCommentBox bigbit model shared =
                                             [ ( "above-comment-block-button", True )
                                             , ( "disabled", ViewerRelevantHC.onFirstFrame rhc )
                                             ]
-                                        , onClick PreviousRelevantHC
+                                        , onClick <| subMsg PreviousRelevantHC
                                         ]
                                         [ text "Previous" ]
                                     , Route.navigationNode
@@ -462,7 +478,11 @@ viewBigbitCommentBox bigbit model shared =
                                                         frameNumber
                                                         Nothing
                                                 )
-                                            ||> (\route -> ( Route.Route route, GoTo route ))
+                                            ||> (\route ->
+                                                    ( Route.Route route
+                                                    , BaseMessage.GoTo { wipeModalError = False } route
+                                                    )
+                                                )
                                         )
                                         []
                                         [ div
@@ -474,7 +494,7 @@ viewBigbitCommentBox bigbit model shared =
                                             [ ( "above-comment-block-button next-button", True )
                                             , ( "disabled", ViewerRelevantHC.onLastFrame rhc )
                                             ]
-                                        , onClick NextRelevantHC
+                                        , onClick <| subMsg NextRelevantHC
                                         ]
                                         [ text "Next" ]
                                     ]
@@ -483,7 +503,7 @@ viewBigbitCommentBox bigbit model shared =
 
         viewQuestionView qa qaState tab question =
             ViewQuestion.view
-                { msgTagger = ViewQuestionMsg bigbit.id question.id
+                { subMsg = subMsg << ViewQuestionMsg bigbit.id question.id
                 , textFieldKeyTracker = shared.textFieldKeyTracker
                 , userID = shared.user ||> .id
                 , tidbitAuthorID = bigbit.author
@@ -519,11 +539,12 @@ viewBigbitCommentBox bigbit model shared =
                         Route.ViewBigbitQuestionsPage
                             (Route.getFromStoryQueryParamOnViewBigbitRoute shared.route)
                             bigbit.id
-                    , GoToBrowseQuestionsWithCodePointer
-                        bigbit.id
-                        (Route.viewBigbitPageCurrentActiveFile shared.route bigbit (Just qa) qaState
-                            ||> (\file -> { file = file, range = Range.zeroRange })
-                        )
+                    , subMsg <|
+                        GoToBrowseQuestionsWithCodePointer
+                            bigbit.id
+                            (Route.viewBigbitPageCurrentActiveFile shared.route bigbit (Just qa) qaState
+                                ||> (\file -> { file = file, range = Range.zeroRange })
+                            )
                     )
                 , questionND =
                     Route.ViewBigbitQuestionPage
@@ -531,14 +552,14 @@ viewBigbitCommentBox bigbit model shared =
                         (Route.getTouringQuestionsQueryParamOnViewBigbitQARoute shared.route)
                         bigbit.id
                         question.id
-                        |> (\route -> ( Route.Route route, GoTo route ))
+                        |> (\route -> ( Route.Route route, BaseMessage.GoTo { wipeModalError = False } route ))
                 , allAnswersND =
                     Route.ViewBigbitAnswersPage
                         (Route.getFromStoryQueryParamOnViewBigbitRoute shared.route)
                         (Route.getTouringQuestionsQueryParamOnViewBigbitQARoute shared.route)
                         bigbit.id
                         question.id
-                        |> (\route -> ( Route.Route route, GoTo route ))
+                        |> (\route -> ( Route.Route route, BaseMessage.GoTo { wipeModalError = False } route ))
                 , questionCommentsND =
                     Route.ViewBigbitQuestionCommentsPage
                         (Route.getFromStoryQueryParamOnViewBigbitRoute shared.route)
@@ -546,7 +567,7 @@ viewBigbitCommentBox bigbit model shared =
                         bigbit.id
                         question.id
                         Nothing
-                        |> (\route -> ( Route.Route route, GoTo route ))
+                        |> (\route -> ( Route.Route route, BaseMessage.GoTo { wipeModalError = False } route ))
                 , answerND =
                     \answer ->
                         let
@@ -557,7 +578,7 @@ viewBigbitCommentBox bigbit model shared =
                                     bigbit.id
                                     answer.id
                         in
-                        ( Route.Route route, GoTo route )
+                        ( Route.Route route, BaseMessage.GoTo { wipeModalError = False } route )
                 , answerCommentsND =
                     \answer ->
                         let
@@ -569,10 +590,10 @@ viewBigbitCommentBox bigbit model shared =
                                     answer.id
                                     Nothing
                         in
-                        ( Route.Route route, GoTo route )
+                        ( Route.Route route, BaseMessage.GoTo { wipeModalError = False } route )
                 , goToQuestionComment =
                     \questionComment ->
-                        GoTo <|
+                        BaseMessage.GoTo { wipeModalError = False } <|
                             Route.ViewBigbitQuestionCommentsPage
                                 (Route.getFromStoryQueryParamOnViewBigbitRoute shared.route)
                                 (Route.getTouringQuestionsQueryParamOnViewBigbitQARoute shared.route)
@@ -581,7 +602,7 @@ viewBigbitCommentBox bigbit model shared =
                                 (Just questionComment.id)
                 , goToAnswerComment =
                     \answerComment ->
-                        GoTo <|
+                        BaseMessage.GoTo { wipeModalError = False } <|
                             Route.ViewBigbitAnswerCommentsPage
                                 (Route.getFromStoryQueryParamOnViewBigbitRoute shared.route)
                                 (Route.getTouringQuestionsQueryParamOnViewBigbitQARoute shared.route)
@@ -591,50 +612,50 @@ viewBigbitCommentBox bigbit model shared =
                 , goToAnswerQuestion =
                     case shared.user of
                         Just _ ->
-                            GoTo <|
+                            BaseMessage.GoTo { wipeModalError = False } <|
                                 Route.ViewBigbitAnswerQuestion
                                     (Route.getFromStoryQueryParamOnViewBigbitRoute shared.route)
                                     bigbit.id
                                     question.id
 
                         Nothing ->
-                            SetUserNeedsAuthModal
+                            BaseMessage.SetUserNeedsAuthModal
                                 ("Want to share your knowledge? Sign up for free and get access to all of CodeTidbit"
                                     ++ " in seconds!"
                                 )
                 , goToEditQuestion =
-                    GoTo <|
+                    BaseMessage.GoTo { wipeModalError = False } <|
                         Route.ViewBigbitEditQuestion
                             (Route.getFromStoryQueryParamOnViewBigbitRoute shared.route)
                             bigbit.id
                             question.id
                 , goToEditAnswer =
                     \answer ->
-                        GoTo <|
+                        BaseMessage.GoTo { wipeModalError = False } <|
                             Route.ViewBigbitEditAnswer
                                 (Route.getFromStoryQueryParamOnViewBigbitRoute shared.route)
                                 bigbit.id
                                 answer.id
-                , upvoteQuestion = RateQuestion bigbit.id question.id (Just Vote.Upvote)
-                , removeUpvoteQuestion = RateQuestion bigbit.id question.id Nothing
-                , downvoteQuestion = RateQuestion bigbit.id question.id (Just Vote.Downvote)
-                , removeDownvoteQuestion = RateQuestion bigbit.id question.id Nothing
-                , upvoteAnswer = \answer -> RateAnswer bigbit.id answer.id (Just Vote.Upvote)
-                , removeUpvoteAnswer = \answer -> RateAnswer bigbit.id answer.id Nothing
-                , downvoteAnswer = \answer -> RateAnswer bigbit.id answer.id (Just Vote.Downvote)
-                , removeDownvoteAnswer = \answer -> RateAnswer bigbit.id answer.id Nothing
-                , pinQuestion = PinQuestion bigbit.id question.id True
-                , unpinQuestion = PinQuestion bigbit.id question.id False
-                , pinAnswer = \answer -> PinAnswer bigbit.id answer.id True
-                , unpinAnswer = \answer -> PinAnswer bigbit.id answer.id False
-                , deleteAnswer = .id >> DeleteAnswer bigbit.id question.id
-                , commentOnQuestion = SubmitCommentOnQuestion bigbit.id question.id
-                , commentOnAnswer = SubmitCommentOnAnswer bigbit.id question.id
-                , deleteQuestionComment = DeleteCommentOnQuestion bigbit.id
-                , deleteAnswerComment = DeleteCommentOnAnswer bigbit.id
-                , editQuestionComment = EditCommentOnQuestion bigbit.id
-                , editAnswerComment = EditCommentOnAnswer bigbit.id
-                , handleUnauthAction = SetUserNeedsAuthModal
+                , upvoteQuestion = subMsg <| RateQuestion bigbit.id question.id (Just Vote.Upvote)
+                , removeUpvoteQuestion = subMsg <| RateQuestion bigbit.id question.id Nothing
+                , downvoteQuestion = subMsg <| RateQuestion bigbit.id question.id (Just Vote.Downvote)
+                , removeDownvoteQuestion = subMsg <| RateQuestion bigbit.id question.id Nothing
+                , upvoteAnswer = \answer -> subMsg <| RateAnswer bigbit.id answer.id (Just Vote.Upvote)
+                , removeUpvoteAnswer = \answer -> subMsg <| RateAnswer bigbit.id answer.id Nothing
+                , downvoteAnswer = \answer -> subMsg <| RateAnswer bigbit.id answer.id (Just Vote.Downvote)
+                , removeDownvoteAnswer = \answer -> subMsg <| RateAnswer bigbit.id answer.id Nothing
+                , pinQuestion = subMsg <| PinQuestion bigbit.id question.id True
+                , unpinQuestion = subMsg <| PinQuestion bigbit.id question.id False
+                , pinAnswer = \answer -> subMsg <| PinAnswer bigbit.id answer.id True
+                , unpinAnswer = \answer -> subMsg <| PinAnswer bigbit.id answer.id False
+                , deleteAnswer = .id >> DeleteAnswer bigbit.id question.id >> subMsg
+                , commentOnQuestion = subMsg << SubmitCommentOnQuestion bigbit.id question.id
+                , commentOnAnswer = subMsg <<< SubmitCommentOnAnswer bigbit.id question.id
+                , deleteQuestionComment = subMsg << DeleteCommentOnQuestion bigbit.id
+                , deleteAnswerComment = subMsg << DeleteCommentOnAnswer bigbit.id
+                , editQuestionComment = subMsg <<< EditCommentOnQuestion bigbit.id
+                , editAnswerComment = subMsg <<< EditCommentOnAnswer bigbit.id
+                , handleUnauthAction = BaseMessage.SetUserNeedsAuthModal
                 }
                 { questionCommentEdits = QA.getQuestionCommentEdits bigbit.id qaState
                 , newQuestionComment = QA.getNewQuestionComment bigbit.id question.id qaState
@@ -687,7 +708,7 @@ viewBigbitCommentBox bigbit model shared =
                                                     bigbitID
                                                     question.id
                                         in
-                                        ( Route.Route route, GoTo route )
+                                        ( Route.Route route, BaseMessage.GoTo { wipeModalError = False } route )
                                 }
                             , isHighlighting = isHighlighting
                             , allQuestionText =
@@ -708,12 +729,12 @@ viewBigbitCommentBox bigbit model shared =
                             , askQuestion =
                                 case shared.user of
                                     Nothing ->
-                                        SetUserNeedsAuthModal <|
+                                        BaseMessage.SetUserNeedsAuthModal <|
                                             "We want to answer your question, sign up for free and get access"
                                                 ++ " to all of CodeTidbit in seconds!"
 
                                     Just _ ->
-                                        GoToAskQuestionWithCodePointer bigbitID browseCodePointer
+                                        subMsg <| GoToAskQuestionWithCodePointer bigbitID browseCodePointer
                             }
                             remainingQuestions
                         ]
@@ -723,17 +744,18 @@ viewBigbitCommentBox bigbit model shared =
 
         Route.ViewBigbitAskQuestion maybeStoryID bigbitID ->
             AskQuestion.view
-                { msgTagger = AskQuestionMsg bigbitID
+                { subMsg = subMsg << AskQuestionMsg bigbitID
                 , textFieldKeyTracker = shared.textFieldKeyTracker
                 , askQuestionRequestInProgress =
                     RT.isMakingRequest shared.apiRequestTracker (RT.AskQuestion TidbitPointer.Bigbit)
-                , askQuestion = AskQuestion bigbitID
+                , askQuestion = subMsg <<< AskQuestion bigbitID
                 , isReadyCodePointer = .range >> Range.isEmptyRange >> not
                 , allQuestionsND =
                     ( Route.Route <| Route.ViewBigbitQuestionsPage maybeStoryID bigbitID
-                    , GoToBrowseQuestionsWithCodePointer
-                        bigbitID
-                        (QA.getNewQuestion bigbitID model.qaState |||> .codePointer)
+                    , subMsg <|
+                        GoToBrowseQuestionsWithCodePointer
+                            bigbitID
+                            (QA.getNewQuestion bigbitID model.qaState |||> .codePointer)
                     )
                 }
                 (QA.getNewQuestion bigbitID model.qaState ?> QA.defaultNewQuestion)
@@ -747,12 +769,12 @@ viewBigbitCommentBox bigbit model shared =
                                 ?> QA.questionEditFromQuestion question
                     in
                     EditQuestion.view
-                        { msgTagger = EditQuestionMsg bigbitID question
+                        { subMsg = subMsg << EditQuestionMsg bigbitID question
                         , textFieldKeyTracker = shared.textFieldKeyTracker
                         , editQuestionRequestInProgress =
                             RT.isMakingRequest shared.apiRequestTracker (RT.UpdateQuestion TidbitPointer.Bigbit)
                         , isReadyCodePointer = .range >> Range.isEmptyRange >> not
-                        , editQuestion = EditQuestion bigbitID questionID
+                        , editQuestion = subMsg <<< EditQuestion bigbitID questionID
                         }
                         questionEdit
 
@@ -768,7 +790,7 @@ viewBigbitCommentBox bigbit model shared =
                                 ?> QA.defaultNewAnswer
                     in
                     AnswerQuestion.view
-                        { msgTagger = AnswerQuestionMsg bigbitID question
+                        { subMsg = subMsg << AnswerQuestionMsg bigbitID question
                         , textFieldKeyTracker = shared.textFieldKeyTracker
                         , forQuestion = question
                         , answerQuestionRequestInProgress =
@@ -777,8 +799,8 @@ viewBigbitCommentBox bigbit model shared =
                                 (RT.AnswerQuestion TidbitPointer.Bigbit)
                         , allAnswersND =
                             Route.ViewBigbitAnswersPage maybeStoryID Nothing bigbitID questionID
-                                |> (\route -> ( Route.Route route, GoTo route ))
-                        , answerQuestion = AnswerQuestion bigbitID questionID
+                                |> (\route -> ( Route.Route route, BaseMessage.GoTo { wipeModalError = False } route ))
+                        , answerQuestion = subMsg << AnswerQuestion bigbitID questionID
                         }
                         newAnswer
 
@@ -799,11 +821,11 @@ viewBigbitCommentBox bigbit model shared =
                                 ?> QA.answerEditFromAnswer answer
                     in
                     EditAnswer.view
-                        { msgTagger = EditAnswerMsg bigbitID answer
+                        { subMsg = subMsg << EditAnswerMsg bigbitID answer
                         , textFieldKeyTracker = shared.textFieldKeyTracker
                         , editAnswerRequestInProgress =
                             RT.isMakingRequest shared.apiRequestTracker (RT.UpdateAnswer TidbitPointer.Bigbit)
-                        , editAnswer = EditAnswer bigbitID answerID
+                        , editAnswer = subMsg << EditAnswer bigbitID answerID
                         , forQuestion = question
                         }
                         answerEdit

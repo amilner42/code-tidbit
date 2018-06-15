@@ -7,6 +7,7 @@ import DefaultServices.Util as Util
 import Dict
 import Elements.Complex.CommentList as CommentList
 import Elements.Simple.Markdown as Markdown
+import ExplanatoryBlurbs
 import Html exposing (Html, button, div, i, span, text)
 import Html.Attributes exposing (class, classList)
 import Html.Events exposing (onClick)
@@ -33,7 +34,7 @@ type alias Model =
 
 
 type alias RenderConfig msg codePointer =
-    { msgTagger : Msg -> msg
+    { subMsg : Msg -> msg
     , textFieldKeyTracker : TextFields.KeyTracker
     , userID : Maybe UserID
     , tidbitAuthorID : UserID
@@ -116,9 +117,6 @@ view config model =
                         [ text "COMMENTS" ]
                     ]
                 ]
-
-        unauthMessageForUpvoteAndDownvote =
-            "We want your feedback, sign up for free and get access to all of CodeTidbit in seconds!"
     in
     div [ class "view-question" ] <|
         [ Route.navigationNode
@@ -185,7 +183,7 @@ view config model =
                                     config.upvoteQuestion
 
                                 Nothing ->
-                                    config.handleUnauthAction unauthMessageForUpvoteAndDownvote
+                                    config.handleUnauthAction ExplanatoryBlurbs.needAuthSignUpMessage
                         , removeUpvote = config.removeUpvoteQuestion
                         , downvote =
                             case config.userID of
@@ -193,7 +191,7 @@ view config model =
                                     config.downvoteQuestion
 
                                 Nothing ->
-                                    config.handleUnauthAction unauthMessageForUpvoteAndDownvote
+                                    config.handleUnauthAction ExplanatoryBlurbs.needAuthSignUpMessage
                         , removeDownvote = config.removeDownvoteQuestion
                         , pin = config.pinQuestion
                         , unpin = config.unpinQuestion
@@ -204,7 +202,7 @@ view config model =
 
             QuestionCommentsTab maybeCommentID ->
                 CommentList.view
-                    { msgTagger = config.msgTagger << QuestionCommentListMsg
+                    { subMsg = config.subMsg << QuestionCommentListMsg
                     , textFieldKeyTracker = config.textFieldKeyTracker
                     , userID = config.userID
                     , comments = config.questionComments
@@ -263,7 +261,7 @@ view config model =
                                             config.upvoteAnswer answer
 
                                         Nothing ->
-                                            config.handleUnauthAction unauthMessageForUpvoteAndDownvote
+                                            config.handleUnauthAction ExplanatoryBlurbs.needAuthSignUpMessage
                                 , removeUpvote = config.removeUpvoteAnswer answer
                                 , downvote =
                                     case config.userID of
@@ -271,7 +269,7 @@ view config model =
                                             config.downvoteAnswer answer
 
                                         Nothing ->
-                                            config.handleUnauthAction unauthMessageForUpvoteAndDownvote
+                                            config.handleUnauthAction ExplanatoryBlurbs.needAuthSignUpMessage
                                 , removeDownvote = config.removeDownvoteAnswer answer
                                 , pin = config.pinAnswer answer
                                 , unpin = config.unpinAnswer answer
@@ -280,7 +278,7 @@ view config model =
                                     if Set.member answer.id model.deletingAnswers then
                                         Just <| config.deleteAnswer answer
                                     else
-                                        Just <| config.msgTagger <| AddToDeletingAnswers answer.id
+                                        Just <| config.subMsg <| AddToDeletingAnswers answer.id
                                 }
                             ]
 
@@ -294,7 +292,7 @@ view config model =
                             [ class "answer-comments-tab" ]
                             [ extendedTopBar False answer
                             , CommentList.view
-                                { msgTagger = config.msgTagger << AnswerCommentListMsg answerID
+                                { subMsg = config.subMsg << AnswerCommentListMsg answerID
                                 , textFieldKeyTracker = config.textFieldKeyTracker
                                 , userID = config.userID
                                 , comments = List.filter (.answerID >> (==) answerID) config.answerComments

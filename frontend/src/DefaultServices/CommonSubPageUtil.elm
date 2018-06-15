@@ -13,24 +13,24 @@ NOTE: It's a type wrapper around an alias (instead of just a type alias) to allo
   - <https://github.com/elm-lang/elm-compiler/blob/0.18.0/hints/recursive-alias.md>
 
 -}
-type CommonSubPageUtil model shared msg
+type CommonSubPageUtil model shared subMsg baseMsg
     = Common
-        { justSetModel : model -> ( model, shared, Cmd.Cmd msg )
-        , justUpdateModel : (model -> model) -> ( model, shared, Cmd.Cmd msg )
-        , justSetShared : shared -> ( model, shared, Cmd.Cmd msg )
-        , justUpdateShared : (shared -> shared) -> ( model, shared, Cmd.Cmd msg )
-        , justProduceCmd : Cmd.Cmd msg -> ( model, shared, Cmd.Cmd msg )
-        , doNothing : ( model, shared, Cmd.Cmd msg )
-        , withCmd : Cmd.Cmd msg -> ( model, shared, Cmd.Cmd msg ) -> ( model, shared, Cmd.Cmd msg )
+        { subMsg : subMsg -> baseMsg
+        , justSetModel : model -> ( model, shared, Cmd.Cmd baseMsg )
+        , justUpdateModel : (model -> model) -> ( model, shared, Cmd.Cmd baseMsg )
+        , justSetShared : shared -> ( model, shared, Cmd.Cmd baseMsg )
+        , justUpdateShared : (shared -> shared) -> ( model, shared, Cmd.Cmd baseMsg )
+        , justProduceCmd : Cmd.Cmd baseMsg -> ( model, shared, Cmd.Cmd baseMsg )
+        , doNothing : ( model, shared, Cmd.Cmd baseMsg )
+        , withCmd : Cmd.Cmd baseMsg -> ( model, shared, Cmd.Cmd baseMsg ) -> ( model, shared, Cmd.Cmd baseMsg )
         , handleAll :
-            List (CommonSubPageUtil model shared msg -> ( model, shared ) -> ( model, shared, Cmd msg ))
-            -> ( model, shared, Cmd msg )
-        , api : Api.API msg
-        , justSetModalError : ApiError.ApiError -> ( model, shared, Cmd.Cmd msg )
-        , justSetUserNeedsAuthModal : String -> ( model, shared, Cmd.Cmd msg )
+            List (CommonSubPageUtil model shared subMsg baseMsg -> ( model, shared ) -> ( model, shared, Cmd baseMsg ))
+            -> ( model, shared, Cmd baseMsg )
+        , api : Api.API baseMsg
+        , justSetModalError : ApiError.ApiError -> ( model, shared, Cmd.Cmd baseMsg )
         , makeSingletonRequest :
-            RT.TrackedRequest -> ( model, shared, Cmd.Cmd msg ) -> ( model, shared, Cmd.Cmd msg )
-        , andFinishRequest : RT.TrackedRequest -> ( model, shared, Cmd.Cmd msg ) -> ( model, shared, Cmd.Cmd msg )
+            RT.TrackedRequest -> ( model, shared, Cmd.Cmd baseMsg ) -> ( model, shared, Cmd.Cmd baseMsg )
+        , andFinishRequest : RT.TrackedRequest -> ( model, shared, Cmd.Cmd baseMsg ) -> ( model, shared, Cmd.Cmd baseMsg )
         }
 
 
@@ -40,8 +40,8 @@ As you can see, this declares `Shared` instead of leaving it as a type parameter
 helpful functions for sub-pages.
 
 -}
-commonSubPageUtil : model -> Shared -> CommonSubPageUtil model Shared msg
-commonSubPageUtil model shared =
+commonSubPageUtil : (subMsg -> baseMsg) -> model -> Shared -> CommonSubPageUtil model Shared subMsg baseMsg
+commonSubPageUtil subMsg model shared =
     let
         withCmd withCmd ( newModel, newShared, newCmd ) =
             ( newModel, newShared, Cmd.batch [ newCmd, withCmd ] )
@@ -56,14 +56,15 @@ commonSubPageUtil model shared =
                         handleCurrent :: xs ->
                             go
                                 (withCmd lastCmd <|
-                                    handleCurrent (commonSubPageUtil lastModel lastShared) ( lastModel, lastShared )
+                                    handleCurrent (commonSubPageUtil subMsg lastModel lastShared) ( lastModel, lastShared )
                                 )
                                 xs
             in
             go ( model, shared, Cmd.none )
     in
     Common
-        { justSetModel = \newModel -> ( newModel, shared, Cmd.none )
+        { subMsg = subMsg
+        , justSetModel = \newModel -> ( newModel, shared, Cmd.none )
         , justUpdateModel = \modelUpdater -> ( modelUpdater model, shared, Cmd.none )
         , justSetShared = \newShared -> ( model, newShared, Cmd.none )
         , justUpdateShared = \sharedUpdater -> ( model, sharedUpdater shared, Cmd.none )
@@ -73,8 +74,6 @@ commonSubPageUtil model shared =
         , handleAll = handleAll
         , api = Api.api shared.flags.apiBaseUrl
         , justSetModalError = \apiError -> ( model, { shared | apiModalError = Just apiError }, Cmd.none )
-        , justSetUserNeedsAuthModal =
-            \message -> ( model, { shared | userNeedsAuthModal = Just message }, Cmd.none )
         , makeSingletonRequest =
             \trackedRequest ( newModel, newShared, newCmd ) ->
                 if RT.isMakingRequest shared.apiRequestTracker trackedRequest then

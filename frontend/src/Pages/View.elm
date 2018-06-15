@@ -113,12 +113,12 @@ signUpModal currentRoute modalMessage =
                 [ class "centered-buttons" ]
                 [ div
                     [ class "login"
-                    , onClick <| GoTo <| Route.LoginPage (Just <| Route.toHashUrl currentRoute)
+                    , onClick <| GoTo { wipeModalError = False } <| Route.LoginPage (Just <| Route.toHashUrl currentRoute)
                     ]
                     [ text "LOGIN" ]
                 , div
                     [ class "sign-up"
-                    , onClick <| GoTo <| Route.RegisterPage (Just <| Route.toHashUrl currentRoute)
+                    , onClick <| GoTo { wipeModalError = False } <| Route.RegisterPage (Just <| Route.toHashUrl currentRoute)
                     ]
                     [ text "SIGN UP" ]
                 ]
@@ -305,84 +305,84 @@ viewForRoute model =
 -}
 welcomeView : WelcomeModel.Model -> Shared -> Html.Html Msg
 welcomeView welcomeModel shared =
-    Html.map WelcomeMessage (WelcomeView.view welcomeModel shared)
+    WelcomeView.view WelcomeMessage welcomeModel shared
 
 
 {-| `ViewSnipbit` view.
 -}
 viewSnipbitView : ViewSnipbitModel.Model -> Shared -> Html.Html Msg
 viewSnipbitView viewSnipbitModel shared =
-    Html.map ViewSnipbitMessage <| ViewSnipbitView.view viewSnipbitModel shared
+    ViewSnipbitView.view ViewSnipbitMessage viewSnipbitModel shared
 
 
 {-| `ViewBigbit` view.
 -}
 viewBigbitView : ViewBigbitModel.Model -> Shared -> Html.Html Msg
 viewBigbitView viewBigbitModel shared =
-    Html.map ViewBigbitMessage <| ViewBigbitView.view viewBigbitModel shared
+    ViewBigbitView.view ViewBigbitMessage viewBigbitModel shared
 
 
 {-| `ViewStory` view.
 -}
 viewStoryView : ViewStoryModel.Model -> Shared -> Html.Html Msg
 viewStoryView viewStoryModel shared =
-    Html.map ViewStoryMessage <| ViewStoryView.view viewStoryModel shared
+    ViewStoryView.view ViewStoryMessage viewStoryModel shared
 
 
 {-| `Profile` view.
 -}
 profileView : ProfileModel.Model -> Shared -> Html.Html Msg
 profileView profileModel shared =
-    Html.map ProfileMessage <| ProfileView.view profileModel shared
+    ProfileView.view ProfileMessage profileModel shared
 
 
 {-| `NewStory` view.
 -}
 newStoryView : NewStoryModel.Model -> Shared -> Html.Html Msg
 newStoryView newStoryModel shared =
-    Html.map NewStoryMessage <| NewStoryView.view newStoryModel shared
+    NewStoryView.view NewStoryMessage newStoryModel shared
 
 
 {-| `Create` view.
 -}
 createView : CreateModel.Model -> Shared -> Html.Html Msg
 createView createModel shared =
-    Html.map CreateMessage <| CreateView.view createModel shared
+    CreateView.view CreateMessage createModel shared
 
 
 {-| `DevelopStory` view.
 -}
 developStoryView : DevelopStoryModel.Model -> Shared -> Html.Html Msg
 developStoryView developStoryModel shared =
-    Html.map DevelopStoryMessage <| DevelopStoryView.view developStoryModel shared
+    DevelopStoryView.view DevelopStoryMessage developStoryModel shared
 
 
 {-| `CreateSnipbit` view.
 -}
 createSnipbitView : CreateSnipbitModel.Model -> Shared -> Html.Html Msg
 createSnipbitView createSnipbitModel shared =
-    Html.map CreateSnipbitMessage <| CreateSnipbitView.view createSnipbitModel shared
+    CreateSnipbitView.view CreateSnipbitMessage createSnipbitModel shared
 
 
 {-| `CreateBigbit` view.
 -}
 createBigbitView : CreateBigbitModel.Model -> Shared -> Html.Html Msg
 createBigbitView createBigbitModel shared =
-    Html.map CreateBigbitMessage (CreateBigbitView.view createBigbitModel shared)
+    CreateBigbitView.view CreateBigbitMessage createBigbitModel shared
 
 
 {-| `Browse` view.
 -}
 browseView : BrowseModel.Model -> Shared -> Html.Html Msg
 browseView browseModel shared =
-    Html.map BrowseMessage (BrowseView.view browseModel shared)
+    BrowseView.view BrowseMessage browseModel shared
 
 
 {-| `Notifications` view.
 -}
 notificationsView : NotificationsModel.Model -> Shared -> Html.Html Msg
 notificationsView notificationsModel shared =
-    Html.map NotificationsMessage (NotificationsView.view notificationsModel shared)
+    NotificationsView.view NotificationsMessage notificationsModel shared
 
 
 {-| Displays the navbar if the route is not on the welcome page.
@@ -546,14 +546,14 @@ navbar model =
             ]
             []
         , Route.navigationNode
-            (Just ( Route.Route Route.BrowsePage, GoTo Route.BrowsePage ))
+            (Just ( Route.Route Route.BrowsePage, GoTo { wipeModalError = False } Route.BrowsePage ))
             [ classList [ ( "hidden", Util.isNotNothing shared.user ) ] ]
             [ div
                 [ class "nav-btn left code-tidbit" ]
                 [ text "Code Tidbit" ]
             ]
         , Route.navigationNode
-            (Just ( Route.Route Route.BrowsePage, GoTo Route.BrowsePage ))
+            (Just ( Route.Route Route.BrowsePage, GoTo { wipeModalError = False } Route.BrowsePage ))
             [ classList [ ( "hidden", Util.isNothing shared.user ) ] ]
             [ div
                 [ classList
@@ -564,7 +564,7 @@ navbar model =
                 [ text "Browse" ]
             ]
         , Route.navigationNode
-            (Just ( Route.Route Route.CreatePage, GoTo Route.CreatePage ))
+            (Just ( Route.Route Route.CreatePage, GoTo { wipeModalError = False } Route.CreatePage ))
             [ classList [ ( "hidden", Util.isNothing shared.user ) ] ]
             [ div
                 [ classList
@@ -575,7 +575,7 @@ navbar model =
                 [ text "Create" ]
             ]
         , Route.navigationNode
-            (Just ( Route.Route Route.NotificationsPage, GoTo Route.NotificationsPage ))
+            (Just ( Route.Route Route.NotificationsPage, GoTo { wipeModalError = False } Route.NotificationsPage ))
             [ classList [ ( "hidden", Util.isNothing shared.user ) ] ]
             [ div
                 [ classList
@@ -586,7 +586,7 @@ navbar model =
                 [ text "Notifications" ]
             ]
         , Route.navigationNode
-            (Just ( Route.Route Route.ProfilePage, GoTo Route.ProfilePage ))
+            (Just ( Route.Route Route.ProfilePage, GoTo { wipeModalError = False } Route.ProfilePage ))
             [ classList [ ( "hidden", Util.isNothing shared.user ) ] ]
             [ div
                 [ classList
@@ -597,14 +597,14 @@ navbar model =
                 [ text "Profile" ]
             ]
         , Route.navigationNode
-            (Just ( Route.Route registerRouteWithRedirectQP, GoTo registerRouteWithRedirectQP ))
+            (Just ( Route.Route registerRouteWithRedirectQP, GoTo { wipeModalError = False } registerRouteWithRedirectQP ))
             [ classList [ ( "hidden", Util.isNotNothing shared.user ) ] ]
             [ div
                 [ class "nav-btn sign-up right" ]
                 [ text "Sign Up" ]
             ]
         , Route.navigationNode
-            (Just ( Route.Route loginRouteWithRedirectQP, GoTo loginRouteWithRedirectQP ))
+            (Just ( Route.Route loginRouteWithRedirectQP, GoTo { wipeModalError = False } loginRouteWithRedirectQP ))
             [ classList [ ( "hidden", Util.isNotNothing shared.user ) ] ]
             [ div
                 [ class "nav-btn login right" ]

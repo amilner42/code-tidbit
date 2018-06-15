@@ -10,9 +10,7 @@ import Pages.Browse.Model exposing (..)
 {-| Browse `Msg`
 -}
 type Msg
-    = NoOp
-    | GoTo Route
-    | OnRouteHit Route
+    = OnRouteHit Route
     | OnGetContentSuccess SearchSettings ( Bool, List Content )
     | OnGetContentFailure SearchSettings ApiError
     | LoadMoreContent

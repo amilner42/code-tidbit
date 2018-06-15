@@ -15,31 +15,26 @@ import Models.User as User
 import Pages.CreateBigbit.Init exposing (..)
 import Pages.CreateBigbit.Messages exposing (..)
 import Pages.CreateBigbit.Model exposing (..)
+import Pages.Messages as BaseMessage
 import Pages.Model exposing (Shared)
 import Ports
 
 
 {-| `CreateBigbit` update.
 -}
-update : CommonSubPageUtil Model Shared Msg -> Msg -> Model -> Shared -> ( Model, Shared, Cmd Msg )
+update : CommonSubPageUtil Model Shared Msg BaseMessage.Msg -> Msg -> Model -> Shared -> ( Model, Shared, Cmd BaseMessage.Msg )
 update (Common common) msg model shared =
     let
         currentBigbitHighlightedComments =
             model.highlightedComments
 
         focusOn =
-            Util.domFocus (always NoOp)
+            Util.domFocus (always BaseMessage.NoOp)
 
         focusOnActionInputBox =
             focusOn "fs-action-input-box"
     in
     case msg of
-        NoOp ->
-            common.doNothing
-
-        GoTo route ->
-            common.justProduceCmd <| Route.navigateTo route
-
         OnRouteHit route ->
             let
                 createCreateBigbitEditorForCurrentFile maybeRange maybeFilePath backupRoute =
@@ -528,7 +523,7 @@ update (Common common) msg model shared =
 
                                 Ok language ->
                                     update
-                                        (commonSubPageUtil model shared)
+                                        (commonSubPageUtil common.subMsg model shared)
                                         (AddFile absolutePath language)
                                         model
                                         shared
@@ -620,7 +615,11 @@ update (Common common) msg model shared =
         Publish bigbit ->
             let
                 publishBigbitAction =
-                    common.justProduceCmd <| common.api.post.createBigbit bigbit OnPublishFailure OnPublishSuccess
+                    common.justProduceCmd <|
+                        common.api.post.createBigbit
+                            bigbit
+                            (common.subMsg << OnPublishFailure)
+                            (common.subMsg << OnPublishSuccess)
             in
             common.makeSingletonRequest RT.PublishBigbit publishBigbitAction
 

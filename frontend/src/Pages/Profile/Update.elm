@@ -6,8 +6,8 @@ import DefaultServices.InfixFunctions exposing (..)
 import DefaultServices.TextFields as TextFields
 import DefaultServices.Util as Util
 import Models.RequestTracker as RT
-import Models.Route as Route
 import Models.User exposing (defaultUserUpdateRecord)
+import Pages.Messages as BaseMessage
 import Pages.Model exposing (Shared)
 import Pages.Profile.Messages exposing (..)
 import Pages.Profile.Model exposing (..)
@@ -15,7 +15,7 @@ import Pages.Profile.Model exposing (..)
 
 {-| `Profile` update.
 -}
-update : CommonSubPageUtil Model Shared Msg -> Msg -> Model -> Shared -> ( Model, Shared, Cmd Msg )
+update : CommonSubPageUtil Model Shared Msg BaseMessage.Msg -> Msg -> Model -> Shared -> ( Model, Shared, Cmd BaseMessage.Msg )
 update (Common common) msg model shared =
     case msg of
         OnEditName originalName newName ->
@@ -43,8 +43,8 @@ update (Common common) msg model shared =
                     common.justProduceCmd <|
                         common.api.post.updateUser
                             { defaultUserUpdateRecord | name = Just validNewName }
-                            OnSaveEditedNameFailure
-                            OnSaveEditedNameSuccess
+                            (common.subMsg << OnSaveEditedNameFailure)
+                            (common.subMsg << OnSaveEditedNameSuccess)
             in
             case maybeValidNewName of
                 Nothing ->
@@ -89,8 +89,8 @@ update (Common common) msg model shared =
                     common.justProduceCmd <|
                         common.api.post.updateUser
                             { defaultUserUpdateRecord | bio = Just newValidBio }
-                            OnSaveBioEditedFailure
-                            OnSaveEditedBioSuccess
+                            (common.subMsg << OnSaveBioEditedFailure)
+                            (common.subMsg << OnSaveEditedBioSuccess)
             in
             case maybeValidNewBio of
                 Nothing ->
@@ -109,19 +109,3 @@ update (Common common) msg model shared =
         OnSaveBioEditedFailure apiError ->
             common.justSetModalError apiError
                 |> common.andFinishRequest RT.UpdateBio
-
-        LogOut ->
-            let
-                logoutAction =
-                    common.justProduceCmd <| common.api.get.logOut OnLogOutFailure OnLogOutSuccess
-            in
-            common.makeSingletonRequest RT.Logout logoutAction
-
-        OnLogOutSuccess basicResponse ->
-            -- WARNING (unusual behaviour): The base update will check for this message and reset the entire model.
-            -- Because of this there is no need to `andFinishRequest` (in fact that will do nothing).
-            common.justProduceCmd <| Route.navigateTo <| Route.RegisterPage Nothing
-
-        OnLogOutFailure apiError ->
-            common.justSetModel { model | logOutError = Just apiError }
-                |> common.andFinishRequest RT.Logout

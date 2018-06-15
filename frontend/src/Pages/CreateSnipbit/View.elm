@@ -15,25 +15,26 @@ import Models.RequestTracker as RT
 import Models.Route as Route
 import Pages.CreateSnipbit.Messages exposing (..)
 import Pages.CreateSnipbit.Model exposing (..)
+import Pages.Messages as BaseMessage
 import Pages.Model exposing (Shared)
 
 
 {-| `CreateSnipbit` view.
 -}
-view : Model -> Shared -> Html Msg
-view model shared =
+view : (Msg -> BaseMessage.Msg) -> Model -> Shared -> Html BaseMessage.Msg
+view subMsg model shared =
     let
         currentRoute : Route.Route
         currentRoute =
             shared.route
 
-        viewMenu : Html Msg
+        viewMenu : Html BaseMessage.Msg
         viewMenu =
             div
                 [ classList [ ( "hidden", not <| languageACActive shared.route model ) ]
                 ]
                 [ Html.map
-                    OnUpdateACState
+                    (subMsg << OnUpdateACState)
                     (AC.view
                         acViewConfig
                         model.languageListHowManyToShow
@@ -64,7 +65,7 @@ view model shared =
                 , li = customizedLi
                 }
 
-        createSnipbitNavbar : Html Msg
+        createSnipbitNavbar : Html BaseMessage.Msg
         createSnipbitNavbar =
             div
                 [ classList [ ( "create-tidbit-navbar", True ) ] ]
@@ -74,7 +75,7 @@ view model shared =
                         , ( "create-tidbit-selected-tab", currentRoute == Route.CreateSnipbitNamePage )
                         , ( "filled-in", Util.isNotNothing <| nameFilledIn model )
                         ]
-                    , onClick <| GoTo Route.CreateSnipbitNamePage
+                    , onClick <| BaseMessage.GoTo { wipeModalError = False } Route.CreateSnipbitNamePage
                     ]
                     [ text "Name" ]
                 , div
@@ -83,7 +84,7 @@ view model shared =
                         , ( "create-tidbit-selected-tab", currentRoute == Route.CreateSnipbitDescriptionPage )
                         , ( "filled-in", Util.isNotNothing <| descriptionFilledIn model )
                         ]
-                    , onClick <| GoTo Route.CreateSnipbitDescriptionPage
+                    , onClick <| BaseMessage.GoTo { wipeModalError = False } Route.CreateSnipbitDescriptionPage
                     ]
                     [ text "Description" ]
                 , div
@@ -92,7 +93,7 @@ view model shared =
                         , ( "create-tidbit-selected-tab", currentRoute == Route.CreateSnipbitLanguagePage )
                         , ( "filled-in", Util.isNotNothing <| model.language )
                         ]
-                    , onClick <| GoTo Route.CreateSnipbitLanguagePage
+                    , onClick <| BaseMessage.GoTo { wipeModalError = False } Route.CreateSnipbitLanguagePage
                     ]
                     [ text "Language" ]
                 , div
@@ -101,7 +102,7 @@ view model shared =
                         , ( "create-tidbit-selected-tab", currentRoute == Route.CreateSnipbitTagsPage )
                         , ( "filled-in", Util.isNotNothing <| tagsFilledIn model )
                         ]
-                    , onClick <| GoTo Route.CreateSnipbitTagsPage
+                    , onClick <| BaseMessage.GoTo { wipeModalError = False } Route.CreateSnipbitTagsPage
                     ]
                     [ text "Tags" ]
                 , div
@@ -117,12 +118,12 @@ view model shared =
                           )
                         , ( "filled-in", codeTabFilledIn model )
                         ]
-                    , onClick <| GoToCodeTab
+                    , onClick <| subMsg GoToCodeTab
                     ]
                     [ text "Code" ]
                 ]
 
-        nameView : Html Msg
+        nameView : Html BaseMessage.Msg
         nameView =
             div
                 [ class "create-snipbit-name" ]
@@ -131,12 +132,12 @@ view model shared =
                     "create-snipbit-name"
                     [ placeholder "Name"
                     , id "name-input"
-                    , onInput OnUpdateName
+                    , onInput <| subMsg << OnUpdateName
                     , defaultValue model.name
                     , Util.onKeydownPreventDefault
                         (\key ->
                             if key == KK.Tab then
-                                Just NoOp
+                                Just BaseMessage.NoOp
                             else
                                 Nothing
                         )
@@ -144,7 +145,7 @@ view model shared =
                 , Util.limitCharsText 50 model.name
                 ]
 
-        descriptionView : Html Msg
+        descriptionView : Html BaseMessage.Msg
         descriptionView =
             div
                 [ class "create-snipbit-description" ]
@@ -154,12 +155,12 @@ view model shared =
                     [ class "create-snipbit-description-box"
                     , placeholder "Description"
                     , id "description-input"
-                    , onInput OnUpdateDescription
+                    , onInput <| subMsg << OnUpdateDescription
                     , defaultValue model.description
                     , Util.onKeydownPreventDefault
                         (\key ->
                             if key == KK.Tab then
-                                Just NoOp
+                                Just BaseMessage.NoOp
                             else
                                 Nothing
                         )
@@ -167,7 +168,7 @@ view model shared =
                 , Util.limitCharsText 300 model.description
                 ]
 
-        languageView : Html Msg
+        languageView : Html BaseMessage.Msg
         languageView =
             div
                 [ class "create-snipbit-language" ]
@@ -176,7 +177,7 @@ view model shared =
                     "create-snipbit-language"
                     [ placeholder "Language"
                     , id "language-query-input"
-                    , onInput OnUpdateLanguageQuery
+                    , onInput <| subMsg << OnUpdateLanguageQuery
                     , defaultValue model.languageQuery
                     , disabled <|
                         Util.isNotNothing
@@ -184,20 +185,20 @@ view model shared =
                     , Util.onKeydownPreventDefault
                         (\key ->
                             if key == KK.Tab || key == KK.ArrowUp || key == KK.ArrowDown then
-                                Just NoOp
+                                Just BaseMessage.NoOp
                             else
                                 Nothing
                         )
                     ]
                 , viewMenu
                 , button
-                    [ onClick <| SelectLanguage Nothing
+                    [ onClick <| subMsg <| SelectLanguage Nothing
                     , classList [ ( "hidden", Util.isNothing model.language ) ]
                     ]
                     [ text "change language" ]
                 ]
 
-        tagsView : Html Msg
+        tagsView : Html BaseMessage.Msg
         tagsView =
             div
                 [ class "create-tidbit-tags" ]
@@ -206,22 +207,22 @@ view model shared =
                     "create-snipbit-tags"
                     [ placeholder "Tags"
                     , id "tags-input"
-                    , onInput OnUpdateTagInput
+                    , onInput <| subMsg << OnUpdateTagInput
                     , defaultValue model.tagInput
                     , Util.onKeydownPreventDefault
                         (\key ->
                             if key == KK.Enter || key == KK.Space then
-                                Just <| AddTag model.tagInput
+                                Just <| subMsg <| AddTag model.tagInput
                             else if key == KK.Tab then
-                                Just <| NoOp
+                                Just <| BaseMessage.NoOp
                             else
                                 Nothing
                         )
                     ]
-                , Tags.view RemoveTag model.tags
+                , Tags.view (subMsg << RemoveTag) model.tags
                 ]
 
-        tidbitView : Html Msg
+        tidbitView : Html BaseMessage.Msg
         tidbitView =
             let
                 markdownOpen =
@@ -232,7 +233,7 @@ view model shared =
                         [ class "comment-body" ]
                         [ div
                             [ class "preview-markdown"
-                            , onClick TogglePreviewMarkdown
+                            , onClick <| subMsg TogglePreviewMarkdown
                             ]
                             [ if markdownOpen then
                                 text "Close Preview"
@@ -258,7 +259,7 @@ view model shared =
                                         ("create-snipbit-frame-" ++ toString frameNumber)
                                         [ placeholder <| markdownFramePlaceholder frameNumber
                                         , id "frame-input"
-                                        , onInput <| OnUpdateFrameComment frameIndex
+                                        , onInput <| subMsg << OnUpdateFrameComment frameIndex
                                         , defaultValue frameText
                                         , Util.onKeydownPreventDefault
                                             (\key ->
@@ -269,22 +270,25 @@ view model shared =
                                                     action =
                                                         if key == KK.Tab then
                                                             if newKeysDown == shared.keysDown then
-                                                                Just NoOp
+                                                                Just BaseMessage.NoOp
                                                             else
                                                                 KK.getHotkeyAction
                                                                     [ ( [ KK.Tab ]
                                                                       , if
                                                                             frameNumber
-                                                                                == Array.length model.highlightedComments
+                                                                                == Array.length
+                                                                                    model.highlightedComments
                                                                         then
-                                                                            NoOp
+                                                                            BaseMessage.NoOp
                                                                         else
-                                                                            GoTo <|
+                                                                            BaseMessage.GoTo
+                                                                                { wipeModalError = False }
+                                                                            <|
                                                                                 Route.CreateSnipbitCodeFramePage
                                                                                     (frameNumber + 1)
                                                                       )
                                                                     , ( [ KK.Tab, KK.Shift ]
-                                                                      , GoTo <|
+                                                                      , BaseMessage.GoTo { wipeModalError = False } <|
                                                                             Route.CreateSnipbitCodeFramePage
                                                                                 (frameNumber - 1)
                                                                       )
@@ -311,7 +315,9 @@ view model shared =
                                     Array.indexedMap
                                         (\index maybeHighlightedComment ->
                                             button
-                                                [ onClick <| GoTo <| Route.CreateSnipbitCodeFramePage (index + 1)
+                                                [ onClick <|
+                                                    BaseMessage.GoTo { wipeModalError = False } <|
+                                                        Route.CreateSnipbitCodeFramePage (index + 1)
                                                 , classList
                                                     [ ( "selected-frame"
                                                       , shared.route == (Route.CreateSnipbitCodeFramePage <| index + 1)
@@ -329,7 +335,7 @@ view model shared =
                         ]
                         [ button
                             [ class "add-or-remove-frame-button"
-                            , onClick <| AddFrame
+                            , onClick <| subMsg <| AddFrame
                             ]
                             [ text "+" ]
                         , button
@@ -337,7 +343,7 @@ view model shared =
                                 [ ( "add-or-remove-frame-button", True )
                                 , ( "confirmed", model.confirmedRemoveFrame )
                                 ]
-                            , onClick <| RemoveFrame
+                            , onClick <| subMsg <| RemoveFrame
                             , disabled <| Array.length model.highlightedComments <= 1
                             ]
                             [ text "-" ]
@@ -350,7 +356,7 @@ view model shared =
                 [ Editor.view "create-snipbit-code-editor"
                 , div
                     [ classList [ ( "lock-icon", True ) ]
-                    , onClick ToggleLockCode
+                    , onClick <| subMsg ToggleLockCode
                     ]
                     [ i [ class "material-icons" ]
                         [ text <|
@@ -367,7 +373,7 @@ view model shared =
                     ]
                 ]
 
-        viewForTab : Html Msg
+        viewForTab : Html BaseMessage.Msg
         viewForTab =
             case currentRoute of
                 Route.CreateSnipbitNamePage ->
@@ -405,7 +411,7 @@ view model shared =
                             [ ( "create-snipbit-publish-button", True )
                             , ( "cursor-progress", RT.isMakingRequest shared.apiRequestTracker RT.PublishSnipbit )
                             ]
-                        , onClick <| Publish publicationData
+                        , onClick <| subMsg <| Publish publicationData
                         ]
                         [ text "Publish" ]
     in
@@ -415,7 +421,7 @@ view model shared =
             [ class "sub-bar" ]
             [ button
                 [ classList [ ( "create-snipbit-reset-button", True ), ( "confirmed", model.confirmedReset ) ]
-                , onClick <| Reset
+                , onClick <| subMsg <| Reset
                 ]
                 [ text "Reset" ]
             , publishButton
@@ -426,7 +432,7 @@ view model shared =
                 Just _ ->
                     button
                         [ class "sub-bar-button previous-frame-location"
-                        , onClick JumpToLineFromPreviousFrame
+                        , onClick <| subMsg JumpToLineFromPreviousFrame
                         ]
                         [ text "Previous Frame Location" ]
             ]

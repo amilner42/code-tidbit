@@ -9,8 +9,7 @@ import Models.TidbitType exposing (TidbitType)
 {-| `Create` msg.
 -}
 type Msg
-    = GoTo Route
-    | OnRouteHit Route
+    = OnRouteHit Route
     | OnGetAccountStoriesSuccess (List Story)
     | OnGetAccountStoriesFailure ApiError
     | ShowInfoFor (Maybe TidbitType)

@@ -7,21 +7,16 @@ import Models.Route as Route
 import Models.Tidbit as Tidbit
 import Pages.DevelopStory.Messages exposing (..)
 import Pages.DevelopStory.Model exposing (..)
+import Pages.Messages as BaseMessage
 import Pages.Model exposing (Shared)
 import Ports
 
 
 {-| `DevelopStory` update.
 -}
-update : CommonSubPageUtil Model Shared Msg -> Msg -> Model -> Shared -> ( Model, Shared, Cmd Msg )
+update : CommonSubPageUtil Model Shared Msg BaseMessage.Msg -> Msg -> Model -> Shared -> ( Model, Shared, Cmd BaseMessage.Msg )
 update (Common common) msg model shared =
     case msg of
-        NoOp ->
-            common.doNothing
-
-        GoTo route ->
-            common.justProduceCmd <| Route.navigateTo route
-
         OnRouteHit route ->
             case route of
                 {- We cache the `model.story` in localStorage so that we can see if we can keep the
@@ -43,14 +38,17 @@ update (Common common) msg model shared =
                       }
                     , shared
                     , Cmd.batch
-                        [ common.api.get.expandedStory storyID OnGetStoryFailure OnGetStorySuccess
+                        [ common.api.get.expandedStory
+                            storyID
+                            (common.subMsg << OnGetStoryFailure)
+                            (common.subMsg << OnGetStorySuccess)
                         , maybeMapWithDefault
                             (\{ id } ->
                                 if Util.isNothing shared.userTidbits then
                                     common.api.get.tidbits
                                         [ ( "author", Just id ) ]
-                                        OnGetTidbitsFailure
-                                        (Tuple.second >> OnGetTidbitsSuccess)
+                                        (common.subMsg << OnGetTidbitsFailure)
+                                        (common.subMsg << OnGetTidbitsSuccess << Tuple.second)
                                 else
                                     Cmd.none
                             )
@@ -99,8 +97,8 @@ update (Common common) msg model shared =
                         common.api.post.addTidbitsToStory
                             storyID
                             (List.map Tidbit.compressTidbit tidbits)
-                            OnPublishAddedTidbitsFailure
-                            OnPublishAddedTidbitsSuccess
+                            (common.subMsg << OnPublishAddedTidbitsFailure)
+                            (common.subMsg << OnPublishAddedTidbitsSuccess)
             in
             if List.length tidbits > 0 then
                 common.makeSingletonRequest RT.PublishNewTidbitsToStory publishAction

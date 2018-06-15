@@ -11,9 +11,7 @@ import Pages.CreateSnipbit.Model exposing (..)
 {-| `CreateSnipbit` msg.
 -}
 type Msg
-    = NoOp
-    | GoTo Route
-    | OnRouteHit Route
+    = OnRouteHit Route
     | OnRangeSelected Range
     | OnUpdateACState AC.Msg
     | OnUpdateACWrap Bool

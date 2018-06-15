@@ -12,6 +12,7 @@ import Elements.Simple.Editor as Editor
 import Elements.Simple.Markdown as Markdown
 import Elements.Simple.ProgressBar as ProgressBar exposing (State(..), TextFormat(Custom))
 import Elements.Simple.QuestionList as QuestionList
+import ExplanatoryBlurbs
 import Html exposing (Html, a, button, div, i, text, textarea)
 import Html.Attributes exposing (class, classList, disabled, hidden, href, id, placeholder, value)
 import Html.Events exposing (onClick, onInput)
@@ -26,6 +27,7 @@ import Models.Story as Story
 import Models.TidbitPointer as TidbitPointer
 import Models.ViewerRelevantHC as ViewerRelevantHC
 import Models.Vote as Vote
+import Pages.Messages as BaseMessage
 import Pages.Model exposing (Shared)
 import Pages.ViewSnipbit.Messages exposing (Msg(..))
 import Pages.ViewSnipbit.Model exposing (..)
@@ -33,8 +35,8 @@ import Pages.ViewSnipbit.Model exposing (..)
 
 {-| `ViewSnipbit` view.
 -}
-view : Model -> Shared -> Html Msg
-view model shared =
+view : (Msg -> BaseMessage.Msg) -> Model -> Shared -> Html BaseMessage.Msg
+view subMsg model shared =
     div
         [ class "view-snipbit-page" ]
         [ div
@@ -69,14 +71,14 @@ view model shared =
                                     (RT.AddOrRemoveOpinion ContentPointer.Snipbit)
                               )
                             ]
-                        , onClick <| newMsg
+                        , onClick <| subMsg newMsg
                         ]
                         [ text buttonText ]
 
                 ( Nothing, _ ) ->
                     button
                         [ class "sub-bar-button heart-button"
-                        , onClick <| SetUserNeedsAuthModal "We want your feedback, sign up for free and get access to all of CodeTidbit in seconds!"
+                        , onClick <| BaseMessage.SetUserNeedsAuthModal ExplanatoryBlurbs.needAuthSignUpMessage
                         ]
                         [ text "Love It" ]
 
@@ -88,7 +90,7 @@ view model shared =
                         Just previousTidbitRoute ->
                             button
                                 [ class "sub-bar-button traverse-tidbit-button"
-                                , onClick <| GoTo previousTidbitRoute
+                                , onClick <| BaseMessage.GoTo { wipeModalError = False } previousTidbitRoute
                                 ]
                                 [ text "Previous Tidbit" ]
 
@@ -101,7 +103,7 @@ view model shared =
                 Just story ->
                     button
                         [ class "sub-bar-button back-to-story-button"
-                        , onClick <| GoTo <| Route.ViewStoryPage story.id
+                        , onClick <| BaseMessage.GoTo { wipeModalError = False } <| Route.ViewStoryPage story.id
                         ]
                         [ text "View Story" ]
 
@@ -113,7 +115,7 @@ view model shared =
                         Just nextTidbitRoute ->
                             button
                                 [ class "sub-bar-button traverse-tidbit-button"
-                                , onClick <| GoTo nextTidbitRoute
+                                , onClick <| BaseMessage.GoTo { wipeModalError = False } nextTidbitRoute
                                 ]
                                 [ text "Next Tidbit" ]
 
@@ -135,10 +137,10 @@ view model shared =
                         , onClick <|
                             case shared.user of
                                 Just _ ->
-                                    GoToAskQuestion
+                                    subMsg <| GoToAskQuestion
 
                                 Nothing ->
-                                    SetUserNeedsAuthModal
+                                    BaseMessage.SetUserNeedsAuthModal
                                         ("We want to answer your question, sign up for free and get access to all of"
                                             ++ " CodeTidbit in seconds!"
                                         )
@@ -148,7 +150,7 @@ view model shared =
                 ( Just snipbitID, True, False, Just _ ) ->
                     button
                         [ class "sub-bar-button view-relevant-questions"
-                        , onClick <| GoToBrowseQuestionsWithCodePointer model.tutorialCodePointer
+                        , onClick <| subMsg <| GoToBrowseQuestionsWithCodePointer model.tutorialCodePointer
                         ]
                         [ text "Browse Related Questions" ]
 
@@ -159,7 +161,7 @@ view model shared =
                                 Route.ViewSnipbitQuestionsPage
                                     (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
                                     snipbitID
-                            , GoToBrowseQuestionsWithCodePointer model.tutorialCodePointer
+                            , subMsg <| GoToBrowseQuestionsWithCodePointer model.tutorialCodePointer
                             )
                         )
                         []
@@ -181,7 +183,7 @@ view model shared =
                                 model.relevantHC
                       )
                     ]
-                , onClick <| BrowseRelevantHC
+                , onClick <| subMsg <| BrowseRelevantHC
                 ]
                 [ text "Browse Related Frames" ]
             , case Route.getViewingContentID shared.route of
@@ -194,7 +196,7 @@ view model shared =
                               )
                             ]
                         , onClick <|
-                            GoTo <|
+                            BaseMessage.GoTo { wipeModalError = False } <|
                                 routeForBookmark
                                     (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
                                     snipbitID
@@ -244,7 +246,13 @@ view model shared =
 
                     arrowBack =
                         Route.navigationNode
-                            (previousFrameRoute ||> (\route -> ( Route.Route route, GoTo route )))
+                            (previousFrameRoute
+                                ||> (\route ->
+                                        ( Route.Route route
+                                        , BaseMessage.GoTo { wipeModalError = False } route
+                                        )
+                                    )
+                            )
                             []
                             [ i
                                 [ classList
@@ -257,7 +265,13 @@ view model shared =
 
                     arrowForward =
                         Route.navigationNode
-                            (nextFrameRoute ||> (\route -> ( Route.Route route, GoTo route )))
+                            (nextFrameRoute
+                                ||> (\route ->
+                                        ( Route.Route route
+                                        , BaseMessage.GoTo { wipeModalError = False } route
+                                        )
+                                    )
+                            )
                             []
                             [ i
                                 [ classList
@@ -274,7 +288,7 @@ view model shared =
                             , maxPosition = Array.length snipbit.highlightedComments
                             , disabledStyling =
                                 isViewSnipbitRHCTabOpen model || Route.isOnViewSnipbitQARoute shared.route
-                            , onClickMsg = GoTo shared.route
+                            , onClickMsg = BaseMessage.GoTo { wipeModalError = False } shared.route
                             , allowClick =
                                 (case shared.route of
                                     Route.ViewSnipbitFramePage _ _ _ ->
@@ -317,7 +331,7 @@ view model shared =
                     , Editor.view "view-snipbit-code-editor"
                     , div
                         [ class "comment-block" ]
-                        [ commentBox snipbit model shared ]
+                        [ commentBox subMsg snipbit model shared ]
                     ]
         ]
 
@@ -325,8 +339,8 @@ view model shared =
 {-| Gets the comment box for the view snipbit page, can be the markdown for the code frame or the markdown
 with a few extra buttons for a selected range.
 -}
-commentBox : Snipbit.Snipbit -> Model -> Shared -> Html Msg
-commentBox snipbit model shared =
+commentBox : (Msg -> BaseMessage.Msg) -> Snipbit.Snipbit -> Model -> Shared -> Html BaseMessage.Msg
+commentBox subMsg snipbit model shared =
     let
         -- To display if no relevant HC.
         htmlIfNoRelevantHC =
@@ -367,7 +381,7 @@ commentBox snipbit model shared =
                                         [ ( "above-comment-block-button", True )
                                         , ( "disabled", ViewerRelevantHC.onFirstFrame viewerRelevantHC )
                                         ]
-                                    , onClick PreviousRelevantHC
+                                    , onClick <| subMsg PreviousRelevantHC
                                     ]
                                     [ text "Previous" ]
                                 , Route.navigationNode
@@ -377,7 +391,11 @@ commentBox snipbit model shared =
                                         ||> Route.ViewSnipbitFramePage
                                                 (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
                                                 snipbit.id
-                                        ||> (\route -> ( Route.Route route, GoTo route ))
+                                        ||> (\route ->
+                                                ( Route.Route route
+                                                , BaseMessage.GoTo { wipeModalError = False } route
+                                                )
+                                            )
                                     )
                                     []
                                     [ div
@@ -389,7 +407,7 @@ commentBox snipbit model shared =
                                         [ ( "above-comment-block-button next-button", True )
                                         , ( "disabled", ViewerRelevantHC.onLastFrame viewerRelevantHC )
                                         ]
-                                    , onClick NextRelevantHC
+                                    , onClick <| subMsg NextRelevantHC
                                     ]
                                     [ text "Next" ]
                                 , Markdown.view
@@ -402,7 +420,7 @@ commentBox snipbit model shared =
 
         viewQuestionView qa qaState tab question =
             ViewQuestion.view
-                { msgTagger = ViewQuestionMsg snipbit.id question.id
+                { subMsg = subMsg << ViewQuestionMsg snipbit.id question.id
                 , textFieldKeyTracker = shared.textFieldKeyTracker
                 , userID = shared.user ||> .id
                 , tidbitAuthorID = qa.tidbitAuthor
@@ -437,21 +455,21 @@ commentBox snipbit model shared =
                     Route.ViewSnipbitQuestionsPage
                         (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
                         snipbit.id
-                        |> (\route -> ( Route.Route route, GoTo route ))
+                        |> (\route -> ( Route.Route route, BaseMessage.GoTo { wipeModalError = False } route ))
                 , questionND =
                     Route.ViewSnipbitQuestionPage
                         (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
                         (Route.getTouringQuestionsQueryParamOnViewSnipbitQARoute shared.route)
                         snipbit.id
                         question.id
-                        |> (\route -> ( Route.Route route, GoTo route ))
+                        |> (\route -> ( Route.Route route, BaseMessage.GoTo { wipeModalError = False } route ))
                 , allAnswersND =
                     Route.ViewSnipbitAnswersPage
                         (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
                         (Route.getTouringQuestionsQueryParamOnViewSnipbitQARoute shared.route)
                         snipbit.id
                         question.id
-                        |> (\route -> ( Route.Route route, GoTo route ))
+                        |> (\route -> ( Route.Route route, BaseMessage.GoTo { wipeModalError = False } route ))
                 , questionCommentsND =
                     Route.ViewSnipbitQuestionCommentsPage
                         (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
@@ -459,7 +477,7 @@ commentBox snipbit model shared =
                         snipbit.id
                         question.id
                         Nothing
-                        |> (\route -> ( Route.Route route, GoTo route ))
+                        |> (\route -> ( Route.Route route, BaseMessage.GoTo { wipeModalError = False } route ))
                 , answerND =
                     \answer ->
                         let
@@ -470,7 +488,7 @@ commentBox snipbit model shared =
                                     snipbit.id
                                     answer.id
                         in
-                        ( Route.Route route, GoTo route )
+                        ( Route.Route route, BaseMessage.GoTo { wipeModalError = False } route )
                 , answerCommentsND =
                     \answer ->
                         let
@@ -482,10 +500,10 @@ commentBox snipbit model shared =
                                     answer.id
                                     Nothing
                         in
-                        ( Route.Route route, GoTo route )
+                        ( Route.Route route, BaseMessage.GoTo { wipeModalError = False } route )
                 , goToQuestionComment =
                     \questionComment ->
-                        GoTo <|
+                        BaseMessage.GoTo { wipeModalError = False } <|
                             Route.ViewSnipbitQuestionCommentsPage
                                 (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
                                 (Route.getTouringQuestionsQueryParamOnViewSnipbitQARoute shared.route)
@@ -494,7 +512,7 @@ commentBox snipbit model shared =
                                 (Just questionComment.id)
                 , goToAnswerComment =
                     \answerComment ->
-                        GoTo <|
+                        BaseMessage.GoTo { wipeModalError = False } <|
                             Route.ViewSnipbitAnswerCommentsPage
                                 (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
                                 (Route.getTouringQuestionsQueryParamOnViewSnipbitQARoute shared.route)
@@ -504,49 +522,49 @@ commentBox snipbit model shared =
                 , goToAnswerQuestion =
                     case shared.user of
                         Just _ ->
-                            GoTo <|
+                            BaseMessage.GoTo { wipeModalError = False } <|
                                 Route.ViewSnipbitAnswerQuestion
                                     (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
                                     snipbit.id
                                     question.id
 
                         Nothing ->
-                            SetUserNeedsAuthModal
+                            BaseMessage.SetUserNeedsAuthModal
                                 ("Want to share your knowledge? Sign up for free and get access to all of CodeTidbit"
                                     ++ " in seconds!"
                                 )
                 , goToEditQuestion =
-                    GoTo <|
+                    BaseMessage.GoTo { wipeModalError = False } <|
                         Route.ViewSnipbitEditQuestion
                             (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
                             snipbit.id
                             question.id
                 , goToEditAnswer =
-                    GoTo
+                    BaseMessage.GoTo { wipeModalError = False }
                         << Route.ViewSnipbitEditAnswer
                             (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
                             snipbit.id
                         << .id
-                , upvoteQuestion = RateQuestion snipbit.id question.id (Just Vote.Upvote)
-                , removeUpvoteQuestion = RateQuestion snipbit.id question.id Nothing
-                , downvoteQuestion = RateQuestion snipbit.id question.id (Just Vote.Downvote)
-                , removeDownvoteQuestion = RateQuestion snipbit.id question.id Nothing
-                , upvoteAnswer = \answer -> RateAnswer snipbit.id answer.id (Just Vote.Upvote)
-                , removeUpvoteAnswer = \answer -> RateAnswer snipbit.id answer.id Nothing
-                , downvoteAnswer = \answer -> RateAnswer snipbit.id answer.id (Just Vote.Downvote)
-                , removeDownvoteAnswer = \answer -> RateAnswer snipbit.id answer.id Nothing
-                , pinQuestion = PinQuestion snipbit.id question.id True
-                , unpinQuestion = PinQuestion snipbit.id question.id False
-                , pinAnswer = \answer -> PinAnswer snipbit.id answer.id True
-                , unpinAnswer = \answer -> PinAnswer snipbit.id answer.id False
-                , deleteAnswer = .id >> DeleteAnswer snipbit.id question.id
-                , commentOnQuestion = SubmitCommentOnQuestion snipbit.id question.id
-                , commentOnAnswer = SubmitCommentOnAnswer snipbit.id question.id
-                , deleteQuestionComment = DeleteCommentOnQuestion snipbit.id
-                , deleteAnswerComment = DeleteCommentOnAnswer snipbit.id
-                , editQuestionComment = EditCommentOnQuestion snipbit.id
-                , editAnswerComment = EditCommentOnAnswer snipbit.id
-                , handleUnauthAction = SetUserNeedsAuthModal
+                , upvoteQuestion = subMsg <| RateQuestion snipbit.id question.id (Just Vote.Upvote)
+                , removeUpvoteQuestion = subMsg <| RateQuestion snipbit.id question.id Nothing
+                , downvoteQuestion = subMsg <| RateQuestion snipbit.id question.id (Just Vote.Downvote)
+                , removeDownvoteQuestion = subMsg <| RateQuestion snipbit.id question.id Nothing
+                , upvoteAnswer = \answer -> subMsg <| RateAnswer snipbit.id answer.id (Just Vote.Upvote)
+                , removeUpvoteAnswer = \answer -> subMsg <| RateAnswer snipbit.id answer.id Nothing
+                , downvoteAnswer = \answer -> subMsg <| RateAnswer snipbit.id answer.id (Just Vote.Downvote)
+                , removeDownvoteAnswer = \answer -> subMsg <| RateAnswer snipbit.id answer.id Nothing
+                , pinQuestion = subMsg <| PinQuestion snipbit.id question.id True
+                , unpinQuestion = subMsg <| PinQuestion snipbit.id question.id False
+                , pinAnswer = \answer -> subMsg <| PinAnswer snipbit.id answer.id True
+                , unpinAnswer = \answer -> subMsg <| PinAnswer snipbit.id answer.id False
+                , deleteAnswer = .id >> DeleteAnswer snipbit.id question.id >> subMsg
+                , commentOnQuestion = subMsg << SubmitCommentOnQuestion snipbit.id question.id
+                , commentOnAnswer = subMsg <<< SubmitCommentOnAnswer snipbit.id question.id
+                , deleteQuestionComment = subMsg << DeleteCommentOnQuestion snipbit.id
+                , deleteAnswerComment = subMsg << DeleteCommentOnAnswer snipbit.id
+                , editQuestionComment = subMsg <<< EditCommentOnQuestion snipbit.id
+                , editAnswerComment = subMsg <<< EditCommentOnAnswer snipbit.id
+                , handleUnauthAction = BaseMessage.SetUserNeedsAuthModal
                 }
                 { questionCommentEdits = QA.getQuestionCommentEdits snipbit.id qaState
                 , newQuestionComment = QA.getNewQuestionComment snipbit.id question.id qaState
@@ -593,7 +611,7 @@ commentBox snipbit model shared =
                                                     snipbitID
                                                     question.id
                                         in
-                                        ( Route.Route route, GoTo route )
+                                        ( Route.Route route, BaseMessage.GoTo { wipeModalError = False } route )
                                 }
                             , isHighlighting = isHighlighting
                             , allQuestionText = "All Questions"
@@ -602,10 +620,10 @@ commentBox snipbit model shared =
                             , askQuestion =
                                 case shared.user of
                                     Just _ ->
-                                        GoToAskQuestion
+                                        subMsg <| GoToAskQuestion
 
                                     Nothing ->
-                                        SetUserNeedsAuthModal
+                                        BaseMessage.SetUserNeedsAuthModal
                                             ("We want to answer your question, sign up for free and get access"
                                                 ++ " to all of CodeTidbit in seconds!"
                                             )
@@ -688,16 +706,17 @@ commentBox snipbit model shared =
                         |> Maybe.withDefault QA.defaultNewQuestion
             in
             AskQuestion.view
-                { msgTagger = AskQuestionMsg snipbitID
+                { subMsg = subMsg << AskQuestionMsg snipbitID
                 , textFieldKeyTracker = shared.textFieldKeyTracker
                 , askQuestionRequestInProgress =
                     RT.isMakingRequest shared.apiRequestTracker (RT.AskQuestion TidbitPointer.Snipbit)
-                , askQuestion = AskQuestion snipbitID
+                , askQuestion = subMsg <<< AskQuestion snipbitID
                 , isReadyCodePointer = not << Range.isEmptyRange
                 , allQuestionsND =
                     ( Route.Route <| Route.ViewSnipbitQuestionsPage maybeStoryID snipbitID
-                    , GoToBrowseQuestionsWithCodePointer <|
-                        (QA.getNewQuestion snipbitID model.qaState |||> .codePointer)
+                    , subMsg <|
+                        GoToBrowseQuestionsWithCodePointer <|
+                            (QA.getNewQuestion snipbitID model.qaState |||> .codePointer)
                     )
                 }
                 newQuestion
@@ -706,21 +725,21 @@ commentBox snipbit model shared =
             case model.qa ||> .questions |||> QA.getQuestion questionID of
                 Just question ->
                     AnswerQuestion.view
-                        { msgTagger = AnswerQuestionMsg snipbitID question
+                        { subMsg = subMsg << AnswerQuestionMsg snipbitID question
                         , textFieldKeyTracker = shared.textFieldKeyTracker
                         , forQuestion = question
                         , answerQuestionRequestInProgress =
                             RT.isMakingRequest
                                 shared.apiRequestTracker
                                 (RT.AnswerQuestion TidbitPointer.Snipbit)
-                        , answerQuestion = AnswerQuestion snipbitID questionID
+                        , answerQuestion = subMsg << AnswerQuestion snipbitID questionID
                         , allAnswersND =
                             Route.ViewSnipbitAnswersPage
                                 (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
                                 (Route.getTouringQuestionsQueryParamOnViewSnipbitQARoute shared.route)
                                 snipbitID
                                 questionID
-                                |> (\route -> ( Route.Route route, GoTo route ))
+                                |> (\route -> ( Route.Route route, BaseMessage.GoTo { wipeModalError = False } route ))
                         }
                         (QA.getNewAnswer snipbitID questionID model.qaState
                             ?> QA.defaultNewAnswer
@@ -739,14 +758,14 @@ commentBox snipbit model shared =
                                 ?> QA.questionEditFromQuestion question
                     in
                     EditQuestion.view
-                        { msgTagger = EditQuestionMsg snipbitID question
+                        { subMsg = subMsg << EditQuestionMsg snipbitID question
                         , textFieldKeyTracker = shared.textFieldKeyTracker
                         , editQuestionRequestInProgress =
                             RT.isMakingRequest
                                 shared.apiRequestTracker
                                 (RT.UpdateQuestion TidbitPointer.Snipbit)
                         , isReadyCodePointer = not << Range.isEmptyRange
-                        , editQuestion = EditQuestion snipbitID questionID
+                        , editQuestion = subMsg <<< EditQuestion snipbitID questionID
                         }
                         questionEdit
 
@@ -762,11 +781,11 @@ commentBox snipbit model shared =
             of
                 ( Just answer, Just question ) ->
                     EditAnswer.view
-                        { msgTagger = EditAnswerMsg snipbitID answerID answer
+                        { subMsg = subMsg << EditAnswerMsg snipbitID answerID answer
                         , textFieldKeyTracker = shared.textFieldKeyTracker
                         , editAnswerRequestInProgress =
                             RT.isMakingRequest shared.apiRequestTracker (RT.UpdateAnswer TidbitPointer.Snipbit)
-                        , editAnswer = EditAnswer snipbitID question.id answerID
+                        , editAnswer = subMsg << EditAnswer snipbitID question.id answerID
                         , forQuestion = question
                         }
                         (QA.getAnswerEdit snipbitID answerID model.qaState

@@ -9,8 +9,7 @@ import ProjectTypeAliases exposing (..)
 {-| `Notifications` Msg.
 -}
 type Msg
-    = NoOp
-    | GoToNotificationLink NotificationID Bool Link
+    = GoToNotificationLink NotificationID Bool Link
     | OnRouteHit Route
     | OnGetInitialNotificationsFailure ApiError
     | OnGetInitialNotificationsSuccess ( Bool, List Notification )

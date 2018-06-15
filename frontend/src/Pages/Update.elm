@@ -1,12 +1,13 @@
 module Pages.Update exposing (update, updateCacheIf)
 
-import Api
 import Array
+import DefaultServices.BasePageUtil as BasePageUtil
 import DefaultServices.CommonSubPageUtil exposing (commonSubPageUtil)
 import DefaultServices.InfixFunctions exposing (..)
 import DefaultServices.LocalStorage as LocalStorage
 import DefaultServices.Util as Util exposing (maybeMapWithDefault)
 import Keyboard.Extra as KK
+import Models.RequestTracker as RT
 import Models.Route as Route
 import Navigation
 import Pages.Browse.Messages as BrowseMessages
@@ -27,7 +28,6 @@ import Pages.NewStory.Messages as NewStoryMessages
 import Pages.NewStory.Update as NewStoryUpdate
 import Pages.Notifications.Messages as NotificationsMessages
 import Pages.Notifications.Update as NotificationsUpdate
-import Pages.Profile.Messages as ProfileMessages
 import Pages.Profile.Update as ProfileUpdate
 import Pages.ViewBigbit.Messages as ViewBigbitMessages
 import Pages.ViewBigbit.Model as ViewBigbitModel
@@ -62,22 +62,27 @@ updateCacheIf msg model shouldCache =
         shared =
             model.shared
 
-        api =
-            Api.api shared.flags.apiBaseUrl
-
-        getUserAndThenRefresh () =
-            api.get.account OnGetUserAndThenRefreshFailure OnGetUserAndThenRefreshSuccess
-
-        doNothing =
-            ( model, Cmd.none )
+        (BasePageUtil.BasePageUtil basePageUtil) =
+            BasePageUtil.basePageUtil model
 
         ( newModel, newCmd ) =
             case msg of
                 NoOp ->
-                    doNothing
+                    basePageUtil.doNothing
 
-                GoTo route ->
-                    ( model, Route.navigateTo route )
+                GoTo { wipeModalError } route ->
+                    ( { model
+                        | shared =
+                            { shared
+                                | apiModalError =
+                                    if wipeModalError then
+                                        Nothing
+                                    else
+                                        shared.apiModalError
+                            }
+                      }
+                    , Route.navigateTo route
+                    )
 
                 OnLocationChange location ->
                     let
@@ -95,7 +100,7 @@ updateCacheIf msg model shouldCache =
                     )
 
                 LoadModelFromLocalStorage ->
-                    ( model, LocalStorage.loadModel () )
+                    basePageUtil.justProduceCmd <| LocalStorage.loadModel ()
 
                 OnLoadModelFromLocalStorageSuccess newModel ->
                     {- If the state was properly cached in localStorage, we simply load the cached model and refresh
@@ -108,7 +113,8 @@ updateCacheIf msg model shouldCache =
                        use-case where they have the cookies to be logged in but they cleared their localStorage), and
                        then regardless we trigger a page refresh to trigger route hooks.
                     -}
-                    ( model, getUserAndThenRefresh () )
+                    basePageUtil.justProduceCmd <|
+                        basePageUtil.api.get.account OnGetUserAndThenRefreshFailure OnGetUserAndThenRefreshSuccess
 
                 OnGetUserAndThenRefreshSuccess user ->
                     let
@@ -118,13 +124,13 @@ updateCacheIf msg model shouldCache =
                     ( newModel, Route.modifyTo shared.route )
 
                 OnGetUserAndThenRefreshFailure newApiError ->
-                    ( model, Route.modifyTo shared.route )
+                    basePageUtil.justProduceCmd <| Route.modifyTo shared.route
 
                 WelcomeMessage subMsg ->
                     let
-                        ( newWelcomeModel, newShared, newSubMsg ) =
+                        ( newWelcomeModel, newShared, newMsg ) =
                             WelcomeUpdate.update
-                                (commonSubPageUtil model.welcomePage model.shared)
+                                (commonSubPageUtil WelcomeMessage model.welcomePage model.shared)
                                 subMsg
                                 model.welcomePage
                                 model.shared
@@ -135,13 +141,13 @@ updateCacheIf msg model shouldCache =
                                 , shared = newShared
                             }
                     in
-                    ( newModel, Cmd.map WelcomeMessage newSubMsg )
+                    ( newModel, newMsg )
 
                 ViewSnipbitMessage subMsg ->
                     let
-                        ( newViewSnipbitModel, newShared, newSubMsg ) =
+                        ( newViewSnipbitModel, newShared, newMsg ) =
                             ViewSnipbitUpdate.update
-                                (commonSubPageUtil model.viewSnipbitPage model.shared)
+                                (commonSubPageUtil ViewSnipbitMessage model.viewSnipbitPage model.shared)
                                 subMsg
                                 model.viewSnipbitPage
                                 model.shared
@@ -152,13 +158,13 @@ updateCacheIf msg model shouldCache =
                                 , shared = newShared
                             }
                     in
-                    ( newModel, Cmd.map ViewSnipbitMessage newSubMsg )
+                    ( newModel, newMsg )
 
                 ViewBigbitMessage subMsg ->
                     let
-                        ( newViewBigbitModel, newShared, newSubMsg ) =
+                        ( newViewBigbitModel, newShared, newMsg ) =
                             ViewBigbitUpdate.update
-                                (commonSubPageUtil model.viewBigbitPage model.shared)
+                                (commonSubPageUtil ViewBigbitMessage model.viewBigbitPage model.shared)
                                 subMsg
                                 model.viewBigbitPage
                                 model.shared
@@ -169,13 +175,13 @@ updateCacheIf msg model shouldCache =
                                 , shared = newShared
                             }
                     in
-                    ( newModel, Cmd.map ViewBigbitMessage newSubMsg )
+                    ( newModel, newMsg )
 
                 ViewStoryMessage subMsg ->
                     let
-                        ( newViewStoryModel, newShared, newSubMsg ) =
+                        ( newViewStoryModel, newShared, newMsg ) =
                             ViewStoryUpdate.update
-                                (commonSubPageUtil model.viewStoryPage model.shared)
+                                (commonSubPageUtil ViewStoryMessage model.viewStoryPage model.shared)
                                 subMsg
                                 model.viewStoryPage
                                 model.shared
@@ -186,41 +192,30 @@ updateCacheIf msg model shouldCache =
                                 , shared = newShared
                             }
                     in
-                    ( newModel, Cmd.map ViewStoryMessage newSubMsg )
+                    ( newModel, newMsg )
 
                 ProfileMessage subMsg ->
                     let
-                        ( newProfileModel, newShared, newSubMsg ) =
+                        ( newProfileModel, newShared, newMsg ) =
                             ProfileUpdate.update
-                                (commonSubPageUtil model.profilePage model.shared)
+                                (commonSubPageUtil ProfileMessage model.profilePage model.shared)
                                 subMsg
                                 model.profilePage
                                 model.shared
 
-                        justLoggedOut =
-                            case subMsg of
-                                ProfileMessages.OnLogOutSuccess _ ->
-                                    True
-
-                                _ ->
-                                    False
-
                         newModel =
-                            if justLoggedOut then
-                                defaultModel newShared.route newShared.flags
-                            else
-                                { model
-                                    | profilePage = newProfileModel
-                                    , shared = newShared
-                                }
+                            { model
+                                | profilePage = newProfileModel
+                                , shared = newShared
+                            }
                     in
-                    ( newModel, Cmd.map ProfileMessage newSubMsg )
+                    ( newModel, newMsg )
 
                 NewStoryMessage subMsg ->
                     let
-                        ( newNewStoryModel, newShared, newSubMsg ) =
+                        ( newNewStoryModel, newShared, newMsg ) =
                             NewStoryUpdate.update
-                                (commonSubPageUtil model.newStoryPage model.shared)
+                                (commonSubPageUtil NewStoryMessage model.newStoryPage model.shared)
                                 subMsg
                                 model.newStoryPage
                                 model.shared
@@ -231,13 +226,13 @@ updateCacheIf msg model shouldCache =
                                 , shared = newShared
                             }
                     in
-                    ( newModel, Cmd.map NewStoryMessage newSubMsg )
+                    ( newModel, newMsg )
 
                 CreateMessage subMsg ->
                     let
-                        ( newCreateModel, newShared, newSubMsg ) =
+                        ( newCreateModel, newShared, newMsg ) =
                             CreateUpdate.update
-                                (commonSubPageUtil model.createPage model.shared)
+                                (commonSubPageUtil CreateMessage model.createPage model.shared)
                                 subMsg
                                 model.createPage
                                 model.shared
@@ -248,13 +243,13 @@ updateCacheIf msg model shouldCache =
                                 , shared = newShared
                             }
                     in
-                    ( newModel, Cmd.map CreateMessage newSubMsg )
+                    ( newModel, newMsg )
 
                 DevelopStoryMessage subMsg ->
                     let
-                        ( newDevelopStoryModel, newShared, newSubMsg ) =
+                        ( newDevelopStoryModel, newShared, newMsg ) =
                             DevelopStoryUpdate.update
-                                (commonSubPageUtil model.developStoryPage model.shared)
+                                (commonSubPageUtil DevelopStoryMessage model.developStoryPage model.shared)
                                 subMsg
                                 model.developStoryPage
                                 model.shared
@@ -265,13 +260,13 @@ updateCacheIf msg model shouldCache =
                                 , shared = newShared
                             }
                     in
-                    ( newModel, Cmd.map DevelopStoryMessage newSubMsg )
+                    ( newModel, newMsg )
 
                 CreateSnipbitMessage subMsg ->
                     let
-                        ( newCreateSnipbitModel, newShared, newSubMsg ) =
+                        ( newCreateSnipbitModel, newShared, newMsg ) =
                             CreateSnipbitUpdate.update
-                                (commonSubPageUtil model.createSnipbitPage model.shared)
+                                (commonSubPageUtil CreateSnipbitMessage model.createSnipbitPage model.shared)
                                 subMsg
                                 model.createSnipbitPage
                                 model.shared
@@ -282,13 +277,13 @@ updateCacheIf msg model shouldCache =
                                 , shared = newShared
                             }
                     in
-                    ( newModel, Cmd.map CreateSnipbitMessage newSubMsg )
+                    ( newModel, newMsg )
 
                 CreateBigbitMessage subMsg ->
                     let
-                        ( newCreateBigbitModel, newShared, newSubMsg ) =
+                        ( newCreateBigbitModel, newShared, newMsg ) =
                             CreateBigbitUpdate.update
-                                (commonSubPageUtil model.createBigbitPage model.shared)
+                                (commonSubPageUtil CreateBigbitMessage model.createBigbitPage model.shared)
                                 subMsg
                                 model.createBigbitPage
                                 model.shared
@@ -299,13 +294,13 @@ updateCacheIf msg model shouldCache =
                                 , shared = newShared
                             }
                     in
-                    ( newModel, Cmd.map CreateBigbitMessage newSubMsg )
+                    ( newModel, newMsg )
 
                 BrowseMessage subMsg ->
                     let
-                        ( newBrowsePageModel, newShared, newSubMsg ) =
+                        ( newBrowsePageModel, newShared, newMsg ) =
                             BrowseUpdate.update
-                                (commonSubPageUtil model.browsePage model.shared)
+                                (commonSubPageUtil BrowseMessage model.browsePage model.shared)
                                 subMsg
                                 model.browsePage
                                 model.shared
@@ -316,13 +311,13 @@ updateCacheIf msg model shouldCache =
                                 , shared = newShared
                             }
                     in
-                    ( newModel, Cmd.map BrowseMessage newSubMsg )
+                    ( newModel, newMsg )
 
                 NotificationsMessage subMsg ->
                     let
-                        ( newNotificationsPageModel, newShared, newSubMsg ) =
+                        ( newNotificationsPageModel, newShared, newMsg ) =
                             NotificationsUpdate.update
-                                (commonSubPageUtil model.notificationsPage model.shared)
+                                (commonSubPageUtil NotificationsMessage model.notificationsPage model.shared)
                                 subMsg
                                 model.notificationsPage
                                 model.shared
@@ -333,7 +328,7 @@ updateCacheIf msg model shouldCache =
                                 , shared = newShared
                             }
                     in
-                    ( newModel, Cmd.map NotificationsMessage newSubMsg )
+                    ( newModel, newMsg )
 
                 CodeEditorUpdate { id, value, deltaRange, action } ->
                     case id of
@@ -362,7 +357,7 @@ updateCacheIf msg model shouldCache =
                                 shouldCache
 
                         _ ->
-                            doNothing
+                            basePageUtil.doNothing
 
                 CodeEditorSelectionUpdate { id, range } ->
                     case id of
@@ -391,7 +386,7 @@ updateCacheIf msg model shouldCache =
                                 shouldCache
 
                         _ ->
-                            doNothing
+                            basePageUtil.doNothing
 
                 KeyboardExtraMessage msg ->
                     let
@@ -403,7 +398,7 @@ updateCacheIf msg model shouldCache =
                     in
                     -- Key held, but no new key clicked. Get rid of this if we need hotkeys with key-holds.
                     if model.shared.keysDown == newKeysDown then
-                        doNothing
+                        basePageUtil.doNothing
                     else
                         case msg of
                             KK.Down keyCode ->
@@ -413,14 +408,28 @@ updateCacheIf msg model shouldCache =
                                 handleKeyRelease (KK.fromCode keyCode) modelWithNewKeys
 
                 CloseErrorModal ->
-                    ( { model | shared = { shared | apiModalError = Nothing } }
-                    , Cmd.none
-                    )
+                    basePageUtil.justSetShared { shared | apiModalError = Nothing }
 
                 CloseSignUpModal ->
-                    ( { model | shared = { shared | userNeedsAuthModal = Nothing } }
-                    , Cmd.none
+                    basePageUtil.justSetShared { shared | userNeedsAuthModal = Nothing }
+
+                SetUserNeedsAuthModal message ->
+                    basePageUtil.justSetShared { shared | userNeedsAuthModal = Just message }
+
+                LogOut ->
+                    basePageUtil.makeSingletonRequest
+                        RT.Logout
+                        ( model, basePageUtil.api.get.logOut OnLogOutFailure OnLogOutSuccess )
+
+                OnLogOutSuccess basicResponse ->
+                    ( defaultModel model.shared.route model.shared.flags
+                    , Route.navigateTo <| Route.RegisterPage Nothing
                     )
+                        |> basePageUtil.andFinishRequest RT.Logout
+
+                OnLogOutFailure apiError ->
+                    basePageUtil.justSetShared { shared | logoutError = Just apiError }
+                        |> basePageUtil.andFinishRequest RT.Logout
     in
     case shouldCache of
         True ->
