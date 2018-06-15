@@ -22,7 +22,7 @@ type Msg
 
 
 type alias RenderConfig msg codePointer =
-    { msgTagger : Msg -> msg
+    { subMsg : Msg -> msg
     , textFieldKeyTracker : TextFields.KeyTracker
     , editQuestionRequestInProgress : Bool
     , isReadyCodePointer : codePointer -> Bool
@@ -54,7 +54,7 @@ view config model =
         [ class "edit-question" ]
         [ div
             [ class "preview-markdown"
-            , onClick <| config.msgTagger TogglePreviewMarkdown
+            , onClick <| config.subMsg TogglePreviewMarkdown
             ]
             [ text <|
                 if model.previewMarkdown then
@@ -73,7 +73,7 @@ view config model =
                     [ classList [ ( "cursor-progress", config.editQuestionRequestInProgress ) ]
                     , placeholder editQuestionPlaceholder
                     , defaultValue questionText
-                    , onInput (OnQuestionTextInput >> config.msgTagger)
+                    , onInput (OnQuestionTextInput >> config.subMsg)
                     , disabled <| config.editQuestionRequestInProgress
                     ]
                 , Util.limitCharsText 300 questionText

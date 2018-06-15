@@ -23,7 +23,7 @@ type Msg
 
 
 type alias RenderConfig codePointer msg =
-    { msgTagger : Msg -> msg
+    { subMsg : Msg -> msg
     , textFieldKeyTracker : TextFields.KeyTracker
     , forQuestion : Question codePointer
     , answerQuestionRequestInProgress : Bool
@@ -55,7 +55,7 @@ view config { previewMarkdown, showQuestion, answerText } =
                 [ ( "display-question", True )
                 , ( "hidden", previewMarkdown )
                 ]
-            , onClick <| config.msgTagger ToggleShowQuestion
+            , onClick <| config.subMsg ToggleShowQuestion
             ]
             [ text <|
                 if showQuestion then
@@ -76,7 +76,7 @@ view config { previewMarkdown, showQuestion, answerText } =
                 , ( "previewing-markdown", previewMarkdown )
                 , ( "hiding-question", not showQuestion )
                 ]
-            , onClick <| config.msgTagger TogglePreviewMarkdown
+            , onClick <| config.subMsg TogglePreviewMarkdown
             ]
             [ text <|
                 if previewMarkdown then
@@ -98,7 +98,7 @@ view config { previewMarkdown, showQuestion, answerText } =
                         ]
                     , placeholder answerQuestionPlaceholder
                     , disabled config.answerQuestionRequestInProgress
-                    , onInput (config.msgTagger << OnAnswerTextInput)
+                    , onInput (config.subMsg << OnAnswerTextInput)
                     , defaultValue answerText
                     ]
                 , Util.limitCharsText 1000 answerText

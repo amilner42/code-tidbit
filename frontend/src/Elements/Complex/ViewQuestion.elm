@@ -34,7 +34,7 @@ type alias Model =
 
 
 type alias RenderConfig msg codePointer =
-    { msgTagger : Msg -> msg
+    { subMsg : Msg -> msg
     , textFieldKeyTracker : TextFields.KeyTracker
     , userID : Maybe UserID
     , tidbitAuthorID : UserID
@@ -202,7 +202,7 @@ view config model =
 
             QuestionCommentsTab maybeCommentID ->
                 CommentList.view
-                    { msgTagger = config.msgTagger << QuestionCommentListMsg
+                    { subMsg = config.subMsg << QuestionCommentListMsg
                     , textFieldKeyTracker = config.textFieldKeyTracker
                     , userID = config.userID
                     , comments = config.questionComments
@@ -278,7 +278,7 @@ view config model =
                                     if Set.member answer.id model.deletingAnswers then
                                         Just <| config.deleteAnswer answer
                                     else
-                                        Just <| config.msgTagger <| AddToDeletingAnswers answer.id
+                                        Just <| config.subMsg <| AddToDeletingAnswers answer.id
                                 }
                             ]
 
@@ -292,7 +292,7 @@ view config model =
                             [ class "answer-comments-tab" ]
                             [ extendedTopBar False answer
                             , CommentList.view
-                                { msgTagger = config.msgTagger << AnswerCommentListMsg answerID
+                                { subMsg = config.subMsg << AnswerCommentListMsg answerID
                                 , textFieldKeyTracker = config.textFieldKeyTracker
                                 , userID = config.userID
                                 , comments = List.filter (.answerID >> (==) answerID) config.answerComments
