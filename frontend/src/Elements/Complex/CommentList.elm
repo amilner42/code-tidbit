@@ -30,7 +30,7 @@ type alias Model =
 
 
 type alias RenderConfig msg comment =
-    { msgTagger : Msg -> msg
+    { subMsg : Msg -> msg
     , textFieldKeyTracker : TextFields.KeyTracker
     , userID : Maybe UserID
     , comments : List (Comment comment)
@@ -81,7 +81,7 @@ view config model =
                 [ ( "new-comment-textarea", True )
                 , ( "cursor-progress", config.submitCommentRequestInProgress )
                 ]
-            , onInput <| config.msgTagger << OnNewCommentTextInput
+            , onInput <| config.subMsg << OnNewCommentTextInput
             , placeholder <|
                 if isLoggedIn then
                     "Add comment..."
@@ -137,7 +137,7 @@ commentBoxView config { deletingComments, commentEdits } comment =
                     , placeholder "Edit comment..."
                     , disabled <| config.editCommentRequestInProgress comment.id
                     , defaultValue <| Editable.getBuffer commentEdit
-                    , onInput <| config.msgTagger << OnEditCommentInput comment.id
+                    , onInput <| config.subMsg << OnEditCommentInput comment.id
                     ]
 
             Nothing ->
@@ -159,7 +159,7 @@ commentBoxView config { deletingComments, commentEdits } comment =
                                     , if config.editCommentRequestInProgress comment.id then
                                         Nothing
                                       else
-                                        Just <| onClick <| config.msgTagger <| CancelEditing comment.id
+                                        Just <| onClick <| config.subMsg <| CancelEditing comment.id
                                     ]
                                 )
                                 [ text "cancel" ]
@@ -195,7 +195,7 @@ commentBoxView config { deletingComments, commentEdits } comment =
                                     if isBeingDeleted then
                                         config.deleteComment comment.id
                                     else
-                                        config.msgTagger <| AddToDeletingComments comment.id
+                                        config.subMsg <| AddToDeletingComments comment.id
                                 ]
                                 [ text <|
                                     if isBeingDeleted then
@@ -217,7 +217,7 @@ commentBoxView config { deletingComments, commentEdits } comment =
                                       else
                                         Just <|
                                             onClick <|
-                                                config.msgTagger <|
+                                                config.subMsg <|
                                                     StartEditing comment.id comment.commentText
                                     ]
                                 )
