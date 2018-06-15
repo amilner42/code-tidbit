@@ -33,9 +33,6 @@ update (Common common) msg model shared =
             Util.domFocus (always BaseMessage.NoOp)
     in
     case msg of
-        GoTo route ->
-            common.justProduceCmd <| Route.navigateTo route
-
         OnRouteHit route ->
             let
                 createCreateSnipbitEditor aceRange =
@@ -262,23 +259,19 @@ update (Common common) msg model shared =
                         { model | highlightedComments = newHighlightedComments, confirmedRemoveFrame = False }
                 in
                 case shared.route of
-                    -- We need to go "down" a tab if the user was on the last tab and they removed a tab.
                     Route.CreateSnipbitCodeFramePage frameNumber ->
                         let
                             frameIndex =
                                 frameNumber - 1
                         in
-                        if frameIndex >= Array.length newHighlightedComments then
-                            update
-                                (commonSubPageUtil common.subMsg newModel shared)
-                                (GoTo <|
-                                    Route.CreateSnipbitCodeFramePage <|
-                                        Array.length newHighlightedComments
-                                )
-                                newModel
-                                shared
-                        else
-                            common.justSetModel newModel
+                        ( newModel
+                        , shared
+                        , -- We need to go "down" a tab if the user was on the last tab and they removed a tab.
+                          if frameIndex >= Array.length newHighlightedComments then
+                            Route.navigateTo <| Route.CreateSnipbitCodeFramePage <| Array.length newHighlightedComments
+                          else
+                            Cmd.none
+                        )
 
                     -- Should never happen.
                     _ ->
