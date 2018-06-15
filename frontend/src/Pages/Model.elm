@@ -69,17 +69,15 @@ type alias Shared =
     }
 
 
+{-| Update the `shared` field of `Model` given a `Shared` updater.
+-}
+updateShared : Model -> (Shared -> Shared) -> Model
+updateShared model sharedUpdater =
+    { model | shared = sharedUpdater model.shared }
+
+
 {-| Updates `keysDown`.
 -}
 updateKeysDown : KK.Model -> Model -> Model
 updateKeysDown newKeysDown model =
-    let
-        shared =
-            model.shared
-    in
-    { model
-        | shared =
-            { shared
-                | keysDown = newKeysDown
-            }
-    }
+    updateShared model (\shared -> { shared | keysDown = newKeysDown })

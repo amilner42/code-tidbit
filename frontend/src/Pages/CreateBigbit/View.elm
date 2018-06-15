@@ -625,7 +625,7 @@ view subMsg model shared =
                         , Util.onKeydownPreventDefault
                             (\key ->
                                 if key == KK.Tab then
-                                    Just <| BaseMessage.NoOp
+                                    Just BaseMessage.NoOp
                                 else
                                     Nothing
                             )

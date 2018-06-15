@@ -21,6 +21,9 @@ type BasePageUtil msg
         , justUpdateShared : (BaseModel.Shared -> BaseModel.Shared) -> ( BaseModel.Model, Cmd.Cmd msg )
         , justProduceCmd : Cmd.Cmd msg -> ( BaseModel.Model, Cmd.Cmd msg )
         , doNothing : ( BaseModel.Model, Cmd.Cmd msg )
+        , withCmd : Cmd.Cmd msg -> ( BaseModel.Model, Cmd.Cmd msg ) -> ( BaseModel.Model, Cmd.Cmd msg )
+        , handleAll :
+            List (BasePageUtil msg -> BaseModel.Model -> ( BaseModel.Model, Cmd msg )) -> ( BaseModel.Model, Cmd msg )
         , api : Api.API msg
         , justSetModalError : ApiError.ApiError -> ( BaseModel.Model, Cmd.Cmd msg )
         , makeSingletonRequest : RT.TrackedRequest -> ( BaseModel.Model, Cmd.Cmd msg ) -> ( BaseModel.Model, Cmd.Cmd msg )
@@ -35,17 +38,35 @@ We put `BaseModel.Model` as a concrete type to allow for more useful helper func
 -}
 basePageUtil : BaseModel.Model -> BasePageUtil msg
 basePageUtil model =
+    let
+        withCmd withCmd ( newModel, newCmd ) =
+            ( newModel, Cmd.batch [ newCmd, withCmd ] )
+
+        handleAll =
+            let
+                go ( lastModel, lastCmd ) listOfThingsToHandle =
+                    case listOfThingsToHandle of
+                        [] ->
+                            ( lastModel, lastCmd )
+
+                        handleCurrent :: xs ->
+                            go (withCmd lastCmd <| handleCurrent (basePageUtil lastModel) lastModel) xs
+            in
+            go ( model, Cmd.none )
+    in
     BasePageUtil
         { justSetModel = \newModel -> ( newModel, Cmd.none )
         , justUpdateModel = \updateModel -> ( updateModel model, Cmd.none )
         , justSetShared = \newShared -> ( { model | shared = newShared }, Cmd.none )
-        , justUpdateShared = \sharedUpdater -> ( updateShared model sharedUpdater, Cmd.none )
+        , justUpdateShared = \sharedUpdater -> ( BaseModel.updateShared model sharedUpdater, Cmd.none )
         , justProduceCmd = \newCmd -> ( model, newCmd )
         , doNothing = ( model, Cmd.none )
+        , withCmd = withCmd
+        , handleAll = handleAll
         , api = Api.api model.shared.flags.apiBaseUrl
         , justSetModalError =
             \apiError ->
-                ( updateShared model (\shared -> { shared | apiModalError = Just apiError })
+                ( BaseModel.updateShared model (\shared -> { shared | apiModalError = Just apiError })
                 , Cmd.none
                 )
         , makeSingletonRequest =
@@ -53,7 +74,7 @@ basePageUtil model =
                 if RT.isMakingRequest model.shared.apiRequestTracker trackedRequest then
                     ( model, Cmd.none )
                 else
-                    ( updateShared
+                    ( BaseModel.updateShared
                         newModel
                         (\newShared ->
                             { newShared
@@ -64,7 +85,7 @@ basePageUtil model =
                     )
         , andFinishRequest =
             \trackedRequest ( newModel, newCmd ) ->
-                ( updateShared
+                ( BaseModel.updateShared
                     newModel
                     (\newShared ->
                         { newShared | apiRequestTracker = RT.finishRequest trackedRequest newShared.apiRequestTracker }
@@ -72,10 +93,3 @@ basePageUtil model =
                 , newCmd
                 )
         }
-
-
-{-| Update the `shared` field of `BaseModel.Model` given a `BaseModel.Shared` updater.
--}
-updateShared : BaseModel.Model -> (BaseModel.Shared -> BaseModel.Shared) -> BaseModel.Model
-updateShared model sharedUpdater =
-    { model | shared = sharedUpdater model.shared }
