@@ -725,41 +725,6 @@ update (Common common) msg model shared =
             common.justSetModalError apiError
                 |> common.andFinishRequest (RT.UpdateQuestion TidbitPointer.Snipbit)
 
-        AnswerQuestion snipbitID questionID answerText ->
-            let
-                answerQuestionAction =
-                    common.justProduceCmd <|
-                        common.api.post.answerQuestion
-                            { tidbitType = TidbitPointer.Snipbit, targetID = snipbitID }
-                            questionID
-                            answerText
-                            (common.subMsg << OnAnswerFailure)
-                            (common.subMsg << OnAnswerQuestionSuccess snipbitID questionID)
-            in
-            common.makeSingletonRequest (RT.AnswerQuestion TidbitPointer.Snipbit) answerQuestionAction
-
-        OnAnswerQuestionSuccess snipbitID questionID answer ->
-            ( { model
-                | -- Add the answer to the published answer list (and re-sort).
-                  qa = model.qa ||> (\qa -> { qa | answers = QA.sortRateableContent <| answer :: qa.answers })
-
-                -- Clear the new answer from the QAState.
-                , qaState = model.qaState |> QA.updateNewAnswer snipbitID questionID (always Nothing)
-              }
-            , shared
-            , Route.navigateTo <|
-                Route.ViewSnipbitAnswerPage
-                    (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
-                    Nothing
-                    snipbitID
-                    answer.id
-            )
-                |> common.andFinishRequest (RT.AnswerQuestion TidbitPointer.Snipbit)
-
-        OnAnswerFailure apiError ->
-            common.justSetModalError apiError
-                |> common.andFinishRequest (RT.AnswerQuestion TidbitPointer.Snipbit)
-
         EditAnswer snipbitID questionID answerID answerText ->
             let
                 updateAnswerAction =
@@ -951,25 +916,20 @@ update (Common common) msg model shared =
             , Cmd.map (common.subMsg << EditQuestionMsg snipbitID question) newEditQuestionMsg
             )
 
-        AnswerQuestionMsg snipbitID question answerQuestionMsg ->
+        AnswerQuestionMsg qa snipbitID answerQuestionMsg ->
             let
                 answerQuestionModel =
-                    QA.getNewAnswer snipbitID question.id model.qaState
-                        |> Maybe.withDefault QA.defaultNewAnswer
+                    { qa = qa, qaState = model.qaState, apiRequestTracker = shared.apiRequestTracker }
 
                 ( newAnswerQuestionModel, newAnswerQuestionMsg ) =
                     AnswerQuestion.update answerQuestionMsg answerQuestionModel
             in
             ( { model
-                | qaState =
-                    QA.updateNewAnswer
-                        snipbitID
-                        question.id
-                        (always <| Just newAnswerQuestionModel)
-                        model.qaState
+                | qaState = newAnswerQuestionModel.qaState
+                , qa = Just newAnswerQuestionModel.qa
               }
-            , shared
-            , Cmd.map (common.subMsg << AnswerQuestionMsg snipbitID question) newAnswerQuestionMsg
+            , { shared | apiRequestTracker = newAnswerQuestionModel.apiRequestTracker }
+            , Cmd.map (common.subMsg << AnswerQuestionMsg newAnswerQuestionModel.qa snipbitID) newAnswerQuestionMsg
             )
 
         EditAnswerMsg snipbitID answerID answer editAnswerMsg ->

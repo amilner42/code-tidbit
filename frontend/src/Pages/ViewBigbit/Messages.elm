@@ -59,10 +59,7 @@ type Msg
     | EditQuestion BigbitID QuestionID QuestionText BigbitCodePointer
     | OnEditQuestionSuccess BigbitID QuestionID QuestionText BigbitCodePointer Date
     | OnEditQuestionFailure ApiError
-    | AnswerQuestionMsg BigbitID BigbitQuestion AnswerQuestion.Msg
-    | AnswerQuestion BigbitID QuestionID AnswerText
-    | OnAnswerQuestionSuccess BigbitID QuestionID Answer
-    | OnAnswerQuestionFailure ApiError
+    | AnswerQuestionMsg BigbitQA BigbitID AnswerQuestion.Msg
     | EditAnswerMsg BigbitID Answer EditAnswer.Msg
     | EditAnswer BigbitID AnswerID AnswerText
     | OnEditAnswerSuccess BigbitID AnswerID AnswerText Date

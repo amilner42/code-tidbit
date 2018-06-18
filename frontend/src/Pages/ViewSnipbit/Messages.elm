@@ -52,9 +52,6 @@ type Msg
     | EditQuestion SnipbitID QuestionID QuestionText Range
     | OnEditQuestionSuccess SnipbitID QuestionID QuestionText Range Date
     | OnEditQuestionFailure ApiError
-    | AnswerQuestion SnipbitID QuestionID AnswerText
-    | OnAnswerQuestionSuccess SnipbitID QuestionID Answer
-    | OnAnswerFailure ApiError
     | EditAnswer SnipbitID QuestionID AnswerID AnswerText
     | OnEditAnswerSuccess SnipbitID QuestionID AnswerID AnswerText Date
     | OnEditAnswerFailure ApiError
@@ -69,7 +66,7 @@ type Msg
     | OnRateAnswerFailure ApiError
     | AskQuestionMsg SnipbitID AskQuestion.Msg
     | EditQuestionMsg SnipbitID (Question Range) EditQuestion.Msg
-    | AnswerQuestionMsg SnipbitID (Question Range) AnswerQuestion.Msg
+    | AnswerQuestionMsg SnipbitQA SnipbitID AnswerQuestion.Msg
     | EditAnswerMsg SnipbitID AnswerID Answer EditAnswer.Msg
     | PinQuestion SnipbitID QuestionID Bool
     | OnPinQuestionSuccess QuestionID Bool

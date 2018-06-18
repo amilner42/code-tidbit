@@ -1,4 +1,4 @@
-module Api exposing (API, api)
+module Api exposing (API, Endpoint, api)
 
 import Date
 import DefaultServices.Http as HttpService

@@ -1,5 +1,6 @@
 module Pages.ViewBigbit.View exposing (..)
 
+import Api
 import Array
 import DefaultServices.InfixFunctions exposing (..)
 import DefaultServices.Util as Util exposing (maybeMapWithDefault)
@@ -782,17 +783,22 @@ viewBigbitCommentBox subMsg bigbit model shared =
                     Util.hiddenDiv
 
         Route.ViewBigbitAnswerQuestion maybeStoryID bigbitID questionID ->
-            case model.qa ||> .questions |||> QA.getQuestion questionID of
-                Just question ->
-                    let
-                        newAnswer =
-                            QA.getNewAnswer bigbitID questionID model.qaState
-                                ?> QA.defaultNewAnswer
-                    in
+            let
+                api =
+                    Api.api shared.flags.apiBaseUrl
+
+                answerQuestionQuery =
+                    api.post.answerQuestion
+                        { tidbitType = TidbitPointer.Bigbit, targetID = bigbitID }
+                        questionID
+            in
+            case model.qa of
+                Just qa ->
                     AnswerQuestion.view
-                        { subMsg = subMsg << AnswerQuestionMsg bigbitID question
+                        { subMsg = subMsg << AnswerQuestionMsg qa bigbitID
                         , textFieldKeyTracker = shared.textFieldKeyTracker
-                        , forQuestion = question
+                        , tidbitID = bigbitID
+                        , questionID = questionID
                         , answerQuestionRequestInProgress =
                             RT.isMakingRequest
                                 shared.apiRequestTracker
@@ -800,9 +806,14 @@ viewBigbitCommentBox subMsg bigbit model shared =
                         , allAnswersND =
                             Route.ViewBigbitAnswersPage maybeStoryID Nothing bigbitID questionID
                                 |> (\route -> ( Route.Route route, BaseMessage.GoTo { wipeModalError = False } route ))
-                        , answerQuestion = subMsg << AnswerQuestion bigbitID questionID
+                        , answerQuestion = ( answerQuestionQuery, RT.AnswerQuestion TidbitPointer.Bigbit )
+                        , answerRoute =
+                            Route.ViewBigbitAnswerPage
+                                (Route.getFromStoryQueryParamOnViewBigbitRoute shared.route)
+                                (Route.getTouringQuestionsQueryParamOnViewBigbitQARoute shared.route)
+                                bigbitID
                         }
-                        newAnswer
+                        { qa = qa, qaState = model.qaState, apiRequestTracker = shared.apiRequestTracker }
 
                 Nothing ->
                     Util.hiddenDiv

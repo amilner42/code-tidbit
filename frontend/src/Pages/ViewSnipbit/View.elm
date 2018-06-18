@@ -1,5 +1,6 @@
 module Pages.ViewSnipbit.View exposing (..)
 
+import Api
 import Array
 import DefaultServices.InfixFunctions exposing (..)
 import DefaultServices.Util as Util exposing (maybeMapWithDefault)
@@ -722,17 +723,27 @@ commentBox subMsg snipbit model shared =
                 newQuestion
 
         Route.ViewSnipbitAnswerQuestion maybeStoryID snipbitID questionID ->
-            case model.qa ||> .questions |||> QA.getQuestion questionID of
-                Just question ->
+            let
+                api =
+                    Api.api shared.flags.apiBaseUrl
+
+                answerQuestionQuery =
+                    api.post.answerQuestion
+                        { tidbitType = TidbitPointer.Snipbit, targetID = snipbitID }
+                        questionID
+            in
+            case model.qa of
+                Just qa ->
                     AnswerQuestion.view
-                        { subMsg = subMsg << AnswerQuestionMsg snipbitID question
+                        { subMsg = subMsg << AnswerQuestionMsg qa snipbitID
                         , textFieldKeyTracker = shared.textFieldKeyTracker
-                        , forQuestion = question
+                        , tidbitID = snipbitID
+                        , questionID = questionID
                         , answerQuestionRequestInProgress =
                             RT.isMakingRequest
                                 shared.apiRequestTracker
                                 (RT.AnswerQuestion TidbitPointer.Snipbit)
-                        , answerQuestion = subMsg << AnswerQuestion snipbitID questionID
+                        , answerQuestion = ( answerQuestionQuery, RT.AnswerQuestion TidbitPointer.Snipbit )
                         , allAnswersND =
                             Route.ViewSnipbitAnswersPage
                                 (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
@@ -740,10 +751,13 @@ commentBox subMsg snipbit model shared =
                                 snipbitID
                                 questionID
                                 |> (\route -> ( Route.Route route, BaseMessage.GoTo { wipeModalError = False } route ))
+                        , answerRoute =
+                            Route.ViewSnipbitAnswerPage
+                                (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
+                                (Route.getTouringQuestionsQueryParamOnViewSnipbitQARoute shared.route)
+                                snipbitID
                         }
-                        (QA.getNewAnswer snipbitID questionID model.qaState
-                            ?> QA.defaultNewAnswer
-                        )
+                        { qa = qa, qaState = model.qaState, apiRequestTracker = shared.apiRequestTracker }
 
                 -- Will never happen, if the question doesn't exist we will redirect.
                 Nothing ->

@@ -904,64 +904,21 @@ update (Common common) msg model shared =
             common.justSetModalError apiError
                 |> common.andFinishRequest (RT.UpdateQuestion TidbitPointer.Bigbit)
 
-        AnswerQuestionMsg bigbitID question answerQuestionMsg ->
+        AnswerQuestionMsg qa bigbitID answerQuestionMsg ->
             let
                 answerQuestionModel =
-                    QA.getNewAnswer bigbitID question.id model.qaState
-                        ?> QA.defaultNewAnswer
+                    { qa = qa, qaState = model.qaState, apiRequestTracker = shared.apiRequestTracker }
 
                 ( newAnswerQuestionModel, newAnswerQuestionMsg ) =
                     AnswerQuestion.update answerQuestionMsg answerQuestionModel
             in
             ( { model
-                | qaState =
-                    model.qaState
-                        |> QA.updateNewAnswer
-                            bigbitID
-                            question.id
-                            (always <| Just <| newAnswerQuestionModel)
+                | qaState = newAnswerQuestionModel.qaState
+                , qa = Just newAnswerQuestionModel.qa
               }
-            , shared
-            , Cmd.map (common.subMsg << AnswerQuestionMsg bigbitID question) newAnswerQuestionMsg
+            , { shared | apiRequestTracker = newAnswerQuestionModel.apiRequestTracker }
+            , Cmd.map (common.subMsg << AnswerQuestionMsg newAnswerQuestionModel.qa bigbitID) newAnswerQuestionMsg
             )
-
-        AnswerQuestion bigbitID questionID answerText ->
-            let
-                answerQuestionAction =
-                    common.justProduceCmd <|
-                        common.api.post.answerQuestion
-                            { tidbitType = TidbitPointer.Bigbit, targetID = bigbitID }
-                            questionID
-                            answerText
-                            (common.subMsg << OnAnswerQuestionFailure)
-                            (common.subMsg << OnAnswerQuestionSuccess bigbitID questionID)
-            in
-            common.makeSingletonRequest (RT.AnswerQuestion TidbitPointer.Bigbit) answerQuestionAction
-
-        OnAnswerQuestionSuccess bigbitID questionID answer ->
-            (case model.qa of
-                Just qa ->
-                    ( { model
-                        | qa = Just { qa | answers = QA.sortRateableContent <| answer :: qa.answers }
-                        , qaState = model.qaState |> QA.updateNewAnswer bigbitID questionID (always Nothing)
-                      }
-                    , shared
-                    , Route.navigateTo <|
-                        Route.ViewBigbitAnswerPage
-                            (Route.getFromStoryQueryParamOnViewBigbitRoute shared.route)
-                            (Route.getTouringQuestionsQueryParamOnViewBigbitQARoute shared.route)
-                            bigbitID
-                            answer.id
-                    )
-
-                Nothing ->
-                    common.doNothing
-            )
-                |> common.andFinishRequest (RT.AnswerQuestion TidbitPointer.Bigbit)
-
-        OnAnswerQuestionFailure apiError ->
-            common.justSetModalError apiError
-                |> common.andFinishRequest (RT.AnswerQuestion TidbitPointer.Bigbit)
 
         EditAnswerMsg bigbitID answer editAnswerMsg ->
             let
