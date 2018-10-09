@@ -52,9 +52,6 @@ type Msg
     | OnGetQASuccess Bool BigbitQA
     | OnGetQAFailure ApiError
     | AskQuestionMsg BigbitID AskQuestion.Msg
-    | AskQuestion BigbitID BigbitCodePointer QuestionText
-    | OnAskQuestionSuccess BigbitID BigbitQuestion
-    | OnAskQuestionFailure ApiError
     | EditQuestionMsg BigbitID BigbitQuestion EditQuestion.Msg
     | EditQuestion BigbitID QuestionID QuestionText BigbitCodePointer
     | OnEditQuestionSuccess BigbitID QuestionID QuestionText BigbitCodePointer Date

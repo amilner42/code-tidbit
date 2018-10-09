@@ -747,9 +747,7 @@ viewBigbitCommentBox subMsg bigbit model shared =
             AskQuestion.view
                 { subMsg = subMsg << AskQuestionMsg bigbitID
                 , textFieldKeyTracker = shared.textFieldKeyTracker
-                , askQuestionRequestInProgress =
-                    RT.isMakingRequest shared.apiRequestTracker (RT.AskQuestion TidbitPointer.Bigbit)
-                , askQuestion = subMsg <<< AskQuestion bigbitID
+                , tidbitPointer = { tidbitType = TidbitPointer.Bigbit, targetID = bigbitID }
                 , isReadyCodePointer = .range >> Range.isEmptyRange >> not
                 , allQuestionsND =
                     ( Route.Route <| Route.ViewBigbitQuestionsPage maybeStoryID bigbitID
@@ -759,7 +757,9 @@ viewBigbitCommentBox subMsg bigbit model shared =
                             (QA.getNewQuestion bigbitID model.qaState |||> .codePointer)
                     )
                 }
-                (QA.getNewQuestion bigbitID model.qaState ?> QA.defaultNewQuestion)
+                { qaState = model.qaState
+                , apiRequestTracker = shared.apiRequestTracker
+                }
 
         Route.ViewBigbitEditQuestion _ bigbitID questionID ->
             case model.qa ||> .questions |||> QA.getQuestion questionID of

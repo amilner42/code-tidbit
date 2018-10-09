@@ -641,44 +641,6 @@ update (Common common) msg model shared =
         OnMarkAsCompleteFailure apiError ->
             common.justSetModalError apiError
 
-        AskQuestion snipbitID codePointer questionText ->
-            let
-                askQuestionAction =
-                    common.justProduceCmd <|
-                        common.api.post.askQuestionOnSnipbit
-                            snipbitID
-                            questionText
-                            codePointer
-                            (common.subMsg << OnAskQuestionFailure)
-                            (common.subMsg << OnAskQuestionSuccess snipbitID)
-            in
-            common.makeSingletonRequest (RT.AskQuestion TidbitPointer.Snipbit) askQuestionAction
-
-        OnAskQuestionSuccess snipbitID question ->
-            (case model.qa of
-                Just qa ->
-                    ( { model
-                        | qa = Just { qa | questions = QA.sortRateableContent <| question :: qa.questions }
-                        , qaState = QA.updateNewQuestion snipbitID (always QA.defaultNewQuestion) model.qaState
-                      }
-                    , shared
-                    , Route.navigateTo <|
-                        Route.ViewSnipbitQuestionPage
-                            (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)
-                            Nothing
-                            snipbitID
-                            question.id
-                    )
-
-                Nothing ->
-                    common.doNothing
-            )
-                |> common.andFinishRequest (RT.AskQuestion TidbitPointer.Snipbit)
-
-        OnAskQuestionFailure apiError ->
-            common.justSetModalError apiError
-                |> common.andFinishRequest (RT.AskQuestion TidbitPointer.Snipbit)
-
         EditQuestion snipbitID questionID questionText range ->
             let
                 editQuestionAction =
@@ -884,14 +846,13 @@ update (Common common) msg model shared =
         AskQuestionMsg snipbitID askQuestionMsg ->
             let
                 askQuestionModel =
-                    QA.getNewQuestion snipbitID model.qaState
-                        |> Maybe.withDefault QA.defaultNewQuestion
+                    { qaState = model.qaState, apiRequestTracker = shared.apiRequestTracker }
 
                 ( newAskQuestionModel, newAskQuestionMsg ) =
                     AskQuestion.update askQuestionMsg askQuestionModel
             in
-            ( { model | qaState = QA.updateNewQuestion snipbitID (always newAskQuestionModel) model.qaState }
-            , shared
+            ( { model | qaState = newAskQuestionModel.qaState }
+            , { shared | apiRequestTracker = newAskQuestionModel.apiRequestTracker }
             , Cmd.map (common.subMsg << AskQuestionMsg snipbitID) newAskQuestionMsg
             )
 

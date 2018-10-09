@@ -46,9 +46,6 @@ type Msg
     | PreviousRelevantHC
     | OnMarkAsCompleteSuccess IsCompleted
     | OnMarkAsCompleteFailure ApiError
-    | AskQuestion SnipbitID Range QuestionText
-    | OnAskQuestionSuccess SnipbitID (Question Range)
-    | OnAskQuestionFailure ApiError
     | EditQuestion SnipbitID QuestionID QuestionText Range
     | OnEditQuestionSuccess SnipbitID QuestionID QuestionText Range Date
     | OnEditQuestionFailure ApiError

@@ -701,17 +701,10 @@ commentBox subMsg snipbit model shared =
                     Util.hiddenDiv
 
         Route.ViewSnipbitAskQuestion maybeStoryID snipbitID ->
-            let
-                newQuestion =
-                    QA.getNewQuestion snipbitID model.qaState
-                        |> Maybe.withDefault QA.defaultNewQuestion
-            in
             AskQuestion.view
                 { subMsg = subMsg << AskQuestionMsg snipbitID
                 , textFieldKeyTracker = shared.textFieldKeyTracker
-                , askQuestionRequestInProgress =
-                    RT.isMakingRequest shared.apiRequestTracker (RT.AskQuestion TidbitPointer.Snipbit)
-                , askQuestion = subMsg <<< AskQuestion snipbitID
+                , tidbitPointer = { tidbitType = TidbitPointer.Snipbit, targetID = snipbitID }
                 , isReadyCodePointer = not << Range.isEmptyRange
                 , allQuestionsND =
                     ( Route.Route <| Route.ViewSnipbitQuestionsPage maybeStoryID snipbitID
@@ -720,7 +713,9 @@ commentBox subMsg snipbit model shared =
                             (QA.getNewQuestion snipbitID model.qaState |||> .codePointer)
                     )
                 }
-                newQuestion
+                { qaState = model.qaState
+                , apiRequestTracker = shared.apiRequestTracker
+                }
 
         Route.ViewSnipbitAnswerQuestion maybeStoryID snipbitID questionID ->
             let

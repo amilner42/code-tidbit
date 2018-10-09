@@ -776,57 +776,15 @@ update (Common common) msg model shared =
         AskQuestionMsg bigbitID askQuestionMsg ->
             let
                 askQuestionModel =
-                    QA.getNewQuestion bigbitID model.qaState ?> QA.defaultNewQuestion
+                    { qaState = model.qaState, apiRequestTracker = shared.apiRequestTracker }
 
                 ( newAskQuestionModel, newAskQuestionMsg ) =
                     AskQuestion.update askQuestionMsg askQuestionModel
             in
-            ( { model | qaState = model.qaState |> QA.updateNewQuestion bigbitID (always newAskQuestionModel) }
-            , shared
+            ( { model | qaState = newAskQuestionModel.qaState }
+            , { shared | apiRequestTracker = newAskQuestionModel.apiRequestTracker }
             , Cmd.map (common.subMsg << AskQuestionMsg bigbitID) newAskQuestionMsg
             )
-
-        AskQuestion bigbitID codePointer questionText ->
-            let
-                askQuestionAction =
-                    common.justProduceCmd <|
-                        common.api.post.askQuestionOnBigbit
-                            bigbitID
-                            questionText
-                            codePointer
-                            (common.subMsg << OnAskQuestionFailure)
-                            (common.subMsg << OnAskQuestionSuccess bigbitID)
-            in
-            common.makeSingletonRequest (RT.AskQuestion TidbitPointer.Bigbit) askQuestionAction
-
-        OnAskQuestionSuccess bigbitID question ->
-            (case model.qa of
-                Just qa ->
-                    ( { model
-                        | qa = Just { qa | questions = QA.sortRateableContent <| question :: qa.questions }
-                        , qaState =
-                            QA.updateNewQuestion
-                                bigbitID
-                                (always QA.defaultNewQuestion)
-                                model.qaState
-                      }
-                    , shared
-                    , Route.navigateTo <|
-                        Route.ViewBigbitQuestionPage
-                            (Route.getFromStoryQueryParamOnViewBigbitRoute shared.route)
-                            (Route.getTouringQuestionsQueryParamOnViewBigbitQARoute shared.route)
-                            bigbitID
-                            question.id
-                    )
-
-                Nothing ->
-                    common.doNothing
-            )
-                |> common.andFinishRequest (RT.AskQuestion TidbitPointer.Bigbit)
-
-        OnAskQuestionFailure apiError ->
-            common.justSetModalError apiError
-                |> common.andFinishRequest (RT.AskQuestion TidbitPointer.Bigbit)
 
         EditQuestionMsg bigbitID question editQuestionMsg ->
             let
