@@ -17,9 +17,9 @@ import Models.TidbitPointer as TidbitPointer
 import ProjectTypeAliases exposing (..)
 
 
-type alias Model qaType qaStateType =
-    { qa : QA qaType
-    , qaState : QAState qaStateType
+type alias Model codePointer =
+    { qa : QA codePointer
+    , qaState : QAState codePointer
     , apiRequestTracker : RT.RequestTracker
     }
 
@@ -43,7 +43,7 @@ type alias RenderConfig msg =
     }
 
 
-view : RenderConfig msg -> Model qaType qaStateType -> Html msg
+view : RenderConfig msg -> Model codePointer -> Html msg
 view config model =
     case model.qa.questions |> getQuestion config.questionID of
         -- This element shouldn't be displayed if question is non-existant.
@@ -153,7 +153,7 @@ view config model =
                 ]
 
 
-update : Msg -> Model qaType qaStateType -> ( Model qaType qaStateType, Cmd Msg )
+update : Msg -> Model codePointer -> ( Model codePointer, Cmd Msg )
 update msg model =
     let
         updateNewAnswerState tidbitID questionID updater =
