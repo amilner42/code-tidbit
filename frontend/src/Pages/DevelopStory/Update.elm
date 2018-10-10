@@ -1,5 +1,6 @@
 module Pages.DevelopStory.Update exposing (..)
 
+import Api exposing (api)
 import DefaultServices.CommonSubPageUtil exposing (CommonSubPageUtil(..))
 import DefaultServices.Util as Util exposing (maybeMapWithDefault)
 import Models.RequestTracker as RT
@@ -38,14 +39,14 @@ update (Common common) msg model shared =
                       }
                     , shared
                     , Cmd.batch
-                        [ common.api.get.expandedStory
+                        [ api.get.expandedStory
                             storyID
                             (common.subMsg << OnGetStoryFailure)
                             (common.subMsg << OnGetStorySuccess)
                         , maybeMapWithDefault
                             (\{ id } ->
                                 if Util.isNothing shared.userTidbits then
-                                    common.api.get.tidbits
+                                    api.get.tidbits
                                         [ ( "author", Just id ) ]
                                         (common.subMsg << OnGetTidbitsFailure)
                                         (common.subMsg << OnGetTidbitsSuccess << Tuple.second)
@@ -94,7 +95,7 @@ update (Common common) msg model shared =
             let
                 publishAction =
                     common.justProduceCmd <|
-                        common.api.post.addTidbitsToStory
+                        api.post.addTidbitsToStory
                             storyID
                             (List.map Tidbit.compressTidbit tidbits)
                             (common.subMsg << OnPublishAddedTidbitsFailure)

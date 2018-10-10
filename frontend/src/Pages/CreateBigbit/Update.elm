@@ -1,5 +1,6 @@
 module Pages.CreateBigbit.Update exposing (..)
 
+import Api exposing (api)
 import Array
 import DefaultServices.CommonSubPageUtil exposing (CommonSubPageUtil(..), commonSubPageUtil)
 import DefaultServices.TextFields as TextFields
@@ -616,7 +617,7 @@ update (Common common) msg model shared =
             let
                 publishBigbitAction =
                     common.justProduceCmd <|
-                        common.api.post.createBigbit
+                        api.post.createBigbit
                             bigbit
                             (common.subMsg << OnPublishFailure)
                             (common.subMsg << OnPublishSuccess)

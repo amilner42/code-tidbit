@@ -1,5 +1,6 @@
 module Pages.NewStory.Update exposing (..)
 
+import Api exposing (api)
 import DefaultServices.CommonSubPageUtil exposing (CommonSubPageUtil(..))
 import DefaultServices.TextFields as TextFields
 import DefaultServices.Util as Util
@@ -39,7 +40,7 @@ update (Common common) msg model shared =
                                 , shared
                                 , Cmd.batch
                                     [ Util.domFocus (\_ -> BaseMessage.NoOp) theID
-                                    , common.api.get.story storyID
+                                    , api.get.story storyID
                                         (common.subMsg << OnGetEditingStoryFailure)
                                         (common.subMsg << OnGetEditingStorySuccess)
                                     ]
@@ -119,7 +120,7 @@ update (Common common) msg model shared =
             let
                 publishAction =
                     common.justProduceCmd <|
-                        common.api.post.createNewStory
+                        api.post.createNewStory
                             model.newStory
                             (common.subMsg << OnPublishFailure)
                             (common.subMsg << OnPublishSuccess)
@@ -159,7 +160,7 @@ update (Common common) msg model shared =
 
                 saveEditsAction =
                     common.justProduceCmd <|
-                        common.api.post.updateStoryInformation
+                        api.post.updateStoryInformation
                             storyID
                             editingStoryInformation
                             (common.subMsg << OnSaveEditsFailure)

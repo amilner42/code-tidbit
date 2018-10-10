@@ -1,5 +1,6 @@
 module Pages.Profile.Update exposing (..)
 
+import Api exposing (api)
 import DefaultServices.CommonSubPageUtil exposing (CommonSubPageUtil(..))
 import DefaultServices.Editable as Editable
 import DefaultServices.InfixFunctions exposing (..)
@@ -41,7 +42,7 @@ update (Common common) msg model shared =
 
                 updateNameAction validNewName =
                     common.justProduceCmd <|
-                        common.api.post.updateUser
+                        api.post.updateUser
                             { defaultUserUpdateRecord | name = Just validNewName }
                             (common.subMsg << OnSaveEditedNameFailure)
                             (common.subMsg << OnSaveEditedNameSuccess)
@@ -87,7 +88,7 @@ update (Common common) msg model shared =
 
                 updateBioAction newValidBio =
                     common.justProduceCmd <|
-                        common.api.post.updateUser
+                        api.post.updateUser
                             { defaultUserUpdateRecord | bio = Just newValidBio }
                             (common.subMsg << OnSaveBioEditedFailure)
                             (common.subMsg << OnSaveEditedBioSuccess)

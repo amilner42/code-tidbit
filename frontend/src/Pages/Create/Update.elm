@@ -1,5 +1,6 @@
 module Pages.Create.Update exposing (..)
 
+import Api exposing (api)
 import DefaultServices.CommonSubPageUtil exposing (CommonSubPageUtil(..))
 import DefaultServices.Util as Util
 import Models.Route as Route
@@ -22,7 +23,7 @@ update (Common common) msg model shared =
                         (\{ id } ->
                             if Util.isNothing shared.userStories then
                                 common.justProduceCmd <|
-                                    common.api.get.stories
+                                    api.get.stories
                                         [ ( "author", Just id ), ( "includeEmptyStories", Just "true" ) ]
                                         (common.subMsg << OnGetAccountStoriesFailure)
                                         (common.subMsg << OnGetAccountStoriesSuccess << Tuple.second)

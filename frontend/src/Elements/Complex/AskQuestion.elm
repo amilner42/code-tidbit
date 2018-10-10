@@ -1,5 +1,6 @@
 module Elements.Complex.AskQuestion exposing (..)
 
+import Api exposing (api)
 import DefaultServices.InfixFunctions exposing (..)
 import DefaultServices.TextFields as TextFields
 import DefaultServices.Util as Util
@@ -165,7 +166,7 @@ update msg model =
 --     let
 --         askQuestionAction =
 --             common.justProduceCmd <|
---                 common.api.post.askQuestionOnSnipbit
+--                 api.post.askQuestionOnSnipbit
 --                     snipbitID
 --                     questionText
 --                     codePointer

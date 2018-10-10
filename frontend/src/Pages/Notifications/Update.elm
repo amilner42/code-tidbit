@@ -1,5 +1,6 @@
 module Pages.Notifications.Update exposing (..)
 
+import Api exposing (api)
 import DefaultServices.CommonSubPageUtil exposing (CommonSubPageUtil(..))
 import DefaultServices.InfixFunctions exposing (..)
 import DefaultServices.Util as Util
@@ -27,7 +28,7 @@ update (Common common) msg model shared =
                     else
                         common.makeSingletonRequest (RT.SetNotificationRead notificationID) <|
                             common.justProduceCmd <|
-                                common.api.post.setNotificationRead
+                                api.post.setNotificationRead
                                     notificationID
                                     True
                                     (common.subMsg << OnSetNotificationReadFailure notificationID)
@@ -40,7 +41,7 @@ update (Common common) msg model shared =
                     if Util.isNotNothing shared.user then
                         common.makeSingletonRequest RT.GetNotifications <|
                             common.justProduceCmd <|
-                                common.api.get.notifications
+                                api.get.notifications
                                     []
                                     (common.subMsg << OnGetInitialNotificationsFailure)
                                     (common.subMsg << OnGetInitialNotificationsSuccess)
@@ -65,7 +66,7 @@ update (Common common) msg model shared =
         SetNotificationRead notificationID read ->
             common.makeSingletonRequest (RT.SetNotificationRead notificationID) <|
                 common.justProduceCmd <|
-                    common.api.post.setNotificationRead
+                    api.post.setNotificationRead
                         notificationID
                         read
                         (common.subMsg << OnSetNotificationReadFailure notificationID)
@@ -94,7 +95,7 @@ update (Common common) msg model shared =
         LoadMoreNotifications currentNotifications ->
             common.makeSingletonRequest RT.GetNotifications <|
                 common.justProduceCmd <|
-                    common.api.get.notifications
+                    api.get.notifications
                         [ ( "pageNumber", Just <| toString model.pageNumber ) ]
                         (common.subMsg << OnLoadMoreNotificationsFailure)
                         (common.subMsg << OnLoadMoreNotificationsSuccess currentNotifications)

@@ -1,6 +1,6 @@
 module Pages.ViewSnipbit.View exposing (..)
 
-import Api
+import Api exposing (api)
 import Array
 import DefaultServices.InfixFunctions exposing (..)
 import DefaultServices.Util as Util exposing (maybeMapWithDefault)
@@ -719,9 +719,6 @@ commentBox subMsg snipbit model shared =
 
         Route.ViewSnipbitAnswerQuestion maybeStoryID snipbitID questionID ->
             let
-                api =
-                    Api.api shared.flags.apiBaseUrl
-
                 answerQuestionQuery =
                     api.post.answerQuestion
                         { tidbitType = TidbitPointer.Snipbit, targetID = snipbitID }

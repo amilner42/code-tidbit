@@ -1,5 +1,6 @@
 module Pages.Update exposing (update, updateCacheIf)
 
+import Api exposing (api)
 import Array
 import DefaultServices.BasePageUtil as BasePageUtil
 import DefaultServices.CommonSubPageUtil exposing (commonSubPageUtil)
@@ -114,7 +115,7 @@ updateCacheIf msg model shouldCache =
                        then regardless we trigger a page refresh to trigger route hooks.
                     -}
                     basePageUtil.justProduceCmd <|
-                        basePageUtil.api.get.account OnGetUserAndThenRefreshFailure OnGetUserAndThenRefreshSuccess
+                        api.get.account OnGetUserAndThenRefreshFailure OnGetUserAndThenRefreshSuccess
 
                 OnGetUserAndThenRefreshSuccess user ->
                     let
@@ -419,10 +420,10 @@ updateCacheIf msg model shouldCache =
                 LogOut ->
                     basePageUtil.makeSingletonRequest
                         RT.Logout
-                        ( model, basePageUtil.api.get.logOut OnLogOutFailure OnLogOutSuccess )
+                        ( model, api.get.logOut OnLogOutFailure OnLogOutSuccess )
 
                 OnLogOutSuccess basicResponse ->
-                    ( defaultModel model.shared.route model.shared.flags
+                    ( defaultModel model.shared.route
                     , Route.navigateTo <| Route.RegisterPage Nothing
                     )
                         |> basePageUtil.andFinishRequest RT.Logout

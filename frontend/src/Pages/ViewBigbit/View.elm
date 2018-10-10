@@ -1,6 +1,6 @@
 module Pages.ViewBigbit.View exposing (..)
 
-import Api
+import Api exposing (api)
 import Array
 import DefaultServices.InfixFunctions exposing (..)
 import DefaultServices.Util as Util exposing (maybeMapWithDefault)
@@ -784,9 +784,6 @@ viewBigbitCommentBox subMsg bigbit model shared =
 
         Route.ViewBigbitAnswerQuestion maybeStoryID bigbitID questionID ->
             let
-                api =
-                    Api.api shared.flags.apiBaseUrl
-
                 answerQuestionQuery =
                     api.post.answerQuestion
                         { tidbitType = TidbitPointer.Bigbit, targetID = bigbitID }

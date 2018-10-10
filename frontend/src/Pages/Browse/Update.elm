@@ -1,5 +1,6 @@
 module Pages.Browse.Update exposing (..)
 
+import Api exposing (api)
 import DefaultServices.CommonSubPageUtil exposing (CommonSubPageUtil(..))
 import DefaultServices.Util as Util
 import Models.RequestTracker as RT
@@ -204,7 +205,7 @@ update (Common common) msg model shared =
                 , \(Common common) ( model, shared ) ->
                     if Util.isValidEmail newAuthorInput then
                         common.justProduceCmd <|
-                            common.api.post.userExists
+                            api.post.userExists
                                 newAuthorInput
                                 (common.subMsg << OnGetUserExistsFailure)
                                 (common.subMsg << OnGetUserExistsSuccess << (,) newAuthorInput)
@@ -258,7 +259,7 @@ performSearch (Common common) ( model, shared ) =
         {- Get's the content with specific query params. -}
         getContent : QueryParams -> Cmd BaseMessage.Msg
         getContent queryParams =
-            common.api.get.content
+            api.get.content
                 queryParams
                 (common.subMsg << OnGetContentFailure searchSettings)
                 (common.subMsg << OnGetContentSuccess searchSettings)

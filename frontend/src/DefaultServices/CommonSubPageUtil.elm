@@ -26,7 +26,6 @@ type CommonSubPageUtil model shared subMsg baseMsg
         , handleAll :
             List (CommonSubPageUtil model shared subMsg baseMsg -> ( model, shared ) -> ( model, shared, Cmd baseMsg ))
             -> ( model, shared, Cmd baseMsg )
-        , api : Api.API baseMsg
         , justSetModalError : ApiError.ApiError -> ( model, shared, Cmd.Cmd baseMsg )
         , makeSingletonRequest :
             RT.TrackedRequest -> ( model, shared, Cmd.Cmd baseMsg ) -> ( model, shared, Cmd.Cmd baseMsg )
@@ -72,7 +71,6 @@ commonSubPageUtil subMsg model shared =
         , doNothing = ( model, shared, Cmd.none )
         , withCmd = withCmd
         , handleAll = handleAll
-        , api = Api.api shared.flags.apiBaseUrl
         , justSetModalError = \apiError -> ( model, { shared | apiModalError = Just apiError }, Cmd.none )
         , makeSingletonRequest =
             \trackedRequest ( newModel, newShared, newCmd ) ->

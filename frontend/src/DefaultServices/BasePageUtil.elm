@@ -24,7 +24,6 @@ type BasePageUtil msg
         , withCmd : Cmd.Cmd msg -> ( BaseModel.Model, Cmd.Cmd msg ) -> ( BaseModel.Model, Cmd.Cmd msg )
         , handleAll :
             List (BasePageUtil msg -> BaseModel.Model -> ( BaseModel.Model, Cmd msg )) -> ( BaseModel.Model, Cmd msg )
-        , api : Api.API msg
         , justSetModalError : ApiError.ApiError -> ( BaseModel.Model, Cmd.Cmd msg )
         , makeSingletonRequest : RT.TrackedRequest -> ( BaseModel.Model, Cmd.Cmd msg ) -> ( BaseModel.Model, Cmd.Cmd msg )
         , andFinishRequest : RT.TrackedRequest -> ( BaseModel.Model, Cmd.Cmd msg ) -> ( BaseModel.Model, Cmd.Cmd msg )
@@ -63,7 +62,6 @@ basePageUtil model =
         , doNothing = ( model, Cmd.none )
         , withCmd = withCmd
         , handleAll = handleAll
-        , api = Api.api model.shared.flags.apiBaseUrl
         , justSetModalError =
             \apiError ->
                 ( BaseModel.updateShared model (\shared -> { shared | apiModalError = Just apiError })

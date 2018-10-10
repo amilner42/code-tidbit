@@ -5,7 +5,7 @@ var HtmlWebpackPlugin = require('html-webpack-plugin');
 var autoprefixer = require('autoprefixer');
 var ExtractTextPlugin = require('extract-text-webpack-plugin');
 var CopyWebpackPlugin = require('copy-webpack-plugin');
-
+var StringReplacePlugin = require('string-replace-webpack-plugin');
 
 const prod = 'production';
 const dev = 'development';
@@ -54,7 +54,8 @@ var commonConfig = {
             options: {
                 postcss: [autoprefixer()]
             }
-        })
+        }),
+        new StringReplacePlugin()
     ]
 }
 
@@ -73,6 +74,19 @@ if (isDev === true) {
         },
         module: {
             rules: [{
+                // TODO is this a good way to do this? Why does it not work when selecting Api.elm?
+                test: /\.elm$/,
+                loader: StringReplacePlugin.replace({
+                    replacements: [
+                        {
+                            pattern: /__WEBPACK_CONSTANT_API_BASE_URL__/g,
+                            replacement: function (match, p1, offset, string) {
+                               return "http://localhost:3001/api/";
+                            }
+                       }
+                   ]
+               })
+            },{
                 test: /\.elm$/,
                 exclude: [/elm-stuff/, /node_modules/],
                 use: [{
@@ -89,10 +103,6 @@ if (isDev === true) {
             }]
         },
         plugins: [
-            new webpack.DefinePlugin({
-            __WEBPACK_CONSTANT_API_BASE_URL__: JSON.stringify("http://localhost:3001/api/")
-            }),
-
             // Repeated because it doesn't merge with webpack-merge.
             new HtmlWebpackPlugin({
                 template: 'src/index.html',
@@ -110,6 +120,19 @@ if (isProd === true) {
         entry: entryPath,
         module: {
             rules: [{
+                // TODO is this a good way to do this? Why does it not work when selecting Api.elm?
+                test: /\.elm$/,
+                loader: StringReplacePlugin.replace({
+                    replacements: [
+                        {
+                            pattern: /__WEBPACK_CONSTANT_API_BASE_URL__/g,
+                            replacement: function (match, p1, offset, string) {
+                               return "http://api.codetidbit.com/";
+                            }
+                       }
+                   ]
+               })
+            },{
                 test: /\.elm$/,
                 exclude: [/elm-stuff/, /node_modules/],
                 use: 'elm-webpack-loader'
@@ -119,13 +142,10 @@ if (isProd === true) {
                     fallback: 'style-loader',
                     use: ['css-loader', 'postcss-loader', 'sass-loader']
                 })
-            }]
+            }
+            ]
         },
         plugins: [
-            new webpack.DefinePlugin({
-            __WEBPACK_CONSTANT_API_BASE_URL__: JSON.stringify("http://api.codetidbit.com/")
-            }),
-
             // Repeated because it doesn't merge with webpack-merge.
             new HtmlWebpackPlugin({
                 template: 'src/index.html',

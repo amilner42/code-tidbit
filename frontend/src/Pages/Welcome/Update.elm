@@ -1,5 +1,6 @@
 module Pages.Welcome.Update exposing (update)
 
+import Api exposing (api)
 import DefaultServices.CommonSubPageUtil exposing (CommonSubPageUtil(..))
 import Models.ApiError as ApiError
 import Models.RequestTracker as RT
@@ -41,7 +42,7 @@ update (Common common) msg model shared =
             let
                 registerAction =
                     common.justProduceCmd <|
-                        common.api.post.register
+                        api.post.register
                             { name = model.name
                             , email = model.email
                             , password = model.password
@@ -76,7 +77,7 @@ update (Common common) msg model shared =
             let
                 loginAction =
                     common.justProduceCmd <|
-                        common.api.post.login
+                        api.post.login
                             { email = model.email, password = model.password }
                             (common.subMsg << OnLoginFailure)
                             (common.subMsg << OnLoginSuccess)

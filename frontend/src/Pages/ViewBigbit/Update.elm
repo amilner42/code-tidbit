@@ -1,5 +1,6 @@
 module Pages.ViewBigbit.Update exposing (..)
 
+import Api exposing (api)
 import Array
 import DefaultServices.CommonSubPageUtil exposing (CommonSubPageUtil(..), commonSubPageUtil)
 import DefaultServices.Editable as Editable
@@ -109,7 +110,7 @@ update (Common common) msg model shared =
                                 getBigbit =
                                     ( setBigbit Nothing model
                                     , shared
-                                    , common.api.get.bigbit
+                                    , api.get.bigbit
                                         bigbitID
                                         (common.subMsg << OnGetBigbitFailure)
                                         (common.subMsg << OnGetBigbitSuccess requireLoadingQAPreRender)
@@ -144,7 +145,7 @@ update (Common common) msg model shared =
                                 getBigbitIsCompleted userID =
                                     ( setIsCompleted Nothing model
                                     , shared
-                                    , common.api.post.checkCompleted
+                                    , api.post.checkCompleted
                                         (Completed.Completed currentTidbitPointer userID)
                                         (common.subMsg << OnGetCompletedFailure)
                                         (common.subMsg << OnGetCompletedSuccess << Completed.IsCompleted currentTidbitPointer)
@@ -173,7 +174,7 @@ update (Common common) msg model shared =
                                 getOpinion =
                                     ( { model | possibleOpinion = Nothing }
                                     , shared
-                                    , common.api.get.opinion
+                                    , api.get.opinion
                                         contentPointer
                                         (common.subMsg << OnGetOpinionFailure)
                                         (common.subMsg << OnGetOpinionSuccess << Opinion.PossibleOpinion contentPointer)
@@ -198,7 +199,7 @@ update (Common common) msg model shared =
                                     Maybe.map .id shared.viewingStory
 
                                 getStory storyID =
-                                    common.api.get.expandedStoryWithCompleted
+                                    api.get.expandedStoryWithCompleted
                                         storyID
                                         (common.subMsg << OnGetExpandedStoryFailure)
                                         (common.subMsg << OnGetExpandedStorySuccess)
@@ -221,7 +222,7 @@ update (Common common) msg model shared =
                                 getQA =
                                     ( { model | qa = Nothing }
                                     , shared
-                                    , common.api.get.bigbitQA
+                                    , api.get.bigbitQA
                                         bigbitID
                                         (common.subMsg << OnGetQAFailure)
                                         (common.subMsg << OnGetQASuccess requireLoadingQAPreRender)
@@ -281,7 +282,7 @@ update (Common common) msg model shared =
                                                     ?> False
                                         in
                                         if isCompleted.complete == False && isLastFrame then
-                                            common.api.post.addCompleted
+                                            api.post.addCompleted
                                                 completed
                                                 (common.subMsg << OnMarkAsCompleteFailure)
                                                 (always <|
@@ -538,7 +539,7 @@ update (Common common) msg model shared =
             let
                 addOpinionAction =
                     common.justProduceCmd <|
-                        common.api.post.addOpinion
+                        api.post.addOpinion
                             opinion
                             (common.subMsg << OnAddOpinionFailure)
                             (always <| common.subMsg <| OnAddOpinionSuccess opinion)
@@ -557,7 +558,7 @@ update (Common common) msg model shared =
             let
                 removeOpinionAction =
                     common.justProduceCmd <|
-                        common.api.post.removeOpinion
+                        api.post.removeOpinion
                             opinion
                             (common.subMsg << OnRemoveOpinionFailure)
                             (always <| common.subMsg <| OnRemoveOpinionSuccess opinion)
@@ -811,7 +812,7 @@ update (Common common) msg model shared =
             let
                 editQuestionAction =
                     common.justProduceCmd <|
-                        common.api.post.editQuestionOnBigbit
+                        api.post.editQuestionOnBigbit
                             bigbitID
                             questionID
                             questionText
@@ -901,7 +902,7 @@ update (Common common) msg model shared =
             let
                 updateAnswerAction =
                     common.justProduceCmd <|
-                        common.api.post.editAnswer
+                        api.post.editAnswer
                             { tidbitType = TidbitPointer.Bigbit, targetID = bigbitID }
                             answerID
                             answerText
@@ -974,14 +975,14 @@ update (Common common) msg model shared =
                     common.justProduceCmd <|
                         case maybeVote of
                             Nothing ->
-                                common.api.post.removeQuestionRating
+                                api.post.removeQuestionRating
                                     { tidbitType = TidbitPointer.Bigbit, targetID = bigbitID }
                                     questionID
                                     (common.subMsg << OnRateQuestionFailure)
                                     (always <| common.subMsg <| OnRateQuestionSuccess questionID maybeVote)
 
                             Just vote ->
-                                common.api.post.rateQuestion
+                                api.post.rateQuestion
                                     { tidbitType = TidbitPointer.Bigbit, targetID = bigbitID }
                                     questionID
                                     vote
@@ -1004,14 +1005,14 @@ update (Common common) msg model shared =
                     common.justProduceCmd <|
                         case maybeVote of
                             Nothing ->
-                                common.api.post.removeAnswerRating
+                                api.post.removeAnswerRating
                                     { tidbitType = TidbitPointer.Bigbit, targetID = bigbitID }
                                     answerID
                                     (common.subMsg << OnRateAnswerFailure)
                                     (always <| common.subMsg <| OnRateAnswerSuccess answerID maybeVote)
 
                             Just vote ->
-                                common.api.post.rateAnswer
+                                api.post.rateAnswer
                                     { tidbitType = TidbitPointer.Bigbit, targetID = bigbitID }
                                     answerID
                                     vote
@@ -1035,7 +1036,7 @@ update (Common common) msg model shared =
             let
                 pinQuestionAction =
                     common.justProduceCmd <|
-                        common.api.post.pinQuestion
+                        api.post.pinQuestion
                             { tidbitType = TidbitPointer.Bigbit, targetID = bigbitID }
                             questionID
                             pinQuestion
@@ -1056,7 +1057,7 @@ update (Common common) msg model shared =
             let
                 pinAnswerAction =
                     common.justProduceCmd <|
-                        common.api.post.pinAnswer
+                        api.post.pinAnswer
                             { tidbitType = TidbitPointer.Bigbit, targetID = bigbitID }
                             answerID
                             pinAnswer
@@ -1080,7 +1081,7 @@ update (Common common) msg model shared =
             let
                 deleteAnswerAction =
                     common.justProduceCmd <|
-                        common.api.post.deleteAnswer
+                        api.post.deleteAnswer
                             { tidbitType = TidbitPointer.Bigbit, targetID = bigbitID }
                             answerID
                             (common.subMsg << OnDeleteAnswerFailure)
@@ -1130,7 +1131,7 @@ update (Common common) msg model shared =
             let
                 submitQuestionCommentAction =
                     common.justProduceCmd <|
-                        common.api.post.commentOnQuestion
+                        api.post.commentOnQuestion
                             { tidbitType = TidbitPointer.Bigbit, targetID = bigbitID }
                             questionID
                             commentText
@@ -1157,7 +1158,7 @@ update (Common common) msg model shared =
             let
                 submitAnswerCommentAction =
                     common.justProduceCmd <|
-                        common.api.post.commentOnAnswer
+                        api.post.commentOnAnswer
                             { tidbitType = TidbitPointer.Bigbit, targetID = bigbitID }
                             questionID
                             answerID
@@ -1185,7 +1186,7 @@ update (Common common) msg model shared =
             let
                 deleteQuestionCommentAction =
                     common.justProduceCmd <|
-                        common.api.post.deleteQuestionComment
+                        api.post.deleteQuestionComment
                             { tidbitType = TidbitPointer.Bigbit, targetID = bigbitID }
                             commentID
                             (common.subMsg << OnDeleteCommentOnQuestionFailure commentID)
@@ -1211,7 +1212,7 @@ update (Common common) msg model shared =
             let
                 deleteAnswerCommentAction =
                     common.justProduceCmd <|
-                        common.api.post.deleteAnswerComment
+                        api.post.deleteAnswerComment
                             { tidbitType = TidbitPointer.Bigbit, targetID = bigbitID }
                             commentID
                             (common.subMsg << OnDeleteCommentOnAnswerFailure commentID)
@@ -1237,7 +1238,7 @@ update (Common common) msg model shared =
             let
                 editQuestionCommentAction =
                     common.justProduceCmd <|
-                        common.api.post.editQuestionComment
+                        api.post.editQuestionComment
                             { tidbitType = TidbitPointer.Bigbit, targetID = bigbitID }
                             commentID
                             commentText
@@ -1267,7 +1268,7 @@ update (Common common) msg model shared =
             let
                 editAnswerCommentAction =
                     common.justProduceCmd <|
-                        common.api.post.editAnswerComment
+                        api.post.editAnswerComment
                             { tidbitType = TidbitPointer.Bigbit, targetID = bigbitID }
                             commentID
                             commentText

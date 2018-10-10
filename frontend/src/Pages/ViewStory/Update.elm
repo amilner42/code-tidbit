@@ -1,5 +1,6 @@
 module Pages.ViewStory.Update exposing (..)
 
+import Api exposing (api)
 import DefaultServices.CommonSubPageUtil exposing (CommonSubPageUtil(..), commonSubPageUtil)
 import Models.ContentPointer as ContentPointer
 import Models.Opinion exposing (PossibleOpinion, toPossibleOpinion)
@@ -31,7 +32,7 @@ update (Common common) msg model shared =
                             , { shared | viewingStory = Nothing }
                             , Cmd.batch
                                 [ Ports.smoothScrollToSubBar
-                                , common.api.get.expandedStoryWithCompleted
+                                , api.get.expandedStoryWithCompleted
                                     mongoID
                                     (common.subMsg << OnGetExpandedStoryFailure)
                                     (common.subMsg << OnGetExpandedStorySuccess)
@@ -49,7 +50,7 @@ update (Common common) msg model shared =
                                 getOpinion =
                                     ( { model | possibleOpinion = Nothing }
                                     , shared
-                                    , common.api.get.opinion
+                                    , api.get.opinion
                                         contentPointer
                                         (common.subMsg << OnGetOpinionFailure)
                                         (common.subMsg << OnGetOpinionSuccess << PossibleOpinion contentPointer)
@@ -92,7 +93,7 @@ update (Common common) msg model shared =
             let
                 addOpinionAction =
                     common.justProduceCmd <|
-                        common.api.post.addOpinion
+                        api.post.addOpinion
                             opinion
                             (common.subMsg << OnAddOpinionFailure)
                             (always <| common.subMsg <| OnAddOpinionSuccess opinion)
@@ -111,7 +112,7 @@ update (Common common) msg model shared =
             let
                 removeOpinionAction =
                     common.justProduceCmd <|
-                        common.api.post.removeOpinion
+                        api.post.removeOpinion
                             opinion
                             (common.subMsg << OnRemoveOpinionFailure)
                             (always <| common.subMsg <| OnRemoveOpinionSuccess opinion)

@@ -2,7 +2,6 @@ module Pages.DefaultModel exposing (..)
 
 import Dict
 import Elements.Simple.Editor as Editor
-import Flags exposing (Flags)
 import Keyboard.Extra as KK
 import Models.Route as Route
 import Pages.Browse.Init as BrowseInit
@@ -26,9 +25,9 @@ NOTE: This default model is outside of `Pages/Init.elm` to avoid circular depend
 to `defaultShared`.
 
 -}
-defaultModel : Route.Route -> Flags -> Model.Model
-defaultModel route flags =
-    { shared = defaultShared route flags
+defaultModel : Route.Route -> Model.Model
+defaultModel route =
+    { shared = defaultShared route
     , welcomePage = WelcomeInit.init
     , viewSnipbitPage = ViewSnipbitInit.init
     , viewBigbitPage = ViewBigbitInit.init
@@ -46,8 +45,8 @@ defaultModel route flags =
 
 {-| The defult shared model.
 -}
-defaultShared : Route.Route -> Flags -> Model.Shared
-defaultShared route flags =
+defaultShared : Route.Route -> Model.Shared
+defaultShared route =
     { user = Nothing
     , route = route
     , languages = Editor.humanReadableListOfLanguages
@@ -55,7 +54,6 @@ defaultShared route flags =
     , userStories = Nothing
     , userTidbits = Nothing
     , viewingStory = Nothing
-    , flags = flags
     , apiModalError = Nothing
     , userNeedsAuthModal = Nothing
     , apiRequestTracker = Dict.empty

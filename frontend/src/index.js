@@ -35,7 +35,8 @@ require("./Elements/Simple/Tags.scss");
 
 var AceRange = ace.require('ace/range').Range;
 
-var flags = { apiBaseUrl: __WEBPACK_CONSTANT_API_BASE_URL__ };
+// Put flags here if needed.
+var flags = { };
 
 var Elm = require('./Main.elm');
 var mountNode = document.getElementById('main');

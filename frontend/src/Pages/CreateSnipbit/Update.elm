@@ -1,5 +1,6 @@
 module Pages.CreateSnipbit.Update exposing (..)
 
+import Api exposing (api)
 import Array
 import Autocomplete as AC
 import DefaultServices.ArrayExtra as ArrayExtra
@@ -397,7 +398,7 @@ update (Common common) msg model shared =
             let
                 publishSnipbitAction =
                     common.justProduceCmd <|
-                        common.api.post.createSnipbit
+                        api.post.createSnipbit
                             snipbit
                             (common.subMsg << OnPublishFailure)
                             (common.subMsg << OnPublishSuccess)

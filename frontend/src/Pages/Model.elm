@@ -2,7 +2,6 @@ module Pages.Model exposing (..)
 
 import DefaultServices.TextFields as TextFields
 import Elements.Simple.Editor as Editor
-import Flags exposing (Flags)
 import Keyboard.Extra as KK
 import Models.ApiError as ApiError
 import Models.RequestTracker as RT
@@ -60,7 +59,6 @@ type alias Shared =
     , userStories : Maybe (List Story.Story)
     , userTidbits : Maybe (List Tidbit.Tidbit)
     , viewingStory : Maybe Story.ExpandedStory
-    , flags : Flags
     , apiModalError : Maybe ApiError.ApiError
     , userNeedsAuthModal : Maybe String
     , apiRequestTracker : RT.RequestTracker

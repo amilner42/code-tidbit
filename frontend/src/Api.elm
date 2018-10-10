@@ -215,13 +215,14 @@ type alias API msg =
 
 
 {-| The access point to the API.
-
-Currently takes the API base url as configuration (different in prod and dev).
-
 -}
-api : String -> API msg
-api apiBaseUrl =
+api : API msg
+api =
     let
+        -- Webpack will set this
+        apiBaseUrl =
+            "__WEBPACK_CONSTANT_API_BASE_URL__"
+
         {- Helper for querying the API (GET), automatically adds the apiBaseUrl prefix. -}
         makeGETEndpoint : String -> Decode.Decoder response -> Endpoint response msg
         makeGETEndpoint url =

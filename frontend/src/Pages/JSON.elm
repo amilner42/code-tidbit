@@ -80,7 +80,6 @@ sharedEncoder shared =
         , ( "userStories", Encode.null )
         , ( "userTidbits", Encode.null )
         , ( "viewingStory", Encode.null )
-        , ( "flags", Encode.null )
         , ( "apiModalError", Encode.null )
         , ( "userNeedsAuthModal", Encode.null )
         , ( "apiRequestTracker", Encode.null )
@@ -101,7 +100,6 @@ sharedDecoder shared =
         |> hardcoded Nothing
         |> hardcoded Nothing
         |> hardcoded Nothing
-        |> required "flags" (Decode.succeed shared.flags)
         |> hardcoded Nothing
         |> hardcoded Nothing
         |> hardcoded Dict.empty
