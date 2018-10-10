@@ -1,6 +1,5 @@
 module Pages.ViewSnipbit.View exposing (..)
 
-import Api exposing (api)
 import Array
 import DefaultServices.InfixFunctions exposing (..)
 import DefaultServices.Util as Util exposing (maybeMapWithDefault)
@@ -718,24 +717,13 @@ commentBox subMsg snipbit model shared =
                 }
 
         Route.ViewSnipbitAnswerQuestion maybeStoryID snipbitID questionID ->
-            let
-                answerQuestionQuery =
-                    api.post.answerQuestion
-                        { tidbitType = TidbitPointer.Snipbit, targetID = snipbitID }
-                        questionID
-            in
             case model.qa of
                 Just qa ->
                     AnswerQuestion.view
                         { subMsg = subMsg << AnswerQuestionMsg qa snipbitID
                         , textFieldKeyTracker = shared.textFieldKeyTracker
-                        , tidbitID = snipbitID
+                        , tidbitPointer = { targetID = snipbitID, tidbitType = TidbitPointer.Snipbit }
                         , questionID = questionID
-                        , answerQuestionRequestInProgress =
-                            RT.isMakingRequest
-                                shared.apiRequestTracker
-                                (RT.AnswerQuestion TidbitPointer.Snipbit)
-                        , answerQuestion = ( answerQuestionQuery, RT.AnswerQuestion TidbitPointer.Snipbit )
                         , allAnswersND =
                             Route.ViewSnipbitAnswersPage
                                 (Route.getFromStoryQueryParamOnViewSnipbitRoute shared.route)

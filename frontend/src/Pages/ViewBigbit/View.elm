@@ -1,6 +1,5 @@
 module Pages.ViewBigbit.View exposing (..)
 
-import Api exposing (api)
 import Array
 import DefaultServices.InfixFunctions exposing (..)
 import DefaultServices.Util as Util exposing (maybeMapWithDefault)
@@ -783,27 +782,16 @@ viewBigbitCommentBox subMsg bigbit model shared =
                     Util.hiddenDiv
 
         Route.ViewBigbitAnswerQuestion maybeStoryID bigbitID questionID ->
-            let
-                answerQuestionQuery =
-                    api.post.answerQuestion
-                        { tidbitType = TidbitPointer.Bigbit, targetID = bigbitID }
-                        questionID
-            in
             case model.qa of
                 Just qa ->
                     AnswerQuestion.view
                         { subMsg = subMsg << AnswerQuestionMsg qa bigbitID
                         , textFieldKeyTracker = shared.textFieldKeyTracker
-                        , tidbitID = bigbitID
+                        , tidbitPointer = { targetID = bigbitID, tidbitType = TidbitPointer.Bigbit }
                         , questionID = questionID
-                        , answerQuestionRequestInProgress =
-                            RT.isMakingRequest
-                                shared.apiRequestTracker
-                                (RT.AnswerQuestion TidbitPointer.Bigbit)
                         , allAnswersND =
                             Route.ViewBigbitAnswersPage maybeStoryID Nothing bigbitID questionID
                                 |> (\route -> ( Route.Route route, BaseMessage.GoTo { wipeModalError = False } route ))
-                        , answerQuestion = ( answerQuestionQuery, RT.AnswerQuestion TidbitPointer.Bigbit )
                         , answerRoute =
                             Route.ViewBigbitAnswerPage
                                 (Route.getFromStoryQueryParamOnViewBigbitRoute shared.route)

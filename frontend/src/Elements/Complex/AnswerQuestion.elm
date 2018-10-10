@@ -1,6 +1,6 @@
 module Elements.Complex.AnswerQuestion exposing (..)
 
-import Api
+import Api exposing (api)
 import DefaultServices.InfixFunctions exposing (..)
 import DefaultServices.TextFields as TextFields
 import DefaultServices.Util as Util
@@ -13,6 +13,7 @@ import Models.ApiError exposing (ApiError)
 import Models.QA exposing (..)
 import Models.RequestTracker as RT
 import Models.Route as Route
+import Models.TidbitPointer as TidbitPointer
 import ProjectTypeAliases exposing (..)
 
 
@@ -35,11 +36,9 @@ type Msg
 type alias RenderConfig msg =
     { subMsg : Msg -> msg
     , textFieldKeyTracker : TextFields.KeyTracker
-    , tidbitID : TidbitID
+    , tidbitPointer : TidbitPointer.TidbitPointer
     , questionID : QuestionID
-    , answerQuestionRequestInProgress : Bool
     , allAnswersND : Route.NavigationData msg
-    , answerQuestion : ( AnswerText -> Api.Endpoint Answer Msg, RT.TrackedRequest )
     , answerRoute : AnswerID -> Route.Route
     }
 
@@ -54,7 +53,7 @@ view config model =
         Just { questionText } ->
             let
                 { previewMarkdown, showQuestion, answerText } =
-                    getNewAnswer config.tidbitID config.questionID model.qaState
+                    getNewAnswer config.tidbitPointer.targetID config.questionID model.qaState
                         ?> defaultNewAnswer
 
                 maybeReadyAnswer =
@@ -62,6 +61,9 @@ view config model =
 
                 isAnswerReady =
                     Util.isNotNothing maybeReadyAnswer
+
+                answerQuestionRequestInProgress =
+                    RT.isMakingRequest model.apiRequestTracker <| RT.AnswerQuestion config.tidbitPointer.tidbitType
             in
             div
                 [ class "answer-question" ]
@@ -77,7 +79,7 @@ view config model =
                         [ ( "display-question", True )
                         , ( "hidden", previewMarkdown )
                         ]
-                    , onClick <| config.subMsg <| ToggleShowQuestion config.tidbitID config.questionID
+                    , onClick <| config.subMsg <| ToggleShowQuestion config.tidbitPointer.targetID config.questionID
                     ]
                     [ text <|
                         if showQuestion then
@@ -98,7 +100,7 @@ view config model =
                         , ( "previewing-markdown", previewMarkdown )
                         , ( "hiding-question", not showQuestion )
                         ]
-                    , onClick <| config.subMsg <| TogglePreviewMarkdown config.tidbitID config.questionID
+                    , onClick <| config.subMsg <| TogglePreviewMarkdown config.tidbitPointer.targetID config.questionID
                     ]
                     [ text <|
                         if previewMarkdown then
@@ -116,11 +118,11 @@ view config model =
                             "answer-question"
                             [ classList
                                 [ ( "hiding-question", not showQuestion )
-                                , ( "cursor-progress", config.answerQuestionRequestInProgress )
+                                , ( "cursor-progress", answerQuestionRequestInProgress )
                                 ]
                             , placeholder answerQuestionPlaceholder
-                            , disabled config.answerQuestionRequestInProgress
-                            , onInput (config.subMsg << OnAnswerTextInput config.tidbitID config.questionID)
+                            , disabled answerQuestionRequestInProgress
+                            , onInput (config.subMsg << OnAnswerTextInput config.tidbitPointer.targetID config.questionID)
                             , defaultValue answerText
                             ]
                         , Util.limitCharsText 1000 answerText
@@ -133,17 +135,17 @@ view config model =
                                 [ ( "answer-question-submit", True )
                                 , ( "hidden", previewMarkdown )
                                 , ( "not-ready", not isAnswerReady )
-                                , ( "cursor-progress", config.answerQuestionRequestInProgress )
+                                , ( "cursor-progress", answerQuestionRequestInProgress )
                                 ]
                         , maybeReadyAnswer
                             ||> (onClick
                                     << config.subMsg
                                     << AnswerQuestion
-                                        config.tidbitID
+                                        config.tidbitPointer.targetID
                                         config.questionID
-                                        (Tuple.second config.answerQuestion)
+                                        (RT.AnswerQuestion config.tidbitPointer.tidbitType)
                                         config.answerRoute
-                                    << Tuple.first config.answerQuestion
+                                    << api.post.answerQuestion config.tidbitPointer config.questionID
                                 )
                         ]
                     )
