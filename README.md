@@ -16,6 +16,20 @@ Browse and Create Powerful Tutorials
 >
 > I'm still in school but will have a bit of time this summer to continue working on
 > CodeTidbit. I probably won't put it back online but I will continue adding features.
+>
+> December 20th, 2018
+>
+> I probably won't be working much more on this app, I have other ideas that take priority.
+> I don't think this idea will reach fruition.
+
+> [WARNING]
+>
+> This was created when Elm was newer and ideas about how to structure apps were still being developed.
+> This codebase uses a component-centric approach, which is not at all ideal in Elm.
+> I'll be updating my [meen kickstarter](https://github.com/amilner42/meen-kickstarter) to reflect a better
+> approach to developing in Elm, which is more [data structure oriented](https://www.youtube.com/watch?v=x1FU3e0sT1I).
+> For this reason, **I do NOT recommend using this codebase as a guide**.
+
 
 ### Set Up
 
