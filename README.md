@@ -1,5 +1,6 @@
 # Code Tidbit
-Browse and Create Powerful Tutorials
+
+**NOT UNDER ACTIVE DEVELOPMENT**
 
 > [ PROJECT STATUS UPDATES ]
 >
